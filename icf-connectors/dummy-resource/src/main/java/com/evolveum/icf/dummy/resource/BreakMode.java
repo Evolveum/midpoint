@@ -20,7 +20,7 @@ package com.evolveum.icf.dummy.resource;
  *
  */
 public enum BreakMode {
-	
+
 	NONE,
 	NETWORK,
 	IO,

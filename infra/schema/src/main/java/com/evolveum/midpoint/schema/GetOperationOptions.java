@@ -49,7 +49,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	 *   <li>Items marked as INCLUDE will be returned.</li>
 	 *   <li>Any item marked as EXCLUDE may not be returned. (Note: Excluded items may still be returned if their retrieval is cheap.)</li>
 	 *   <li>Items marked as DEFAULT will be returned if they would also be returned without any options (by default).</li>
-	 *   <li>Items that are not marked (have no option or have null retrieve option) but their superitem is marked (have retrieve option) 
+	 *   <li>Items that are not marked (have no option or have null retrieve option) but their superitem is marked (have retrieve option)
 	 *       behave in the same way as superitem. E.g. if a superitem is marked as
 	 *       INCLUDE they will also be included in the result. This also applies transitively (e.g. superitem of superitem).
 	 *   <li>If a superitem is marked as EXCLUDE and subitem is marked as INCLUDE then the behavior is undefined. Do not do this. Strange things may happen.</li>
@@ -59,7 +59,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	 *  </ul>
 	 */
 	private RetrieveOption retrieve;
-	
+
 	/**
 	 * Resolve the object reference. This only makes sense with a (path-based) selector.
 	 */
@@ -76,13 +76,13 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	 * Such operation returns only the data stored in midPoint repository.
 	 */
 	private Boolean noFetch;
-	
+
 	/**
 	 * Avoid any smart processing of the data except for schema application. Do not synchronize the data, do not apply
 	 * any expressions, etc.
 	 */
 	private Boolean raw;
-	
+
 	/**
 	 * Tolerate "raw" data in returned object. In some cases, raw data are tolerated by default (e.g. if raw=true
 	 * and the object is ResourceType or ShadowType). But generally, toleration of raw data can be explicitly requested
@@ -96,9 +96,9 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	 * from the gui, for example
 	 */
 	private Boolean doNotDiscovery;
-	
+
 	private RelationalValueSearchQuery relationalValueSearchQuery;
-	
+
 	/**
 	 * This flag indicated if the "object not found" error is critical for
 	 * processing the original request. If it is not, we just ignore it and
@@ -106,7 +106,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	 * information..
 	 */
 	private Boolean allowNotFound;
-	
+
 	/**
 	 * Return read-only object. The returned object will be only read by the client. The client will not modify it.
 	 * Immutable object is returned if it is possible.
@@ -114,7 +114,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	 * at all times when the client do not plan to modify the returned object.
 	 */
 	private Boolean readOnly;
-	
+
 	/**
 	 * Specifies the point in time for the returned data. This option controls whether fresh or cached data will
 	 * be returned or whether future data projection will be returned. MidPoint usually deals with fresh data
@@ -126,9 +126,9 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	 * data.
 	 */
 	private PointInTimeType pointInTimeType;
-	
+
 	/**
-	 * Requirement how stale or fresh the retrieved data should be. It specifies maximum age of the value in millisecods. 
+	 * Requirement how stale or fresh the retrieved data should be. It specifies maximum age of the value in millisecods.
 	 * The default value is zero, which means that a fresh value must always be returned. This means that caches that do
 	 * not guarantee fresh value cannot be used. If non-zero value is specified then such caches may be used. In case that
 	 * Long.MAX_VALUE is specified then the caches are always used and fresh value is never retrieved.
@@ -161,14 +161,14 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	public void setRetrieve(RetrieveOption retrieve) {
 		this.retrieve = retrieve;
 	}
-	
+
 	public static RetrieveOption getRetrieve(GetOperationOptions options) {
 		if (options == null) {
 			return null;
 		}
 		return options.retrieve;
 	}
-	
+
 	public static GetOperationOptions createRetrieve(RetrieveOption retrieve) {
 		GetOperationOptions options = new GetOperationOptions();
 		options.retrieve = retrieve;
@@ -189,7 +189,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	 *   <li>Items marked as INCLUDE will be returned.</li>
 	 *   <li>Any item marked as EXCLUDE may not be returned. (Note: Excluded items may still be returned if their retrieval is cheap.)</li>
 	 *   <li>Items marked as DEFAULT will be returned if they would also be returned without any options (by default).</li>
-	 *   <li>Items that are not marked (have no option or have null retrieve option) but their superitem is marked (have retrieve option) 
+	 *   <li>Items that are not marked (have no option or have null retrieve option) but their superitem is marked (have retrieve option)
 	 *       behave in the same way as superitem. E.g. if a superitem is marked as
 	 *       INCLUDE they will also be included in the result. This also applies transitively (e.g. superitem of superitem).
 	 *   <li>If a superitem is marked as EXCLUDE and subitem is marked as INCLUDE then the behavior is undefined. Do not do this. Strange things may happen.</li>
@@ -216,7 +216,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	 *   <li>Items marked as INCLUDE will be returned.</li>
 	 *   <li>Any item marked as EXCLUDE may not be returned. (Note: Excluded items may still be returned if their retrieval is cheap.)</li>
 	 *   <li>Items marked as DEFAULT will be returned if they would also be returned without any options (by default).</li>
-	 *   <li>Items that are not marked (have no option or have null retrieve option) but their superitem is marked (have retrieve option) 
+	 *   <li>Items that are not marked (have no option or have null retrieve option) but their superitem is marked (have retrieve option)
 	 *       behave in the same way as superitem. E.g. if a superitem is marked as
 	 *       INCLUDE they will also be included in the result. This also applies transitively (e.g. superitem of superitem).
 	 *   <li>If a superitem is marked as EXCLUDE and subitem is marked as INCLUDE then the behavior is undefined. Do not do this. Strange things may happen.</li>
@@ -243,7 +243,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	 *   <li>Items marked as INCLUDE will be returned.</li>
 	 *   <li>Any item marked as EXCLUDE may not be returned. (Note: Excluded items may still be returned if their retrieval is cheap.)</li>
 	 *   <li>Items marked as DEFAULT will be returned if they would also be returned without any options (by default).</li>
-	 *   <li>Items that are not marked (have no option or have null retrieve option) but their superitem is marked (have retrieve option) 
+	 *   <li>Items that are not marked (have no option or have null retrieve option) but their superitem is marked (have retrieve option)
 	 *       behave in the same way as superitem. E.g. if a superitem is marked as
 	 *       INCLUDE they will also be included in the result. This also applies transitively (e.g. superitem of superitem).
 	 *   <li>If a superitem is marked as EXCLUDE and subitem is marked as INCLUDE then the behavior is undefined. Do not do this. Strange things may happen.</li>
@@ -266,7 +266,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	public void setResolve(Boolean resolve) {
 		this.resolve = resolve;
 	}
-	
+
 	public static boolean isResolve(GetOperationOptions options) {
 		if (options == null) {
 			return false;
@@ -276,7 +276,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		}
 		return options.resolve;
 	}
-	
+
 	/**
 	 * Resolve the object reference. This only makes sense with a (path-based) selector.
 	 */
@@ -322,7 +322,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	public void setNoFetch(Boolean noFetch) {
 		this.noFetch = noFetch;
 	}
-	
+
 	public static boolean isNoFetch(GetOperationOptions options) {
 		if (options == null) {
 			return false;
@@ -332,7 +332,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		}
 		return options.noFetch;
 	}
-	
+
 	 /**
 		 * No not fetch any information from external sources, e.g. do not fetch account data from resource,
 		 * do not fetch resource schema, etc.
@@ -364,7 +364,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	public void setResolveNames(Boolean resolveNames) {
 		this.resolveNames = resolveNames;
 	}
-	
+
 	public static boolean isResolveNames(GetOperationOptions options) {
 		if (options == null) {
 			return false;
@@ -374,7 +374,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		}
 		return options.resolveNames;
 	}
-	
+
 	/**
      * Resolve the object reference names.
      */
@@ -465,7 +465,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	public void setDoNotDiscovery(Boolean force) {
 		this.doNotDiscovery = force;
 	}
-	
+
 	public static boolean isDoNotDiscovery(GetOperationOptions options) {
 		if (options == null) {
 			return false;
@@ -475,7 +475,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		}
 		return options.doNotDiscovery;
 	}
-	
+
 	/**
 	 * Force to get object from the resource even if some of the error occurred.
 	 * If the any copy of the shadow is fetched, we can't delete this object
@@ -486,7 +486,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		opts.setDoNotDiscovery(true);
 		return opts;
 	}
-	
+
 	/**
 	 * This flag indicated if the "object not found" error is critical for
 	 * processing the original request. If it is not, we just ignore it and
@@ -498,7 +498,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		opts.setAllowNotFound(true);
 		return opts;
 	}
-	
+
 	public Boolean getAllowNotFound() {
 		return allowNotFound;
 	}
@@ -506,7 +506,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	public void setAllowNotFound(Boolean allowNotFound) {
 		this.allowNotFound = allowNotFound;
 	}
-	
+
 	public static boolean isAllowNotFound(GetOperationOptions options) {
 		if (options == null) {
 			return false;
@@ -516,7 +516,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		}
 		return options.allowNotFound;
 	}
-	
+
 	/**
 	 * Return read-only object. The returned object will be only read by the client. The client will not modify it.
 	 * Immutable object is returned if it is possible.
@@ -528,7 +528,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		opts.setReadOnly(true);
 		return opts;
 	}
-	
+
 	public Boolean getReadOnly() {
 		return readOnly;
 	}
@@ -536,7 +536,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	public void setReadOnly(Boolean readOnly) {
 		this.readOnly = readOnly;
 	}
-	
+
 	public static boolean isReadOnly(GetOperationOptions options) {
 		if (options == null) {
 			return false;
@@ -546,7 +546,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		}
 		return options.readOnly;
 	}
-	
+
 	public PointInTimeType getPointInTimeType() {
 		return pointInTimeType;
 	}
@@ -554,7 +554,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	public void setPointInTimeType(PointInTimeType pointInTimeType) {
 		this.pointInTimeType = pointInTimeType;
 	}
-	
+
 	/**
 	 * Specifies the point in time for the returned data. This option controls whether fresh or cached data will
 	 * be returned or whether future data projection will be returned. MidPoint usually deals with fresh data
@@ -570,7 +570,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		opts.setPointInTimeType(pit);
 		return opts;
 	}
-	
+
 	public static PointInTimeType getPointInTimeType(GetOperationOptions options) {
 		if (options == null) {
 			return null;
@@ -588,9 +588,9 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	public void setStaleness(Long staleness) {
 		this.staleness = staleness;
 	}
-	
+
 	/**
-	 * Requirement how stale or fresh the retrieved data should be. It specifies maximum age of the value in millisecods. 
+	 * Requirement how stale or fresh the retrieved data should be. It specifies maximum age of the value in millisecods.
 	 * The default value is zero, which means that a fresh value must always be returned. This means that caches that do
 	 * not guarantee fresh value cannot be used. If non-zero value is specified then such caches may be used. In case that
 	 * Long.MAX_VALUE is specified then the caches are always used and fresh value is never retrieved.
@@ -600,13 +600,13 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		opts.setStaleness(staleness);
 		return opts;
 	}
-	
+
 	public static GetOperationOptions createMaxStaleness() {
 		GetOperationOptions opts = new GetOperationOptions();
 		opts.setStaleness(Long.MAX_VALUE);
 		return opts;
 	}
-	
+
 	public static long getStaleness(GetOperationOptions options) {
 		if (options == null) {
 			return 0L;
@@ -616,7 +616,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		}
 		return options.getStaleness();
 	}
-	
+
 	public static boolean isMaxStaleness(GetOperationOptions options) {
 		return GetOperationOptions.getStaleness(options) == Long.MAX_VALUE;
 	}

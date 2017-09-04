@@ -31,7 +31,7 @@ import org.w3c.dom.Node;
  *
  */
 public class UglyHacks {
-	
+
 	// We hope that nobody will chose a crazy name like this. We don't want to use namespaces
 	// here as that may be messed up as well.
 	private static final String FORTIFIED_NAMESPACE_DECLARATIONS_ELEMENT_NAME = "FORtiFIed__xmlNS";
@@ -77,7 +77,7 @@ public class UglyHacks {
 		sb.append(originalXml.substring(iEndOfElementName));
 		return sb.toString();
 	}
-	
+
 	public static void fortifyNamespaceDeclarations(Node node) {
 		DomElementVisitor visitor = new DomElementVisitor() {
 			@Override
@@ -87,9 +87,9 @@ public class UglyHacks {
 		};
 		DomVisitorUtil.visitElements(node, visitor);
 	}
-	
+
 	public static void fortifyNamespaceDeclarationsSingleElement(Element element) {
-		List<String> xmlnss = new ArrayList<String>(); 
+		List<String> xmlnss = new ArrayList<String>();
 		NamedNodeMap attributes = element.getAttributes();
 		for(int i=0; i<attributes.getLength(); i++) {
 			Attr attr = (Attr)attributes.item(i);
@@ -110,7 +110,7 @@ public class UglyHacks {
 				unfortifyNamespaceDeclarationsSingleElement(element);
 			}
 		};
-		DomVisitorUtil.visitElements(node, visitor);		
+		DomVisitorUtil.visitElements(node, visitor);
 	}
 
 	public static void unfortifyNamespaceDeclarationsSingleElement(Element element) {

@@ -38,7 +38,7 @@ public class ConfigurationStorage implements PageStorage {
     public Search getSearch() {
         return debugSearchDto.getSearch();
     }
-    
+
     @Override
     public void setSearch(Search search) {
     	debugSearchDto.setSearch(search);
@@ -47,7 +47,7 @@ public class ConfigurationStorage implements PageStorage {
     public void setDebugSearchDto(DebugSearchDto debugSearchDto) {
         this.debugSearchDto = debugSearchDto;
     }
-    
+
     public DebugSearchDto getDebugSearchDto() {
 		return debugSearchDto;
 	}

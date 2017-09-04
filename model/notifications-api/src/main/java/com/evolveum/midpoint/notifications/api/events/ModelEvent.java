@@ -64,7 +64,7 @@ public class ModelEvent extends BaseEvent {
     public ModelElementContext getFocusContext() {
         return modelContext.getFocusContext();
     }
-    
+
     public Collection<ModelElementContext> getProjectionContexts() {
         return modelContext.getProjectionContexts();
     }

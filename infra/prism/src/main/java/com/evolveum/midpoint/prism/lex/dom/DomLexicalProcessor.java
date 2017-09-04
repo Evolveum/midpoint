@@ -66,7 +66,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 	public DomLexicalProcessor(@NotNull SchemaRegistry schemaRegistry) {
 		this.schemaRegistry = schemaRegistry;
 	}
-	
+
 	@Deprecated
 	public XNode read(File file, ParsingContext parsingContext) throws SchemaException, IOException {
 		return read(new ParserFileSource(file), parsingContext);
@@ -184,7 +184,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 		xroot.setSubnode(xnode);
 		return xroot;
 	}
-	
+
 	private void extractCommonMetadata(Element element, XNode xnode) throws SchemaException {
 		QName xsiType = DOMUtil.resolveXsiType(element);
 		if (xsiType != null) {
@@ -200,7 +200,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 			xnode.setMaxOccurs(maxOccurs);
 		}
 	}
-	
+
 	private int parseMultiplicity(String maxOccursString, Element element) throws SchemaException {
 		if (PrismConstants.MULTIPLICITY_UNBONUNDED.equals(maxOccursString)) {
 			return -1;
@@ -423,11 +423,11 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
             return "ValueParser(DOMe, "+PrettyPrinter.prettyPrint(DOMUtil.getQName(element))+": "+element.getTextContent()+")";
         }
     }
-    
+
     private static class PrimitiveAttributeParser<T> implements ValueParser<T>, Serializable {
-   			
+
     	private Attr attr;
-    	
+
     	public PrimitiveAttributeParser(Attr attr) {
 			this.attr = attr;
 		}
@@ -463,7 +463,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 		xnode.setValueParser(new PrimitiveValueParser<>(element));
 		return xnode;
 	}
-		
+
 	private static <T> T parsePrimitiveElementValue(Element element, QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
 		try {
 			if (ItemPathType.COMPLEX_TYPE.equals(typeName)) {
@@ -622,7 +622,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 			throw new IllegalArgumentException("Cannot serialized "+xnode+" to element");
 		}
 	}
-	
+
 	public Element serializeSingleElementMapToElement(MapXNode xmap) throws SchemaException {
 		if (xmap == null || xmap.isEmpty()) {
 			return null;
@@ -632,5 +632,5 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 		return DOMUtil.getFirstChildElement(parent);
 	}
 
-	
+
 }

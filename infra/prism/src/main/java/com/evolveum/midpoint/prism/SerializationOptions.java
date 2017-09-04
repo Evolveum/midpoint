@@ -35,7 +35,7 @@ public class SerializationOptions implements Cloneable {
     public void setSerializeReferenceNames(boolean serializeReferenceNames) {
         this.serializeReferenceNames = serializeReferenceNames;
     }
-    
+
     public static SerializationOptions createSerializeReferenceNames(){
     	SerializationOptions serializationOptions = new SerializationOptions();
     	serializationOptions.setSerializeReferenceNames(true);

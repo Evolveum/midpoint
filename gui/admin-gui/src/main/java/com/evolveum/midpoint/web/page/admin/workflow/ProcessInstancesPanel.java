@@ -208,7 +208,7 @@ public class ProcessInstancesPanel extends BasePanel {
     }
 
 	// copied and adapted from WorkItemsPanel - TODO deduplicate
-	
+
 	IColumn<ProcessInstanceDto, String> createObjectNameColumn(final String headerKey) {
 		return new LinkColumn<ProcessInstanceDto>(createStringResource(headerKey), ProcessInstanceDto.F_OBJECT_NAME) {
 

@@ -37,7 +37,7 @@ public class ExecuteChangesHandlerPanel extends QueryBasedHandlerPanel<ExecuteCh
 		initLayout();
 		setOutputMarkupId(true);
 	}
-	
+
 	private void initLayout() {
 		WebMarkupContainer changeContainer = new WebMarkupContainer(ID_CHANGE_CONTAINER);
 		TextArea change = new TextArea<>(ID_CHANGE, new PropertyModel<>(getModel(), ExecuteChangesHandlerDto.F_OBJECT_DELTA_XML));

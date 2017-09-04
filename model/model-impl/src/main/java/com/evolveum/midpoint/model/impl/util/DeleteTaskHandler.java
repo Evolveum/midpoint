@@ -71,27 +71,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 @Component
 public class DeleteTaskHandler implements TaskHandler {
-	
+
 	public static final String HANDLER_URI = ModelPublicConstants.DELETE_TASK_HANDLER_URI;
 
 	public static final long PROGRESS_UPDATE_INTERVAL = 3000L;
 
 	@Autowired(required=true)
 	protected TaskManager taskManager;
-	
+
 	@Autowired(required=true)
 	protected ModelService modelService;
-	
+
 	@Autowired(required = true)
 	protected PrismContext prismContext;
-	
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(DeleteTaskHandler.class);
 
 	@PostConstruct
 	private void initialize() {
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
-	
+
 	@Override
 	public TaskRunResult run(Task task) {
 		try {
@@ -101,16 +101,16 @@ public class DeleteTaskHandler implements TaskHandler {
 			updateState(task);
 		}
 	}
-	
+
 	public <O extends ObjectType> TaskRunResult runInternal(Task task) {
 		LOGGER.trace("Delete task run starting ({})", task);
 		long startTimestamp = System.currentTimeMillis();
-		
+
 		OperationResult opResult = new OperationResult("DeleteTask.run");
 		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
-		
+
 		opResult.setSummarizeErrors(true);
 		opResult.setSummarizePartialErrors(true);
 		opResult.setSummarizeSuccesses(true);
@@ -126,7 +126,7 @@ public class DeleteTaskHandler implements TaskHandler {
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
-        
+
         Class<O> objectType;
 		QName objectTypeName;
         PrismProperty<QName> objectTypePrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
@@ -139,7 +139,7 @@ public class DeleteTaskHandler implements TaskHandler {
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
-		
+
         ObjectQuery query;
         try {
         	 query = QueryJaxbConvertor.createObjectQuery(objectType, queryType, prismContext);
@@ -152,34 +152,34 @@ public class DeleteTaskHandler implements TaskHandler {
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
-        		
+
         boolean optionRaw = true;
         PrismProperty<Boolean> optionRawPrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OPTION_RAW);
         if (optionRawPrismProperty != null && optionRawPrismProperty.getRealValue() != null && !optionRawPrismProperty.getRealValue()) {
         	optionRaw = false;
         }
-        
+
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Deleting {}, raw={} using query:\n{}", 
+			LOGGER.trace("Deleting {}, raw={} using query:\n{}",
 					new Object[]{objectType.getSimpleName(), optionRaw, query.debugDump()});
 		}
 
-		
+
 		boolean countObjectsOnStart = true; // TODO
 		long progress = 0;
-		
+
 		Integer maxSize = 100;
 		ObjectPaging paging = ObjectPaging.createPaging(0, maxSize);
 		query.setPaging(paging);
 		query.setAllowPartialResults(true);
-		
+
 		Collection<SelectorOptions<GetOperationOptions>> searchOptions = null;
 		ModelExecuteOptions execOptions = null;
 		if (optionRaw) {
 			searchOptions = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 			execOptions = ModelExecuteOptions.createRaw();
 		}
-		
+
 		try {
 
             // counting objects can be within try-catch block, because the handling is similar to handling errors within searchIterative
@@ -207,17 +207,17 @@ public class DeleteTaskHandler implements TaskHandler {
 
             SearchResultList<PrismObject<O>> objects;
             while (true) {
-            	
+
 	            objects = modelService.searchObjects(objectType, query, searchOptions, task, opResult);
-	            
+
 	            if (objects.isEmpty()) {
 	            	break;
 	            }
-	            
+
 	            int skipped = 0;
 	            for(PrismObject<O> object: objects) {
-	            	
-	            	if (!optionRaw && ShadowType.class.isAssignableFrom(objectType) 
+	
+	            	if (!optionRaw && ShadowType.class.isAssignableFrom(objectType)
 	            			&& Boolean.TRUE == ((ShadowType)(object.asObjectable())).isProtectedObject()) {
 	            		LOGGER.debug("Skipping delete of protected object {}", object);
 	            		skipped++;
@@ -252,14 +252,14 @@ public class DeleteTaskHandler implements TaskHandler {
 
 				opResult.summarize();
 	            if (LOGGER.isTraceEnabled()) {
-	            	LOGGER.trace("Search returned {} objects, {} skipped, progress: {}, result:\n{}", 
+	            	LOGGER.trace("Search returned {} objects, {} skipped, progress: {}, result:\n{}",
 		            		new Object[]{objects.size(), skipped, progress, opResult.debugDump()});
 	            }
-	            
+
 	            if (objects.size() == skipped) {
 	            	break;
 	            }
-	            
+
             }
 
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
@@ -294,18 +294,18 @@ public class DeleteTaskHandler implements TaskHandler {
         opResult.createSubresult(DeleteTaskHandler.class.getName() + ".statistics").recordStatus(OperationResultStatus.SUCCESS, statistics);
 
         LOGGER.info(finishMessage + statistics);
-        
+
         LOGGER.trace("Run finished (task {}, run result {})", new Object[]{task, runResult});
 
         return runResult;
-		
+
 	}
 
     @Override
     public Long heartbeat(Task task) {
     	return task.getProgress();
     }
-    
+
     @Override
     public void refreshStatus(Task task) {
         // Local task. No refresh needed. The Task instance has always fresh data.
@@ -325,5 +325,5 @@ public class DeleteTaskHandler implements TaskHandler {
 		task.storeOperationStats();
 		// includes savePendingModifications - this is necessary for the progress to be immediately available in GUI
 	}
-	
+
 }

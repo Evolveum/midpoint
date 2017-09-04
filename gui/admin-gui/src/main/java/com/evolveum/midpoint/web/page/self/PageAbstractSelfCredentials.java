@@ -73,7 +73,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     private static final String ID_TAB_PANEL = "tabPanel";
     private static final String ID_SAVE_BUTTON = "save";
     private static final String ID_CANCEL_BUTTON = "cancel";
-    
+
     private static final Trace LOGGER = TraceManager.getTrace(PageAbstractSelfCredentials.class);
     private static final String DOT_CLASS = PageSelfCredentials.class.getName() + ".";
     private static final String OPERATION_LOAD_USER_WITH_ACCOUNTS = DOT_CLASS + "loadUserWithAccounts";
@@ -210,7 +210,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 return new ChangePasswordPanel(panelId, isCheckOldPassword(), model, model.getObject());
             }
         });
-        
+
         TabbedPanel<ITab> credentialsTabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, this, tabs, null);
         credentialsTabPanel.setOutputMarkupId(true);
 
@@ -225,7 +225,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         AjaxSubmitButton save = new AjaxSubmitButton(ID_SAVE_BUTTON, createStringResource("PageBase.button.save")) {
 
         	private static final long serialVersionUID = 1L;
-        	
+
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
                 target.add(getFeedbackPanel());
@@ -242,7 +242,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         AjaxSubmitButton cancel = new AjaxSubmitButton(ID_CANCEL_BUTTON, createStringResource("PageBase.button.back")) {
 
         	private static final long serialVersionUID = 1L;
-        	
+
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
                 onCancelPerformed(target);
@@ -272,7 +272,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
         PasswordAccountDto passwordAccountDto = new PasswordAccountDto(account.getOid(), WebComponentUtil.getName(account),
                 resourceName, WebComponentUtil.isActivationEnabled(account));
-        
+
         passwordAccountDto.setPasswordOutbound(getPasswordOutbound(account));
         passwordAccountDto.setPasswordCapabilityEnabled(hasPasswordCapability(account));
         return passwordAccountDto;
@@ -367,9 +367,9 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             password.setEncryptedData(data);
         }
     }
-    
+
     protected abstract boolean isCheckOldPassword();
-    
+
     protected abstract void finishChangePassword(OperationResult result, AjaxRequestTarget target);
 
     private List<PasswordAccountDto> getSelectedAccountsList(){
@@ -423,7 +423,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             RefinedObjectClassDefinition rOCDef = getModelInteractionService().getEditObjectClassDefinition(shadow,
                     shadow.asObjectable().getResource().asPrismObject(),
                     AuthorizationPhaseType.REQUEST);
-            
+
             if (rOCDef != null && rOCDef.getPasswordOutbound() != null ){
                 return true;
             }
@@ -433,11 +433,11 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         return false;
     }
 
-    
+
     private boolean hasPasswordCapability(PrismObject<ShadowType> shadow) {
-        
+
          return ResourceTypeUtil.isPasswordCapabilityEnabled(shadow.asObjectable().getResource());
-        
+
     }
 
     public PrismObject<UserType> getUser() {
@@ -460,7 +460,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         }
         return credentialsPolicyType;
     }
-    
+
     protected MyPasswordsDto getModelObject() {
     	return model.getObject();
     }

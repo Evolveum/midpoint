@@ -28,7 +28,7 @@ public class TestCompareJson extends TestCompare {
 	protected String getFilenameSuffix() {
 		return "json";
 	}
-	
+
 	@Test
 	public void test(){
 	}

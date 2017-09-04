@@ -68,9 +68,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 /**
- * 
+ *
  * @author mederly
- * 
+ *
  */
 @Service
 public class ModelWebServiceRaw implements Provider<DOMSource> {
@@ -89,10 +89,10 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
 
     @Autowired
 	private ModelWebService ws;
-	
+
 	@Autowired
 	private PrismContext prismContext;
-	
+
     @Override
     public DOMSource invoke(DOMSource request) {
         try {
@@ -208,7 +208,7 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
 
         return new DOMSource(response);
     }
-	
+
 	private void serializeFaultMessage(Detail detail, FaultMessage faultMessage) {
 		MiscSchemaUtil.serializeFaultMessage(detail, faultMessage, prismContext, LOGGER);
 	}

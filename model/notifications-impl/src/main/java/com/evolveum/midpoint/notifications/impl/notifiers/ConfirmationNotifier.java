@@ -51,7 +51,7 @@ public class ConfirmationNotifier extends GeneralNotifier {
 
 	@Autowired
 	private NotificationFunctionsImpl notificationsUtil;
-	
+
 
 	@PostConstruct
 	public void init() {
@@ -72,23 +72,23 @@ public class ConfirmationNotifier extends GeneralNotifier {
 	public String getConfirmationLink(UserType userType) {
 		throw new UnsupportedOperationException("Please implement in concrete notifier");
 	}
-	
+
 	protected String createConfirmationLink(UserType userType, GeneralNotifierType generalNotifierType, OperationResult result) {
-		
-			
+
+
 		ConfirmationNotifierType userRegistrationNotifier = (ConfirmationNotifierType) generalNotifierType;
-		
+
 		RegistrationConfirmationMethodType confirmationMethod = userRegistrationNotifier.getConfirmationMethod();
-		
+
 		if (confirmationMethod == null) {
 			return null;
 		}
 		ExpressionEnvironment expressionEnv = new ExpressionEnvironment();
 		expressionEnv.setCurrentResult(result);
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(expressionEnv);
-		
+
 		try {
-		
+
 			switch (confirmationMethod) {
 				case LINK:
 					String confirmationLink = getConfirmationLink(userType);
@@ -99,23 +99,23 @@ public class ConfirmationNotifier extends GeneralNotifier {
 				default:
 					break;
 			}
-			
+
 		} finally {
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
-		
+
 		return null;
-		
+
 	}
-	
+
 	protected UserType getUser(Event event){
 		ModelEvent modelEvent = (ModelEvent) event;
         PrismObject<UserType> newUser = modelEvent.getFocusContext().getObjectNew();
         UserType userType = newUser.asObjectable();
         return userType;
 	}
-	
-	
+
+
 	@Override
 	protected Trace getLogger() {
 		return LOGGER;

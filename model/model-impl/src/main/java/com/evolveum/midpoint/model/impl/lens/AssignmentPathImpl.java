@@ -34,21 +34,21 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class AssignmentPathImpl implements AssignmentPath {
-	
+
 	private final List<AssignmentPathSegmentImpl> segments = new ArrayList<>();
 
 	public AssignmentPathImpl() {
 	}
-	
+
 	@Override
 	public List<AssignmentPathSegmentImpl> getSegments() {
 		return segments;
 	}
-	
+
 	public void add(AssignmentPathSegmentImpl segment) {
 		segments.add(segment);
 	}
-	
+
 	public void removeLast(AssignmentPathSegmentImpl segment) {
 		AssignmentPathSegmentImpl last = last();
 		if (last == null) {
@@ -64,7 +64,7 @@ public class AssignmentPathImpl implements AssignmentPath {
 	public AssignmentPathSegmentImpl first() {
 		return segments.get(0);
 	}
-	
+
 	@Override
 	public boolean isEmpty() {
 		return segments.isEmpty();
@@ -95,7 +95,7 @@ public class AssignmentPathImpl implements AssignmentPath {
 			return segments.get(segments.size()-1-n);
 		}
 	}
-	
+
 	@Override
 	public int countTargetOccurrences(ObjectType target) {
 		if (target == null) {
@@ -163,7 +163,7 @@ public class AssignmentPathImpl implements AssignmentPath {
 		}
 		return sb.toString();
 	}
-	
+
 	@Override
 	public void shortDump(StringBuilder sb) {
 		ObjectType previousTarget = null;

@@ -52,7 +52,7 @@ public class TaskPerformanceTabPanel extends AbstractObjectTabPanel<TaskType> im
 		initLayout(pageBase);
 		setOutputMarkupId(true);
 	}
-	
+
 	private void initLayout(PageBase pageBase) {
 		StatisticsDtoModel statisticsDtoModel = new StatisticsDtoModel(taskDtoModel);
 		StatisticsPanel statisticsPanel = new StatisticsPanel(ID_STATISTICS_PANEL, statisticsDtoModel);

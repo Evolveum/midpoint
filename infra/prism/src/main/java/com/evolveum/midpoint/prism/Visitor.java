@@ -21,7 +21,7 @@ package com.evolveum.midpoint.prism;
  */
 @FunctionalInterface
 public interface Visitor {
-	
+
 	void visit(Visitable visitable);
 
 }

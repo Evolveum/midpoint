@@ -71,7 +71,7 @@ public class TestResourceSchema {
 
     private static final String RESOURCE_SCHEMA_SIMPLE_FILENAME = TEST_DIR + "resource-schema-simple.xsd";
     private static final String RESOURCE_SCHEMA_SIMPLE_DEPRECATED_FILENAME = TEST_DIR + "resource-schema-simple-deprecated.xsd";
-    
+
     private static final String SCHEMA_NAMESPACE = "http://schema.foo.com/bar";
 
     public TestResourceSchema() {
@@ -82,7 +82,7 @@ public class TestResourceSchema {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-    
+
     @Test
     public void testParseSchema() throws Exception {
         System.out.println("===[ testParseSchema ]===");
@@ -98,7 +98,7 @@ public class TestResourceSchema {
         // THEN
         assertSimpleSchema(schema, RESOURCE_SCHEMA_SIMPLE_FILENAME);
     }
-    
+
     @Test
     public void testParseSchemaDeprecated() throws Exception {
         System.out.println("===[ testParseSchemaDeprecated ]===");
@@ -114,7 +114,7 @@ public class TestResourceSchema {
         // THEN
         assertSimpleSchema(schema, RESOURCE_SCHEMA_SIMPLE_DEPRECATED_FILENAME);
     }
-    
+
     private void assertSimpleSchema(ResourceSchema schema, String filename) {
     	assertNotNull(schema);
         System.out.println("Parsed schema from " + filename + ":");
@@ -125,35 +125,35 @@ public class TestResourceSchema {
         assertEquals("Wrong account kind", ShadowKindType.ACCOUNT, accDef.getKind());
         assertEquals("Wrong account intent", "admin", accDef.getIntent());
         assertTrue("Not a default account", accDef.isDefaultInAKind());
-        
+
         PrismPropertyDefinition<String> loginAttrDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "login"));
         assertEquals(new QName(SCHEMA_NAMESPACE, "login"), loginAttrDef.getName());
         assertEquals(DOMUtil.XSD_STRING, loginAttrDef.getTypeName());
         assertFalse("Ignored while it should not be", loginAttrDef.isIgnored());
-        
+
         PrismPropertyDefinition<Integer> groupAttrDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "group"));
         assertEquals(new QName(SCHEMA_NAMESPACE, "group"), groupAttrDef.getName());
         assertEquals(DOMUtil.XSD_INT, groupAttrDef.getTypeName());
         assertFalse("Ignored while it should not be", groupAttrDef.isIgnored());
-        
+
         PrismPropertyDefinition<String> ufoAttrDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "ufo"));
         assertEquals(new QName(SCHEMA_NAMESPACE, "ufo"), ufoAttrDef.getName());
         assertTrue("Not ignored as it should be", ufoAttrDef.isIgnored());
-        
+
         ObjectClassComplexTypeDefinition groupDef = schema.findObjectClassDefinition(new QName(SCHEMA_NAMESPACE, "GroupObjectClass"));
         assertEquals("Wrong group objectclass", new QName(SCHEMA_NAMESPACE, "GroupObjectClass"), groupDef.getTypeName());
         assertEquals("Wrong group kind", ShadowKindType.ENTITLEMENT, groupDef.getKind());
         assertEquals("Wrong group intent", null, groupDef.getIntent());
         assertFalse("Default group but it should not be", groupDef.isDefaultInAKind());
     }
-    
+
     // The support for the xsd:any properties is missing in JAXB generator. Otherwise this test should work.
 	@Test(enabled=false)
 	public void testResourceSchemaJaxbRoundTrip() throws SchemaException, JAXBException {
 		System.out.println("\n===[ testResourceSchemaJaxbRoundTrip ]=====");
 		// GIVEN
 		ResourceSchema schema = createResourceSchema();
-		
+
 		System.out.println("Resource schema before serializing to XSD: ");
 		System.out.println(schema.debugDump());
 		System.out.println();
@@ -163,41 +163,41 @@ public class TestResourceSchema {
 		ResourceType resource = new ResourceType();
 		resource.setName(PrismTestUtil.createPolyStringType("JAXB With Dynamic Schemas Test"));
 		ResourceTypeUtil.setResourceXsdSchema(resource, DOMUtil.getFirstChildElement(xsd));
-		
+
 		// WHEN
-		
+
 //		JAXBElement<ResourceType> resourceElement = new JAXBElement<ResourceType>(SchemaConstants.C_RESOURCE, ResourceType.class, resource);
 //		String marshalledResource = PrismTestUtil.marshalElementToString(resourceElement);
         String marshalledResource = PrismTestUtil.serializeObjectToString(resource.asPrismObject());
 
         System.out.println("Marshalled resource");
-		System.out.println(marshalledResource); 
-		
+		System.out.println(marshalledResource);
+
 		ResourceType unmarshalledResource = (ResourceType) PrismTestUtil.parseObject(marshalledResource).asObjectable();
-		
+
 		System.out.println("unmarshalled resource");
 		System.out.println(ObjectTypeUtil.dump(unmarshalledResource));
 		XmlSchemaType unXmlSchemaType = unmarshalledResource.getSchema();
 		Element unXsd = unXmlSchemaType.getDefinition().getAny().get(0);
 		ResourceSchema unSchema = ResourceSchemaImpl.parse(unXsd, "unmarshalled resource", PrismTestUtil.getPrismContext());
-		
+
 		System.out.println("unmarshalled schema");
 		System.out.println(unSchema.debugDump());
-		
+
 		// THEN
 		assertResourceSchema(unSchema);
 	}
-	
+
 	@Test
 	public void testResourceSchemaPrismRoundTrip() throws SchemaException, JAXBException {
 		System.out.println("\n===[ testResourceSchemaPrismRoundTrip ]=====");
 		// GIVEN
 		ResourceSchema schema = createResourceSchema();
-		
+
 		System.out.println("Resource schema before serializing to XSD: ");
 		System.out.println(schema.debugDump());
 		System.out.println();
-		
+
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		Document xsd = schema.serializeToXsd();
@@ -207,39 +207,39 @@ public class TestResourceSchema {
 		ResourceType resourceType = resource.asObjectable();
 		resourceType.setName(PrismTestUtil.createPolyStringType("Prism With Dynamic Schemas Test"));
 		ResourceTypeUtil.setResourceXsdSchema(resource, DOMUtil.getFirstChildElement(xsd));
-		
+
 		// WHEN
-		
+
 		String marshalledResource = prismContext.serializeObjectToString(resource, PrismContext.LANG_XML);
-		
+
 		System.out.println("Marshalled resource");
-		System.out.println(marshalledResource); 
-		
+		System.out.println(marshalledResource);
+
 		PrismObject<ResourceType> unmarshalledResource = PrismTestUtil.parseObject(marshalledResource);
-		
+
 		System.out.println("unmarshalled resource");
 		System.out.println(unmarshalledResource.debugDump());
-		
+
 		Element unXsd = ResourceTypeUtil.getResourceXsdSchema(unmarshalledResource);
-		
+
 		System.out.println("unmarshalled resource schema");
 		System.out.println(DOMUtil.serializeDOMToString(unXsd));
-		
+
 		ResourceSchema unSchema = ResourceSchemaImpl.parse(unXsd, "unmarshalled resource schema", PrismTestUtil.getPrismContext());
-		
+
 		System.out.println("unmarshalled parsed schema");
 		System.out.println(unSchema.debugDump());
-		
+
 		// THEN
 		assertResourceSchema(unSchema);
 	}
-	
+
 	private void assertResourceSchema(ResourceSchema unSchema) {
 		ObjectClassComplexTypeDefinition objectClassDef = unSchema.findObjectClassDefinition(new QName(SCHEMA_NAMESPACE,"AccountObjectClass"));
 		assertEquals(new QName(SCHEMA_NAMESPACE,"AccountObjectClass"),objectClassDef.getTypeName());
 		assertEquals("AccountObjectClass class not an account", ShadowKindType.ACCOUNT, objectClassDef.getKind());
 		assertTrue("AccountObjectClass class not a DEFAULT account", objectClassDef.isDefaultInAKind());
-		
+
 		PrismPropertyDefinition<String> loginDef = objectClassDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE,"login"));
 		assertEquals(new QName(SCHEMA_NAMESPACE,"login"), loginDef.getName());
 		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
@@ -252,20 +252,20 @@ public class TestResourceSchema {
 //		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
 //		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
 	}
-	
+
 	@Test
 	public void testResourceSchemaSerializationDom() throws SchemaException, JAXBException {
 		System.out.println("\n===[ testResourceSchemaSerializationDom ]=====");
 		// GIVEN
 		ResourceSchema schema = createResourceSchema();
-		
+
 		// WHEN
 		Document xsdDocument = schema.serializeToXsd();
 		Element xsdElement = DOMUtil.getFirstChildElement(xsdDocument);
-		
+
 		System.out.println("Serialized XSD schema");
 		System.out.println(DOMUtil.serializeDOMToString(xsdElement));
-		
+
 		assertDomSchema(xsdElement);
 	}
 
@@ -274,32 +274,32 @@ public class TestResourceSchema {
 		System.out.println("\n===[ testResourceSchemaSerializationInResource ]=====");
 		// GIVEN
 		ResourceSchema schema = createResourceSchema();
-		
+
 		// WHEN
 		Document xsdDocument = schema.serializeToXsd();
 		Element xsdElement = DOMUtil.getFirstChildElement(xsdDocument);
-		
+
 		PrismObject<ResourceType> resource = wrapInResource(xsdElement);
 		String resourceXmlString = PrismTestUtil.getPrismContext().serializeObjectToString(resource, PrismContext.LANG_XML);
-		
+
 		System.out.println("Serialized resource");
 		System.out.println(resourceXmlString);
-		
+
 		PrismObject<ResourceType> reparsedResource = PrismTestUtil.getPrismContext().parseObject(resourceXmlString);
-		
+
 		System.out.println("Re-parsed resource");
 		System.out.println(reparsedResource.debugDump());
-		
+
 		XmlSchemaType reparsedSchemaType = reparsedResource.asObjectable().getSchema();
 		Element reparsedXsdElement = ObjectTypeUtil.findXsdElement(reparsedSchemaType);
-		
+
 		System.out.println("Reparsed XSD schema");
 		System.out.println(DOMUtil.serializeDOMToString(reparsedXsdElement));
-		
+
 		assertDomSchema(reparsedXsdElement);
 	}
 
-	
+
 	private PrismObject<ResourceType> wrapInResource(Element xsdElement) throws SchemaException {
 		PrismObjectDefinition<ResourceType> resourceDefinition =
 			PrismTestUtil.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
@@ -325,13 +325,13 @@ public class TestResourceSchema {
 		assertPrefix("ra", dnaAnnotationElement);
 		QName dna = DOMUtil.getQNameValue(dnaAnnotationElement);
 		assertEquals("Wrong <a:identifier> value prefix", "tns", dna.getPrefix());
-		
+
 		assertEquals("Wrong 'tns' prefix declaration", SCHEMA_NAMESPACE, xsdElement.lookupNamespaceURI("tns"));
 	}
 
 	private ResourceSchema createResourceSchema() {
 		ResourceSchemaImpl schema = new ResourceSchemaImpl(SCHEMA_NAMESPACE, PrismTestUtil.getPrismContext());
-		
+
 		// Property container
 		ObjectClassComplexTypeDefinitionImpl containerDefinition = (ObjectClassComplexTypeDefinitionImpl) schema.createObjectClassDefinition("AccountObjectClass");
 		containerDefinition.setKind(ShadowKindType.ACCOUNT);
@@ -354,47 +354,47 @@ public class TestResourceSchema {
 
 		return schema;
 	}
-	
+
 	private void assertPrefix(String expectedPrefix, Element element) {
 		assertEquals("Wrong prefix on element "+DOMUtil.getQName(element), expectedPrefix, element.getPrefix());
-	}	
-    
+	}
+
 	@Test
 	public void testParseResource() throws Exception {
 		System.out.println("===[ testParseResource ]===");
 		// WHEN
 		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File("src/test/resources/common/xml/ns/resource-opendj.xml"));
-		
+
 		// THEN
 		assertCapabilities(resource.asObjectable());
 	}
-	
+
 	@Test
 	public void testUnmarshallResource() throws Exception {
 		System.out.println("===[ testUnmarshallResource ]===");
 		// WHEN
 		ResourceType resourceType = (ResourceType) PrismTestUtil.parseObject(new File("src/test/resources/common/xml/ns/resource-opendj.xml")).asObjectable();
-		
+
 		// THEN
 		assertCapabilities(resourceType);
 	}
 
-	
+
 	private void assertCapabilities(ResourceType resourceType) throws SchemaException {
-		if (resourceType.getCapabilities() != null) { 
+		if (resourceType.getCapabilities() != null) {
 			if (resourceType.getCapabilities().getNative() != null) {
 				for (Object capability : resourceType.getCapabilities().getNative().getAny()) {
 		        	System.out.println("Native Capability: "+CapabilityUtil.getCapabilityDisplayName(capability)+" : "+capability);
 		        }
 			}
-	
+
 	        if (resourceType.getCapabilities().getConfigured() != null) {
 		        for (Object capability : resourceType.getCapabilities().getConfigured().getAny()) {
 		        	System.out.println("Configured Capability: "+CapabilityUtil.getCapabilityDisplayName(capability)+" : "+capability);
 		        }
 	        }
 		}
-        
+
         List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resourceType);
         for (Object capability : effectiveCapabilities) {
         	System.out.println("Efective Capability: "+CapabilityUtil.getCapabilityDisplayName(capability)+" : "+capability);
@@ -403,19 +403,19 @@ public class TestResourceSchema {
         assertNotNull("null native capabilities", resourceType.getCapabilities().getNative());
         assertFalse("empty native capabilities", resourceType.getCapabilities().getNative().getAny().isEmpty());
         assertEquals("Unexepected number of native capabilities", 3, resourceType.getCapabilities().getNative().getAny().size());
-        
+
         assertNotNull("null configured capabilities", resourceType.getCapabilities().getConfigured());
         assertFalse("empty configured capabilities", resourceType.getCapabilities().getConfigured().getAny().isEmpty());
         assertEquals("Unexepected number of configured capabilities", 2, resourceType.getCapabilities().getConfigured().getAny().size());
-        
+
         assertEquals("Unexepected number of effective capabilities", 3,effectiveCapabilities.size());
-        assertNotNull("No credentials effective capability", 
+        assertNotNull("No credentials effective capability",
         		ResourceTypeUtil.getEffectiveCapability(resourceType, CredentialsCapabilityType.class));
-        assertNotNull("No activation effective capability", 
+        assertNotNull("No activation effective capability",
         		ResourceTypeUtil.getEffectiveCapability(resourceType, ActivationCapabilityType.class));
-        assertNull("Unexpected liveSync effective capability", 
+        assertNull("Unexpected liveSync effective capability",
         		ResourceTypeUtil.getEffectiveCapability(resourceType, LiveSyncCapabilityType.class));
-        
+
 	}
 
 

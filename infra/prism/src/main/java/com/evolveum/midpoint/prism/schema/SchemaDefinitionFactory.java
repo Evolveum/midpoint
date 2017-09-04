@@ -38,7 +38,7 @@ public class SchemaDefinitionFactory {
 
 	public ComplexTypeDefinition createComplexTypeDefinition(XSComplexType complexType,
 			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
-		
+
 		QName typeName = new QName(complexType.getTargetNamespace(),complexType.getName());
 		return new ComplexTypeDefinitionImpl(typeName, prismContext);
 	}
@@ -63,17 +63,17 @@ public class SchemaDefinitionFactory {
 			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
 		return new PrismPropertyDefinitionImpl<T>(elementName, typeName, prismContext);
 	}
-	
+
 	public <T> PrismPropertyDefinition<T> createPropertyDefinition(QName elementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
 			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle, Collection<? extends DisplayableValue<T>> allowedValues, T defaultValue) throws SchemaException {
 		return new PrismPropertyDefinitionImpl<T>(elementName, typeName, prismContext, allowedValues, defaultValue);
 	}
-	
+
 	public PrismReferenceDefinition createReferenceDefinition(QName primaryElementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
 			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
 		return new PrismReferenceDefinitionImpl(primaryElementName, typeName, prismContext);
 	}
-	
+
 	public <C extends Containerable> PrismContainerDefinitionImpl<C> createContainerDefinition(QName elementName,
 			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, Class<C> compileTimeClass) throws SchemaException {
 		return new PrismContainerDefinitionImpl<>(elementName, complexTypeDefinition, prismContext, compileTimeClass);
@@ -89,7 +89,7 @@ public class SchemaDefinitionFactory {
 	 * This is used e.g. to create object class definitions in midPoint
 	 */
 	public <C extends Containerable> PrismContainerDefinition<C> createExtraDefinitionFromComplexType(XSComplexType complexType,
-			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, 
+			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext,
 			XSAnnotation annotation) throws SchemaException {
 		// Create nothing by default
 		return null;
@@ -124,5 +124,5 @@ public class SchemaDefinitionFactory {
 	public void addExtraReferenceAnnotations(PrismReferenceDefinition definition, Element appinfo, SchemaToDomProcessor schemaToDomProcessor) {
 		// Nothing to do by default
 	}
-	
+
 }

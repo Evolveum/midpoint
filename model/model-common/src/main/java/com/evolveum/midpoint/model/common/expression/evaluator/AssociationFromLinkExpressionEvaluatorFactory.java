@@ -42,7 +42,7 @@ import org.apache.commons.lang.Validate;
  *
  */
 public class AssociationFromLinkExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
-	
+
 	private PrismContext prismContext;
 	private Protector protector;
 	private ObjectResolver objectResolver;
@@ -75,7 +75,7 @@ public class AssociationFromLinkExpressionEvaluatorFactory implements Expression
 																									D outputDefinition, String contextDescription, Task task, OperationResult result) throws SchemaException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for associationFromLink expression evaluator");
-		
+
 		JAXBElement<?> evaluatorElement = null;
 		if (evaluatorElements != null) {
 			if (evaluatorElements.size() > 1) {
@@ -83,7 +83,7 @@ public class AssociationFromLinkExpressionEvaluatorFactory implements Expression
 			}
 			evaluatorElement = evaluatorElements.iterator().next();
 		}
-		
+
 		Object evaluatorTypeObject = null;
         if (evaluatorElement != null) {
         	evaluatorTypeObject = evaluatorElement.getValue();
@@ -92,7 +92,7 @@ public class AssociationFromLinkExpressionEvaluatorFactory implements Expression
             throw new SchemaException("Association expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
         AssociationFromLinkExpressionEvaluator evaluator = new AssociationFromLinkExpressionEvaluator(
-        		(AssociationFromLinkExpressionEvaluatorType)evaluatorTypeObject, 
+        		(AssociationFromLinkExpressionEvaluatorType)evaluatorTypeObject,
         		(PrismContainerDefinition<ShadowAssociationType>) outputDefinition, objectResolver, prismContext);
         return (ExpressionEvaluator<V,D>) evaluator;
 	}

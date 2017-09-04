@@ -40,7 +40,7 @@ import java.util.Random;
 
 /**
  * Read-through write-through per-session repository cache.
- * 
+ *
  * TODO doc
  * TODO logging perf measurements
  *
@@ -52,40 +52,40 @@ public class RepositoryCache implements RepositoryService {
 	private static ThreadLocal<Cache> cacheInstance = new ThreadLocal<>();
 
 	private RepositoryService repository;
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(RepositoryCache.class);
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 	private static final Random RND = new Random();
-	
+
 	private Integer modifyRandomDelayRange;
 
 	private PrismContext prismContext;
 
 	public RepositoryCache() {
     }
-	
+
     public void setRepository(RepositoryService service, PrismContext prismContext) {
         Validate.notNull(service, "Repository service must not be null.");
 		Validate.notNull(prismContext, "Prism context service must not be null.");
         this.repository = service;
 		this.prismContext = prismContext;
     }
-	
+
 	private static Cache getCache() {
 		return cacheInstance.get();
 	}
-	
+
 	public static void init() {
 	}
-	
+
 	public static void destroy() {
 		Cache.destroy(cacheInstance, LOGGER);
 	}
-	
+
 	public static void enter() {
 		Cache.enter(cacheInstance, Cache.class, LOGGER);
 	}
-	
+
 	public static void exit() {
 		Cache.exit(cacheInstance, LOGGER);
 	}
@@ -161,10 +161,10 @@ public class RepositoryCache implements RepositoryService {
 		}
 		return oid;
 	}
-	
+
 	@NotNull
 	@Override
-	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, 
+	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
 		if (!isCacheable(type) || !nullOrHarmlessOptions(options)) {
 			log("Cache: PASS ({})", type.getSimpleName());
@@ -307,7 +307,7 @@ public class RepositoryCache implements RepositoryService {
 			invalidateCacheEntry(type, oid);
 		}
 	}
-	
+
 	@Override
 	public <F extends FocusType> PrismObject<F> searchShadowOwner(
 			String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
@@ -350,7 +350,7 @@ public class RepositoryCache implements RepositoryService {
             SchemaException {
 		return repository.listResourceObjectShadows(resourceOid, resourceObjectShadowType, parentResult);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.repo.api.RepositoryService#getVersion(java.lang.Class, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
@@ -422,7 +422,7 @@ public class RepositoryCache implements RepositoryService {
 			throws SchemaException {
 		return repository.isAnySubordinate(upperOrgOid, lowerObjectOids);
 	}
-	
+
 	@Override
 	public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid)
 			throws SchemaException {

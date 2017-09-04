@@ -33,18 +33,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
  */
 public class PolicyRuleDetailsPanel extends AbstractAssignmentDetailsPanel {
     private static final long serialVersionUID = 1L;
-    
+
     private static final String ID_POLICY_RULE = "policyRule";
 
     private static List hiddenItems = new ArrayList<>();
-    
+
     static  {
 			hiddenItems.add(AssignmentType.F_TENANT_REF);
 			hiddenItems.add(AssignmentType.F_ORG_REF);
 			hiddenItems.add(AssignmentType.F_FOCUS_TYPE);
 			hiddenItems.add(ID_PROPERTIES_PANEL);
 	};
-    
+
     public PolicyRuleDetailsPanel(String id, Form<?> form, IModel<AssignmentDto> model, PageBase pageBase){
         super(id, form, model, pageBase);
     }
@@ -53,13 +53,13 @@ public class PolicyRuleDetailsPanel extends AbstractAssignmentDetailsPanel {
 protected List getHiddenItems() {
 	return hiddenItems;
 }
-   
+
    @Override
 protected void initPropertiesPanel(WebMarkupContainer propertiesPanel) {
 	   PolicyRulePropertiesPanel policyDetails = new PolicyRulePropertiesPanel(ID_POLICY_RULE, getModel(), pageBase);
 		policyDetails.setOutputMarkupId(true);
 		policyDetails.add(new VisibleEnableBehaviour() {
-	
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -69,5 +69,5 @@ protected void initPropertiesPanel(WebMarkupContainer propertiesPanel) {
 		});
 		propertiesPanel.add(policyDetails);
 }
-       
+
 }

@@ -106,7 +106,7 @@ public class ActionsExecutedInformation {
 
     private static void addToEntry(ObjectActionsExecutedEntryType sum, ObjectActionsExecutedEntryType delta) {
         sum.setTotalSuccessCount(sum.getTotalSuccessCount() + delta.getTotalSuccessCount());
-        if (delta.getLastSuccessTimestamp() != null && 
+        if (delta.getLastSuccessTimestamp() != null &&
                 (sum.getLastSuccessTimestamp() == null || delta.getLastSuccessTimestamp().compare(sum.getLastSuccessTimestamp()) == DatatypeConstants.GREATER)) {
             sum.setLastSuccessObjectName(delta.getLastSuccessObjectName());
             sum.setLastSuccessObjectDisplayName(delta.getLastSuccessObjectDisplayName());

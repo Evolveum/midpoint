@@ -28,14 +28,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusTy
  *
  */
 public class ActivationComputer {
-	
+
 	private Clock clock;
 
 	public ActivationComputer() {
 		super();
 	}
 
-	
+
 	public ActivationComputer(Clock clock) {
 		super();
 		this.clock = clock;
@@ -50,28 +50,28 @@ public class ActivationComputer {
 	public void setClock(Clock clock) {
 		this.clock = clock;
 	}
-	
+
 	public ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType) {
 		return getEffectiveStatus(lifecycleStatus, activationType, getValidityStatus(activationType));
 	}
-	
+
 	public ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType, TimeIntervalStatusType validityStatus) {
-		
+
 		if (SchemaConstants.LIFECYCLE_ARCHIVED.equals(lifecycleStatus)) {
 			return ActivationStatusType.ARCHIVED;
 		}
-		
-		if (lifecycleStatus != null && 
+
+		if (lifecycleStatus != null &&
 				!lifecycleStatus.equals(SchemaConstants.LIFECYCLE_ACTIVE) && !lifecycleStatus.equals(SchemaConstants.LIFECYCLE_DEPRECATED)) {
 			return ActivationStatusType.DISABLED;
 		}
-				
+
 		if (activationType == null) {
 			return ActivationStatusType.ENABLED;
 		}
 		ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
 		if (administrativeStatus != null) {
-			// Explicit administrative status overrides everything 
+			// Explicit administrative status overrides everything
 			return administrativeStatus;
 		}
 		if (validityStatus == null) {
@@ -88,11 +88,11 @@ public class ActivationComputer {
 		// This should not happen
 		return null;
 	}
-	
+
 	public TimeIntervalStatusType getValidityStatus(ActivationType activationType) {
 		return getValidityStatus(activationType, clock.currentTimeXMLGregorianCalendar());
 	}
-	
+
 	public TimeIntervalStatusType getValidityStatus(ActivationType activationType, XMLGregorianCalendar referenceTime) {
 		if (activationType == null || referenceTime == null) {
 			return null;
@@ -111,29 +111,29 @@ public class ActivationComputer {
 		}
 		return status;
 	}
-	
+
 	public void computeEffective(String lifecycleStatus, ActivationType activationType) {
 		computeEffective(lifecycleStatus, activationType, clock.currentTimeXMLGregorianCalendar());
 	}
-	
+
 	public void computeEffective(String lifecycleStatus, ActivationType activationType, XMLGregorianCalendar referenceTime) {
 		ActivationStatusType effectiveStatus = null;
-		
-		if (lifecycleStatus != null && 
+
+		if (lifecycleStatus != null &&
 				!lifecycleStatus.equals(SchemaConstants.LIFECYCLE_ACTIVE) && !lifecycleStatus.equals(SchemaConstants.LIFECYCLE_DEPRECATED)) {
 			effectiveStatus = ActivationStatusType.DISABLED;
 		}
-		
+
 		if (SchemaConstants.LIFECYCLE_ARCHIVED.equals(lifecycleStatus)) {
 			effectiveStatus = ActivationStatusType.ARCHIVED;
 		}
-		
+
 		ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
 		if (effectiveStatus == null && administrativeStatus != null) {
-			// Explicit administrative status overrides everything 
+			// Explicit administrative status overrides everything
 			effectiveStatus = administrativeStatus;
 		}
-		
+
 		TimeIntervalStatusType validityStatus = getValidityStatus(activationType);
 		if (effectiveStatus == null) {
 			if (validityStatus == null) {
@@ -169,7 +169,7 @@ public class ActivationComputer {
 		}
 		return effectiveStatus == ActivationStatusType.ENABLED;
 	}
-	
+
 	public boolean lifecycleHasActiveAssignments(String lifecycleStatus) {
 		return lifecycleIsActive(lifecycleStatus);
 	}

@@ -50,7 +50,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMappingInbound extends AbstractInitializedModelIntegrationTest {
-	
+
 	public static final File TEST_DIR = new File("src/test/resources/mapping-inbound");
 
     protected static final File RESOURCE_DUMMY_TEA_GREEN_FILE = new File(TEST_DIR, "resource-dummy-tea-green.xml");
@@ -242,5 +242,5 @@ public class TestMappingInbound extends AbstractInitializedModelIntegrationTest 
     protected void waitForSyncTaskNextRun() throws Exception {
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID, false, 10000);
     }
-	
+
 }

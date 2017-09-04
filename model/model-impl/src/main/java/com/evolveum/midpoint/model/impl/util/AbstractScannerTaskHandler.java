@@ -42,17 +42,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
- * 
+ *
  * @author Radovan Semancik
  *
  */
 @Component
-public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends AbstractScannerResultHandler<O>> 
+public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends AbstractScannerResultHandler<O>>
 		extends AbstractSearchIterativeTaskHandler<O,H> {
-		
+
     @Autowired(required = true)
     protected Clock clock;
-        	
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(AbstractScannerTaskHandler.class);
 
 	public AbstractScannerTaskHandler(Class<O> type, String taskName, String taskOperationPrefix) {
@@ -66,23 +66,23 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
 		if (!cont) {
 			return cont;
 		}
-		
+
 		XMLGregorianCalendar lastScanTimestamp = null;
     	PrismProperty<XMLGregorianCalendar> lastScanTimestampProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
         if (lastScanTimestampProperty != null) {
             lastScanTimestamp = lastScanTimestampProperty.getValue().getValue();
         }
         handler.setLastScanTimestamp(lastScanTimestamp);
-        
+
         handler.setThisScanTimestamp(clock.currentTimeXMLGregorianCalendar());
-		        
+
         return true;
 	}
-		
+
     @Override
 	protected void finish(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 		super.finish(handler, runResult, task, opResult);
-		
+
 		PrismPropertyDefinition<XMLGregorianCalendar> lastScanTimestampDef = new PrismPropertyDefinitionImpl<>(
 				SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME,
 				DOMUtil.XSD_DATETIME, prismContext);

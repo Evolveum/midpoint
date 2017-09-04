@@ -33,20 +33,20 @@ import com.evolveum.midpoint.util.DebugDumpable;
 public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends Revivable, DebugDumpable, Serializable {
 
 	QName getName();
-	
+
     String getDisplayName();
 
     void setDisplayName(String name);
 
     I getItem();
-    
+
     /**
      * Item definition.
      * The definition defines how the item will be displayed (type, read-only, read-write or
      * not displayed at all). This behavior can be overriden by readonly and visible flags.
      */
     ID getItemDefinition();
-    
+
     /**
      * Read only flag. This is an override of the default behavior given by the definition.
      * If set to TRUE then it overrides the value from the definition.
@@ -56,7 +56,7 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends 
 	boolean isEmpty();
 
     boolean hasChanged();
-    
+
     List<ValueWrapper> getValues();
 
     /**
@@ -64,16 +64,16 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends 
      * should be displayed or not.
      */
 	boolean isVisible();
-    
+
     /**
      * Used to display the form elements with stripe in every other line.
      */
 	boolean isStripe();
-    
+
     void setStripe(boolean isStripe);
-    
+
     ContainerWrapper getContainer();
-    
+
     void addValue();
 
 	boolean checkRequired(PageBase pageBase);

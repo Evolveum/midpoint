@@ -30,16 +30,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  */
 public class ResourceObjectDiscriminator {
-	
+
 	private QName objectClass;
 	private Collection<? extends ResourceAttribute<?>> primaryIdentifiers;
-	
+
 	public ResourceObjectDiscriminator(QName objectClass, Collection<? extends ResourceAttribute<?>> primaryIdentifiers) {
 		super();
 		this.objectClass = objectClass;
 		this.primaryIdentifiers = primaryIdentifiers;
 	}
-	
+
 	public QName getObjectClass() {
 		return objectClass;
 	}
@@ -47,7 +47,7 @@ public class ResourceObjectDiscriminator {
 	public Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiers() {
 		return primaryIdentifiers;
 	}
-	
+
 	public boolean matches(PrismObject<ShadowType> shadow) {
 		ShadowType shadowType = shadow.asObjectable();
 		if (!objectClass.equals(shadowType.getObjectClass())) {

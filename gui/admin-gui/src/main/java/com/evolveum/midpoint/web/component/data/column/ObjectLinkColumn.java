@@ -45,11 +45,11 @@ public class ObjectLinkColumn<T> extends LinkColumn<T>  implements IExportableCo
     public ObjectLinkColumn(IModel<String> displayModel, String sortProperty, String propertyExpression) {
         super(displayModel, sortProperty);
     }
-    
+
     @Override
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId,
                              final IModel<T> rowModel) {
-    	
+
     	IModel<ObjectType> superModel = createLinkModel(rowModel);
     	final ObjectType targetObjectType = superModel.getObject();
     	IModel<String> nameModel = new PropertyModel<String>(superModel, FocusType.F_NAME.getLocalPart() + ".orig");
@@ -67,8 +67,8 @@ public class ObjectLinkColumn<T> extends LinkColumn<T>  implements IExportableCo
             }
         });
     }
-    
-    
+
+
 
     public boolean isEnabled(IModel<T> rowModel) {
         return true;

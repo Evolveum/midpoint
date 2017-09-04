@@ -61,17 +61,17 @@ public class MockLongTaskHandler implements TaskHandler {
 				break;
 			}
 		}
-		
+
 		opResult.recordSuccess();
-		
+
 		runResult.setOperationResult(opResult);
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(progress);
-		
+
 		LOGGER.info("MockLong.run stopping; progress = {}", progress);
 		return runResult;
 	}
-	
+
 	@Override
 	public Long heartbeat(Task task) {
 		return 0L;
@@ -80,7 +80,7 @@ public class MockLongTaskHandler implements TaskHandler {
 	@Override
 	public void refreshStatus(Task task) {
 	}
-	
+
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.MOCK;

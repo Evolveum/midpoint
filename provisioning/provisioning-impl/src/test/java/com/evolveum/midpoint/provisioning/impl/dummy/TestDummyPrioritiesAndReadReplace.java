@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
@@ -70,10 +70,10 @@ import static org.testng.AssertJUnit.assertTrue;
 /**
  * The test of Provisioning service on the API level. The test is using dummy
  * resource for speed and flexibility.
- * 
+ *
  * @author Radovan Semancik
  * @author Pavol Mederly
- * 
+ *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext

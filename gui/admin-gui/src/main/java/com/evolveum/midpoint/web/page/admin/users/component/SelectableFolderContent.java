@@ -52,7 +52,7 @@ public class SelectableFolderContent extends Folder<SelectableBean<OrgType>> {
             public String getObject() {
             	SelectableBean<OrgType> dto = model.getObject();
             	return WebComponentUtil.getEffectiveName(dto.getValue(), OrgType.F_DISPLAY_NAME);
-            
+
             }
         };
     }

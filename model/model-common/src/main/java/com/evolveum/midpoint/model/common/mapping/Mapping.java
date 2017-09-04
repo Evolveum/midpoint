@@ -68,17 +68,17 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * 
+ *
  * Mapping is non-recyclable single-use object. Once evaluated it should not be evaluated again. It will retain its original
  * inputs and outputs that can be read again and again. But these should not be changed after evaluation.
  *
  * Configuration properties are unmodifiable. They are to be set via Mapping.Builder.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class Mapping<V extends PrismValue,D extends ItemDefinition> implements DebugDumpable, PrismValueDeltaSetTripleProducer<V, D> {
-	
+
 	// configuration properties (unmodifiable)
 	private final MappingType mappingType;
 	private final ExpressionFactory expressionFactory;
@@ -127,7 +127,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	// This is single-use only. Once evaluated it is not used any more
 	// it is remembered only for tracing purposes.
 	private Expression<V,D> expression;
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(Mapping.class);
 
 	private Mapping(Builder<V,D> builder) {
@@ -167,7 +167,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		}
 		return null;
 	}
-	
+
 	public OriginType getOriginType() {
 		return originType;
 	}
@@ -216,7 +216,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	public MappingType getMappingType() {
 		return mappingType;
 	}
-	
+
 	@Override
 	public boolean isSourceless() {
 		return sources.isEmpty();
@@ -258,14 +258,14 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		}
 		return value;
 	}
-	
+
 	public Boolean isTolerant() {
 		if (mappingType == null) {
 			return null;
 		}
 		return mappingType.isTolerant();
 	}
-	
+
 	public boolean isConditionMaskOld() {
 		return conditionMaskOld;
 	}
@@ -325,7 +325,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	public Long getEvaluationEndTime() {
 		return evaluationEndTime;
 	}
-	
+
 	public Long getEtime() {
 		if (evaluationStartTime == null || evaluationEndTime == null) {
 			return null;
@@ -368,59 +368,59 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			OperationResult result = parentResult.createMinorSubresult(Mapping.class.getName()+".prepare");
 		assertState(MappingEvaluationState.UNINITIALIZED);
 		try {
-			
+
 			parseSources(task, result);
-			
+
 			parseTarget();
 			if (outputPath != null && outputDefinition == null) {
 				throw new IllegalArgumentException("No output definition, cannot evaluate "+getMappingContextDescription());
 			}
-			
+
 		} catch (ExpressionEvaluationException | ObjectNotFoundException | RuntimeException | SchemaException | Error e) {
 			result.recordFatalError(e);
 			throw e;
 		}
-		
+
 		transitionState(MappingEvaluationState.PREPARED);
 		result.recordSuccess();
 	}
-	
+
 	public boolean isActivated() {
 		// TODO
 //		return isActivated;
 		return sourcesChanged();
 	}
-	
+
 	// TODO: rename to evaluate
 	public void evaluateBody(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		
+
 		assertState(MappingEvaluationState.PREPARED);
-		
+
 		OperationResult result = parentResult.createMinorSubresult(Mapping.class.getName()+".evaluate");
 
         traceEvaluationStart();
-		
+
 		try {
-			
+
 			// We may need to re-parse the sources here
-			
+
 			evaluateTimeConstraintValid(task, result);
-			
+
 			if (!timeConstraintValid) {
 				outputTriple = null;
 				result.recordNotApplicableIfUnknown();
 				traceDeferred();
 				return;
 			}
-			
+
 			evaluateCondition(task, result);
-			
+
 			boolean conditionOutputOld = computeConditionResult(conditionOutputTriple.getNonPositiveValues());
 			boolean conditionResultOld = conditionOutputOld && conditionMaskOld;
-			
+
 			boolean conditionOutputNew = computeConditionResult(conditionOutputTriple.getNonNegativeValues());
 			boolean conditionResultNew = conditionOutputNew && conditionMaskNew;
-			
+
 			if (!conditionResultOld && !conditionResultNew) {
 				outputTriple = null;
 				transitionState(MappingEvaluationState.EVALUATED);
@@ -428,7 +428,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 				traceNotApplicable("condition is false");
 				return;
 			}
-			
+
 			// TODO: input filter
 			evaluateExpression(task, result, conditionResultOld, conditionResultNew);
 			fixDefinition();
@@ -441,7 +441,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			transitionState(MappingEvaluationState.EVALUATED);
 			result.recordSuccess();
 			traceSuccess(conditionResultOld, conditionResultNew);
-			
+
 		} catch (ExpressionEvaluationException | ObjectNotFoundException | RuntimeException | SchemaException | Error e) {
 			result.recordFatalError(e);
 			traceFailure(e);
@@ -531,7 +531,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	public boolean isSatisfyCondition() {
 		boolean conditionOutputOld = computeConditionResult(conditionOutputTriple.getNonPositiveValues());
 		boolean conditionResultOld = conditionOutputOld && conditionMaskOld;
-		
+
 		boolean conditionOutputNew = computeConditionResult(conditionOutputTriple.getNonNegativeValues());
 		boolean conditionResultNew = conditionOutputNew && conditionMaskNew;
 		return (conditionResultOld || conditionResultNew);
@@ -546,7 +546,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			evaluationStartTime = System.currentTimeMillis();
 		}
 	}
-	
+
 	private void traceEvaluationEnd() {
 		if (profiling) {
 			evaluationEndTime = System.currentTimeMillis();
@@ -580,7 +580,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		appendTraceFooter(sb);
 		trace(sb.toString());
 	}
-	
+
 	private void traceDeferred() {
 		traceEvaluationEnd();
 		if (!isTrace()) {
@@ -603,7 +603,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		appendTraceFooter(sb);
 		trace(sb.toString());
 	}
-	
+
 	private void traceNotApplicable(String reason) {
 		traceEvaluationEnd();
 		if (!isTrace()) {
@@ -621,7 +621,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		appendTraceFooter(sb);
 		trace(sb.toString());
 	}
-	
+
 	private void traceFailure(Throwable e) {
 		LOGGER.error("Error evaluating {}: {}", new Object[]{getMappingContextDescription(), e.getMessage(), e});
 		traceEvaluationEnd();
@@ -640,11 +640,11 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		appendTraceFooter(sb);
 		trace(sb.toString());
 	}
-	
+
 	private boolean isTrace() {
-		return LOGGER.isTraceEnabled() || (mappingType != null && mappingType.isTrace() == Boolean.TRUE); 
+		return LOGGER.isTraceEnabled() || (mappingType != null && mappingType.isTrace() == Boolean.TRUE);
 	}
-	
+
 	private void trace(String msg) {
 		if (mappingType != null && mappingType.isTrace() == Boolean.TRUE) {
 			LOGGER.info(msg);
@@ -681,7 +681,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	private void appendTraceFooter(StringBuilder sb) {
 		sb.append("\n------------------------------------------------------");
 	}
-	
+
 	private boolean computeConditionResult(Collection<PrismPropertyValue<Boolean>> booleanPropertyValues) {
 		if (mappingType.getCondition() == null) {
 			// If condition is not present at all consider it to be true
@@ -704,32 +704,32 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			timeConstraintValid = true;
 			return;
 		}
-		
+
 		XMLGregorianCalendar timeFrom = parseTime(timeFromType, task, result);
 		if (timeFrom == null && timeFromType != null) {
 			// Time is specified but there is no value for it.
 			// This means that event that should start validity haven't happened yet
-			// therefore the mapping is not yet valid. 
+			// therefore the mapping is not yet valid.
 			timeConstraintValid = false;
 			return;
 		}
 		XMLGregorianCalendar timeTo = parseTime(timeToType, task, result);
-		
+
 		if (timeFrom != null && timeFrom.compare(now) == DatatypeConstants.GREATER) {
 			// before timeFrom
 			nextRecomputeTime = timeFrom;
 			timeConstraintValid = false;
 			return;
 		}
-		
+
 		if (timeTo == null && timeToType != null) {
 			// Time is specified but there is no value for it.
 			// This means that event that should stop validity haven't happened yet
-			// therefore the mapping is still valid. 
+			// therefore the mapping is still valid.
 			timeConstraintValid = true;
 			return;
 		}
-		
+
 		if (timeTo != null && timeTo.compare(now) == DatatypeConstants.GREATER) {
 			// between timeFrom and timeTo (also no timeFrom and before timeTo)
 			nextRecomputeTime = timeTo;
@@ -742,16 +742,16 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			// no nextRecomputeTime set, there is nothing to recompute in the future
 			timeConstraintValid = true;
 			return;
-			
+
 		} else {
 			// after timeTo
 			// no nextRecomputeTime set, there is nothing to recompute in the future
 			timeConstraintValid = false;
 			return;
 		}
-		
+
 	}
-	
+
 	private XMLGregorianCalendar parseTime(MappingTimeDeclarationType timeType, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		if (timeType == null) {
 			return null;
@@ -788,7 +788,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		if (path.isEmpty()) {
 			throw new SchemaException("Empty source path in "+getMappingContextDescription());
 		}
-		
+
 		Object sourceObject = ExpressionUtil.resolvePath(path, variables, sourceContext, objectResolver, "reference time definition in "+getMappingContextDescription(), task, result);
 		if (sourceObject == null) {
 			return null;
@@ -818,7 +818,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			for (VariableBindingDefinitionType sourceType: sourceTypes) {
 				Source<?,?> source = parseSource(sourceType, task, result);
 				source.recompute();
-				
+
 				// Override existing sources (e.g. default source)
 				Iterator<Source<?,?>> iterator = sources.iterator();
 				while (iterator.hasNext()) {
@@ -827,7 +827,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 						iterator.remove();
 					}
 				}
-				
+
 				sources.add(source);
 			}
 		}
@@ -869,29 +869,29 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 				throw new IllegalStateException("Unknown resolve result "+sourceObject);
 			}
 		}
-		
+
 		// apply domain
 		ValueSetDefinitionType domainSetType = sourceType.getSet();
 		if (domainSetType != null) {
 			ValueSetDefinition setDef = new ValueSetDefinition(domainSetType, name, "domain of "+name.getLocalPart()+" in "+getMappingContextDescription(), task, result);
 			setDef.init(expressionFactory);
 			try {
-				
+
 				if (itemOld != null) {
 					itemOld = itemOld.clone();
 					itemOld.filterValues(val -> setDef.containsTunnel(val));
 				}
-				
+
 				if (itemNew != null) {
 					itemNew = itemNew.clone();
 					itemNew.filterValues(val -> setDef.containsTunnel(val));
 				}
-				
+
 				if (delta != null) {
 					delta = delta.clone();
 					delta.filterValues(val -> setDef.containsTunnel(val));
 				}
-				
+
 			} catch (TunnelException te) {
 				Throwable cause = te.getCause();
 				if (cause instanceof SchemaException) {
@@ -903,14 +903,14 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 				}
 			}
 		}
-		
+
 		Source<IV,ID> source = new Source<>(itemOld, delta, itemNew, name);
 		source.setResidualPath(residualPath);
 		source.setResolvePath(resolvePath);
 		source.setSubItemDeltas(subItemDeltas);
 		return source;
 	}
-	
+
 	private boolean sourcesChanged() {
 		for (Source<?,?> source: sources) {
 			if (source.getDelta() != null) {
@@ -919,7 +919,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		}
 		return false;
 	}
-	
+
 	private void parseTarget() throws SchemaException {
 		VariableBindingDefinitionType targetType = mappingType.getTarget();
 		if (targetType == null) {
@@ -944,14 +944,14 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			stringPolicyResolver.setOutputPath(outputPath);
 		}
 	}
-	
+
 	public D getOutputDefinition() throws SchemaException {
 		if (outputDefinition == null) {
 			parseTarget();
 		}
 		return outputDefinition;
 	}
-	
+
 	public ItemPath getOutputPath() throws SchemaException {
 		if (outputDefinition == null) {
 			parseTarget();
@@ -970,7 +970,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			outputTriple.applyDefinition(outputDefinition);
 		}
 	}
-	
+
 	private void recomputeValues() {
 		if (outputTriple == null) {
 			return;
@@ -997,7 +997,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			outputTriple.setOriginObject(originObject);
 		}
 	}
-	
+
 	private void evaluateCondition(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		ExpressionType conditionExpressionType = mappingType.getCondition();
 		if (conditionExpressionType == null) {
@@ -1006,8 +1006,8 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			conditionOutputTriple.addToZeroSet(new PrismPropertyValue<Boolean>(Boolean.TRUE));
 			return;
 		}
-		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = 
-				ExpressionUtil.createCondition(conditionExpressionType, expressionFactory, 
+		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression =
+				ExpressionUtil.createCondition(conditionExpressionType, expressionFactory,
 				"condition in "+getMappingContextDescription(), task, result);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables,
 				"condition in "+getMappingContextDescription(), task, result);
@@ -1020,13 +1020,13 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		conditionOutputTriple = expression.evaluate(context);
 	}
 
-	
+
 	private void evaluateExpression(Task task, OperationResult result, boolean conditionResultOld, boolean conditionResultNew) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		ExpressionType expressionType = null;
 		if (mappingType != null) {
 			expressionType = mappingType.getExpression();
 		}
-		expression = expressionFactory.makeExpression(expressionType, outputDefinition, 
+		expression = expressionFactory.makeExpression(expressionType, outputDefinition,
 				"expression in "+getMappingContextDescription(), task, result);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables,
 				"expression in "+getMappingContextDescription(), task, result);
@@ -1041,7 +1041,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		outputTriple = expression.evaluate(context);
 
 		if (outputTriple == null) {
-			
+
 			if (conditionResultNew) {
 				// We need to return empty triple instead of null.
 				// The condition was true (or there was not condition at all)
@@ -1050,9 +1050,9 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 				// at all.
 				outputTriple = new PrismValueDeltaSetTriple<>();
 			}
-			
+
 		} else {
-		
+
 			// reflect condition change
 			if (!conditionResultOld && conditionResultNew) {
 				// Condition change false -> true
@@ -1068,7 +1068,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			}
 		}
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer#getOutputTriple()
 	 */
@@ -1092,11 +1092,11 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		output.addAll(PrismValue.cloneCollection(outputTriple.getNonNegativeValues()));
 		return output;
 	}
-	
+
 	public ItemDelta<V,D> createEmptyDelta(ItemPath path) {
 		return outputDefinition.createEmptyDelta(path);
 	}
-	
+
 	private <T> PrismPropertyValue<T> filterValue(PrismPropertyValue<T> propertyValue, List<ValueFilterType> filters) {
         PrismPropertyValue<T> filteredValue = propertyValue.clone();
         filteredValue.setOriginType(OriginType.INBOUND);
@@ -1112,17 +1112,17 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 
         return filteredValue;
     }
-	
+
 	private void transitionState(MappingEvaluationState newState) {
 		state = newState;
 	}
-	
+
 	private void assertState(MappingEvaluationState expecetdState) {
 		if (state != expecetdState) {
 			throw new IllegalArgumentException("Expected mapping state "+expecetdState+", but was "+state);
 		}
 	}
-	
+
 	/**
 	 * Shallow clone. Only the output is cloned deeply.
 	 */

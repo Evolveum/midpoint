@@ -308,7 +308,7 @@ public class NameStep extends WizardStep {
         		}
         		return choices.getObject().get(Integer.parseInt(id));
         	}
-        	
+
             @Override
             public Object getDisplayValue(PrismObject<ConnectorHostType> object) {
                 if (object == null) {

@@ -47,5 +47,5 @@ public class ItemSecurityConstraintsImpl implements DebugDumpable {
 		DebugUtil.debugDumpWithLabel(sb, "actionDecisionMap", actionDecisionMap, indent+1);
 		return sb.toString();
 	}
-	
+
 }

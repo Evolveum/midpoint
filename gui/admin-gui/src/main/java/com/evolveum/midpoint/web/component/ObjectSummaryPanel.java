@@ -29,7 +29,7 @@ import org.apache.wicket.model.IModel;
 
 public abstract class ObjectSummaryPanel<O extends ObjectType> extends AbstractSummaryPanel<O> {
 	private static final long serialVersionUID = -3755521482914447912L;
-	
+
 	public ObjectSummaryPanel(String id, Class<O> type, final IModel<PrismObject<O>> model, ModelServiceLocator serviceLocator) {
 		super(id, new ContainerableFromPrismObjectModel(model), serviceLocator, determineConfig(type, serviceLocator.getAdminGuiConfiguration()));
 	}

@@ -43,13 +43,13 @@ public class TestRestServiceYaml extends TestAbstractRestService {
 	protected String getContentType() {
 		return "application/yaml";
 	}
-	
-	
+
+
 	@Override
 	protected File getRepoFile(String fileBaseName) {
 		return new File(BASE_REPO_DIR + "/yaml", fileBaseName + ".yml");
 	}
-	
+
 	@Override
 	protected File getRequestFile(String fileBaseName) {
 		return new File(BASE_REQ_DIR + "/yaml", fileBaseName + ".yml");
@@ -59,5 +59,5 @@ public class TestRestServiceYaml extends TestAbstractRestService {
 	protected MidpointAbstractProvider getProvider() {
 		return yamlProvider;
 	}
-	
+
 }

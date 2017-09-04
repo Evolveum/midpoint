@@ -24,16 +24,16 @@ import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
  *
  */
 public interface ComplexConstructionConsumer<K, T extends AbstractConstruction> {
-	
+
 	boolean before(K key);
 
 	void onAssigned(K key, String desc);
-	
+
 	void onUnchangedValid(K key, String desc);
-	
+
 	void onUnchangedInvalid(K key, String desc);
-	
+
 	void onUnassigned(K key, String desc);
-	
+
 	void after(K key, String desc, DeltaMapTriple<K, ConstructionPack<T>> constructionMapTriple);
 }

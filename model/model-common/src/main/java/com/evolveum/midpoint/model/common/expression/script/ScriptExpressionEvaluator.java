@@ -37,20 +37,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionRetu
 /**
  * @author Radovan Semancik
  */
-public class ScriptExpressionEvaluator<V extends PrismValue,D extends ItemDefinition> 
+public class ScriptExpressionEvaluator<V extends PrismValue,D extends ItemDefinition>
 				extends AbstractValueTransformationExpressionEvaluator<V,D,ScriptExpressionEvaluatorType> {
 
 	private ScriptExpression scriptExpression;
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionEvaluator.class);
 
     ScriptExpressionEvaluator(ScriptExpressionEvaluatorType scriptType, ScriptExpression scriptExpression, SecurityEnforcer securityEnforcer) {
     	super(scriptType, securityEnforcer);
         this.scriptExpression = scriptExpression;
     }
-    
+
     @Override
-	protected List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination, boolean useNew, 
+	protected List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination, boolean useNew,
 			ExpressionEvaluationContext context, String contextDescription, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		ScriptExpressionReturnTypeType returnType = getExpressionEvaluatorType().getReturnType();
@@ -60,7 +60,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue,D extends ItemDefini
 		scriptExpression.setAdditionalConvertor(context.getAdditionalConvertor());
 		return (List<V>) scriptExpression.evaluate(variables, returnType, useNew, contextDescription, task, result);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
 	 */

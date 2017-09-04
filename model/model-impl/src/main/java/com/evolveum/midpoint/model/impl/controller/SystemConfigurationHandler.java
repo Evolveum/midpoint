@@ -52,7 +52,7 @@ import javax.annotation.PostConstruct;
  */
 @Component
 public class SystemConfigurationHandler implements ChangeHook {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(SystemConfigurationHandler.class);
 
     private static final String DOT_CLASS = SystemConfigurationHandler.class + ".";
@@ -65,7 +65,7 @@ public class SystemConfigurationHandler implements ChangeHook {
     @Autowired
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
-    
+
     @PostConstruct
     public void init() {
         hookRegistry.registerChangeHook(HOOK_URI, this);
@@ -98,7 +98,7 @@ public class SystemConfigurationHandler implements ChangeHook {
         }
         ModelContext<SystemConfigurationType> confContext = (ModelContext<SystemConfigurationType>)context;
         ModelElementContext<SystemConfigurationType> focusContext = confContext.getFocusContext();
-        
+
         boolean isDeletion = false;     // is this config-related change a deletion?
         PrismObject<SystemConfigurationType> object = focusContext.getObjectNew();
         if (object == null) {

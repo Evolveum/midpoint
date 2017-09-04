@@ -23,9 +23,9 @@ import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 
 /**
  * <p>Java class for LogicalOperatorFilterType complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="LogicalOperatorFilterType"&gt;
  *   &lt;complexContent&gt;
@@ -51,7 +51,7 @@ public abstract class LogicalOperatorFilterType
 
     /**
      * Creates a new {@code LogicalOperatorFilterType} instance.
-     * 
+     *
      */
     public LogicalOperatorFilterType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -60,8 +60,8 @@ public abstract class LogicalOperatorFilterType
 
     /**
      * Creates a new {@code LogicalOperatorFilterType} instance by deeply copying a given {@code LogicalOperatorFilterType} instance.
-     * 
-     * 
+     *
+     *
      * @param o
      *     The instance to copy.
      * @throws NullPointerException
@@ -78,7 +78,7 @@ public abstract class LogicalOperatorFilterType
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     * 
+     *
      */
     @Override
     public String toString() {
@@ -115,8 +115,8 @@ public abstract class LogicalOperatorFilterType
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

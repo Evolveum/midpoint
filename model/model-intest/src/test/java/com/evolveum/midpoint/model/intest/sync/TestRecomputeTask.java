@@ -74,18 +74,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
-	
+
 	private static final File TEST_DIR = new File("src/test/resources/sync");
-	
+
 	private static final File TASK_USER_RECOMPUTE_FILE = new File(TEST_DIR, "task-user-recompute.xml");
 	private static final String TASK_USER_RECOMPUTE_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaaa";
-	
+
 	private static final File TASK_USER_RECOMPUTE_LIGHT_FILE = new File(TEST_DIR, "task-user-recompute-light.xml");
 	private static final String TASK_USER_RECOMPUTE_LIGHT_OID = "b7b6af78-fffe-11e6-ac04-2fdd62641ce2";
-	
+
 	private static final File TASK_USER_RECOMPUTE_CAPTAIN_FILE = new File(TEST_DIR, "task-user-recompute-captain.xml");
 	private static final String TASK_USER_RECOMPUTE_CAPTAIN_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaac";
-		
+
 	private static final File TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_FILE = new File(TEST_DIR, "task-user-recompute-herman-by-expression.xml");
 	private static final String TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID = "91919191-76e0-59e2-86d6-3d4f02d3aadd";
 
@@ -104,30 +104,30 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // Preconditions
         assertUsers(5);
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
-        
+
         // Do some ordinary operations
-        
+
         assignRole(USER_GUYBRUSH_OID, ROLE_PIRATE_OID, task, result);
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
         addObject(USER_HERMAN_FILE);
         assignRole(USER_HERMAN_OID, ROLE_JUDGE_OID, task, result);
-        
+
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         // Now do something evil
-        
+
         // change definition of role "pirate". midPoint will not recompute automatically
         // the recompute task should do it
-        
+
         // One simple change
         modifyRoleAddConstruction(ROLE_JUDGE_OID, 1111L, RESOURCE_DUMMY_RED_OID);
-        
+
         // More complicated change
         PrismObject<RoleType> rolePirate = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, null, task, result);
         ItemPath attrItemPath = new ItemPath(
@@ -153,8 +153,8 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         JAXBElement<?> daggerExpressionEvalJaxbElement = new JAXBElement<Object>(SchemaConstants.C_VALUE, Object.class, daggerValueEvaluator);
         newAttrPVal.getValue().getOutbound().getExpression().getExpressionEvaluator().add(daggerExpressionEvalJaxbElement);
         newAttrPVal.getValue().getOutbound().setStrength(MappingStrengthType.STRONG);
-        
-        ObjectDelta<RoleType> rolePirateDelta = ObjectDelta.createModificationDeleteProperty(RoleType.class, ROLE_PIRATE_OID, 
+
+        ObjectDelta<RoleType> rolePirateDelta = ObjectDelta.createModificationDeleteProperty(RoleType.class, ROLE_PIRATE_OID,
         		attrItemPath, prismContext, oldAttrPVal.getValue());
         IntegrationTestTools.displayJaxb("AAAAAAAAAAA", newAttrPVal.getValue(), ConstructionType.F_ATTRIBUTE);
         display("BBBBBB", newAttrPVal.getValue().toString());
@@ -162,58 +162,58 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         display("Role pirate delta", rolePirateDelta);
 		modelService.executeChanges(MiscSchemaUtil.createCollection(rolePirateDelta), null, task, result);
-        
+
 		displayRoles(task, result);
-		
+
 		assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
 		assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-		
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User jack (before)", userJack);
-		
+
 		assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
 		assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
-		
+
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         addTask(TASK_USER_RECOMPUTE_FILE);
-        
+
         dummyAuditService.clear();
-        
+
         waitForTaskStart(TASK_USER_RECOMPUTE_OID, false);
-		
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        
+
         waitForTaskFinish(TASK_USER_RECOMPUTE_OID, true, 40000);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        
+
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after recompute", users);
-        
+
         assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
-        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", "dagger");
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        
+
         userJack = getUser(USER_JACK_OID);
 		display("User jack (after)", userJack);
-        
+
         assertNoDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
 
         assertUsers(6);
-        
+
         // Check audit
         display("Audit", dummyAuditService);
-        
+
         List<AuditEventRecord> auditRecords = dummyAuditService.getRecords();
-        
+
     	int i=0;
     	int modifications = 0;
     	for (; i < (auditRecords.size() - 1); i+=2) {
@@ -225,10 +225,10 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         	AuditEventRecord executionRecord = auditRecords.get(i+1);
         	assertNotNull("No execution audit record ("+i+")", executionRecord);
         	assertEquals("Got this instead of execution audit record ("+i+"): "+executionRecord, AuditEventStage.EXECUTION, executionRecord.getEventStage());
-        	
+
         	assertTrue("Empty deltas in execution audit record "+executionRecord, executionRecord.getDeltas() != null && ! executionRecord.getDeltas().isEmpty());
         	modifications++;
-        	
+
         	// check next records
         	while (i < (auditRecords.size() - 2)) {
         		AuditEventRecord nextRecord = auditRecords.get(i+2);
@@ -242,10 +242,10 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         }
         assertEquals("Unexpected number of audit modifications", 6, modifications);
-        
+
         deleteObject(TaskType.class, TASK_USER_RECOMPUTE_OID, task, result);
 	}
-	
+
 	private void displayRoles(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<RoleType> rolePirate = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, null, task, result);
 		display("Role pirate after modify", rolePirate);
@@ -264,52 +264,52 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // Preconditions
         assertUsers(6);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", true);
-                
+
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         // Now do something evil, remove "red" construction from judge role
         modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L, false, null, null);
-        
+
         displayRoles(task, result);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         addTask(TASK_USER_RECOMPUTE_CAPTAIN_FILE);
-        
+
         dummyAuditService.clear();
-        
+
         waitForTaskStart(TASK_USER_RECOMPUTE_CAPTAIN_OID, false);
-		
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        
+
         waitForTaskFinish(TASK_USER_RECOMPUTE_CAPTAIN_OID, true, 40000);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        
+
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after recompute", users);
-        
+
         assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
-        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", "dagger");
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        
+
         // Red resource does not delete accounts on deprovision, it disables them
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
-        
+
         // Only captains are recomputed. Therefore herman stays unrecomputed
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", true);
-        
+
         assertUsers(6);
-        
+
 	}
 
 	/**
@@ -369,7 +369,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 		assertUsers(6);
 
 	}
-	
+
 	/**
 	 * Light recompute. Very efficient, no resource operations, just fix the focus.
 	 * MID-3384
@@ -390,7 +390,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 		display("User jack before", usetJackBefore);
 		assertAssignedRole(usetJackBefore, ROLE_JUDGE_OID);
 		assertRoleMembershipRef(usetJackBefore, ROLE_JUDGE_OID);
-		
+
 		assignOrg(USER_GUYBRUSH_OID, ORG_MINISTRY_OF_OFFENSE_OID, null);
 		PrismObject<UserType> usetGuybrushBefore = getUser(USER_GUYBRUSH_OID);
 		display("User guybrush before", usetGuybrushBefore);
@@ -398,10 +398,10 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 		assertRoleMembershipRef(usetGuybrushBefore, ROLE_PIRATE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
 		assertAssignedOrgs(usetGuybrushBefore, ORG_MINISTRY_OF_OFFENSE_OID);
 	    assertHasOrgs(usetGuybrushBefore, ORG_MINISTRY_OF_OFFENSE_OID);
-		
+
 		clearUserOrgAndRoleRefs(USER_JACK_OID);
 		clearUserOrgAndRoleRefs(USER_GUYBRUSH_OID);
-		
+
 		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 
@@ -420,13 +420,13 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
-		
+
 		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
 		display("Users after recompute", users);
 
 		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 0);
-		
+
 		assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
 		assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", "dagger");
@@ -446,14 +446,14 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 		display("User jack after", usetJackAfter);
 		assertAssignedRole(usetJackAfter, ROLE_JUDGE_OID);
 		assertRoleMembershipRef(usetJackAfter, ROLE_JUDGE_OID);
-		
+
 		PrismObject<UserType> usetGuybrushAfter = getUser(USER_GUYBRUSH_OID);
 		display("User guybrush after", usetGuybrushAfter);
 		assertAssignedRole(usetGuybrushAfter, ROLE_PIRATE_OID);
 		assertRoleMembershipRef(usetGuybrushAfter, ROLE_PIRATE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
 		assertAssignedOrgs(usetGuybrushAfter, ORG_MINISTRY_OF_OFFENSE_OID);
 	    assertHasOrgs(usetGuybrushAfter, ORG_MINISTRY_OF_OFFENSE_OID);
-		
+
 		assertUsers(6);
 
 	}

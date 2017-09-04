@@ -177,7 +177,7 @@ public class ResourceObjectEvent extends BaseEvent {
 	public String getContentAsFormattedList(boolean showSynchronizationItems, boolean showAuxiliaryAttributes) {
 		return getNotificationFunctions().getContentAsFormattedList(this, showSynchronizationItems, showAuxiliaryAttributes);
 	}
-	
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);

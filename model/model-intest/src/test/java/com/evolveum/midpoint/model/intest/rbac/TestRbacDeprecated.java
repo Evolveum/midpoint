@@ -28,10 +28,10 @@ import java.io.File;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRbacDeprecated extends TestRbac {
-	
+
 	protected static final File ROLE_GOVERNOR_DEPRECATED_FILE = new File(TEST_DIR, "role-governor-deprecated.xml");
 	protected static final File ROLE_CANNIBAL_DEPRECATED_FILE = new File(TEST_DIR, "role-cannibal-deprecated.xml");
-		
+
 	@Override
 	protected File getRoleGovernorFile() {
 		return ROLE_GOVERNOR_DEPRECATED_FILE;

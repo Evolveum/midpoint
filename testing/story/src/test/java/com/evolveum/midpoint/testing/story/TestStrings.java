@@ -68,7 +68,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.*;
 
 /**
- * 
+ *
  * @author mederly
  *
  */
@@ -156,7 +156,7 @@ public class TestStrings extends AbstractStoryTest {
 	private static final String DUMMY_WORK_ITEM_ALLOCATION = "dummy:workItemAllocation";
 	private static final String DUMMY_WORK_ITEM_CUSTOM = "dummy:workItemCustom";
 	private static final String DUMMY_PROCESS = "dummy:process";
-	
+
 	protected static final int TASK_WAIT_TIMEOUT = 40000;
 
 	@Override
@@ -1001,7 +1001,7 @@ public class TestStrings extends AbstractStoryTest {
 		displayWorkItems("Work item after start", workItems);
 		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
 		display("wfTask", wfTask);
-		
+
 //		assertTriggers(wfTask, 2);
 
 		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfTask.asObjectable().getWorkflowContext());

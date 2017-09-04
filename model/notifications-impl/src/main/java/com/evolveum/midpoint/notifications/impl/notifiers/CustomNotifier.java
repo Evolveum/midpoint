@@ -89,7 +89,7 @@ public class CustomNotifier extends BaseHandler {
     }
 
     @Override
-    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 
+    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager,
     		Task task, OperationResult parentResult) throws SchemaException {
 
         OperationResult result = parentResult.createMinorSubresult(CustomNotifier.class.getName() + ".processEvent");

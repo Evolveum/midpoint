@@ -23,19 +23,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 public class ResourceContentStorage implements PageStorage {
 	private static final long serialVersionUID = 1L;
-	
+
 	private ResourceContentSearchDto contentSearch;
     private Boolean resourceSearch = Boolean.FALSE;
 
 	private Search attributeSearch;
 	private ObjectPaging paging;
-	
+
 	private ShadowKindType kind;
-	
+
 	public ResourceContentStorage(ShadowKindType kind) {
 		this.kind = kind;
 	}
-	
+
 	@Override
 	public Search getSearch() {
 		return attributeSearch;
@@ -57,25 +57,25 @@ public class ResourceContentStorage implements PageStorage {
     @Override
 	public void setPaging(ObjectPaging paging) {
 		this.paging = paging;
-		
+
 	}
 
 	@Override
 	public ObjectPaging getPaging() {
 		return paging;
 	}
-	
+
 	public ResourceContentSearchDto getContentSearch() {
 		if (contentSearch == null) {
 			return new ResourceContentSearchDto(kind);
 		}
 		return contentSearch;
 	}
-	
+
 	public void setContentSearch(ResourceContentSearchDto contentSearch) {
 		this.contentSearch = contentSearch;
 	}
-	
+
 	@Override
 	public String debugDump() {
 		return debugDump(0);
@@ -93,5 +93,5 @@ public class ResourceContentStorage implements PageStorage {
 		DebugUtil.debugDumpWithLabel(sb, "kind", kind==null?null:kind.toString(), indent+1);
 		return sb.toString();
 	}
-	
+
 }

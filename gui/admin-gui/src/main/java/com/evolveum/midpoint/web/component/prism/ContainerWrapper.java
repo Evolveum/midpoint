@@ -202,7 +202,7 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
     		}
     	}
     }
-    
+
 	public boolean isShowInheritedObjectAttributes() {
 		return showInheritedObjectAttributes;
 	}
@@ -375,7 +375,7 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
         return wrapper.getItem();
     }
 
-    
+
 	public void sort(final PageBase pageBase) {
 		if (objectWrapper.isSorted()){
             Collections.sort(properties, new Comparator<ItemWrapper>(){
@@ -424,7 +424,7 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
             });
         }
 	}
-    
+
     @Override
     public String debugDump() {
         return debugDump(0);

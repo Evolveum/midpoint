@@ -31,7 +31,7 @@ public class MainPopupDialog extends ModalWindow {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_MAIN_POPUP_BODY = "popupBody";
-	
+
 	private boolean initialized;
 
     public MainPopupDialog(String id) {
@@ -61,15 +61,15 @@ public class MainPopupDialog extends ModalWindow {
                 MainPopupDialog.this.close(target);
             }
         });
-        
+
         WebMarkupContainer content = new WebMarkupContainer(getContentId());
         setContent(content);
     }
-    
+
     @Override
     protected void onBeforeRender(){
         super.onBeforeRender();
-     
+
         if(initialized){
             return;
         }
@@ -77,12 +77,12 @@ public class MainPopupDialog extends ModalWindow {
         setBody(new Label(ID_MAIN_POPUP_BODY, new Model<String>("Not initialized")));
        initialized = true;
     }
-    
+
     private void setBody(Component component){
     	WebMarkupContainer content = (WebMarkupContainer) get(getContentId());
     	content.addOrReplace(component);
     }
-    
+
     public void setBody(Popupable popupable){
     	setTitle(popupable.getTitle());
     	setInitialHeight(popupable.getHeight());

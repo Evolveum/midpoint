@@ -44,9 +44,9 @@ import java.util.Collection;
  *
  */
 public class PrismMarshaller {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(PrismMarshaller.class);
-	
+
 	@NotNull private final BeanMarshaller beanMarshaller;
 
 	public PrismMarshaller(@NotNull BeanMarshaller beanMarshaller) {
@@ -240,7 +240,7 @@ public class PrismMarshaller {
 		marshalContainerValue(xmap, containerVal, containerDefinition, ctx);
 		return xmap;
 	}
-	
+
 	private <C extends Containerable> void marshalContainerValue(MapXNode xmap, PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition, SerializationContext ctx) throws SchemaException {
 		Long id = containerVal.getId();
 		if (id != null) {
@@ -354,7 +354,7 @@ public class PrismMarshaller {
         }
         EvaluationTimeType resolutionTime = value.getResolutionTime();
         if (resolutionTime != null) {
-        	xmap.put(createReferenceQName(XNode.KEY_REFERENCE_RESOLUTION_TIME, namespace), 
+        	xmap.put(createReferenceQName(XNode.KEY_REFERENCE_RESOLUTION_TIME, namespace),
         			createPrimitiveXNode(resolutionTime.value(), DOMUtil.XSD_STRING));
         }
         if (value.getTargetName() != null) {
@@ -396,7 +396,7 @@ public class PrismMarshaller {
         @Nullable QName typeName = definition != null ? definition.getTypeName() : typeNameIfNoDefinition;
         ExpressionWrapper expression = value.getExpression();
         if (expression != null) {
-        	// Store expression, not the value. In this case the value (if any) is 
+        	// Store expression, not the value. In this case the value (if any) is
         	// a transient product of the expression evaluation.
         	return createExpressionXNode(expression);
         }
@@ -409,7 +409,7 @@ public class PrismMarshaller {
             	// Marshaling attempt may process the expression in raw element
                 expression = value.getExpression();
                 if (expression != null) {
-                	// Store expression, not the value. In this case the value (if any) is 
+                	// Store expression, not the value. In this case the value (if any) is
                 	// a transient product of the expression evaluation.
                 	return createExpressionXNode(expression);
                 }
@@ -472,7 +472,7 @@ public class PrismMarshaller {
         xprim.setValue(val, type);
         return xprim;
     }
-    
+
     @NotNull
     private XNode createExpressionXNode(@NotNull ExpressionWrapper expression) throws SchemaException {
 		return PrismUtil.serializeExpression(expression, beanMarshaller);

@@ -24,7 +24,7 @@ public class TypedValue {
 	private Object value;
 	private QName xsdType;
 	private QName elementName;
-	
+
 	public TypedValue() {
 		super();
 	}

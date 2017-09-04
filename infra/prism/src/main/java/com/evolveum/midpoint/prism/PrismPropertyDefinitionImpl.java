@@ -66,7 +66,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
     public PrismPropertyDefinitionImpl(QName elementName, QName typeName, PrismContext prismContext) {
         super(elementName, typeName, prismContext);
     }
-    
+
     public PrismPropertyDefinitionImpl(QName elementName, QName typeName, PrismContext prismContext, Collection<? extends DisplayableValue<T>> allowedValues, T defaultValue) {
         super(elementName, typeName, prismContext);
         this.allowedValues = allowedValues;
@@ -94,15 +94,15 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
     }
 
 	/**
-     * This is XSD annotation that specifies whether a property should 
+     * This is XSD annotation that specifies whether a property should
      * be indexed in the storage. It can only apply to properties. It
      * has following meaning:
-     * 
+     *
      * true: the property must be indexed. If the storage is not able to
      * index the value, it should indicate an error.
-     * 
+     *
      * false: the property should not be indexed.
-     * 
+     *
      * null: data store decides whether to index the property or
      * not.
      */
@@ -119,7 +119,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 	 * Returns matching rule name. Matching rules are algorithms that specify
 	 * how to compare, normalize and/or order the values. E.g. there are matching
 	 * rules for case insensitive string comparison, for LDAP DNs, etc.
-	 *  
+	 *
 	 * @return matching rule name
 	 */
 	@Override
@@ -175,7 +175,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 			sb.append(",AVals:").append(allowedValues.size());
 		}
 	}
-    
+
     @Override
 	public int hashCode() {
 		final int prime = 31;

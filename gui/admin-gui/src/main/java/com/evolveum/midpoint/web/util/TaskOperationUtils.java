@@ -12,12 +12,12 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 
 public class TaskOperationUtils {
-	
+
 	private static final String DOT_CLASS = TaskOperationUtils.class.getName() + ".";
     private static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTask";
     private static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
     private static final String OPERATION_RUN_NOW_TASK = DOT_CLASS + "runNowTask";
-	
+
 	public static OperationResult suspendPerformed(TaskService taskService, Collection<String> oids) {
         OperationResult result = new OperationResult(OPERATION_SUSPEND_TASKS);
         try {
@@ -37,7 +37,7 @@ public class TaskOperationUtils {
         }
 
         return result;
-        
+
     }
 
 	public static OperationResult resumePerformed(TaskService taskService, List<String> oids) {

@@ -66,7 +66,7 @@ import static org.testng.AssertJUnit.*;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest {
-	
+
 	public static final File TEST_DIR = new File("src/test/resources/scripting");
     private static final String DOT_CLASS = TestScriptingBasic.class.getName() + ".";
     private static final File LOG_FILE = new File(TEST_DIR, "log.xml");

@@ -35,19 +35,19 @@ public class AttributesToReturn implements Serializable {
 	private boolean returnValidFromExplicit = false;
 	private boolean returnValidToExplicit = false;
 	Collection<? extends ResourceAttributeDefinition> attributesToReturn = null;
-	
+
 	public boolean isReturnDefaultAttributes() {
 		return returnDefaultAttributes;
 	}
-	
+
 	public void setReturnDefaultAttributes(boolean returnDefaultAttributes) {
 		this.returnDefaultAttributes = returnDefaultAttributes;
 	}
-	
+
 	public Collection<? extends ResourceAttributeDefinition> getAttributesToReturn() {
 		return attributesToReturn;
 	}
-	
+
 	public void setAttributesToReturn(Collection<? extends ResourceAttributeDefinition> attributesToReturn) {
 		this.attributesToReturn = attributesToReturn;
 	}

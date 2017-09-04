@@ -50,7 +50,7 @@ public class PageOrgTree extends PageAdminUsers {
     private static final String OPERATION_LOAD_ORG_UNIT = DOT_CLASS + "loadOrgUnit";
 
     private String ID_TABS = "tabs";
-    
+
     private String ID_ORG_PANEL = "orgPanel";
 
 

@@ -28,20 +28,20 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
 /**
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class ScriptExpressionFactory {
-	
+
 	public static String DEFAULT_LANGUAGE = "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy";
-	
+
 	private Map<String,ScriptEvaluator> evaluatorMap = new HashMap<String, ScriptEvaluator>();
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
 	private Collection<FunctionLibrary> functions;
 	private Protector protector;
-	
+
 	public ScriptExpressionFactory(PrismContext prismContext, Protector protector) {
 		this.prismContext = prismContext;
 		this.protector = protector;
@@ -54,7 +54,7 @@ public class ScriptExpressionFactory {
 	public void setObjectResolver(ObjectResolver objectResolver) {
 		this.objectResolver = objectResolver;
 	}
-	
+
 	public void setEvaluators(Collection<ScriptEvaluator> evaluators) {
 		for (ScriptEvaluator evaluator: evaluators) {
 			registerEvaluator(evaluator.getLanguageUrl(), evaluator);
@@ -80,14 +80,14 @@ public class ScriptExpressionFactory {
 		expression.setFunctions(functions);
 		return expression;
 	}
-	
+
 	public void registerEvaluator(String language, ScriptEvaluator evaluator) {
 		if (evaluatorMap.containsKey(language)) {
 			throw new IllegalArgumentException("Evaluator for language "+language+" already registered");
 		}
 		evaluatorMap.put(language,evaluator);
 	}
-	
+
 	private ScriptEvaluator getEvaluator(String language, String shortDesc) throws ExpressionSyntaxException {
 		ScriptEvaluator evaluator = evaluatorMap.get(language);
 		if (evaluator == null) {
@@ -102,6 +102,6 @@ public class ScriptExpressionFactory {
 		}
 		return DEFAULT_LANGUAGE;
 	}
-	
+
 }
 

@@ -62,7 +62,7 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
             target.add(getPageBase().getFeedbackPanel());
             return;
         }
-        
+
 
         getPageBase().showMainPopup(getDeleteAssignmentPopupContent(dto), target);
     }

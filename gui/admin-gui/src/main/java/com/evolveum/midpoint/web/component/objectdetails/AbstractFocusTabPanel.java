@@ -36,13 +36,13 @@ public abstract class AbstractFocusTabPanel<F extends FocusType> extends Abstrac
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractFocusTabPanel.class);
-	
+
 	private LoadableModel<List<AssignmentDto>> assignmentsModel;
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 
-	public AbstractFocusTabPanel(String id, Form mainForm, 
-			LoadableModel<ObjectWrapper<F>> focusWrapperModel, 
-			LoadableModel<List<AssignmentDto>> assignmentsModel, 
+	public AbstractFocusTabPanel(String id, Form mainForm,
+			LoadableModel<ObjectWrapper<F>> focusWrapperModel,
+			LoadableModel<List<AssignmentDto>> assignmentsModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			PageBase pageBase) {
 		super(id, mainForm, focusWrapperModel, pageBase);

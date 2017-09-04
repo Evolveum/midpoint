@@ -407,11 +407,11 @@ public class RAuditEventRecord implements Serializable {
 		Validate.notNull(prismContext, "Prism context must not be null.");
 
 		RAuditEventRecord repo = new RAuditEventRecord();
-		
+
 		if (record.getRepoId() != null) {
 			repo.setId(record.getRepoId());
 		}
-		
+
 		repo.setChannel(record.getChannel());
 		if (record.getTimestamp() != null) {
 			repo.setTimestamp(new Timestamp(record.getTimestamp()));
@@ -546,7 +546,7 @@ public class RAuditEventRecord implements Serializable {
 		}
 
 		audit.setRepoId(repo.getId());
-		
+
 		return audit;
 		// initiator, target, targetOwner
 
@@ -564,7 +564,7 @@ public class RAuditEventRecord implements Serializable {
 		PolyString name = refval.getTargetName();
 		return name != null ? name.getOrig() : null;
 	}
-	
+
 	public void merge(RAuditEventRecord repoRecord) {
 		this.id = repoRecord.id;
 	}

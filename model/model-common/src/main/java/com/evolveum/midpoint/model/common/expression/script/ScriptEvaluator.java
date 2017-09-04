@@ -36,7 +36,7 @@ import java.util.function.Function;
  * @author Radovan Semancik
  */
 public interface ScriptEvaluator {
-	
+
 	<T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluatorType expressionType, ExpressionVariables variables,
 			ItemDefinition outputDefinition, Function<Object, Object> additionalConvertor,
 			ScriptExpressionReturnTypeType suggestedReturnType, ObjectResolver objectResolver,

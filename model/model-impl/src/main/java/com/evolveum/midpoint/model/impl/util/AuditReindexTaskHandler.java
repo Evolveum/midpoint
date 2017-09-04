@@ -38,7 +38,7 @@ public class AuditReindexTaskHandler implements TaskHandler {
 	public static final String HANDLER_URI = ModelPublicConstants.AUDIT_REINDEX_TASK_HANDLER_URI;
 
 	private static final String taskName = "AuditReindex";
-	
+
 	private int maxResults = 20;
 	private int firstResult = 0;
 
@@ -67,11 +67,11 @@ public class AuditReindexTaskHandler implements TaskHandler {
 
 			@Override
 			public boolean handle(AuditEventRecord auditRecord) {
-				
+
 				auditService.reindexEntry(auditRecord);
 				processedObjects.incrementAndGet();
-				
-				return true;				 
+
+				return true;
 			}
 
 			@Override
@@ -84,7 +84,7 @@ public class AuditReindexTaskHandler implements TaskHandler {
 			return runResult;
 		}
 
-		
+
 		try {
 			LOGGER.trace("{}: expecting {} objects to be processed", taskName, expectedTotal);
 

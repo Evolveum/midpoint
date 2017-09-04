@@ -218,7 +218,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 								@Override
 								protected void addPerformed(AjaxRequestTarget target, List selected, QName relation) {
 									super.addPerformed(target, selected, relation);
-									addSelectedAssignablePerformed(target, selected, relation, 
+									addSelectedAssignablePerformed(target, selected, relation,
 											getPageBase().getMainPopup().getId());
                                     reloadMainFormButtons(target);
 								}

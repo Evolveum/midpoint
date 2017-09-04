@@ -77,7 +77,7 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
     private static final String ID_MAIN_FORM = "mainForm";
 
     private static final String OPERATION_SEARCH_MEMBERS = DOT_CLASS + "searchMembers";
-    
+
     private IModel<Search> searchModel;
 
     public PageRoles() {
@@ -104,7 +104,7 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
-        
+
         MainObjectListPanel<RoleType> roleListPanel = new MainObjectListPanel<RoleType>(ID_TABLE, RoleType.class, TableId.TABLE_ROLES, null, this) {
             private static final long serialVersionUID = 1L;
 
@@ -192,8 +192,8 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
     	return WebComponentUtil.createAbstractRoleConfirmationMessage(actionName, action, getRoleTable(), this);
 
     }
-    
-    
+
+
 
     private boolean isShowConfirmationDialog(ColumnMenuAction action){
         return action.getRowModel() != null ||

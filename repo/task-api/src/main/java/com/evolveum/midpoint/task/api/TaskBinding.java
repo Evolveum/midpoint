@@ -19,9 +19,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
 
 /**
  * Binding tells about task "affinity" to a particular node.
- * 
+ *
  * @author Pavol Mederly
- * 
+ *
  */
 public enum TaskBinding {
 

@@ -38,7 +38,7 @@ import java.util.List;
  *
  */
 public class MockSingleTaskHandler implements TaskHandler {
-	
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(MockSingleTaskHandler.class);
     private String MOCK_HANDLER_URI = "http://midpoint.evolveum.com/test/mock";
     private String NS_EXT = "http://myself.me/schemas/whatever";
@@ -64,7 +64,7 @@ public class MockSingleTaskHandler implements TaskHandler {
 	}
 
 	private boolean hasRun = false;
-	
+
 	@Override
 	public TaskRunResult run(Task task) {
 		LOGGER.info("MockSingle.run starting (id = " + id + ")");
@@ -74,16 +74,16 @@ public class MockSingleTaskHandler implements TaskHandler {
 		TaskRunResult runResult = new TaskRunResult();
 
 		runResult.setOperationResult(opResult);
-		
+
 		// TODO
 		progress++;
-		
+
 		opResult.recordSuccess();
-		
+
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(progress);
-		
+
 		hasRun = true;
 
         if ("L1".equals(id)) {
@@ -155,11 +155,11 @@ public class MockSingleTaskHandler implements TaskHandler {
             }
 
         }
-		
+
 		LOGGER.info("MockSingle.run stopping");
 		return runResult;
 	}
-	
+
 	@Override
 	public Long heartbeat(Task task) {
 		// TODO Auto-generated method stub
@@ -168,13 +168,13 @@ public class MockSingleTaskHandler implements TaskHandler {
 	@Override
 	public void refreshStatus(Task task) {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
+
 	public boolean hasRun() {
 		return hasRun;
 	}
-	
+
 	public void resetHasRun() {
 		hasRun = false;
 	}

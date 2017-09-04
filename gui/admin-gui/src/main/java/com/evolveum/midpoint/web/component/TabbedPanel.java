@@ -51,7 +51,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
     public static final String TAB_PANEL_ID = "panel";
     public static final String RIGHT_SIDE_TAB_ITEM_ID = "rightSideTabItem";
     public static final String RIGHT_SIDE_TAB_ID = "rightSideTab";
-    
+
 	protected static final String ID_TITLE = "title";
 	protected static final String ID_COUNT = "count";
 	protected static final String ID_LINK = "link";
@@ -122,7 +122,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
 
                 titleLink.add(newTitle(ID_TITLE, tab.getTitle(), index));
                 item.add(titleLink);
-                
+
                 final IModel<String> countModel;
                 if (tab instanceof CountModelProvider) {
                 	countModel = ((CountModelProvider)tab).getCountModel();

@@ -10,14 +10,14 @@ import org.apache.wicket.model.IModel;
 public class StringChoiceRenderer implements IChoiceRenderer<String> {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private String keyPrefix;
 	private String splitPattern;
-	
+
 	public StringChoiceRenderer(String keyPrefix) {
 		this.keyPrefix = StringUtils.isNotBlank(keyPrefix) ? keyPrefix : "";
 	}
-	
+
 	public StringChoiceRenderer(String keyPrefix, String splitPattern) {
 		this.keyPrefix = StringUtils.isNotBlank(keyPrefix) ? keyPrefix : "";
 		this.splitPattern = splitPattern;
@@ -34,11 +34,11 @@ public class StringChoiceRenderer implements IChoiceRenderer<String> {
 			String[] fields = object.split(splitPattern);
 			object = fields[1];
 		}
-		
+
 		if (StringUtils.isNotBlank(keyPrefix)){
 			return Application.get().getResourceSettings().getLocalizer().getString(keyPrefix + object, null);
 		}
-	
+
 		return object;
 	}
 

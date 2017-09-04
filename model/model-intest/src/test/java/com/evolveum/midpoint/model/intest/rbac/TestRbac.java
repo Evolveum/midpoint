@@ -77,22 +77,22 @@ import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRbac extends AbstractRbacTest {
-	
+
 	private static final String LOCALITY_TORTUGA = "Tortuga";
-	
+
 	private String userLemonheadOid;
 	private String userSharptoothOid;
 	private String userRedskullOid;
 	private String userBignoseOid;
-	
-	private final String EXISTING_GOSSIP = "Black spot!"; 
-		
+
+	private final String EXISTING_GOSSIP = "Black spot!";
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
 		super.initSystem(initTask, initResult);
 	}
-	
+
 	@Test
     public void test000SanityRolePirate() throws Exception {
 		final String TEST_NAME = "test000SanityRolePirate";
@@ -100,18 +100,18 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
 		PrismObject<RoleType> rolePirate = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, null, task, result);
-        
+
         // THEN
         display("Role pirate", rolePirate);
         IntegrationTestTools.displayXml("Role pirate", rolePirate);
         assertNotNull("No pirate", rolePirate);
-        
+
         PrismAsserts.assertEquivalent(ROLE_PIRATE_FILE, rolePirate);
 	}
-	
+
 	@Test
     public void test001SanityRoleProjectOmnimanager() throws Exception {
 		final String TEST_NAME = "test001SanityRoleProjectOmnimanager";
@@ -119,20 +119,20 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-                
+
 		// WHEN
 		PrismObject<RoleType> roleOmnimanager = modelService.getObject(RoleType.class, ROLE_PROJECT_OMNINAMAGER_OID, null, task, result);
-        
+
         // THEN
         display("Role omnimanager", roleOmnimanager);
         IntegrationTestTools.displayXml("Role omnimanager", roleOmnimanager);
         assertNotNull("No omnimanager", roleOmnimanager);
-        
+
         ObjectReferenceType targetRef = roleOmnimanager.asObjectable().getInducement().get(0).getTargetRef();
         assertEquals("Wrong targetRef resolutionTime", EvaluationTimeType.RUN, targetRef.getResolutionTime());
         assertNull("targetRef is resolved", targetRef.getOid());
 	}
-	
+
 	@Test
     public void test010SearchRequestableRoles() throws Exception {
 		final String TEST_NAME = "test010SearchRequestableRoles";
@@ -140,17 +140,17 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         ObjectQuery query = QueryBuilder.queryFor(RoleType.class, prismContext)
 				.item(RoleType.F_REQUESTABLE).eq(true)
 				.build();
 
 		// WHEN
         List<PrismObject<RoleType>> requestableRoles = modelService.searchObjects(RoleType.class, query, null, task, result);
-        
+
         // THEN
         display("Requestable roles", requestableRoles);
-        
+
         assertEquals("Unexpected number of requestable roles", 3, requestableRoles.size());
 	}
 
@@ -161,19 +161,19 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
@@ -187,13 +187,13 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, ROLE_PIRATE_TITLE);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, USER_JACK_LOCALITY);
-        // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, 
+        // Outbound mapping for weapon is weak, therefore the mapping in role should override it
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, ROLE_PIRATE_WEAPON);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Caribbean has ever seen");
 	}
 
@@ -203,7 +203,7 @@ public class TestRbac extends AbstractRbacTest {
 
 	/**
 	 * We modify Jack's "locality". As this is assigned by expression in the role to the dummy account, the account should
-	 * be updated as well. 
+	 * be updated as well.
 	 */
 	@Test
     public void test102JackModifyUserLocality() throws Exception {
@@ -212,22 +212,22 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // gossip is a tolerant attribute. Make sure there there is something to tolerate
  		DummyAccount jackDummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
- 		jackDummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+ 		jackDummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
  				EXISTING_GOSSIP);
 
  		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, getDefaultOptions(), task, result, 
+        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, getDefaultOptions(), task, result,
         		createPolyString(LOCALITY_TORTUGA));
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -238,15 +238,15 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, ROLE_PIRATE_TITLE);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_TORTUGA);
-        // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, 
+        // Outbound mapping for weapon is weak, therefore the mapping in role should override it
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, ROLE_PIRATE_WEAPON);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
 	}
-	
+
 	@Test
     public void test110UnAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test110UnAssignRolePirate";
@@ -254,14 +254,14 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-               
+
         // WHEN
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedNoRole(userAfter, task, result);
@@ -278,46 +278,46 @@ public class TestRbac extends AbstractRbacTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
-        
+
         // Make sure that the account has explicit intent
         account.asObjectable().setIntent(SchemaConstants.INTENT_DEFAULT);
-        
+
         // Make sure that the existing account has the same value as is set by the role
         // This causes problems if the resource does not tolerate duplicate values in deltas. But provisioning
         // should work around that.
-        TestUtil.setAttribute(account, 
+        TestUtil.setAttribute(account,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME),
         		DOMUtil.XSD_STRING, prismContext, ROLE_PIRATE_TITLE);
-        
-		ObjectDelta<UserType> delta = ObjectDelta.createModificationAddReference(UserType.class, USER_JACK_OID, 
+
+		ObjectDelta<UserType> delta = ObjectDelta.createModificationAddReference(UserType.class, USER_JACK_OID,
 				UserType.F_LINK_REF, prismContext, account);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
-		
+
 		// We need to switch off the enforcement for this operation. Otherwise we won't be able to create the account
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		modelService.executeChanges(deltas, getDefaultOptions(), task, result);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-		        
+
         // Precondition (simplified)
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "rum");
-        
+
         // gossip is a tolerant attribute. Make sure there there is something to tolerate
   		DummyAccount jackDummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
-  		jackDummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+  		jackDummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
   				EXISTING_GOSSIP);
-        
+
         // WHEN
   		displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 1);
@@ -330,13 +330,13 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", LOCALITY_TORTUGA);
         // The account already has a value for 'weapon', it should be unchanged.
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "rum");
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
-        
+
 	}
-	
-	
-	
+
+
+
 	@Test
     public void test121JackAssignAccountImplicitIntent() throws Exception {
 		final String TEST_NAME = "test121JackAssignAccountImplicitIntent";
@@ -345,17 +345,17 @@ public class TestRbac extends AbstractRbacTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        		        
+
         // Precondition (simplified)
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        
+
         // WHEN
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);		// TODO options?
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 2);
@@ -366,11 +366,11 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", ROLE_PIRATE_TITLE);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", LOCALITY_TORTUGA);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
-        
+
 	}
-	
+
 	@Test
     public void test122JackAssignAccountExplicitIntent() throws Exception {
 		final String TEST_NAME = "test122JackAssignAccountExplicitIntent";
@@ -379,17 +379,17 @@ public class TestRbac extends AbstractRbacTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        		        
+
         // Precondition (simplified)
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        
+
         // WHEN
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);		// TODO options?
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 3);
@@ -400,26 +400,26 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", ROLE_PIRATE_TITLE);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", LOCALITY_TORTUGA);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
-        
+
 	}
-	
+
 	@Test
     public void test127UnAssignAccountImplicitIntent() throws Exception {
 		final String TEST_NAME = "test127UnAssignAccountImplicitIntent";
         displayTestTitle(TEST_NAME);
-        
+
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-               
+
         // WHEN
         unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);			// TODO options?
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 2);
@@ -430,25 +430,25 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", ROLE_PIRATE_TITLE);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", LOCALITY_TORTUGA);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
 	}
-	
+
 	@Test
     public void test128UnAssignAccountExplicitIntent() throws Exception {
 		final String TEST_NAME = "test128UnAssignAccountExplicitIntent";
         displayTestTitle(TEST_NAME);
-        
+
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-               
+
         // WHEN
         unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);		// TODO options?
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 1);
@@ -459,25 +459,25 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", ROLE_PIRATE_TITLE);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", LOCALITY_TORTUGA);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
 	}
-	
+
 	@Test
     public void test129UnAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test129UnAssignRolePirate";
         displayTestTitle(TEST_NAME);
-        
+
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-               
+
         // WHEN
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 0);
@@ -485,7 +485,7 @@ public class TestRbac extends AbstractRbacTest {
 		assertDelegatedRef(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	@Test
     public void test130JackAssignRolePirateWithSeaInAssignment() throws Exception {
 		final String TEST_NAME = "test130JackAssignRolePirateWithSeaInAssignment";
@@ -493,17 +493,17 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
         PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
         extension.add(seaProp);
-        
+
 		// WHEN
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, extension, getDefaultOptions(), task, result);
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -516,14 +516,14 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", ROLE_PIRATE_TITLE);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", LOCALITY_TORTUGA);
-        // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
+        // Outbound mapping for weapon is weak, therefore the mapping in role should override it
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", ROLE_PIRATE_WEAPON);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Tortuga has ever seen");
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME,
         		"jack sailed Caribbean, immediately Caribbean, role , with this The Seven Seas while focused on Caribbean (in Pirate)");
 	}
-	
+
 	@Test
     public void test132JackUnAssignRolePirateWithSeaInAssignment() throws Exception {
 		final String TEST_NAME = "test132JackUnAssignRolePirateWithSeaInAssignment";
@@ -531,21 +531,21 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
         PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
         extension.add(seaProp);
-        
+
 		// WHEN
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, extension, task, result);
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 0);
@@ -553,7 +553,7 @@ public class TestRbac extends AbstractRbacTest {
 		assertDelegatedRef(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	/**
 	 * The value for sea is set in Adriatic Pirate role extension.
 	 */
@@ -564,14 +564,14 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         assignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_ADRIATIC_PIRATE_OID, task, result);
@@ -580,14 +580,14 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", ROLE_PIRATE_TITLE);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", LOCALITY_TORTUGA);
-        // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
+        // Outbound mapping for weapon is weak, therefore the mapping in role should override it
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", ROLE_PIRATE_WEAPON);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Tortuga has ever seen");
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME,
         		"jack sailed Adriatic, immediately Adriatic, role , with this The Seven Seas while focused on  (in Pirate)");
 	}
-	
+
 	/**
 	 * Check if all the roles are visible in preview changes
 	 */
@@ -600,14 +600,14 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         ObjectDelta<UserType> delta = user.createModifyDelta();
-        
+
 		// WHEN
         ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), getDefaultOptions(), task, result);
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
         PrismAsserts.assertTripleNoPlus(evaluatedAssignmentTriple);
         PrismAsserts.assertTripleNoMinus(evaluatedAssignmentTriple);
@@ -621,7 +621,7 @@ public class TestRbac extends AbstractRbacTest {
         assertEquals("Wrong number of evaluated role", 2, evaluatedRoles.size());
         assertEvaluatedRole(evaluatedRoles, ROLE_ADRIATIC_PIRATE_OID);
         assertEvaluatedRole(evaluatedRoles, ROLE_PIRATE_OID);
-        
+
 	}
 
 	@Test
@@ -631,14 +631,14 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         unassignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 0);
@@ -646,7 +646,7 @@ public class TestRbac extends AbstractRbacTest {
 		assertDelegatedRef(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	/**
 	 * Even though we assign Adriatic Pirate role which has a sea set in its extension the
 	 * sea set in user's extension should override it.
@@ -658,21 +658,21 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
         PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
         extension.add(seaProp);
-        
+
 		// WHEN
         assignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, extension, getDefaultOptions(), task, result);
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_ADRIATIC_PIRATE_OID, task, result);
@@ -681,14 +681,14 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", ROLE_PIRATE_TITLE);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", LOCALITY_TORTUGA);
-        // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
+        // Outbound mapping for weapon is weak, therefore the mapping in role should override it
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", ROLE_PIRATE_WEAPON);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Tortuga has ever seen");
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME,
         		"jack sailed Caribbean, immediately Adriatic, role , with this The Seven Seas while focused on Caribbean (in Pirate)");
 	}
-	
+
 	@Test
     public void test139JackUnAssignRoleAdriaticPirateWithSeaInAssignment() throws Exception {
 		final String TEST_NAME = "test139JackUnAssignRoleAdriaticPirateWithSeaInAssignment";
@@ -696,21 +696,21 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
         PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
         extension.add(seaProp);
-        
+
 		// WHEN
         unassignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, extension, getDefaultOptions(), task, result);
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 0);
@@ -718,7 +718,7 @@ public class TestRbac extends AbstractRbacTest {
 		assertDelegatedRef(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	@Test
     public void test144JackAssignRoleBlackSeaPirate() throws Exception {
 		final String TEST_NAME = "test144JackAssignRoleBlackSeaPirate";
@@ -726,13 +726,13 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         assignRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_BLACK_SEA_PIRATE_OID, task, result);
@@ -742,14 +742,14 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", ROLE_PIRATE_TITLE);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", LOCALITY_TORTUGA);
-        // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
+        // Outbound mapping for weapon is weak, therefore the mapping in role should override it
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", ROLE_PIRATE_WEAPON);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Tortuga has ever seen");
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME,
         		"jack sailed Marmara Sea, immediately Marmara Sea, role Black Sea, with this The Seven Seas while focused on  (in Pirate)");
 	}
-	
+
 	@Test
     public void test146JackUnAssignRoleBlackSeaPirate() throws Exception {
 		final String TEST_NAME = "test146JackUnAssignRoleBlackSeaPirate";
@@ -757,14 +757,14 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         unassignRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 0);
@@ -772,7 +772,7 @@ public class TestRbac extends AbstractRbacTest {
 		assertDelegatedRef(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	@Test
     public void test147JackAssignRoleBlackSeaPirateWithSeaInAssignment() throws Exception {
 		final String TEST_NAME = "test147JackAssignRoleBlackSeaPirateWithSeaInAssignment";
@@ -780,21 +780,21 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
         PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
         extension.add(seaProp);
-        
+
 		// WHEN
         assignRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, extension, getDefaultOptions(), task, result);
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_BLACK_SEA_PIRATE_OID, task, result);
@@ -804,14 +804,14 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", ROLE_PIRATE_TITLE);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", LOCALITY_TORTUGA);
-        // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
+        // Outbound mapping for weapon is weak, therefore the mapping in role should override it
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", ROLE_PIRATE_WEAPON);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Tortuga has ever seen");
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME,
         		"jack sailed Caribbean, immediately Marmara Sea, role Black Sea, with this The Seven Seas while focused on Caribbean (in Pirate)");
 	}
-	
+
 	@Test
     public void test149JackUnAssignRoleBlackSeaPirateWithSeaInAssignment() throws Exception {
 		final String TEST_NAME = "test149JackUnAssignRoleBlackSeaPirateWithSeaInAssignment";
@@ -819,21 +819,21 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
         PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
         extension.add(seaProp);
-        
+
 		// WHEN
         unassignRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, extension, getDefaultOptions(), task, result);
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 0);
@@ -841,7 +841,7 @@ public class TestRbac extends AbstractRbacTest {
 		assertDelegatedRef(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	@Test
     public void test154JackAssignRoleIndianOceanPirate() throws Exception {
 		final String TEST_NAME = "test154JackAssignRoleIndianOceanPirate";
@@ -849,17 +849,17 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_INDIAN_OCEAN_PIRATE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         display("Result", result);
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_INDIAN_OCEAN_PIRATE_OID, task, result);
@@ -869,14 +869,14 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", ROLE_PIRATE_TITLE);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", LOCALITY_TORTUGA);
-        // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
+        // Outbound mapping for weapon is weak, therefore the mapping in role should override it
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", ROLE_PIRATE_WEAPON);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Tortuga has ever seen");
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME,
         		"jack sailed Indian Ocean, immediately , role Indian Ocean, with this The Seven Seas while focused on  (in Pirate)");
 	}
-	
+
 	@Test
     public void test156JackUnAssignRoleIndianOceanPirate() throws Exception {
 		final String TEST_NAME = "test156JackUnAssignRoleIndianOceanPirate";
@@ -884,14 +884,14 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         unassignRole(USER_JACK_OID, ROLE_INDIAN_OCEAN_PIRATE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 0);
@@ -899,8 +899,8 @@ public class TestRbac extends AbstractRbacTest {
 		assertDelegatedRef(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
-	
+
+
 	/**
 	 * Approver relation is not supposed to give any role privileges.
 	 * MID-3580
@@ -909,14 +909,14 @@ public class TestRbac extends AbstractRbacTest {
     public void test160JackAssignRolePirateApprover() throws Exception {
 		testJackAssignRolePirateRelationNoPrivs("test160JackAssignRolePirateApprover", SchemaConstants.ORG_APPROVER);
 	}
-	
+
 	/**
 	 * MID-3580
 	 */
 	@Test
     public void test162JackUnassignRolePirateApprover() throws Exception {
 		testJackUnassignRolePirateRelationNoPrivs("test160JackAssignRolePirateApprover", SchemaConstants.ORG_APPROVER);
-		
+
 	}
 
 	/**
@@ -927,13 +927,13 @@ public class TestRbac extends AbstractRbacTest {
     public void test164JackAssignRolePirateOwner() throws Exception {
 		testJackAssignRolePirateRelationNoPrivs("test164JackAssignRolePirateOwner", SchemaConstants.ORG_OWNER);
 	}
-	
+
 	/**
 	 * MID-3580
 	 */
 	@Test
     public void test166JackUnassignRolePirateOwner() throws Exception {
-		testJackUnassignRolePirateRelationNoPrivs("test166JackUnassignRolePirateOwner", SchemaConstants.ORG_OWNER);		
+		testJackUnassignRolePirateRelationNoPrivs("test166JackUnassignRolePirateOwner", SchemaConstants.ORG_OWNER);
 	}
 
 	/**
@@ -944,13 +944,13 @@ public class TestRbac extends AbstractRbacTest {
     public void test168JackAssignRolePirateComplicated() throws Exception {
 		testJackAssignRolePirateRelationNoPrivs("test168JackAssignRolePirateComplicated", RELATION_COMPLICATED_QNAME);
 	}
-	
+
 	/**
 	 * MID-3580
 	 */
 	@Test
     public void test169JackUnassignRolePirateComplicated() throws Exception {
-		testJackUnassignRolePirateRelationNoPrivs("test169JackUnassignRolePirateComplicated", RELATION_COMPLICATED_QNAME);		
+		testJackUnassignRolePirateRelationNoPrivs("test169JackUnassignRolePirateComplicated", RELATION_COMPLICATED_QNAME);
 	}
 
 	public void testJackAssignRolePirateRelationNoPrivs(final String TEST_NAME, QName relation) throws Exception {
@@ -958,34 +958,34 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         assertNoAssignments(userBefore);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        
+
         // WHEN (1)
         displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, relation, getDefaultOptions(), task, result);
-        
+
         // THEN (1)
         displayThen(TEST_NAME);
         assertSuccess(result);
 
         assertJackAssignRolePirateRelationNoPrivs(relation);
-        
+
         // WHEN (2)
         displayWhen(TEST_NAME);
         recomputeUser(USER_JACK_OID, getDefaultOptions(), task, result);
-        
+
         // THEN (2)
         displayThen(TEST_NAME);
         assertSuccess(result);
 
         assertJackAssignRolePirateRelationNoPrivs(relation);
 	}
-	
+
 	private void assertJackAssignRolePirateRelationNoPrivs(QName relation) throws Exception {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
@@ -995,25 +995,25 @@ public class TestRbac extends AbstractRbacTest {
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
     public void testJackUnassignRolePirateRelationNoPrivs(final String TEST_NAME, QName relation) throws Exception {
         displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, relation, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
@@ -1024,7 +1024,7 @@ public class TestRbac extends AbstractRbacTest {
 
 	// TODO: assign with owner relation
 	// TODO: assign with custom(unknown) relation
-    
+
     /**
      * Import role with dynamic target resolution.
      * Make sure that the reference is NOT resolved at import time.
@@ -1036,10 +1036,10 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         importObjectFromFile(ROLE_ALL_TREASURE_FILE, task, result);
-        
+
         // THEN
         assertSuccess(result);
 
@@ -1048,7 +1048,7 @@ public class TestRbac extends AbstractRbacTest {
         ObjectReferenceType targetRef = roleAfter.asObjectable().getInducement().get(0).getTargetRef();
         assertNull("Unexpected OID in targetRef", targetRef.getOid());
 	}
-    
+
     /**
      * General simple test for roles with dynamic target resolution.
      */
@@ -1059,29 +1059,29 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         assertAssignments(userBefore, 0);
-        
+
 		// WHEN
         assignRole(USER_JACK_OID, ROLE_ALL_TREASURE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_ALL_TREASURE_OID, task, result);
-        assertRoleMembershipRef(userAfter, ROLE_ALL_TREASURE_OID, 
+        assertRoleMembershipRef(userAfter, ROLE_ALL_TREASURE_OID,
         		ROLE_TREASURE_BRONZE_OID, ROLE_TREASURE_SILVER_OID);
 		assertDelegatedRef(userAfter);
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title",
         		"Silver treasure", "Bronze treasure");
 	}
-    
+
     /**
      * Add gold treasure role. This should be picked up by the dynamic
      * "all treasure" role.
@@ -1093,27 +1093,27 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         addObject(ROLE_TREASURE_GOLD_FILE);
-                
+
 		// WHEN
         recomputeUser(USER_JACK_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_ALL_TREASURE_OID, task, result);
-        assertRoleMembershipRef(userAfter, ROLE_ALL_TREASURE_OID, 
+        assertRoleMembershipRef(userAfter, ROLE_ALL_TREASURE_OID,
         		ROLE_TREASURE_BRONZE_OID, ROLE_TREASURE_SILVER_OID, ROLE_TREASURE_GOLD_OID);
 		assertDelegatedRef(userAfter);
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title",
         		"Silver treasure", "Bronze treasure", "Golden treasure");
 	}
-    
+
     /**
      * MID-3966
      */
@@ -1124,26 +1124,26 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         assignRole(USER_JACK_OID, ROLE_ALL_LOOT_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_ALL_TREASURE_OID, task, result);
-        assertRoleMembershipRef(userAfter, ROLE_ALL_TREASURE_OID, 
+        assertRoleMembershipRef(userAfter, ROLE_ALL_TREASURE_OID,
         		ROLE_TREASURE_BRONZE_OID, ROLE_TREASURE_SILVER_OID, ROLE_TREASURE_GOLD_OID,
         		ROLE_ALL_LOOT_OID, ROLE_LOOT_DIAMONDS_OID);
 		assertDelegatedRef(userAfter);
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title",
         		"Silver treasure", "Bronze treasure", "Golden treasure", "Diamond loot");
 	}
-    
+
     @Test
     public void test208JackUnassignRoleAllLoot() throws Exception {
 		final String TEST_NAME = "test208JackUnassignRoleAllLoot";
@@ -1151,25 +1151,25 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         unassignRole(USER_JACK_OID, ROLE_ALL_LOOT_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_ALL_TREASURE_OID, task, result);
-        assertRoleMembershipRef(userAfter, ROLE_ALL_TREASURE_OID, 
+        assertRoleMembershipRef(userAfter, ROLE_ALL_TREASURE_OID,
         		ROLE_TREASURE_BRONZE_OID, ROLE_TREASURE_SILVER_OID, ROLE_TREASURE_GOLD_OID);
 		assertDelegatedRef(userAfter);
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title",
         		"Silver treasure", "Bronze treasure", "Golden treasure");
 	}
-    
+
     @Test
     public void test209JackUnassignRoleAllTreasure() throws Exception {
 		final String TEST_NAME = "test209JackUnassignRoleAllTreasure";
@@ -1177,20 +1177,20 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         unassignRole(USER_JACK_OID, ROLE_ALL_TREASURE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignments(userAfter, 0);
 
         assertNoDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-    
+
     /**
      * MID-3966
      */
@@ -1201,26 +1201,26 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         assignRole(USER_JACK_OID, ROLE_ALL_YOU_CAN_GET_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_ALL_YOU_CAN_GET_OID, task, result);
-        assertRoleMembershipRef(userAfter, ROLE_ALL_YOU_CAN_GET_OID, 
+        assertRoleMembershipRef(userAfter, ROLE_ALL_YOU_CAN_GET_OID,
         		ROLE_TREASURE_BRONZE_OID, ROLE_TREASURE_SILVER_OID, ROLE_TREASURE_GOLD_OID,
         		ROLE_LOOT_DIAMONDS_OID);
 		assertDelegatedRef(userAfter);
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title",
         		"Silver treasure", "Bronze treasure", "Golden treasure", "Diamond loot");
 	}
-    
+
     @Test(enabled=false) // MID-3966
     public void test219JackUnassignRoleAllYouCanGet() throws Exception {
 		final String TEST_NAME = "test219JackUnassignRoleAllYouCanGet";
@@ -1228,42 +1228,42 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         unassignRole(USER_JACK_OID, ROLE_ALL_YOU_CAN_GET_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignments(userAfter, 0);
 
         assertNoDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	//////////////////////
 	// Following tests use POSITIVE enforcement mode
 	/////////////////////
-	
+
 	@Test
     public void test501JackAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test501JackAssignRolePirate";
         displayTestTitle(TEST_NAME);
-        
+
         // IMPORTANT: Changing the assignment policy
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
@@ -1273,15 +1273,15 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", ROLE_PIRATE_TITLE);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", LOCALITY_TORTUGA);
-        // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
+        // Outbound mapping for weapon is weak, therefore the mapping in role should override it
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", ROLE_PIRATE_WEAPON);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Tortuga has ever seen");
 	}
-	
+
 	/**
 	 * We modify Jack's "locality". As this is assigned by expression in the role to the dummy account, the account should
-	 * be updated as well. 
+	 * be updated as well.
 	 */
 	@Test
     public void test502JackModifyUserLocality() throws Exception {
@@ -1290,20 +1290,20 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // gossip is a tolerant attribute. Make sure there there is something to tolerate
   		DummyAccount jackDummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
-  		jackDummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+  		jackDummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
   				EXISTING_GOSSIP);
-        
+
         // WHEN
   		displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, getDefaultOptions(), task, result, createPolyString("Isla de Muerta"));
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
@@ -1314,12 +1314,12 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", ROLE_PIRATE_TITLE);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Isla de Muerta");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", ROLE_PIRATE_WEAPON);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Isla de Muerta has ever seen",
         		"Jack Sparrow is the best pirate Tortuga has ever seen", // Positive enforcement. This vales are not removed.
         		EXISTING_GOSSIP);
 	}
-	
+
 	/**
 	 * Assignment policy is POSITIVE, therefore the account should remain.
 	 */
@@ -1330,10 +1330,10 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-               
+
         // WHEN
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
@@ -1343,12 +1343,12 @@ public class TestRbac extends AbstractRbacTest {
 
 		assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Isla de Muerta");
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Isla de Muerta has ever seen", // Positive enforcement. This vales are not removed.
         		"Jack Sparrow is the best pirate Tortuga has ever seen", // Positive enforcement. This vales are not removed.
         		EXISTING_GOSSIP);
 	}
-	
+
 	/**
 	 * This should go fine without any policy violation error.
 	 */
@@ -1359,18 +1359,18 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = userJack.asObjectable().getLinkRef().iterator().next().getOid();
-        
+
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
         // Use modification of user to delete account. Deleting account directly is tested later.
         ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteReference(UserType.class, USER_JACK_OID, UserType.F_LINK_REF, prismContext, accountOid);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
-        
+
 		// WHEN
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
-        
+
         // THEN
         userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
@@ -1380,25 +1380,25 @@ public class TestRbac extends AbstractRbacTest {
         assertNoLinkedAccount(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	@Test
     public void test520JackAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test520JackAssignRolePirate";
         displayTestTitle(TEST_NAME);
-        
+
         // IMPORTANT: Changing the assignment policy
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
@@ -1408,36 +1408,36 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", ROLE_PIRATE_TITLE);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Isla de Muerta");
-        // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
+        // Outbound mapping for weapon is weak, therefore the mapping in role should override it
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", ROLE_PIRATE_WEAPON);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Isla de Muerta has ever seen");
 	}
-	
+
 	@Test
     public void test521JackUnassignRolePirateDeleteAccount() throws Exception {
 		final String TEST_NAME = "test521JackUnassignRolePirateDeleteAccount";
         displayTestTitle(TEST_NAME);
-        
+
         // IMPORTANT: Changing the assignment policy
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
         modifications.add(createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, false));
         ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        String accountOid = userJack.asObjectable().getLinkRef().iterator().next().getOid();        
+        String accountOid = userJack.asObjectable().getLinkRef().iterator().next().getOid();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
         // This all goes in the same context with user, explicit unlink should not be necessary
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
-        
+
         // WHEN
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
-        
+
         // THEN
         userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
@@ -1447,7 +1447,7 @@ public class TestRbac extends AbstractRbacTest {
         assertNoLinkedAccount(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	@Test
     public void test530JackAssignRoleCleric() throws Exception {
 		final String TEST_NAME = "test530JackAssignRoleCleric";
@@ -1456,16 +1456,16 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
         assignRole(USER_JACK_OID, ROLE_CLERIC_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         assertAssignedRole(USER_JACK_OID, ROLE_CLERIC_OID, task, result);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Holy man");
 	}
-	
+
 	@Test
     public void test532JackModifyAssignmentRoleCleric() throws Exception {
 		final String TEST_NAME = "test532JackModifyAssignmentRoleCleric";
@@ -1474,25 +1474,25 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> user = getObject(UserType.class, USER_JACK_OID);
-        
+
         ItemPath itemPath = new ItemPath(
         		new NameItemPathSegment(UserType.F_ASSIGNMENT),
         		new IdItemPathSegment(user.asObjectable().getAssignment().get(0).getId()),
         		new NameItemPathSegment(AssignmentType.F_DESCRIPTION));
 		ObjectDelta<UserType> assignmentDelta = ObjectDelta.createModificationReplaceProperty(
         		UserType.class, USER_JACK_OID, itemPath, prismContext, "soul");
-        
+
         // WHEN
 		displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(assignmentDelta), getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_CLERIC_OID, task, result);
@@ -1502,7 +1502,7 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Holy soul");
 	}
-	
+
 	@Test
     public void test539JackUnAssignRoleCleric() throws Exception {
 		final String TEST_NAME = "test539JackUnAssignRoleCleric";
@@ -1511,23 +1511,23 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> user = getObject(UserType.class, USER_JACK_OID);
-        
+
         AssignmentType assignmentType = new AssignmentType();
         assignmentType.setId(user.asObjectable().getAssignment().get(0).getId());
 		ObjectDelta<UserType> assignmentDelta = ObjectDelta.createModificationDeleteContainer(
         		UserType.class, USER_JACK_OID, UserType.F_ASSIGNMENT, prismContext, assignmentType);
-        
+
         // WHEN
 		displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(assignmentDelta), getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignedNoRole(userJack);
@@ -1536,7 +1536,7 @@ public class TestRbac extends AbstractRbacTest {
         assertNoLinkedAccount(userJack);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	/**
 	 * Wannabe role is conditional. All conditions should be false now. So no provisioning should happen.
 	 */
@@ -1548,15 +1548,15 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
 		displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_WANNABE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_WANNABE_OID, task, result);
@@ -1565,7 +1565,7 @@ public class TestRbac extends AbstractRbacTest {
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	/**
 	 * Remove honorificSuffix. This triggers a condition in Wannabe role inducement.
 	 * But as the whole role has false condition nothing should happen.
@@ -1578,11 +1578,11 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
 		displayWhen(TEST_NAME);
 		modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
@@ -1607,15 +1607,15 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
 		displayWhen(TEST_NAME);
 		modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, getDefaultOptions(), task, result, "wannabe");
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_WANNABE_OID, task, result);
@@ -1625,7 +1625,7 @@ public class TestRbac extends AbstractRbacTest {
 		assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Wannabe Cpt. Where's the rum?");
 	}
-	
+
 	/**
 	 * Remove honorificPrefix. This triggers a condition in Wannabe role and should remove an account.
 	 */
@@ -1637,11 +1637,11 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
 		displayWhen(TEST_NAME);
 		modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
@@ -1654,7 +1654,7 @@ public class TestRbac extends AbstractRbacTest {
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	/**
 	 * Set honorificSuffix. This triggers conditions and adds a sub-role Honorable Wannabe.
 	 */
@@ -1666,16 +1666,16 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
 		displayWhen(TEST_NAME);
 		modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, getDefaultOptions(), task, result,
 				PrismTestUtil.createPolyString("PhD."));
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_WANNABE_OID, task, result);
@@ -1683,10 +1683,10 @@ public class TestRbac extends AbstractRbacTest {
 		assertDelegatedRef(userAfter);
 
 		assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Arr!", "Whatever. -- jack");
 	}
-	
+
 	/**
 	 * Restore honorificPrefix. The title should be replaced again.
 	 */
@@ -1698,12 +1698,12 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
 		displayWhen(TEST_NAME);
 		modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, getDefaultOptions(), task, result,
 				PrismTestUtil.createPolyString("captain"));
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
@@ -1717,7 +1717,7 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Wannabe captain Where's the rum?");
 	}
-	
+
 	/**
 	 * The account should be gone - regardless of the condition state.
 	 */
@@ -1729,15 +1729,15 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
 		displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_WANNABE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertNotAssignedRole(userAfter, ROLE_WANNABE_OID, task, result);
@@ -1746,7 +1746,7 @@ public class TestRbac extends AbstractRbacTest {
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	@Test
     public void test600JackAssignRoleJudge() throws Exception {
 		final String TEST_NAME = "test600JackAssignRoleJudge";
@@ -1755,13 +1755,13 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
@@ -1777,10 +1777,10 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Honorable Justice");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "mouth", "pistol");
-//        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+//        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
 //        		"Jack Sparrow is the best pirate Caribbean has ever seen");
 	}
-	
+
 	/**
 	 * Judge and pirate are excluded roles. This should fail.
 	 */
@@ -1792,22 +1792,22 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         try {
 	        // WHEN
 	        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
-	        
+
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
         	// this is expected
         	display("Expected exception", e);
         }
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertFailure(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_JUDGE_OID, task, result);
@@ -1818,7 +1818,7 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Honorable Justice");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "mouth", "pistol");
 	}
-	
+
 	@Test
     public void test605JackUnAssignRoleJudgeAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test605JackUnAssignRoleJudgeAssignRolePirate";
@@ -1827,19 +1827,19 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, null, null, false);
         userDelta.addModification(createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true));
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID, task, result);
@@ -1853,10 +1853,10 @@ public class TestRbac extends AbstractRbacTest {
         // the mapping is weak and the account already has a value for weapon from the times
         // Jack was a judge. So it is unchanged
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "mouth", "pistol");
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Isla de Muerta has ever seen");
 	}
-	
+
 	@Test
     public void test609JackUnAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test609JackUnAssignRolePirate";
@@ -1865,19 +1865,19 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	@Test
     public void test610ElaineAssignRoleGovernor() throws Exception {
 		final String TEST_NAME = "test610ElaineAssignRoleGovernor";
@@ -1886,15 +1886,15 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_ELAINE_OID);
         display("User before", userBefore);
-        
+
         assertAssignees(ROLE_GOVERNOR_OID, 0);
-        
+
         // WHEN
         assignRole(USER_ELAINE_OID, ROLE_GOVERNOR_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
@@ -1909,10 +1909,10 @@ public class TestRbac extends AbstractRbacTest {
 		assertAssignedRole(USER_ELAINE_OID, ROLE_GOVERNOR_OID, task, result);
         assertDefaultDummyAccount(ACCOUNT_ELAINE_DUMMY_USERNAME, ACCOUNT_ELAINE_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_ELAINE_DUMMY_USERNAME, "title", "Her Excellency Governor");
-        
+
         assertAssignees(ROLE_GOVERNOR_OID, 1);
 	}
-	
+
 	/**
 	 * Governor has maxAssignees=1
 	 */
@@ -1924,27 +1924,27 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         try {
 	        // WHEN
 	        assignRole(USER_JACK_OID, ROLE_GOVERNOR_OID, getDefaultOptions(), task, result);
-	        
+
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
         	// this is expected
         	display("Expected exception", e);
         }
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertFailure(result);
-        
+
         assertNoAssignments(USER_JACK_OID);
-        
+
         assertAssignees(ROLE_GOVERNOR_OID, 1);
 	}
-	
+
 	/**
 	 * Governor has maxAssignees=0 for 'approver'
 	 */
@@ -1995,30 +1995,30 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> user = createUser(USER_LEMONHEAD_NAME, USER_LEMONHEAD_FULLNAME, true);
         addObject(user);
         userLemonheadOid = user.getOid();
-        
+
         assertAssignees(ROLE_CANNIBAL_OID, 0);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         assignRole(user.getOid(), ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertAssignedRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
         assertDefaultDummyAccount(USER_LEMONHEAD_NAME, USER_LEMONHEAD_FULLNAME, true);
         assertDefaultDummyAccountAttribute(USER_LEMONHEAD_NAME, "title", "Voracious Cannibal");
-        
+
         assertAssignees(ROLE_CANNIBAL_OID, 1);
         assertAssignees(ROLE_GOVERNOR_OID, 1);
 	}
-	
+
 	@Test
     public void test622SharptoothAssignRoleCanibal() throws Exception {
 		final String TEST_NAME = "test622SharptoothAssignRoleCanibal";
@@ -2027,30 +2027,30 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> user = createUser(USER_SHARPTOOTH_NAME, USER_SHARPTOOTH_FULLNAME, true);
         addObject(user);
         userSharptoothOid = user.getOid();
-        
+
         assertAssignees(ROLE_CANNIBAL_OID, 1);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         assignRole(user.getOid(), ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertAssignedRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
         assertDefaultDummyAccount(USER_SHARPTOOTH_NAME, USER_SHARPTOOTH_FULLNAME, true);
         assertDefaultDummyAccountAttribute(USER_SHARPTOOTH_NAME, "title", "Voracious Cannibal");
-        
+
         assertAssignees(ROLE_CANNIBAL_OID, 2);
         assertAssignees(ROLE_GOVERNOR_OID, 1);
 	}
-	
+
 	@Test
     public void test624RedskullAssignRoleCanibal() throws Exception {
 		final String TEST_NAME = "test624RedskullAssignRoleCanibal";
@@ -2059,26 +2059,26 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> user = createUser(USER_REDSKULL_NAME, USER_REDSKULL_FULLNAME, true);
         addObject(user);
         userRedskullOid = user.getOid();
-        
+
         assertAssignees(ROLE_CANNIBAL_OID, 2);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         assignRole(user.getOid(), ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertAssignedRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
         assertDefaultDummyAccount(USER_REDSKULL_NAME, USER_REDSKULL_FULLNAME, true);
         assertDefaultDummyAccountAttribute(USER_REDSKULL_NAME, "title", "Voracious Cannibal");
-        
+
         assertAssignees(ROLE_CANNIBAL_OID, 3);
         assertAssignees(ROLE_GOVERNOR_OID, 1);
 	}
@@ -2091,35 +2091,35 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> user = createUser(USER_BIGNOSE_NAME, USER_BIGNOSE_FULLNAME, true);
         addObject(user);
         userBignoseOid = user.getOid();
-        
+
         assertAssignees(ROLE_CANNIBAL_OID, 3);
-        
+
         try {
 	        // WHEN
         	displayWhen(TEST_NAME);
 	        assignRole(user.getOid(), ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
-	        
+
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
         	// this is expected
         	display("Expected exception", e);
         }
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertFailure(result);
-        
+
         assertNoAssignments(user.getOid());
-        
+
         assertAssignees(ROLE_CANNIBAL_OID, 3);
         assertAssignees(ROLE_GOVERNOR_OID, 1);
 	}
-	
+
 	@Test
     public void test627SharptoothUnassignRoleCanibal() throws Exception {
 		final String TEST_NAME = "test627SharptoothUnassignRoleCanibal";
@@ -2128,25 +2128,25 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assertAssignees(ROLE_CANNIBAL_OID, 3);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         unassignRole(userSharptoothOid, ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertNoAssignments(userSharptoothOid);
         assertNoDummyAccount(USER_SHARPTOOTH_NAME);
-        
+
         assertAssignees(ROLE_CANNIBAL_OID, 2);
         assertAssignees(ROLE_GOVERNOR_OID, 1);
 	}
-	
+
 	@Test
     public void test628RedskullUnassignRoleCanibal() throws Exception {
 		final String TEST_NAME = "test628RedskullUnassignRoleCanibal";
@@ -2155,29 +2155,29 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assertAssignees(ROLE_CANNIBAL_OID, 2);
-        
+
         try {
 	        // WHEN
         	displayWhen(TEST_NAME);
 	        unassignRole(userRedskullOid, ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
-	        
+
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
         	// this is expected
         	display("Expected exception", e);
         }
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertFailure(result);
-        
+
         assertAssignedRole(userRedskullOid, ROLE_CANNIBAL_OID, task, result);
         assertDefaultDummyAccount(USER_REDSKULL_NAME, USER_REDSKULL_FULLNAME, true);
         assertDefaultDummyAccountAttribute(USER_REDSKULL_NAME, "title", "Voracious Cannibal");
-        
+
         assertAssignees(ROLE_CANNIBAL_OID, 2);
         assertAssignees(ROLE_GOVERNOR_OID, 1);
 	}
@@ -2323,16 +2323,16 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_ELAINE_OID);
         display("User before", userBefore);
-        
+
         assertAssignees(ROLE_GOVERNOR_OID, 1);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_ELAINE_OID, ROLE_GOVERNOR_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
@@ -2341,7 +2341,7 @@ public class TestRbac extends AbstractRbacTest {
         PrismObject<UserType> userAfter = getUser(USER_ELAINE_OID);
         display("User after", userAfter);
         assertAssignedNoRole(userAfter);
-        
+
         assertAssignees(ROLE_GOVERNOR_OID, 0);
 	}
 
@@ -2353,25 +2353,25 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Honorable Justice");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "mouth", "pistol");
 	}
-	
+
 	@Test
     public void test701JackModifyJudgeDeleteConstructionRecompute() throws Exception {
 		final String TEST_NAME = "test701JackModifyJudgeDeleteConstructionRecompute";
@@ -2381,10 +2381,10 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L, true, getDefaultOptions(), task);
@@ -2395,14 +2395,14 @@ public class TestRbac extends AbstractRbacTest {
         TestUtil.assertInProgressOrSuccess(result);
 
         assertTrue("task is not persistent", task.isPersistent());
-        
+
         assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
 
         waitForTaskFinish(task.getOid(), true);
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	@Test
     public void test702JackModifyJudgeAddInducementHonorabilityRecompute() throws Exception {
 		final String TEST_NAME = "test702JackModifyJudgeAddInducementHonorabilityRecompute";
@@ -2412,10 +2412,10 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         modifyRoleAddInducementTarget(ROLE_JUDGE_OID, ROLE_HONORABILITY_OID, true, getDefaultOptions(), task);
@@ -2434,11 +2434,11 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Honorable");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "mouth", "pistol");
-        
+
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Honorable");
 	}
-	
+
 	@Test
     public void test703JackModifyJudgeDeleteInducementHonorabilityRecompute() throws Exception {
 		final String TEST_NAME = "test703JackModifyJudgeDeleteInducementHonorabilityRecompute";
@@ -2447,31 +2447,31 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         modifyRoleDeleteInducementTarget(ROLE_JUDGE_OID, ROLE_HONORABILITY_OID, getDefaultOptions());
         PrismObject<RoleType> roleJudge = modelService.getObject(RoleType.class, ROLE_JUDGE_OID, null, task, result);
         display("Role judge", roleJudge);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(getDefaultOptions()), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        
+
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
         assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Honorable");
 	}
-	
+
 	@Test
     public void test709JackUnAssignRoleJudge() throws Exception {
 		final String TEST_NAME = "test709JackUnAssignRoleJudge";
@@ -2480,14 +2480,14 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
@@ -2496,7 +2496,7 @@ public class TestRbac extends AbstractRbacTest {
         assertAssignedNoRole(USER_JACK_OID, task, result);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	@Test
     public void test710JackAssignRoleEmpty() throws Exception {
 		final String TEST_NAME = "test710JackAssignRoleEmpty";
@@ -2506,23 +2506,23 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_EMPTY_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertAssignedRole(USER_JACK_OID, ROLE_EMPTY_OID, task, result);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	@Test
     public void test712JackModifyEmptyRoleAddInducementPirateRecompute() throws Exception {
 		final String TEST_NAME = "test712JackModifyEmptyRoleAddInducementPirateRecompute";
@@ -2532,10 +2532,10 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         modifyRoleAddInducementTarget(ROLE_EMPTY_OID, ROLE_PIRATE_OID, true, getDefaultOptions(), task);
@@ -2550,12 +2550,12 @@ public class TestRbac extends AbstractRbacTest {
         assertAssignedRole(USER_JACK_OID, ROLE_EMPTY_OID, task, result);
 
         waitForTaskFinish(task.getOid(), true);
-        
+
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", ROLE_PIRATE_TITLE);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", ROLE_PIRATE_WEAPON);
 	}
-	
+
 	@Test
     public void test714JackModifyEmptyRoleDeleteInducementPirateRecompute() throws Exception {
 		final String TEST_NAME = "test714JackModifyEmptyRoleDeleteInducementPirateRecompute";
@@ -2564,26 +2564,26 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         modifyRoleDeleteInducementTarget(ROLE_EMPTY_OID, ROLE_PIRATE_OID, getDefaultOptions());
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         recomputeUser(USER_JACK_OID, task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertAssignedRole(USER_JACK_OID, ROLE_EMPTY_OID, task, result);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	@Test
     public void test719JackUnAssignRoleEmpty() throws Exception {
 		final String TEST_NAME = "test719JackUnAssignRoleEmpty";
@@ -2592,19 +2592,19 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_EMPTY_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertAssignedNoRole(USER_JACK_OID, task, result);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
@@ -2618,29 +2618,29 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         assertAssignees(ROLE_GOVERNOR_OID, 0);
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         assignParametricRole(USER_JACK_OID, ROLE_GOVERNOR_OID, null, ORG_SCUMM_BAR_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertAssignedRole(USER_JACK_OID, ROLE_GOVERNOR_OID, task, result);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Her Excellency Governor of Scumm Bar");
-        
+
         assertAssignees(ROLE_GOVERNOR_OID, 1);
 	}
-	
+
 	@Test
     public void test729JackUnassignRoleGovernorTenantRef() throws Exception {
 		final String TEST_NAME = "test729JackUnassignRoleGovernorTenantRef";
@@ -2650,27 +2650,27 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         assertAssignees(ROLE_GOVERNOR_OID, 1);
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         unassignParametricRole(USER_JACK_OID, ROLE_GOVERNOR_OID, null, ORG_SCUMM_BAR_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertAssignedNoRole(USER_JACK_OID, task, result);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        
+
         assertAssignees(ROLE_GOVERNOR_OID, 0);
 	}
-	
+
 	/**
 	 * MID-3365
 	 */
@@ -2683,28 +2683,28 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_PROJECT_OMNINAMAGER_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRole(userAfter, ROLE_PROJECT_OMNINAMAGER_OID, task, result);
-        
+
         assertHasOrg(userAfter, ORG_SAVE_ELAINE_OID, SchemaConstants.ORG_MANAGER);
         assertHasOrg(userAfter, ORG_KIDNAP_AND_MARRY_ELAINE_OID, SchemaConstants.ORG_MANAGER);
 	}
-	
+
 	/**
 	 * MID-3365
 	 */
@@ -2721,22 +2721,22 @@ public class TestRbac extends AbstractRbacTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         assertAssignedRole(userBefore, ROLE_PROJECT_OMNINAMAGER_OID, task, result);
-        
+
         addObject(ORG_PROJECT_RECLAIM_BLACK_PEARL_FILE);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(getDefaultOptions()), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_PROJECT_OMNINAMAGER_OID, task, result);
-        
+
         assertHasOrg(userAfter, ORG_SAVE_ELAINE_OID, SchemaConstants.ORG_MANAGER);
         assertHasOrg(userAfter, ORG_KIDNAP_AND_MARRY_ELAINE_OID, SchemaConstants.ORG_MANAGER);
         assertHasOrg(userAfter, ORG_PROJECT_RECLAIM_BLACK_PEARL_OID, SchemaConstants.ORG_MANAGER);
@@ -2754,27 +2754,27 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_PROJECT_OMNINAMAGER_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertNotAssignedRole(userAfter, ROLE_PROJECT_OMNINAMAGER_OID, task, result);
-        
+
         assertHasNoOrg(userAfter);
 	}
-	
+
 	/**
 	 * Assign role with weak construction. Nothing should happen (no account).
 	 * MID-2850
@@ -2788,30 +2788,30 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         assertAssignedNoRole(userBefore);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRole(userAfter, ROLE_WEAK_GOSSIPER_OID);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	/**
 	 * MID-2850
 	 */
@@ -2824,27 +2824,27 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         assertAssignedRole(userBefore, ROLE_WEAK_GOSSIPER_OID);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         recomputeUser(USER_JACK_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRole(userAfter, ROLE_WEAK_GOSSIPER_OID);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 
@@ -2860,27 +2860,27 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         assertAssignedRole(userBefore, ROLE_WEAK_GOSSIPER_OID);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         reconcileUser(USER_JACK_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRole(userAfter, ROLE_WEAK_GOSSIPER_OID);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 
@@ -2898,34 +2898,34 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         assertAssignedRole(userBefore, ROLE_WEAK_GOSSIPER_OID);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRole(userAfter, ROLE_WEAK_GOSSIPER_OID);
         assertAssignedRole(userAfter, ROLE_SAILOR_OID);
-        
+
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Pssst! hear this: dead men tell no tales");
 
 	}
-	
+
 	/**
 	 * MID-2850
 	 */
@@ -2938,33 +2938,33 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         recomputeUser(USER_JACK_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRole(userAfter, ROLE_WEAK_GOSSIPER_OID);
         assertAssignedRole(userAfter, ROLE_SAILOR_OID);
-        
+
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Pssst! hear this: dead men tell no tales");
 
 	}
-	
+
 	/**
 	 * MID-2850
 	 */
@@ -2977,33 +2977,33 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         reconcileUser(USER_JACK_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRole(userAfter, ROLE_WEAK_GOSSIPER_OID);
         assertAssignedRole(userAfter, ROLE_SAILOR_OID);
-        
+
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Pssst! hear this: dead men tell no tales");
 
 	}
-	
+
 	/**
 	 * Unassign role with weak construction. The values given by this construction
 	 * should be removed, but the other values should remain.
@@ -3018,32 +3018,32 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRole(userAfter, ROLE_SAILOR_OID);
-        
+
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
-        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);
 
 	}
-	
+
 	/**
 	 * MID-2850
 	 */
@@ -3056,32 +3056,32 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         recomputeUser(USER_JACK_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRole(userAfter, ROLE_SAILOR_OID);
-        
+
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
-        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);
 
 	}
-	
+
 	/**
 	 * MID-2850
 	 */
@@ -3094,28 +3094,28 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedNoRole(userAfter);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
 	}
-	
+
 	/**
 	 * Now assign the normal role first.
 	 * MID-2850
@@ -3129,32 +3129,32 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRole(userAfter, ROLE_SAILOR_OID);
-        
+
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
-        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);
 
 	}
-	
+
 	/**
 	 * Assign role with weak construction. It should be activated in a
 	 * usual way.
@@ -3169,33 +3169,33 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRole(userAfter, ROLE_WEAK_GOSSIPER_OID);
         assertAssignedRole(userAfter, ROLE_SAILOR_OID);
-        
+
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Pssst! hear this: dead men tell no tales");
 
 	}
-	
+
 	/**
 	 * Unassign normal role. Even though the role with weak construction remains,
 	 * it should not be applied. The account should be gone.
@@ -3210,28 +3210,28 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRole(userAfter, ROLE_WEAK_GOSSIPER_OID);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
 	}
-	
+
 	/**
 	 * Unassign role with weak construction. Nothing should really happen.
 	 * MID-2850
@@ -3245,29 +3245,29 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedNoRole(userAfter);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
 	}
-	
-	
+
+
 	/**
 	 * Assign both roles together (weak and normal).
 	 * MID-2850
@@ -3281,40 +3281,40 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
-        
+
+
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, true);
         userDelta.addModification(createAssignmentModification(ROLE_SAILOR_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, true));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-		
+
         // WHEN
         displayWhen(TEST_NAME);
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRole(userAfter, ROLE_WEAK_GOSSIPER_OID);
         assertAssignedRole(userAfter, ROLE_SAILOR_OID);
-        
+
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Pssst! hear this: dead men tell no tales");
 
 	}
-	
+
 	/**
 	 * Unassign both roles together (weak and normal).
 	 * MID-2850
@@ -3328,34 +3328,34 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
-        
+
+
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, false);
         userDelta.addModification(createAssignmentModification(ROLE_SAILOR_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, false));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-		
+
         // WHEN
         displayWhen(TEST_NAME);
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedNoRole(userAfter);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
 	}
-	
+
 	/**
 	 * Assign role with weak construction. Nothing should happen (no account).
 	 * MID-2850, MID-3662
@@ -3369,32 +3369,32 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         assertAssignedNoRole(userBefore);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_WEAK_SINGER_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRole(userAfter, ROLE_WEAK_SINGER_OID);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 
 	/**
-	 * Assign another role with weak construction. Still nothing 
+	 * Assign another role with weak construction. Still nothing
 	 * should happen (no account).
 	 * MID-2850, MID-3662
 	 */
@@ -3407,30 +3407,30 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         assertAssignedRole(userBefore, ROLE_WEAK_SINGER_OID);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRoles(userAfter, ROLE_WEAK_GOSSIPER_OID, ROLE_WEAK_SINGER_OID);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	/**
 	 * Assign role with normal construction. Account should be created.
 	 * Both the normal and both weak constructions should be applied.
@@ -3445,38 +3445,38 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         assertAssignedRole(userBefore, ROLE_WEAK_GOSSIPER_OID);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRoles(userAfter, ROLE_WEAK_GOSSIPER_OID, ROLE_WEAK_SINGER_OID, ROLE_SAILOR_OID);
-        
+
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Pssst! hear this: dead men tell no tales");
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, ROLE_WEAK_SINGER_TITLE);
 
 	}
-	
+
 	/**
 	 * Unassign role with normal construction. The account should be gone,
-	 * the two weak roles should not be applied. 
+	 * the two weak roles should not be applied.
 	 * MID-2850, MID-3662
 	 */
 	@Test
@@ -3488,29 +3488,29 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         assertAssignedRole(userBefore, ROLE_WEAK_SINGER_OID);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRoles(userAfter, ROLE_WEAK_GOSSIPER_OID, ROLE_WEAK_SINGER_OID);
         assertNotAssignedRole(userAfter, ROLE_SAILOR_OID);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	/**
 	 * MID-2850, MID-3662
 	 */
@@ -3523,31 +3523,31 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_WEAK_SINGER_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRoles(userAfter, ROLE_WEAK_GOSSIPER_OID);
         assertNotAssignedRole(userAfter, ROLE_SAILOR_OID);
         assertNotAssignedRole(userAfter, ROLE_WEAK_SINGER_OID);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	/**
 	 * MID-2850, MID-3662
 	 */
@@ -3560,28 +3560,28 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedNoRole(userAfter);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
 	}
-	
+
 	/**
 	 * Assign both roles with weak construction together. Nothing should happen.
 	 * MID-2850, MID-3662
@@ -3595,35 +3595,35 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
-        
+
+
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, true);
         userDelta.addModification(createAssignmentModification(ROLE_WEAK_SINGER_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, true));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-		
+
         // WHEN
         displayWhen(TEST_NAME);
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRoles(userAfter, ROLE_WEAK_GOSSIPER_OID, ROLE_WEAK_SINGER_OID);
         assertNotAssignedRole(userAfter, ROLE_SAILOR_OID);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	/**
 	 * Unassign both roles with weak construction together. Nothing should happen.
 	 * MID-2850, MID-3662
@@ -3637,34 +3637,34 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
-        
+
+
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, false);
         userDelta.addModification(createAssignmentModification(ROLE_WEAK_SINGER_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, false));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-		
+
         // WHEN
         displayWhen(TEST_NAME);
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedNoRole(userAfter);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	/**
 	 * Assign role with weak construction. Nothing should happen (no account).
 	 * Preparation for following tests.
@@ -3679,30 +3679,30 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         assertAssignedNoRole(userBefore);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_WEAK_SINGER_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRole(userAfter, ROLE_WEAK_SINGER_OID);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	/**
 	 * Switch: weak -> weak (strong absent)
 	 * Switch one role with weak construction for another role with weak
@@ -3719,37 +3719,37 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        
+
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, true);
         userDelta.addModification(createAssignmentModification(ROLE_WEAK_SINGER_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, false));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-		
+
         // WHEN
         displayWhen(TEST_NAME);
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRoles(userAfter, ROLE_WEAK_GOSSIPER_OID);
         assertNotAssignedRole(userAfter, ROLE_SAILOR_OID);
         assertNotAssignedRole(userAfter, ROLE_WEAK_SINGER_OID);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	/**
 	 * MID-2850, MID-3662
 	 */
@@ -3762,34 +3762,34 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         assertAssignedRole(userBefore, ROLE_WEAK_GOSSIPER_OID);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRoles(userAfter, ROLE_WEAK_GOSSIPER_OID, ROLE_SAILOR_OID);
         assertNotAssignedRole(userAfter, ROLE_WEAK_SINGER_OID);
-        
+
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Pssst! hear this: dead men tell no tales");
 
 	}
-	
+
 	/**
 	 * Switch: weak -> weak (strong present)
 	 * Switch one role with weak construction for another role with weak
@@ -3807,40 +3807,40 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, false);
         userDelta.addModification(createAssignmentModification(ROLE_WEAK_SINGER_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, true));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-		
+
         // WHEN
         displayWhen(TEST_NAME);
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRoles(userAfter, ROLE_WEAK_SINGER_OID, ROLE_SAILOR_OID);
         assertNotAssignedRole(userAfter, ROLE_WEAK_GOSSIPER_OID);
-        
+
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
-        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, ROLE_WEAK_SINGER_TITLE);
 	}
-	
+
 	/**
 	 * Switch: strong -> weak
 	 * MID-2850, MID-3662
@@ -3854,34 +3854,34 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, true);
         userDelta.addModification(createAssignmentModification(ROLE_SAILOR_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, false));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-		
+
         // WHEN
         displayWhen(TEST_NAME);
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRoles(userAfter, ROLE_WEAK_SINGER_OID, ROLE_WEAK_GOSSIPER_OID);
         assertNotAssignedRole(userAfter, ROLE_SAILOR_OID);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	/**
 	 * Switch: weak -> strong
 	 * MID-2850, MID-3662
@@ -3895,40 +3895,40 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_WEAK_SINGER_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, false);
         userDelta.addModification(createAssignmentModification(ROLE_SAILOR_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, true));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-		
+
         // WHEN
         displayWhen(TEST_NAME);
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRoles(userAfter, ROLE_WEAK_GOSSIPER_OID, ROLE_SAILOR_OID);
         assertNotAssignedRole(userAfter, ROLE_WEAK_SINGER_OID);
-        
+
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
-        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Pssst! hear this: dead men tell no tales");
 	}
-	
+
 	/**
 	 * Switch: strong -> strong (weak present)
 	 * MID-2850, MID-3662
@@ -3942,41 +3942,41 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_SAILOR_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, false);
         userDelta.addModification(createAssignmentModification(ROLE_GOVERNOR_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, true));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-		
+
         // WHEN
         displayWhen(TEST_NAME);
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedRoles(userAfter, ROLE_WEAK_GOSSIPER_OID, ROLE_GOVERNOR_OID);
         assertNotAssignedRole(userAfter, ROLE_WEAK_SINGER_OID);
         assertNotAssignedRole(userAfter, ROLE_SAILOR_OID);
-        
+
         assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK);
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Her Excellency Governor");
-        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Pssst! hear this: dead men tell no tales");
 	}
-	
+
 	/**
 	 * Cleanup
 	 * MID-2850, MID-3662
@@ -3990,30 +3990,30 @@ public class TestRbac extends AbstractRbacTest {
         Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
-        
+
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, false);
         userDelta.addModification(createAssignmentModification(ROLE_GOVERNOR_OID, RoleType.COMPLEX_TYPE,
         		null, null, null, false));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-		
+
         // WHEN
         displayWhen(TEST_NAME);
         modelService.executeChanges(deltas, getDefaultOptions(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
-        
+
         assertAssignedNoRole(userAfter);
-        
+
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 
@@ -4025,13 +4025,13 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         try {
 	        // WHEN
 			displayWhen(TEST_NAME);
 			modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_OID, RoleType.F_DESCRIPTION,
 					getDefaultOptions(), task, result, "whatever");
-			
+
 			AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
         	// THEN
@@ -4043,7 +4043,7 @@ public class TestRbac extends AbstractRbacTest {
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_IMMUTABLE_OID);
         PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_DESCRIPTION, ROLE_IMMUTABLE_DESCRIPTION);
 	}
-	
+
 	/**
 	 * This should go well. The global immutable role has enforced modification,
 	 * but not addition.
@@ -4056,10 +4056,10 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_IMMUTABLE_GLOBAL_FILE);
         display("Role before", role);
-        
+
         // WHEN
 		displayWhen(TEST_NAME);
 		addObject(role, getDefaultOptions(), task, result);
@@ -4073,7 +4073,7 @@ public class TestRbac extends AbstractRbacTest {
         display("Role before", roleAfter);
         assertNotNull("No role added", roleAfter);
 	}
-	
+
 	@Test
     public void test804ModifyRoleImmutableGlobalIdentifier() throws Exception {
 		final String TEST_NAME = "test804ModifyRoleImmutableGlobalIdentifier";
@@ -4082,13 +4082,13 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         try {
 	        // WHEN
 			displayWhen(TEST_NAME);
 			modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_GLOBAL_OID, RoleType.F_IDENTIFIER,
 					getDefaultOptions(), task, result, "whatever");
-			
+
 			AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
         	// THEN
@@ -4101,7 +4101,7 @@ public class TestRbac extends AbstractRbacTest {
         PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_DESCRIPTION, ROLE_IMMUTABLE_GLOBAL_DESCRIPTION);
         PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_IDENTIFIER, ROLE_IMMUTABLE_GLOBAL_IDENTIFIER);
 	}
-	
+
 	@Test
     public void test805ModifyRoleImmutableGlobalDescription() throws Exception {
 		final String TEST_NAME = "test805ModifyRoleImmutableGlobalDescription";
@@ -4110,13 +4110,13 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         try {
 	        // WHEN
 			displayWhen(TEST_NAME);
 			modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_GLOBAL_OID, RoleType.F_DESCRIPTION,
 					getDefaultOptions(), task, result, "whatever");
-			
+
 			AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
         	// THEN
@@ -4214,7 +4214,7 @@ public class TestRbac extends AbstractRbacTest {
 		PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_OID);
 		PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_DESCRIPTION, ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_DESCRIPTION);
 	}
-	
+
 	@Test
     public void test826AddNonCreateableRole() throws Exception {
 		final String TEST_NAME = "test826AddNonCreateableRole";
@@ -4223,15 +4223,15 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_NON_CREATEABLE_FILE);
         display("Role before", role);
-        
+
         try {
 	        // WHEN
 			displayWhen(TEST_NAME);
 			addObject(role, getDefaultOptions(), task, result);
-			
+
 			AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
         	// THEN
@@ -4255,15 +4255,15 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_IMMUTABLE_ASSIGN_FILE);
         display("Role before", role);
-        
+
         try {
 	        // WHEN
 			displayWhen(TEST_NAME);
 			addObject(role, getDefaultOptions(), task, result);
-			
+
 			AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
         	// THEN
@@ -4274,7 +4274,7 @@ public class TestRbac extends AbstractRbacTest {
 
         assertNoObject(RoleType.class, ROLE_IMMUTABLE_ASSIGN_OID);
 	}
-	
+
 	/**
 	 * The untouchable metarole has immutable policy rule in the
 	 * inducement. So it will apply to member roles, but not to the
@@ -4288,12 +4288,12 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
 		displayWhen(TEST_NAME);
 		modifyObjectReplaceProperty(RoleType.class, ROLE_META_UNTOUCHABLE_OID, RoleType.F_DESCRIPTION,
 				getDefaultOptions(), task, result, "Touche!");
-			
+
 		// THEN
         displayThen(TEST_NAME);
         result.computeStatus();
@@ -4311,12 +4311,12 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
 		displayWhen(TEST_NAME);
 		modifyObjectReplaceProperty(RoleType.class, ROLE_JUDGE_OID, RoleType.F_DESCRIPTION,
 				getDefaultOptions(), task, result, "whatever");
-			
+
 		// THEN
         displayThen(TEST_NAME);
         result.computeStatus();
@@ -4325,7 +4325,7 @@ public class TestRbac extends AbstractRbacTest {
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_JUDGE_OID);
         PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_DESCRIPTION, "whatever");
 	}
-	
+
 	@Test
     public void test840AssignRoleNonAssignable() throws Exception {
 		final String TEST_NAME = "test840AssignRoleNonAssignable";
@@ -4334,16 +4334,16 @@ public class TestRbac extends AbstractRbacTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
         display("user jack", userJackBefore);
         assertNoAssignments(userJackBefore);
-        
+
         try {
 	        // WHEN
 			displayWhen(TEST_NAME);
 			assignRole(USER_JACK_OID, ROLE_NON_ASSIGNABLE_OID, getDefaultOptions(), task, result);
-			
+
 			AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
         	// THEN

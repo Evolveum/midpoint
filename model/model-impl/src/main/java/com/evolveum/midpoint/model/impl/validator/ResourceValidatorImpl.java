@@ -82,10 +82,10 @@ public class ResourceValidatorImpl implements ResourceValidator {
 
 	@Autowired
 	private MatchingRuleRegistry matchingRuleRegistry;
-	
+
 	@Autowired
 	private PrismContext prismContext;
-	
+
 	private class ResourceValidationContext {
 		@NotNull final PrismObject<ResourceType> resourceObject;
 		@NotNull final ObjectReferenceType resourceRef;
@@ -132,7 +132,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		}
 
 		ResourceValidationContext ctx = new ResourceValidationContext(resourceObject, scope, task, vr, resourceSchema, bundle);
-		
+
 		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
 		if (schemaHandling != null) {
 			checkSchemaHandlingDuplicateObjectTypes(ctx, schemaHandling);

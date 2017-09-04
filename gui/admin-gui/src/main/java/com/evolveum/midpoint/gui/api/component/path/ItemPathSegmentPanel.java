@@ -33,7 +33,7 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 	public ItemPathSegmentPanel(String id, ItemPathDto model) {
 		this(id, Model.of(model));
 	}
-	
+
 	public ItemPathSegmentPanel(String id, IModel<ItemPathDto> model) {
 		super(id, model);
 
@@ -47,15 +47,15 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 			private static final long serialVersionUID = 1L;
 				@Override
 				public String getObject() {
-					
+
 					if (getModelObject().getParentPath() == null) {
 						return null;
 					}
-					
+
 					if (getModelObject().getParentPath().toItemPath() == null) {
 						return null;
 					}
-					
+
 					return getString("ItemPathSegmentPanel.itemToSearch", getModelObject().getParentPath().toItemPath().toString());
 				}
 				});
@@ -122,7 +122,7 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 	protected Map<QName, Collection<ItemDefinition<?>>> getSchemaDefinitionMap() {
 		return new HashMap<>();
 	}
-	
+
 	public boolean validate() {
 //		AutoCompleteItemDefinitionPanel autocompletePanel = (AutoCompleteItemDefinitionPanel) get(ID_DEFINITION);
 //		String current = (String) autocompletePanel.getBaseFormComponent().getModelObject();
@@ -132,7 +132,7 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 //			( !=
 //		}
 		return getModelObject().getItemDef() != null;
-		
+
 //		return autocompletePanel.getBaseFormComponent().getModelObject() != null;
 	}
 

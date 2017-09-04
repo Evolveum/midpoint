@@ -27,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 public class SmartAssignmentKey {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SmartAssignmentKey.class);
-	
+
 	private PrismContainerValue<AssignmentType> assignmentCVal;
 
 	public SmartAssignmentKey(PrismContainerValue<AssignmentType> assignmentCVal) {
@@ -36,11 +36,11 @@ public class SmartAssignmentKey {
 	}
 
 	// This is a key to an assignment hashmap.
-	// hashCode() and equals() are very important here. 
+	// hashCode() and equals() are very important here.
 	// Especially equals(). We want to make the comparison reliable, but reasonably quick.
 
 	@Override
-	public int hashCode() { 
+	public int hashCode() {
 		return assignmentCVal.hashCode();
 	}
 
@@ -74,5 +74,5 @@ public class SmartAssignmentKey {
 	public String toString() {
 		return "SmartAssignmentKey(" + assignmentCVal + ")";
 	}
-	
+
 }

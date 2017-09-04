@@ -47,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class PageRegistrationConfirmation extends PageRegistrationBase {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfirmation.class);
-	
+
 	private static final String DOT_CLASS = PageRegistrationConfirmation.class.getName() + ".";
 
 	private static final String ID_LABEL_SUCCESS = "successLabel";
@@ -55,7 +55,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 	private static final String ID_LINK_LOGIN = "linkToLogin";
 	private static final String ID_SUCCESS_PANEL = "successPanel";
 	private static final String ID_ERROR_PANEL = "errorPanel";
-	
+
 	private static final String OPERATION_ASSIGN_DEFAULT_ROLES = DOT_CLASS + ".assignDefaultRoles";
 	private static final String OPERATION_FINISH_REGISTRATION = DOT_CLASS + "finishRegistration";
 
@@ -77,7 +77,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		if (params == null) {
 			params = getPageParameters();
 		}
-		
+
 		OperationResult result = new OperationResult(OPERATION_FINISH_REGISTRATION);
 		if (params == null) {
 			LOGGER.error("Confirmation link is not valid. No credentials provided in it");
@@ -92,28 +92,28 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		Validate.notEmpty(userNameValue.toString());
 		StringValue tokenValue = params.get(SchemaConstants.TOKEN);
 		Validate.notEmpty(tokenValue.toString());
-			
+
 		UserType userType = checkUserCredentials(userNameValue.toString(), tokenValue.toString(), result);
 		if (userType == null) {
 			initLayout(result);
 			return;
 		}
-		
+
 		result = assignDefaultRoles(userType.getOid());
 		if (result.getStatus() == OperationResultStatus.FATAL_ERROR) {
 			LOGGER.error("Failed to assign default roles, {}", result.getMessage());
 			initLayout(result);
 			return;
 		}
-		
+
 		final NonceType nonceClone = userType.getCredentials().getNonce().clone();
-		
+
 		result = removeNonce(userType.getOid(), nonceClone);
 		result = assignAdditionalRoleIfPresent(userType.getOid(), nonceClone, result);
 
 		initLayout(result);
 	}
-	
+
 //	private UsernamePasswordAuthenticationToken authenticateUser(String username, String nonce, OperationResult result){
 //		ConnectionEnvironment connEnv = new ConnectionEnvironment();
 //		connEnv.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
@@ -133,7 +133,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 //			return null;
 //		}
 //	}
-	
+
 	private UserType checkUserCredentials(String username, String nonce, OperationResult result) {
 		ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
 		try {
@@ -152,7 +152,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 			return null;
 		}
 	}
-	
+
 	private OperationResult assignDefaultRoles(final String userOid){
 		List<ContainerDelta<AssignmentType>> assignments = new ArrayList<>();
 		for (ObjectReferenceType defaultRole : getSelfRegistrationConfiguration().getDefaultRoles()) {
@@ -165,25 +165,25 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 				//nothing to do
 			}
 		}
-		
+
 		final ObjectDelta<UserType> delta = ObjectDelta.createModifyDelta(userOid, assignments, UserType.class, getPrismContext());
-		
+
 		return runPrivileged(new Producer<OperationResult>() {
-		
+
 			@Override
 			public OperationResult run() {
 				OperationResult result = new OperationResult(OPERATION_ASSIGN_DEFAULT_ROLES);
 				Task task = createAnonymousTask(OPERATION_ASSIGN_DEFAULT_ROLES);
 				WebModelServiceUtils.save(delta, result, task, PageRegistrationConfirmation.this);
 				result.computeStatusIfUnknown();
-				
+
 				return result;
 			}
 		});
-		
-		
+
+
 	}
-	
+
 	private OperationResult removeNonce(final String userOid, final NonceType nonce){
 		return runPrivileged(() -> {
 			OperationResult result = new OperationResult("assignDefaultRoles");
@@ -239,9 +239,9 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 			return result;
 
 		});
-		
+
 //		SecurityContextHolder.getContext().setAuthentication(null);
-	
+
 	}
 	private void initLayout(final OperationResult result) {
 
@@ -298,7 +298,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		errorPanel.add(errorMessage);
 
 	}
-	
+
 	@Override
 	protected void createBreadcrumb() {
 		// don't create breadcrumb for registration confirmation page

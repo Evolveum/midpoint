@@ -19,15 +19,15 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 
 /**
  * Object with specified criteria (OID) has not been found in the repository.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 public class ObjectNotFoundException extends CommonException {
 	private static final long serialVersionUID = -9003686713018111855L;
 
 	private String oid = null;;
-	
+
 	public ObjectNotFoundException() {
 		super();
 	}
@@ -35,7 +35,7 @@ public class ObjectNotFoundException extends CommonException {
 	public ObjectNotFoundException(String message, Throwable cause) {
 		super(message, cause);
 	}
-	
+
 	public ObjectNotFoundException(LocalizableMessage userFriendlyMessage, Throwable cause) {
 		super(userFriendlyMessage, cause);
 	}
@@ -44,11 +44,11 @@ public class ObjectNotFoundException extends CommonException {
 		super(message, cause);
 		this.oid = oid;
 	}
-	
+
 	public ObjectNotFoundException(String message) {
 		super(message);
 	}
-	
+
 	public ObjectNotFoundException(LocalizableMessage userFriendlyMessage) {
 		super(userFriendlyMessage);
 	}

@@ -58,7 +58,7 @@ public class TasksSearchDto implements Serializable, DebugDumpable {
     public void setStatus(TaskDtoExecutionStatusFilter status) {
         this.status = status;
     }
-    
+
     @Override
 	public String debugDump() {
 		return debugDump(0);

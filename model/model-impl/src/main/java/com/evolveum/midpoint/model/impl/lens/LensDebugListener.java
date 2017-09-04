@@ -20,32 +20,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Interface used to intercept the SyncContext as it passes through the computation.
- * 
+ *
  * It is mostly used in tests.
- * 
+ *
  * EXPERIMENTAL
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public interface LensDebugListener {
-	
+
 	public <F extends ObjectType> void beforeSync(LensContext<F> context);
 
 	public <F extends ObjectType> void afterSync(LensContext<F> context);
-	
+
 	public <F extends ObjectType> void beforeProjection(LensContext<F> context);
-	
+
 	public <F extends ObjectType> void afterProjection(LensContext<F> context);
-	
+
 	/**
 	 * May be used to gather profiling data, etc.
 	 */
 	public <F extends ObjectType> void afterMappingEvaluation(LensContext<F> context, Mapping<?,?> evaluatedMapping);
-	
+
 //	/**
 //	 * For all scripts expect for mappings.
 //	 * May be used to gather profiling data, etc.
-//	 */	
+//	 */
 //	public <F extends ObjectType, P extends ObjectType> void afterScriptEvaluation(LensContext<F,P> context, ScriptExpression scriptExpression);
 }

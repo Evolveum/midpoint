@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.provisioning.impl.manual;
 
@@ -108,11 +108,11 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestManual extends AbstractManualResourceTest {
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		resource = addResourceFromFile(getResourceFile(), MANUAL_CONNECTOR_TYPE, initResult);
 		resourceType = resource.asObjectable();
 	}
@@ -121,7 +121,7 @@ public class TestManual extends AbstractManualResourceTest {
 	protected File getResourceFile() {
 		return RESOURCE_MANUAL_FILE;
 	}
-	
+
 	@Override
 	protected void assertResourceSchemaBeforeTest(Element resourceXsdSchemaElementBefore) {
 		AssertJUnit.assertNotNull("No schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);

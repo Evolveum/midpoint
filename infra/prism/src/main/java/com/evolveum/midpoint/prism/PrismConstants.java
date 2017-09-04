@@ -34,10 +34,10 @@ public class PrismConstants {
 	public static final String ATTRIBUTE_VERSION_LOCAL_NAME = "version";
 	public static final String ATTRIBUTE_REF_TYPE_LOCAL_NAME = "type";
 	public static final String ATTRIBUTE_RELATION_LOCAL_NAME = "relation";
-	
+
 	public static final String ELEMENT_DESCRIPTION_LOCAL_NAME = "description";
 	public static final String ELEMENT_FILTER_LOCAL_NAME = "filter";
-	
+
 	public static final String NS_PREFIX = "http://prism.evolveum.com/xml/ns/public/";
 	public static final String NS_ANNOTATION = NS_PREFIX + "annotation-3";
 	public static final String PREFIX_NS_ANNOTATION = "a";
@@ -45,10 +45,10 @@ public class PrismConstants {
 	public static final String PREFIX_NS_TYPES = "t";
 	public static final String NS_QUERY = NS_PREFIX + "query-3";
 	public static final String PREFIX_NS_QUERY = "q";
-	
+
 	public static final String NS_MATCHING_RULE = NS_PREFIX + "matching-rule-3";
 	public static final String PREFIX_NS_MATCHING = "mr";
-	
+
 	public static final String NS_PREFIX_CRYPTO = NS_PREFIX + "crypto/";
 	public static final String NS_PREFIX_CRYPTO_ALGORITHM = NS_PREFIX_CRYPTO + "algorithm/";
 	public static final String NS_CRYPTO_ALGORITHM_PBKD = NS_PREFIX_CRYPTO_ALGORITHM + "pbkd-3";
@@ -64,7 +64,7 @@ public class PrismConstants {
 	public static final QName A_TYPE = new QName(NS_ANNOTATION, "type");
 	public static final QName A_DISPLAY_NAME = new QName(NS_ANNOTATION, "displayName");
 	public static final QName A_DISPLAY_ORDER = new QName(NS_ANNOTATION, "displayOrder");
-	public static final QName A_HELP = new QName(NS_ANNOTATION, "help");	
+	public static final QName A_HELP = new QName(NS_ANNOTATION, "help");
 	public static final QName A_ACCESS = new QName(NS_ANNOTATION, "access");
 	public static final String A_ACCESS_CREATE = "create";
 	public static final String A_ACCESS_UPDATE = "update";
@@ -86,14 +86,14 @@ public class PrismConstants {
 
 	public static final QName SCHEMA_DOCUMENTATION = new QName(W3C_XML_SCHEMA_NS_URI, "documentation");
 	public static final QName SCHEMA_APP_INFO = new QName(W3C_XML_SCHEMA_NS_URI, "appinfo");
-	
+
 	public static final QName A_MAX_OCCURS = new QName(NS_ANNOTATION, "maxOccurs");
 	public static final String MULTIPLICITY_UNBONUNDED = "unbounded";
-	
+
 	public static final QName A_NAMESPACE = new QName(NS_ANNOTATION, "namespace");
 	public static final String A_NAMESPACE_PREFIX = "prefix";
 	public static final String A_NAMESPACE_URL = "url";
-	
+
 	//Query constants
 	public static final QName Q_OID = new QName(NS_QUERY, "oid");
 	public static final QName Q_TYPE = new QName(NS_QUERY, "type");
@@ -110,18 +110,18 @@ public class PrismConstants {
 	public static final QName T_ID = new QName(NS_TYPES, T_ID_LOCAL_PART);
 
 	// Misc
-	
+
 	public static final Class DEFAULT_VALUE_CLASS = String.class;
-	
+
 	public static final QName POLYSTRING_TYPE_QNAME = new QName(NS_TYPES, "PolyStringType");
 	public static final QName POLYSTRING_ELEMENT_ORIG_QNAME = new QName(NS_TYPES, "orig");
 	public static final QName POLYSTRING_ELEMENT_NORM_QNAME = new QName(NS_TYPES, "norm");
 
     // a bit of hack: by this local name we know if a object is a reference (c:ObjectReferenceType)
     public static final String REFERENCE_TYPE_NAME = "ObjectReferenceType";
-    
+
     public static final boolean EQUALS_DEFAULT_IGNORE_METADATA = true;
     public static final boolean EQUALS_DEFAULT_IS_LITERAL = false;
-    
+
     public static final String EXPRESSION_LOCAL_PART = "expression";
 }

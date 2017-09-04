@@ -20,7 +20,7 @@ package com.evolveum.midpoint.security.api;
  *
  */
 public class ConnectionEnvironment {
-	
+
 	private String channel;
 	private HttpConnectionInformation connectionInformation;
 	/**

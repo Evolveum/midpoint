@@ -121,7 +121,7 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 	ResourceObjectReferenceType getBaseContext();
 
 	String getHumanReadableName();
-	
+
 	ResourceObjectVolatilityType getVolatility();
 	//endregion
 
@@ -147,7 +147,7 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 	Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions();
 
 	boolean hasAuxiliaryObjectClass(QName expectedObjectClassName);
-	
+
 	ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings();
 
 	Collection<ResourceObjectPattern> getProtectedObjectPatterns();

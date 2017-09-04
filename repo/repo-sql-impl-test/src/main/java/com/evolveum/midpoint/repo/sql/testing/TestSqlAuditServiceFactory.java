@@ -25,7 +25,7 @@ import com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory;
  * @author lazyman
  */
 public class TestSqlAuditServiceFactory extends SqlAuditServiceFactory {
-	
+
 	// fake method. just for the dependency analyze plugin to properly detect dependency
 	private void fake() {
 		Class foo = AuditService.class;

@@ -137,11 +137,11 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 		}
 		return realValues;
 	}
-    
+
     /**
      * Type override, also for compatibility.
      */
-    
+
 	public <X> Collection<X> getRealValues(Class<X> type) {
 		Collection<X> realValues = new ArrayList<X>(getValues().size());
 		for (PrismPropertyValue<T> pValue: getValues()) {
@@ -149,7 +149,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 		}
 		return realValues;
 	}
-	
+
 	public T getAnyRealValue() {
 		Collection<T> values = getRealValues();
 		if (values.isEmpty()) {
@@ -173,7 +173,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         }
 		return getValue().getValue();
 	}
-	
+
 	/**
      * Type override, also for compatibility.
      */
@@ -267,12 +267,12 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
     	pValueToAdd.recompute();
     	getValues().add(pValueToAdd);
     }
-    
+
     public void addRealValue(T valueToAdd) {
     	PrismPropertyValue<T> pval = new PrismPropertyValue<T>(valueToAdd);
     	addValue(pval);
     }
-    
+
     public boolean deleteValues(Collection<PrismPropertyValue<T>> pValuesToDelete) {
 		checkMutability();
 		boolean changed = false;
@@ -323,7 +323,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 
         return false;
     }
-    
+
     @Override
 	public PrismPropertyValue<T> getPreviousValue(PrismValue value) {
 		return (PrismPropertyValue<T>) super.getPreviousValue(value);
@@ -350,17 +350,17 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
     	// TODO: How to determine value class?????
     	return PrismConstants.DEFAULT_VALUE_CLASS;
     }
-    	
+
     @Override
 	public PropertyDelta<T> createDelta() {
 		return new PropertyDelta<T>(getPath(), getDefinition(), prismContext);
 	}
-    
+
     @Override
 	public PropertyDelta<T> createDelta(ItemPath path) {
 		return new PropertyDelta<T>(path, getDefinition(), prismContext);
 	}
-    
+
     @Override
 	public Object find(ItemPath path) {
 		if (path == null || path.isEmpty()) {
@@ -390,11 +390,11 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 	public PropertyDelta<T> diff(PrismProperty<T> other) {
 		return (PropertyDelta<T>) super.diff(other);
     }
-    
+
     public PropertyDelta<T> diff(PrismProperty<T> other, boolean ignoreMetadata, boolean isLiteral) {
     	return (PropertyDelta<T>) super.diff(other, true, false);
     }
-    
+
     public static <T> PropertyDelta<T> diff(PrismProperty<T> a, PrismProperty<T> b) {
 		if (a == null) {
 			if (b == null) {
@@ -445,7 +445,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
             return false;
         return true;
     }
-	
+
 	@Override
 	protected ItemDelta fixupDelta(ItemDelta delta, Item otherItem,
 			boolean ignoreMetadata) {
@@ -466,9 +466,9 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         	return super.fixupDelta(delta, otherItem, ignoreMetadata);
         }
 	}
-	
+
 	public static boolean compareCollectionRealValues(Collection<? extends PrismProperty> col1, Collection<? extends PrismProperty> col2) {
-		return MiscUtil.unorderedCollectionEquals(col1, col2, 
+		return MiscUtil.unorderedCollectionEquals(col1, col2,
 				(p1, p2) -> {
 					if (!p1.getElementName().equals(p2.getElementName())) {
 						return false;
@@ -494,13 +494,13 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         	sb.append(getDebugDumpClassName()).append(": ");
         }
         sb.append(DebugUtil.formatElementName(getElementName())).append(": ");
-        
+
         boolean isMultivalue = true;
         PrismPropertyDefinition def = getDefinition();
         if (def != null) {
         	isMultivalue = def.isMultiValue();
         }
-        
+
         List<PrismPropertyValue<T>> values = getValues();
 		if (values.isEmpty()) {
 			sb.append("[]");
@@ -517,7 +517,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 				}
 			}
 			if (multiline) {
-				
+
 				for (PrismPropertyValue<T> value: getValues()) {
 					sb.append("\n");
 					if (value.isRaw()) {
@@ -567,9 +567,9 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 				}
 			}
 		}
-        
+
 		appendDebugDumpSuffix(sb);
-		
+
         if (def != null && DebugUtil.isDetailedDebugDump()) {
             sb.append(" def(");
             def.debugDumpShortToString(sb);
@@ -580,7 +580,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         }
         return sb.toString();
     }
-    
+
     private String formatRawValueForDump(Object rawElement) {
 		if (rawElement == null) {
 			return null;

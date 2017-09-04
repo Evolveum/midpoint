@@ -117,7 +117,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
     private static final long serialVersionUID = 2317887071933841581L;
 
-    private static final String ID_DRY_RUN = "dryRun";    
+    private static final String ID_DRY_RUN = "dryRun";
     private static final String ID_FOCUS_TYPE = "focusType";
     private static final String ID_KIND = "kind";
     private static final String ID_INTENT = "intent";
@@ -162,7 +162,7 @@ public class PageTaskAdd extends PageAdminTasks {
         };
         initLayout();
     }
-    
+
     public PageTaskAdd(final TaskType taskType) {
         model = new LoadableModel<TaskAddDto>(false) {
 
@@ -177,7 +177,7 @@ public class PageTaskAdd extends PageAdminTasks {
     private TaskAddDto loadTask() {
         return new TaskAddDto();
     }
-    
+
     private TaskAddDto loadTask(TaskType taskType) {
     	TaskAddDto taskAdd = new TaskAddDto();
     	taskAdd.setCategory(taskType.getCategory());
@@ -188,7 +188,7 @@ public class PageTaskAdd extends PageAdminTasks {
 		} catch (SchemaException e) {
 			warn("Could not set kind for new task : " + e.getMessage());
 		}
-    	
+
     	PrismProperty<String> pIntent;
 		try {
 			pIntent = taskType.asPrismObject().findOrCreateProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_INTENT));
@@ -196,7 +196,7 @@ public class PageTaskAdd extends PageAdminTasks {
 		} catch (SchemaException e) {
 			warn("Could not set intent for new task : " + e.getMessage());
 		}
-    	
+
     	PrismProperty<QName> pObjectClass;
 		try {
 			pObjectClass = taskType.asPrismObject().findOrCreateProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.OBJECTCLASS_PROPERTY_NAME));
@@ -207,8 +207,8 @@ public class PageTaskAdd extends PageAdminTasks {
 		} catch (SchemaException e) {
 			warn("Could not set obejctClass for new task : " + e.getMessage());
 		}
-    	
-    	
+
+
     	ObjectReferenceType ref = taskType.getObjectRef();
     	if (ref != null) {
     	TaskAddResourcesDto resource= new TaskAddResourcesDto(ref.getOid(), WebComponentUtil.getName(ref));
@@ -272,7 +272,7 @@ public class PageTaskAdd extends PageAdminTasks {
         });
         mainForm.add(focusType);
 
-        
+
         final DropDownChoice kind = new DropDownChoice<>(ID_KIND,
                 new PropertyModel<ShadowKindType>(model, TaskAddDto.F_KIND),
                 WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<ShadowKindType>());
@@ -592,7 +592,7 @@ public class PageTaskAdd extends PageAdminTasks {
         mainForm.add(backButton);
     }
 
-   
+
     private List<ShadowKindType> createShadowKindTypeList(){
         List<ShadowKindType> kindList = new ArrayList<>();
 
@@ -602,7 +602,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
         return kindList;
     }
-    
+
     private List<QName> createFocusTypeList(){
         List<QName> focusTypeList = new ArrayList<>();
 
@@ -741,13 +741,13 @@ public class PageTaskAdd extends PageAdminTasks {
         if (dto.getFocusType() != null){
 
         	PrismObject<TaskType> prismTask = task.asPrismObject();
-        	
+
         	ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
 			PrismProperty focusType = prismTask.findOrCreateProperty(path);
 			focusType.setRealValue(dto.getFocusType());
-            
+
 		}
-        
+
         if(dto.getKind() != null){
             PrismObject<TaskType> prismTask = task.asPrismObject();
             ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND);

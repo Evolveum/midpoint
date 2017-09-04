@@ -65,26 +65,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 /**
  * Connector factory for the connectors built-in to midPoint, such as
  * the "manual connector".
- * 
+ *
  * @author Radovan Semancik
  *
  */
 @Component
 public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
-	
+
 	public static final String SCAN_PACKAGE = "com.evolveum.midpoint";
-	
+
 	private static final String CONFIGURATION_NAMESPACE_PREFIX = SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN + "/bundle/";
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryBuiltinImpl.class);
-	
+
 	@Autowired(required=true)
 	private PrismContext prismContext;
-	
+
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
-	
+
 	private Map<String,ConnectorStruct> connectorMap;
 
 	@Override
@@ -95,7 +95,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		}
 		return connectorMap.entrySet().stream().map(e -> e.getValue().connectorObject).collect(Collectors.toSet());
 	}
-	
+
 	private void discoverConnectors() {
 		connectorMap = new HashMap<>();
 		ClassPathScanningCandidateComponentProvider scanner =
@@ -106,28 +106,28 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 			LOGGER.debug("Found connector class {}", bd);
 			String beanClassName = bd.getBeanClassName();
 			try {
-				
+
 				Class connectorClass = Class.forName(beanClassName);
 				ManagedConnector annotation = (ManagedConnector) connectorClass.getAnnotation(ManagedConnector.class);
 				String type = annotation.type();
 				LOGGER.debug("Found connector {} class {}", type, connectorClass);
 				ConnectorStruct struct = createConnectorStruct(connectorClass, annotation);
 				connectorMap.put(type, struct);
-				
+
 			} catch (ClassNotFoundException e) {
 				LOGGER.error("Error loading connector class {}: {}", beanClassName, e.getMessage(), e);
 			} catch (ObjectNotFoundException | SchemaException e) {
 				LOGGER.error("Error discovering the connector {}: {}", beanClassName, e.getMessage(), e);
 			}
-			
+
 		}
 		LOGGER.trace("Scan done");
 	}
-	
+
 	private ConnectorStruct createConnectorStruct(Class connectorClass, ManagedConnector annotation) throws ObjectNotFoundException, SchemaException {
 		ConnectorStruct struct = new ConnectorStruct();
 		struct.connectorClass = connectorClass;
-		
+
 		ConnectorType connectorType = new ConnectorType();
 		String bundleName = connectorClass.getPackage().getName();
 		String type = annotation.type();
@@ -142,9 +142,9 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		connectorType.setFramework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN);
 		String namespace = CONFIGURATION_NAMESPACE_PREFIX + bundleName + "/" + type;
 		connectorType.setNamespace(namespace);
-		
+
 		struct.connectorObject = connectorType;
-		
+
 		PrismSchema connectorSchema = generateConnectorConfigurationSchema(struct);
 		if (connectorSchema != null) {
 			LOGGER.trace("Generated connector schema for {}: {} definitions",
@@ -154,10 +154,10 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		} else {
 			LOGGER.warn("No connector schema generated for {}", connectorType);
 		}
-		
+
 		return struct;
 	}
-	
+
 	private ConnectorStruct getConnectorStruct(ConnectorType connectorType) throws ObjectNotFoundException {
 		if (connectorMap == null) {
 			discoverConnectors();
@@ -178,32 +178,32 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 	}
 
 	private PrismSchema generateConnectorConfigurationSchema(ConnectorStruct struct) {
-		
+
 		Class<? extends ConnectorInstance> connectorClass = struct.connectorClass;
-		
+
 		PropertyDescriptor connectorConfigurationProp = UcfUtil.findAnnotatedProperty(connectorClass, ManagedConnectorConfiguration.class);
-		
+
 		PrismSchema connectorSchema = new PrismSchemaImpl(struct.connectorObject.getNamespace(), prismContext);
 		// Create configuration type - the type used by the "configuration" element
 		PrismContainerDefinitionImpl<?> configurationContainerDef = ((PrismSchemaImpl) connectorSchema).createPropertyContainerDefinition(
 				ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
 				SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
-		
+
 		Class<?> configurationClass = connectorConfigurationProp.getPropertyType();
 		BeanWrapper configurationClassBean = new BeanWrapperImpl(configurationClass);
 		for (PropertyDescriptor prop: configurationClassBean.getPropertyDescriptors()) {
 			if (!UcfUtil.hasAnnotation(prop, ConfigurationProperty.class)) {
 				continue;
 			}
-			
+
 			ItemDefinition<?> itemDef = createPropertyDefinition(configurationContainerDef, prop);
-			
+
 			LOGGER.trace("Configuration item definition for {}: {}", prop.getName(), itemDef);
 		}
-		
+
 		return connectorSchema;
 	}
-	
+
 	private ItemDefinition<?> createPropertyDefinition(PrismContainerDefinitionImpl<?> configurationContainerDef,
 			PropertyDescriptor prop) {
 		String propName = prop.getName();
@@ -221,7 +221,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		return configurationContainerDef.createPropertyDefinition(new QName(configurationContainerDef.getName().getNamespaceURI(), propName),
 				propType, minOccurs, maxOccurs);
 	}
-	
+
 
 	@Override
 	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace,
@@ -236,7 +236,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 			throw new ObjectNotFoundException("Cannot create instance of connector "+connectorClass+": "+e.getMessage(), e);
 		}
 		if (connectorInstance instanceof AbstractManagedConnectorInstance) {
-			setupAbstractConnectorInstance((AbstractManagedConnectorInstance)connectorInstance, connectorType, namespace, 
+			setupAbstractConnectorInstance((AbstractManagedConnectorInstance)connectorInstance, connectorType, namespace,
 					desc, struct);
 		}
 		if (connectorInstance instanceof RepositoryAware) {
@@ -262,7 +262,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 	public boolean supportsFramework(String frameworkIdentifier) {
 		return SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN.equals(frameworkIdentifier);
 	}
-	
+
 	@Override
 	public String getFrameworkVersion() {
 		return "1.0.0";
@@ -278,5 +278,5 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		ConnectorType connectorObject;
 		PrismSchema connectorConfigurationSchema;
 	}
-	
+
 }

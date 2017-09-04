@@ -42,7 +42,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  *
  */
 public class FocusTypeUtil {
-	
+
 	public static AssignmentType createRoleAssignment(String roleOid) {
 		return createTargetAssignment(roleOid, RoleType.COMPLEX_TYPE);
 	}
@@ -50,7 +50,7 @@ public class FocusTypeUtil {
 	public static AssignmentType createOrgAssignment(String roleOid) {
 		return createTargetAssignment(roleOid, OrgType.COMPLEX_TYPE);
 	}
-	
+
 	public static AssignmentType createTargetAssignment(String targetOid, QName type) {
 		AssignmentType assignmentType = new AssignmentType();
 		ObjectReferenceType targetRef = new ObjectReferenceType();
@@ -59,8 +59,8 @@ public class FocusTypeUtil {
 		assignmentType.setTargetRef(targetRef);
 		return assignmentType;
 	}
-	
-	public static String dumpAssignment(AssignmentType assignmentType) { 
+
+	public static String dumpAssignment(AssignmentType assignmentType) {
 		StringBuilder sb = new StringBuilder();
 		if (assignmentType.getConstruction() != null) {
 			sb.append("Constr(").append(assignmentType.getConstruction().getDescription()).append(") ");
@@ -74,7 +74,7 @@ public class FocusTypeUtil {
 		}
 		return sb.toString();
 	}
-	
+
 	public static String dumpInducementConstraints(AssignmentType assignmentType) {
 		if (assignmentType.getOrder() != null) {
 			return assignmentType.getOrder().toString();
@@ -102,7 +102,7 @@ public class FocusTypeUtil {
 		sb.setLength(sb.length() - 1);
 		return sb.toString();
 	}
-	
+
 	public static boolean selectorMatches(AssignmentSelectorType assignmentSelector, AssignmentType assignmentType) {
 		if (assignmentType.getTargetRef() == null) {
 			return false;
@@ -114,7 +114,7 @@ public class FocusTypeUtil {
 		}
 		return false;
 	}
-	
+
 	public static String determineConstructionResource(AssignmentType assignmentType) {
 		ConstructionType construction = assignmentType.getConstruction();
 		if (construction != null){
@@ -122,37 +122,37 @@ public class FocusTypeUtil {
 				return construction.getResource().getOid();
 			} else if (construction.getResourceRef() != null){
 				return construction.getResourceRef().getOid();
-			} 
-			
+			}
+
 			return null;
 		}
-		
+
 		return null;
 	}
-    
+
 	public static String determineConstructionIntent(AssignmentType assignmentType) {
 		ConstructionType construction = assignmentType.getConstruction();
 		if (construction != null){
 			if (construction.getIntent() != null){
 				return construction.getIntent();
-			} 
-			
+			}
+
 			return SchemaConstants.INTENT_DEFAULT;
 		}
-		
+
 		throw new IllegalArgumentException("Construction not defined in the assigment.");
 	}
-	
+
 	public static ShadowKindType determineConstructionKind(AssignmentType assignmentType) {
 		ConstructionType construction = assignmentType.getConstruction();
 		if (construction != null){
 			if (construction.getKind() != null){
 				return construction.getKind();
-			} 
-			
+			}
+
 			return ShadowKindType.ACCOUNT;
 		}
-		
+
 		throw new IllegalArgumentException("Construction not defined in the assigment.");
 	}
 
@@ -170,14 +170,14 @@ public class FocusTypeUtil {
 		}
 		return passwd.getValue();
 	}
-	
+
 	public static <O extends ObjectType> List<String> determineSubTypes(PrismObject<O> object) {
 		if (object == null) {
 			return null;
 		}
-		
+
 		// TODO: get subType (from ObjectType)
-		
+
 		if (object.canRepresent(UserType.class)) {
 			return (((UserType)object.asObjectable()).getEmployeeType());
 		}
@@ -204,9 +204,9 @@ public class FocusTypeUtil {
 	}
 
 	public static <O extends ObjectType>  void setSubtype(PrismObject<O> object, List<String> subtypes) {
-		
+
 		// TODO: set subType (from ObjectType)
-		
+
 		List<String> objSubtypes = null;
 		if (object.canRepresent(UserType.class)) {
 			objSubtypes = (((UserType)object.asObjectable()).getEmployeeType());

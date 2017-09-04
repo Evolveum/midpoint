@@ -43,7 +43,7 @@ import javax.xml.namespace.QName;
  * @author lazyman
  */
 public class ResourceDto extends Selectable implements InlineMenuable {
-	
+
 	private static final String DOT_CLASS = ResourceDto.class.getName() + ".";
 	private static final String OPERATION_LOAD_RESOURCE_DEFINITION = DOT_CLASS + "ResourceDto - load resource attribute container definition";
 
@@ -64,7 +64,7 @@ public class ResourceDto extends Selectable implements InlineMenuable {
 
     public ResourceDto() {
     }
-    
+
     public ResourceDto(PrismObject<ResourceType> resource) {
     	oid = resource.getOid();
         name = WebComponentUtil.getName(resource);
@@ -88,7 +88,7 @@ public class ResourceDto extends Selectable implements InlineMenuable {
 
     public ResourceDto(PrismObject<ResourceType> resource, PrismContext prismContext, ConnectorType connector, List<String> capabilities) {
         Validate.notNull(resource);
-        
+
         OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE_DEFINITION);
 
         oid = resource.getOid();
@@ -97,7 +97,7 @@ public class ResourceDto extends Selectable implements InlineMenuable {
         version = connector != null ? connector.getConnectorVersion() : null;
         type = connector != null ? connector.getConnectorType() : null;
         this.capabilities = capabilities;
-        
+
         try {
 	        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 	        Collection<ObjectClassComplexTypeDefinition> definitions = resourceSchema.getObjectClassDefinitions();
@@ -138,51 +138,51 @@ public class ResourceDto extends Selectable implements InlineMenuable {
     public String getVersion() {
         return version;
     }
-    
+
     public String getProgress() {
     	return progress;
     }
-    
+
     public String getType() {
     	return type;
     }
-    
+
     public List<String> getCapabilities() {
     	return capabilities;
     }
-    
+
     public ResourceState getState() {
 		if (state == null) {
 			state = new ResourceState();
 		}
 		return state;
 	}
-    
+
     public OperationResultStatus getOverallStatus() {
 		if (state == null) {
 			return OperationResultStatus.UNKNOWN;
 		}
 		return state.getOverall();
 	}
-    
+
     public AvailabilityStatusType getLastAvailabilityStatus() {
     	return lastAvailabilityStatus;
 	}
-    
+
     public List<ResourceObjectTypeDto> getObjectTypes() {
 		if (objectTypes == null) {
 			objectTypes = new ArrayList<ResourceObjectTypeDto>();
 		}
 		return objectTypes;
 	}
-    
+
     public ResourceSyncStatus getSyncStatus() {
 		if (sync == null || !sync.isEnabled()) {
 			return ResourceSyncStatus.DISABLE;
 		}
 		return ResourceSyncStatus.ENABLE;
 	}
-    
+
     public ResourceImportStatus getResImport() {
 		if (resImport == null || !resImport.isEnabled()) {
 			return ResourceImportStatus.DISABLE;

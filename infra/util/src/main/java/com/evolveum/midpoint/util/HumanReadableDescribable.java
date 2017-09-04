@@ -18,12 +18,12 @@ package com.evolveum.midpoint.util;
 /**
  * Object that can provide short, human-readable description. The description should
  * be suitable for logging and presentation to users (non-developers).
- * 
+ *
  * @author semancik
  */
 @FunctionalInterface
 public interface HumanReadableDescribable {
 
 	String toHumanReadableDescription();
-	
+
 }

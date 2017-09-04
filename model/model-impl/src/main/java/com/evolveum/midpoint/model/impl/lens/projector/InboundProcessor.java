@@ -70,22 +70,22 @@ public class InboundProcessor {
 
     @Autowired
     private PrismContext prismContext;
-    
+
     @Autowired
     private FilterManager<Filter> filterManager;
-    
+
     @Autowired
     private MappingFactory mappingFactory;
-    
+
     @Autowired
     private ContextLoader contextLoader;
-    
+
     @Autowired
     private CredentialsProcessor credentialsProcessor;
-    
+
     @Autowired
     private MappingEvaluator mappingEvaluator;
-    
+
     @Autowired
     private Protector protector;
 
@@ -140,7 +140,7 @@ public class InboundProcessor {
             		continue;
             	}
             	ObjectDelta<ShadowType> aPrioriDelta = getAPrioriDelta(context, projectionContext);
-            	
+
             	if (!projectionContext.isDoReconciliation() && aPrioriDelta == null && !LensUtil.hasDependentContext(context, projectionContext) && !projectionContext.isFullShadow()) {
             		if (LOGGER.isTraceEnabled()) {
             			LOGGER.trace("Skipping processing of inbound expressions for projection {}: no full shadow, no reconciliation, no a priori delta and no dependent context",
@@ -180,7 +180,7 @@ public class InboundProcessor {
     		LensProjectionContext projContext,
             RefinedObjectClassDefinition projectionDefinition, ObjectDelta<ShadowType> aPrioriProjectionDelta, Task task, XMLGregorianCalendar now, OperationResult result)
     		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException, CommunicationException, SecurityViolationException {
-    	
+
         if (aPrioriProjectionDelta == null && projContext.getObjectCurrent() == null) {
             LOGGER.trace("Nothing to process in inbound, both a priori delta and current account were null.");
             return;
@@ -195,7 +195,7 @@ public class InboundProcessor {
 				return;
 			}
 		}
-        
+
         for (QName accountAttributeName : projectionDefinition.getNamesOfAttributesWithInboundExpressions()) {
         	boolean cont = processAttributeInbound(accountAttributeName, aPrioriProjectionDelta, projContext, projectionDefinition, context, now, task, result);
         	if (!cont) {
@@ -209,25 +209,25 @@ public class InboundProcessor {
 		}
         processSpecialPropertyInbound(projectionDefinition.getPasswordInbound(), SchemaConstants.PATH_PASSWORD_VALUE, SchemaConstants.PATH_PASSWORD_VALUE,
         		context.getFocusContext().getObjectNew(), projContext, projectionDefinition, context, now, task, result);
-        
+
         processSpecialPropertyInbound(projectionDefinition.getActivationBidirectionalMappingType(ActivationType.F_ADMINISTRATIVE_STATUS), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-        		context.getFocusContext().getObjectNew(), projContext, projectionDefinition, context, now, task, result);        
+        		context.getFocusContext().getObjectNew(), projContext, projectionDefinition, context, now, task, result);
         processSpecialPropertyInbound(projectionDefinition.getActivationBidirectionalMappingType(ActivationType.F_VALID_FROM), SchemaConstants.PATH_ACTIVATION_VALID_FROM,
         		context.getFocusContext().getObjectNew(), projContext, projectionDefinition, context, now, task, result);
         processSpecialPropertyInbound(projectionDefinition.getActivationBidirectionalMappingType(ActivationType.F_VALID_TO), SchemaConstants.PATH_ACTIVATION_VALID_TO,
         		context.getFocusContext().getObjectNew(), projContext, projectionDefinition, context, now, task, result);
-        
+
         processAuxiliaryObjectClassInbound(aPrioriProjectionDelta, projContext, projectionDefinition, context, now, task, result);
     }
-    
+
 	private <F extends FocusType> boolean processAttributeInbound(QName accountAttributeName,
 			ObjectDelta<ShadowType> aPrioriProjectionDelta, final LensProjectionContext projContext,
             RefinedObjectClassDefinition projectionDefinition, final LensContext<F> context,
-            XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {                	
-            
+            XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
+
 		PrismObject<ShadowType> projCurrent = projContext.getObjectCurrent();
         PrismObject<ShadowType> projNew = projContext.getObjectNew();
-		
+
         final PropertyDelta<?> attributeAPrioriDelta;
         if (aPrioriProjectionDelta != null) {
             attributeAPrioriDelta = aPrioriProjectionDelta.findPropertyDelta(new ItemPath(SchemaConstants.C_ATTRIBUTES), accountAttributeName);
@@ -241,37 +241,37 @@ public class InboundProcessor {
 		}
 
         RefinedAttributeDefinition<?> attrDef = projectionDefinition.findAttributeDefinition(accountAttributeName);
-        
+
         if (attrDef.isIgnored(LayerType.MODEL)) {
         	LOGGER.trace("Skipping inbound for attribute {} in {} because the attribute is ignored",
             		PrettyPrinter.prettyPrint(accountAttributeName), projContext.getResourceShadowDiscriminator());
         	return true;
         }
-        
+
         List<MappingType> inboundMappingTypes = attrDef.getInboundMappingTypes();
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Processing inbound for {} in {}; ({} mappings)", PrettyPrinter.prettyPrint(accountAttributeName),
 					projContext.getResourceShadowDiscriminator(), inboundMappingTypes.size());
 		}
-			
+
     	PropertyLimitations limitations = attrDef.getLimitations(LayerType.MODEL);
     	if (limitations != null) {
     		PropertyAccessType access = limitations.getAccess();
     		if (access != null) {
     			if (access.isRead() == null || !access.isRead()) {
-    				LOGGER.warn("Inbound mapping for non-readable attribute {} in {}, skipping", 
+    				LOGGER.warn("Inbound mapping for non-readable attribute {} in {}, skipping",
     						accountAttributeName, projContext.getHumanReadableName());
     				return true;
     			}
     		}
     	}
-    	
+
         if (inboundMappingTypes.isEmpty()) {
         	return true;
         }
-    	
+
         for (MappingType inboundMappingType : inboundMappingTypes) {
-        	
+
         	// There are two processing options:
         	//
         	//  * If we have a delta as an input we will proceed in relative mode, applying mappings on the delta.
@@ -310,17 +310,17 @@ public class InboundProcessor {
                 LOGGER.trace("Processing inbound from a priori delta: {}", aPrioriProjectionDelta);
                 focusItemDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, null,
 						attributeAPrioriDelta, focus, projNew, projContext.getResource(), task, result);
-                
+
             } else if (projCurrent != null) {
-            	
+
             	projCurrent = loadFullShadowIfNeeded(projContext, projCurrent, context, now, task, result);
             	if (projCurrent == null) {
             		return false;
             	}
-            	
+
                 PrismProperty<?> oldAccountProperty = projCurrent.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, accountAttributeName));
                 LOGGER.trace("Processing inbound from account sync absolute state (currentAccount): {}", oldAccountProperty);
-                focusItemDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, oldAccountProperty, null, 
+                focusItemDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, oldAccountProperty, null,
                 		focus, projNew, projContext.getResource(), task, result);
             }
 
@@ -334,14 +334,14 @@ public class InboundProcessor {
                 LOGGER.trace("Created delta (from inbound expression for {} on {}) was null or empty.", accountAttributeName, projContext.getResource());
             }
         }
-		
+
         return true;
 	}
-	
+
 	private <F extends FocusType> void processAuxiliaryObjectClassInbound(
 			ObjectDelta<ShadowType> aPrioriProjectionDelta, final LensProjectionContext projContext,
             RefinedObjectClassDefinition projectionDefinition, final LensContext<F> context,
-            XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {                	
+            XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
 
         ResourceBidirectionalMappingAndDefinitionType auxiliaryObjectClassMappings = projectionDefinition.getAuxiliaryObjectClassMappings();
         if (auxiliaryObjectClassMappings == null) {
@@ -355,10 +355,10 @@ public class InboundProcessor {
         if (inboundMappingTypes.isEmpty()) {
         	return;
         }
-		
+
 		PrismObject<ShadowType> projCurrent = projContext.getObjectCurrent();
         PrismObject<ShadowType> projNew = projContext.getObjectNew();
-		
+
         final PropertyDelta<QName> attributeAPrioriDelta;
         if (aPrioriProjectionDelta != null) {
             attributeAPrioriDelta = aPrioriProjectionDelta.findPropertyDelta(ShadowType.F_AUXILIARY_OBJECT_CLASS);
@@ -369,8 +369,8 @@ public class InboundProcessor {
             }
         } else {
         	attributeAPrioriDelta = null;
-		}        
-        
+		}
+
         // Make we always have full shadow when dealing with auxiliary object classes.
         // Unlike structural object class the auxiliary object classes may have changed
         // on the resource
@@ -378,7 +378,7 @@ public class InboundProcessor {
     	if (projCurrent == null) {
     		return;
     	}
-    	
+
 		PrismObject<F> focus;
     	if (context.getFocusContext().getObjectCurrent() != null) {
     		focus = context.getFocusContext().getObjectCurrent();
@@ -387,12 +387,12 @@ public class InboundProcessor {
     	}
 
         for (MappingType inboundMappingType : inboundMappingTypes) {
-        	
+
             ItemDelta focusItemDelta = null;
-        	
+
             PrismProperty<QName> oldAccountProperty = projCurrent.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
             LOGGER.trace("Processing inbound from account sync absolute state (currentAccount): {}", oldAccountProperty);
-            focusItemDelta = evaluateInboundMapping(context, inboundMappingType, ShadowType.F_AUXILIARY_OBJECT_CLASS, oldAccountProperty, 
+            focusItemDelta = evaluateInboundMapping(context, inboundMappingType, ShadowType.F_AUXILIARY_OBJECT_CLASS, oldAccountProperty,
             		null, focus, projNew, projContext.getResource(), task, result);
 
             if (focusItemDelta != null && !focusItemDelta.isEmpty()) {
@@ -448,7 +448,7 @@ public class InboundProcessor {
 	}
 
 	private boolean hasAnyStrongMapping(RefinedObjectClassDefinition objectDefinition) {
-    	
+
     	for (QName attributeName : objectDefinition.getNamesOfAttributesWithInboundExpressions()) {
     		RefinedAttributeDefinition<?> attributeDefinition = objectDefinition.findAttributeDefinition(attributeName);
     		for (MappingType inboundMapping : attributeDefinition.getInboundMappingTypes()){
@@ -457,7 +457,7 @@ public class InboundProcessor {
     			}
     		}
     	}
-    	
+
     	return false;
     }
 
@@ -465,7 +465,7 @@ public class InboundProcessor {
 	 * A priori delta is a delta that was executed in a previous "step". That means it is either delta from a previous
 	 * wave or a sync delta (in wave 0).
 	 */
-	private <F extends ObjectType> ObjectDelta<ShadowType> getAPrioriDelta(LensContext<F> context, 
+	private <F extends ObjectType> ObjectDelta<ShadowType> getAPrioriDelta(LensContext<F> context,
 			LensProjectionContext accountContext) throws SchemaException {
 		int wave = context.getProjectionWave();
 		if (wave == 0) {
@@ -502,23 +502,23 @@ public class InboundProcessor {
         }
         return false;
     }
-    
-    private <A, F extends FocusType, V extends PrismValue,D extends ItemDefinition> ItemDelta<V,D> evaluateInboundMapping(final LensContext<F> context, 
-    		MappingType inboundMappingType, 
+
+    private <A, F extends FocusType, V extends PrismValue,D extends ItemDefinition> ItemDelta<V,D> evaluateInboundMapping(final LensContext<F> context,
+    		MappingType inboundMappingType,
     		QName accountAttributeName, PrismProperty<A> oldAccountProperty, PropertyDelta<A> attributeAPrioriDelta,
             PrismObject<F> focusNew, PrismObject<ShadowType> account, ResourceType resource, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, ConfigurationException {
 
     	if (oldAccountProperty != null && oldAccountProperty.hasRaw()) {
         	throw new SystemException("Property "+oldAccountProperty+" has raw parsing state, such property cannot be used in inbound expressions");
         }
-    	
+
     	Mapping.Builder<V,D> builder = mappingFactory.createMappingBuilder(inboundMappingType,
     			"inbound expression for "+accountAttributeName+" in "+resource);
-    	
+
     	if (!builder.isApplicableToChannel(context.getChannel())) {
     		return null;
     	}
-    	
+
     	Source<PrismPropertyValue<A>,PrismPropertyDefinition<A>> defaultSource = new Source<>(oldAccountProperty, attributeAPrioriDelta, null, ExpressionConstants.VAR_INPUT);
     	defaultSource.recompute();
 		Mapping<V,D> mapping = builder.defaultSource(defaultSource)
@@ -532,12 +532,12 @@ public class InboundProcessor {
 				.originType(OriginType.INBOUND)
 				.originObject(resource)
 				.build();
-    	
+
     	if (checkWeakSkip(mapping, focusNew)) {
             LOGGER.trace("Skipping because of mapping is weak and focus property has already a value");
             return null;
         }
-        
+
         ItemPath targetFocusItemPath = mapping.getOutputPath();
         if (ItemPath.isNullOrEmpty(targetFocusItemPath)) {
         	throw new ConfigurationException("Empty target path in "+mapping.getContextDescription());
@@ -552,22 +552,22 @@ public class InboundProcessor {
         	throw new SchemaException("No definition for focus property "+targetFocusItemPath+", cannot process inbound expression in "+resource);
         }
         final ItemDelta outputFocusItemDelta = targetItemDef.createEmptyDelta(targetFocusItemPath);
-    	
+
         mappingEvaluator.evaluateMapping(mapping, context, task, result);
-        
+
     	PrismValueDeltaSetTriple<V> triple = mapping.getOutputTriple();
     	// Meaning of the resulting triple:
     	//   values in PLUS set will be added     (valuesToAdd in delta)
     	//   values in MINUS set will be removed  (valuesToDelete in delta)
     	//   values in ZERO set will be compared with existing values in user property
     	//                  the differences will be added to delta
-    	
+
     	if (LOGGER.isTraceEnabled()) {
     		LOGGER.trace("Inbound mapping for {} returned triple:\n{}", accountAttributeName, triple == null ? "null" : triple.debugDump());
     	}
-        
+
     	if (triple != null) {
-    		
+
 	        if (triple.hasPlusSet()) {
 
 				boolean alreadyReplaced = false;
@@ -577,7 +577,7 @@ public class InboundProcessor {
 	                if (targetFocusItem != null && targetFocusItem.hasRealValue(value)) {
 	                    continue;
 	                }
-	
+
 	                //if property is not multi value replace existing attribute
 	                if (targetFocusItem != null && !targetFocusItem.getDefinition().isMultiValue() && !targetFocusItem.isEmpty()) {
 	                    Collection<V> replace = new ArrayList<V>();
@@ -607,7 +607,7 @@ public class InboundProcessor {
 	                }
 	            }
 	        }
-	        
+
         	Item shouldBeItem = targetItemDef.instantiate();
 	    	shouldBeItem.addAll(PrismValue.cloneCollection(triple.getZeroSet()));
 	    	shouldBeItem.addAll(PrismValue.cloneCollection(triple.getPlusSet()));
@@ -657,11 +657,11 @@ public class InboundProcessor {
                 //if user property doesn't exist we have to add it (as delta), because inbound say so
                 outputFocusItemDelta.addValuesToAdd(shouldBeItem.getClonedValues());
 	        }
-	        
+
     	} else { // triple == null
-    		
+
     		// the mapping is not applicable. Nothing to do.
-    		
+
     	}
 
         // if no changes were generated return null
@@ -676,12 +676,12 @@ public class InboundProcessor {
 			public void setOutputPath(ItemPath outputPath) {
 				this.outputPath = outputPath;
 			}
-			
+
 			@Override
 			public void setOutputDefinition(ItemDefinition outputDefinition) {
 				this.outputDefinition = outputDefinition;
 			}
-			
+
 			@Override
 			public StringPolicyType resolve() {
 				if (!outputDefinition.getName().equals(PasswordType.F_VALUE)) {
@@ -712,13 +712,13 @@ public class InboundProcessor {
 
         return filteredValue;
     }
-	
+
 	/**
-     * Processing for special (fixed-schema) properties such as credentials and activation. 
-	 * @throws ObjectNotFoundException 
+     * Processing for special (fixed-schema) properties such as credentials and activation.
+	 * @throws ObjectNotFoundException
      */
     private <F extends FocusType> void processSpecialPropertyInbound(ResourceBidirectionalMappingType biMappingType, ItemPath sourceTargetPath,
-            PrismObject<F> newUser, LensProjectionContext projCtx, 
+            PrismObject<F> newUser, LensProjectionContext projCtx,
             RefinedObjectClassDefinition rOcDef, LensContext<F> context,
             XMLGregorianCalendar now, Task task, OperationResult opResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     	if (biMappingType == null) {
@@ -728,8 +728,8 @@ public class InboundProcessor {
     }
 
 //    private void processSpecialPropertyInbound(MappingType inboundMappingType, ItemPath sourcePath,
-//            PrismObject<UserType> newUser, LensProjectionContext<ShadowType> accContext, 
-//            RefinedObjectClassDefinition accountDefinition, LensContext<UserType,ShadowType> context, 
+//            PrismObject<UserType> newUser, LensProjectionContext<ShadowType> accContext,
+//            RefinedObjectClassDefinition accountDefinition, LensContext<UserType,ShadowType> context,
 //            OperationResult opResult) throws SchemaException {
 //    	if (inboundMappingType == null) {
 //    		return;
@@ -740,11 +740,11 @@ public class InboundProcessor {
 //    }
 
     /**
-     * Processing for special (fixed-schema) properties such as credentials and activation. 
-     * @throws ObjectNotFoundException 
-     * @throws ExpressionEvaluationException 
+     * Processing for special (fixed-schema) properties such as credentials and activation.
+     * @throws ObjectNotFoundException
+     * @throws ExpressionEvaluationException
      */
-    private <F extends FocusType> void processSpecialPropertyInbound(Collection<MappingType> inboundMappingTypes, 
+    private <F extends FocusType> void processSpecialPropertyInbound(Collection<MappingType> inboundMappingTypes,
     		final ItemPath sourcePath, final ItemPath targetPath,
             final PrismObject<F> newUser, final LensProjectionContext projContext,
             RefinedObjectClassDefinition projectionDefinition, final LensContext<F> context,
@@ -753,7 +753,7 @@ public class InboundProcessor {
         if (inboundMappingTypes == null || inboundMappingTypes.isEmpty() || newUser == null || !projContext.isFullShadow()) {
             return;
         }
-        
+
         ObjectDelta<F> userPrimaryDelta = context.getFocusContext().getPrimaryDelta();
         PropertyDelta primaryPropDelta = null;
         if (userPrimaryDelta != null) {
@@ -772,8 +772,8 @@ public class InboundProcessor {
 	            userSecondaryDelta.getModifications().remove(delta);
 	        }
       }
-        
-        MappingInitializer initializer = 
+
+        MappingInitializer initializer =
 			(builder) -> {
 				if (projContext.getObjectNew() == null) {
 					projContext.recompute();
@@ -811,18 +811,18 @@ public class InboundProcessor {
 						.stringPolicyResolver(createStringPolicyResolver(context, task, opResult))
 						.originType(OriginType.INBOUND)
 						.originObject(projContext.getResource());
-								
+
 				return builder;
 			};
-        
-        MappingOutputProcessor<PrismValue> processor = 
+
+        MappingOutputProcessor<PrismValue> processor =
 			(mappingOutputPath, outputStruct) -> {
 				PrismValueDeltaSetTriple<PrismValue> outputTriple = outputStruct.getOutputTriple();
 		        if (outputTriple == null){
 		        	LOGGER.trace("Mapping for property {} evaluated to null. Skipping inboud processing for that property.", sourcePath);
 		        	return false;
 		        }
-		        
+
 		        ObjectDelta<F> userSecondaryDeltaInt = context.getFocusContext().getProjectionWaveSecondaryDelta();
 		        if (userSecondaryDeltaInt != null) {
 			        PropertyDelta<?> delta = userSecondaryDeltaInt.findPropertyDelta(targetPath);
@@ -831,11 +831,11 @@ public class InboundProcessor {
 			            userSecondaryDeltaInt.getModifications().remove(delta);
 			        }
 		        }
-		        
+
 		        PrismObjectDefinition<F> focusDefinition = context.getFocusContext().getObjectDefinition();
 		        PrismProperty result = focusDefinition.findPropertyDefinition(targetPath).instantiate();
 		    	result.addAll(PrismValue.cloneCollection(outputTriple.getNonNegativeValues()));
-		        
+
 		    	PrismProperty targetPropertyNew = newUser.findOrCreateProperty(targetPath);
 		    	PropertyDelta<?> delta;
 		    	if (ProtectedStringType.COMPLEX_TYPE.equals(targetPropertyNew.getDefinition().getTypeName())) {
@@ -866,7 +866,7 @@ public class InboundProcessor {
 		        }
 		        return false;
 			};
-        
+
         MappingEvaluatorParams<PrismValue, ItemDefinition, F, F> params = new MappingEvaluatorParams<>();
         params.setMappingTypes(inboundMappingTypes);
         params.setMappingDesc("inbound mapping for " + sourcePath + " in " + projContext.getResource());
@@ -881,13 +881,13 @@ public class InboundProcessor {
         params.setContext(context);
         params.setHasFullTargetObject(true);
 		mappingEvaluator.evaluateMappingSetProjection(params, task, opResult);
-        
+
 //        MutableBoolean strongMappingWasUsed = new MutableBoolean();
 //        PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> outputTriple = mappingEvaluatorHelper.evaluateMappingSetProjection(
 //                inboundMappingTypes, "inbound mapping for " + sourcePath + " in " + accContext.getResource(), now, initializer, targetPropertyNew, primaryPropDelta, newUser, true, strongMappingWasUsed, context, accContext, task, opResult);
-		
+
     }
-    
+
 //    private Collection<Mapping> getMappingApplicableToChannel(
 //			Collection<MappingType> inboundMappingTypes, String description, String channelUri) {
 //    	Collection<Mapping> inboundMappings = new ArrayList<Mapping>();

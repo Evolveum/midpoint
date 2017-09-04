@@ -29,7 +29,7 @@ public class UndefinedFilter extends ObjectFilter {
 	public static UndefinedFilter createUndefined() {
 		return new UndefinedFilter();
 	}
-	
+
 	@Override
 	public UndefinedFilter clone() {
 		return new UndefinedFilter();
@@ -53,7 +53,7 @@ public class UndefinedFilter extends ObjectFilter {
 		return sb.toString();
 
 	}
-	
+
 	@Override
 	public String toString() {
 		return "UNDEFINED";

@@ -83,7 +83,7 @@ public class ReportOutputSearchDto extends Selectable implements DebugDumpable {
 
         return list;
     }
-    
+
     @Override
 	public String debugDump() {
 		return debugDump(0);

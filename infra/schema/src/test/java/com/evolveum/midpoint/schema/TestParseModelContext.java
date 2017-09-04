@@ -36,23 +36,23 @@ import java.io.IOException;
  *
  */
 public class TestParseModelContext {
-	
+
 	public static final File MODEL_CONTEXT_FILE = new File("src/test/resources/common/model-context-1.xml");
-	
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-	
-	
+
+
 	@Test
 	public void testParseModelContextPrism() throws Exception {
 		System.out.println("===[ testParseModelContextPrism ]===");
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		// WHEN
         LensContextType lensContextType = prismContext.parserFor(MODEL_CONTEXT_FILE).xml().parseRealValue(LensContextType.class);
 

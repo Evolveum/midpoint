@@ -80,7 +80,7 @@ public class GeneralNotifier extends BaseHandler {
     }
 
     @Override
-    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 
+    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager,
     		Task task, OperationResult parentResult) throws SchemaException {
 
         OperationResult result = parentResult.createMinorSubresult(GeneralNotifier.class.getName() + ".processEvent");
@@ -200,7 +200,7 @@ public class GeneralNotifier extends BaseHandler {
         return DEFAULT_LOGGER;              // in case a subclass does not provide its own logger
     }
 
-    protected List<String> getRecipientsAddresses(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables, 
+    protected List<String> getRecipientsAddresses(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables,
     		UserType defaultRecipient, String transportName, Transport transport, Task task, OperationResult result) {
         List<String> addresses = new ArrayList<>();
         if (!generalNotifierType.getRecipientExpression().isEmpty()) {
@@ -239,10 +239,10 @@ public class GeneralNotifier extends BaseHandler {
         return addresses;
     }
 
-    protected String getSubjectFromExpression(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables, 
+    protected String getSubjectFromExpression(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables,
     		Task task, OperationResult result) {
         if (generalNotifierType.getSubjectExpression() != null) {
-            List<String> subjectList = evaluateExpressionChecked(generalNotifierType.getSubjectExpression(), variables, "subject expression", 
+            List<String> subjectList = evaluateExpressionChecked(generalNotifierType.getSubjectExpression(), variables, "subject expression",
             		task, result);
             if (subjectList == null || subjectList.isEmpty()) {
                 getLogger().warn("Subject expression for event " + event.getId() + " returned nothing.");
@@ -293,10 +293,10 @@ public class GeneralNotifier extends BaseHandler {
         }
     }
 
-    protected String getBodyFromExpression(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables, 
+    protected String getBodyFromExpression(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables,
     		Task task, OperationResult result) {
         if (generalNotifierType.getBodyExpression() != null) {
-            List<String> bodyList = evaluateExpressionChecked(generalNotifierType.getBodyExpression(), variables, 
+            List<String> bodyList = evaluateExpressionChecked(generalNotifierType.getBodyExpression(), variables,
             		"body expression", task, result);
             if (bodyList == null || bodyList.isEmpty()) {
                 getLogger().warn("Body expression for event " + event.getId() + " returned nothing.");

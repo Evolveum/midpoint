@@ -34,7 +34,7 @@ public class LinkColumn<T> extends AbstractColumn<T, String> implements IExporta
 	private static final long serialVersionUID = 1L;
 
 	private String propertyExpression;
-        
+
     public LinkColumn(IModel<String> displayModel) {
         super(displayModel);
     }
@@ -55,11 +55,11 @@ public class LinkColumn<T> extends AbstractColumn<T, String> implements IExporta
     protected IModel createLinkModel(IModel<T> rowModel) {
         return new PropertyModel<String>(rowModel, propertyExpression);
     }
-    
+
     @Override
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId,
                              final IModel<T> rowModel) {
-    	
+
     	IModel model = createLinkModel(rowModel);
         cellItem.add(new LinkPanel(componentId, model) {
         	private static final long serialVersionUID = 1L;

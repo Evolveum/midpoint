@@ -56,7 +56,7 @@ public class WebApplicationConfiguration implements Serializable {
                 importFolder = ".";
             }
         }
-        
+
         if (exportFolder == null) {
             if (StringUtils.isNotEmpty(midpointHome)) {
             	exportFolder = midpointHome + "/tmp";
@@ -69,7 +69,7 @@ public class WebApplicationConfiguration implements Serializable {
     public String getImportFolder() {
         return importFolder;
     }
-    
+
     public String getExportFolder() {
         return exportFolder;
     }

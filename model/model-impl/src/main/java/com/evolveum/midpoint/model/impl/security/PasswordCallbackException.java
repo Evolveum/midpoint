@@ -20,10 +20,10 @@ import java.io.IOException;
 /**
  * Hack to correctly process exceptions from a password callback;
  * If this exception is thrown then the event was already audited.
- * 
+ *
  * This is deliberately a subclass of IOException because CXF will
  * only hanlde IOExceptions correctly.
- * 
+ *
  * @author semancik
  *
  */

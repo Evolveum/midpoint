@@ -24,5 +24,5 @@ public interface Handler<T> {
 
     // returns false if the iteration (if any) has to be stopped
 	boolean handle(T t);
-	
+
 }

@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElement
 
 /**
  * Behaviour class that determines visibility of (configurable) UI feature.
- * 
+ *
  * @author semancik
  */
 public class FeatureVisibleEnableBehaviour extends VisibleEnableBehaviour {
@@ -35,7 +35,7 @@ public class FeatureVisibleEnableBehaviour extends VisibleEnableBehaviour {
 		super();
 		visibility = AdminGuiConfigTypeUtil.getFeatureVisibility(adminGuiConfig, feature.getUri());
 	}
-	
+
 	@Override
 	public boolean isVisible() {
 		return AdminGuiConfigTypeUtil.isVisible(visibility, this::isVisibleAutomatic);

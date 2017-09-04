@@ -47,7 +47,7 @@ import javax.xml.namespace.QName;
  *
  */
 public class ShadowConstraintsChecker<F extends FocusType> {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowConstraintsChecker.class);
 
 	private LensProjectionContext projectionContext;
@@ -60,7 +60,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 	public ShadowConstraintsChecker(LensProjectionContext accountContext) {
 		this.projectionContext = accountContext;
 	}
-	
+
 	public LensProjectionContext getAccountContext() {
 		return projectionContext;
 	}
@@ -88,15 +88,15 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 	public LensContext<F> getContext() {
 		return context;
 	}
-	
+
 	public void setContext(LensContext<F> context) {
 		this.context = context;
 	}
-	
+
 	public boolean isSatisfiesConstraints() {
 		return satisfiesConstraints;
 	}
-	
+
 	public String getMessages() {
 		return constraintsCheckingResult.getMessages();
 	}
@@ -106,7 +106,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 	}
 
 	public void check(Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		
+
 		RefinedObjectClassDefinition projOcDef = projectionContext.getCompositeObjectClassDefinition();
 		PrismObject<ShadowType> projectionNew = projectionContext.getObjectNew();
 		if (projectionNew == null) {
@@ -115,7 +115,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 			satisfiesConstraints = true;
 			return;
 		}
-		
+
 		PrismContainer<?> attributesContainer = projectionNew.findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null) {
 			// No attributes no constraint violations
@@ -160,7 +160,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 			satisfiesConstraints = false;
 		}
 	}
-	
+
 
 	private boolean isInDelta(QName attrName, ObjectDelta<ShadowType> delta) {
 		if (delta == null) {

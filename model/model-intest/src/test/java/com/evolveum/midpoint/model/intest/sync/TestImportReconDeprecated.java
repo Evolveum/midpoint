@@ -78,5 +78,5 @@ public class TestImportReconDeprecated extends TestImportRecon {
 	public void test910DeleteDummyAccounts() throws Exception {
 		// Not relevant for deprecated syntax
 	}
-	
+
 }

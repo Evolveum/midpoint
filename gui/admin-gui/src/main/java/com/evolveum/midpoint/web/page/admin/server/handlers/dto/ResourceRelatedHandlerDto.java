@@ -95,7 +95,7 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 		if(objectClassItem != null && objectClassItem.getRealValue() != null){
 			objectClass = objectClassItem.getRealValue().getLocalPart();
 		}
-                
+
                 PrismProperty<Boolean> retrySyncItem = task.getExtension().findProperty(SchemaConstants.SYNC_TOKEN_RETRY_UNHANDLED);
 		if (retrySyncItem == null || retrySyncItem.getRealValue() == null) {
 			retryUnhandledErr = true;
@@ -111,7 +111,7 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 	public void setDryRun(boolean dryRun) {
 		this.dryRun = dryRun;
 	}
-        
+
         public boolean isRetryUnhandledErr() {
 		return retryUnhandledErr;
 	}
@@ -215,16 +215,16 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 			resourceObjectRef.setType(ResourceType.COMPLEX_TYPE);
 			rv.add(DeltaBuilder.deltaFor(TaskType.class, prismContext)
 					.item(TaskType.F_OBJECT_REF).replace(resourceObjectRef.asReferenceValue()).asItemDelta());
-		}                
-                
+		}
+
 		if (orig.isDryRun() != curr.isDryRun()) {
 			addExtensionDelta(rv, SchemaConstants.MODEL_EXTENSION_DRY_RUN, curr.isDryRun(), prismContext);
-		}      
-                
+		}
+
                 if (orig.isRetryUnhandledErr() != curr.isRetryUnhandledErr()) {
 			addExtensionDelta(rv, SchemaConstants.SYNC_TOKEN_RETRY_UNHANDLED, curr.isRetryUnhandledErr(), prismContext);
-		}   
-                
+		}
+
 		if (orig.getKind() != curr.getKind()) {
 			addExtensionDelta(rv, SchemaConstants.MODEL_EXTENSION_KIND, curr.getKind(), prismContext);
 		}

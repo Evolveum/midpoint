@@ -33,9 +33,9 @@ import javax.xml.namespace.QName;
 
 /**
  * TODO
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements ComplexTypeDefinition {
 
@@ -62,13 +62,13 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	protected String getSchemaNamespace() {
 		return getTypeName().getNamespaceURI();
 	}
-		
+
 	/**
 	 * Returns set of item definitions.
-	 * 
+	 *
 	 * The set contains all item definitions of all types that were parsed.
 	 * Order of definitions is insignificant.
-	 * 
+	 *
 	 * @return set of definitions
 	 */
 	@NotNull
@@ -76,7 +76,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	public List<? extends ItemDefinition> getDefinitions() {
 		return Collections.unmodifiableList(itemDefinitions);
 	}
-	
+
 	public void add(ItemDefinition<?> definition) {
 		itemDefinitions.add(definition);
 	}
@@ -94,7 +94,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	public void setExtensionForType(QName extensionForType) {
 		this.extensionForType = extensionForType;
 	}
-	
+
 	@Override
 	public boolean isContainerMarker() {
 		return containerMarker;
@@ -108,7 +108,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	public boolean isObjectMarker() {
 		return objectMarker;
 	}
-	
+
 	@Override
 	public boolean isXsdAnyMarker() {
 		return xsdAnyMarker;
@@ -157,7 +157,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 		itemDefinitions.add(propDef);
 		return propDef;
 	}
-	
+
 	// Creates reference to other schema
 	// TODO: maybe check if the name is in different namespace
 	// TODO: maybe create entirely new concept of property reference?
@@ -297,7 +297,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 		}
 		return clone;
 	}
-	
+
 	protected void copyDefinitionData(ComplexTypeDefinitionImpl clone) {
 		super.copyDefinitionData(clone);
         clone.containerMarker = this.containerMarker;
@@ -327,7 +327,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 		}
 		throw new IllegalArgumentException("The definition with name "+propertyName+" was not found in complex type "+getTypeName());
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -412,7 +412,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	}
 
 	protected void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
-		// Do nothing		
+		// Do nothing
 	}
 
 	/**

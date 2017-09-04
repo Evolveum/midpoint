@@ -31,7 +31,7 @@ public class AssociationWrapper extends PropertyWrapper<PrismContainer<ShadowAss
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssociationWrapper.class);
-	
+
 	private RefinedAssociationDefinition assocRDef;
 
 	public AssociationWrapper(ContainerWrapper<ShadowAssociationType> container, PrismContainer<ShadowAssociationType> property,
@@ -48,7 +48,7 @@ public class AssociationWrapper extends PropertyWrapper<PrismContainer<ShadowAss
 
         return wrapper;
 	}
-	
+
 	@Override
 	public String getDisplayName() {
 		if (assocRDef != null) {
@@ -68,5 +68,5 @@ public class AssociationWrapper extends PropertyWrapper<PrismContainer<ShadowAss
 	protected String getDebugName() {
 		return "AssociationWrapper";
 	}
-	
+
 }

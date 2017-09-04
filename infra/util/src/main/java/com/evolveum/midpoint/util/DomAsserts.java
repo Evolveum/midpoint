@@ -28,9 +28,9 @@ public class DomAsserts {
 		QName actual = DOMUtil.getQName(element);
 		assertEquals("Wrong element name", expectedQName, actual);
 	}
-	
+
 	public static void assertEquals(String message, Object expected, Object actual) {
-		assert MiscUtil.equals(expected, actual) : message 
+		assert MiscUtil.equals(expected, actual) : message
 				+ ": expected " + MiscUtil.getValueWithClass(expected)
 				+ ", was " + MiscUtil.getValueWithClass(actual);
 	}
@@ -48,5 +48,5 @@ public class DomAsserts {
 	public static void assertTextContent(Element element, String expected) {
 		assertEquals("Wrong content in element "+DOMUtil.getQName(element), expected, element.getTextContent());
 	}
-	
+
 }

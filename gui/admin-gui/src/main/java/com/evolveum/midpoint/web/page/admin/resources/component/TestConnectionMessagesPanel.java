@@ -56,7 +56,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
     private static final String ID_CONNECTOR_NAME = "connectorName";
     private static final String ID_CONNECTOR_MESSAGES = "connectorMessages";
     private static final String ID_RESOURCE_MESSAGES = "resourceMessages";
-    
+
     private PageBase parentPage;
     private ListModel<OpResult> modelResourceResults;
     private ListModel<ConnectorStruct> connectorResourceResults;
@@ -98,7 +98,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
             		// resource operation
             		resourceResultsDto.add(OpResult.getOpResult(parentPage, subresult));
             	}
-                	
+
             }
 
             if (result.isSuccess()) {
@@ -112,7 +112,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
 	private boolean isConnectorResult(OperationResult subresult) {
 		return subresult.getOperation().equals(ConnectorTestOperation.CONNECTOR_TEST.getOperation());
 	}
-	
+
     private boolean isKnownResult(OperationResult subresult) {
     	for (ConnectorTestOperation connectorOperation : ConnectorTestOperation.values()) {
     		if (connectorOperation.getOperation().equals(subresult.getOperation())) {
@@ -129,7 +129,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
         WebMarkupContainer messagesPanel = new WebMarkupContainer(ID_MESSAGES_PANEL);
         messagesPanel.setOutputMarkupId(true);
         add(messagesPanel);
-        
+
         ListView<ConnectorStruct> connectorView = new ListView<ConnectorStruct>(ID_CONNECTOR_MESSAGES_PANEL, connectorResourceResults) {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -143,7 +143,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
 	            }
 	        	item.add(connectorResultView);
 			}
-        	
+
         };
         messagesPanel.add(connectorView);
 

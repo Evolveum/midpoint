@@ -97,7 +97,7 @@ public class TaskBasicTabPanel extends AbstractObjectTabPanel<TaskType> implemen
 		initLayoutHandler();
 		setOutputMarkupId(true);
 	}
-	
+
 	private void initLayoutBasic() {
 
 		// Name

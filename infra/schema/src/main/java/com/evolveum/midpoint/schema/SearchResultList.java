@@ -29,17 +29,17 @@ import java.util.ListIterator;
  *
  */
 public class SearchResultList<T> implements List<T>, Cloneable, Serializable {
-	
+
 	private List<T> list = null;
 	private SearchResultMetadata metadata = null;
-	
+
 	public SearchResultList() { };
-	
+
 	public SearchResultList(List<T> list) {
 		super();
 		this.list = list;
 	}
-	
+
 	public SearchResultList(List<T> list, SearchResultMetadata metadata) {
 		super();
 		this.list = list;
@@ -201,7 +201,7 @@ public class SearchResultList<T> implements List<T>, Cloneable, Serializable {
 				return "SearchResultList("+metadata+")";
 			} else {
 				return "SearchResultList("+list+", "+metadata+")";
-			}			
+			}
 		}
 	}
 
@@ -216,7 +216,7 @@ public class SearchResultList<T> implements List<T>, Cloneable, Serializable {
 		}
 		return clone;
 	}
-	
+
 	private List<T> getInitializedList() {
 		if (list == null) {
 			list = new ArrayList<>();

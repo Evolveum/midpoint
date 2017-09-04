@@ -66,51 +66,51 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * Evaluator that validates the value of any object property. The validation means a checks whether
  * the value is a valid for that property. It usually applies to credentials such as passwords.
  * But it can be used also for other properties.
- * 
+ *
  * This class may also generate value fitting for that property.
- * 
+ *
  * TODO: generalize to all object types, not just user
  * In that case we may need to move this class to the model-impl
  * User template will be probably needed for this
- * 
+ *
  * @author semancik
  *
  */
 public class ObjectValuePolicyEvaluator {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectValuePolicyEvaluator.class);
 
 	public static final String OPERATION_VALIDATE_VALUE = ObjectValuePolicyEvaluator.class + ".validateValue";
 
 	private Protector protector;
-	
+
 	private ValuePolicyProcessor valuePolicyProcessor;
-	
+
 	private SecurityPolicyType securityPolicy;
-	
+
 	private XMLGregorianCalendar now;
-	
+
 	private ItemPath valueItemPath;
-	
+
 	private PrismObject<UserType> object;
-	
+
 	// We need to get old credential as a configuration. We cannot determine it
 	// from the "object". E.g. in case of addition the object is the new object that
 	// is just being added. The password will conflict with itself.
 	private AbstractCredentialType oldCredentialType;
-	
+
 	private String shortDesc;
-	
+
 	private Task task;
-	
+
 	// state
-	
+
 	private boolean prepared = false;
 	private QName credentialQName = null;
 	private CredentialPolicyType credentialPolicy;
 	private ValuePolicyType valuePolicy;
-	
-	
+
+
 	public Protector getProtector() {
 		return protector;
 	}
@@ -187,19 +187,19 @@ public class ObjectValuePolicyEvaluator {
 		String clearValue = getClearValue(value);
 		return validateStringValue(clearValue);
 	}
-	
+
 	public OperationResult validateStringValue(String clearValue) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		OperationResult result = new OperationResult(OPERATION_VALIDATE_VALUE);
 		// TODO: later we need to replace the string message with something more structured.
 		// something that can be localized
 		StringBuilder messageBuilder = new StringBuilder();
-		
+
 		prepare();
-		
+
 		validateMinAge(messageBuilder, result);
 		validateHistory(clearValue, messageBuilder, result);
 		validateStringPolicy(clearValue, messageBuilder, result);
-		
+
 		String message = messageBuilder.toString();
 		if (message.isEmpty()) {
 			result.computeStatus();
@@ -208,7 +208,7 @@ public class ObjectValuePolicyEvaluator {
 		}
 		return result;
 	}
-	
+
 	private void prepare() throws SchemaException {
 		if (!prepared) {
 			preparePassword();
@@ -217,7 +217,7 @@ public class ObjectValuePolicyEvaluator {
 			prepared = true;
 		}
 	}
-	
+
 	private void prepareValuePolicy() {
 		if (credentialPolicy != null) {
 			ObjectReferenceType valuePolicyRef = credentialPolicy.getValuePolicyRef();
@@ -243,15 +243,15 @@ public class ObjectValuePolicyEvaluator {
 		if (!QNameUtil.match(CredentialsType.F_PASSWORD, credentialQName)) {
 			return;
 		}
-		
+
 		credentialPolicy = SecurityUtil.getEffectivePasswordCredentialsPolicy(securityPolicy);
 	}
-	
+
 	private void prepareNonce() throws SchemaException {
 		if (!QNameUtil.match(CredentialsType.F_NONCE, credentialQName)) {
 			return;
 		}
-		
+
 		credentialPolicy = SecurityUtil.getEffectiveNonceCredentialsPolicy(securityPolicy);
 	}
 
@@ -274,7 +274,7 @@ public class ObjectValuePolicyEvaluator {
 		if (lastChangeTimestamp == null) {
 			return;
 		}
-		
+
 		XMLGregorianCalendar changeAllowedTimestamp = XmlTypeConverter.addDuration(lastChangeTimestamp, minAge);
 		if (changeAllowedTimestamp.compare(now) == DatatypeConstants.GREATER) {
 			LOGGER.trace("Password minAge violated. lastChange={}, minAge={}, now={}", lastChangeTimestamp, minAge, now);
@@ -287,7 +287,7 @@ public class ObjectValuePolicyEvaluator {
 	}
 
 	private void validateStringPolicy(String clearValue, StringBuilder messageBuilder, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		
+
 		if (clearValue == null) {
 			int minOccurs = getMinOccurs();
 			if (minOccurs == 0) {
@@ -300,44 +300,44 @@ public class ObjectValuePolicyEvaluator {
 				return;
 			}
 		}
-		
+
 		if (valuePolicy == null) {
 			LOGGER.trace("Skipping validating {} value. Value policy not specified.", shortDesc);
 			return;
 		}
-		
-		valuePolicyProcessor.validateValue(clearValue, valuePolicy, object, messageBuilder, 
+
+		valuePolicyProcessor.validateValue(clearValue, valuePolicy, object, messageBuilder,
 				"user " + shortDesc + " value policy validation", task, result);
 	}
-	
+
 	private void validateHistory(String clearValue, StringBuilder messageBuilder, OperationResult result) throws SchemaException {
-		
+
 		if (!QNameUtil.match(CredentialsType.F_PASSWORD, credentialQName)) {
 			LOGGER.trace("Skipping validating {} history, only passowrd history is supported", shortDesc);
 			return;
 		}
-		
+
 		int historyLegth = getHistoryLength();
 		if (historyLegth == 0) {
 			LOGGER.trace("Skipping validating {} history, because history length is set to zero", shortDesc);
 			return;
 		}
-		
+
 		PasswordType currentPasswordType = (PasswordType)oldCredentialType;
 		if (currentPasswordType == null) {
 			LOGGER.trace("Skipping validating {} history, because it is empty", shortDesc);
 			return;
 		}
-		
+
 		ProtectedStringType newPasswordPs = new ProtectedStringType();
 		newPasswordPs.setClearValue(clearValue);
-		
+
 		if (passwordEquals(newPasswordPs, currentPasswordType.getValue())) {
 			LOGGER.trace("{} matched current value", shortDesc);
 			appendHistoryViolationMessage(messageBuilder, result);
 			return;
 		}
-		
+
 		List<PasswordHistoryEntryType> sortedHistoryList = getSortedHistoryList(
 				currentPasswordType.asPrismContainerValue().findContainer(PasswordType.F_HISTORY_ENTRY), false);
 		int i = 1;
@@ -352,20 +352,20 @@ public class ObjectValuePolicyEvaluator {
 				return;
 			}
 			i++;
-		}		
+		}
 	}
-	
+
 	private int getHistoryLength() {
 		return SecurityUtil.getCredentialHistoryLength(credentialPolicy);
 	}
-	
+
 	private Duration getMinAge() {
 		if (credentialPolicy == null) {
 			return null;
 		}
 		return credentialPolicy.getMinAge();
 	}
-	
+
 	private int getMinOccurs() {
 		if (credentialPolicy == null) {
 			return 0;
@@ -395,14 +395,14 @@ public class ObjectValuePolicyEvaluator {
 			});
 		return historyEntryValues;
 	}
-	
+
 	private void appendHistoryViolationMessage(StringBuilder messageBuilder, OperationResult result) {
 		String msg = "Password couldn't be changed because it was recently used.";
 		result.addSubresult(new OperationResult("history", OperationResultStatus.FATAL_ERROR, msg));
 		messageBuilder.append(msg);
 		messageBuilder.append("\n");
 	}
-	
+
 	private String getClearValue(ProtectedStringType protectedString) {
 		if (protectedString == null) {
 			return null;
@@ -420,7 +420,7 @@ public class ObjectValuePolicyEvaluator {
 
 		return passwordStr;
 	}
-	
+
 	private boolean passwordEquals(ProtectedStringType newPasswordPs, ProtectedStringType currentPassword) throws SchemaException {
 		if (currentPassword == null) {
 			return newPasswordPs == null;

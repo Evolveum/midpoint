@@ -62,7 +62,7 @@ public abstract class AbstractAjaxDownloadBehavior extends AbstractAjaxBehavior 
 	}
 
 	public void onRequest() {
-		
+
 		IResourceStream resourceStream = getResourceStream();
 		if (resourceStream == null) {
 			return;		// We hope the error was already processed and will be shown.
@@ -80,7 +80,7 @@ public abstract class AbstractAjaxDownloadBehavior extends AbstractAjaxBehavior 
         }
 		getComponent().getRequestCycle().scheduleRequestHandlerAfterCurrent(reqHandler);
 	}
-	
+
 	public void setContentType(String contentType) {
 		this.contentType = contentType;
 	}
@@ -92,6 +92,6 @@ public abstract class AbstractAjaxDownloadBehavior extends AbstractAjaxBehavior 
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
-    
+
     public abstract IResourceStream getResourceStream();
 }

@@ -61,52 +61,52 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 
 public abstract class MidpointRestAuthenticator<T extends AbstractAuthenticationContext> {
-	
-	
+
+
 	private static final Trace LOGGER = TraceManager.getTrace(MidpointRestAuthenticator.class);
-	
+
 	@Autowired(required = true)
 	private SecurityEnforcer securityEnforcer;
-			
+
 	@Autowired(required = true)
 	private SecurityHelper securityHelper;
-	
+
 	@Autowired(required=true)
 	private TaskManager taskManager;
-	
+
 	@Autowired(required=true)
 	private ModelService model;
-	
+
 	protected abstract AuthenticationEvaluator<T> getAuthenticationEvaluator();
 	protected abstract T createAuthenticationContext(AuthorizationPolicy policy, ContainerRequestContext requestCtx);
-	
+
 	 public void handleRequest(AuthorizationPolicy policy, Message m, ContainerRequestContext requestCtx) {
-	        
+
 	    	if (policy == null){
 	    		RestServiceUtil.createAbortMessage(requestCtx);
 	        	return;
 	        }
-	        
-	        
+
+
 	        T authenticationContext = createAuthenticationContext(policy, requestCtx);
-	        
+
 	        if (authenticationContext == null) {
 	        	return;
 	        }
 
 	        String enteredUsername = authenticationContext.getUsername();
-	        
+
 	        if (enteredUsername == null){
 	        	RestServiceUtil.createAbortMessage(requestCtx);
 	        	return;
 	        }
-	        
+
 	        LOGGER.trace("Authenticating username '{}' to REST service", enteredUsername);
-	        
+
 	        // We need to create task before attempting authentication. Task ID is also a session ID.
 	        Task task = taskManager.createTaskInstance(ModelRestService.OPERATION_REST_SERVICE);
 	        task.setChannel(SchemaConstants.CHANNEL_REST_URI);
-	        
+
 	        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_REST_URI);
 	        connEnv.setSessionIdOverride(task.getTaskIdentifier());
 	        UsernamePasswordAuthenticationToken token;
@@ -122,15 +122,15 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 	        	requestCtx.abortWith(Response.status(Status.FORBIDDEN).build());
 				return;
 	        }
-	        
+
 	        UserType user = ((MidPointPrincipal)token.getPrincipal()).getUser();
 	        task.setOwner(user.asPrismObject());
-	        
+
 	        //  m.put(RestServiceUtil.MESSAGE_PROPERTY_TASK_NAME, task);
 	        if (!authorizeUser(user, null, enteredUsername, connEnv, requestCtx)){
 	        	return;
 	        }
-	        
+
 	        String oid = requestCtx.getHeaderString("Switch-To-Principal");
 	        OperationResult result = task.getResult();
 	        if (StringUtils.isNotBlank(oid)){
@@ -149,16 +149,16 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 		        	requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Proxy Authentication failed. Cannot authenticate user.").build());
 					return;
 				}
-	        	
-	        	
+	
+	
 	        }
-	        
+
 	        m.put(RestServiceUtil.MESSAGE_PROPERTY_TASK_NAME, task);
-	        
+
 	        LOGGER.trace("Authorized to use REST service ({})", user);
-	        
+
 	    }
-	 
+
 	   private boolean authorizeUser(UserType user, PrismObject<UserType> proxyUser, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx) {
 	    	try {
 	        	securityEnforcer.setupPreAuthenticatedSecurityContext(user.asPrismObject());
@@ -167,12 +167,12 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 				requestCtx.abortWith(Response.status(Status.BAD_REQUEST).build());
 				return false;
 			}
-	        
+
 	        LOGGER.trace("Authenticated to REST service as {}", user);
-	        
+
 	        return authorizeUser(AuthorizationConstants.AUTZ_REST_ALL_URL, user, null, enteredUsername, connEnv, requestCtx);
 	    }
-	    
+
 	    private boolean authorizeUser(String authorization, UserType user, PrismObject<UserType> proxyUser, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx){
 	    	OperationResult authorizeResult = new OperationResult("Rest authentication/authorization operation.");
 	    	try {
@@ -188,15 +188,15 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 			}
 	    	return true;
 	    }
-	    
+
 	    public SecurityEnforcer getSecurityEnforcer() {
 			return securityEnforcer;
 		}
-	    
+
 	    public ModelService getModel() {
 			return model;
 		}
-	    
+
 	    public TaskManager getTaskManager() {
 			return taskManager;
 		}

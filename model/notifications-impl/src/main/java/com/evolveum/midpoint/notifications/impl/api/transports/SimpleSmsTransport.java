@@ -163,7 +163,7 @@ public class SimpleSmsTransport implements Transport {
             resultForGateway.addContext("gateway name", smsGatewayConfigurationType.getName());
 
             try {
-                String url = evaluateExpressionChecked(smsGatewayConfigurationType.getUrl(), getDefaultVariables(from, to, message), 
+                String url = evaluateExpressionChecked(smsGatewayConfigurationType.getUrl(), getDefaultVariables(from, to, message),
                 		"sms gateway url", task, result);
                 LOGGER.debug("Sending SMS to URL " + url);
 
@@ -209,7 +209,7 @@ public class SimpleSmsTransport implements Transport {
         return "================ " + new Date() + " ======= " + (url != null ? url : "") + "\n" + mailMessage.toString() + "\n\n";
     }
 
-    private String evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables, 
+    private String evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
     		String shortDesc, Task task, OperationResult result) {
 
         Throwable failReason;
@@ -228,7 +228,7 @@ public class SimpleSmsTransport implements Transport {
         throw new SystemException(failReason);
     }
 
-    private String evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, 
+    private String evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
     		String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");

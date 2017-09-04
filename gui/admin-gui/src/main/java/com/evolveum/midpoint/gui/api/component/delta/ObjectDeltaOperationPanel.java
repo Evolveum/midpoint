@@ -67,14 +67,14 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 		// ObjectDeltaType od = getModel().getObjectDelta();
 		WebMarkupContainer objectDeltaOperationMarkup = new WebMarkupContainer(ID_OBJECT_DELTA_OPERATION_MARKUP);
 		objectDeltaOperationMarkup.setOutputMarkupId(true);
-		
+
 		objectDeltaOperationMarkup.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
-			
+
 			@Override
 			public String getObject() {
 				return getBoxCssClass();
 			}
-			
+
 		}));
 		add(objectDeltaOperationMarkup);
 
@@ -121,20 +121,20 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 		objectDeltaOperationMarkup.add(deltaPanel);
 
 	}
-	
+
 	private String getBoxCssClass() {
 		if (getModel().getObject() == null) {
 			return " box-primary";
 		}
-		
+
 		if (getModel().getObject().getExecutionResult() == null) {
 			return " box-primary";
 		}
-		
+
 		if (getModel().getObject().getExecutionResult().getStatus() == null) {
 			return " box-primary";
 		}
-		
+
 		OperationResultStatusType status = getModel().getObject().getExecutionResult().getStatus();
 		switch (status) {
 			case PARTIAL_ERROR :
@@ -145,10 +145,10 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 			case IN_PROGRESS : return " box-primary";
 			case NOT_APPLICABLE : return " box-primary";
 			case SUCCESS : return " box-success";
-			
+
 		}
 		return " box-primary";
-		
+
 	}
 
 	private SceneDto loadSceneForDelta() throws SchemaException, ExpressionEvaluationException {

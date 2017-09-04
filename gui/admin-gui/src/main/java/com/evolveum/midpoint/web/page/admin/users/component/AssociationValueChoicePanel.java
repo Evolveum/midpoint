@@ -78,7 +78,7 @@ public class AssociationValueChoicePanel<C extends ObjectType> extends BasePanel
     private ObjectQuery query = null;
     private RefinedObjectClassDefinition assocTargetDef;
 
-    public AssociationValueChoicePanel(String id, IModel<ValueWrapper<PrismContainerValue<ShadowAssociationType>>> model, 
+    public AssociationValueChoicePanel(String id, IModel<ValueWrapper<PrismContainerValue<ShadowAssociationType>>> model,
     		List<PrismPropertyValue> values, boolean required, Class<C> type, ObjectQuery query,
     		RefinedObjectClassDefinition assocTargetDef) {
         super(id, (IModel)new PropertyModel<>(model, "value"));
@@ -89,7 +89,7 @@ public class AssociationValueChoicePanel<C extends ObjectType> extends BasePanel
         initLayout((IModel)new PropertyModel<>(model, "value"), values, required, type);
     }
 
-    private void initLayout(final IModel<PrismContainerValue<ShadowAssociationType>> value, 
+    private void initLayout(final IModel<PrismContainerValue<ShadowAssociationType>> value,
     		final List<PrismPropertyValue> values, final boolean required, Class<C> type) {
 
 
@@ -123,7 +123,7 @@ public class AssociationValueChoicePanel<C extends ObjectType> extends BasePanel
         };
         edit.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;
-        	
+
             @Override
             public boolean isVisible() {
                 return model.getObject().isEmpty();
@@ -296,10 +296,10 @@ public class AssociationValueChoicePanel<C extends ObjectType> extends BasePanel
             	PrismReferenceValue shadowRef = cval.findReference(ShadowAssociationType.F_SHADOW_REF).getValue();
             	if (shadowRef.getObject() == null) {
             		PrismContainer<Containerable> identifiersContainer = cval.findContainer(ShadowAssociationType.F_IDENTIFIERS);
-            		
+
             		List<PrismProperty<String>> identifiers = (List) identifiersContainer.getValue().getItems();
             		Collection<? extends RefinedAttributeDefinition<?>> secondaryIdentifierDefs = assocTargetDef.getSecondaryIdentifiers();
-            		
+
             		for (RefinedAttributeDefinition<?> secondaryIdentifierDef: secondaryIdentifierDefs) {
             			for (PrismProperty<String> identifier: identifiers) {
             				if (identifier.getElementName().equals(secondaryIdentifierDef.getName())) {
@@ -307,11 +307,11 @@ public class AssociationValueChoicePanel<C extends ObjectType> extends BasePanel
             				}
             			}
             		}
-            		
+
             		// fallback
             		PrismProperty<String> identifierProp = identifiers.get(0);
             		return identifierProp.getRealValue();
-            		
+
             	} else {
             		return shadowRef.getObject().getName().toString();
             	}

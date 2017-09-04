@@ -57,10 +57,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * 
- * 
+ *
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 public class Validator {
 
@@ -177,7 +177,7 @@ public class Validator {
 
 			XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 			stream = xmlInputFactory.createXMLStreamReader(inputStream);
-			
+
 			int eventType = stream.nextTag();
 			if (eventType == XMLStreamConstants.START_ELEMENT) {
 				if (!QNameUtil.match(stream.getName(), SchemaConstants.C_OBJECTS)) {
@@ -245,7 +245,7 @@ public class Validator {
 					if (objectResult.isError()) {
 						errors++;
 					}
-					
+
 					objectResult.cleanupResult();
 					validatorResult.summarize();
 
@@ -314,13 +314,13 @@ public class Validator {
 
 		return validateObjectInternal(objectElement, objectResult, validatorResult);
 	}
-	
+
 	public EventResult validateObject(String stringXml, OperationResult objectResult) {
 		Document objectDoc = DOMUtil.parseDocument(stringXml);
 		Element objectElement = DOMUtil.getFirstChildElement(objectDoc);
 		return validateObjectInternal(objectElement, objectResult, objectResult);
 	}
-	
+
 	public EventResult validateObject(Element objectElement, OperationResult objectResult) {
 		return validateObjectInternal(objectElement, objectResult, objectResult);
 	}
@@ -363,20 +363,20 @@ public class Validator {
 			}
 
 			PrismObject<? extends Objectable> object = prismContext.parserFor(objectElement).parse();
-			
+
 			try {
 				object.checkConsistence();
 			} catch (RuntimeException e) {
 				objectResult.recordFatalError("Internal object inconsistence, probably a parser bug: "+e.getMessage(), e);
 				return EventResult.skipObject(e.getMessage());
 			}
-			
+
 			Objectable objectType = null;
 			if (object != null) {
 				objectType = object.asObjectable();
 				objectResult.addContext(OperationResult.CONTEXT_OBJECT, object.toString());
 			}
-			
+
 			if (verbose) {
 				LOGGER.trace("Processing OID " + objectType.getOid());
 			}
@@ -436,7 +436,7 @@ public class Validator {
             objectResult.recordFatalError(ex);
             return EventResult.skipObject(ex.getMessage());
         }
-		
+
 	}
 
     // this was made public to allow validation of pre-parsed non-prism documents

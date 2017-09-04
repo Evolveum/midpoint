@@ -45,19 +45,19 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 	private static final long serialVersionUID = 1L;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(DynamicFieldGroupPanel.class);
-	
+
 	private static final String ID_PROPERTY = "property";
 	private static final String ID_HEADER = "header";
-	
+
 	private List<AbstractFormItemType> formItems;
-	
+
 	public DynamicFieldGroupPanel(String id, String groupName, IModel<ObjectWrapper<O>> objectWrapper, List<AbstractFormItemType> formItems, Form<?> mainForm, PageBase parentPage) {
 		super(id,objectWrapper);
 		setParent(parentPage);
 		this.formItems = formItems;
 		initLayout(groupName, formItems, mainForm);
 	}
-	
+
 	public DynamicFieldGroupPanel(String id, IModel<ObjectWrapper<O>> objectWrapper, @NotNull FormDefinitionType formDefinition, Form<?> mainForm, PageBase parentPage) {
 		super(id, objectWrapper);
 		setParent(parentPage);
@@ -68,15 +68,15 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 		this.formItems = FormTypeUtil.getFormItems(formDefinition.getFormItems());
 		initLayout(groupName, formItems, mainForm);
 	}
-	
+
 	private void initLayout(String groupName, List<AbstractFormItemType> formItems, Form<?> mainForm) {
-		
+
 		Label header = new Label(ID_HEADER, groupName);
 		add(header);
-		
+
 		RepeatingView itemView = new RepeatingView(ID_PROPERTY);
 		add(itemView);
-		
+
 		int i = 0;
 		for (AbstractFormItemType formItem : formItems) {
 
@@ -86,9 +86,9 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 				itemView.add(dynamicFieldGroupPanel);
 				continue;
 			}
-			
+
 			ItemWrapper itemWrapper = createItemWrapper(formItem, getObjectWrapper());
-			
+
 			if (itemWrapper instanceof ContainerWrapper) {
 				PrismContainerPanel containerPanel = new PrismContainerPanel(itemView.newChildId(),
 						Model.of((ContainerWrapper) itemWrapper), true, mainForm, getPageBase());
@@ -106,7 +106,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 
 		}
 	}
-	
+
 	private ItemWrapper createItemWrapper(AbstractFormItemType formField, ObjectWrapper objectWrapper) {
 		ItemPathType itemPathType = GuiImplUtil.getPathType(formField);
 
@@ -119,9 +119,9 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 		ItemPath path = itemPathType.getItemPath();
 
 		ItemDefinition itemDef = objectWrapper.getObject().getDefinition().findItemDefinition(path);
-		
+
 		ItemWrapper itemWrapper;
-		
+
 		if (itemDef instanceof PrismContainerDefinition) {
 			itemWrapper = objectWrapper.findContainerWrapper(path);
 		} else {
@@ -164,11 +164,11 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 		}
 
 	}
-	
+
 	public ObjectWrapper<O> getObjectWrapper() {
 		return getModelObject();
 	}
-	
+
 	public List<AbstractFormItemType> getFormItems() {
 		return formItems;
 	}

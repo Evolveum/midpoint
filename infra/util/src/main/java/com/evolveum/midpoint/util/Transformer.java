@@ -23,5 +23,5 @@ package com.evolveum.midpoint.util;
 public interface Transformer<T,X> {
 
 	X transform(T in);
-	
+
 }

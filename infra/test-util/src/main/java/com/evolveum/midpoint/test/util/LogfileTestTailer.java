@@ -39,10 +39,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  */
 public class LogfileTestTailer {
-	
+
 	public static final File TEST_LOG_FILE = new File("target/test.log");
 	public static final String MARKER = "_M_A_R_K_E_R_";
-	
+
 	public static final String LEVEL_ERROR = "ERROR";
 	public static final String LEVEL_WARN = "WARN";
 	public static final String LEVEL_INFO = "INFO";
@@ -52,14 +52,14 @@ public class LogfileTestTailer {
 	// see also the 'optimization' at the beginning of processLogLine() - interfering with these patterns
 	private static final Pattern PATTERN_MARKER = Pattern.compile(".*\\[[^]]*\\](\\s+\\[\\w+\\])?\\s+(\\S+)\\s+\\(\\S+\\):\\s+"+MARKER+"\\s+(\\w+).*");
 	private static final Pattern PATTERN_MARKER_PREFIX = Pattern.compile(".*\\[[^]]*\\](\\s+\\[\\w+\\])?\\s+(\\S+)\\s+.*"+MARKER+"\\s+(\\w+).*");
-	public static final Pattern PATTERN_LEVEL = 
+	public static final Pattern PATTERN_LEVEL =
 			Pattern.compile(".*\\[[^]]*\\](\\s+\\[\\w+\\])?\\s+(\\S+)\\s+(.*)");
-	
+
 	final static Trace LOGGER = TraceManager.getTrace(LogfileTestTailer.class);
-	
+
 	private String auditLoggerName;
 	public Pattern auditPattern;
-	
+
 	private File logFile;
 	private Reader fileReader;
 	private BufferedReader reader;
@@ -71,15 +71,15 @@ public class LogfileTestTailer {
 	private boolean allowPrefix = false;
 	private Collection<String> errors = new ArrayList<String>();
 	private Collection<String> warnings = new ArrayList<String>();
-		
+
 	public LogfileTestTailer(String auditLoggerName) throws IOException {
 		this(TEST_LOG_FILE, auditLoggerName, true);
 	}
-	
+
 	public LogfileTestTailer(String auditLoggerName, boolean skipCurrentContent) throws IOException {
 		this(TEST_LOG_FILE, auditLoggerName, skipCurrentContent);
 	}
-		
+
 	public LogfileTestTailer(File logFile, String auditLoggerName, boolean skipCurrentContent) throws IOException {
 		this.logFile = logFile;
 		this.auditLoggerName = auditLoggerName;
@@ -96,7 +96,7 @@ public class LogfileTestTailer {
 		fileReader = new InputStreamReader(fileInputStream);
 		reader = new BufferedReader(fileReader);
 	}
-	
+
 	public boolean isAllowPrefix() {
 		return allowPrefix;
 	}
@@ -117,7 +117,7 @@ public class LogfileTestTailer {
 		reader.close();
 		fileReader.close();
 	}
-	
+
 	public void reset() {
 		seenMarker = false;
 		loggedMarkers = new HashSet<String>();
@@ -150,7 +150,7 @@ public class LogfileTestTailer {
 		if (line.length() > 0 && Character.isWhitespace(line.charAt(0))) {
 			return;			// ugly hack: getting rid of long 'continuation' lines that are not matched by any patterns but terribly slow down the processing
 		}
-		
+
 		// Match marker
 		Pattern pattern = PATTERN_MARKER;
 		if (allowPrefix) {
@@ -170,7 +170,7 @@ public class LogfileTestTailer {
 			}
 			recordMarker(level,subsystemName);
 		}
-		
+
 		// Match audit
 		matcher = auditPattern.matcher(line);
 		if (!line.contains("Details of event")) {
@@ -187,11 +187,11 @@ public class LogfileTestTailer {
 				recordAuditMessage(level,message);
 			}
 		}
-		
+
 		if (expectedMessage != null && line.contains(expectedMessage)) {
 			expectedMessageLine = line;
 		}
-		
+
 		// Match errors and warnings
 		matcher = PATTERN_LEVEL.matcher(line);
 		while (matcher.find()) {
@@ -205,13 +205,13 @@ public class LogfileTestTailer {
 			}
 		}
 	}
-	
+
 	private void recordMarker(String level, String subsystemName) {
 		LOGGER.trace("Found marker ({}): {}", level, subsystemName);
 		String key = constructKey(level, subsystemName);
 		loggedMarkers.add(key);
 	}
-	
+
 	private void recordAuditMessage(String level, String message) {
 		LOGGER.trace("Found audit message ({})", level);
 		auditMessages.add(message);
@@ -224,28 +224,28 @@ public class LogfileTestTailer {
 	private String constructKey(String level, String subsystemName) {
 		return level+":"+subsystemName;
 	}
-	
+
 	public void assertMarkerLogged(String level, String subsystemName) {
 		assert loggedMarkers.contains(constructKey(level, subsystemName)) : level + " in " + subsystemName + " was not logged";
 	}
-	
+
 	public void assertMarkerNotLogged(String level, String subsystemName) {
 		assert !loggedMarkers.contains(constructKey(level, subsystemName)) : level + " in " + subsystemName + " was logged (while not expecting it)";
 	}
-	
+
 	public void setExpecteMessage(String expectedMessage) {
 		this.expectedMessage = expectedMessage;
 		this.expectedMessageLine = null;
 	}
-	
+
 	public void assertExpectedMessage() {
 		assert expectedMessageLine != null : "The expected message was not seen";
 	}
-	
+
 	public void assertNoAudit() {
 		assert auditMessages.isEmpty() : "Audit messages not empty: "+auditMessages;
 	}
-	
+
 	public void assertAudit() {
 		assert !auditMessages.isEmpty() : "No audit message";
 	}
@@ -253,7 +253,7 @@ public class LogfileTestTailer {
 	public void assertAudit(String message) {
 		assert auditMessages.contains(message) : "No audit message: "+message;
 	}
-	
+
 	public void assertAuditRequest() {
 		for (String message: auditMessages) {
 			if (message.contains("stage REQUEST")) {
@@ -291,7 +291,7 @@ public class LogfileTestTailer {
 		}
 		logAllLevels(LOGGER, null);
 	}
-	
+
 	private void logAllLevels(Trace logger, String subsystemName) {
 		String message = MARKER+" "+subsystemName;
 		String previousSubsystem = MidpointInterceptor.swapSubsystemMark(subsystemName);
@@ -302,7 +302,7 @@ public class LogfileTestTailer {
 		logger.error(message);
 		MidpointInterceptor.swapSubsystemMark(previousSubsystem);
 	}
-	
+
 	public void logAndTail() throws IOException {
 		log();
 		// Some pause here?

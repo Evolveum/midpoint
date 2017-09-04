@@ -39,13 +39,13 @@ import javax.xml.namespace.QName;
  *
  */
 public class TestFundamentals {
-	
+
 	@BeforeSuite
 	public void setupDebug() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
 	}
-	
+
 	@Test
     public void testPrismValueContainsRealValue() throws Exception {
 		System.out.println("\n\n===[ testPrismValueContainsRealValue ]===\n");
@@ -56,17 +56,17 @@ public class TestFundamentals {
 		Collection<PrismValue> collection = new ArrayList<PrismValue>();
 		collection.add(valFoo1);
 		collection.add(valBar1);
-		
+
 		PrismPropertyValue<String> valFoo2 = new PrismPropertyValue<String>("foo");
 		PrismPropertyValue<String> valFoo3 = new PrismPropertyValue<String>("foo");
 		valFoo3.setOriginType(OriginType.OUTBOUND);
-		
+
 		PrismPropertyValue<String> valBar2 = new PrismPropertyValue<String>("bar");
 		valBar2.setOriginType(OriginType.OUTBOUND);
 		PrismPropertyValue<String> valBar3 = new PrismPropertyValue<String>("bar");
-		
+
 		PrismPropertyValue<String> valBaz = new PrismPropertyValue<String>("baz");
-		
+
 		// WHEN - THEN
 		assert PrismValue.containsRealValue(collection, valFoo1);
 		assert PrismValue.containsRealValue(collection, valBar1);

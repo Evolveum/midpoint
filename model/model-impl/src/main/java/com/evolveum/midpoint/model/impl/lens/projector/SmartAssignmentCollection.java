@@ -37,15 +37,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * Smart set of assignment values that keep track whether the assignment is new, old or changed.
- * 
+ *
  * This information is used for various reasons. We specifically distinguish between assignments in objectCurrent and objectOld
  * to be able to reliably detect phantom adds: a phantom add is an assignment that is both in OLD and CURRENT objects. This is
  * important in waves greater than 0, where objectCurrent is already updated with existing assignments. (See MID-2422.)
- * 
+ *
  * @author Radovan Semancik
  */
 public class SmartAssignmentCollection<F extends FocusType> implements Iterable<SmartAssignmentElement>, DebugDumpable {
-	
+
 	private Map<SmartAssignmentKey,SmartAssignmentElement> aMap = null;
 	private Map<Long,SmartAssignmentElement> idMap;
 
@@ -54,19 +54,19 @@ public class SmartAssignmentCollection<F extends FocusType> implements Iterable<
 		if (objectCurrent != null) {
 			assignmentContainerCurrent = objectCurrent.findContainer(FocusType.F_ASSIGNMENT);
 		}
-		
+
 		if (aMap == null) {
 			int initialCapacity = computeInitialCapacity(assignmentContainerCurrent, assignmentDelta);
 			aMap = new HashMap<>(initialCapacity);
 			idMap = new HashMap<>(initialCapacity);
 		}
-		
+
 		collectAssignments(assignmentContainerCurrent, Mode.CURRENT);
-		
+
 		if (objectOld != null) {
 			collectAssignments(objectOld.findContainer(FocusType.F_ASSIGNMENT), Mode.OLD);
 		}
-		
+
 		collectAssignments(assignmentDelta);
 	}
 
@@ -87,8 +87,8 @@ public class SmartAssignmentCollection<F extends FocusType> implements Iterable<
 		collectAssignmentsDeltaSet(assignmentDelta.getValuesToAdd());
 		collectAssignmentsDeltaSet(assignmentDelta.getValuesToDelete());
 	}
-	
-	
+
+
 	private void collectAssignmentsDeltaSet(Collection<PrismContainerValue<AssignmentType>> deltaSet) throws SchemaException {
 		if (deltaSet == null) {
 			return;
@@ -99,11 +99,11 @@ public class SmartAssignmentCollection<F extends FocusType> implements Iterable<
 	}
 
 	private void collectAssignment(PrismContainerValue<AssignmentType> assignmentCVal, Mode mode) throws SchemaException {
-		
+
 		SmartAssignmentElement element = null;
-		
+
 		// Special lookup for empty elements.
-		// Changed assignments may be "light", i.e. they may contain just the identifier. 
+		// Changed assignments may be "light", i.e. they may contain just the identifier.
 		// Make sure that we always have the full assignment data.
 		if (assignmentCVal.isEmpty()) {
 			if (assignmentCVal.getId() != null) {
@@ -117,17 +117,17 @@ public class SmartAssignmentCollection<F extends FocusType> implements Iterable<
 				throw new SchemaException("Attempt to change empty assignment without ID");
 			}
 		}
-		
+
 		if (element == null) {
 			element = lookup(assignmentCVal);
 		}
-		
+
 		if (element == null) {
 			 element = put(assignmentCVal);
 		}
-		
+
 		switch (mode) {
-			case CURRENT: 
+			case CURRENT:
 				element.setCurrent(true);
 				break;
 			case OLD:
@@ -181,7 +181,7 @@ public class SmartAssignmentCollection<F extends FocusType> implements Iterable<
 			return aMap.values().iterator();
 		}
 	}
-		
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
@@ -198,7 +198,7 @@ public class SmartAssignmentCollection<F extends FocusType> implements Iterable<
 		}
 		return sb.toString();
 	}
-	
+
 	@Override
 	public String toString() {
 		return "SmartAssignmentCollection(" + aMap.values() + ")";
@@ -207,5 +207,5 @@ public class SmartAssignmentCollection<F extends FocusType> implements Iterable<
 	private enum Mode {
 		CURRENT, OLD, CHANGED;
 	}
-	
+
 }

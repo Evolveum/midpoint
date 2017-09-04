@@ -65,53 +65,53 @@ public class RestServiceUtil {
 	public static Response handleException(OperationResult result, Exception ex) {
 		return createErrorResponseBuilder(result, ex).build();
 	}
-	
+
 	public static <T> Response createResponse(Response.Status statusCode, OperationResult result) {
-		
+
 		return createResponse(statusCode, null, result, false);
-		
+
 	}
-	
+
 	public static <T> Response createResponse(Response.Status statusCode, T body, OperationResult result) {
-		
+
 		return createResponse(statusCode, body, result, false);
-		
+
 	}
-	
+
 	public static <T> Response createResponse(Response.Status statusCode, T body, OperationResult result, boolean sendOriginObjectIfNotSuccess) {
 		result.computeStatusIfUnknown();
-		
+
 		if (result.isPartialError()) {
 			return createBody(Response.status(250), sendOriginObjectIfNotSuccess, body, result).build();
 		} else if (result.isHandledError()) {
 			return createBody(Response.status(240), sendOriginObjectIfNotSuccess, body, result).build();
-		}		
-		
+		}
+
 		return body == null ? Response.status(statusCode).build() : Response.status(statusCode).entity(body).build();
 	}
-	
+
 	private static <T> ResponseBuilder createBody(ResponseBuilder builder, boolean sendOriginObjectIfNotSuccess, T body, OperationResult result) {
 		if (sendOriginObjectIfNotSuccess) {
 			return builder.entity(body);
 		}
 		return builder.entity(result);
-		
+
 	}
-	
+
 	public static <T> Response createResponse(Response.Status statusCode, URI location, OperationResult result) {
 		result.computeStatusIfUnknown();
-		
+
 		if (result.isPartialError()) {
 			return createBody(Response.status(250), false, null, result).location(location).build();
 		} else if (result.isHandledError()) {
 			return createBody(Response.status(240), false, null, result).location(location).build();
-		}		
-		
-		
+		}
+
+
 		return location == null ? Response.status(statusCode).build() : Response.status(statusCode).location(location).build();
 	}
-	
-	
+
+
 
 	public static Response.ResponseBuilder createErrorResponseBuilder(OperationResult result, Exception ex) {
 		if (ex instanceof ObjectNotFoundException) {
@@ -125,13 +125,13 @@ public class RestServiceUtil {
 		if (ex instanceof SecurityViolationException || ex instanceof AuthorizationException) {
 			return createErrorResponseBuilder(Response.Status.FORBIDDEN, result);
 		}
-		
+
 		if (ex instanceof ConfigurationException) {
 			return createErrorResponseBuilder(Response.Status.BAD_GATEWAY, result);
 		}
-		
-		if (ex instanceof SchemaException 
-				|| ex instanceof NoFocusNameSchemaException 
+
+		if (ex instanceof SchemaException
+				|| ex instanceof NoFocusNameSchemaException
 				|| ex instanceof ExpressionEvaluationException) {
 			return createErrorResponseBuilder(Response.Status.BAD_REQUEST, result);
 		}
@@ -177,18 +177,18 @@ public class RestServiceUtil {
 //				.header(OPERATION_RESULT_STATUS, OperationResultStatus.createStatusType(result.getStatus()).value())
 //				.header(OPERATION_RESULT_MESSAGE, result.getMessage());
 	}
-	
+
 	public static void createAbortMessage(ContainerRequestContext requestCtx){
 		requestCtx.abortWith(Response.status(Status.UNAUTHORIZED)
 				.header("WWW-Authenticate", RestAuthenticationMethod.BASIC.getMethod() + " realm=\"midpoint\", " + RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod()).build());
 	}
-	
+
 	public static void createSecurityQuestionAbortMessage(ContainerRequestContext requestCtx, String secQChallenge){
 		String challenge = "";
 		if (StringUtils.isNotBlank(secQChallenge)) {
 			challenge = " " + Base64Utility.encode(secQChallenge.getBytes());
 		}
-		
+
 		requestCtx.abortWith(Response.status(Status.UNAUTHORIZED)
 				.header("WWW-Authenticate",
 						RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod() + challenge)

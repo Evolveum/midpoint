@@ -45,16 +45,16 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
     private PrismObject<ShadowType> oldShadow;
     private String sourceChannel;
     private PrismObject<ResourceType> resource;
-    
+
     /**
      * If set to true then this change is not related to the primary goal of
      * the running task. E.g. it may be a change in entitlement that is discovered
      * when reading an account. Or it may be ordinary creation of a new shadow during
      * search.
-     * 
+     *
      * On the other hand, related change is a change in the object that is being processed.
      * E.g. discovering that the object is missing, or a conflicting object already exists.
-     * 
+     *
      * It is expected that reactions to the unrelated changes will be lighter, faster,
      * with lower overhead and without abmition to provide full synchronization.
      */
@@ -99,7 +99,7 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
     public void setResource(PrismObject<ResourceType> resource) {
         this.resource = resource;
     }
-    
+
     public boolean isUnrelatedChange() {
 		return unrelatedChange;
 	}
@@ -146,14 +146,14 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
     	}
     	return false;
     }
-    
+
 	@Override
 	public String toString() {
 		return "ResourceObjectShadowChangeDescription(objectDelta=" + objectDelta + ", currentShadow="
 				+ SchemaDebugUtil.prettyPrint(currentShadow) + ", oldShadow=" + SchemaDebugUtil.prettyPrint(oldShadow) + ", sourceChannel=" + sourceChannel
 				+ ", resource=" + resource + (unrelatedChange ? " UNRELATED" : "") +")";
 	}
-    
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
 	 */
@@ -172,7 +172,7 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 		sb.append("ResourceObjectShadowChangeDescription(");
 		sb.append(sourceChannel);
 		sb.append(")\n");
-		
+
 		SchemaDebugUtil.indentDebugDump(sb, indent+1);
 		sb.append("resource:");
 		if (resource == null) {
@@ -180,10 +180,10 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 		} else {
 			sb.append(resource);
 		}
-		
+
 		sb.append("\n");
 		SchemaDebugUtil.indentDebugDump(sb, indent+1);
-		
+
 		sb.append("objectDelta:");
 		if (objectDelta == null) {
 			sb.append(" null");
@@ -192,17 +192,17 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 		}
 		sb.append("\n");
 		SchemaDebugUtil.indentDebugDump(sb, indent+1);
-		
+
 		sb.append("oldShadow:");
 		if (oldShadow == null) {
 			sb.append(" null");
 		} else {
 			sb.append(oldShadow.debugDump(indent+2));
 		}
-		
+
 		sb.append("\n");
 		SchemaDebugUtil.indentDebugDump(sb, indent+1);
-		
+
 		sb.append("currentShadow:");
 		if (currentShadow == null) {
 			sb.append(" null\n");
@@ -210,7 +210,7 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 			sb.append("\n");
 			sb.append(currentShadow.debugDump(indent+2));
 		}
-		
+
 		sb.append("\n");
 		SchemaDebugUtil.indentDebugDump(sb, indent+1);
 		sb.append("unrelatedChange: ").append(unrelatedChange);

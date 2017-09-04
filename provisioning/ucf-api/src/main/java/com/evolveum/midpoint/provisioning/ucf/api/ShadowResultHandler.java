@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * It is only used to handle iterative search results now. It may be reused for
  * other purposes as well.
- * 
+ *
  * @author Radovan Semancik
  */
 @FunctionalInterface
@@ -35,5 +35,5 @@ public interface ShadowResultHandler {
      * @return true if the operation shoudl proceed, false if it should stop
      */
 	boolean handle(PrismObject<ShadowType> object);
-    
+
 }

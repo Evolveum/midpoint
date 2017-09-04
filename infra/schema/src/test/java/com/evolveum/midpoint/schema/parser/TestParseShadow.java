@@ -114,7 +114,7 @@ public class TestParseShadow extends AbstractObjectParserTest<ShadowType> {
 		assertEquals("Wrong class in object", ShadowType.class, shadow.getCompileTimeClass());
 		ShadowType objectType = shadow.asObjectable();
 		assertNotNull("asObjectable resulted in null", objectType);
-		
+
 		assertPropertyValue(shadow, "name", PrismTestUtil.createPolyString("hbarbossa"));
 		assertPropertyDefinition(shadow, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 
@@ -122,19 +122,19 @@ public class TestParseShadow extends AbstractObjectParserTest<ShadowType> {
 //		assertPropertyValues(shadow, "organizationalUnit",
 //				new PolyString("Brethren of the Coast", "brethren of the coast"),
 //				new PolyString("Davie Jones' Locker", "davie jones locker"));
-		
+
 
 		ItemPath admStatusPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 		PrismProperty<ActivationStatusType> admStatusProperty1 = shadow.findProperty(admStatusPath);
 		PrismAsserts.assertDefinition(admStatusProperty1.getDefinition(), ActivationType.F_ADMINISTRATIVE_STATUS, SchemaConstants.C_ACTIVATION_STATUS_TYPE, 0, 1);
 		assertNotNull("Property "+admStatusPath+" not found", admStatusProperty1);
 		PrismAsserts.assertPropertyValue(admStatusProperty1, ActivationStatusType.ENABLED);
-		
+
 		PrismReference resourceRef = shadow.findReference(ShadowType.F_RESOURCE_REF);
 		assertEquals("Wrong number of resourceRef values", 1, resourceRef.getValues().size());
 		PrismAsserts.assertReferenceValue(resourceRef, "10000000-0000-0000-0000-000000000003");
 	}
-	
+
 	private void assertJaxb(ShadowType shadow, boolean isObject) throws SchemaException {
 		if (isObject) {
 			assertEquals("88519fca-3f4a-44ca-91c8-dc9be5bf3d03", shadow.getOid());
@@ -144,7 +144,7 @@ public class TestParseShadow extends AbstractObjectParserTest<ShadowType> {
 		ActivationType activation = shadow.getActivation();
 		assertNotNull("No activation", activation);
 		assertEquals("User not enabled", ActivationStatusType.ENABLED, activation.getAdministrativeStatus());
-		
+
 		ObjectReferenceType resourceRef = shadow.getResourceRef();
 		assertNotNull("No resourceRef", resourceRef);
 

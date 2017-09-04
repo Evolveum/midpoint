@@ -34,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestReconTask extends AbstractSynchronizationStoryTest {
-	
+
 	@Override
 	protected boolean isReconciliation() {
 		return true;
@@ -43,16 +43,16 @@ public class TestReconTask extends AbstractSynchronizationStoryTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		// This should be the default but let's make sure ...
 		dummyResourceGreen.setSyncStyle(DummySyncStyle.NONE);
 		getDummyResource().setSyncStyle(DummySyncStyle.NONE);
 		getDummyResource(RESOURCE_DUMMY_BLUE_NAME).setSyncStyle(DummySyncStyle.NONE);
-		
+
 		allwaysCheckTimestamp = true;
-		
+
 	}
-	
+
 	@Override
 	protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
 		if (resource == resourceDummyGreen) {
@@ -78,7 +78,7 @@ public class TestReconTask extends AbstractSynchronizationStoryTest {
 			throw new IllegalArgumentException("Unknown resource "+resource);
 		}
 	}
-	
+
 	protected int getWaitTimeout() {
 		return 70000;
 	}
@@ -87,7 +87,7 @@ public class TestReconTask extends AbstractSynchronizationStoryTest {
 	protected int getNumberOfExtraDummyUsers() {
 		return 1;
 	}
-	
-	
+
+
 
 }

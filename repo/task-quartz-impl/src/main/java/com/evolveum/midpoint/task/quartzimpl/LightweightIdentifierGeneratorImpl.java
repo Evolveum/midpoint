@@ -31,7 +31,7 @@ public class LightweightIdentifierGeneratorImpl implements LightweightIdentifier
 	long lastTimestamp;
 	int lastSequence;
 	int hostIdentifier;
-	
+
 	public LightweightIdentifierGeneratorImpl() {
 		lastTimestamp = 0;
 		lastSequence = 0;

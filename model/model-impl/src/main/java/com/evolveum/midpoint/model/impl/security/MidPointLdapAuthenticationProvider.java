@@ -17,19 +17,19 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class MidPointLdapAuthenticationProvider extends LdapAuthenticationProvider{
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(MidPointLdapAuthenticationProvider.class);
-	
+
 	@Autowired private SecurityHelper securityHelper;
 
 	public MidPointLdapAuthenticationProvider(LdapAuthenticator authenticator) {
 		super(authenticator);
 	}
-	
-	
+
+
 	@Override
 	protected DirContextOperations doAuthentication(UsernamePasswordAuthenticationToken authentication) {
-		
+
 		try {
 		return super.doAuthentication(authentication);
 		} catch (RuntimeException e) {
@@ -38,28 +38,28 @@ public class MidPointLdapAuthenticationProvider extends LdapAuthenticationProvid
 			throw e;
 		}
 	}
-	
-	
+
+
 	@Override
 	protected Authentication createSuccessfulAuthentication(UsernamePasswordAuthenticationToken authentication,
 			UserDetails user) {
 		Authentication authNCtx = super.createSuccessfulAuthentication(authentication, user);
-		
+
 		Object principal = authNCtx.getPrincipal();
 		if (!(principal instanceof MidPointPrincipal)) {
 			throw new BadCredentialsException("LdapAuthentication.incorrect.value");
 		}
 		MidPointPrincipal midPointPrincipal = (MidPointPrincipal) principal;
 		UserType userType = midPointPrincipal.getUser();
-		
+
 		if (userType == null) {
 			throw new BadCredentialsException("LdapAuthentication.bad.user");
 		}
-		
+
 		securityHelper.auditLoginSuccess(userType, ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI));
 		return authNCtx;
 	}
-	
-	
+
+
 
 }

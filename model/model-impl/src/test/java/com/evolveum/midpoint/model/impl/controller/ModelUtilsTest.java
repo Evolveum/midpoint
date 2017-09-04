@@ -37,9 +37,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-no-repo.xml" })
 public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
@@ -47,7 +47,7 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller");
 	@Autowired(required = true)
 	private Protector protector;
-	
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);

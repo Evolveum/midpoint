@@ -20,47 +20,47 @@ package com.evolveum.midpoint.schema.internals;
  *
  */
 public class CachingStatistics {
-	
+
 	private long requests = 0;
 	private long hits = 0;
 	private long misses = 0;
-	
+
 	public long getRequests() {
 		return requests;
 	}
-	
+
 	public synchronized void setRequests(long requests) {
 		this.requests = requests;
 	}
-	
+
 	public synchronized void recordRequest() {
 		this.requests++;
 	}
-	
+
 	public long getHits() {
 		return hits;
 	}
-	
+
 	public synchronized void setHits(long hits) {
 		this.hits = hits;
 	}
-	
+
 	public synchronized void recordHit() {
 		this.hits++;
 	}
-	
+
 	public long getMisses() {
 		return misses;
 	}
-	
+
 	public synchronized void setMisses(long misses) {
 		this.misses = misses;
 	}
-	
+
 	public synchronized void recordMiss() {
 		this.misses++;
 	}
-	
+
 	public CachingStatistics clone() {
 		CachingStatistics clone = new CachingStatistics();
 		clone.requests = this.requests;

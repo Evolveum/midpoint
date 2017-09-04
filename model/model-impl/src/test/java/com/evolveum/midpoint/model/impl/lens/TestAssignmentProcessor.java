@@ -60,7 +60,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
     @Autowired
     private AssignmentProcessor assignmentProcessor;
-    
+
     @Autowired
     private Clock clock;
 
@@ -142,31 +142,31 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
-        
+
         assertNoDecision(accContext);
         assertLegal(accContext);
-        
+
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
-        
+
         PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
         	accContext.getConstructionDeltaSetTriple();
         display("accountConstructionDeltaSetTriple", accountConstructionDeltaSetTriple);
-        
+
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
         PrismAsserts.assertTripleNoPlus(accountConstructionDeltaSetTriple);
         assertSetSize("zero", accountConstructionDeltaSetTriple.getZeroSet(), 2);
-        
+
         Construction zeroAccountConstruction = getZeroAccountConstruction(accountConstructionDeltaSetTriple, "Brethren account construction");
-                        
-        assertNoZeroAttributeValues(zeroAccountConstruction, 
+
+        assertNoZeroAttributeValues(zeroAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
-        assertPlusAttributeValues(zeroAccountConstruction, 
+        assertPlusAttributeValues(zeroAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Tortuga");
-        assertMinusAttributeValues(zeroAccountConstruction, 
+        assertMinusAttributeValues(zeroAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Caribbean");
-                
+
     }
-    
+
 	@Test
     public void test011AddAssignmentAddAccountDirect() throws Exception {
 		final String TEST_NAME = "test011AddAssignmentAddAccountDirect";
@@ -204,7 +204,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
-        
+
         assertNoDecision(accContext);
         assertLegal(accContext);
     }
@@ -248,36 +248,36 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
-        
+
         assertNoDecision(accContext);
         assertLegal(accContext);
-        
+
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
-        
+
         PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
         	accContext.getConstructionDeltaSetTriple();
-        
+
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
         PrismAsserts.assertTripleNoZero(accountConstructionDeltaSetTriple);
         assertSetSize("plus", accountConstructionDeltaSetTriple.getPlusSet(), 1);
-        
+
         Construction plusAccountConstruction = getPlusAccountConstruction(accountConstructionDeltaSetTriple);
-                
-        assertZeroAttributeValues(plusAccountConstruction, 
+
+        assertZeroAttributeValues(plusAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		"Pirate Brethren, Inc.");
-        assertNoPlusAttributeValues(plusAccountConstruction, 
+        assertNoPlusAttributeValues(plusAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
-        assertNoMinusAttributeValues(plusAccountConstruction, 
+        assertNoMinusAttributeValues(plusAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
-        
-        assertZeroAttributeValues(plusAccountConstruction, 
+
+        assertZeroAttributeValues(plusAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Caribbean");
-        assertNoPlusAttributeValues(plusAccountConstruction, 
+        assertNoPlusAttributeValues(plusAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
-        assertNoMinusAttributeValues(plusAccountConstruction, 
+        assertNoMinusAttributeValues(plusAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
-                
+
     }
 
 	@Test
@@ -317,21 +317,21 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
-        
+
         assertNoDecision(accContext);
         assertLegal(accContext);
-        
+
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
-        
+
         PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
         	accContext.getConstructionDeltaSetTriple();
-        
+
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
-        
+
         assertSetSize("zero", accountConstructionDeltaSetTriple.getZeroSet(), 2);
         Construction zeroAccountConstruction = getZeroAccountConstruction(accountConstructionDeltaSetTriple,
         		"Brethren account construction");
-        
+
         assertZeroAttributeValues(zeroAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
                 "Pirate Brethren, Inc.");
@@ -339,37 +339,37 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
         assertNoMinusAttributeValues(zeroAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
-        
+
         assertZeroAttributeValues(zeroAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Caribbean");
         assertNoPlusAttributeValues(zeroAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
         assertNoMinusAttributeValues(zeroAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
-        
+
         assertZeroAttributeValues(zeroAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME), "Sword");
         assertNoPlusAttributeValues(zeroAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
         assertNoMinusAttributeValues(zeroAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
-        
+
         assertSetSize("plus", accountConstructionDeltaSetTriple.getPlusSet(), 1);
         Construction plusAccountConstruction = getPlusAccountConstruction(accountConstructionDeltaSetTriple, "Monkey account construction");
-        
+
         assertZeroAttributeValues(plusAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME), "Rum");
         assertNoPlusAttributeValues(plusAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
         assertNoMinusAttributeValues(plusAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
-        
-        assertZeroAttributeValues(plusAccountConstruction, 
+
+        assertZeroAttributeValues(plusAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME),
         		"Dagger", "Pistol");
-        assertNoPlusAttributeValues(plusAccountConstruction, 
+        assertNoPlusAttributeValues(plusAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
-        assertNoMinusAttributeValues(plusAccountConstruction, 
+        assertNoMinusAttributeValues(plusAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
 
     }
@@ -390,7 +390,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         context.recomputeFocus();
 
         display("Input context", context);
-        
+
         PrismObject<UserType> userNew = context.getFocusContext().getObjectNew();
         assertEquals("Unexpected number of assignemnts in userNew after recompute", 1, userNew.asObjectable().getAssignment().size());
 
@@ -420,46 +420,46 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         assertNoDecision(accContext);
         assertLegal(accContext);
-        
+
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
-        
-        
+
+
         PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
         	accContext.getConstructionDeltaSetTriple();
-        
+
         PrismAsserts.assertTripleNoPlus(accountConstructionDeltaSetTriple);
-        
+
         assertSetSize("zero", accountConstructionDeltaSetTriple.getZeroSet(), 1);
         Construction zeroAccountConstruction = getZeroAccountConstruction(accountConstructionDeltaSetTriple);
-        
-        assertZeroAttributeValues(zeroAccountConstruction, 
+
+        assertZeroAttributeValues(zeroAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Caribbean");
-        assertNoPlusAttributeValues(zeroAccountConstruction, 
+        assertNoPlusAttributeValues(zeroAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
         assertNoMinusAttributeValues(zeroAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
-        
-        assertZeroAttributeValues(zeroAccountConstruction, 
+
+        assertZeroAttributeValues(zeroAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		"Pirate Brethren, Inc.");
-        assertNoPlusAttributeValues(zeroAccountConstruction, 
+        assertNoPlusAttributeValues(zeroAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
         assertNoMinusAttributeValues(zeroAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
-        
+
         assertSetSize("minus", accountConstructionDeltaSetTriple.getMinusSet(), 1);
         Construction minusAccountConstruction = getMinusAccountConstruction(accountConstructionDeltaSetTriple);
-        
-        assertZeroAttributeValues(minusAccountConstruction, 
+
+        assertZeroAttributeValues(minusAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME),
         		"Undead Monkey");
-        assertNoPlusAttributeValues(minusAccountConstruction, 
+        assertNoPlusAttributeValues(minusAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
-        assertNoMinusAttributeValues(minusAccountConstruction, 
+        assertNoMinusAttributeValues(minusAccountConstruction,
         		getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
 
     }
-	
+
 	@Test
 	 public void test032ModifyUserLegalizeAccount() throws Exception {
 		final String TEST_NAME = "test032ModifyUserLegalizeAccount";
@@ -470,17 +470,17 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 	        OperationResult result = task.getResult();
 
 	        repoAddObjectFromFile(USER_LARGO_FILE, result);
-	        
+
 	        LensContext<UserType> context = createUserLensContext();
 	        fillContextWithUser(context, USER_LARGO_OID, result);
 	        fillContextWithAccountFromFile(context, ACCOUNT_SHADOW_ELAINE_DUMMY_FILE, task, result);
 	        context.recompute();
-	        
+
 	        ProjectionPolicyType accountSynchronizationSettings = new ProjectionPolicyType();
 	        accountSynchronizationSettings.setLegalize(Boolean.TRUE);
 	        accountSynchronizationSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.POSITIVE);
 	        context.setAccountSynchronizationSettings(accountSynchronizationSettings);
-	        
+
 	        assumeResourceAssigmentPolicy(RESOURCE_DUMMY_OID, AssignmentPolicyEnforcementType.POSITIVE, true);
 
 	        display("Input context", context);
@@ -489,7 +489,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
 	        // WHEN
 	        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
-	        
+
 	        context.recompute();
 	        // THEN
 	        display("Output context", context);
@@ -499,9 +499,9 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 	        assertEquals("Unexpected number of secundary changes. ", 1, context.getFocusContext().getSecondaryDelta().getModifications().size());
 	        assertNotNull("Expected assigment delta in secondary changes, but it does not exist.", ContainerDelta.findContainerDelta(context.getFocusContext().getSecondaryDelta().getModifications(), UserType.F_ASSIGNMENT));
 	        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
-	        
+
 	        LensProjectionContext accContext = context.getProjectionContexts().iterator().next();
-	        
+
 	        assertNoDecision(accContext);
 	        assertLegal(accContext);
 
@@ -787,7 +787,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         Collection<T> actual = getMultiValueFromDeltaSetTriple(triple, triple.getPlusSet());
         TestUtil.assertSetEquals("Attribute "+attrName+" value in plus set", actual, expectedValue);
 	}
-	
+
 	private <T> void assertZeroAttributeValues(Construction accountConstruction, QName attrName, T... expectedValue) {
         PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = accountConstruction.getAttributeMapping(attrName);
         assertNotNull("No value construction for attribute "+attrName+" in zero set", vc);
@@ -795,7 +795,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         Collection<T> actual = getMultiValueFromDeltaSetTriple(triple, triple.getZeroSet());
         TestUtil.assertSetEquals("Attribute "+attrName+" value in zero set", actual, expectedValue);
 	}
-	
+
 	private <T> void assertMinusAttributeValues(Construction accountConstruction, QName attrName, T... expectedValue) {
         PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = accountConstruction.getAttributeMapping(attrName);
         assertNotNull("No value construction for attribute "+attrName+" in minus set", vc);
@@ -803,7 +803,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         Collection<T> actual = getMultiValueFromDeltaSetTriple(triple, triple.getMinusSet());
         TestUtil.assertSetEquals("Attribute "+attrName+" value in minus set", actual, expectedValue);
 	}
-		
+
 	private void assertNoPlusAttributeValues(Construction accountConstruction, QName attrName) {
         PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = accountConstruction.getAttributeMapping(attrName);
         PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
@@ -822,14 +822,14 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         PrismAsserts.assertTripleNoMinus(triple);
 	}
 
-    private Object getSingleValueFromDeltaSetTriple(PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple, 
+    private Object getSingleValueFromDeltaSetTriple(PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple,
     		Collection<? extends PrismPropertyValue<?>> set) {
     	Collection<?> values = getMultiValueFromDeltaSetTriple(triple,set);
     	assertEquals(1,values.size());
     	return values.iterator().next();
     }
-    
-    private <T> Collection<T> getMultiValueFromDeltaSetTriple(PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple, 
+
+    private <T> Collection<T> getMultiValueFromDeltaSetTriple(PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple,
     		Collection<? extends PrismPropertyValue<?>> set) {
     	Collection<T> vals = new ArrayList<T>(set.size());
     	for (PrismPropertyValue<?> pval: set) {
@@ -837,7 +837,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     	}
     	return vals;
     }
-    
+
 	private void assertSetSize(String setName, Collection<PrismPropertyValue<Construction>> set,
 			int expectedSize) {
         assertEquals("Unexpected number of value in "+setName+" set", expectedSize, set.size());
@@ -847,14 +847,14 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 			PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple) {
 		return getZeroAccountConstruction(accountConstructionDeltaSetTriple, null);
 	}
-	
+
 	private Construction getZeroAccountConstruction(
 		PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple,
 		String description) {
 		Collection<PrismPropertyValue<Construction>> set = accountConstructionDeltaSetTriple.getZeroSet();
 		return getAccountConstruction(accountConstructionDeltaSetTriple, description, set, "zero");
 	}
-	
+
 	private Construction getPlusAccountConstruction(
 			PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple) {
 		return getPlusAccountConstruction(accountConstructionDeltaSetTriple, null);
@@ -878,7 +878,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 		Collection<PrismPropertyValue<Construction>> set = accountConstructionDeltaSetTriple.getMinusSet();
 		return getAccountConstruction(accountConstructionDeltaSetTriple, description, set, "minus");
 	}
-	
+
 	private Construction getAccountConstruction(PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple,
 			String description, Collection<PrismPropertyValue<Construction>> set, String setName) {
 		for (PrismPropertyValue<Construction> constructionPVal: set) {
@@ -902,9 +902,9 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 	private void assertNoDecision(LensProjectionContext accContext) {
 		assertNull("Projection "+accContext+" has decision "+accContext.getSynchronizationPolicyDecision()+" while not expecting any", accContext.getSynchronizationPolicyDecision());
 	}
-    
+
 	private XMLGregorianCalendar getNow() {
 		return clock.currentTimeXMLGregorianCalendar();
 	}
-	
+
 }

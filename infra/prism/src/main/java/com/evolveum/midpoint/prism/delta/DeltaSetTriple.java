@@ -84,7 +84,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
         diff(valuesOld, valuesNew, triple);
         return triple;
     }
-    
+
     protected static <T> void diff(Collection<T> valuesOld, Collection<T> valuesNew, DeltaSetTriple<T> triple) {
         if (valuesOld == null && valuesNew == null) {
         	// No values, no change -> empty triple
@@ -130,7 +130,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 	public Collection<T> getMinusSet() {
         return minusSet;
     }
-    
+
     public boolean hasPlusSet() {
     	return !plusSet.isEmpty();
     }
@@ -142,7 +142,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
     public boolean hasMinusSet() {
     	return !minusSet.isEmpty();
     }
-    
+
 	public boolean isZeroOnly() {
 		return hasZeroSet() && !hasPlusSet() && !hasMinusSet();
 	}
@@ -192,7 +192,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
     		addAllToSet(zeroSet, items);
     	}
     }
-    
+
     public void addToSet(PlusMinusZero destination, T item) {
     	if (destination == null) {
 			// no op
@@ -204,7 +204,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
     		addToSet(zeroSet, item);
     	}
     }
-    
+
 	private void addAllToSet(Collection<T> set, Collection<T> items) {
 		if (items == null) {
 			return;
@@ -238,15 +238,15 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 	private boolean presentInSet(Collection<T> set, T item) {
 		return set != null && set.contains(item);
 	}
-	
+
 	public void clearPlusSet() {
 		clearSet(plusSet);
 	}
-	
+
 	public void clearMinusSet() {
 		clearSet(minusSet);
 	}
-	
+
 	public void clearZeroSet() {
 		clearSet(zeroSet);
 	}
@@ -256,7 +256,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 			set.clear();
 		}
 	}
-	
+
 	public int size() {
 		return sizeSet(zeroSet) + sizeSet(plusSet) + sizeSet(minusSet);
 	}
@@ -275,7 +275,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 	public Collection<T> union() {
         return MiscUtil.union(zeroSet, plusSet, minusSet);
     }
-    
+
     public T getAnyValue() {
     	if (!zeroSet.isEmpty()) {
     		return zeroSet.iterator().next();
@@ -288,7 +288,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
     	}
     	return null;
     }
-    
+
     public Collection<T> getAllValues() {
     	Collection<T> allValues = new ArrayList<>(size());
     	addAllValuesSet(allValues, zeroSet);
@@ -320,13 +320,13 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
     public Collection<T> getNonPositiveValues() {
         return MiscUtil.union(zeroSet, minusSet);
     }
-    
+
 	public void merge(DeltaSetTriple<T> triple) {
 		zeroSet.addAll(triple.zeroSet);
 		plusSet.addAll(triple.plusSet);
 		minusSet.addAll(triple.minusSet);
 	}
-	
+
 	public DeltaSetTriple<T> clone(Cloner<T> cloner) {
 		DeltaSetTriple<T> clone = new DeltaSetTriple<>();
 		copyValues(clone, cloner);
@@ -350,15 +350,15 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 		}
 		return clonedSet;
 	}
-	
+
 	public boolean isEmpty() {
 		return isEmpty(minusSet) && isEmpty(plusSet) && isEmpty(zeroSet);
 	}
-	
+
 	private boolean isEmpty(Collection<T> set) {
 		return set == null || set.isEmpty();
 	}
-	
+
 	/**
 	 * Process each element of every set.
 	 * This is different from the visitor. Visitor will go
@@ -370,7 +370,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 		foreachSet(processor, plusSet);
 		foreachSet(processor, minusSet);
 	}
-	
+
 	private void foreachSet(Processor<T> processor, Collection<T> set) {
 		if (set == null) {
 			return;
@@ -395,7 +395,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 			visitor.visit(element);
 		}
 	}
-	
+
 	public <X> void transform(DeltaSetTriple<X> transformTarget, Transformer<T,X> transformer) {
 		for (T orig: getZeroSet()) {
 			X transformed = transformer.transform(orig);
@@ -421,7 +421,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
         sb.append(")");
         return sb.toString();
     }
-    
+
     protected String debugName() {
     	return "DeltaSetTriple";
     }
@@ -445,8 +445,8 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpLabelLn(sb, "DeltaSetTriple", indent);
-		
-        debugDumpSets(sb, 
+
+        debugDumpSets(sb,
         		val -> sb.append(DebugUtil.debugDump(val, indent + 3)),
         		indent + 1);
 
@@ -458,9 +458,9 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
         sb.append("\n");
         debugDumpSet(sb, "plus", dumper, plusSet, indent + 1);
         sb.append("\n");
-        debugDumpSet(sb, "minus", dumper, minusSet, indent + 1);		
+        debugDumpSet(sb, "minus", dumper, minusSet, indent + 1);
 	}
-	
+
 	private void debugDumpSet(StringBuilder sb, String label, Consumer<T> dumper, Collection<T> set, int indent) {
 		DebugUtil.debugDumpLabel(sb, label, indent);
 		if (set == null) {
@@ -472,7 +472,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 			}
 		}
 	}
-	
+
 	public String toHumanReadableString() {
 		StringBuilder sb = new StringBuilder();
 		boolean first = toHumanReadableString(sb, "added", plusSet, true);

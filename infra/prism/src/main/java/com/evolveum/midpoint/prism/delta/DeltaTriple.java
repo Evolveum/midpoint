@@ -24,7 +24,7 @@ import com.evolveum.midpoint.util.Processor;
 
 /**
  * Utility class for keeping things in three: plus, zero and minus.
- * 
+ *
  * @author semancik
  */
 public class DeltaTriple<T> implements DebugDumpable, Foreachable<T> {
@@ -32,13 +32,13 @@ public class DeltaTriple<T> implements DebugDumpable, Foreachable<T> {
 	private T plus;
 	private T zero;
 	private T minus;
-	
+
 	public DeltaTriple() {
 		plus = null;
 		zero = null;
 		minus = null;
 	}
-	
+
 	public DeltaTriple(Supplier<T> initializer) {
 		plus = initializer.get();
 		zero = initializer.get();
@@ -68,7 +68,7 @@ public class DeltaTriple<T> implements DebugDumpable, Foreachable<T> {
 	public void setMinus(T minus) {
 		this.minus = minus;
 	}
-	
+
 	public T get(PlusMinusZero mode) {
 		switch (mode) {
 			case PLUS: return plus;
@@ -83,8 +83,8 @@ public class DeltaTriple<T> implements DebugDumpable, Foreachable<T> {
 		processor.process(plus);
 		processor.process(zero);
 		processor.process(minus);
-	}	
-	
+	}
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = DebugUtil.createTitleStringBuilder(DeltaTriple.class, indent);
@@ -92,7 +92,7 @@ public class DeltaTriple<T> implements DebugDumpable, Foreachable<T> {
 		debugDumpNoTitle(sb, indent);
 		return sb.toString();
 	}
-	
+
 	public String debugDumpNoTitle(StringBuilder sb, int indent) {
 		debugDumpVal(sb, plus, "plus", indent);
 		sb.append("\n");
@@ -160,5 +160,5 @@ public class DeltaTriple<T> implements DebugDumpable, Foreachable<T> {
 	public String toString() {
 		return "DeltaTriple(plus=" + plus + ", zero=" + zero + ", minus=" + minus + ")";
 	}
-	
+
 }

@@ -82,7 +82,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Created by honchar.
  */
 public class AuditLogViewerPanel extends BasePanel {
-	
+
 	private static final long serialVersionUID = 1L;
     private static final String ID_PARAMETERS_PANEL = "parametersPanel";
     private static final String ID_TABLE = "table";
@@ -119,9 +119,9 @@ public class AuditLogViewerPanel extends BasePanel {
     public static final String EVENT_STAGE_COLUMN_VISIBILITY = "eventStageColumn";
     public static final String EVENT_STAGE_LABEL_VISIBILITY = "eventStageLabel";
     public static final String EVENT_STAGE_FIELD_VISIBILITY = "eventStageField";
-    
+
     static final Trace LOGGER = TraceManager.getTrace(AuditLogViewerPanel.class);
-    
+
 
     private static final String OPERATION_RESOLVE_REFENRENCE_NAME = AuditLogViewerPanel.class.getSimpleName()
             + ".resolveReferenceName()";
@@ -211,7 +211,7 @@ public class AuditLogViewerPanel extends BasePanel {
 
         PropertyModel<ItemPathDto> changedItemModel = new PropertyModel<ItemPathDto>(auditSearchModel,
                 AuditSearchDto.F_CHANGED_ITEM);
-        
+
         ItemPathPanel changedItemPanel = new ItemPathPanel(ID_CHANGED_ITEM, changedItemModel, pageBase);
 //        changedItemPanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 //        changedItemPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -290,7 +290,7 @@ public class AuditLogViewerPanel extends BasePanel {
         List<Class<? extends ObjectType>> allowedClasses = new ArrayList<>();
         allowedClasses.add(UserType.class);
         MultiValueChoosePanel<ObjectType> chooseInitiatorPanel = new SingleValueChoosePanel<ObjectReferenceType, ObjectType>(
-        		ID_INITIATOR_NAME, allowedClasses, objectReferenceTransformer, 
+        		ID_INITIATOR_NAME, allowedClasses, objectReferenceTransformer,
         		new PropertyModel<ObjectReferenceType>(auditSearchModel, AuditSearchDto.F_INITIATOR_NAME));
         parametersPanel.add(chooseInitiatorPanel);
 
@@ -300,10 +300,10 @@ public class AuditLogViewerPanel extends BasePanel {
 
         MultiValueChoosePanel<ObjectType> chooseTargerOwnerPanel = new SingleValueChoosePanel<ObjectReferenceType, ObjectType>(
         		ID_TARGET_OWNER_NAME_FIELD, allowedClasses, objectReferenceTransformer, new PropertyModel<ObjectReferenceType>(auditSearchModel, AuditSearchDto.F_TARGET_OWNER_NAME));
-        
+
         chooseTargerOwnerPanel.add(visibilityByKey(visibilityMap, TARGET_OWNER_FIELD_VISIBILITY));
         targetOwnerName.add(chooseTargerOwnerPanel);
-        
+
         WebMarkupContainer targetName = new WebMarkupContainer(ID_TARGET_NAME);
         targetName.add(visibilityByKey(visibilityMap, TARGET_NAME_LABEL_VISIBILITY));
         parametersPanel.add(targetName);
@@ -311,7 +311,7 @@ public class AuditLogViewerPanel extends BasePanel {
         allowedClassesAll.addAll(ObjectTypes.getAllObjectTypes());
 
         MultiValueChoosePanel<ObjectType> chooseTargetPanel = new MultiValueChoosePanel<ObjectType>(
-        		ID_TARGET_NAME_FIELD, 
+        		ID_TARGET_NAME_FIELD,
         		new PropertyModel<List<ObjectType>>(auditSearchModel, AuditSearchDto.F_TARGET_NAMES_OBJECTS),
         		allowedClassesAll);
         chooseTargetPanel.setOutputMarkupId(true);
@@ -366,17 +366,17 @@ public class AuditLogViewerPanel extends BasePanel {
         valueRefTargetNameContainer.add(chooseValueRefTargetNamePanel);
 
     }
-    
+
 	// Serializable as it becomes part of panel which is serialized
-    private Function<ObjectType, ObjectReferenceType> objectReferenceTransformer = 
+    private Function<ObjectType, ObjectReferenceType> objectReferenceTransformer =
     		(Function<ObjectType, ObjectReferenceType> & Serializable) (ObjectType o) ->
         		ObjectTypeUtil.createObjectRef(o);
 
 	// Serializable as it becomes part of panel which is serialized
-    private Function<ObjectType, String> stringTransformer = 
+    private Function<ObjectType, String> stringTransformer =
     		(Function<ObjectType, String> & Serializable) (ObjectType o) ->
         		o.getName().getOrig();
-        		
+
 	private VisibleEnableBehaviour visibilityByKey(Map<String, Boolean> visibilityMap2, String visibilityKey) {
 		return new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
@@ -387,7 +387,7 @@ public class AuditLogViewerPanel extends BasePanel {
             }
         };
 	}
-    
+
     private void addOrReplaceTable(Form mainForm) {
         AuditEventRecordProvider provider = new AuditEventRecordProvider(AuditLogViewerPanel.this) {
             private static final long serialVersionUID = 1L;
@@ -433,7 +433,7 @@ public class AuditLogViewerPanel extends BasePanel {
                 parameters.put("eventStage", search.getEventStage());
                 parameters.put("outcome", search.getOutcome());
                 if(isNotEmpty(search.getvalueRefTargetNames())) {
-	                parameters.put(AuditEventRecordProvider.VALUE_REF_TARGET_NAMES_KEY, 
+	                parameters.put(AuditEventRecordProvider.VALUE_REF_TARGET_NAMES_KEY,
 	                		search.getvalueRefTargetNames().stream()
 	                		.map(ObjectType::getName)
 	                		.map(PolyStringType::getOrig)
@@ -463,20 +463,20 @@ public class AuditLogViewerPanel extends BasePanel {
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
             	CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(id) {
-					
+
 					private static final long serialVersionUID = 1L;
 
 					@Override
 					protected String getFilename() {
 						return "AuditLogViewer_" + createStringResource("MainObjectListPanel.exportFileName").getString();
 					}
-					
+
 					@Override
 					protected DataTable<?, ?> getDataTable() {
 						return getAuditLogViewerTable().getDataTable();
 					}
 				};
-                
+
                 return exportDataLink;
             }
 

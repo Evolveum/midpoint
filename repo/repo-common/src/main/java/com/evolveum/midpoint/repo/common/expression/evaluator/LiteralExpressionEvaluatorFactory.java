@@ -41,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
  *
  */
 public class LiteralExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
-	
+
 	private PrismContext prismContext;
 
 	public LiteralExpressionEvaluatorFactory(PrismContext prismContext) {
@@ -62,12 +62,12 @@ public class LiteralExpressionEvaluatorFactory implements ExpressionEvaluatorFac
 																									String contextDescription, Task task, OperationResult result) throws SchemaException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for literal expression evaluator");
-		
+
 		Item<V,D> output = StaticExpressionUtil.parseValueElements(evaluatorElements, outputDefinition, contextDescription, prismContext);
-		
+
 		PrismValueDeltaSetTriple<V> deltaSetTriple = ItemDelta.toDeltaSetTriple(output, null);
-		
+
 		return new LiteralExpressionEvaluator<V,D>(deltaSetTriple);
 	}
-	
+
 }

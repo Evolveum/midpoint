@@ -271,5 +271,5 @@ public class MidpointInterceptor implements MethodInterceptor {
 			return "###INTERNAL#ERROR### "+t.getClass().getName()+": "+t.getMessage()+" value="+value;
 		}
 	}
-	
+
 }

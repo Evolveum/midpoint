@@ -125,15 +125,15 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
     	return createPrincipal(user, result);
     }
-    
+
     private MidPointPrincipal createPrincipal(PrismObject<UserType> user, OperationResult result) throws SchemaException {
         if (user == null) {
             return null;
         }
-        
+
         PrismObject<SystemConfigurationType> systemConfiguration = null;
         try {
-        	systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), 
+        	systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
 					null, result);
 		} catch (ObjectNotFoundException | SchemaException e) {
 			LOGGER.warn("No system configuration: {}", e.getMessage(), e);
@@ -167,7 +167,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         }
         return list.get(0);
     }
-        
+
 	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
 		UserType userType = principal.getUser();
 
@@ -276,10 +276,10 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 		}
 		PrismObject<F> owner = null;
 		OperationResult result = new OperationResult(UserProfileServiceImpl.class+".resolveOwner");
-		
+
 		if (object.canRepresent(ShadowType.class)) {
 			owner = repositoryService.searchShadowOwner(object.getOid(), null, result);
-			
+
 		} else if (object.canRepresent(UserType.class)) {
 			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
 					.item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
@@ -296,7 +296,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			} catch (SchemaException e) {
 				LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
 			}
-		
+
 		} else if (object.canRepresent(AbstractRoleType.class)) {
 			ObjectReferenceType ownerRef = ((AbstractRoleType)(object.asObjectable())).getOwnerRef();
 			if (ownerRef != null && ownerRef.getOid() != null && ownerRef.getType() != null) {
@@ -307,7 +307,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 					LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
 				}
 			}
-		
+
 		} else if (object.canRepresent(TaskType.class)) {
 			ObjectReferenceType ownerRef = ((TaskType)(object.asObjectable())).getOwnerRef();
 			if (ownerRef != null && ownerRef.getOid() != null && ownerRef.getType() != null) {
@@ -319,7 +319,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 				}
 			}
 		}
-		
+
 		if (owner == null) {
 			return null;
 		}
@@ -328,7 +328,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 		}
 		return owner;
 	}
-	
+
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		try {
@@ -355,8 +355,8 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	@Override
 	public void mapUserToContext(UserDetails user, DirContextAdapter ctx) {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
-	
+
+
 }

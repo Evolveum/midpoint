@@ -24,7 +24,7 @@ public class ServicesStorage implements PageStorage{
 
 	private Search servicesSearch;
 	private ObjectPaging servicesPaging;
-	
+
 	@Override
 	public Search getSearch() {
 		return servicesSearch;
@@ -38,7 +38,7 @@ public class ServicesStorage implements PageStorage{
 	@Override
 	public void setPaging(ObjectPaging paging) {
 		this.servicesPaging = paging;
-		
+
 	}
 
 	@Override

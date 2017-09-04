@@ -29,11 +29,11 @@ import java.util.Objects;
 
 /**
  * Description of a situation that caused a trigger of the policy rule.
- * 
+ *
  * @author semancik
  */
 public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType> implements DebugDumpable {
-	
+
 	@NotNull private final PolicyConstraintKindType constraintKind;
 	@NotNull private final CT constraint;
 	private final String message;

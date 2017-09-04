@@ -55,18 +55,18 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestModelWebServiceNegative extends AbstractInitializedModelIntegrationTest {
-	
+
 	public static final File TEST_DIR = new File("src/test/resources/crud");
 	public static final File TEST_CONTRACT_DIR = new File("src/test/resources/contract");
 
 	public static final File RESOURCE_MAROON_FILE = new File(TEST_DIR, "resource-dummy-maroon.xml");
 	public static final String RESOURCE_MAROON_OID = "10000000-0000-0000-0000-00000000e104";
-	
+
 	private static final String USER_MORGAN_OID = "c0c010c0-d34d-b33f-f00d-171171117777";
 	private static final String USER_BLACKBEARD_OID = "c0c010c0-d34d-b33f-f00d-161161116666";
-	
+
 	private static String accountOid;
-					
+
 	/**
 	 * First tests are positive, to make sure that this method works.
 	 */
@@ -77,18 +77,18 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelWebServiceNegative.class.getName() + "." + TEST_NAME);
-       	
-        ObjectDeltaType objectChange = createShadowReplaceChange(ACCOUNT_SHADOW_GUYBRUSH_OID, 
-        		"attributes/"+DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+
+        ObjectDeltaType objectChange = createShadowReplaceChange(ACCOUNT_SHADOW_GUYBRUSH_OID,
+        		"attributes/"+DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"foo", DOMUtil.XSD_STRING);
     	ObjectDeltaListType deltaList = new ObjectDeltaListType();
 		deltaList.getDelta().add(objectChange);
-		
+
 		// WHEN
 		modelWeb.executeChanges(deltaList, null);
-		
+
 		// THEN
-		    
+
         // Check account in dummy resource
         assertDefaultDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
@@ -105,18 +105,18 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelWebServiceNegative.class.getName() + "." + TEST_NAME);
-       	
-        ObjectDeltaType objectChange = createShadowReplaceChange(ACCOUNT_SHADOW_GUYBRUSH_OID, 
-        		"attributes/"+DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+
+        ObjectDeltaType objectChange = createShadowReplaceChange(ACCOUNT_SHADOW_GUYBRUSH_OID,
+        		"attributes/"+DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"bar", null);
     	ObjectDeltaListType deltaList = new ObjectDeltaListType();
 		deltaList.getDelta().add(objectChange);
-		
+
 		// WHEN
 		modelWeb.executeChanges(deltaList, null);
-		
+
 		// THEN
-		    
+
         // Check account in dummy resource
         assertDefaultDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
@@ -130,25 +130,25 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelWebServiceNegative.class.getName() + "." + TEST_NAME);
-       	
-        ObjectDeltaType objectChange = createShadowReplaceChange(ACCOUNT_SHADOW_GUYBRUSH_OID, 
-        		"attributes/"+DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+
+        ObjectDeltaType objectChange = createShadowReplaceChange(ACCOUNT_SHADOW_GUYBRUSH_OID,
+        		"attributes/"+DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"42", DOMUtil.XSD_INT);
     	ObjectDeltaListType deltaList = new ObjectDeltaListType();
 		deltaList.getDelta().add(objectChange);
-		
+
 		// WHEN, THEN
 		//assertExecuteChangesFailure(deltaList, null, SchemaViolationFaultType.class, "The value of type", "cannot be applied to attribute");
 		assertExecuteChangesFailure(deltaList, null, SchemaViolationFaultType.class, "Expected", "but got class");
 	}
 
-	
+
 	private void assertExecuteChangesFailure(ObjectDeltaListType deltaList, ModelExecuteOptionsType options,
 			Class<? extends FaultType> expectedFaultTypeClass, String... messagePatterns) throws Exception {
-		
+
 		try {
 			modelWeb.executeChanges(deltaList, options);
-			
+
 			AssertJUnit.fail("Unexpected success");
 		} catch (FaultMessage f) {
 			FaultType faultInfo = f.getFaultInfo();
@@ -167,7 +167,7 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
 	}
 
 	// TODO: more negative tests
-	
+
 	private ObjectDeltaType createShadowReplaceChange(String oid, String path, final String value, QName type) {
 		ObjectDeltaType objectChange = new ObjectDeltaType();
 		objectChange.setOid(oid);

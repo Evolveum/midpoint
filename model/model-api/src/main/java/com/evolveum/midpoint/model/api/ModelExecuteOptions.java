@@ -28,24 +28,24 @@ import java.util.List;
 /**
  * Options for execution of Model operations. These options influence the way how the operations are executed.
  * The options are not mandatory. All options have reasonable default values. They may not be specified at all.
- * 
+ *
  * @author semancik
  */
 public class ModelExecuteOptions extends AbstractOptions implements Serializable, Cloneable {
-	
+
 	/**
 	 * Force the operation even if it would otherwise fail due to external failure. E.g. attempt to delete an account
 	 * that no longer exists on resource may fail without a FORCE option. If FORCE option is used then the operation is
 	 * finished even if the account does not exist (e.g. at least shadow is removed from midPoint repository).
 	 */
 	private Boolean force;
-	
+
 	/**
 	 * Avoid any smart processing of the data except for schema application. Do not synchronize the data, do not apply
 	 * any expressions, etc.
 	 */
 	private Boolean raw;
-	
+
 	/**
 	 * Encrypt any cleartext data on write, decrypt any encrypted data on read. Applies only to the encrypted
 	 * data formats (ProtectedString, ProtectedByteArray).
@@ -53,13 +53,13 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	 * purposes to be used in development environments.
 	 */
 	private Boolean noCrypt;
-	
+
 	/**
 	 * Option to reconcile focus and all projections while executing changes.
 	 * (implies reconcileFocus)
 	 */
 	private Boolean reconcile;
-	
+
 	/**
 	 * Option to reconcile focus while executing changes.
 	 * If this option is set and the reconcile option is not set then the projections
@@ -92,7 +92,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
      * Option to user overwrite flag. It can be used from web service, if we want to re-import some object
      */
 	private Boolean overwrite;
-    
+
 	/**
 	 * Option to simulate import operation. E.g. search filters will be resolved.
 	 */
@@ -102,7 +102,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	 * Causes reevaluation of search filters (producing partial errors on failure).
 	 */
 	private Boolean reevaluateSearchFilters;
-    
+
     /**
      * Option to limit propagation only for the source resource
      */
@@ -113,12 +113,12 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	 * EXPERIMENTAL. Currently supported only for raw executions.
 	 */
 	private Boolean preAuthorized;
-	
+
 	/**
 	 * Business context that describes this request.
 	 */
 	private OperationBusinessContextType requestBusinessContext;
-	
+
 	/**
 	 * Options that control selective execution of model logic.
      * Use with extreme care. Some combinations may be dangerous.
@@ -142,7 +142,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public void setForce(Boolean force) {
 		this.force = force;
 	}
-	
+
 	public static boolean isForce(ModelExecuteOptions options) {
 		if (options == null) {
 			return false;
@@ -152,7 +152,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		}
 		return options.force;
 	}
-	
+
 	public static ModelExecuteOptions createForce() {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setForce(true);
@@ -171,7 +171,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public void setRaw(Boolean raw) {
 		this.raw = raw;
 	}
-	
+
 	public static boolean isRaw(ModelExecuteOptions options) {
 		if (options == null) {
 			return false;
@@ -181,7 +181,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		}
 		return options.raw;
 	}
-	
+
 	public static ModelExecuteOptions createRaw() {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setRaw(true);
@@ -200,7 +200,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public void setNoCrypt(Boolean noCrypt) {
 		this.noCrypt = noCrypt;
 	}
-	
+
 	public static boolean isNoCrypt(ModelExecuteOptions options) {
 		if (options == null) {
 			return false;
@@ -225,11 +225,11 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public Boolean getReconcile() {
 		return reconcile;
 	}
-	
+
 	public void setReconcile(Boolean reconcile) {
 		this.reconcile = reconcile;
 	}
-	
+
 	public static boolean isReconcile(ModelExecuteOptions options) {
 		if (options == null){
 			return false;
@@ -239,7 +239,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		}
 		return options.reconcile;
 	}
-	
+
 	public static ModelExecuteOptions createReconcile() {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setReconcile(true);
@@ -256,7 +256,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		setReconcile(true);
 		return this;
 	}
-	
+
 	public Boolean getReconcileFocus() {
 		return reconcileFocus;
 	}
@@ -270,7 +270,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		opts.setReconcileFocus(true);
 		return opts;
 	}
-	
+
 	public static boolean isReconcileFocus(ModelExecuteOptions options) {
 		if (options == null){
 			return false;
@@ -313,11 +313,11 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
     public Boolean getOverwrite() {
 		return overwrite;
 	}
-	
+
 	public void setOverwrite(Boolean overwrite) {
 		this.overwrite = overwrite;
 	}
-	
+
 	public static boolean isOverwrite(ModelExecuteOptions options){
 		if (options == null){
 			return false;
@@ -327,7 +327,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		}
 		return options.overwrite;
 	}
-	
+
 	public static ModelExecuteOptions createOverwrite(){
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setOverwrite(true);
@@ -342,11 +342,11 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public Boolean getIsImport() {
 		return isImport;
 	}
-	
+
 	public void setIsImport(Boolean isImport) {
 		this.isImport = isImport;
 	}
-	
+
 	public static boolean isIsImport(ModelExecuteOptions options){
 		if (options == null){
 			return false;
@@ -356,7 +356,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		}
 		return options.isImport;
 	}
-	
+
 	public static ModelExecuteOptions createIsImport(){
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setIsImport(true);
@@ -367,7 +367,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		setIsImport(true);
 		return this;
 	}
-	
+
     public void setExecuteImmediatelyAfterApproval(Boolean executeImmediatelyAfterApproval) {
         this.executeImmediatelyAfterApproval = executeImmediatelyAfterApproval;
     }
@@ -391,7 +391,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public void setLimitPropagation(Boolean limitPropagation) {
 		this.limitPropagation = limitPropagation;
 	}
-    
+
     public static boolean isLimitPropagation(ModelExecuteOptions options){
     	if (options == null){
     		return false;
@@ -479,14 +479,14 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public void setRequestBusinessContext(OperationBusinessContextType requestBusinessContext) {
 		this.requestBusinessContext = requestBusinessContext;
 	}
-	
+
 	public static OperationBusinessContextType getRequestBusinessContext(ModelExecuteOptions options) {
 		if (options == null) {
 			return null;
 		}
 		return options.getRequestBusinessContext();
 	}
-	
+
 	public static ModelExecuteOptions createRequestBusinessContext(OperationBusinessContextType requestBusinessContext) {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setRequestBusinessContext(requestBusinessContext);
@@ -500,14 +500,14 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public void setPartialProcessing(PartialProcessingOptionsType partialProcessing) {
 		this.partialProcessing = partialProcessing;
 	}
-	
+
 	public static PartialProcessingOptionsType getPartialProcessing(ModelExecuteOptions options) {
 		if (options == null) {
 			return null;
 		}
 		return options.getPartialProcessing();
 	}
-	
+
 	public static ModelExecuteOptions createPartialProcessing(PartialProcessingOptionsType partialProcessing) {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setPartialProcessing(partialProcessing);
@@ -574,12 +574,12 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		retval.setPartialProcessing(type.getPartialProcessing());
         return retval;
     }
-    
+
     public static ModelExecuteOptions fromRestOptions(List<String> options){
     	if (options == null || options.isEmpty()){
     		return null;
     	}
-    	
+
     	ModelExecuteOptions retVal = new ModelExecuteOptions();
     	for (String option : options){
     		if (ModelExecuteOptionsType.F_RAW.getLocalPart().equals(option)){
@@ -611,10 +611,10 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 			}
 			// preAuthorized is purposefully omitted (security reasons)
     	}
-    	
+
     	return retVal;
     }
-    
+
     @Override
     public String toString() {
     	StringBuilder sb = new StringBuilder("ModelExecuteOptions(");

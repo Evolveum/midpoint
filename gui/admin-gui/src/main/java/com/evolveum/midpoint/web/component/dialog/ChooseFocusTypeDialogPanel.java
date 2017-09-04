@@ -19,37 +19,37 @@ public class ChooseFocusTypeDialogPanel extends BasePanel implements Popupable{
 
 	private static final String ID_OBJECT_TYPE = "type";
 	private static final String ID_BUTTON_OK = "ok";
-	
+
 	public ChooseFocusTypeDialogPanel(String id) {
 		super(id);
 		initLayout();
 	}
-	
+
 	private void initLayout(){
 		DropDownChoice<QName> type = new DropDownChoice<QName>(ID_OBJECT_TYPE, Model.of(UserType.COMPLEX_TYPE),
 				 WebComponentUtil.createFocusTypeList(), new QNameChoiceRenderer());
 		type.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 	        type.setOutputMarkupId(true);
 	        add(type);
-	        
+
 	        AjaxButton confirmButton = new AjaxButton(ID_BUTTON_OK, createStringResource("Button.ok")) {
-				
-				
+
+
 				@Override
 				public void onClick(AjaxRequestTarget target) {
 					DropDownChoice<QName> type = (DropDownChoice<QName>) getParent().get(ID_OBJECT_TYPE);
 					QName typeChosen = type.getModelObject();
 					ChooseFocusTypeDialogPanel.this.okPerformed(typeChosen, target);
-					
+
 				}
 			};
-			
+
 			add(confirmButton);
 	}
 
 	protected void okPerformed(QName type, AjaxRequestTarget target) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -72,5 +72,5 @@ public class ChooseFocusTypeDialogPanel extends BasePanel implements Popupable{
 		return this;
 	}
 
-	
+
 }

@@ -24,9 +24,9 @@ import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
 
 /**
  * <p>Java class for FilterType complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="FilterType"&gt;
  *   &lt;complexContent&gt;
@@ -60,7 +60,7 @@ public class FilterClauseType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates a new {@code FilterType} instance.
-     * 
+     *
      */
     public FilterClauseType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -69,8 +69,8 @@ public class FilterClauseType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates a new {@code FilterType} instance by deeply copying a given {@code FilterType} instance.
-     * 
-     * 
+     *
+     *
      * @param o
      *     The instance to copy.
      * @throws NullPointerException
@@ -88,11 +88,11 @@ public class FilterClauseType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Gets the value of the matching property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
     public String getMatching() {
         return matching;
@@ -100,11 +100,11 @@ public class FilterClauseType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Sets the value of the matching property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
     public void setMatching(String value) {
         this.matching = value;
@@ -113,7 +113,7 @@ public class FilterClauseType implements Serializable, Cloneable, Equals, HashCo
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     * 
+     *
      */
     @Override
     public String toString() {
@@ -162,8 +162,8 @@ public class FilterClauseType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

@@ -52,40 +52,40 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 @Listeners({com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class})
 public abstract class AbstractAdTest extends AbstractLdapTest {
-	
+
 	protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ad");
-	
+
 	protected ConnectorHostType connectorHostType;
 
 	protected static final File ROLE_PIRATES_FILE = new File(TEST_DIR, "role-pirate.xml");
 	protected static final String ROLE_PIRATES_OID = "5dd034e8-41d2-11e5-a123-001e8c717e5b";
-	
+
 	protected static final File ROLE_META_ORG_FILE = new File(TEST_DIR, "role-meta-org.xml");
 	protected static final String ROLE_META_ORG_OID = "f2ad0ace-45d7-11e5-af54-001e8c717e5b";
-	
+
 	public static final String ATTRIBUTE_LOCKOUT_LOCKED_NAME = "lockedByIntruder";
 	public static final String ATTRIBUTE_LOCKOUT_RESET_TIME_NAME = "loginIntruderResetTime";
 	public static final String ATTRIBUTE_GROUP_MEMBERSHIP_NAME = "groupMembership";
 	public static final String ATTRIBUTE_EQUIVALENT_TO_ME_NAME = "equivalentToMe";
 	public static final String ATTRIBUTE_SECURITY_EQUALS_NAME = "securityEquals";
-	
+
 	protected static final String ACCOUNT_JACK_UID = "jack";
 	protected static final String ACCOUNT_JACK_PASSWORD = "qwe123";
-	
+
 	private static final String GROUP_PIRATES_NAME = "pirates";
 	private static final String GROUP_MELEE_ISLAND_NAME = "Mêlée Island";
-	
+
 	protected static final int NUMBER_OF_ACCOUNTS = 4;
 	protected static final int LOCKOUT_EXPIRATION_SECONDS = 65;
 	private static final String ASSOCIATION_GROUP_NAME = "group";
-	
+
 	protected String jackAccountOid;
 	protected String groupPiratesOid;
 	protected long jackLockoutTimestamp;
 	private String accountBarbossaOid;
 	private String orgMeleeIslandOid;
 	protected String groupMeleeOid;
-	
+
 	@Override
 	public String getStartSystemCommand() {
 		return null;
@@ -100,28 +100,28 @@ public abstract class AbstractAdTest extends AbstractLdapTest {
 	protected File getBaseDir() {
 		return TEST_DIR;
 	}
-	
+
 	@Override
 	protected String getResourceOid() {
 		return "188ec322-4bd7-11e5-b919-001e8c717e5b";
 	}
-	
+
 	@Override
 	protected File getResourceFile() {
 		return new File(getBaseDir(), "resource-medusa.xml");
 	}
-	
+
 	protected String getConnectorHostOid() {
 		return "08e687b6-4bd7-11e5-8484-001e8c717e5b";
 	}
-	
+
 	protected abstract File getConnectorHostFile();
 
 	@Override
 	protected String getSyncTaskOid() {
 		return null;
 	}
-	
+
 	@Override
 	protected boolean useSsl() {
 		return true;
@@ -146,12 +146,12 @@ public abstract class AbstractAdTest extends AbstractLdapTest {
 	protected int getSearchSizeLimit() {
 		return -1;
 	}
-	
+
 	@Override
 	public String getPrimaryIdentifierAttributeName() {
 		return "GUID";
 	}
-	
+
 	@Override
 	protected QName getAccountObjectClass() {
 		return new QName(MidPointConstants.NS_RI,  "AccountObjectClass");
@@ -166,35 +166,35 @@ public abstract class AbstractAdTest extends AbstractLdapTest {
 	protected String getLdapGroupMemberAttribute() {
 		return "member";
 	}
-	
+
 	private QName getAssociationGroupQName() {
 		return new QName(MidPointConstants.NS_RI, ASSOCIATION_GROUP_NAME);
 	}
-	
+
 	@Override
 	protected boolean isImportResourceAtInit() {
 		return false;
 	}
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 //		binaryAttributeDetector.addBinaryAttribute("GUID");
 
 		// Connector host
 		connectorHostType = repoAddObjectFromFile(getConnectorHostFile(), ConnectorHostType.class, initResult).asObjectable();
-		
+
 		// Users
 		repoAddObjectFromFile(USER_BARBOSSA_FILE, initResult);
 		repoAddObjectFromFile(USER_GUYBRUSH_FILE, initResult);
-		
+
 		// Roles
 //		repoAddObjectFromFile(ROLE_PIRATES_FILE, RoleType.class, initResult);
 //		repoAddObjectFromFile(ROLE_META_ORG_FILE, RoleType.class, initResult);
-		
+
 	}
-	
+
 	@Test
     public void test000Sanity() throws Exception {
 //		assertLdapPassword(ACCOUNT_JACK_UID, ACCOUNT_JACK_PASSWORD);
@@ -209,20 +209,20 @@ public abstract class AbstractAdTest extends AbstractLdapTest {
     public void test001ConnectorHostDiscovery() throws Exception {
 		final String TEST_NAME = "test001ConnectorHostDiscovery";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        
+
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         modelService.discoverConnectors(connectorHostType, task, result);
-        
+
         // THEN
  		result.computeStatus();
  		TestUtil.assertSuccess(result);
- 		
+
  		SearchResultList<PrismObject<ConnectorType>> connectors = modelService.searchObjects(ConnectorType.class, null, null, task, result);
- 		
+
  		boolean found = false;
  		for (PrismObject<ConnectorType> connector: connectors) {
  			if (CONNECTOR_AD_TYPE.equals(connector.asObjectable().getConnectorType())) {
@@ -232,70 +232,70 @@ public abstract class AbstractAdTest extends AbstractLdapTest {
  		}
  		assertTrue("AD Connector not found", found);
 	}
-	
+
 	@Test
     public void test002ImportResource() throws Exception {
 		final String TEST_NAME = "test002ImportResource";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        
+
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         resource = importAndGetObjectFromFile(ResourceType.class, getResourceFile(), getResourceOid(), task, result);
-        
+
         // THEN
  		result.computeStatus();
  		TestUtil.assertSuccess(result);
- 		
+
  		resourceType = resource.asObjectable();
 	}
-	
+
 	@Test
     public void test020Schema() throws Exception {
 		final String TEST_NAME = "test020Schema";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        
-        // GIVEN        
+
+        // GIVEN
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
         display("Resource schema", resourceSchema);
-        
+
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
         display("Refined schema", refinedSchema);
         accountObjectClassDefinition = refinedSchema.findObjectClassDefinition(getAccountObjectClass());
         assertNotNull("No definition for object class "+getAccountObjectClass(), accountObjectClassDefinition);
         display("Account object class def", accountObjectClassDefinition);
-        
+
         ResourceAttributeDefinition<String> cnDef = accountObjectClassDefinition.findAttributeDefinition("cn");
         PrismAsserts.assertDefinition(cnDef, new QName(MidPointConstants.NS_RI, "cn"), DOMUtil.XSD_STRING, 0, 1);
         assertTrue("cn read", cnDef.canRead());
     	assertFalse("cn modify", cnDef.canModify());
     	assertFalse("cn add", cnDef.canAdd());
-        
+
         ResourceAttributeDefinition<String> userPrincipalNameDef = accountObjectClassDefinition.findAttributeDefinition("userPrincipalName");
         PrismAsserts.assertDefinition(userPrincipalNameDef, new QName(MidPointConstants.NS_RI, "userPrincipalName"), DOMUtil.XSD_STRING, 0, 1);
         assertTrue("o read", userPrincipalNameDef.canRead());
         assertTrue("o modify", userPrincipalNameDef.canModify());
         assertTrue("o add", userPrincipalNameDef.canAdd());
-        
+
 	}
 
-	
+
 	@Test
     public void test050Capabilities() throws Exception {
 		final String TEST_NAME = "test050Capabilities";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        
+
         Collection<Object> nativeCapabilitiesCollection = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);
         display("Native capabilities", nativeCapabilitiesCollection);
-        
+
         assertTrue("No native activation capability", ResourceTypeUtil.hasResourceNativeActivationCapability(resourceType));
         assertTrue("No native activation status capability", ResourceTypeUtil.hasResourceNativeActivationStatusCapability(resourceType));
         assertTrue("No native lockout capability", ResourceTypeUtil.hasResourceNativeActivationLockoutCapability(resourceType));
         assertTrue("No native credentias capability", ResourceTypeUtil.isCredentialsCapabilityEnabled(resourceType));
 	}
 
-	
+
 
 }

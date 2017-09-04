@@ -39,18 +39,18 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
 	private static final Trace LOGGER = TraceManager.getTrace(MidPointAuthenticationProvider.class);
-	
+
 	@Autowired
 	private transient AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
 
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-		
+
 		String enteredUsername = (String) authentication.getPrincipal();
 		LOGGER.trace("Authenticating username '{}'", enteredUsername);
-		
+
 		ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
-		
+
 		Authentication token;
 		if (authentication instanceof UsernamePasswordAuthenticationToken) {
 			String enteredPassword = (String) authentication.getCredentials();
@@ -63,7 +63,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		}
 
 		MidPointPrincipal principal = (MidPointPrincipal)token.getPrincipal();
-		
+
 		LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
 				authentication.getClass().getSimpleName(), principal.getAuthorities());
 		return token;

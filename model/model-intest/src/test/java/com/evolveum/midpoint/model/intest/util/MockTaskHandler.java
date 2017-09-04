@@ -38,9 +38,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * This task handler does nothing. Used in the tests.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 @Component
 public class MockTaskHandler implements TaskHandler {
@@ -68,13 +68,13 @@ public class MockTaskHandler implements TaskHandler {
 		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
-		
+
 		opResult.recordSuccess();
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(1);
 
 		LOGGER.trace("MockTaskHandler.run ending");
-		
+
 		return runResult;
 	}
 

@@ -42,28 +42,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectRefExpre
 /**
  * @author Radovan Semancik
  */
-public class AssignmentTargetSearchExpressionEvaluator 
+public class AssignmentTargetSearchExpressionEvaluator
 			extends AbstractSearchExpressionEvaluator<PrismContainerValue<AssignmentType>,
 			                                          PrismContainerDefinition<AssignmentType>> {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTargetSearchExpressionEvaluator.class);
-	
-	public AssignmentTargetSearchExpressionEvaluator(SearchObjectRefExpressionEvaluatorType expressionEvaluatorType, 
-			PrismContainerDefinition<AssignmentType> outputDefinition, Protector protector, ObjectResolver objectResolver, 
+
+	public AssignmentTargetSearchExpressionEvaluator(SearchObjectRefExpressionEvaluatorType expressionEvaluatorType,
+			PrismContainerDefinition<AssignmentType> outputDefinition, Protector protector, ObjectResolver objectResolver,
 			ModelService modelService, PrismContext prismContext, SecurityEnforcer securityEnforcer) {
 		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer);
 	}
-	
+
 	protected PrismContainerValue<AssignmentType> createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>> additionalAttributeDeltas, ExpressionEvaluationContext params) {
 		AssignmentType assignmentType = new AssignmentType();
 		PrismContainerValue<AssignmentType> assignmentCVal = assignmentType.asPrismContainerValue();
-		
+
 		ObjectReferenceType targetRef = new ObjectReferenceType();
 		targetRef.setOid(oid);
 		targetRef.setType(targetTypeQName);
 		targetRef.setRelation(((SearchObjectRefExpressionEvaluatorType)getExpressionEvaluatorType()).getRelation());
 		assignmentType.setTargetRef(targetRef);
-				
+
 		try {
 			if (additionalAttributeDeltas != null) {
 				ItemDelta.applyTo(additionalAttributeDeltas, assignmentCVal);
@@ -76,7 +76,7 @@ public class AssignmentTargetSearchExpressionEvaluator
 			// Should not happen
 			throw new SystemException(e);
 		}
-		
+
 		return assignmentCVal;
 	}
 

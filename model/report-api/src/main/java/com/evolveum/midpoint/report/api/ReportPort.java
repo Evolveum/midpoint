@@ -9,7 +9,7 @@ public interface ReportPort {
 	String CLASS_NAME_WITH_DOT = ReportPort.class.getName() + ".";
 	String PROCESS_REPORT = CLASS_NAME_WITH_DOT + "processReport";
 
-	
+
 	 public static final QName PARSE_QUERY_RESPONSE = new QName(SchemaConstants.NS_REPORT_WS, "parseQueryResponse");
 	 public static final QName PROCESS_REPORT_RESPONSE = new QName(SchemaConstants.NS_REPORT_WS, "processReportResponse");
 	 public static final QName EVALUATE_SCRIPT_RESPONSE = new QName(SchemaConstants.NS_REPORT_WS, "evaluateScriptResponse");

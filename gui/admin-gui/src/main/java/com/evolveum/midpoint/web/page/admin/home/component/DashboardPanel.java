@@ -31,7 +31,7 @@ import java.io.Serializable;
  */
 public abstract class DashboardPanel<T extends Serializable> extends BasePanel<T> {
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final String ID_DASHBOARD_PARENT = "dashboardParent";
     private static final String ID_DASHBOARD_TITLE = "dashboardTitle";
     private static final String ID_TITLE = "title";
@@ -48,7 +48,7 @@ public abstract class DashboardPanel<T extends Serializable> extends BasePanel<T
     	if (boxCssClasses == null) {
         	boxCssClasses = GuiStyleConstants.CLASS_BOX_DEFAULT;
         }
-    	
+
         WebMarkupContainer dashboardParent = new WebMarkupContainer(ID_DASHBOARD_PARENT);
         dashboardParent.add(new AttributeAppender("class", " " + boxCssClasses));
         add(dashboardParent);
@@ -63,7 +63,7 @@ public abstract class DashboardPanel<T extends Serializable> extends BasePanel<T
         WebMarkupContainer dashboardContent = new WebMarkupContainer(ID_DASHBOARD_CONTENT);
         dashboardContent.add(getMainComponent(ID_CONTENT));
         dashboardParent.add(dashboardContent);
-        
+
         WebMarkupContainer iconI = new WebMarkupContainer(ID_ICON);
         iconI.add(AttributeModifier.replace("class", icon));
         dashboardTitle.add(iconI);

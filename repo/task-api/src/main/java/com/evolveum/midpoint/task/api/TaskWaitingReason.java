@@ -19,9 +19,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonTyp
 
 /**
  * Task waiting reason.
- * 
+ *
  * @author mederly
- * 
+ *
  */
 public enum TaskWaitingReason {
 	/**
@@ -34,7 +34,7 @@ public enum TaskWaitingReason {
 	 * The task is waiting for a workflow process (that it monitors/shadows) to be finished.
 	 */
 	WORKFLOW,
-	
+
 	/**
      * The task is waiting because of other reason.
 	 */

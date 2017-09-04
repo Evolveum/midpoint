@@ -90,7 +90,7 @@ public class CertReviewEvent extends AccessCertificationEvent {
     public List<AccessCertificationCaseType> getCases() {
         return cases;
     }
-    
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);

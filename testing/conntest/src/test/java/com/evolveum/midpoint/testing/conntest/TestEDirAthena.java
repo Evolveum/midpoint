@@ -34,7 +34,7 @@ public class TestEDirAthena extends AbstractEDirTest {
 	protected String getResourceOid() {
 		return "0893372c-3c42-11e5-9179-001e8c717e5b";
 	}
-	
+
 	@Override
 	protected File getResourceFile() {
 		return new File(getBaseDir(), "resource-athena.xml");
@@ -49,5 +49,5 @@ public class TestEDirAthena extends AbstractEDirTest {
 	protected int getLdapServerPort() {
 		return 33636;
 	}
-	
+
 }

@@ -44,7 +44,7 @@ import org.apache.commons.lang.Validate;
  *
  */
 public class AssignmentTargetSearchExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
-	
+
 	private PrismContext prismContext;
 	private Protector protector;
 	private ObjectResolver objectResolver;
@@ -87,7 +87,7 @@ public class AssignmentTargetSearchExpressionEvaluatorFactory implements Express
 			}
 			evaluatorElement = evaluatorElements.iterator().next();
 		}
-		
+
 		Object evaluatorTypeObject = null;
         if (evaluatorElement != null) {
         	evaluatorTypeObject = evaluatorElement.getValue();
@@ -95,7 +95,7 @@ public class AssignmentTargetSearchExpressionEvaluatorFactory implements Express
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof SearchObjectRefExpressionEvaluatorType)) {
             throw new SchemaException("assignment expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        AssignmentTargetSearchExpressionEvaluator expressionEvaluator = new AssignmentTargetSearchExpressionEvaluator((SearchObjectRefExpressionEvaluatorType)evaluatorTypeObject, 
+        AssignmentTargetSearchExpressionEvaluator expressionEvaluator = new AssignmentTargetSearchExpressionEvaluator((SearchObjectRefExpressionEvaluatorType)evaluatorTypeObject,
         		(PrismContainerDefinition<AssignmentType>) outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer);
         return (ExpressionEvaluator<V,D>) expressionEvaluator;
 	}

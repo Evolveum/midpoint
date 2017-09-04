@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Scanner that looks for pending operations in the shadows and updates the status.
- * 
+ *
  * @author Radovan Semancik
  */
 @Component
@@ -50,14 +50,14 @@ public class ShadowRefreshTaskHandler extends AbstractScannerTaskHandler<ShadowT
 	// It is a spring bean and it is supposed to handle all search task instances
 	// Therefore it must not have task-specific fields. It can only contain fields specific to
 	// all tasks of a specified type
-	
+
 	public static final String HANDLER_URI = ModelPublicConstants.SHADOW_REFRESH_TASK_HANDLER_URI;
-        	
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(ShadowRefreshTaskHandler.class);
-	
+
 	@Autowired(required = true)
     protected ProvisioningService provisioningService;
-	
+
 	public ShadowRefreshTaskHandler() {
         super(ShadowType.class, "Shadow refresh", OperationConstants.SHADOW_REFRESH);
     }
@@ -71,7 +71,7 @@ public class ShadowRefreshTaskHandler extends AbstractScannerTaskHandler<ShadowT
 	protected Class<ShadowType> getType(Task task) {
 		return ShadowType.class;
 	}
-	
+
 	@Override
 	protected boolean useRepositoryDirectly(AbstractScannerResultHandler<ShadowType> resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
         return true;
@@ -84,7 +84,7 @@ public class ShadowRefreshTaskHandler extends AbstractScannerTaskHandler<ShadowT
 		ObjectFilter filter = QueryBuilder.queryFor(ShadowType.class, prismContext)
 				.exists(ShadowType.F_PENDING_OPERATION)
 			.buildFilter();
-		
+
 		query.setFilter(filter);
 		return query;
 	}
@@ -98,7 +98,7 @@ public class ShadowRefreshTaskHandler extends AbstractScannerTaskHandler<ShadowT
 	@Override
 	protected AbstractScannerResultHandler<ShadowType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
 			OperationResult opResult) {
-		
+
 		AbstractScannerResultHandler<ShadowType> handler = new AbstractScannerResultHandler<ShadowType>(
 				coordinatorTask, ShadowRefreshTaskHandler.class.getName(), "shadowRefresh", "shadow refresh task", taskManager) {
 			@Override
@@ -106,7 +106,7 @@ public class ShadowRefreshTaskHandler extends AbstractScannerTaskHandler<ShadowT
 				LOGGER.trace("Refreshing {}", object);
 
 				provisioningService.refreshShadow(object, null, workerTask, result);
-				
+
 				LOGGER.trace("Refreshed {}", object);
 				return true;
 			}

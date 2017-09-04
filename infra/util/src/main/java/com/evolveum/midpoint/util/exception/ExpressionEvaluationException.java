@@ -19,7 +19,7 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 
 /**
  * Error during evaluation of expression. The expressions are defined by system administrator.
- * 
+ *
  * @author Radovan Semancik
  *
  */
@@ -44,7 +44,7 @@ public class ExpressionEvaluationException extends CommonException {
 	public ExpressionEvaluationException(String message, Throwable cause) {
 		super(message, cause);
 	}
-	
+
 	public ExpressionEvaluationException(String message, Throwable cause, LocalizableMessage userFriendlyMessage) {
 		super(message, cause, userFriendlyMessage);
 	}

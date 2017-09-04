@@ -40,7 +40,7 @@ import java.io.InputStream;
 public class ReportCreateHandlerPanel extends DefaultHandlerPanel<ReportCreateHandlerDto> {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final String ID_DOWNLOAD_CONTAINER = "downloadContainer";
 	private static final String ID_DOWNLOAD = "download";
 	private static final String ID_REPORT_PARAMETERS_CONTAINER = "reportParametersContainer";
@@ -54,7 +54,7 @@ public class ReportCreateHandlerPanel extends DefaultHandlerPanel<ReportCreateHa
 	}
 
 	private void initLayout(final PageTaskEdit parentPage) {
-		
+
 		final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream() {
 			private static final long serialVersionUID = 1L;
 
@@ -67,8 +67,8 @@ public class ReportCreateHandlerPanel extends DefaultHandlerPanel<ReportCreateHa
 					return null;
 				}
 			}
-			
-			
+
+
 			@Override
 			public String getFileName() {
 				ReportOutputType reportObject = getReportOutput(parentPage);
@@ -85,9 +85,9 @@ public class ReportCreateHandlerPanel extends DefaultHandlerPanel<ReportCreateHa
 
 		WebMarkupContainer downloadContainer = new WebMarkupContainer(ID_DOWNLOAD_CONTAINER);
 		AjaxButton download = new AjaxButton(ID_DOWNLOAD) {
-			
+
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				ajaxDownloadBehavior.initiate(target);
@@ -95,9 +95,9 @@ public class ReportCreateHandlerPanel extends DefaultHandlerPanel<ReportCreateHa
 		};
 		downloadContainer.add(download);
 		downloadContainer.add(new VisibleEnableBehaviour() {
-			
+
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public boolean isVisible() {
 				ReportOutputType reportObject = getReportOutput(parentPage);
@@ -106,16 +106,16 @@ public class ReportCreateHandlerPanel extends DefaultHandlerPanel<ReportCreateHa
 		});
 		add(downloadContainer);
 	}
-	
+
 	private ReportOutputType getReportOutput(PageTaskEdit parentPage) {
 		String outputOid = getModelObject().getReportOutputOid();
-		
+
 		if (outputOid == null) {
 			return null;
-		} 
+		}
 		Task task = parentPage.createSimpleTask(OPERATION_LOAD_REPORT_OUTPUT);
 		PrismObject<ReportOutputType> reportOutput = WebModelServiceUtils.loadObject(ReportOutputType.class, outputOid, parentPage, task, task.getResult());
-		
+
 		if (reportOutput == null) {
 			return null;
 		}

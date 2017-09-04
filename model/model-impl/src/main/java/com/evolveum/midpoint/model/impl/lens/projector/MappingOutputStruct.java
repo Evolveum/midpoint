@@ -31,7 +31,7 @@ public class MappingOutputStruct<V extends PrismValue> {
 	public PrismValueDeltaSetTriple<V> getOutputTriple() {
 		return outputTriple;
 	}
-	
+
 	public void setOutputTriple(PrismValueDeltaSetTriple<V> outputTriple) {
 		this.outputTriple = outputTriple;
 	}
@@ -51,5 +51,5 @@ public class MappingOutputStruct<V extends PrismValue> {
 	public void setWeakMappingWasUsed(boolean weakMappingWasUsed) {
 		this.weakMappingWasUsed = weakMappingWasUsed;
 	}
-	
+
 }

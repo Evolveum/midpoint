@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *
  */
 public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefinition, T extends ObjectType, F extends FocusType> {
-	
+
 	private Collection<MappingType> mappingTypes;
 	private String mappingDesc;
 	private XMLGregorianCalendar now;
@@ -56,35 +56,35 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
 	private boolean hasFullTargetObject;
 	// If set to true then the target cannot be overridden in mapping
 	private boolean fixTarget = false;
-	
+
 	public Collection<MappingType> getMappingTypes() {
 		return mappingTypes;
 	}
-	
+
 	public void setMappingTypes(Collection<MappingType> mappingTypes) {
 		this.mappingTypes = mappingTypes;
 	}
-	
+
 	public String getMappingDesc() {
 		return mappingDesc;
 	}
-	
+
 	public void setMappingDesc(String mappingDesc) {
 		this.mappingDesc = mappingDesc;
 	}
-	
+
 	public XMLGregorianCalendar getNow() {
 		return now;
 	}
-	
+
 	public void setNow(XMLGregorianCalendar now) {
 		this.now = now;
 	}
-	
+
 	public MappingInitializer<V,D> getInitializer() {
 		return initializer;
 	}
-	
+
 	public void setInitializer(MappingInitializer<V,D> initializer) {
 		this.initializer = initializer;
 	}
@@ -100,35 +100,35 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
 	public MappingOutputProcessor<V> getProcessor() {
 		return processor;
 	}
-	
+
 	public void setProcessor(MappingOutputProcessor<V> processor) {
 		this.processor = processor;
 	}
-	
+
 	public PrismObject<T> getAPrioriTargetObject() {
 		return aPrioriTargetObject;
 	}
-	
+
 	public void setAPrioriTargetObject(PrismObject<T> aPrioriTargetObject) {
 		this.aPrioriTargetObject = aPrioriTargetObject;
 	}
-	
+
 	public ObjectDelta<T> getAPrioriTargetDelta() {
 		return aPrioriTargetDelta;
 	}
-	
+
 	public void setAPrioriTargetDelta(ObjectDelta<T> aPrioriTargetDelta) {
 		this.aPrioriTargetDelta = aPrioriTargetDelta;
 	}
-	
+
 	public LensElementContext<T> getTargetContext() {
 		return targetContext;
 	}
-	
+
 	public void setTargetContext(LensElementContext<T> targetContext) {
 		this.targetContext = targetContext;
 	}
-	
+
 	public ObjectDeltaObject<?> getSourceContext() {
 		return sourceContext;
 	}
@@ -140,11 +140,11 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
 	public Boolean getEvaluateCurrent() {
 		return evaluateCurrent;
 	}
-	
+
 	public void setEvaluateCurrent(Boolean evaluateCurrent) {
 		this.evaluateCurrent = evaluateCurrent;
 	}
-	
+
 	public boolean isEvaluateWeak() {
 		return evaluateWeak;
 	}
@@ -156,7 +156,7 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
 	public LensContext<F> getContext() {
 		return context;
 	}
-	
+
 	public void setContext(LensContext<F> context) {
 		this.context = context;
 	}
@@ -192,5 +192,5 @@ public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefiniti
 	public void setTargetItemDefinition(D targetItemDefinition) {
 		this.targetItemDefinition = targetItemDefinition;
 	}
-	
+
 }

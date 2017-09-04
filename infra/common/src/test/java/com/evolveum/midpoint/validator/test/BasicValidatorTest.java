@@ -55,7 +55,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Test few basic cases of validation.
- * 
+ *
  * @author Radovan Semancik
  */
 public class BasicValidatorTest {
@@ -65,7 +65,7 @@ public class BasicValidatorTest {
 
     public BasicValidatorTest() {
     }
-    
+
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -75,24 +75,24 @@ public class BasicValidatorTest {
     @Test
     public void resource1Valid() throws Exception {
     	System.out.println("\n===[ resource1Valid ]=====");
-    	
+
     	OperationResult result = new OperationResult(this.getClass().getName()+".resource1Valid");
-    	
+
         EventHandler handler = new EventHandler() {
-			
+
 			@Override
 			public EventResult preMarshall(Element objectElement, Node postValidationTree,
 					OperationResult objectResult) {
 				return EventResult.cont();
 			}
-			
+
 			@Override
 			public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
 					OperationResult objectResult) {
 				System.out.println("Validating resorce:");
 				System.out.println(object.debugDump());
 				object.checkConsistence();
-				
+
 				PrismContainer<?> extensionContainer = object.getExtension();
 				PrismProperty<Integer> menProp = extensionContainer.findProperty(new QName("http://myself.me/schemas/whatever","menOnChest"));
 				assertNotNull("No men on a dead man chest!", menProp);
@@ -101,14 +101,14 @@ public class BasicValidatorTest {
 				assertNotNull("Men on a dead man chest NOT defined", menPropDef);
 				assertEquals("Wrong type for men on a dead man chest definition", DOMUtil.XSD_INT, menPropDef.getTypeName());
 				assertTrue("Men on a dead man chest definition not dynamic", menPropDef.isDynamic());
-				
+
 				return EventResult.cont();
 			}
-			
+
 			@Override
 			public void handleGlobalError(OperationResult currentResult) { /* nothing */ }
 		};
-        
+
 		validateFile("resource-1-valid.xml", handler, result);
         AssertJUnit.assertTrue(result.isSuccess());
 
@@ -119,7 +119,7 @@ public class BasicValidatorTest {
     	System.out.println("\n===[ handlerTest ]=====");
 
     	OperationResult result = new OperationResult(this.getClass().getName()+".handlerTest");
-    	
+
         final List<String> postMarshallHandledOids = new ArrayList<String>();
         final List<String> preMarshallHandledOids = new ArrayList<String>();
 
@@ -164,9 +164,9 @@ public class BasicValidatorTest {
     	System.out.println("\n===[ notWellFormed ]=====");
 
     	OperationResult result = new OperationResult(this.getClass().getName()+".notWellFormed");
-    	
+
         validateFile("not-well-formed.xml",result);
-        
+
         System.out.println(result.debugDump());
         AssertJUnit.assertFalse(result.isSuccess());
         AssertJUnit.assertTrue(result.getMessage().contains("Unexpected close tag"));
@@ -178,11 +178,11 @@ public class BasicValidatorTest {
     @Test
     public void undeclaredPrefix() throws Exception {
     	System.out.println("\n===[ undeclaredPrefix ]=====");
-    	
+
         OperationResult result = new OperationResult(this.getClass().getName()+".undeclaredPrefix");
-        
+
         validateFile("undeclared-prefix.xml",result);
-        
+
         System.out.println(result.debugDump());
         AssertJUnit.assertFalse(result.isSuccess());
         AssertJUnit.assertTrue(result.getMessage().contains("Undeclared namespace prefix"));
@@ -194,11 +194,11 @@ public class BasicValidatorTest {
     @Test
     public void schemaViolation() throws Exception {
     	System.out.println("\n===[ schemaViolation ]=====");
-    	
+
         OperationResult result = new OperationResult(this.getClass().getName()+".schemaViolation");
-        
+
         validateFile("three-users-schema-violation.xml",result);
-        
+
         System.out.println(result.debugDump());
         assertFalse(result.isSuccess());
         assertTrue(result.getSubresults().get(0).getMessage().contains("Invalid content was found starting with element 'foo'"));
@@ -212,26 +212,26 @@ public class BasicValidatorTest {
     @Test
     public void testStopOnErrors() throws Exception {
     	System.out.println("\n===[ testStopOnErrors ]=====");
-    	
+
         OperationResult result = new OperationResult(this.getClass().getName()+".testStopOnErrors");
-        
+
         Validator validator = new Validator(PrismTestUtil.getPrismContext());
         validator.setVerbose(false);
         validator.setStopAfterErrors(2);
-        
+
         validateFile("three-users-schema-violation.xml", null, validator, result);
-        
+
         System.out.println(result.debugDump());
         assertFalse(result.isSuccess());
         assertEquals(2,result.getSubresults().size());
     }
-    
+
     @Test
     public void noName() throws Exception {
     	System.out.println("\n===[ noName ]=====");
 
         OperationResult result = new OperationResult(this.getClass().getName()+".noName");
-        
+
         validateFile("no-name.xml",result);
 
         System.out.println(result.debugDump());
@@ -253,7 +253,7 @@ public class BasicValidatorTest {
         validator.setVerbose(false);
         validateFile(filename, handler, validator, result);
     }
-    
+
     private void validateFile(String filename,EventHandler handler, Validator validator, OperationResult result) throws FileNotFoundException {
 
         String filepath = BASE_PATH + filename;

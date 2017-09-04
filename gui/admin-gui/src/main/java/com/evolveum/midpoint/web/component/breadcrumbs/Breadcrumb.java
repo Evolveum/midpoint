@@ -32,13 +32,13 @@ import java.util.Arrays;
 
 /**
  * Breadcrumb object that is stored in the session. It represents the way "back" to the main menu.
- * 
+ *
  * We need to be extra careful about the memory references here. This object goes in the session.
  * Therefore we cannot allow models to be stored in the session. The models may have references
  * to (possibly big) pages and other rich objects. The references are there mostly to load the
  * models. But we do not want that. We want to store only the values. Therefore the model values
  * are copied to simple strings on model detach().
- * 
+ *
  * @author Viliam Repan (lazyman)
  * @author semancik
  */
@@ -108,7 +108,7 @@ public class Breadcrumb implements Serializable, DebugDumpable {
 				Breadcrumb.this.label = label.getObject();
 				Breadcrumb.this.labelModel = null;
 			}
-            
+
         };
     }
 
@@ -150,7 +150,7 @@ public class Breadcrumb implements Serializable, DebugDumpable {
 				Breadcrumb.this.icon = icon.getObject();
 				Breadcrumb.this.iconModel = null;
 			}
-            
+
         };
     }
 
@@ -200,7 +200,7 @@ public class Breadcrumb implements Serializable, DebugDumpable {
 				super.detach();
 				model.getObject();
 			}
-            
+
         };
     }
 
@@ -240,6 +240,6 @@ public class Breadcrumb implements Serializable, DebugDumpable {
 	}
 
 	protected void extendsDebugDump(StringBuilder sb, int indent) {
-		
+
 	}
 }

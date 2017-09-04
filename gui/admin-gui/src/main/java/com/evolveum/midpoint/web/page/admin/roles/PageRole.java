@@ -60,7 +60,7 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 	public PageRole(PrismObject<RoleType> roleToEdit) {
 		initialize(roleToEdit);
 	}
-	
+
 	public PageRole(PageParameters parameters) {
 		getPageParameters().overwriteWith(parameters);
 		initialize(null);

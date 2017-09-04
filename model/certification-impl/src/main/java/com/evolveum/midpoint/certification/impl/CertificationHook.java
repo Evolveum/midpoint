@@ -48,16 +48,16 @@ import java.util.stream.Collectors;
 
 /**
  * Starts ad-hoc certifications as prescribed by "certificate" policy action.
- * 
+ *
  * @author mederly
  */
 @Component
 public class CertificationHook implements ChangeHook {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(CertificationHook.class);
-	
+
 	private static final String HOOK_URI = SchemaConstants.NS_MODEL + "/certification-hook-3";
-	
+
 	@Autowired private HookRegistry hookRegistry;
 	@Autowired private CertificationManagerImpl certificationManager;
 	@Autowired private AccCertUpdateHelper updateHelper;
@@ -92,7 +92,7 @@ public class CertificationHook implements ChangeHook {
 	private Collection<CertificationPolicyActionType> getFocusCertificationActions(ModelContext<?> context) {
 		return getCertificationActions(context.getFocusContext().getPolicyRules());
 	}
-	
+
 	private Collection<CertificationPolicyActionType> getAssignmentCertificationActions(ModelContext<?> context) {
 		DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
 		if (evaluatedAssignmentTriple == null) {

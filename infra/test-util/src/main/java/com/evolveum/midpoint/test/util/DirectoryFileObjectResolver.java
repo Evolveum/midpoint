@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class DirectoryFileObjectResolver implements ObjectResolver {
 
 	private File directory;
-	
+
 	public DirectoryFileObjectResolver(File directory) {
 		super();
 		this.directory = directory;
@@ -63,7 +63,7 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 			throw new ObjectNotFoundException("Object "+ref.getOid()+" does not exists");
 		}
 	}
-	
+
 	private String oidToFilename(String oid) {
 		return oid+".xml";
 	}

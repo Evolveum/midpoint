@@ -26,7 +26,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
  * @author lazyman
  */
 public class ResourceObjectTypeDto implements Serializable {
-	
+
 	private static final long serialVersionUID = 4664988785770149299L;
 	private String displayName;
 	private String nativeObjectClass;

@@ -95,7 +95,7 @@ public class ReportsStorage implements PageStorage {
 	public void setReportOutputSearch(ReportOutputSearchDto reportOutputSearch) {
 		this.reportOutputSearch = reportOutputSearch;
 	}
-	
+
 	@Override
 	public String debugDump() {
 		return debugDump(0);

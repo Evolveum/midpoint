@@ -47,7 +47,7 @@ public class ReportWebService implements ReportPortType, ReportPort {
 	@Autowired(required = true)
 	private ReportService reportService;
 
-	
+
 	@Override
 	public ObjectListType evaluateScript(String script, RemoteReportParametersType parameters) {
 		try {
@@ -101,7 +101,7 @@ public class ReportWebService implements ReportPortType, ReportPort {
 		}
 
 		return parametersMap;
-	
+
 
 	}
 
@@ -141,13 +141,13 @@ public class ReportWebService implements ReportPortType, ReportPort {
 		return results;
 	}
 
-	
+
 	@Override
 	public ObjectListType processReport(String query, RemoteReportParametersType parameters,
 			SelectorQualifiedGetOptionsType options) {
 
 		try {
-			
+
 			Map<QName, Object> parametersMap = getParamsMap(parameters);
 			ObjectQuery q = reportService.parseQuery(query, parametersMap);
 			Collection<PrismObject<? extends ObjectType>> resultList = reportService.searchObjects(q,

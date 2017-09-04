@@ -25,35 +25,35 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 
 /**
- * Interface that allows location of model and model-like services, 
+ * Interface that allows location of model and model-like services,
  * such as ModelService and ModelInteractionService.
  * Used by GUI components that need to interact with the midPoint IDM model,
  * especially for loading data.
  * Usually implemented by PageBase and similar "central" GUI classes.
- * 
+ *
  * @author Radovan Semancik
  */
 public interface ModelServiceLocator {
-	
+
 	ModelService getModelService();
-	
+
 	ModelInteractionService getModelInteractionService();
-	
+
 	Task createSimpleTask(String operationName);
-	
+
 	/**
 	 * Returns a task, that is used to retrieve and render the entire content
 	 * of the page. A single task is created to render the whole page, so
 	 * the summary result can be collected in the task result.
 	 */
 	Task getPageTask();
-	
+
 	PrismContext getPrismContext();
-	
+
 	SecurityEnforcer getSecurityEnforcer();
-	
+
 	ExpressionFactory getExpressionFactory();
-	
+
 	/**
 	 * Returns adminGuiConfiguraiton applicable to currently logged-in user.
 	 * Strictly speaking, this can be retrieved from modelInteractionService.

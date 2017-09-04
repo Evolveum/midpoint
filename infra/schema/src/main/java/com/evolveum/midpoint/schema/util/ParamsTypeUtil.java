@@ -40,7 +40,7 @@ public class ParamsTypeUtil {
 		Set<Entry<String, Collection<String>>> params = paramsMap.entrySet();
 		if (!params.isEmpty()) {
 			ParamsType paramsType = new ParamsType();
-			
+
 			for (Entry<String, Collection<String>> entry : params) {
 				if (entry.getValue() == null) {
 					paramsType.getEntry().add(createEntryElement(entry.getKey(), null));
@@ -70,7 +70,7 @@ public class ParamsTypeUtil {
 			Serializable realValue = null;
 			for (EntryType entry : paramsType.getEntry()) {
 				if (entry.getEntryValue() != null){
-					
+
 					Serializable value = (Serializable) entry.getEntryValue().getValue();
 					if (value instanceof RawType){
 						XNode xnode = ((RawType) value).getXnode();
@@ -83,12 +83,12 @@ public class ParamsTypeUtil {
 				}
 				params.put(entry.getKey(), (Serializable) (realValue));
 			}
-			
+
 			return params;
 		}
 		return null;
 	}
-	
+
 	public static Map<String, Collection<String>> fromParamsType(ParamsType paramsType) throws SchemaException {
 		if (paramsType != null) {
 			Map<String, Collection<String>> params = new HashMap<>();
@@ -119,5 +119,5 @@ public class ParamsTypeUtil {
 		}
 		return value.toString();
 	}
-	
+
 }

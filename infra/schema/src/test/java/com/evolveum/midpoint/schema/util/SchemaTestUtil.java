@@ -44,10 +44,10 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  */
 public class SchemaTestUtil {
-	
+
 	public static void assertUserDefinition(PrismObjectDefinition<UserType> userDefinition) {
 		assertEquals("Wrong compile-time class in user definition", UserType.class, userDefinition.getCompileTimeClass());
-		
+
 		assertFocusDefinition(userDefinition.getComplexTypeDefinition(), "user");
 
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FULL_NAME, SchemaConstants.T_POLY_STRING_TYPE, 0, 1);
@@ -57,10 +57,10 @@ public class SchemaTestUtil {
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FAMILY_NAME, PrismConstants.POLYSTRING_TYPE_QNAME, 0, 1);
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_ADDITIONAL_NAME, PrismConstants.POLYSTRING_TYPE_QNAME, 0, 1);
 	}
-	
+
 	public static void assertFocusDefinition(ComplexTypeDefinition complexTypeDefinition, String defDesc) {
 		assertNotNull("No "+defDesc+" definition", complexTypeDefinition);
-		
+
 		PrismAsserts.assertPropertyDefinition(complexTypeDefinition, ObjectType.F_NAME, PolyStringType.COMPLEX_TYPE, 0, 1);
 		PrismAsserts.assertItemDefinitionDisplayName(complexTypeDefinition, ObjectType.F_NAME, "ObjectType.name");
 		PrismAsserts.assertItemDefinitionDisplayOrder(complexTypeDefinition, ObjectType.F_NAME, 0);
@@ -68,7 +68,7 @@ public class SchemaTestUtil {
 		PrismAsserts.assertItemDefinitionDisplayName(complexTypeDefinition, ObjectType.F_DESCRIPTION, "ObjectType.description");
 		PrismAsserts.assertItemDefinitionDisplayOrder(complexTypeDefinition, ObjectType.F_DESCRIPTION, 10);
 		assertFalse(""+defDesc+" definition is marked as runtime", complexTypeDefinition.isRuntimeSchema());
-		
+
 		PrismContainerDefinition extensionContainer = complexTypeDefinition.findContainerDefinition(UserType.F_EXTENSION);
 		PrismAsserts.assertDefinition(extensionContainer, UserType.F_EXTENSION, ExtensionType.COMPLEX_TYPE, 0, 1);
 		assertTrue("Extension is NOT runtime", extensionContainer.isRuntimeSchema());
@@ -82,21 +82,21 @@ public class SchemaTestUtil {
 		assertFalse("Activation is runtime", activationContainer.isRuntimeSchema());
 		assertEquals("Activation size", 12, activationContainer.getDefinitions().size());
 		PrismAsserts.assertPropertyDefinition(activationContainer, ActivationType.F_ADMINISTRATIVE_STATUS, SchemaConstants.C_ACTIVATION_STATUS_TYPE, 0, 1);
-		
+
 		PrismContainerDefinition<AssignmentType> assignmentContainer = complexTypeDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
 		PrismAsserts.assertDefinition(assignmentContainer, UserType.F_ASSIGNMENT, AssignmentType.COMPLEX_TYPE, 0, -1);
 		assertFalse("Assignment is runtime", assignmentContainer.isRuntimeSchema());
 		assertEquals("Assignment definition size", 21, assignmentContainer.getDefinitions().size());
-		
+
 		PrismContainerDefinition<ConstructionType> constructionContainer = assignmentContainer.findContainerDefinition(AssignmentType.F_CONSTRUCTION);
 		PrismAsserts.assertDefinition(constructionContainer, AssignmentType.F_CONSTRUCTION, ConstructionType.COMPLEX_TYPE, 0, 1);
 		assertFalse("Construction is runtime", constructionContainer.isRuntimeSchema());
-		
+
 		PrismReferenceDefinition accountRefDef = complexTypeDefinition.findItemDefinition(UserType.F_LINK_REF, PrismReferenceDefinition.class);
 		PrismAsserts.assertDefinition(accountRefDef, UserType.F_LINK_REF, ObjectReferenceType.COMPLEX_TYPE, 0, -1);
 		assertEquals("Wrong target type in accountRef", ShadowType.COMPLEX_TYPE, accountRefDef.getTargetTypeName());
 		assertEquals("Wrong composite object element name in accountRef", UserType.F_LINK, accountRefDef.getCompositeObjectElementName());
-		
+
 		PrismContainerDefinition<MetadataType> metadataContainer = complexTypeDefinition.findContainerDefinition(UserType.F_METADATA);PrismAsserts.assertDefinition(extensionContainer, UserType.F_EXTENSION, ExtensionType.COMPLEX_TYPE, 0, 1);
 		assertFalse("Metadata is runtime", metadataContainer.isRuntimeSchema());
 		assertFalse("Metadata is dynamic", metadataContainer.isDynamic());

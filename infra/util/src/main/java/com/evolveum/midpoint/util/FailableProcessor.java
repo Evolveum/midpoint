@@ -23,5 +23,5 @@ package com.evolveum.midpoint.util;
 public interface FailableProcessor<T> {
 
 	void process(T object) throws Exception;
-	
+
 }

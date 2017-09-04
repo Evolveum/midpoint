@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * 
+ *
  * @author mederly
  */
 public class PrismPrettyPrinter {

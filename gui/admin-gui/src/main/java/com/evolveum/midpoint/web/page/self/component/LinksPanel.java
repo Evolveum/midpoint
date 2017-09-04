@@ -45,9 +45,9 @@ public class LinksPanel extends SimplePanel<List<RichHyperlinkType>> {
     private static final String ID_DESCRIPTION = "descriptionId";
     private static final String ID_LINKS_ROW = "linksRow";
     private static final String ID_LINKS_COLUMN = "linksColumn";
-    
+
     private static final String ICON_DEFAULT_CSS_CLASS = "fa fa-angle-double-right";
-    
+
     private static final Trace LOGGER = TraceManager.getTrace(LinksPanel.class);
 
     IModel<List<RichHyperlinkType>> model;

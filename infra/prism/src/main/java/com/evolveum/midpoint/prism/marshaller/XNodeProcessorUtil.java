@@ -79,10 +79,10 @@ public class XNodeProcessorUtil {
 					}
 					return new QName(null, elementName);
 				});
-                
+
                 EncryptedDataType encryptedDataType = prismContext.parserFor(xConvertedEncryptedData).context(pc).parseRealValue(EncryptedDataType.class);
                 protectedType.setEncryptedData(encryptedDataType);
-       
+
                 if (protectedType instanceof ProtectedStringType){
                 	transformEncryptedValue(protectedType, prismContext);
                 }
@@ -117,7 +117,7 @@ public class XNodeProcessorUtil {
         }
 
     }
-	
+
 	private static void transformEncryptedValue(ProtectedDataType protectedType, PrismContext prismContext) throws SchemaException{
 		Protector protector = prismContext.getDefaultProtector();
 		if (protector == null) {

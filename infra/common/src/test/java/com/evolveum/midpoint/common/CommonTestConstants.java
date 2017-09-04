@@ -24,7 +24,7 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
  *
  */
 public class CommonTestConstants {
-	
+
 	public static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	public static final File USER_JACK_FILE = new File(MidPointTestConstants.OBJECTS_DIR, USER_JACK_OID + ".xml");
 

@@ -577,7 +577,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public String getCategory() {
         return taskType.getCategory();
     }
-    
+
     public List<String> getHandlerUriList() {
         return handlerUriList;
     }
@@ -643,7 +643,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public String getOid() {
         return taskType.getOid();
     }
-    
+
     public String getIdentifier() {
         return taskType.getTaskIdentifier();
     }

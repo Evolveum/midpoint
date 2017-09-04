@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public interface OwnerResolver {
-	
+
 	<F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object);
-	
+
 }

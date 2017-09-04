@@ -23,19 +23,19 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * MidPoint Object Definition.
- * 
+ *
  * Objects are storable entities in midPoint.
- * 
+ *
  * This is mostly just a marker class to identify object boundaries in schema.
- * 
+ *
  * This class represents schema definition for objects. See {@link Definition}
  * for more details.
- * 
+ *
  * "Instance" class of this class is MidPointObject, not Object - to avoid
  * confusion with java.lang.Object.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContainerDefinitionImpl<O> implements
 		PrismObjectDefinition<O> {
@@ -46,7 +46,7 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 		// Object definition can only be top-level, hence null parent
 		super(elementName, complexTypeDefinition, prismContext, compileTimeClass);
 	}
-	
+
 	@Override
 	@NotNull
 	public PrismObject<O> instantiate() throws SchemaException {
@@ -55,7 +55,7 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 		}
 		return new PrismObject<O>(getName(), this, prismContext);
 	}
-	
+
 	@NotNull
 	@Override
 	public PrismObject<O> instantiate(QName name) throws SchemaException {
@@ -65,7 +65,7 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
         name = addNamespaceIfApplicable(name);
 		return new PrismObject<>(name, this, prismContext);
 	}
-	
+
 	@NotNull
 	@Override
 	public PrismObjectDefinitionImpl<O> clone() {
@@ -73,7 +73,7 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 		copyDefinitionData(clone);
 		return clone;
 	}
-	
+
 	@Override
 	public PrismObjectDefinition<O> deepClone(boolean ultraDeep) {
 		return (PrismObjectDefinition<O>) super.deepClone(ultraDeep);
@@ -83,7 +83,7 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 	public PrismObjectDefinition<O> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
 		return (PrismObjectDefinition<O>) super.cloneWithReplacedDefinition(itemName, newDefinition);
 	}
-	
+
 	@Override
 	public PrismContainerDefinition<?> getExtensionDefinition() {
 		return findContainerDefinition(getExtensionQName());
@@ -91,9 +91,9 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 
 	public void setExtensionDefinition(ComplexTypeDefinition extensionComplexTypeDefinition) {
 		QName extensionQName = getExtensionQName();
-		
+
 		PrismContainerDefinition<Containerable> oldExtensionDef = findContainerDefinition(extensionQName);
-		
+
 		PrismContainerDefinitionImpl<?> newExtensionDef = new PrismContainerDefinitionImpl<>(extensionQName,
 				extensionComplexTypeDefinition, prismContext);
 		newExtensionDef.setRuntimeSchema(true);
@@ -108,7 +108,7 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 				newExtensionDef.setHelp(oldExtensionDef.getHelp());
 			}
 		}
-		
+
 		ComplexTypeDefinitionImpl newCtd = (ComplexTypeDefinitionImpl) this.complexTypeDefinition.clone();
 		newCtd.replaceDefinition(extensionQName, newExtensionDef);
 		if (newCtd.getDisplayName() == null) {
@@ -134,7 +134,7 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 		String namespace = getName().getNamespaceURI();
 		return new QName(namespace, PrismConstants.EXTENSION_LOCAL_NAME);
 	}
-	
+
 	public <I extends ItemDefinition> I getExtensionItemDefinition(QName elementName) {
 		PrismContainerDefinition<?> extensionDefinition = getExtensionDefinition();
 		if (extensionDefinition == null) {
@@ -152,5 +152,5 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
     public String getDocClassName() {
         return "object";
     }
-	
+
 }

@@ -23,20 +23,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKind
  *
  */
 public enum PredefinedPolicySituation {
-	
+
 	EXCLUSION_VIOLATION(SchemaConstants.MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION, PolicyConstraintKindType.EXCLUSION),
-	
+
 	UNDERASSIGNED(SchemaConstants.MODEL_POLICY_SITUATION_UNDERASSIGNED, PolicyConstraintKindType.MIN_ASSIGNEES),
-	
+
 	OVERASSIGNED(SchemaConstants.MODEL_POLICY_SITUATION_OVERASSIGNED, PolicyConstraintKindType.MAX_ASSIGNEES),
-	
+
 	MODIFIED(SchemaConstants.MODEL_POLICY_SITUATION_MODIFIED, PolicyConstraintKindType.MODIFICATION),
-	
+
 	ASSIGNED(SchemaConstants.MODEL_POLICY_SITUATION_ASSIGNED, PolicyConstraintKindType.ASSIGNMENT);
 
 	private String url;
 	private PolicyConstraintKindType constraintKind;
-	
+
 	PredefinedPolicySituation(String url, PolicyConstraintKindType constraintKind) {
 		this.url = url;
 		this.constraintKind = constraintKind;

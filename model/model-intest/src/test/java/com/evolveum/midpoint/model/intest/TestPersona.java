@@ -106,13 +106,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPersona extends AbstractInitializedModelIntegrationTest {
-	
+
 	public static final File TEST_DIR = new File("src/test/resources/persona");
 
 	private static final String USER_JACK_GIVEN_NAME_NEW = "Jackie";
 
 	String userJackAdminPersonaOid;
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
@@ -121,10 +121,10 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 //		InternalMonitor.setTraceShadowFetchOperation(true);
 //		InternalMonitor.setTraceResourceSchemaOperations(true);
 		InternalMonitor.setTrace(InternalOperationClasses.PRISM_OBJECT_CLONES, true);
-		
+
 		addObject(OBJECT_TEMPLATE_PERSONA_ADMIN_FILE);
 		addObject(ROLE_PERSONA_ADMIN_FILE);
-		
+
 		// Persona full name is computed by using this ordinary user template
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_OID, initResult);
 	}
@@ -137,20 +137,20 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
         assertUserJack(userAfter);
         assertUserPassword(userAfter, USER_JACK_PASSWORD);
-        
+
         assertLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 1);
         PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
@@ -163,7 +163,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 
         assertSteadyResources();
 	}
-    
+
     @Test
     public void test102RecomputeUserJack() throws Exception {
     	final String TEST_NAME = "test102RecomputeUserJack";
@@ -172,15 +172,15 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         recomputeUser(USER_JACK_OID, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         assertUserJack11x();
     }
 
@@ -192,15 +192,15 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         assertUserJack11x();
     }
 
@@ -212,18 +212,18 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         recomputeUser(userJackAdminPersonaOid, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         assertUserJack11x();
     }
-    
+
     @Test
     public void test105ReconcileJackAdminPersona() throws Exception {
     	final String TEST_NAME = "test105ReconcileJackAdminPersona";
@@ -232,15 +232,15 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         reconcileUser(userJackAdminPersonaOid, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         assertUserJack11x();
     }
 
@@ -249,7 +249,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 		display("User after", userAfter);
         assertUserJack(userAfter);
         assertUserPassword(userAfter, USER_JACK_PASSWORD);
-        
+
         assertLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 1);
         PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
@@ -260,7 +260,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 
         assertSteadyResources();
 	}
-    
+
     @Test
     public void test120ModifyJackGivenName() throws Exception {
     	final String TEST_NAME = "test120ModifyJackGivenName";
@@ -269,20 +269,20 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString(USER_JACK_GIVEN_NAME_NEW));
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
 		assertUser(userAfter, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
 		assertUserPassword(userAfter, USER_JACK_PASSWORD);
-        
+
         assertLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 1);
         PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
@@ -294,15 +294,15 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 
         assertSteadyResources();
 	}
-    
+
     // TODO: recompute, reconcile (both user and persona)
-    
+
     // TODO: change password
-    
+
     // TODO: assign some accouts/roles to user and persona, make sure they are independent
-    
+
     // TODO: independent change in the persona
-    
+
     @Test
     public void test199UnassignRolePersonaAdminFromJack() throws Exception {
     	final String TEST_NAME = "test199UnassignRolePersonaAdminFromJack";
@@ -311,28 +311,28 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
 		assertUser(userAfter, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
 		assertUserPassword(userAfter, USER_JACK_PASSWORD);
-        
+
         assertLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 0);
-        
+
         assertNoObject(UserType.class, userJackAdminPersonaOid);
 
         assertSteadyResources();
 	}
-    
+
     private String toAdminPersonaUsername(String username) {
 		return "a-"+username;
 	}

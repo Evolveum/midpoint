@@ -124,13 +124,13 @@ public class NotificationManagerImpl implements NotificationManager {
         if (systemConfigurationType == null) {      // something really wrong happened (or we are doing initial import of objects)
             return;
         }
-        
+
 //        boolean specificSecurityPoliciesDefined = false;
 //        if (systemConfigurationType.getGlobalSecurityPolicyRef() != null) {
-//        
+//
 //        	SecurityPolicyType securityPolicyType = NotificationFuctionsImpl.getSecurityPolicyConfiguration(systemConfigurationType.getGlobalSecurityPolicyRef(), cacheRepositoryService, result);
 //        	if (securityPolicyType != null && securityPolicyType.getAuthentication() != null) {
-//        		
+//
 //        		for (MailAuthenticationPolicyType mailPolicy : securityPolicyType.getAuthentication().getMailAuthentication()) {
 //        			NotificationConfigurationType notificationConfigurationType = mailPolicy.getNotificationConfiguration();
 //        			if (notificationConfigurationType != null) {
@@ -138,7 +138,7 @@ public class NotificationManagerImpl implements NotificationManager {
 //        				processNotifications(notificationConfigurationType, event, task, result);
 //        			}
 //        		}
-//        		
+//
 //        		for (SmsAuthenticationPolicyType mailPolicy : securityPolicyType.getAuthentication().getSmsAuthentication()) {
 //        			NotificationConfigurationType notificationConfigurationType = mailPolicy.getNotificationConfiguration();
 //        			if (notificationConfigurationType != null) {
@@ -146,29 +146,29 @@ public class NotificationManagerImpl implements NotificationManager {
 //        				processNotifications(notificationConfigurationType, event, task, result);
 //        			}
 //        		}
-//        		
+//
 //        		return;
 //        	}
 //        }
-//        
+//
 //        if (specificSecurityPoliciesDefined) {
 //        	LOGGER.trace("Specific policy for notifier set in security configuration, skupping notifiers defined in system configuration.");
 //            return;
 //        }
-        
+
         if (systemConfigurationType.getNotificationConfiguration() == null) {
 			LOGGER.trace("No notification configuration in repository, finished event processing.");
             return;
         }
-        
-        NotificationConfigurationType notificationConfigurationType = systemConfigurationType.getNotificationConfiguration(); 
+
+        NotificationConfigurationType notificationConfigurationType = systemConfigurationType.getNotificationConfiguration();
         processNotifications(notificationConfigurationType, event, task, result);
 
 		LOGGER.trace("NotificationManager successfully processed event {} ({} top level handler(s))", event, notificationConfigurationType.getHandler().size());
     }
-    
+
     private void processNotifications(NotificationConfigurationType notificationConfigurationType, Event event, Task task, OperationResult result){
-    	
+
 
         for (EventHandlerType eventHandlerType : notificationConfigurationType.getHandler()) {
             processEvent(event, eventHandlerType, task, result);

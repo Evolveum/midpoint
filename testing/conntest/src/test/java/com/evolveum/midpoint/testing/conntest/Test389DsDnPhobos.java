@@ -31,7 +31,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class Test389DsDnPhobos extends Abstract389DsDnTest {
 
-	
+
 	@Override
 	protected File getResourceFile() {
 		return new File(getBaseDir(), "resource-dn-phobos.xml");
@@ -46,7 +46,7 @@ public class Test389DsDnPhobos extends Abstract389DsDnTest {
 	public String getStopSystemCommand() {
 		return getScriptDirectoryName()+"/389ds-phobos-stop";
 	}
-	
+
 	@Override
 	protected String getLdapServerHost() {
 		return "phobos.lab.evolveum.com";

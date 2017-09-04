@@ -23,9 +23,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  *
  */
 public class ScriptExpressionEvaluationContext {
-	
+
 	private static ThreadLocal<ScriptExpressionEvaluationContext> threadLocalContext = new ThreadLocal<ScriptExpressionEvaluationContext>();
-	
+
 	private ExpressionVariables variables;
 	private String contextDescription;
 	private OperationResult result;
@@ -56,7 +56,7 @@ public class ScriptExpressionEvaluationContext {
 	public ScriptExpression getScriptExpression() {
 		return scriptExpression;
 	}
-	
+
 	public boolean isEvaluateNew() {
 		return evaluateNew;
 	}
@@ -68,11 +68,11 @@ public class ScriptExpressionEvaluationContext {
 	public void setupThreadLocal() {
 		threadLocalContext.set(this);
 	}
-	
+
 	public void cleanupThreadLocal() {
 		threadLocalContext.set(null);
 	}
-	
+
 	public static ScriptExpressionEvaluationContext getThreadLocal() {
 		return threadLocalContext.get();
 	}

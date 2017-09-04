@@ -93,7 +93,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 		if (ocDef == null) {
 			return map;
 		}
-		
+
 		ItemPath attributePath = new ItemPath(ShadowType.F_ATTRIBUTES);
 
 		for (ItemDefinition def : (List<ItemDefinition>) ocDef.getDefinitions()) {
@@ -121,7 +121,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 				return false;
 			}
 		});
-		
+
 	}
 
 }

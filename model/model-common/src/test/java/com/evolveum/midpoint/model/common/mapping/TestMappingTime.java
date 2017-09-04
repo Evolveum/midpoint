@@ -48,7 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author Radovan Semancik
  */
 public class TestMappingTime {
-	
+
 	private static final String MAPPING_TIME_FROM_TO_FILENAME = "mapping-time-from-to.xml";
 	private static final String MAPPING_TIME_ACTIVATION = "mapping-time-deferred-delete.xml";
 	private static final XMLGregorianCalendar TIME_PAST = XmlTypeConverter.createXMLGregorianCalendar(2001, 2, 3, 4, 5, 6);
@@ -57,143 +57,143 @@ public class TestMappingTime {
 	private static final XMLGregorianCalendar TIME_MAPPING_DISABLED_PLUS_1D = XmlTypeConverter.createXMLGregorianCalendar(2013, 5, 31, 9, 30, 0);
 	private static final XMLGregorianCalendar TIME_MAPPING_DISABLED_PLUS_10D = XmlTypeConverter.createXMLGregorianCalendar(2013, 6, 9, 9, 30, 0);
 	private static final XMLGregorianCalendar TIME_MAPPING_DISABLED_PLUS_1M = XmlTypeConverter.createXMLGregorianCalendar(2013, 6, 30, 9, 30, 0);
-	
+
 	private MappingTestEvaluator evaluator;
-	    
+
     @BeforeClass
     public void setupFactory() throws SAXException, IOException, SchemaException {
     	evaluator = new MappingTestEvaluator();
     	evaluator.init();
     }
-    
+
     @Test
     public void testBeforeTimeFrom() throws Exception {
     	final String TEST_NAME = "testBeforeTimeFrom";
     	System.out.println("===[ "+TEST_NAME+"]===");
-    	
+
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "CAPTAIN");
-    	
+
 		Mapping.Builder<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> builder = evaluator.createMappingBuilder(
-				MAPPING_TIME_FROM_TO_FILENAME, 
+				MAPPING_TIME_FROM_TO_FILENAME,
     			TEST_NAME, "title", delta);
 		builder.setNow(TIME_PAST);
 
 		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = builder.build();
-		
+
     	OperationResult opResult = new OperationResult(TEST_NAME);
-    	    	
+    	
     	// WHEN
 		mapping.evaluate(null, opResult);
-    	
+
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
 		assertNullTriple(outputTriple);
 		assertNextRecompute(mapping, TIME_MAPPING_DISABLED_PLUS_1D);
     }
-    
+
     @Test
     public void testBetweenTimes() throws Exception {
     	final String TEST_NAME = "testBetweenTimes";
     	System.out.println("===[ "+TEST_NAME+"]===");
-    	
+
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "CAPTAIN");
-    	
+
 		Mapping.Builder<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> builder = evaluator.createMappingBuilder(
-				MAPPING_TIME_FROM_TO_FILENAME, 
+				MAPPING_TIME_FROM_TO_FILENAME,
     			TEST_NAME, "title", delta);
 		builder.setNow(TIME_BETWEEN);
 
 		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = builder.build();
 
 		OperationResult opResult = new OperationResult(TEST_NAME);
-    	    	
+    	
     	// WHEN
 		mapping.evaluate(null, opResult);
-    	
+
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
 		PrismAsserts.assertTripleNoZero(outputTriple);
 	  	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("CAPTAIN"));
 	  	PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("PIRATE"));
-		
+
 		assertNextRecompute(mapping, TIME_MAPPING_DISABLED_PLUS_10D);
     }
-	
+
 	@Test
     public void testAfterTimeTo() throws Exception {
     	final String TEST_NAME = "testAfterTimeTo";
     	System.out.println("===[ "+TEST_NAME+"]===");
-    	
+
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "CAPTAIN");
-    	
+
 		Mapping.Builder<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> builder = evaluator.createMappingBuilder(
-				MAPPING_TIME_FROM_TO_FILENAME, 
+				MAPPING_TIME_FROM_TO_FILENAME,
     			TEST_NAME, "title", delta);
 		builder.setNow(TIME_FUTURE);
 
 		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = builder.build();
-		
+
     	OperationResult opResult = new OperationResult(TEST_NAME);
-    	    	
+    	
     	// WHEN
 		mapping.evaluate(null, opResult);
-    	
+
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
 		assertNullTriple(outputTriple);
-	  	
+	
 		assertNextRecompute(mapping, null);
     }
-	
+
 	@Test
     public void testExistenceBefore() throws Exception {
     	final String TEST_NAME = "testExistenceBefore";
     	System.out.println("===[ "+TEST_NAME+"]===");
-    	
+
     	// GIVEN
 		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
-				MAPPING_TIME_ACTIVATION, 
+				MAPPING_TIME_ACTIVATION,
     			TEST_NAME, "title", null);
-		
+
 		builder.setNow(TIME_PAST);
-		
+
 		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinitionImpl<>(
 				ExpressionConstants.OUTPUT_ELEMENT_NAME,
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
 		builder.setDefaultTargetDefinition(existenceDef);
 
 		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
-		
+
     	OperationResult opResult = new OperationResult(TEST_NAME);
-    	    	
+    	
     	// WHEN
 		mapping.evaluate(null, opResult);
-    	
+
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = mapping.getOutputTriple();
 		assertNullTriple(outputTriple);
-		
+
 		assertNextRecompute(mapping, TIME_MAPPING_DISABLED_PLUS_1M);
     }
-	
+
 	@Test
     public void testExistenceAfter() throws Exception {
     	final String TEST_NAME = "testExistenceAfter";
     	System.out.println("===[ "+TEST_NAME+"]===");
-    	
+
     	// GIVEN
 		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
-				MAPPING_TIME_ACTIVATION, 
+				MAPPING_TIME_ACTIVATION,
     			TEST_NAME, "title", null);
 
 		builder.setNow(TIME_FUTURE);
-		
+
 		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinitionImpl<>(
 				ExpressionConstants.OUTPUT_ELEMENT_NAME,
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
@@ -202,35 +202,35 @@ public class TestMappingTime {
 		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
     	OperationResult opResult = new OperationResult(TEST_NAME);
-    	    	
+    	
     	// WHEN
 		mapping.evaluate(null, opResult);
-    	
+
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = mapping.getOutputTriple();
 		PrismAsserts.assertTripleZero(outputTriple, false);
 	  	PrismAsserts.assertTripleNoPlus(outputTriple);
 	  	PrismAsserts.assertTripleNoMinus(outputTriple);
-		
+
 		assertNextRecompute(mapping, null);
     }
-	
+
 	@Test
     public void testNoReferenceTime() throws Exception {
     	final String TEST_NAME = "testNoReferenceTime";
     	System.out.println("===[ "+TEST_NAME+"]===");
-    	
+
     	// GIVEN
-    	
+
     	PrismObject<UserType> userOld = evaluator.getUserOld();
 		userOld.asObjectable().getActivation().setDisableTimestamp(null);
-    	
+
 		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
-				MAPPING_TIME_ACTIVATION, 
+				MAPPING_TIME_ACTIVATION,
     			TEST_NAME, "title", null, userOld);
-		
+
 		builder.setNow(TIME_PAST);
-		
+
 		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinitionImpl<>(
 				ExpressionConstants.OUTPUT_ELEMENT_NAME,
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
@@ -239,38 +239,38 @@ public class TestMappingTime {
 		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
 		OperationResult opResult = new OperationResult(TEST_NAME);
-    	    	
+    	
     	// WHEN
 		mapping.evaluate(null, opResult);
-    	
+
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = mapping.getOutputTriple();
 		assertNullTriple(outputTriple);
-		
+
 		assertNextRecompute(mapping, null);
     }
-	
+
 	@Test
     public void testSetReferenceTimeBefore() throws Exception {
     	final String TEST_NAME = "testSetReferenceTimeBefore";
     	System.out.println("===[ "+TEST_NAME+"]===");
-    	
+
     	// GIVEN
-    	
+
     	PrismObject<UserType> userOld = evaluator.getUserOld();
     	XMLGregorianCalendar disableTimestamp = userOld.asObjectable().getActivation().getDisableTimestamp();
 		userOld.asObjectable().getActivation().setDisableTimestamp(null);
-		
-		ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+
+		ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
     			new ItemPath(UserType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP), evaluator.getPrismContext(),
     			disableTimestamp);
-    	
+
 		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
-				MAPPING_TIME_ACTIVATION, 
+				MAPPING_TIME_ACTIVATION,
     			TEST_NAME, "title", delta, userOld);
-		
+
 		builder.setNow(TIME_PAST);
-		
+
 		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinitionImpl<>(
 				ExpressionConstants.OUTPUT_ELEMENT_NAME,
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
@@ -279,37 +279,37 @@ public class TestMappingTime {
 		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
 		OperationResult opResult = new OperationResult(TEST_NAME);
-    	    	
+    	
     	// WHEN
 		mapping.evaluate(null, opResult);
-    	
+
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = mapping.getOutputTriple();
 		assertNullTriple(outputTriple);
-		
+
 		assertNextRecompute(mapping, TIME_MAPPING_DISABLED_PLUS_1M);
     }
-	
+
 	@Test
     public void testSetReferenceTimeAfter() throws Exception {
     	final String TEST_NAME = "testSetReferenceTimeAfter";
     	System.out.println("===[ "+TEST_NAME+"]===");
-    	
+
     	// GIVEN
     	PrismObject<UserType> userOld = evaluator.getUserOld();
     	XMLGregorianCalendar disableTimestamp = userOld.asObjectable().getActivation().getDisableTimestamp();
 		userOld.asObjectable().getActivation().setDisableTimestamp(null);
-		
-		ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+
+		ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
     			new ItemPath(UserType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP), evaluator.getPrismContext(),
     			disableTimestamp);
-    	
+
 		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
-				MAPPING_TIME_ACTIVATION, 
+				MAPPING_TIME_ACTIVATION,
     			TEST_NAME, "title", delta, userOld);
-		
+
 		builder.setNow(TIME_FUTURE);
-		
+
 		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinitionImpl<>(
 				ExpressionConstants.OUTPUT_ELEMENT_NAME,
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
@@ -318,16 +318,16 @@ public class TestMappingTime {
 		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
 		OperationResult opResult = new OperationResult(TEST_NAME);
-    	    	
+    	
     	// WHEN
 		mapping.evaluate(null, opResult);
-    	
+
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = mapping.getOutputTriple();
 		PrismAsserts.assertTripleZero(outputTriple, false);
 	  	PrismAsserts.assertTripleNoPlus(outputTriple);
 	  	PrismAsserts.assertTripleNoMinus(outputTriple);
-		
+
 		assertNextRecompute(mapping, null);
     }
 
@@ -339,5 +339,5 @@ public class TestMappingTime {
 		XMLGregorianCalendar nextRecomputeTime = mapping.getNextRecomputeTime();
 		assertEquals("Wrong nextRecomputeTime in mapping "+mapping, expected, nextRecomputeTime);
 	}
-                
+
 }

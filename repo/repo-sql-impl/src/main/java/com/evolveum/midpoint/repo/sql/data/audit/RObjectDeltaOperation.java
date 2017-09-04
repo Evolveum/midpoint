@@ -254,7 +254,7 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
                                                PrismContext prismContext) throws DtoTranslationException {
         RObjectDeltaOperation auditDelta = new RObjectDeltaOperation();
         auditDelta.setRecord(record);
-        
+
         try {
             if (operation.getObjectDelta() != null) {
                 ObjectDelta delta = operation.getObjectDelta();
@@ -276,7 +276,7 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
-        
+
 
         return auditDelta;
     }

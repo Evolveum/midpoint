@@ -32,11 +32,11 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 /**
- * 
+ *
  *                 Defines a type for XPath-like item pointer. It points to a specific part
  *                 of the prism object.
- *             
- * 
+ *
+ *
  * <p>Java class for ItemPathType complex type.
  *
  * <p>The following schema fragment specifies the expected content contained within this class.
@@ -59,16 +59,16 @@ import java.io.Serializable;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ItemPathType")
 public class ItemPathType implements Serializable, Equals, Cloneable {
-	
+
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ItemPathType");
-	
+
 	@XmlTransient
 	private ItemPath itemPath;
 
     @Deprecated         // use one of the content-filling constructors instead
     public ItemPathType() {
     }
-    
+
     public ItemPathType(ItemPath itemPath) {
 		this.itemPath = itemPath;
 	}
@@ -85,7 +85,7 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
         }
 		return itemPath;
 	}
-	
+
 	public void setItemPath(ItemPath itemPath){
 		this.itemPath = itemPath;
 	}
@@ -130,19 +130,19 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 	@Override
 	public boolean equals(ObjectLocator thisLocator, ObjectLocator thatLocator, Object that,
 			EqualsStrategy equalsStrategy) {
-		
+
 		if (!(that instanceof ItemPathType)){
     		return false;
     	}
-    	
+
     	ItemPathType other = (ItemPathType) that;
-    	
+
     	ItemPath thisPath = getItemPath();
     	ItemPath otherPath = other.getItemPath();
 
         return thisPath.equals(otherPath);
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
