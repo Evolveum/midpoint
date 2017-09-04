@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 public class MappingFactory {
 
 //	ObjectFactory objectFactory = new ObjectFactory();
-	
+
 	private ExpressionFactory expressionFactory;
 	private ObjectResolver objectResolver;
 	private Protector protector;						// not used for now
@@ -43,7 +43,7 @@ public class MappingFactory {
 	private FilterManager<Filter> filterManager;
     private SecurityEnforcer securityEnforcer;
 	private boolean profiling = false;
-		
+
 	public ExpressionFactory getExpressionFactory() {
 		return expressionFactory;
 	}
@@ -51,7 +51,7 @@ public class MappingFactory {
 	public void setExpressionFactory(ExpressionFactory expressionFactory) {
 		this.expressionFactory = expressionFactory;
 	}
-	
+
 	public void setProtector(Protector protector) {
 		this.protector = protector;
 	}

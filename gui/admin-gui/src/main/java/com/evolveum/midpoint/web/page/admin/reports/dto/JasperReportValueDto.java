@@ -20,11 +20,11 @@ public class JasperReportValueDto implements Serializable {
 	public void setValue(Object value) {
 		this.value = value;
 	}
-	
+
 	public String getDisplayName() {
 		return displayName;
 	}
-	
+
 	public void setDisplayName(String displayName) {
 		this.displayName = displayName;
 	}

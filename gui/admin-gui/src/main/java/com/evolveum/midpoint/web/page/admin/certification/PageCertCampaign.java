@@ -276,7 +276,7 @@ public class PageCertCampaign extends PageAdminCertification {
 
 	private List<IColumn<CertCaseDto, String>> initColumns() {
 		List<IColumn<CertCaseDto, String>> columns = new ArrayList<>();
-		
+
 		IColumn column;
 
 		column = helper.createTypeColumn(OBJECT, this);

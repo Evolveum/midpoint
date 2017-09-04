@@ -17,8 +17,8 @@ package com.evolveum.midpoint.util;
 
 /**
  * Very simple object to hold a single value. This comes handy when a final value is required but there is a
- * need to use immutable value (e.g. int, String). This comes very handy in Java anonymous instances (almost-closures). 
- * 
+ * need to use immutable value (e.g. int, String). This comes very handy in Java anonymous instances (almost-closures).
+ *
  * @author Radovan Semancik
  */
 public class Holder<T> {
@@ -29,7 +29,7 @@ public class Holder<T> {
 		super();
 		this.value = null;
 	}
-	
+
 	public Holder(T value) {
 		super();
 		this.value = value;
@@ -76,5 +76,5 @@ public class Holder<T> {
 	public String toString() {
 		return "Holder(" + value + ")";
 	}
-	
+
 }

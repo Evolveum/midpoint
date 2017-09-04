@@ -44,13 +44,13 @@ import com.evolveum.midpoint.test.util.TestUtil;
 @ContextConfiguration(locations = {"classpath:ctx-admin-gui-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestCleanStartup extends AbstractModelIntegrationTest {
-	
+
 	@Autowired(required=true)
 	private InfraInitialSetup infraInitialSetup;
-	
+
 	@Autowired(required=true)
 	private ModelInitialSetup modelInitialSetup;
-	
+
 	@Autowired(required=true)
 	private InitialDataImport initialDataImport;
 
@@ -62,7 +62,7 @@ public class TestCleanStartup extends AbstractModelIntegrationTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		// The rest of the initialization happens as part of the spring context init
 	}
 
@@ -70,30 +70,30 @@ public class TestCleanStartup extends AbstractModelIntegrationTest {
 	@Test
 	public void test001Logfiles() throws Exception {
 		TestUtil.displayTestTitle("test001Logfiles");
-		
+
 		// GIVEN - system startup and initialization that has already happened
 		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME, false);
-				
+
 		// THEN
 		display("Tailing ...");
 		tailer.tail();
 		display("... done");
-		
+
 		display("Errors", tailer.getErrors());
 		display("Warnings", tailer.getWarnings());
-		
+
 		assertMessages("Error", tailer.getErrors(),
 				"Unable to find file com/../../keystore.jceks",
 				"Provided Icf connector path /C:/tmp is not a directory",
                 "Provided Icf connector path C:\\tmp is not a directory",
                 "Provided Icf connector path C:\\var\\tmp is not a directory",
                 "Provided Icf connector path D:\\var\\tmp is not a directory");
-		
+
 		assertMessages("Warning", tailer.getWarnings());
-		
+
 		tailer.close();
 	}
-	
+
 	private void assertMessages(String desc, Collection<String> actualMessages, String... expectedSubstrings) {
 		for(String actualMessage: actualMessages) {
 			boolean found = false;

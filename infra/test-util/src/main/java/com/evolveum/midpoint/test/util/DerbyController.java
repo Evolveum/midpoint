@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.test.util;
 
@@ -31,19 +31,19 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class DerbyController {
-	
+
 	public static final int DEFAULT_LISTEN_PORT = 11527;
-	
+
 	public static String COLUMN_LOGIN = "login";
 	public static String COLUMN_PASSWORD = "password";
 	public static String COLUMN_FULL_NAME = "full_name";
 	public static String COLUMN_CHANGELOG = "changelog";
-	
+
 	private NetworkServerControl server;
 	private String listenHostname;
 	private InetAddress listenAddress;
@@ -52,23 +52,23 @@ public class DerbyController {
 	private String dbName;
 	private String username = "midpoint";
 	private String password = "secret";
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(DerbyController.class);
-	
+
 	public DerbyController() {
 		super();
 		listenHostname = "localhost";
 		this.listentPort = DEFAULT_LISTEN_PORT;
 		dbName = "target/derbyMidPointTest";
-	}	
-	
+	}
+
 	public DerbyController(String dbName, String listenHostname, int listentPort) {
 		super();
 		this.listenHostname = listenHostname;
 		this.listentPort = listentPort;
 		this.dbName = dbName;
 	}
-	
+
 	public String getListenHostname() {
 		return listenHostname;
 	}
@@ -80,8 +80,8 @@ public class DerbyController {
 	public String getDbName() {
 		return dbName;
 	}
-	
-	
+
+
 	public String getUsername() {
 		return username;
 	}
@@ -93,7 +93,7 @@ public class DerbyController {
 	public Connection getConnection() throws SQLException {
 		return DriverManager.getConnection(jdbcUrl, "", "");
 	}
-	
+
 	public void startCleanServer() throws Exception {
 		start();
 		cleanup();
@@ -124,12 +124,12 @@ public class DerbyController {
 		System.setProperty("derby.stream.error.file", "target/derby.log");
 		server.start(null);
 	}
-	
+
 	public void stop() throws Exception {
 		LOGGER.info("Stopping Derby embedded network server");
 		server.shutdown();
 	}
-	
+
 	public Statement getExecutedStatementWhereLoginName(String loginName) throws SQLException {
 		Connection conn = getConnection();
 		// Check if it empty
@@ -137,5 +137,5 @@ public class DerbyController {
 		stmt.execute("select * from users where "+COLUMN_LOGIN+"='"+loginName+"'");
 		return stmt;
 	}
-	
+
 }

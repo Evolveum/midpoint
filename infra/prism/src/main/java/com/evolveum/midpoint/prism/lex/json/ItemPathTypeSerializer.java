@@ -33,9 +33,9 @@ public class ItemPathTypeSerializer extends JsonSerializer<ItemPathType> {
 		ItemPathHolder xpath = new ItemPathHolder(value.getItemPath(), true);
 		String path = xpath.getXPathWithDeclarations();
 		jgen.writeObject(path);
-		
+
 	}
-	
+
 	@Override
 	public void serializeWithType(@NotNull ItemPathType value, JsonGenerator jgen, SerializerProvider provider,
 			TypeSerializer typeSer) throws IOException {

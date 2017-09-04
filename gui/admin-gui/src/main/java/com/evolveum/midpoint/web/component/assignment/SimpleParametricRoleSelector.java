@@ -133,7 +133,7 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
 
     private String getParamValue(AssignmentDto assignmentDto) {
         PrismContainerValue newValue = assignmentDto.getAssignment().asPrismContainerValue();
-        
+
         if (newValue != null) {
             PrismProperty<String> paramProp =  newValue.findProperty(parameterPath);
             if (paramProp != null) {

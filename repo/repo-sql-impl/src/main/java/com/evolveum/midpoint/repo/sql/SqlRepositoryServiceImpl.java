@@ -465,7 +465,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 () -> 0,
                 (q) -> objectRetriever.countObjectsAttempt(type, q, options, subResult));
     }
-    
+
     @Override
     public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
                                                     Collection<? extends ItemDelta> modifications,
@@ -957,18 +957,18 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			logger.trace("{} null object specification", logMessagePrefix);
 			return false;
 		}
-		
+
 		SearchFilterType specFilterType = objectSelector.getFilter();
 		ObjectReferenceType specOrgRef = objectSelector.getOrgRef();
 		QName specTypeQName = objectSelector.getType();     // now it does not matter if it's unqualified
 		PrismObjectDefinition<O> objectDefinition = object.getDefinition();
-		
+
 		// Type
 		if (specTypeQName != null && !QNameUtil.match(specTypeQName, objectDefinition.getTypeName())) {
 			logger.trace("{} type mismatch, expected {}, was {}", logMessagePrefix, specTypeQName, objectDefinition.getTypeName());
 			return false;
 		}
-		
+
 		// Filter
 		if (specFilterType != null) {
 			ObjectFilter specFilter = QueryJaxbConvertor.createObjectFilter(object.getCompileTimeClass(), specFilterType, object.getPrismContext());
@@ -986,16 +986,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 						+ ex.getMessage(), ex);
 			}
 		}
-			
-		// Org	
+
+		// Org
 		if (specOrgRef != null) {
 			if (!isDescendant(object, specOrgRef.getOid())) {
 				LOGGER.trace("{} object OID {} (org={})",
 						logMessagePrefix, object.getOid(), specOrgRef.getOid());
 				return false;
-			}			
+			}
 		}
-		
+
 		return true;
 	}
 
@@ -1008,7 +1008,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		}
 		return isAnySubordinate(orgOid, objParentOrgOids);
 	}
-	
+
 	@Override
 	public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) throws SchemaException {
 		if (object.getOid() == null) {

@@ -82,7 +82,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
  * resource object. It in fact reflects the definition of ConstructionType but
  * it also contains "live" objects and can evaluate the construction. It also
  * contains intermediary and side results of the evaluation.
- * 
+ *
  * @author Radovan Semancik
  *
  *         This class is Serializable but it is not in fact serializable. It
@@ -490,7 +490,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 				throw new SchemaException("No outbound section in definition of association " + assocName
 						+ " in construction in " + getSource());
 			}
-			Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> assocMapping = 
+			Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> assocMapping =
 					evaluateAssociation(associationDefinitionType, task, result);
 			if (assocMapping != null) {
 				associationMappings.add(assocMapping);

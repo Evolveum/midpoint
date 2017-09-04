@@ -106,6 +106,6 @@ public class ListDataProvider<T extends Serializable> extends BaseSortableDataPr
 
         return list.size();
     }
-    
-    
+
+
 }

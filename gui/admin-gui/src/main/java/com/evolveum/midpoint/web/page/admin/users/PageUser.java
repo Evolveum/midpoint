@@ -129,7 +129,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                 return getUserPrivilegesList();
             }
         };
-        
+
         consentsModel = new CountableLoadableModel<AssignmentDto>(false) {
 			private static final long serialVersionUID = 1L;
 
@@ -137,7 +137,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 			protected List<AssignmentDto> load() {
 				return loadConsents();
 			}
-			
+
 			@Override
 			public int count() {
 				return countConsents();
@@ -169,18 +169,18 @@ public class PageUser extends PageAdminFocus<UserType> {
         // ex);
         // }
     }
-    
+
 
 	@Override
 	protected UserType createNewObject() {
 		return new UserType();
 	}
-	
+
 	@Override
 	protected Class getRestartResponsePage() {
 		return PageUsers.class;
 	}
-	
+
 	@Override
     public Class getCompileTimeClass() {
 		return UserType.class;
@@ -257,8 +257,8 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                         };
                     }
-                    
-                    
+
+
 
                     @Override
                     public String getCount() {
@@ -266,8 +266,8 @@ public class PageUser extends PageAdminFocus<UserType> {
                                 0 : getDelegatedToMeModel().getObject().size());
                     }
                 });
-                
-                
+
+
                 authorization = new FocusTabVisibleBehavior(unwrapModel(),
                         ComponentConstants.UI_FOCUS_TAB_CONSENTS_URL);
                 tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.consents"), authorization)
@@ -278,7 +278,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                     public WebMarkupContainer createPanel(String panelId) {
                         return new FocusConsentTabPanel<UserType>(panelId, getMainForm(), getObjectModel(), consentsModel, parentPage);
                     }
-                    
+
                     @Override
                     public String getCount() {
                         return Integer.toString(consentsModel.count());
@@ -367,12 +367,12 @@ public class PageUser extends PageAdminFocus<UserType> {
         }
         return list;
     }
-    
+
    @Override
    protected void prepareObjectDeltaForModify(ObjectDelta<UserType> focusDelta) throws SchemaException {
-	
+
 	super.prepareObjectDeltaForModify(focusDelta);
-	
+
 	PrismContainerDefinition<AssignmentType> def = getObjectDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
 	if (consentsModel.isLoaded()) {
 		handleAssignmentExperimentalDeltas(focusDelta, consentsModel.getObject(), def, false);
@@ -425,7 +425,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                 StringUtils.isNotEmpty(getObjectWrapper().getObject().asObjectable().getOid()) &&
                 getObjectWrapper().getObject().asObjectable().getOid().equals(WebModelServiceUtils.getLoggedInUserOid());
     }
-    
+
     protected int countConsents() {
 		int consentCounter = 0;
 		PrismObject<UserType> focus = getObjectModel().getObject().getObject();
@@ -446,11 +446,11 @@ public class PageUser extends PageAdminFocus<UserType> {
 		Collections.sort(list);
 		return list;
 	}
-    
+
     private boolean isConsentAssignment(AssignmentType assignment) {
     	return assignment.getTargetRef() != null && QNameUtil.match(assignment.getTargetRef().getRelation(), SchemaConstants.ORG_CONSENT);
     }
-	
+
     protected List<AssignmentDto> getConsentsList(List<AssignmentType> assignments, UserDtoStatus status){
 		List<AssignmentDto> list = new ArrayList<AssignmentDto>();
 		for (AssignmentType assignment : assignments) {

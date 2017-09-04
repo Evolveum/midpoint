@@ -33,10 +33,10 @@ public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAu
 	private static final String SECURITY_QUESTION_GOOD_ANSWER_JACK = "Some generic answer";
 	private static final String SECURITY_QUESTION_BAD_ANSWER ="This isn't correct answer!";
 	private static final String SECURITY_QUESTION_GOOD_ANSWER_GUYBRUSH = "Some some generic answer";
-	
+
 	@Autowired(required=true)
 	private AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> securityQuestionsAuthenticationEvaluator;
-	
+
 	@Override
 	public AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> getAuthenticationEvaluator() {
 		return securityQuestionsAuthenticationEvaluator;
@@ -82,7 +82,7 @@ public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAu
 	public QName getCredentialType() {
 		return CredentialsType.F_SECURITY_QUESTIONS;
 	}
-	
+
 	private SecurityQuestionAnswerType getSecurityQuestionAnswer(){
 		SecurityQuestionAnswerType questionAnswer = new SecurityQuestionAnswerType();
 		questionAnswer.setQuestionIdentifier(SECURITY_QUESTION_ID);
@@ -97,14 +97,14 @@ public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAu
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		modifyObjectReplaceContainer(UserType.class, USER_GUYBRUSH_OID, SchemaConstants.PATH_SECURITY_QUESTIONS_QUESTION_ANSWER, task, result, getSecurityQuestionAnswer());
-		
+
 	}
-	
+
 	private Map<String, String> createMap(String id, String value) {
 		Map<String, String> questionAnswers = new HashMap<>();
 		questionAnswers.put(id, value);
 		return questionAnswers;
 	}
-	
-	
+
+
 }

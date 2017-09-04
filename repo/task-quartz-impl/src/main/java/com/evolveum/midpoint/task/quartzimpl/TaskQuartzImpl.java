@@ -93,13 +93,13 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WO
 
 /**
  * Implementation of a Task.
- * 
+ *
  * @see TaskManagerQuartzImpl
  *
  * Target state (not quite reached as for now): Functionality present in Task is related to the
  * data structure describing the task itself, i.e. to the embedded TaskType prism and accompanying data.
  * Everything related to the management of tasks is put into TaskManagerQuartzImpl and its helper classes.
- * 
+ *
  * @author Radovan Semancik
  * @author Pavol Mederly
  *
@@ -185,7 +185,7 @@ public class TaskQuartzImpl implements Task {
 	 * @param taskManager
 	 * @param taskIdentifier
      * @param operationName if null, default op. name will be used
-	 */	
+	 */
 	TaskQuartzImpl(TaskManagerQuartzImpl taskManager, LightweightIdentifier taskIdentifier, String operationName) {
 		this(taskManager);
 		this.repositoryService = taskManager.getRepositoryService();
@@ -360,7 +360,7 @@ public class TaskQuartzImpl implements Task {
         taskManager.synchronizeTaskWithQuartz(this, parentResult);
         setRecreateQuartzTrigger(false);
     }
-	
+
 	private static Set<QName> quartzRelatedProperties = new HashSet<QName>();
 	static {
 		quartzRelatedProperties.add(TaskType.F_BINDING);
@@ -368,7 +368,7 @@ public class TaskQuartzImpl implements Task {
 		quartzRelatedProperties.add(TaskType.F_SCHEDULE);
         quartzRelatedProperties.add(TaskType.F_HANDLER_URI);
 	}
-	
+
 	private void synchronizeWithQuartzIfNeeded(Collection<ItemDelta<?,?>> deltas, OperationResult parentResult) {
         if (isRecreateQuartzTrigger()) {
             synchronizeWithQuartz(parentResult);
@@ -403,15 +403,15 @@ public class TaskQuartzImpl implements Task {
 	 * Getters and setters
 	 * ===================
 	 */
-	
+
 	/*
 	 * Progress / expectedTotal
 	 */
-	
+
 	@Override
 	public long getProgress() {
 		Long value = taskPrism.getPropertyRealValue(TaskType.F_PROGRESS, Long.class);
-		return value != null ? value : 0; 
+		return value != null ? value : 0;
 	}
 
 	@Override
@@ -436,9 +436,9 @@ public class TaskQuartzImpl implements Task {
 		} catch (SchemaException e) {
 			// This should not happen
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
-		}			
+		}
 	}
-	
+
 	private PropertyDelta<?> setProgressAndPrepareDelta(long value) {
 		setProgressTransient(value);
 		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
@@ -510,7 +510,7 @@ public class TaskQuartzImpl implements Task {
 	 *
 	 * setters set also result status type!
 	 */
-	
+
 	@Override
 	public OperationResult getResult() {
 		return taskResult;
@@ -542,11 +542,11 @@ public class TaskQuartzImpl implements Task {
         this.taskPrism.asObjectable().setResult(result.createOperationResultType());
         setResultStatusTypeTransient(result != null ? result.getStatus().createStatusType() : null);
 	}
-	
+
 	private PropertyDelta<?> setResultAndPrepareDelta(OperationResult result) {
 		setResultTransient(result);
 		if (isPersistent()) {
-			PropertyDelta<?> d = PropertyDelta.createReplaceDeltaOrEmptyDelta(taskManager.getTaskObjectDefinition(), 
+			PropertyDelta<?> d = PropertyDelta.createReplaceDeltaOrEmptyDelta(taskManager.getTaskObjectDefinition(),
 						TaskType.F_RESULT, result != null ? result.createOperationResultType() : null);
 			LOGGER.trace("setResult delta = " + d.debugDump());
 			return d;
@@ -598,8 +598,8 @@ public class TaskQuartzImpl implements Task {
     /*
       * Handler URI
       */
-	
-	
+
+
 	@Override
 	public String getHandlerUri() {
 		return taskPrism.getPropertyRealValue(TaskType.F_HANDLER_URI, String.class);
@@ -623,19 +623,19 @@ public class TaskQuartzImpl implements Task {
             throw new SystemException(ex);
         }
 	}
-	
+
 	@Override
 	public void setHandlerUri(String value) {
 		processModificationBatched(setHandlerUriAndPrepareDelta(value));
 	}
-	
+
 	private PropertyDelta<?> setHandlerUriAndPrepareDelta(String value) {
 		setHandlerUriTransient(value);
 		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
 					taskManager.getTaskObjectDefinition(), TaskType.F_HANDLER_URI, value) : null;
 	}
 
-	
+
 	/*
 	 * Other handlers URI stack
 	 */
@@ -645,7 +645,7 @@ public class TaskQuartzImpl implements Task {
 		checkHandlerUriConsistency();
 		return taskPrism.asObjectable().getOtherHandlersUriStack();
 	}
-	
+
 	public void setOtherHandlersUriStackTransient(UriStack value) {
 		try {
 			taskPrism.setPropertyRealValue(TaskType.F_OTHER_HANDLERS_URI_STACK, value);
@@ -676,11 +676,11 @@ public class TaskQuartzImpl implements Task {
 		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
 					taskManager.getTaskObjectDefinition(), TaskType.F_OTHER_HANDLERS_URI_STACK, value) : null;
 	}
-	
+
 	private UriStackEntry popFromOtherHandlersUriStack() {
-		
+
 		checkHandlerUriConsistency();
-		
+
 		UriStack stack = taskPrism.getPropertyRealValue(TaskType.F_OTHER_HANDLERS_URI_STACK, UriStack.class);
         // is this a live value or a copy? (should be live)
 
@@ -695,7 +695,7 @@ public class TaskQuartzImpl implements Task {
 //                + ", freshly got stack size: " + stack2.getUriStackEntry().size());
 
 		setOtherHandlersUriStack(stack);
-		
+
 		return retval;
 	}
 
@@ -861,7 +861,7 @@ public class TaskQuartzImpl implements Task {
         } catch (ObjectAlreadyExistsException ex) {
             throw new SystemException(ex);
         }
-		
+
 		LOGGER.trace("finishHandler: new current handler uri = {}, new number of handlers = {}", getHandlerUri(), getHandlersCount());
 	}
 
@@ -921,19 +921,19 @@ public class TaskQuartzImpl implements Task {
 		int others = getOtherHandlersUriStack() != null ? getOtherHandlersUriStack().getUriStackEntry().size() : 0;
 		return main + others;
 	}
-	
+
 	private boolean isOtherHandlersUriStackEmpty() {
 		UriStack stack = taskPrism.asObjectable().getOtherHandlersUriStack();
 		return stack == null || stack.getUriStackEntry().isEmpty();
 	}
-	
-	
+
+
 	private void checkHandlerUriConsistency() {
 		if (getHandlerUri() == null && !isOtherHandlersUriStackEmpty())
 			throw new IllegalStateException("Handler URI is null but there is at least one 'other' handler (otherHandlerUriStack size = " + getOtherHandlersUriStack().getUriStackEntry().size() + ")");
 	}
 
-	
+
 	/*
 	 * Persistence status
 	 */
@@ -942,11 +942,11 @@ public class TaskQuartzImpl implements Task {
 	public TaskPersistenceStatus getPersistenceStatus() {
         return StringUtils.isEmpty(getOid()) ? TaskPersistenceStatus.TRANSIENT : TaskPersistenceStatus.PERSISTENT;
 	}
-	
+
 //	public void setPersistenceStatusTransient(TaskPersistenceStatus persistenceStatus) {
 //		this.persistenceStatus = persistenceStatus;
 //	}
-	
+
 	public boolean isPersistent() {
 		return getPersistenceStatus() == TaskPersistenceStatus.PERSISTENT;
 	}
@@ -959,7 +959,7 @@ public class TaskQuartzImpl implements Task {
 	/*
 	 * Oid
 	 */
-	
+
 	@Override
 	public String getOid() {
 		return taskPrism.getOid();
@@ -968,18 +968,18 @@ public class TaskQuartzImpl implements Task {
 	public void setOid(String oid) {
 		taskPrism.setOid(oid);
 	}
-	
+
 	// obviously, there are no "persistent" versions of setOid
 
 	/*
 	 * Task identifier (again, without "persistent" versions)
 	 */
-	
+
 	@Override
 	public String getTaskIdentifier() {
 		return taskPrism.getPropertyRealValue(TaskType.F_TASK_IDENTIFIER, String.class);
 	}
-	
+
 	private void setTaskIdentifier(String value) {
 		try {
 			taskPrism.setPropertyRealValue(TaskType.F_TASK_IDENTIFIER, value);
@@ -988,14 +988,14 @@ public class TaskQuartzImpl implements Task {
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
 		}
 	}
-	
-	/* 
+
+	/*
 	 * Execution status
-	 * 
+	 *
 	 * IMPORTANT: do not set this attribute explicitly (due to the need of synchronization with Quartz scheduler).
 	 * Use task life-cycle methods, like close(), suspendTask(), resumeTask(), and so on.
 	 */
-	
+
 	@Override
 	public TaskExecutionStatus getExecutionStatus() {
 		TaskExecutionStatusType xmlValue = taskPrism.getPropertyRealValue(TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.class);
@@ -1004,7 +1004,7 @@ public class TaskQuartzImpl implements Task {
 		}
 		return TaskExecutionStatus.fromTaskType(xmlValue);
 	}
-	
+
 	public void setExecutionStatusTransient(TaskExecutionStatus executionStatus) {
 		try {
 			taskPrism.setPropertyRealValue(TaskType.F_EXECUTION_STATUS, executionStatus.toTaskType());
@@ -1130,7 +1130,7 @@ public class TaskQuartzImpl implements Task {
 		}
 		return TaskRecurrence.fromTaskType(xmlValue);
 	}
-	
+
 	@Override
 	public boolean isSingle() {
 		return (getRecurrenceStatus() == TaskRecurrence.SINGLE);
@@ -1163,7 +1163,7 @@ public class TaskQuartzImpl implements Task {
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
 		}
 	}
-	
+
 	private PropertyDelta<?> setRecurrenceStatusAndPrepareDelta(TaskRecurrence value) {
 		setRecurrenceStatusTransient(value);
 		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
@@ -1196,7 +1196,7 @@ public class TaskQuartzImpl implements Task {
 
 		ScheduleType schedule = new ScheduleType();
 		schedule.setInterval(interval);
-		
+
 		setSchedule(schedule);
 	}
 
@@ -1225,12 +1225,12 @@ public class TaskQuartzImpl implements Task {
     /*
       * Schedule
       */
-	
+
 	@Override
 	public ScheduleType getSchedule() {
 		return taskPrism.asObjectable().getSchedule();
 	}
-	
+
 	public void setSchedule(ScheduleType value) {
 		processModificationBatched(setScheduleAndPrepareDelta(value));
 	}
@@ -1305,22 +1305,22 @@ public class TaskQuartzImpl implements Task {
 		}
 		return TaskBinding.fromTaskType(xmlValue);
 	}
-	
+
 	@Override
 	public boolean isTightlyBound() {
 		return getBinding() == TaskBinding.TIGHT;
 	}
-	
+
 	@Override
 	public boolean isLooselyBound() {
 		return getBinding() == TaskBinding.LOOSE;
 	}
-	
+
 	@Override
 	public void setBinding(TaskBinding value) {
 		processModificationBatched(setBindingAndPrepareDelta(value));
 	}
-	
+
 	@Override
 	public void setBindingImmediate(TaskBinding value, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
@@ -1330,7 +1330,7 @@ public class TaskQuartzImpl implements Task {
             throw new SystemException(ex);
         }
 	}
-	
+
 	public void setBindingTransient(TaskBinding value) {
 		try {
 			taskPrism.setPropertyRealValue(TaskType.F_BINDING, value.toTaskType());
@@ -1339,17 +1339,17 @@ public class TaskQuartzImpl implements Task {
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
 		}
 	}
-	
+
 	private PropertyDelta<?> setBindingAndPrepareDelta(TaskBinding value) {
 		setBindingTransient(value);
 		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
 					taskManager.getTaskObjectDefinition(), TaskType.F_BINDING, value.toTaskType()) : null;
 	}
-	
+
 	/*
 	 * Owner
 	 */
-	
+
 	@Override
 	public PrismObject<UserType> getOwner() {
 		PrismReference ownerRef = taskPrism.findReference(TaskType.F_OWNER_REF);
@@ -1374,7 +1374,7 @@ public class TaskQuartzImpl implements Task {
 		}
 		ownerRef.getValue().setObject(owner);
 	}
-	
+
 	PrismObject<UserType> resolveOwnerRef(OperationResult result) throws SchemaException {
 		PrismReference ownerRef = taskPrism.findReference(TaskType.F_OWNER_REF);
 		if (ownerRef == null) {
@@ -1441,7 +1441,7 @@ public class TaskQuartzImpl implements Task {
 //		}
 //		channelProperty.setRealValue(channelUri);
 //	}
-	
+
 	/*
 	 * Object
 	 */
@@ -1512,7 +1512,7 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		
+
 		// Shortcut
 		PrismReference objectRef = taskPrism.findReference(TaskType.F_OBJECT_REF);
 		if (objectRef == null) {
@@ -1526,11 +1526,11 @@ public class TaskQuartzImpl implements Task {
 				throw new IllegalArgumentException("Requested object type "+type+", but the type of object in the task is "+object.getClass());
 			}
 		}
-				
+
 		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE+"getObject");
 		result.addContext(OperationResult.CONTEXT_OID, getOid());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
-		
+
 		try {
 			PrismObject<T> object = repositoryService.getObject(type, objectRef.getOid(), null, result);
 			objectRef.getValue().setObject(object);
@@ -1593,7 +1593,7 @@ public class TaskQuartzImpl implements Task {
     public void setNameTransient(PolyStringType name) {
 		taskPrism.asObjectable().setName(name);
 	}
-	
+
 	private PropertyDelta<?> setNameAndPrepareDelta(PolyStringType value) {
 		setNameTransient(value);
 		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
@@ -1633,7 +1633,7 @@ public class TaskQuartzImpl implements Task {
         return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
                 taskManager.getTaskObjectDefinition(), TaskType.F_DESCRIPTION, value) : null;
     }
-    
+
     @Override
     public PolicyRuleType getPolicyRule() {
     	return taskPrism.asObjectable().getPolicyRule();
@@ -1753,7 +1753,7 @@ public class TaskQuartzImpl implements Task {
 	public PrismContainer<?> getExtension() {
 		return taskPrism.getExtension();
 	}
-	
+
 	@Override
 	public <T> PrismProperty<T> getExtensionProperty(QName propertyName) {
         if (getExtension() != null) {
@@ -1896,7 +1896,7 @@ public class TaskQuartzImpl implements Task {
             throw new SystemException(ex);
         }
 	}
-	
+
     private ItemDelta<?,?> setExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition, Collection<? extends PrismPropertyValue> values) throws SchemaException {
         ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
         return setExtensionItemAndPrepareDeltaCommon(delta, values);
@@ -2032,7 +2032,7 @@ public class TaskQuartzImpl implements Task {
 					.asItemDelta();
 		}
 	}
-	
+
 	/*
 	 *  Workflow context
 	 */
@@ -2181,7 +2181,7 @@ public class TaskQuartzImpl implements Task {
 		XMLGregorianCalendar gc = taskPrism.asObjectable().getLastRunStartTimestamp();
 		return gc != null ? new Long(XmlTypeConverter.toMillis(gc)) : null;
 	}
-	
+
 	public void setLastRunStartTimestamp(Long value) {
 		processModificationBatched(setLastRunStartTimestampAndPrepareDelta(value));
 	}
@@ -2199,13 +2199,13 @@ public class TaskQuartzImpl implements Task {
 		taskPrism.asObjectable().setLastRunStartTimestamp(
 				XmlTypeConverter.createXMLGregorianCalendar(value));
 	}
-	
+
 	private PropertyDelta<?> setLastRunStartTimestampAndPrepareDelta(Long value) {
 		setLastRunStartTimestampTransient(value);
 		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
-									taskManager.getTaskObjectDefinition(), 
-									TaskType.F_LAST_RUN_START_TIMESTAMP, 
-									taskPrism.asObjectable().getLastRunStartTimestamp()) 
+									taskManager.getTaskObjectDefinition(),
+									TaskType.F_LAST_RUN_START_TIMESTAMP,
+									taskPrism.asObjectable().getLastRunStartTimestamp())
 							  : null;
 	}
 
@@ -2236,13 +2236,13 @@ public class TaskQuartzImpl implements Task {
 		taskPrism.asObjectable().setLastRunFinishTimestamp(
 				XmlTypeConverter.createXMLGregorianCalendar(value));
 	}
-	
+
 	private PropertyDelta<?> setLastRunFinishTimestampAndPrepareDelta(Long value) {
 		setLastRunFinishTimestampTransient(value);
 		return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
-									taskManager.getTaskObjectDefinition(), 
-									TaskType.F_LAST_RUN_FINISH_TIMESTAMP, 
-									taskPrism.asObjectable().getLastRunFinishTimestamp()) 
+									taskManager.getTaskObjectDefinition(),
+									TaskType.F_LAST_RUN_FINISH_TIMESTAMP,
+									taskPrism.asObjectable().getLastRunFinishTimestamp())
 							  : null;
 	}
 
@@ -2297,7 +2297,7 @@ public class TaskQuartzImpl implements Task {
 	public String debugDump() {
 		return debugDump(0);
 	}
-	
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
@@ -2383,7 +2383,7 @@ public class TaskQuartzImpl implements Task {
 			result.recordSuccess();
 			return;
 		}
-		
+
 		PrismObject<TaskType> repoObj;
 		try {
 			repoObj = repositoryService.getObject(TaskType.class, getOid(), null, result);
@@ -2392,7 +2392,7 @@ public class TaskQuartzImpl implements Task {
 			throw ex;
 		} catch (SchemaException ex) {
 			result.recordFatalError("Schema error", ex);
-			throw ex;			
+			throw ex;
 		}
         updateTaskInstance(repoObj, result);
 		result.recordSuccess();
@@ -2418,11 +2418,11 @@ public class TaskQuartzImpl implements Task {
 //	}
 
 
-	
+
 	/**
 	 * Signal the task to shut down.
 	 * It may not stop immediately, but it should stop eventually.
-	 * 
+	 *
 	 * BEWARE, this method has to be invoked on the same Task instance that is executing.
 	 * If called e.g. on a Task just retrieved from the repository, it will have no effect whatsoever.
 	 */

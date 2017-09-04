@@ -165,7 +165,7 @@ public class BeanUnmarshaller {
 				return unmarshallPrimitive(prim, beanClass, pc);
 			}
 		} else {
-			
+
 			if (beanClass.getPackage() == null || beanClass.getPackage().getName().equals("java.lang")) {
 				// We obviously have primitive data type, but we are asked to unmarshall from map xnode
 				// NOTE: this may happen in XML when we have "empty" element, but it has some whitespace in it
@@ -177,7 +177,7 @@ public class BeanUnmarshaller {
 				// Therefore just ignore entire map content.
 				return null;
 			}
-			
+
 			@SuppressWarnings("unchecked")
 			MapUnmarshaller<T> unmarshaller = specialMapUnmarshallers.get(beanClass);
 			if (xnode instanceof MapXNode && unmarshaller != null) {		// TODO: what about special unmarshaller + hetero list?
@@ -193,35 +193,35 @@ public class BeanUnmarshaller {
 	private <T> T unmarshallPrimitive(PrimitiveXNode<T> prim, Class<T> beanClass, ParsingContext pc) throws SchemaException {
 		if (prim.isEmpty()) {
 			return instantiate(beanClass);		// Special case. Just return empty object
-		} 
-		
+		}
+
 		Field valueField = XNodeProcessorUtil.findXmlValueField(beanClass);
-		
+
 		if (valueField == null) {
 			throw new SchemaException("Cannot convert primitive value to bean of type " + beanClass);
 		}
-		
+
 		T instance = instantiate(beanClass);
-		
+
 		if (!valueField.isAccessible()) {
 			valueField.setAccessible(true);
 		}
-		
+
 		T value;
 		if (prim.isParsed()) {
-			value = prim.getValue();	
+			value = prim.getValue();
 		} else {
 			Class<?> fieldType = valueField.getType();
 			QName xsdType = XsdTypeMapper.toXsdType(fieldType);
 			value = prim.getParsedValue(xsdType, (Class<T>) fieldType);
 		}
-		
+
 		try {
 			valueField.set(instance, value);
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			throw new SchemaException("Cannot set primitive value to field " + valueField.getName() + " of bean " + beanClass + ": "+e.getMessage(), e);
 		}
-		
+
 		return instance;
 	}
 
@@ -1248,4 +1248,3 @@ public class BeanUnmarshaller {
 	}
 	//endregion
 }
- 

@@ -35,7 +35,7 @@ import static org.testng.AssertJUnit.assertTrue;
  *
  */
 public class TestExchangeAlreadyExistsHandling extends AbstractTestForExchangeConnector {
-	
+
     private String orvilleOid;
     private String wilburOid;
 
@@ -50,7 +50,7 @@ public class TestExchangeAlreadyExistsHandling extends AbstractTestForExchangeCo
     private String getContainer() {
         return System.getProperty("container");
     }
-    
+
     public String getMailDomain() {
         return System.getProperty("mailDomain");
     }

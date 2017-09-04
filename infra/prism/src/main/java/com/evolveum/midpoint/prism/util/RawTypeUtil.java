@@ -40,11 +40,11 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 public class RawTypeUtil {
 
-	
+
 	public static <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getParsedItem(ID itemDefinition, List<RawType> values, QName elementQName, PrismContainerDefinition containerDef) throws SchemaException{
-		
+
 		Item<IV,ID> subItem = null;
-		
+
 		List<IV> parsedValues = new ArrayList<IV>();
 		for (RawType rawValue : values){
 			if (itemDefinition == null && containerDef != null){
@@ -63,14 +63,14 @@ public class RawTypeUtil {
         if (prismContext == null && itemDefinition != null) {
             prismContext = itemDefinition.getPrismContext();
         }
-		
+
 		if (itemDefinition == null){
 			PrismProperty property = new PrismProperty(elementQName, prismContext);
             property.addAll(PrismValue.cloneCollection(parsedValues));
             return property;
 		}
-		
-		
+
+
 			if (itemDefinition instanceof PrismPropertyDefinition<?>) {
 				// property
 				PrismProperty<?> property = ((PrismPropertyDefinition<?>) itemDefinition).instantiate();
@@ -78,7 +78,7 @@ public class RawTypeUtil {
 					property.add((PrismPropertyValue) val.clone());
 				}
 				subItem = (Item<IV,ID>) property;
-				
+
 			} else if (itemDefinition instanceof PrismContainerDefinition<?>) {
 					PrismContainer<?> container = ((PrismContainerDefinition<?>) itemDefinition)
 							.instantiate();
@@ -114,10 +114,10 @@ public class RawTypeUtil {
 			} else {
 				throw new IllegalArgumentException("Unsupported definition type " + itemDefinition.getClass());
 			}
-			
+
 		return subItem;
 	}
-	
+
 //	public static Object toAny(PrismValue value, Document document, PrismContext prismContext) throws SchemaException{
 //		DomParser domProcessor = prismContext.getParserDom();
 ////		Document document = DOMUtil.getDocument();

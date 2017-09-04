@@ -60,13 +60,13 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  *
  */
 public class ConnIdConvertor {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ConnIdConvertor.class);
-	
+
 	private String resourceSchemaNamespace;
 	private Protector protector;
 	private ConnIdNameMapper icfNameMapper;
-	
+
 	public ConnIdConvertor(Protector protector, String resourceSchemaNamespace) {
 		super();
 		this.protector = protector;
@@ -91,7 +91,7 @@ public class ConnIdConvertor {
 	 * ResourceObject is schema-aware (getDefinition() method works). If no
 	 * ResourceObjectDefinition was provided, the object is schema-less. TODO:
 	 * this still needs to be implemented.
-	 * 
+	 *
 	 * @param co
 	 *            ICF ConnectorObject to convert
 	 * @param def
@@ -123,7 +123,7 @@ public class ConnIdConvertor {
 				.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
 		ResourceAttributeContainerDefinition attributesContainerDefinition = attributesContainer.getDefinition();
 		shadow.setObjectClass(attributesContainerDefinition.getTypeName());
-		
+
 		List<ObjectClassComplexTypeDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>();
 
 		// too loud
@@ -146,7 +146,7 @@ public class ConnIdConvertor {
 				break;
 			}
 		}
-		
+
 		for (Attribute icfAttr : co.getAttributes()) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Reading ICF attribute {}: {}", icfAttr.getName(), icfAttr.getValue());
@@ -195,7 +195,7 @@ public class ConnIdConvertor {
 				LOGGER.trace("Converted activation administrativeStatus: {}", activationStatusType);
 				continue;
 			}
-			
+
 			if (icfAttr.getName().equals(OperationalAttributes.ENABLE_DATE_NAME)) {
 				Long millis = getSingleValue(icfAttr, Long.class);
 				if (millis == null) {
@@ -215,7 +215,7 @@ public class ConnIdConvertor {
 				activationType.setValidTo(XmlTypeConverter.createXMLGregorianCalendar(millis));
 				continue;
 			}
-			
+
 			if (icfAttr.getName().equals(OperationalAttributes.LOCK_OUT_NAME)) {
 				Boolean lockOut = getSingleValue(icfAttr, Boolean.class);
 				if (lockOut == null) {
@@ -295,8 +295,8 @@ public class ConnIdConvertor {
 			}
 
 		}
-		
-		// Add Uid if it is not there already. It can be already present, 
+
+		// Add Uid if it is not there already. It can be already present,
 		// e.g. if Uid and Name represent the same attribute
 		Uid uid = co.getUid();
 		ObjectClassComplexTypeDefinition ocDef = attributesContainerDefinition.getComplexTypeDefinition();
@@ -334,7 +334,7 @@ public class ConnIdConvertor {
 		}
 		return attributes;
 	}
-	
+
 	Attribute convertToConnIdAttribute(ResourceAttribute<?> mpAttribute, ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
 		QName midPointAttrQName = mpAttribute.getElementName();
 		if (midPointAttrQName.equals(SchemaConstants.ICFS_UID)) {
@@ -354,7 +354,7 @@ public class ConnIdConvertor {
 			throw new SchemaException(e.getMessage(), e);
 		}
 	}
-	
+
 	private <T> T getSingleValue(Attribute icfAttr, Class<T> type) throws SchemaException {
 		List<Object> values = icfAttr.getValue();
 		if (values != null && !values.isEmpty()) {
@@ -376,7 +376,7 @@ public class ConnIdConvertor {
 		}
 
 	}
-	
+
 	private Object convertValueFromIcf(Object icfValue, QName propName) {
 		if (icfValue == null) {
 			return null;
@@ -386,7 +386,7 @@ public class ConnIdConvertor {
 		}
 		return icfValue;
 	}
-	
+
 	private ProtectedStringType fromGuardedString(GuardedString icfValue) {
 		final ProtectedStringType ps = new ProtectedStringType();
 		icfValue.access(new GuardedString.Accessor() {

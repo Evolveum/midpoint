@@ -218,22 +218,22 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 }
             });
             add(importObject);
-            
+
             CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(ID_EXPORT_DATA) {
-				
+
             	private static final long serialVersionUID = 1L;
 
 				@Override
             	protected DataTable<?, ?> getDataTable() {
             		return mainObjectListPanel.getTable().getDataTable();
             	}
-            	
+
             	@Override
             	protected String getFilename() {
             		return mainObjectListPanel.getType().getSimpleName() +
 		                    "_" + mainObjectListPanel.createStringResource("MainObjectListPanel.exportFileName").getString();
             	}
-				
+
 			};
             exportDataLink.add(new VisibleEnableBehaviour(){
                 private static final long serialVersionUID = 1L;

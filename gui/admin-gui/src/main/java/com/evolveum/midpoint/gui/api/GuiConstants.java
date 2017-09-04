@@ -21,5 +21,5 @@ public class GuiConstants {
 
 	public static final String NS_UI_PREFIX = SchemaConstants.NS_MIDPOINT_PUBLIC_PREFIX + "ui/";
 	public static final String NS_UI_FEATURE = NS_UI_PREFIX + "feature";
-	
+
 }

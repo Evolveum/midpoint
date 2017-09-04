@@ -26,9 +26,9 @@ public class ExpressionConstants {
 	// Generic variables
 	public static final QName VAR_INPUT = new QName(SchemaConstants.NS_C, "input");
 	public static final QName VAR_OBJECT = new QName(SchemaConstants.NS_C, "object");
-	
+
 	// Variables used in various mappings
-	public static final QName VAR_FOCUS = new QName(SchemaConstants.NS_C, "focus");	
+	public static final QName VAR_FOCUS = new QName(SchemaConstants.NS_C, "focus");
 	public static final QName VAR_PROJECTION = new QName(SchemaConstants.NS_C, "projection");
 	public static final QName VAR_SOURCE = new QName(SchemaConstants.NS_C, "source");
 	public static final QName VAR_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
@@ -60,27 +60,27 @@ public class ExpressionConstants {
     public static final QName VAR_ASSIGNED = new QName(SchemaConstants.NS_C, "assigned");
 	public static final QName VAR_FOCUS_EXISTS = new QName(SchemaConstants.NS_C, "focusExists");
 	public static final QName VAR_ADMINISTRATIVE_STATUS = new QName(SchemaConstants.NS_C, "administrativeStatus");
-	
+
 	public static final QName VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION = new QName(SchemaConstants.NS_C, "associationTargetObjectClassDefinition");
-	
+
 	/**
 	 * Numeric value describing the current iteration. It starts with 0 and increments on every iteration.
 	 * Iterations are used to find unique values for an account, to resolve naming conflicts, etc.
 	 */
 	public static final QName VAR_ITERATION = new QName(SchemaConstants.NS_C, "iteration");
-	
+
 	/**
 	 * String value describing the current iteration. It is usually suffix that is appended to the username
 	 * or a similar "extension" of the value. It should have different value for every iteration. The actual
 	 * value is determined by the iteration settings.
 	 */
 	public static final QName VAR_ITERATION_TOKEN = new QName(SchemaConstants.NS_C, "iterationToken");
-	
+
 	// Variables used in object merging expressions
 	public static final QName VAR_SIDE = new QName(SchemaConstants.NS_C, "side");
 	public static final QName VAR_OBJECT_LEFT = new QName(SchemaConstants.NS_C, "objectLeft");
 	public static final QName VAR_OBJECT_RIGHT = new QName(SchemaConstants.NS_C, "objectRight");
-	
+
 	public static final QName OUTPUT_ELEMENT_NAME = new QName(SchemaConstants.NS_C, "output");
 
 	// "case" would collide with java keyword

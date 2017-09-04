@@ -20,11 +20,11 @@ package com.evolveum.icf.dummy.resource;
  *
  */
 public enum DummyDeltaType {
-	
+
 	ADD,
-	
+
 	MODIFY,
-	
+
 	DELETE;
 
 }

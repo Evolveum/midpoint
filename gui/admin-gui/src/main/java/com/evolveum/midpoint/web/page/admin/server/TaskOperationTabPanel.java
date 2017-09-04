@@ -51,7 +51,7 @@ public class TaskOperationTabPanel extends AbstractObjectTabPanel<TaskType> impl
 		initLayout(taskDtoModel, pageBase);
 		setOutputMarkupId(true);
 	}
-	
+
 	private void initLayout(final IModel<TaskDto> taskDtoModel, PageBase pageBase) {
 
 		final PropertyModel<ModelOperationStatusDto> operationStatusModel = new PropertyModel<>(taskDtoModel, TaskDto.F_MODEL_OPERATION_STATUS);

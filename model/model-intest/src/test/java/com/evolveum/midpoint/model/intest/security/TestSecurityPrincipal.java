@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSecurityPrincipal extends AbstractSecurityTest {
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -56,7 +56,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
 
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_ADMINISTRATOR_USERNAME);
-        
+
         // THEN
         display("Administrator principal", principal);
         assertEquals("Wrong number of authorizations", 1, principal.getAuthorities().size());
@@ -65,7 +65,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         assertAuthorized(principal, AUTZ_LOOT_URL);
         assertAuthorized(principal, AUTZ_COMMAND_URL);
 	}
-		
+
 	@Test
     public void test050GetUserJack() throws Exception {
 		final String TEST_NAME = "test050GetUserJack";
@@ -74,7 +74,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
 
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
-        
+
         // THEN
         assertNoAuthentication();
         assertJack(principal);
@@ -85,7 +85,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
         assertNoAuthentication();
 	}
-	
+
 	@Test
     public void test051GetUserBarbossa() throws Exception {
 		final String TEST_NAME = "test051GetUserBarbossa";
@@ -94,7 +94,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
 
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_BARBOSSA_USERNAME);
-        
+
         // THEN
         display("Principal barbossa", principal);
         assertNotNull("No principal for username "+USER_BARBOSSA_USERNAME, principal);
@@ -102,121 +102,121 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         assertEquals("wrong oid", USER_BARBOSSA_OID, principal.getOid());
         assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
         display("User in principal barbossa", principal.getUser().asPrismObject());
-        
+
         principal.getUser().asPrismObject().checkConsistence(true, true);
-        
+
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
 	}
-	
+
 	@Test
     public void test052GetUserGuybrush() throws Exception {
 		final String TEST_NAME = "test052GetUserGuybrush";
-        displayTestTitle(TEST_NAME);        
+        displayTestTitle(TEST_NAME);
         resetAuthentication();
 
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
-        
+
         // THEN
         display("Principal guybrush", principal);
         assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());
         assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
         display("User in principal guybrush", principal.getUser().asPrismObject());
-        
+
         principal.getUser().asPrismObject().checkConsistence(true, true);
-        
+
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
 	}
-	
+
 	@Test
     public void test060GuybrushConditionalRoleFalse() throws Exception {
 		final String TEST_NAME = "test060GuybrushConditionalRoleFalse";
         displayTestTitle(TEST_NAME);
         login(USER_ADMINISTRATOR_USERNAME);
-        
+
         assignRole(USER_GUYBRUSH_OID, ROLE_CONDITIONAL_OID);
-        
+
         resetAuthentication();
 
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
-        
+
         // THEN
         display("Principal guybrush", principal);
         assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());
         assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
         display("User in principal guybrush", principal.getUser().asPrismObject());
-        
+
         principal.getUser().asPrismObject().checkConsistence(true, true);
-        
+
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
         assertNotAuthorized(principal, AUTZ_SUPERSPECIAL_URL);
         assertNotAuthorized(principal, AUTZ_NONSENSE_URL);
 	}
-	
+
 	@Test
     public void test061GuybrushConditionalRoleTrue() throws Exception {
 		final String TEST_NAME = "test061GuybrushConditionalRoleTrue";
         displayTestTitle(TEST_NAME);
         login(USER_ADMINISTRATOR_USERNAME);
-        
+
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_TYPE, task, result, "special");
-        
+
         resetAuthentication();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         display("Principal guybrush", principal);
         assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());
         display("User in principal guybrush", principal.getUser().asPrismObject());
-        
+
         principal.getUser().asPrismObject().checkConsistence(true, true);
-        
+
         assertAuthorized(principal, AUTZ_SUPERSPECIAL_URL);
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
         assertNotAuthorized(principal, AUTZ_CAPSIZE_URL);
         assertNotAuthorized(principal, AUTZ_NONSENSE_URL);
 	}
-	
+
 	@Test
     public void test062GuybrushConditionalRoleUnassign() throws Exception {
 		final String TEST_NAME = "test062GuybrushConditionalRoleUnassign";
         displayTestTitle(TEST_NAME);
         login(USER_ADMINISTRATOR_USERNAME);
-        
+
         unassignRole(USER_GUYBRUSH_OID, ROLE_CONDITIONAL_OID);
-        
+
         resetAuthentication();
 
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
-        
+
         // THEN
         display("Principal guybrush", principal);
         assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());
         assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
         display("User in principal guybrush", principal.getUser().asPrismObject());
-        
+
         principal.getUser().asPrismObject().checkConsistence(true, true);
-        
+
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
 	}
-	
+
 	@Test
     public void test100JackRolePirate() throws Exception {
 		final String TEST_NAME = "test100JackRolePirate";
@@ -226,26 +226,26 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
-        
+
         resetAuthentication();
-        
+
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
-        
+
         // THEN
         assertJack(principal);
-        
+
         assertEquals("Wrong number of authorizations", 1, principal.getAuthorities().size());
         assertHasAuthotizationAllow(principal.getAuthorities().iterator().next(), AUTZ_LOOT_URL);
-        
+
         assertAuthorized(principal, AUTZ_LOOT_URL, AuthorizationPhaseType.EXECUTION);
         assertNotAuthorized(principal, AUTZ_LOOT_URL, AuthorizationPhaseType.REQUEST);
         assertNotAuthorized(principal, AUTZ_LOOT_URL, null);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
-        
+
         assertAdminGuiConfigurations(principal, 1, 2, 3, 2, 2);
 	}
-	
+
 	@Test
     public void test109JackUnassignRolePirate() throws Exception {
 		final String TEST_NAME = "test109JackUnassignRolePirate";
@@ -255,23 +255,23 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
-        
+
         resetAuthentication();
-        
+
         // WHEN
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
-        
+
         // THEN
         assertJack(principal);
-        
+
         assertEquals("Wrong number of authorizations", 0, principal.getAuthorities().size());
-        
+
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
-        
+
         assertAdminGuiConfigurations(principal, 0, 1, 3, 1, 0);
 	}
-	
+
 	@Test
     public void test110GuybrushRoleNicePirate() throws Exception {
 		final String TEST_NAME = "test110GuybrushRoleNicePirate";
@@ -281,22 +281,22 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assignRole(USER_GUYBRUSH_OID, ROLE_NICE_PIRATE_OID, task, result);
-        
+
         resetAuthentication();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
-        
+
         // THEN
         displayThen(TEST_NAME);
         display("Principal guybrush", principal);
         assertEquals("Wrong number of authorizations", 2, principal.getAuthorities().size());
-        
+
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
 	}
-	
+
 	@Test
     public void test111GuybrushRoleCaptain() throws Exception {
 		final String TEST_NAME = "test111GuybrushRoleCaptain";
@@ -306,22 +306,22 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assignRole(USER_GUYBRUSH_OID, ROLE_CAPTAIN_OID, task, result);
-        
+
         resetAuthentication();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
-        
+
         // THEN
         displayThen(TEST_NAME);
         display("Principal guybrush", principal);
         assertEquals("Wrong number of authorizations", 3, principal.getAuthorities().size());
-        
+
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertAuthorized(principal, AUTZ_COMMAND_URL);
 	}
-	
+
 	@Test
     public void test119GuybrushUnassignRoles() throws Exception {
 		final String TEST_NAME = "test119GuybrushUnassignRoles";
@@ -332,21 +332,21 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         OperationResult result = task.getResult();
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         unassignRole(USER_JACK_OID, ROLE_CAPTAIN_OID, task, result);
-        
+
         resetAuthentication();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertEquals("Wrong number of authorizations", 0, principal.getAuthorities().size());
-        
+
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
 	}
-	
+
 	/**
 	 * MID-3650
 	 */
@@ -356,30 +356,30 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         displayTestTitle(TEST_NAME);
         // GIVEN
         login(USER_ADMINISTRATOR_USERNAME);
-                
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 0);
-        
+
         assignRole(USER_JACK_OID, ROLE_INDIRECT_PIRATE_OID);
-        
+
         resetAuthentication();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
-        
+
         // THEN
         displayThen(TEST_NAME);
         display("Principal guybrush", principal);
         assertEquals("Wrong number of authorizations", 1, principal.getAuthorities().size());
-        
+
         assertAuthorized(principal, AUTZ_LOOT_URL, AuthorizationPhaseType.EXECUTION);
-        
+
         login(USER_ADMINISTRATOR_USERNAME);
         unassignRole(USER_JACK_OID, ROLE_INDIRECT_PIRATE_OID);
 	}
-	
+
 	/**
 	 * MID-3650
 	 */
@@ -389,26 +389,26 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         displayTestTitle(TEST_NAME);
         // GIVEN
         login(USER_ADMINISTRATOR_USERNAME);
-                
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 0);
-        
+
         assignOrg(USER_JACK_OID, ORG_INDIRECT_PIRATE_OID);
-        
+
         resetAuthentication();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
-        
+
         // THEN
         displayThen(TEST_NAME);
         display("Principal guybrush", principal);
         assertEquals("Wrong number of authorizations", 1, principal.getAuthorities().size());
-        
+
         assertAuthorized(principal, AUTZ_LOOT_URL, AuthorizationPhaseType.EXECUTION);
-        
+
         login(USER_ADMINISTRATOR_USERNAME);
         unassignOrg(USER_JACK_OID, ORG_INDIRECT_PIRATE_OID);
 	}

@@ -80,7 +80,7 @@ public class InitialDataImport {
     private TaskManager taskManager;
     @Autowired
     private MidpointConfiguration configuration;
-    
+
     public void setModel(ModelService model) {
         Validate.notNull(model, "Model service must not be null.");
         this.model = model;
@@ -103,7 +103,7 @@ public class InitialDataImport {
 
         File[] files = getInitialImportObjects();
         LOGGER.debug("Files to be imported: {}.", Arrays.toString(files));
-        
+
         // We need to provide a fake Spring security context here.
         // We have to fake it because we do not have anything in the repository yet. And to get
         // something to the repository we need a context. Chicken and egg. So we fake the egg.
@@ -145,7 +145,7 @@ public class InitialDataImport {
         }
 
         securityContext.setAuthentication(null);
-        
+
         mainResult.recomputeStatus("Couldn't import objects.");
 
         LOGGER.info("Initial object import finished ({} objects imported, {} errors)", count, errors);
@@ -221,7 +221,7 @@ public class InitialDataImport {
 
         File[] files = null;
         File folder = null;
-        
+
         if ("zip".equals(resourceType) || "jar".equals(resourceType)) {
         	try {
         		File tmpDir = new File(configuration.getMidpointHome()+"/tmp");
@@ -233,11 +233,11 @@ public class InitialDataImport {
         		if (!tmpDir.mkdir()) {
         			LOGGER.warn("Failed to create temporary directory for initial objects {}. Maybe it already exists", configuration.getMidpointHome()+"/tmp/initial-objects");
         		}
-        		
+
         		//prerequisite: we are expecting that the files are store in the same archive as the source code that is loading it
 	        	URI src = InitialDataImport.class.getProtectionDomain().getCodeSource().getLocation().toURI();
 	        	LOGGER.trace("InitialDataImport code location: {}", src);
-	            Map<String, String> env = new HashMap<>(); 
+	            Map<String, String> env = new HashMap<>();
 	            env.put("create", "false");
 	            URI normalizedSrc = new URI(src.toString().replaceFirst("file:", "jar:file:"));
 	            LOGGER.trace("InitialDataImport normalized code location: {}", normalizedSrc);
@@ -255,7 +255,7 @@ public class InitialDataImport {
 	                      Files.copy(file, destFile, StandardCopyOption.REPLACE_EXISTING);
 	                      return FileVisitResult.CONTINUE;
 	                    }
-	               
+
 	                    @Override
 	                    public FileVisitResult preVisitDirectory(Path dir,
 	                        BasicFileAttributes attrs) throws IOException {
@@ -269,20 +269,20 @@ public class InitialDataImport {
 	                    }
 	                  });
 
-	                
+
 	            }
 	        	folder = new File(configuration.getMidpointHome()+"/tmp/initial-objects");
         	} catch (IOException ex) {
         		throw new RuntimeException("Failed to copy initial objects file out of the archive to the temporary directory", ex);
         	} catch (URISyntaxException ex) {
         		throw new RuntimeException("Failed get URI for the source code bundled with initial objects", ex);
-        	} 
+        	}
         }
-        
+
     	if ("file".equals(resourceType)) {
 	        folder = getResource("initial-objects");
     	}
-    	
+
         files = folder.listFiles(new FileFilter() {
 
             @Override
@@ -304,7 +304,7 @@ public class InitialDataImport {
                 return n1 - n2;
             }
         });
-	
+
         return files;
     }
 

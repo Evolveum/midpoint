@@ -32,7 +32,7 @@ public abstract class AbstractOptions {
 			sb.append("=false,");
 		}
 	}
-	
+
     protected void appendVal(StringBuilder sb, String name, Object val) {
 		if (val != null) {
 			sb.append(name);
@@ -41,7 +41,7 @@ public abstract class AbstractOptions {
 			sb.append(",");
 		}
 	}
-    
+
     protected void removeLastComma(StringBuilder sb) {
     	if (sb.charAt(sb.length() - 1) == ',') {
 			sb.deleteCharAt(sb.length() - 1);

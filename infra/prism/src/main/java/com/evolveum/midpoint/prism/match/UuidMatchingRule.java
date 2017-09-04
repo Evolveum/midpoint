@@ -27,14 +27,14 @@ import com.evolveum.midpoint.util.DOMUtil;
 
 /**
  * Matching rule for universally unique identifier (UUID).
- * 
+ *
  * Currently it is (almost) simple case ignore matching.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class UuidMatchingRule implements MatchingRule<String> {
-	
+
 	public static final QName NAME = new QName(PrismConstants.NS_MATCHING_RULE, "uuid");
 
 	@Override
@@ -77,7 +77,7 @@ public class UuidMatchingRule implements MatchingRule<String> {
 		if (a == null){
 			return false;
 		}
-		
+
 		Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
 		Matcher matcher = pattern.matcher(a);
 		return matcher.matches();

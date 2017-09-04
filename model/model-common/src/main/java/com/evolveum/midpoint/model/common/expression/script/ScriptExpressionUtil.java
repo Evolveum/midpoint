@@ -37,7 +37,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
  *
  */
 public class ScriptExpressionUtil {
-	
+
 	public static Map<String,Object> prepareScriptVariables(ExpressionVariables variables, ObjectResolver objectResolver,
 			Collection<FunctionLibrary> functions,
 			String contextDescription, PrismContext prismContext, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {

@@ -37,11 +37,11 @@ import javax.xml.namespace.QName;
  * composed of the full Unicode character set. The other versions may be
  * normalized to trim it, normalize character case, normalize spaces,
  * remove national characters or even transliterate the string.
- * 
+ *
  * PolyString is (almost) immutable. The original value is immutable, but the
  * other normalized values can be changed. However the only way to change them
  * is to recompute them from the original value.
- * 				
+ *
  * @author Radovan Semancik
  */
 public class PolyString implements Matchable<PolyString>, Recomputable, Structured, DebugDumpable, Serializable, Comparable<Object> {
@@ -52,7 +52,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 
 	private final String orig;
 	private String norm = null;
-	
+
 	public PolyString(String orig) {
 		super();
 		if (orig == null) {
@@ -60,7 +60,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		}
 		this.orig = orig;
 	}
-	
+
 	public PolyString(String orig, String norm) {
 		super();
 		if (orig == null) {
@@ -77,22 +77,22 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	public String getNorm() {
 		return norm;
 	}
-	
+
 	public boolean isEmpty() {
 		if (orig == null) {
 			return true;
 		}
 		return orig.isEmpty();
 	}
-	
+
 	public void recompute(PolyStringNormalizer normalizer) {
 		norm = normalizer.normalize(orig);
 	}
-	
+
 	public boolean isComputed() {
 		return !(norm == null);
 	}
-	
+
 	@Override
 	public Object resolve(ItemPath subpath) {
 		if (subpath == null || subpath.isEmpty()) {
@@ -128,12 +128,12 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		}
 		return new PolyString(this.orig + other.toString());
 	}
-		
+
 	// Groovy operator overload
 	public PolyString getAt(int index) {
 		return new PolyString(this.orig.substring(index, index+1));
 	}
-	
+
 	@Override
 	public int compareTo(Object other) {
 		if (other == null) {
@@ -142,7 +142,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		String otherString = other.toString();
 		return this.orig.compareTo(otherString);
 	}
-	
+
 //	public PolyString getAt(Range at) {
 //		// TODO
 //	}
@@ -150,15 +150,15 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 //	public PolyString getAt(IntRange at) {
 //		// TODO
 //	}
-	
+
 	public int length() {
 		return orig.length();
 	}
-	
+
 	public PolyString trim() {
 		return new PolyString(orig.trim(), norm.trim());
 	}
-	
+
 	public String substring(int from, int to) {
 		return this.orig.substring(from,to);
 	}
@@ -215,7 +215,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	public String toString() {
 		return orig;
 	}
-	
+
 	@Override
 	public String debugDump() {
 		return debugDump(0);
@@ -249,7 +249,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 			return true;
 		if (other == null)
 			return false;
-		
+
 		if (norm == null) {
 			if (other.norm != null)
 				return false;
@@ -257,7 +257,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 			return false;
 		return true;
 	}
-	
+
 	@Override
 	public boolean matches(String regex) {
 		return Pattern.matches(regex, norm) || Pattern.matches(regex, orig);

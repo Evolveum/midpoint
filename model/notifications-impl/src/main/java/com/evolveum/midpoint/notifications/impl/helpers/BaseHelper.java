@@ -100,7 +100,7 @@ public abstract class BaseHelper {
     // expressions
 
     // shortDesc = what is to be evaluated e.g. "event filter expression"
-    protected boolean evaluateBooleanExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables, 
+    protected boolean evaluateBooleanExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
     		String shortDesc, Task task, OperationResult result) {
 
         Throwable failReason;
@@ -119,7 +119,7 @@ public abstract class BaseHelper {
         throw new SystemException(failReason);
     }
 
-    protected boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, String shortDesc, 
+    protected boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, String shortDesc,
     		Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
@@ -139,7 +139,7 @@ public abstract class BaseHelper {
         return boolResult != null ? boolResult : false;
     }
 
-    protected List<String> evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables, 
+    protected List<String> evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
     		String shortDesc, Task task, OperationResult result) {
 
         Throwable failReason;
@@ -158,7 +158,7 @@ public abstract class BaseHelper {
         throw new SystemException(failReason);
     }
 
-    private List<String> evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, 
+    private List<String> evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
     		String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");

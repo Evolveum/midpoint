@@ -35,12 +35,12 @@ public class InOidFilter extends ObjectFilter {
 	private Collection<String> oids;
 	private ExpressionWrapper expression;
 	private boolean considerOwner;				// temporary hack (checks owner OID)
-	
+
 	private InOidFilter(boolean considerOwner, Collection<String> oids) {
 		this.considerOwner = considerOwner;
 		this.oids = oids;
 	}
-	
+
 	private InOidFilter(boolean considerOwner, ExpressionWrapper expression){
 		this.considerOwner = considerOwner;
 		this.expression = expression;
@@ -53,7 +53,7 @@ public class InOidFilter extends ObjectFilter {
 	public static InOidFilter createInOid(Collection<String> oids){
 		return new InOidFilter(false, oids);
 	}
-	
+
 	public static InOidFilter createInOid(String... oids){
 		return new InOidFilter(false, Arrays.asList(oids));
 	}
@@ -69,11 +69,11 @@ public class InOidFilter extends ObjectFilter {
 	public static InOidFilter createInOid(boolean considerOwner, ExpressionWrapper expression){
 		return new InOidFilter(considerOwner, expression);
 	}
-		
+
 	public Collection<String> getOids() {
 		return oids;
 	}
-	
+
 	public void setOids(Collection<String> oids) {
 		this.oids = oids;
 	}
@@ -85,11 +85,11 @@ public class InOidFilter extends ObjectFilter {
 	public ExpressionWrapper getExpression() {
 		return expression;
 	}
-	
+
 	public void setExpression(ExpressionWrapper expression) {
 		this.expression = expression;
 	}
-	
+
 	@Override
 	public void checkConsistence(boolean requireDefinitions) {
 		if (oids == null) {
@@ -120,11 +120,11 @@ public class InOidFilter extends ObjectFilter {
 		} else {
 			sb.append(" null");
 		}
-		
+
 		return sb.toString();
-		
+
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -139,7 +139,7 @@ public class InOidFilter extends ObjectFilter {
 					sb.append(value);
 				}
 				sb.append("; ");
-				
+
 			}
 		}
 		return sb.toString();

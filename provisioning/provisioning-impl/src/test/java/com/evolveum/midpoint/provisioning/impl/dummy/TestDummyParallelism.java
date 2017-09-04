@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
@@ -38,14 +38,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * The test of Provisioning service on the API level. 
- * 
+ * The test of Provisioning service on the API level.
+ *
  * This test is focused on parallelism and race conditions.
- * 
+ *
  * The test is using dummy resource for speed and flexibility.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
@@ -53,38 +53,38 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class TestDummyParallelism extends AbstractBasicDummyTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummyParallelism.class);
-	
+
 	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-parallelism");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
 	private static final long WAIT_TIMEOUT = 60000L;
 
 	private static final int DUMMY_OPERATION_DELAY_RANGE = 1000;
-	
+
 	private String accountMorganOid;
-	
+
 	protected int getConcurrentTestNumberOfThreads() {
 		return 5;
 	}
-	
+
 	protected int getConcurrentTestRandomStartDelayRange() {
 		return 10;
 	}
-				
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		dummyResource.setOperationDelayRange(DUMMY_OPERATION_DELAY_RANGE);
 //		InternalMonitor.setTraceConnectorOperation(true);
 	}
-	
+
 	@Override
 	protected File getResourceDummyFilename() {
 		return RESOURCE_DUMMY_FILE;
 	}
 
 	// test000-test100 in the superclasses
-	
+
 	@Test
 	public void test200ParallelCreate() throws Exception {
 		final String TEST_NAME = "test200ParallelCreate";
@@ -92,20 +92,20 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		
+
 		final Counter successCounter = new Counter();
 		rememberDummyResourceWriteOperationCount(null);
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		
-		ParallelTestThread[] threads = multithread(TEST_NAME, 
+
+		ParallelTestThread[] threads = multithread(TEST_NAME,
 				(i) -> {
 					Task localTask = createTask(TEST_NAME + ".local");
 					OperationResult localResult = localTask.getResult();
-					
+
 					ShadowType account = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
-					
+
 					try {
 						accountMorganOid = provisioningService.addObject(account.asPrismObject(), null, null, localTask, localResult);
 						successCounter.click();
@@ -113,40 +113,40 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 						// this is expected ... sometimes
 						LOGGER.info("Exception (maybe expected): {}: {}", e.getClass().getSimpleName(), e.getMessage());
 					}
-					
+
 				}, getConcurrentTestNumberOfThreads(), getConcurrentTestRandomStartDelayRange());
-		
+
 		// THEN
 		displayThen(TEST_NAME);
 		waitForThreads(threads, WAIT_TIMEOUT);
-		
+
 		successCounter.assertCount("Wrong number of successful operations", 1);
-				
+
 		PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, accountMorganOid, null, task, result);
 		display("Shadow after", shadowAfter);
-		
+
 		assertDummyResourceWriteOperationCountIncrement(null, 1);
-		
+
 		assertSteadyResource();
 	}
-	
+
 	@Test
 	public void test229ParallelDelete() throws Exception {
 		final String TEST_NAME = "test229ParallelDelete";
 		displayTestTitle(TEST_NAME);
-		
+
 		// GIVEN
 		final Counter successCounter = new Counter();
 		rememberDummyResourceWriteOperationCount(null);
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		
-		ParallelTestThread[] threads = multithread(TEST_NAME, 
+
+		ParallelTestThread[] threads = multithread(TEST_NAME,
 				(i) -> {
 					Task localTask = createTask(TEST_NAME + ".local");
 					OperationResult localResult = localTask.getResult();
-					
+
 					try {
 						display("Thread "+Thread.currentThread().getName()+" START");
 						provisioningService.deleteObject(ShadowType.class, accountMorganOid, null, null, localTask, localResult);
@@ -163,19 +163,19 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 						// this is expected ... sometimes
 						LOGGER.info("Exception (maybe expected): {}: {}", e.getClass().getSimpleName(), e.getMessage());
 					}
-					
+
 				}, getConcurrentTestNumberOfThreads(), getConcurrentTestRandomStartDelayRange());
-		
+
 		// THEN
 		displayThen(TEST_NAME);
 		waitForThreads(threads, WAIT_TIMEOUT);
-		
+
 		successCounter.assertCount("Wrong number of successful operations", 1);
 
 		assertNoRepoObject(ShadowType.class, accountMorganOid);
-		
+
 		assertDummyResourceWriteOperationCountIncrement(null, 1);
-		
+
 		assertSteadyResource();
 	}
 

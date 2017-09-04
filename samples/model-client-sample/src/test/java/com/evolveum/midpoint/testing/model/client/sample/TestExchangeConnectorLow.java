@@ -72,7 +72,7 @@ import java.util.Map;
  *
  */
 public class TestExchangeConnectorLow extends AbstractTestForExchangeConnector {
-	
+
     private static final String NEWTON_GIVEN_NAME = "Isaac";
     private static final String NEWTON_SN = "Newton";
     private String newtonOid;
@@ -100,7 +100,7 @@ public class TestExchangeConnectorLow extends AbstractTestForExchangeConnector {
     private String getContainer() {
         return System.getProperty("container");
     }
-    
+
     public String getMailDomain() {
         return System.getProperty("mailDomain");
     }

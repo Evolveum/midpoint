@@ -25,21 +25,21 @@ import javax.xml.namespace.QName;
 
 /**
  * Resource Object Attribute Definition.
- * 
+ *
  * Resource Object Attribute is a Property of Resource Object. All that applies
  * to property applies also to attribute, e.g. only a whole attributes can be
  * changed, they may be simple or complex types, they should be representable in
  * XML, etc. In addition, attribute definition may have some annotations that
  * suggest its purpose and use on the Resource.
- * 
+ *
  * Resource Object Attribute understands resource-specific annotations such as
  * native attribute name.
- * 
+ *
  * This class represents schema definition for resource object attribute. See
  * {@link Definition} for more details.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionImpl<T> implements ResourceAttributeDefinition<T> {
 
@@ -69,7 +69,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 	public Boolean getReturnedByDefault() {
 		return returnedByDefault;
 	}
-	
+
 	@Override
 	public boolean isReturnedByDefault() {
 		if (returnedByDefault == null) {
@@ -85,16 +85,16 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 
 	/**
 	 * Returns true if the attribute is a (primary) identifier.
-	 * 
+	 *
 	 * Convenience method.
-	 * 
+	 *
 	 * @return true if the attribute is a (primary) identifier.
 	 */
 	@Override
 	public boolean isIdentifier(ResourceAttributeContainerDefinition objectDefinition) {
 		return isIdentifier(objectDefinition.getComplexTypeDefinition());
 	}
-		
+
 	@Override
 	public boolean isIdentifier(ObjectClassComplexTypeDefinition objectDefinition) {
 		for (ResourceAttributeDefinition<?> identifier : objectDefinition.getPrimaryIdentifiers()) {
@@ -104,7 +104,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 		}
 		return false;
 	}
-	
+
 	@Override
 	public boolean isSecondaryIdentifier(ObjectClassComplexTypeDefinition objectDefinition) {
 		for (ResourceAttributeDefinition<?> secondaryIdentifier : objectDefinition.getSecondaryIdentifiers()) {
@@ -117,21 +117,21 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 
 	/**
 	 * Returns native attribute name.
-	 * 
+	 *
 	 * Native name of the attribute is a name as it is used on the resource or
 	 * as seen by the connector. It is used for diagnostics purposes and may be
 	 * used by the connector itself. As the attribute names in XSD have to
 	 * comply with XML element name limitations, this may be the only way how to
 	 * determine original attribute name.
-	 * 
+	 *
 	 * Returns null if native attribute name is not set or unknown.
-	 * 
+	 *
 	 * The name should be the same as the one used by the resource, if the
 	 * resource supports naming of attributes. E.g. in case of LDAP this
 	 * annotation should contain "cn", "givenName", etc. If the resource is not
 	 * that flexible, the native attribute names may be hardcoded (e.g.
 	 * "username", "homeDirectory") or may not be present at all.
-	 * 
+	 *
 	 * @return native attribute name
 	 */
 	@Override
@@ -142,11 +142,11 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 	public void setNativeAttributeName(String nativeAttributeName) {
 		this.nativeAttributeName = nativeAttributeName;
 	}
-	
+
 	/**
 	 * Returns name of the attribute as given in the connector framework.
 	 * This is not used for any significant logic. It is mostly for diagnostics.
-	 * 
+	 *
 	 * @return name of the attribute as given in the connector framework.
 	 */
 	@Override
@@ -165,14 +165,14 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 		copyDefinitionData(clone);
 		return clone;
 	}
-	
+
 	protected void copyDefinitionData(ResourceAttributeDefinitionImpl<T> clone) {
 		super.copyDefinitionData(clone);
 		clone.nativeAttributeName = this.nativeAttributeName;
 		clone.frameworkAttributeName = this.frameworkAttributeName;
 		clone.returnedByDefault = this.returnedByDefault;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -226,7 +226,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 			sb.append(returnedByDefault);
 		}
 	}
-	
+
 	/**
      * Return a human readable name of this class suitable for logs.
      */

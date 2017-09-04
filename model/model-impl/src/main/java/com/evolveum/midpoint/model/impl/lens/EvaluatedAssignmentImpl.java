@@ -47,13 +47,13 @@ import org.jetbrains.annotations.Nullable;
 import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
 
 /**
- * Evaluated assignment that contains all constructions and authorizations from the assignment 
+ * Evaluated assignment that contains all constructions and authorizations from the assignment
  * itself and all the applicable inducements from all the roles referenced from the assignment.
- * 
+ *
  * @author Radovan Semancik
  */
 public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAssignment<F> {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
 
 	@NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
@@ -156,50 +156,50 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
             default: throw new IllegalArgumentException("whichSet: " + whichSet);
         }
     }
-	
+
 	public void addConstruction(Construction<F> contruction, PlusMinusZero whichSet) {
 		switch (whichSet) {
-            case ZERO: 
+            case ZERO:
             	constructionTriple.addToZeroSet(contruction);
             	break;
-            case PLUS: 
+            case PLUS:
             	constructionTriple.addToPlusSet(contruction);
             	break;
-            case MINUS: 
+            case MINUS:
             	constructionTriple.addToMinusSet(contruction);
             	break;
-            default: 
+            default:
             	throw new IllegalArgumentException("whichSet: " + whichSet);
         }
 	}
-	
+
 	@NotNull
 	public DeltaSetTriple<PersonaConstruction<F>> getPersonaConstructionTriple() {
 		return personaConstructionTriple;
 	}
-	
+
 	public void addPersonaConstruction(PersonaConstruction<F> personaContruction, PlusMinusZero whichSet) {
 		switch (whichSet) {
-            case ZERO: 
+            case ZERO:
             	personaConstructionTriple.addToZeroSet(personaContruction);
             	break;
-            case PLUS: 
+            case PLUS:
             	personaConstructionTriple.addToPlusSet(personaContruction);
             	break;
-            case MINUS: 
+            case MINUS:
             	personaConstructionTriple.addToMinusSet(personaContruction);
             	break;
-            default: 
+            default:
             	throw new IllegalArgumentException("whichSet: " + whichSet);
         }
 	}
-	
+
 	@NotNull
 	@Override
 	public DeltaSetTriple<EvaluatedAssignmentTargetImpl> getRoles() {
 		return roles;
 	}
-	
+
 	public void addRole(EvaluatedAssignmentTargetImpl role, PlusMinusZero mode) {
 		roles.addToSet(mode, role);
 	}
@@ -212,7 +212,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	public void addOrgRefVal(PrismReferenceValue org) {
 		orgRefVals.add(org);
 	}
-	
+
 	@NotNull
 	public Collection<PrismReferenceValue> getMembershipRefVals() {
 		return membershipRefVals;
@@ -236,16 +236,16 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	public Collection<Authorization> getAuthorizations() {
 		return authorizations;
 	}
-	
+
 	public void addAuthorization(Authorization authorization) {
 		authorizations.add(authorization);
 	}
-	
+
 	@NotNull
 	public Collection<AdminGuiConfigurationType> getAdminGuiConfigurations() {
 		return adminGuiConfigurations;
 	}
-	
+
 	public void addAdminGuiConfiguration(AdminGuiConfigurationType adminGuiConfiguration) {
 		adminGuiConfigurations.add(adminGuiConfiguration);
 	}
@@ -312,7 +312,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	public void evaluateConstructions(ObjectDeltaObject<F> focusOdo, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		evaluateConstructions(focusOdo, null, task, result);
 	}
-	
+
 	public void setPresentInCurrentObject(boolean presentInCurrentObject) {
 		this.presentInCurrentObject = presentInCurrentObject;
 	}
@@ -335,7 +335,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	public Collection<EvaluatedPolicyRule> getFocusPolicyRules() {
 		return focusPolicyRules;
 	}
-	
+
 	public void addFocusPolicyRule(EvaluatedPolicyRule policyRule) {
 		focusPolicyRules.add(policyRule);
 	}
@@ -409,14 +409,14 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 								rule, trigger);
 			}
 		}
-		
+
 		if (!hasException) {
 			LensUtil.triggerConstraint(rule, trigger, policySituations);
 		}
 	}
 
 	private boolean processRuleExceptions(EvaluatedAssignmentImpl<F> evaluatedAssignment, EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) {
-		boolean hasException = false; 
+		boolean hasException = false;
 		for (PolicyExceptionType policyException: evaluatedAssignment.getAssignmentType().getPolicyException()) {
 			if (policyException.getRuleName().equals(rule.getName())) {
 				LensUtil.processRuleWithException(rule, trigger, policySituations, policyException);
@@ -427,7 +427,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		}
 		return hasException;
 	}
-	
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
@@ -511,7 +511,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		return "EvaluatedAssignment(target=" + target + "; constr=" + constructionTriple + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings; "+ focusPolicyRules
 				.size()+" rules)";
 	}
-	
+
 	public String toHumanReadableString() {
 		if (target != null) {
 			return "EvaluatedAssignment(" + target + ")";

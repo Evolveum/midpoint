@@ -54,13 +54,13 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  *
  */
 public class ConnIdConfigurationTransformer {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ConnIdConfigurationTransformer.class);
-	
+
 	private ConnectorType connectorType;
 	private ConnectorInfo cinfo;
 	private Protector protector;
-	
+
 	public ConnIdConfigurationTransformer(ConnectorType connectorType, ConnectorInfo cinfo, Protector protector) {
 		super();
 		this.connectorType = connectorType;
@@ -76,7 +76,7 @@ public class ConnIdConfigurationTransformer {
 	 * <p/>
 	 * The provided ICF APIConfiguration will be modified, some values may be
 	 * overwritten.
-	 * 
+	 *
 	 * @param apiConfig
 	 *            ICF connector configuration
 	 * @param resourceType
@@ -128,7 +128,7 @@ public class ConnIdConfigurationTransformer {
                 ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME));
         ResultsHandlerConfiguration resultsHandlerConfiguration = apiConfig.getResultsHandlerConfiguration();
         transformResultsHandlerConfiguration(resultsHandlerConfiguration, resultsHandlerConfigurationContainer);
-        
+
         return apiConfig;
 
 	}
@@ -162,7 +162,7 @@ public class ConnIdConfigurationTransformer {
 				// of ConnId configuration property
 				String propertyName = propertyQName.getLocalPart();
 				ConfigurationProperty property = configProps.getProperty(propertyName);
-				
+
 				if (property == null) {
 					throw new ConfigurationException("Unknown configuration property "+propertyName);
 				}
@@ -173,7 +173,7 @@ public class ConnIdConfigurationTransformer {
 					if (connIdArray != null && connIdArray.length != 0) {
 						property.setValue(connIdArray);
 					}
-					
+
 				} else {
 					Object connIdValue = convertToConnIdSingle(prismProperty, type);
 					if (connIdValue != null) {
@@ -298,7 +298,7 @@ public class ConnIdConfigurationTransformer {
         }
     }
 
-    
+
     private int parseInt(PrismProperty<?> prop) {
 		return prop.getRealValue(Integer.class);
 	}
@@ -337,7 +337,7 @@ public class ConnIdConfigurationTransformer {
 		}
 		return (Object[]) valuesArrary;
 	}
-	
+
 	private Object convertToIcf(PrismPropertyValue<?> pval, Class<?> expectedType) throws ConfigurationException {
 		Object midPointRealValue = pval.getValue();
 		if (expectedType.equals(GuardedString.class)) {

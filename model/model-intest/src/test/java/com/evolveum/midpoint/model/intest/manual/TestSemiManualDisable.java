@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.model.intest.manual;
 
@@ -52,14 +52,14 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestSemiManualDisable extends TestSemiManual {
-		
+
 	private static final Trace LOGGER = TraceManager.getTrace(TestSemiManualDisable.class);
-		
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 	}
-	
+
 	@Override
 	protected String getResourceOid() {
 		return RESOURCE_SEMI_MANUAL_DISABLE_OID;
@@ -69,12 +69,12 @@ public class TestSemiManualDisable extends TestSemiManual {
 	protected File getResourceFile() {
 		return RESOURCE_SEMI_MANUAL_DISABLE_FILE;
 	}
-	
+
 	@Override
 	protected String getRoleOneOid() {
 		return ROLE_ONE_SEMI_MANUAL_DISABLE_OID;
 	}
-	
+
 	@Override
 	protected File getRoleOneFile() {
 		return ROLE_ONE_SEMI_MANUAL_DISABLE_FILE;
@@ -84,7 +84,7 @@ public class TestSemiManualDisable extends TestSemiManual {
 	protected String getRoleTwoOid() {
 		return ROLE_TWO_SEMI_MANUAL_DISABLE_OID;
 	}
-	
+
 	@Override
 	protected File getRoleTwoFile() {
 		return ROLE_TWO_SEMI_MANUAL_DISABLE_FILE;
@@ -94,13 +94,13 @@ public class TestSemiManualDisable extends TestSemiManual {
 	protected void deprovisionInCsv(String username) throws IOException {
 		disableInCsv(username);
 	}
-	
+
 	@Override
 	protected void assertUnassignedShadow(PrismObject<ShadowType> shadow, ActivationStatusType expectAlternativeActivationStatus) {
 		assertShadowNotDead(shadow);
 		assertShadowActivationAdministrativeStatus(shadow, expectAlternativeActivationStatus);
 	}
-	
+
 	@Override
 	protected void assertUnassignedFuture(PrismObject<ShadowType> shadowModelFuture, boolean assertPassword) {
 		assertShadowActivationAdministrativeStatus(shadowModelFuture, ActivationStatusType.DISABLED);
@@ -108,7 +108,7 @@ public class TestSemiManualDisable extends TestSemiManual {
 			assertShadowPassword(shadowModelFuture);
 		}
 	}
-	
+
 	@Override
 	protected void assertDeprovisionedTimedOutUser(PrismObject<UserType> userAfter, String accountOid) throws Exception {
 		assertLinks(userAfter, 1);
@@ -116,10 +116,10 @@ public class TestSemiManualDisable extends TestSemiManual {
 		display("Model shadow", shadowModel);
 		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.DISABLED);
 	}
-	
+
 	@Override
 	protected void assertWillUnassignPendingOperation(PrismObject<ShadowType> shadowRepo, OperationResultStatusType expectedStatus) {
-		PendingOperationType pendingOperation = findPendingOperation(shadowRepo, 
+		PendingOperationType pendingOperation = findPendingOperation(shadowRepo,
 				OperationResultStatusType.IN_PROGRESS, ChangeTypeType.MODIFY, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 		if (expectedStatus == OperationResultStatusType.IN_PROGRESS) {
 			assertPendingOperation(shadowRepo, pendingOperation,
@@ -127,7 +127,7 @@ public class TestSemiManualDisable extends TestSemiManual {
 					OperationResultStatusType.IN_PROGRESS,
 					null, null);
 		} else {
-			pendingOperation = findPendingOperation(shadowRepo, 
+			pendingOperation = findPendingOperation(shadowRepo,
 					OperationResultStatusType.SUCCESS, ChangeTypeType.MODIFY, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 			assertPendingOperation(shadowRepo, pendingOperation,
 					accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
@@ -137,13 +137,13 @@ public class TestSemiManualDisable extends TestSemiManual {
 		}
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
 	}
-	
+
 	@Override
 	protected void cleanupUser(final String TEST_NAME, String userOid, String username, String accountOid) throws Exception {
-		
+
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		
+
 		deleteInCsv(username);
 		try {
 			repositoryService.deleteObject(ShadowType.class, accountOid, result);
@@ -151,17 +151,17 @@ public class TestSemiManualDisable extends TestSemiManual {
 			// no problem
 		}
 		recomputeUser(userOid, task, result);
-		
+
 		PrismObject<UserType> userAfter = getUser(userOid);
 		display("User after", userAfter);
 		assertLinks(userAfter, 0);
 		assertNoShadow(accountOid);
 	}
-	
+
 	@Override
 	protected void assertTest526Deltas(PrismObject<ShadowType> shadowRepo, OperationResult result) {
 		assertPendingOperationDeltas(shadowRepo, 3);
-		
+
 		ObjectDeltaType deltaModify = null;
 		ObjectDeltaType deltaAdd = null;
 		ObjectDeltaType deltaDisable = null;
@@ -180,13 +180,13 @@ public class TestSemiManualDisable extends TestSemiManual {
 		}
 		assertNotNull("No add pending delta", deltaAdd);
 		assertNotNull("No modify pending delta", deltaModify);
-		assertNotNull("No disable pending delta", deltaDisable);				
+		assertNotNull("No disable pending delta", deltaDisable);
 	}
-	
+
 	@Override
 	protected void assertTest528Deltas(PrismObject<ShadowType> shadowRepo, OperationResult result) {
 		assertPendingOperationDeltas(shadowRepo, 3);
-		
+
 		ObjectDeltaType deltaModify = null;
 		ObjectDeltaType deltaAdd = null;
 		ObjectDeltaType deltaDelete = null;

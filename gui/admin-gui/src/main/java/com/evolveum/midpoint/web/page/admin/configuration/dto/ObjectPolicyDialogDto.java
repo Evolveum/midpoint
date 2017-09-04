@@ -120,7 +120,7 @@ public class ObjectPolicyDialogDto implements Serializable{
     	Task task = page.createSimpleTask(OPERATION_LOAD_OBJECT_TEMPLATE);
         OperationResult result = task.getResult();
 
-        PrismObject<ObjectTemplateType> templatePrism =  WebModelServiceUtils.loadObject(ObjectTemplateType.class, oid, 
+        PrismObject<ObjectTemplateType> templatePrism =  WebModelServiceUtils.loadObject(ObjectTemplateType.class, oid,
         		page, task, result);
 
         if(templatePrism != null){
@@ -215,5 +215,5 @@ public class ObjectPolicyDialogDto implements Serializable{
 				+ config + ", type=" + type + ", subtype=" + subtype + ", templateRef=" + templateRef + ")";
 	}
 
-    
+
 }

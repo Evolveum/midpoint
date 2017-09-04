@@ -20,12 +20,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Interface that provide ability to query status of asynchronous operation.
- * 
+ *
  * @author Radovan Semancik
  */
 @FunctionalInterface
 public interface AsynchronousOperationQueryable {
 
 	OperationResultStatus queryOperationStatus(String asyncronousOperationReference, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-	
+
 }

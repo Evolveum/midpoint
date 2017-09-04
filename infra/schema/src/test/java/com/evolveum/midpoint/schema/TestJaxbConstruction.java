@@ -66,7 +66,7 @@ import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
  *
  */
 public class TestJaxbConstruction {
-	
+
 	private static final String FAUX_RESOURCE_OID = "fuuuuuuuuuuu";
 	private static final String ACCOUNT_NAME = "jack";
 
@@ -75,69 +75,69 @@ public class TestJaxbConstruction {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-	
+
 	@Test
 	public void testUserConstruction() throws JAXBException, SchemaException {
 		System.out.println("\n\n ===[ testUserConstruction ]===\n");
-		
+
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		UserType userType = new UserType();
 		prismContext.adopt(userType);
-		
+
 		PrismObject<UserType> user = userType.asPrismObject();
 		assertNotNull("No object definition after adopt", user.getDefinition());
 		SchemaTestUtil.assertUserDefinition(user.getDefinition());
-		
+
 		// fullName: PolyString
 		userType.setFullName(new PolyStringType("Čučoriedka"));
 		PrismProperty<PolyString> fullNameProperty = user.findProperty(UserType.F_FULL_NAME);
 		PolyString fullName = fullNameProperty.getRealValue();
 		assertEquals("Wrong fullName orig", "Čučoriedka", fullName.getOrig());
 		assertEquals("Wrong fullName norm", "cucoriedka", fullName.getNorm());
-		
+
 		// description: setting null value
 		userType.setDescription(null);
 		PrismProperty<String> descriptionProperty = user.findProperty(UserType.F_DESCRIPTION);
 		assertNull("Unexpected description property "+descriptionProperty, descriptionProperty);
-		
+
 		// description: setting null value
 		userType.setDescription("blah blah");
 		descriptionProperty = user.findProperty(UserType.F_DESCRIPTION);
 		assertEquals("Wrong description value", "blah blah", descriptionProperty.getRealValue());
-		
+
 		// description: resetting null value
 		userType.setDescription(null);
 		descriptionProperty = user.findProperty(UserType.F_DESCRIPTION);
 		assertNull("Unexpected description property (after reset) "+descriptionProperty, descriptionProperty);
-		
+
 		// Extension
 		ExtensionType extension = new ExtensionType();
 		userType.setExtension(extension);
-		
+
 		user.checkConsistence();
-				
+
 		PrismContainer<Containerable> extensionContainer = user.findContainer(GenericObjectType.F_EXTENSION);
 		checkExtension(extensionContainer,"user extension after setExtension");
 		checkExtension(extension,"user extension after setExtension");
-		
+
 		AssignmentType assignmentType = new AssignmentType();
 		userType.getAssignment().add(assignmentType);
-		
+
 		user.checkConsistence();
 		user.assertDefinitions();
-		
+
 		// Assignment
 		ExtensionType assignmentExtension = new ExtensionType();
 		assignmentType.setExtension(assignmentExtension);
-		
+
 		user.assertDefinitions();
 		user.checkConsistence();
 		checkExtension(assignmentExtension,"assignment extension after setExtension");
 		user.checkConsistence();
 		user.assertDefinitions();
-		
+
 		// accountRef/account
 		ObjectReferenceType accountRefType = new ObjectReferenceType();
 		accountRefType.setOid(USER_ACCOUNT_REF_1_OID);
@@ -146,7 +146,7 @@ public class TestJaxbConstruction {
 		filter.setFilterClauseXNode(filterElement);
 		accountRefType.setFilter(filter);
 		userType.getLinkRef().add(accountRefType);
-		
+
 		assertAccountRefs(userType, USER_ACCOUNT_REF_1_OID);
 		user.checkConsistence();
 		user.assertDefinitions();
@@ -172,49 +172,49 @@ public class TestJaxbConstruction {
 		userType.getLink().add(accountShadowType);
 
         assertEquals("3/ Wrong accountRef values", 2, user.findReference(UserType.F_LINK_REF).getValues().size());
-		
+
 		assertAccountRefs(userType, USER_ACCOUNT_REF_1_OID, USER_ACCOUNT_REF_2_OID);
 		user.checkConsistence();
 		user.assertDefinitions();
-		
+
 		assertEquals("4/ Wrong accountRef values", 2, accountRef.getValues().size());
 		PrismAsserts.assertReferenceValues(accountRef, USER_ACCOUNT_REF_1_OID, USER_ACCOUNT_REF_2_OID);
-		
+
 	}
 
 	@Test
 	public void testUserConstructionBeforeAdopt() throws Exception {
 		System.out.println("\n\n ===[ testUserConstructionBeforeAdopt ]===\n");
-		
+
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		UserType userType = new UserType();
-	
+
 		userType.setFullName(new PolyStringType("Čučoriedka"));
 		userType.setDescription("blah blah");
 		ExtensionType extension = new ExtensionType();
 		userType.setExtension(extension);
-				
+
 		AssignmentType assignmentType = new AssignmentType();
 		userType.getAssignment().add(assignmentType);
 
-		
+
 		// Assignment
 		ExtensionType assignmentExtension = new ExtensionType();
 		assignmentType.setExtension(assignmentExtension);
-		
-		
+
+
 		// accountRef/account
 		ObjectReferenceType accountRefType = new ObjectReferenceType();
 		accountRefType.setOid(USER_ACCOUNT_REF_1_OID);
-		
+
 		MapXNode filterElement = createFilter();
 		SearchFilterType filter = new SearchFilterType();
 		filter.setFilterClauseXNode(filterElement);
 		accountRefType.setFilter(filter);
 		userType.getLinkRef().add(accountRefType);
-		
+
 
 		ShadowType accountShadowType = new ShadowType();
         accountShadowType.setOid(USER_ACCOUNT_REF_1_OID);
@@ -226,44 +226,44 @@ public class TestJaxbConstruction {
 
 		// WHEN
 		prismContext.adopt(userType);
-		
+
 		// THEN
 		PrismObject<UserType> user = userType.asPrismObject();
 		assertNotNull("No object definition after adopt", user.getDefinition());
 		SchemaTestUtil.assertUserDefinition(user.getDefinition());
-		
+
 		// fullName: PolyString
 		PrismProperty<PolyString> fullNameProperty = user.findProperty(UserType.F_FULL_NAME);
 		user.checkConsistence();
 		user.assertDefinitions();
-		
-		
+
+
 		PolyString fullName = fullNameProperty.getRealValue();
 		assertEquals("Wrong fullName orig", "Čučoriedka", fullName.getOrig());
 		assertEquals("Wrong fullName norm", "cucoriedka", fullName.getNorm());
-		
+
 		PrismProperty<String> descriptionProperty = user.findProperty(UserType.F_DESCRIPTION);
 		assertEquals("Wrong description value", "blah blah", descriptionProperty.getRealValue());
-		
+
 		PrismContainer<Containerable> extensionContainer = user.findContainer(GenericObjectType.F_EXTENSION);
 		checkExtension(extensionContainer,"user extension");
 		checkExtension(extension,"user extension");
-		
+
 		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
         assertEquals("Wrong accountRef values", 2, accountRef.getValues().size());
 		PrismAsserts.assertReferenceValues(accountRef, USER_ACCOUNT_REF_1_OID, USER_ACCOUNT_REF_2_OID);
-		
+
         PrismReferenceValue accountRefVal0 = accountRef.getValue(0);
         SearchFilterType prismFilter = accountRefVal0.getFilter();
         assertNotNull("Filter have not passed", prismFilter);
         // assertTrue("Wrong filter in reference " , prismFilter instanceof EqualsFilter);
 //        assertEquals("Difference filter", filterElement, prismFilter);
-		
+
 		assertAccountRefs(userType, USER_ACCOUNT_REF_1_OID, USER_ACCOUNT_REF_2_OID);
 
 		user.assertDefinitions();
 		user.checkConsistence();
-		
+
 	}
 
 
@@ -291,43 +291,43 @@ public class TestJaxbConstruction {
 	@Test
 	public void testUserConstructionReverse() throws JAXBException, SchemaException {
 		System.out.println("\n\n ===[ testUserConstructionReverse ]===\n");
-		
+
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		UserType userType = new UserType(prismContext);
 
 		PrismObject<UserType> user = userType.asPrismObject();
 		assertNotNull("No object definition after adopt", user.getDefinition());
-		
+
 		// Extension
 		ExtensionType extension = new ExtensionType();
 		userType.setExtension(extension);
-		
+
 		user.checkConsistence();
-				
+
 		PrismContainer<Containerable> extensionContainer = user.findContainer(GenericObjectType.F_EXTENSION);
 		checkExtension(extensionContainer,"user extension after setExtension");
 		checkExtension(extension,"user extension after setExtension");
-		
+
 		AssignmentType assignmentType = new AssignmentType(prismContext);
 
 		ExtensionType assignmentExtension = new ExtensionType();
 		assignmentType.setExtension(assignmentExtension);
-		
+
 		PrismContainerValue<ExtensionType> assignmentExtensionValueFromJaxb = assignmentExtension.asPrismContainerValue();
 		PrismProperty<Integer> intProperty = assignmentExtensionValueFromJaxb.findOrCreateProperty(EXTENSION_INT_TYPE_ELEMENT);
 		intProperty.setRealValue(15);
-		
+
 		PrismProperty<String> stringProperty = assignmentExtensionValueFromJaxb.findOrCreateItem(EXTENSION_STRING_TYPE_ELEMENT, PrismProperty.class);
 		stringProperty.setRealValue("fifteen men on a dead man chest");
 
 		// Adding assignemnt to the user should cause application of definitions
 		userType.getAssignment().add(assignmentType);
 
-		PrismAsserts.assertDefinition(assignmentType.asPrismContainerValue().getParent().getDefinition(), 
+		PrismAsserts.assertDefinition(assignmentType.asPrismContainerValue().getParent().getDefinition(),
 				UserType.F_ASSIGNMENT, AssignmentType.COMPLEX_TYPE, 0, -1);
-		PrismAsserts.assertDefinition(assignmentExtensionValueFromJaxb.getParent().getDefinition(), 
+		PrismAsserts.assertDefinition(assignmentExtensionValueFromJaxb.getParent().getDefinition(),
 				AssignmentType.F_EXTENSION, ExtensionType.COMPLEX_TYPE, 0, 1);
 		assertTrue("assignment extension definition is not runtime", assignmentExtensionValueFromJaxb.getParent().getDefinition().isRuntimeSchema());
 		assertTrue("assignment extension definition is not dynamic", assignmentExtensionValueFromJaxb.getParent().getDefinition().isDynamic());
@@ -343,50 +343,50 @@ public class TestJaxbConstruction {
 	@Test
 	public void testGenericConstruction() throws JAXBException, SchemaException {
 		System.out.println("\n\n ===[ testGenericConstruction ]===\n");
-		
+
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		GenericObjectType genericType = new GenericObjectType();
 		prismContext.adopt(genericType);
-		
+
 		PrismObject<GenericObjectType> generic = genericType.asPrismObject();
 		assertNotNull("No object definition after adopt", generic.getDefinition());
-		
+
 		// WHEN
 		ExtensionType extension = new ExtensionType();
 		genericType.setExtension(extension);
-		
+
 		// THEN
 		generic.checkConsistence();
-		
+
 		PrismContainer<Containerable> extensionContainer = generic.findContainer(GenericObjectType.F_EXTENSION);
 		checkExtension(extensionContainer,"user extension after setExtension");
 		checkExtension(extension,"user extension after setExtension");
-		
+
 		generic.checkConsistence();
 	}
-	
+
 	@Test
 	public void testAccountConstruction() throws JAXBException, SchemaException {
 		System.out.println("\n\n ===[ testAccountConstruction ]===\n");
-		
+
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		ShadowType accountType = new ShadowType();
 		prismContext.adopt(accountType);
-		
+
 		PrismObject<ShadowType> account = accountType.asPrismObject();
 		assertNotNull("No object definition after adopt", account.getDefinition());
-		
+
 		// WHEN
 		accountType.setName(PrismTestUtil.createPolyStringType(ACCOUNT_NAME));
 		ObjectReferenceType resourceRefType = new ObjectReferenceType();
 		resourceRefType.setOid(FAUX_RESOURCE_OID);
 		resourceRefType.setType(ResourceType.COMPLEX_TYPE);
 		accountType.setResourceRef(resourceRefType);
-		
+
 		// THEN (prism)
 		account.checkConsistence();
 		PrismAsserts.assertPropertyValue(account, ShadowType.F_NAME, PrismTestUtil.createPolyString(ACCOUNT_NAME));
@@ -398,7 +398,7 @@ public class TestJaxbConstruction {
     	assertEquals("Wrong type in resourceRef value", ResourceType.COMPLEX_TYPE, resourceRefVal.getTargetType());
 //    	Element filter = resourceRefVal.getFilter();
 //    	assertNotNull("No filter in resourceRef value", filter);
-		
+
 		// THEN (JAXB)
 		assertEquals("Wrong name (JAXB)", PrismTestUtil.createPolyStringType(ACCOUNT_NAME), accountType.getName());
 		resourceRefType = accountType.getResourceRef();
@@ -411,20 +411,20 @@ public class TestJaxbConstruction {
 //    	assertNotNull("No filter element in connectorRef value (JAXB)", filterElement);
 
 	}
-    
+
     @Test
     public void testExtensionTypeConstruction() throws Exception {
     	System.out.println("\n\n ===[ testExtensionTypeConstruction ]===\n");
-    	
+
     	// GIVEN
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
-        
+
         GenericObjectType object = new GenericObjectType();
         prismContext.adopt(object.asPrismObject(), GenericObjectType.class);
 
         ExtensionType extension = new ExtensionType();
         object.setExtension(extension);
-        
+
         PrismContainerValue extValue = extension.asPrismContainerValue();
         assertNotNull("No extension definition", extValue.getParent().getDefinition());
 
@@ -435,98 +435,98 @@ public class TestJaxbConstruction {
         assertNotNull(item);
         object.asPrismObject().checkConsistence();
     }
-    
+
     @Test
 	public void testResourceConstruction() throws Exception {
 		System.out.println("\n\n ===[ testResourceConstruction ]===\n");
-		
+
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		ResourceType resourceType = new ResourceType();
 		prismContext.adopt(resourceType);
-		
+
 		PrismObject<ResourceType> resource = resourceType.asPrismObject();
 		assertNotNull("No object definition after adopt", resource.getDefinition());
-		
+
 		// name: PolyString
 		resourceType.setName(new PolyStringType("Môj risórs"));
 		PrismProperty<PolyString> fullNameProperty = resource.findProperty(ResourceType.F_NAME);
 		PolyString fullName = fullNameProperty.getRealValue();
 		assertEquals("Wrong name orig", "Môj risórs", fullName.getOrig());
 		assertEquals("Wrong name norm", "moj risors", fullName.getNorm());
-		
+
 		// description: setting null value
 		resourceType.setDescription(null);
 		PrismProperty<String> descriptionProperty = resource.findProperty(UserType.F_DESCRIPTION);
 		assertNull("Unexpected description property "+descriptionProperty, descriptionProperty);
-		
+
 		// description: setting null value
 		resourceType.setDescription("blah blah");
 		descriptionProperty = resource.findProperty(UserType.F_DESCRIPTION);
 		assertEquals("Wrong description value", "blah blah", descriptionProperty.getRealValue());
-		
+
 		// description: resetting null value
 		resourceType.setDescription(null);
 		descriptionProperty = resource.findProperty(UserType.F_DESCRIPTION);
 		assertNull("Unexpected description property (after reset) "+descriptionProperty, descriptionProperty);
-		
+
 		// Extension
 		ExtensionType extension = new ExtensionType();
 		resourceType.setExtension(extension);
-		
+
 		resource.checkConsistence();
-				
+
 		PrismContainer<Containerable> extensionContainer = resource.findContainer(GenericObjectType.F_EXTENSION);
 		checkExtension(extensionContainer,"resource extension after setExtension");
 		checkExtension(extension,"resource extension after setExtension");
-		
+
 		// Schema
 		XmlSchemaType xmlSchemaType = new XmlSchemaType();
 		CachingMetadataType cachingMetadata = new CachingMetadataType();
 		cachingMetadata.setSerialNumber("serial123");
 		xmlSchemaType.setCachingMetadata(cachingMetadata);
-		
+
 		resourceType.setSchema(xmlSchemaType);
-		
+
 		SchemaDefinitionType schemaDefinition = new SchemaDefinitionType();
-		Element xsdSchemaElement = DOMUtil.createElement(DOMUtil.XSD_SCHEMA_ELEMENT); 
+		Element xsdSchemaElement = DOMUtil.createElement(DOMUtil.XSD_SCHEMA_ELEMENT);
 		schemaDefinition.getAny().add(xsdSchemaElement);
 		xmlSchemaType.setDefinition(schemaDefinition);
 
 		PrismContainer<Containerable> schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
 		assertNotNull("No schema container", schemaContainer);
-		
+
 		// TODO
-		
+
 		// Schema: null
 		resourceType.setSchema(null);
 		schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
 		assertNull("Unexpected schema container", schemaContainer);
-				
+
 	}
-    
+
 	private void checkExtension(PrismContainer<Containerable> extensionContainer, String sourceDescription) {
 		assertNotNull("No extension container in "+sourceDescription+" (prism)", extensionContainer);
 		assertNotNull("No extension definition in "+sourceDescription+" (prism)", extensionContainer.getDefinition());
-		assertTrue("Not runtime in definition in "+sourceDescription+" (prism)", extensionContainer.getDefinition().isRuntimeSchema());		
+		assertTrue("Not runtime in definition in "+sourceDescription+" (prism)", extensionContainer.getDefinition().isRuntimeSchema());
 	}
-	
+
 	private void checkExtension(ExtensionType extension, String sourceDescription) throws SchemaException {
 		PrismContainerValue<ExtensionType> extensionValueFromJaxb = extension.asPrismContainerValue();
 		assertNotNull("No extension container in "+sourceDescription+" (jaxb)", extensionValueFromJaxb);
 		assertNotNull("No extension definition in "+sourceDescription+" (jaxb)", extensionValueFromJaxb.getParent().getDefinition());
 		assertTrue("Not runtime in definition in "+sourceDescription+" (jaxb)", extensionValueFromJaxb.getParent().getDefinition().isRuntimeSchema());
-		
+
 		PrismProperty<Integer> intProperty = extensionValueFromJaxb.findOrCreateProperty(EXTENSION_INT_TYPE_ELEMENT);
 		PrismAsserts.assertDefinition(intProperty.getDefinition(), EXTENSION_INT_TYPE_ELEMENT, DOMUtil.XSD_INT, 0, -1);
 		intProperty.setRealValue(15);
-		
+
 		PrismProperty<String> stringProperty = extensionValueFromJaxb.findOrCreateItem(EXTENSION_STRING_TYPE_ELEMENT, PrismProperty.class);
 		PrismAsserts.assertDefinition(stringProperty.getDefinition(), EXTENSION_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
 		stringProperty.setRealValue("fifteen men on a dead man chest");
 	}
-	
+
 	private MapXNode createFilter(){
 
         MapXNode filter = new MapXNode();

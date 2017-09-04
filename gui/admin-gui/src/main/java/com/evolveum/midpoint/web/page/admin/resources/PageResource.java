@@ -101,7 +101,7 @@ public class PageResource extends PageAdminResources {
 		resourceOid = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
 		initialize();
 	}
-	
+
 	public PageResource() {
 		initialize();
 	}
@@ -266,7 +266,7 @@ public class PageResource extends PageAdminResources {
 		}
 		return true;
 	}
-	
+
 	private void startWizard(boolean configOnly, boolean readOnly) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, resourceModel.getObject().getOid());		// compatibility with PageAdminResources
@@ -281,7 +281,7 @@ public class PageResource extends PageAdminResources {
 		 resourceSummaryPanel.setOutputMarkupId(true);
 			return resourceSummaryPanel;
 	}
-	
+
 	private AjaxTabbedPanel<ITab> createTabsPanel(){
 		List<ITab> tabs = new ArrayList<ITab>();
 
@@ -341,7 +341,7 @@ public class PageResource extends PageAdminResources {
 				return new ResourceContentTabPanel(panelId, null, resourceModel, PageResource.this);
 			}
 		});
-		
+
 		tabs.add(new PanelTab(createStringResource("PageResource.tab.connector")) {
 			private static final long serialVersionUID = 1L;
 
@@ -362,8 +362,8 @@ public class PageResource extends PageAdminResources {
 		resourceTabs.setOutputMarkupId(true);
 		return resourceTabs;
 	}
-	
-	
+
+
 
 	private void refreshSchemaPerformed(AjaxRequestTarget target) {
 
@@ -421,7 +421,7 @@ public class PageResource extends PageAdminResources {
         showMainPopup(testConnectionPanel, target);
 
 	}
-	
+
 	private void refreshStatus(AjaxRequestTarget target) {
 		target.add(addOrReplace(createResourceSummaryPanel()));
 		target.add(addOrReplace(createTabsPanel()));

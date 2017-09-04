@@ -40,7 +40,7 @@ public class ItemPathDeserializer extends JsonDeserializer<ItemPath>{
 //				if (pathItems.length == 1){
 //					return new ItemPath(QNameUtil.nullNamespace(pathItems[0]));
 //				}
-//				
+//
 //			} else
 //		}
 //		return new ItemPath(new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "name"));

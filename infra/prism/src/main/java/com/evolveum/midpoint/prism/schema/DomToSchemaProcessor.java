@@ -61,11 +61,11 @@ import com.sun.xml.xsom.util.DomAnnotationParserFactory;
 
 /**
  * Parser for DOM-represented XSD, creates midPoint Schema representation.
- * 
+ *
  * It will parse schema in several passes. It has special handling if the schema
  * is "resource schema", which will create ResourceObjectDefinition and
  * ResourceObjectAttributeDefinition instead of PropertyContainer and Property.
- * 
+ *
  * @author lazyman
  * @author Radovan Semancik
  */
@@ -139,8 +139,8 @@ class DomToSchemaProcessor {
 
 	/**
 	 * Main entry point.
-	 * 
-	 * 
+	 *
+	 *
 	 * @param xsdSchema
 	 *            DOM-represented XSD schema
 	 * @return parsed midPoint schema
@@ -248,10 +248,10 @@ class DomToSchemaProcessor {
 	/**
 	 * Create ComplexTypeDefinitions from all top-level complexType definitions
 	 * in the XSD.
-	 * 
+	 *
 	 * These definitions are the reused later to fit inside PropertyContainer
 	 * definitions.
-	 * 
+	 *
 	 * @param set
 	 *            XS Schema Set
 	 */
@@ -280,7 +280,7 @@ class DomToSchemaProcessor {
 	/**
 	 * Creates ComplexTypeDefinition object from a single XSD complexType
 	 * definition.
-	 * 
+	 *
 	 * @param complexType
 	 *            XS complex type definition
 	 */
@@ -448,7 +448,7 @@ class DomToSchemaProcessor {
 	 * complexType definition. This is a recursive method. It can create
 	 * "anonymous" internal PropertyContainerDefinitions. The definitions will
 	 * be added to the ComplexTypeDefinition provided as parameter.
-	 * 
+	 *
 	 * @param group
 	 *            XSD XSModelGroup
 	 * @param ctd
@@ -645,10 +645,10 @@ class DomToSchemaProcessor {
 	 * a potential PropertyContainer. The element name will be set as name of
 	 * the PropertyContainer, element type will become type (indirectly through
 	 * ComplexTypeDefinition).
-	 * 
+	 *
 	 * No need to recurse here. All the work was already done while creating
 	 * ComplexTypeDefinitions.
-	 * 
+	 *
 	 * @param set
 	 *            XS Schema Set
 	 * @throws SchemaException
@@ -937,7 +937,7 @@ class DomToSchemaProcessor {
 	 * PropertyContainerDefinition itself or one of its subclasses
 	 * (ResourceObjectDefinition). This method also takes care of parsing all
 	 * the annotations and similar fancy stuff.
-	 * 
+	 *
 	 * We need to pass createResourceObject flag explicitly here. Because even
 	 * if we are in resource schema, we want PropertyContainers inside
 	 * ResourceObjects, not ResourceObjects inside ResouceObjects.
@@ -1052,7 +1052,7 @@ class DomToSchemaProcessor {
 			QName matchingRule = XmlTypeConverter.toJavaValue(matchingRuleElement, QName.class);
 			propDef.setMatchingRuleQName(matchingRule);
 		}
-		
+
 		Element valueEnumerationRefElement = SchemaProcessorUtil.getAnnotationElement(annotation, A_VALUE_ENUMERATION_REF);
 		if (valueEnumerationRefElement != null) {
 			String oid = valueEnumerationRefElement.getAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME);
@@ -1139,7 +1139,7 @@ class DomToSchemaProcessor {
 									descriptionE != null ? descriptionE.getTextContent() : null);
 						}
 
-						
+
 					} else {
 					edv = new DisplayableValueImpl(value, label,
 							descriptionE != null ? descriptionE.getTextContent() : null);
@@ -1198,7 +1198,7 @@ class DomToSchemaProcessor {
 		if (help != null) {
 			itemDef.setHelp(help.getTextContent());
 		}
-		
+
 		// emphasized
 		Boolean emphasized = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_EMPHASIZED);
 		if (emphasized != null) {

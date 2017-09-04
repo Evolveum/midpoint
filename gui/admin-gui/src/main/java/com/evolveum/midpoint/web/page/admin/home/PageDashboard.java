@@ -74,7 +74,7 @@ public class PageDashboard extends PageAdminHome {
     private static final String ID_INFO_BOX_SERVICES = "infoBoxServices";
     private static final String ID_INFO_BOX_RESOURCES = "infoBoxResources";
     private static final String ID_INFO_BOX_TASKS = "infoBoxTasks";
-    
+
     private static final String ID_PERSONAL_INFO = "personalInfo";
     private static final String ID_SYSTEM_INFO = "systemInfo";
 
@@ -100,33 +100,33 @@ public class PageDashboard extends PageAdminHome {
         initSystemInfo();
 
     }
-	
+
     private void initInfoBoxes() {
     	Task task = createSimpleTask("PageDashboard.infobox");
     	OperationResult result = task.getResult();
-    	
-    	add(createFocusInfoBoxPanel(ID_INFO_BOX_USERS, UserType.class, "object-user-bg", 
-    			GuiStyleConstants.CLASS_OBJECT_USER_ICON, "PageDashboard.infobox.users", PageUsers.class, 
+
+    	add(createFocusInfoBoxPanel(ID_INFO_BOX_USERS, UserType.class, "object-user-bg",
+    			GuiStyleConstants.CLASS_OBJECT_USER_ICON, "PageDashboard.infobox.users", PageUsers.class,
     			result, task));
-    	
-    	add(createFocusInfoBoxPanel(ID_INFO_BOX_ORGS, OrgType.class, "object-org-bg", 
-    			GuiStyleConstants.CLASS_OBJECT_ORG_ICON, "PageDashboard.infobox.orgs", PageOrgTree.class, 
+
+    	add(createFocusInfoBoxPanel(ID_INFO_BOX_ORGS, OrgType.class, "object-org-bg",
+    			GuiStyleConstants.CLASS_OBJECT_ORG_ICON, "PageDashboard.infobox.orgs", PageOrgTree.class,
     			result, task));
-    	
-    	add(createFocusInfoBoxPanel(ID_INFO_BOX_ROLES, RoleType.class, "object-role-bg", 
-    			GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, "PageDashboard.infobox.roles", PageRoles.class, 
+
+    	add(createFocusInfoBoxPanel(ID_INFO_BOX_ROLES, RoleType.class, "object-role-bg",
+    			GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, "PageDashboard.infobox.roles", PageRoles.class,
     			result, task));
-    	
-    	add(createFocusInfoBoxPanel(ID_INFO_BOX_SERVICES, ServiceType.class, "object-service-bg", 
-    			GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, "PageDashboard.infobox.services", PageServices.class, 
+
+    	add(createFocusInfoBoxPanel(ID_INFO_BOX_SERVICES, ServiceType.class, "object-service-bg",
+    			GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, "PageDashboard.infobox.services", PageServices.class,
     			result, task));
-    	
+
     	add(createResourceInfoBoxPanel(result, task));
     	add(createTaskInfoBoxPanel(result, task));
-    	
+
 	}
 
-	private <F extends FocusType> InfoBoxPanel createFocusInfoBoxPanel(String id, Class<F> type, String bgColor, 
+	private <F extends FocusType> InfoBoxPanel createFocusInfoBoxPanel(String id, Class<F> type, String bgColor,
 			String icon, String keyPrefix, Class<? extends IRequestablePage> linkPage, OperationResult result, Task task) {
     	InfoBoxType infoBoxType = new InfoBoxType(bgColor, icon, getString(keyPrefix + ".label"));
     	Integer allCount;
@@ -151,25 +151,25 @@ public class PageDashboard extends PageAdminHome {
 			if (archivedCount == null) {
 				archivedCount = 0;
 			}
-			
+
 			int activeCount = allCount - disabledCount - archivedCount;
 			int totalCount = allCount - archivedCount;
-			
+
 			infoBoxType.setNumber(activeCount + " " + getString(keyPrefix + ".number"));
-			
+
 			int progress = 0;
 			if (totalCount != 0) {
 				progress = activeCount * 100 / totalCount;
 			}
 			infoBoxType.setProgress(progress);
-			
+
 			StringBuilder descSb = new StringBuilder();
 			descSb.append(totalCount).append(" ").append(getString(keyPrefix + ".total"));
 			if (archivedCount != 0) {
 				descSb.append(" ( + ").append(archivedCount).append(" ").append(getString(keyPrefix + ".archived")).append(")");
 			}
 			infoBoxType.setDescription(descSb.toString());
-			
+
 		} catch (Exception e) {
 			infoBoxType.setNumber("ERROR: "+e.getMessage());
 		}
@@ -178,9 +178,9 @@ public class PageDashboard extends PageAdminHome {
 
 		return new InfoBoxPanel(id, boxModel, linkPage);
     }
-	
+
     private Component createResourceInfoBoxPanel(OperationResult result, Task task) {
-    	InfoBoxType infoBoxType = new InfoBoxType("object-resource-bg", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, 
+    	InfoBoxType infoBoxType = new InfoBoxType("object-resource-bg", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON,
     			getString("PageDashboard.infobox.resources.label"));
     	Integer totalCount;
 		try {
@@ -196,17 +196,17 @@ public class PageDashboard extends PageAdminHome {
 			if (activeCount == null) {
 				activeCount = 0;
 			}
-			
+
 			infoBoxType.setNumber(activeCount + " " + getString("PageDashboard.infobox.resources.number"));
-			
+
 			int progress = 0;
 			if (totalCount != 0) {
 				progress = activeCount * 100 / totalCount;
 			}
 			infoBoxType.setProgress(progress);
-			
+
 			infoBoxType.setDescription(totalCount + " " + getString("PageDashboard.infobox.resources.total"));
-			
+
 		} catch (Exception e) {
 			infoBoxType.setNumber("ERROR: "+e.getMessage());
 		}
@@ -215,9 +215,9 @@ public class PageDashboard extends PageAdminHome {
 
 		return new InfoBoxPanel(ID_INFO_BOX_RESOURCES, boxModel, PageResources.class);
 	}
-    
+
     private Component createTaskInfoBoxPanel(OperationResult result, Task task) {
-    	InfoBoxType infoBoxType = new InfoBoxType("object-task-bg", GuiStyleConstants.CLASS_OBJECT_TASK_ICON, 
+    	InfoBoxType infoBoxType = new InfoBoxType("object-task-bg", GuiStyleConstants.CLASS_OBJECT_TASK_ICON,
     			getString("PageDashboard.infobox.tasks.label"));
     	Integer totalCount;
 		try {
@@ -232,17 +232,17 @@ public class PageDashboard extends PageAdminHome {
 			if (activeCount == null) {
 				activeCount = 0;
 			}
-			
+
 			infoBoxType.setNumber(activeCount + " " + getString("PageDashboard.infobox.tasks.number"));
-			
+
 			int progress = 0;
 			if (totalCount != 0) {
 				progress = activeCount * 100 / totalCount;
 			}
 			infoBoxType.setProgress(progress);
-			
+
 			infoBoxType.setDescription(totalCount + " " + getString("PageDashboard.infobox.tasks.total"));
-			
+
 		} catch (Exception e) {
 			infoBoxType.setNumber("ERROR: "+e.getMessage());
 		}
@@ -255,7 +255,7 @@ public class PageDashboard extends PageAdminHome {
 
     private void initPersonalInfo() {
         DashboardPanel personalInfo = new DashboardPanel(ID_PERSONAL_INFO, null,
-                createStringResource("PageDashboard.personalInfo"), GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES, 
+                createStringResource("PageDashboard.personalInfo"), GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES,
                 GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES) {
         	private static final long serialVersionUID = 1L;
 
@@ -269,7 +269,7 @@ public class PageDashboard extends PageAdminHome {
 
     private void initSystemInfo() {
         DashboardPanel systemInfo = new DashboardPanel(ID_SYSTEM_INFO, null,
-                createStringResource("PageDashboard.systemInfo"), 
+                createStringResource("PageDashboard.systemInfo"),
                 GuiStyleConstants.CLASS_ICON_TACHOMETER, GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES) {
 			private static final long serialVersionUID = 1L;
 

@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemsType;
 
 public class FormTypeUtil {
-	
+
 	public static List<AbstractFormItemType> getFormItems(FormItemsType formItemsProperty) {
 		List<AbstractFormItemType> items = new ArrayList<>();
 		if (formItemsProperty != null) {

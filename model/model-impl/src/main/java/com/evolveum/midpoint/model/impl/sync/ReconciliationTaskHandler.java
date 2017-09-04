@@ -74,14 +74,14 @@ import java.util.List;
 
 /**
  * The task hander for reconciliation.
- * 
+ *
  * This handler takes care of executing reconciliation "runs". It means that the
  * handler "run" method will be as scheduled (every few days). The
  * responsibility is to iterate over accounts and compare the real state with
  * the assumed IDM state.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 @Component
 public class ReconciliationTaskHandler implements TaskHandler {
@@ -94,7 +94,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	 * setter.
 	 */
 	private ReconciliationTaskResultListener reconciliationTaskResultListener;
-	
+
 	@Autowired(required = true)
 	private TaskManager taskManager;
 
@@ -110,10 +110,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 	@Autowired(required = true)
 	private ChangeNotificationDispatcher changeNotificationDispatcher;
-	
+
 	@Autowired(required = true)
 	private AuditService auditService;
-	
+
 	@Autowired(required = true)
 	private Clock clock;
 
@@ -173,15 +173,15 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
         recordProgress(coordinatorTask, 0, opResult);
         // todo consider setting expectedTotal to null here
-		
+
 		PrismObject<ResourceType> resource;
 		ObjectClassComplexTypeDefinition objectclassDef;
 		try {
 			resource = provisioningService.getObject(ResourceType.class, resourceOid, null, coordinatorTask, opResult);
-			
+
 			RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
 			objectclassDef = Utils.determineObjectClass(refinedSchema, coordinatorTask);
-			
+
 		} catch (ObjectNotFoundException ex) {
 			// This is bad. The resource does not exist. Permanent problem.
 			processErrorPartial(runResult, "Resource does not exist, OID: " + resourceOid, ex, TaskRunResultStatus.PERMANENT_ERROR, null, coordinatorTask, opResult);
@@ -209,12 +209,12 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		} catch (SecurityViolationException ex) {
 			processErrorPartial(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, null, coordinatorTask, opResult);
 			return runResult;
-			
+
 		} catch (ExpressionEvaluationException ex) {
 			processErrorPartial(runResult, "Expression error", ex, TaskRunResultStatus.PERMANENT_ERROR, null, coordinatorTask, opResult);
 			return runResult;
 		}
-		
+
 		if (objectclassDef == null) {
 			processErrorPartial(runResult, "Reconciliation without an object class specification is not supported", null, TaskRunResultStatus.PERMANENT_ERROR, null, coordinatorTask, opResult);
 			return runResult;
@@ -222,15 +222,15 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		reconResult.setResource(resource);
 		reconResult.setObjectclassDefinition(objectclassDef);
-		
+
 		LOGGER.info("Start executing reconciliation of resource {}, reconciling object class {}, finish operations only: {}",
 				resource, objectclassDef, finishOperationsOnly);
 		long reconStartTimestamp = clock.currentTimeMillis();
-		
+
 		AuditEventRecord requestRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.REQUEST);
 		requestRecord.setTarget(resource);
 		auditService.audit(requestRecord, coordinatorTask);
-		
+
 		try {
 			if (!scanForUnfinishedOperations(coordinatorTask, resourceOid, reconResult, opResult)) {
                 processInterruption(runResult, resource, coordinatorTask, opResult);			// appends also "last N failures" (TODO refactor)
@@ -267,7 +267,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		long beforeResourceReconTimestamp = clock.currentTimeMillis();
 		long afterResourceReconTimestamp;
 		long afterShadowReconTimestamp;
-		try {			
+		try {
 			if (!finishOperationsOnly && !performResourceReconciliation(resource, objectclassDef, reconResult, coordinatorTask, opResult)) {
                 processInterruption(runResult, resource, coordinatorTask, opResult);
                 return runResult;
@@ -309,7 +309,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			processErrorFinal(runResult, "Expression error", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, coordinatorTask, opResult);
 			return runResult;
         }
-		
+
 		opResult.computeStatus();
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
@@ -318,12 +318,12 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.getStatus());
 //			LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.dump());
 		}
-		
+
 		AuditEventRecord executionRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.EXECUTION);
 		executionRecord.setTarget(resource);
 		executionRecord.setOutcome(OperationResultStatus.SUCCESS);
 		auditService.audit(executionRecord , coordinatorTask);
-		
+
 		long reconEndTimestamp = clock.currentTimeMillis();
 
 		long etime = reconEndTimestamp - reconStartTimestamp;
@@ -331,13 +331,13 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		long resourceReconTime = afterResourceReconTimestamp - beforeResourceReconTimestamp;
 		long shadowReconTime = afterShadowReconTimestamp - afterResourceReconTimestamp;
 		LOGGER.info("Done executing reconciliation of resource {}, object class {}, Etime: {} ms (un-ops: {}, resource: {}, shadow: {})",
-				new Object[]{resource, objectclassDef, 
+				new Object[]{resource, objectclassDef,
 					etime,
 					unOpsTime,
 					resourceReconTime,
 					shadowReconTime});
-		
-		reconResult.setRunResult(runResult);		
+
+		reconResult.setRunResult(runResult);
 		if (reconciliationTaskResultListener != null) {
 			reconciliationTaskResultListener.process(reconResult);
 		}
@@ -429,14 +429,14 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, task, opResult); // TODO implement more seriously
 		runResult.setRunResultStatus(runResultStatus);
 		runResult.setProgress(task.getProgress());
-		
+
 		AuditEventRecord executionRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.EXECUTION);
 		executionRecord.setTarget(resource);
 		executionRecord.setOutcome(OperationResultStatus.FATAL_ERROR);
 		executionRecord.setMessage(ex.getMessage());
 		auditService.audit(executionRecord , task);
 	}
-	
+
 	private void processErrorPartial(TaskRunResult runResult, String errorDesc, Exception ex,
 			TaskRunResultStatus runResultStatus, PrismObject<ResourceType> resource, Task task, OperationResult opResult) {
 		String message;
@@ -470,7 +470,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		coordinatorTask.setExpectedTotal(null);
 
 		try {
-			
+
 			ObjectQuery query = objectclassDef.createShadowSearchQuery(resource.getOid());
 
 			OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative");
@@ -497,10 +497,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			}
 			opResult.recordStatus(resultStatus, message);
 			LOGGER.info("Finished resource part of {} reconciliation: {}", resource, message);
-			
+
 			reconResult.setResourceReconCount(handler.getProgress());
 			reconResult.setResourceReconErrors(handler.getErrors());
-			
+
 		} catch (ConfigurationException | SecurityViolationException | SchemaException | CommunicationException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | Error e) {
 			opResult.recordFatalError(e);
 			throw e;
@@ -514,10 +514,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
         boolean interrupted;
 
 		// find accounts
-		
+
 		LOGGER.trace("Shadow reconciliation starting for {}, {} -> {}", new Object[]{resource, startTimestamp, endTimestamp});
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".shadowReconciliation");
-		
+
 		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
 				.block()
 					.item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(XmlTypeConverter.createXMLGregorianCalendar(startTimestamp))
@@ -531,7 +531,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		}
 
 		long started = System.currentTimeMillis();
-		
+
 		final Holder<Long> countHolder = new Holder<Long>(0L);
 
 		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
@@ -540,7 +540,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 				if ((objectclassDef instanceof RefinedObjectClassDefinition) && !((RefinedObjectClassDefinition)objectclassDef).matches(shadow.asObjectable())) {
 					return true;
 				}
-				
+
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Shadow reconciliation of {}, fullSynchronizationTimestamp={}", shadow, shadow.asObjectable().getFullSynchronizationTimestamp());
 				}
@@ -554,14 +554,14 @@ public class ReconciliationTaskHandler implements TaskHandler {
 					task.recordIterativeOperationEnd(shadow.asObjectable(), started, t);
 					throw t;
 				}
-				
+
 				if (ShadowUtil.isProtected(resourceShadow)) {
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Skipping recording counter for {} because it is protected", shadow);
 					}
 					return task.canRun();
 				}
-				
+
 				countHolder.setValue(countHolder.getValue() + 1);
                 incrementAndRecordProgress(task, new OperationResult("dummy"));     // reconcileShadow writes to its own dummy OperationResult, so we do the same here
                 return task.canRun();
@@ -570,14 +570,14 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		repositoryService.searchObjectsIterative(ShadowType.class, query, handler, null, true, opResult);
         interrupted = !task.canRun();
-		
+
 		// for each try the operation again
-		
+
 		opResult.computeStatus();
-		
-		LOGGER.trace("Shadow reconciliation finished, processed {} shadows for {}, result: {}", 
+
+		LOGGER.trace("Shadow reconciliation finished, processed {} shadows for {}, result: {}",
 				new Object[]{countHolder.getValue(), resource, opResult.getStatus()});
-		
+
 		reconResult.setShadowReconCount(countHolder.getValue());
 
         result.createSubresult(OperationConstants.RECONCILIATION+".shadowReconciliation.statistics")
@@ -587,7 +587,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
         return !interrupted;
 	}
-	
+
 	private PrismObject<ShadowType> reconcileShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, Task task) {
 		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION+".shadowReconciliation.object");
 		try {
@@ -605,12 +605,12 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		} catch (CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
 			processShadowReconError(e, shadow, opResult);
 		}
-		
+
 		return null;
 	}
 
 
-	private void reactShadowGone(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, 
+	private void reactShadowGone(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource,
 			Task task, OperationResult result) {
 		try {
 			provisioningService.applyDefinition(shadow, task, result);
@@ -618,7 +618,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
 			change.setResource(resource);
 			ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createDeleteDelta(ShadowType.class, shadow.getOid(),
-					shadow.getPrismContext()); 
+					shadow.getPrismContext());
 			change.setObjectDelta(shadowDelta);
 			// Need to also set current shadow. This will get reflected in "old" object in lens context
 			change.setCurrentShadow(shadow);
@@ -659,7 +659,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		long startedAll = System.currentTimeMillis();
 		int processedSuccess = 0, processedFailure = 0;
-		
+
 		for (PrismObject<ShadowType> shadow : shadows) {
 
 			long started = System.currentTimeMillis();

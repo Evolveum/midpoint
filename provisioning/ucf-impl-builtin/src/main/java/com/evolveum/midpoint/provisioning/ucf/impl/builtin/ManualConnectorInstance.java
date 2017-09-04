@@ -56,21 +56,21 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 @ManagedConnector(type="ManualConnector", version="1.0.0")
 public class ManualConnectorInstance extends AbstractManualConnectorInstance implements RepositoryAware {
-	
+
 	public static final String OPERATION_QUERY_CASE = ".queryCase";
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ManualConnectorInstance.class);
-	
+
 	private ManualConnectorConfiguration configuration;
-	
+
 	private RepositoryService repositoryService;
-	
+
 	private boolean connected = false;
-	
+
 	private static int randomDelayRange = 0;
-	
+
 	protected static final Random RND = new Random();
-	
+
 	@ManagedConnectorConfiguration
 	public ManualConnectorConfiguration getConfiguration() {
 		return configuration;
@@ -93,7 +93,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	public void setRepositoryService(RepositoryService repositoryService) {
 		this.repositoryService = repositoryService;
 	}
-	
+
 
 	@Override
 	protected String createTicketAdd(PrismObject<? extends ShadowType> object,
@@ -137,11 +137,11 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		}
 		return acase.getOid();
 	}
-	
+
 	private PrismObject<CaseType> addCase(String description, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
 		PrismObject<CaseType> acase = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(CaseType.class).instantiate();
 		CaseType caseType = acase.asObjectable();
-		
+
 		if (randomDelayRange != 0) {
 			int waitMillis = RND.nextInt(randomDelayRange);
 			LOGGER.info("Manual connector waiting {} ms before creating the case", waitMillis);
@@ -152,35 +152,35 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 			}
 			LOGGER.info("Manual connector wait is over");
 		}
-		
+
 		String caseOid = OidUtil.generateOid();
-		
+
 		caseType.setOid(caseOid);
 		// TODO: human-readable case ID
 		caseType.setName(new PolyStringType(caseOid));
-		
+
 		caseType.setDescription(description);
-		
+
 		// subtype
 		caseType.setState(SchemaConstants.CASE_STATE_OPEN);
-		
+
 		// TODO: case payload
 		// TODO: a lot of other things
-		
+
 		// TODO: move to case-manager
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("CREATING CASE:\n{}", acase.debugDump(1));
 		}
-		
+
 		repositoryService.addObject(acase, null, result);
 		return acase;
 	}
-	
+
 	@Override
 	public OperationResultStatus queryOperationStatus(String asyncronousOperationReference, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.createMinorSubresult(OPERATION_QUERY_CASE);
-		
+
 		PrismObject<CaseType> acase;
 		try {
 			acase = repositoryService.getObject(CaseType.class, asyncronousOperationReference, null, result);
@@ -188,31 +188,31 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 			result.recordFatalError(e);
 			throw e;
 		}
-		
+
 		CaseType caseType = acase.asObjectable();
 		String state = caseType.getState();
-		
+
 		if (QNameUtil.matchWithUri(SchemaConstants.CASE_STATE_OPEN_QNAME, state)) {
 			result.recordSuccess();
 			return OperationResultStatus.IN_PROGRESS;
-			
+
 		} else if (QNameUtil.matchWithUri(SchemaConstants.CASE_STATE_CLOSED_QNAME, state)) {
-			
+
 			String outcome = caseType.getOutcome();
 			OperationResultStatus status = translateOutcome(outcome);
 			result.recordSuccess();
 			return status;
-			
+
 		} else {
 			SchemaException e = new SchemaException("Unknown case state "+state);
 			result.recordFatalError(e);
 			throw e;
 		}
-		
+
 	}
 
 	private OperationResultStatus translateOutcome(String outcome) {
-		
+
 		// TODO: better algorithm
 		if (outcome == null) {
 			return null;
@@ -238,19 +238,19 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 				.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
 		connectionResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ManualConnectorInstance.class);
 		connectionResult.addContext("connector", getConnectorObject().toString());
-		
+
 		if (repositoryService == null) {
 			connectionResult.recordFatalError("No repository service");
 			return;
 		}
-		
+
 		if (!connected && InternalsConfig.isSanityChecks()) {
 			throw new IllegalStateException("Attempt to test non-connected connector instance "+this);
 		}
-		
+
 		connectionResult.recordSuccess();
 	}
-	
+
 	@Override
 	public void dispose() {
 		// Nothing to dispose

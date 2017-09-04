@@ -27,20 +27,20 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Object Reference Schema Definition.
- * 
+ *
  * Object Reference is a property that describes reference to an object. It is
  * used to represent association between objects. For example reference from
  * User object to Account objects that belong to the user. The reference is a
  * simple uni-directional link using an OID as an identifier.
- * 
+ *
  * This type should be used for all object references so the implementations can
  * detect them and automatically resolve them.
- * 
+ *
  * This class represents schema definition for object reference. See
  * {@link Definition} for more details.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismReference> implements PrismReferenceDefinition {
 
@@ -55,11 +55,11 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
 
 	/**
 	 * Returns valid XSD object types whose may be the targets of the reference.
-	 * 
+	 *
 	 * Corresponds to "targetType" XSD annotation.
-	 * 
+	 *
 	 * Returns empty set if not specified. Must not return null.
-	 * 
+	 *
 	 * @return set of target type names
 	 */
 	@Override
@@ -79,7 +79,7 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
 	public void setCompositeObjectElementName(QName compositeObjectElementName) {
 		this.compositeObjectElementName = compositeObjectElementName;
 	}
-	
+
 	@Override
 	public boolean isComposite() {
 		return isComposite;
@@ -131,7 +131,7 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
         name = addNamespaceIfApplicable(name);
         return new PrismReference(name, this, prismContext);
     }
-    
+
     @Override
 	public ItemDelta createEmptyDelta(ItemPath path) {
 		return new ReferenceDelta(path, this, prismContext);
@@ -144,7 +144,7 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
     	copyDefinitionData(clone);
     	return clone;
 	}
-    
+
     protected void copyDefinitionData(PrismReferenceDefinitionImpl clone) {
     	super.copyDefinitionData(clone);
     	clone.targetTypeName = this.targetTypeName;

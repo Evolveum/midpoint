@@ -20,39 +20,39 @@ package com.evolveum.midpoint.schema.internals;
  *
  */
 public class InternalsConfig {
-	
+
 	/**
 	 * Checks for consistency of data structures (e.g. prism objects, containers, contexts).
 	 */
 	public static boolean consistencyChecks = true;
-	
+
 	/**
 	 * Additional checks that method arguments make sense (e.g. deltas are not duplicated)
 	 */
 	private static boolean sanityChecks = true;
-	
+
 	public static boolean encryptionChecks = true;
-	
+
 	// We don't want this to be on by default. It will ruin the ability to explicitly import
 	// non-encrypted value to repo.
 	public static boolean readEncryptionChecks = false;
-	
+
 	// Used by testing code. If set to true then any change to a logging configuration from
 	// inside midpoint (e.g. change of SystemConfiguration object) will be ignored.
 	// DO NOT USE IN PRODUCTION CODE
 	private static boolean avoidLoggingChange = false;
-	
+
 	private static boolean prismMonitoring = false;
-	
+
 	private static boolean allowClearDataLogging = false;
-	
+
 	/**
 	 * Non-null value enables alternative code paths used in testing. This adds
 	 * special pieces of code that alter normal behavior of the system. These
 	 * may reverse the normal evaluation ordering, randomize evaluations or
 	 * operation ordering and so on. It is used to make tests more thorough,
 	 * so they have a chance to catch more bugs with the same test code.
-	 * 
+	 *
 	 * These alternative testing paths may be quite inefficient.
 	 * This is NOT supposed to be used in production. This is only for
 	 * use in testing.
@@ -114,19 +114,19 @@ public class InternalsConfig {
 	public static void setTestingPaths(TestingPaths testingPaths) {
 		InternalsConfig.testingPaths = testingPaths;
 	}
-	
+
 	public static boolean isAllowClearDataLogging() {
 		return allowClearDataLogging;
 	}
-	
+
 	public static void setAllowClearDataLogging(boolean allowClearDataLogging) {
 		InternalsConfig.allowClearDataLogging = allowClearDataLogging;
 	}
-	
+
 	public static void resetTestingPaths() {
 		testingPaths = null;
 	}
-	
+
 	public static void reset() {
 		consistencyChecks = true;
 		sanityChecks = false;
@@ -144,7 +144,7 @@ public class InternalsConfig {
 		prismMonitoring = true;
 		allowClearDataLogging = true;
 	}
-	
+
 	public static void turnOffAllChecks() {
 		consistencyChecks = false;
 		sanityChecks = false;

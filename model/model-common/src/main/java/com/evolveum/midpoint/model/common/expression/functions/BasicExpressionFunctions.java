@@ -71,23 +71,23 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 /**
  * Library of standard midPoint functions. These functions are made available to all
  * midPoint expressions.
- * 
+ *
  * The functions should be written to support scripting-like comfort. It means that they all needs
  * to be null-safe, automatically convert data types as necessary and so on.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class BasicExpressionFunctions {
-	
+
 	public static final String NAME_SEPARATOR = " ";
-	
+
 	public static final Trace LOGGER = TraceManager.getTrace(BasicExpressionFunctions.class);
-	
+
 	private static String STRING_PATTERN_WHITESPACE = "\\s+";
 	private static String STRING_PATTERN_HONORIFIC_PREFIX_ENDS_WITH_DOT = "^(\\S+\\.)$";
 	private static Pattern PATTERN_NICK_NAME = Pattern.compile("^([^\"]*)\"([^\"]+)\"([^\"]*)$");
-	
+
 	private PrismContext prismContext;
 	private Protector protector;
 
@@ -96,7 +96,7 @@ public class BasicExpressionFunctions {
 		this.prismContext = prismContext;
 		this.protector = protector;
 	}
-	
+
 	/**
 	 * Convert string to lower case.
 	 */
@@ -110,7 +110,7 @@ public class BasicExpressionFunctions {
 	public static String uc(String orig) {
 		return StringUtils.upperCase(orig);
 	}
-	
+
 	public boolean contains(Object object, Object search) {
 		String objectStr = stringify(object);
 		if (StringUtils.isEmpty(objectStr)) {
@@ -122,7 +122,7 @@ public class BasicExpressionFunctions {
 		}
 		return objectStr.contains(searchStr);
 	}
-	
+
 	public boolean containsIgnoreCase(Object object, Object search) {
 		String objectStr = stringify(object);
 		if (StringUtils.isEmpty(objectStr)) {
@@ -134,7 +134,7 @@ public class BasicExpressionFunctions {
 		}
 		return StringUtils.containsIgnoreCase(objectStr, searchStr);
 	}
-	
+
 	/**
 	 * Remove whitespaces at the beginning and at the end of the string.
 	 */
@@ -182,7 +182,7 @@ public class BasicExpressionFunctions {
 	/**
 	 * Normalize a string value. It follows the default normalization algorithm
 	 * used for PolyString values.
-	 * 
+	 *
 	 * @param orig original value to normalize
 	 * @return normalized value
 	 */
@@ -194,10 +194,10 @@ public class BasicExpressionFunctions {
 		polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
 		return polyString.getNorm();
 	}
-	
+
 	/**
 	 * Normalize a PolyString value.
-	 * 
+	 *
 	 * @param orig original value to normalize
 	 * @return normalized value
 	 */
@@ -214,7 +214,7 @@ public class BasicExpressionFunctions {
 
 	/**
 	 * Normalize a PolyStringType value.
-	 * 
+	 *
 	 * @param orig original value to normalize
 	 * @return normalized value
 	 */
@@ -234,22 +234,22 @@ public class BasicExpressionFunctions {
 		String decomposed = Normalizer.normalize(inputString, Normalizer.Form.NFKD);
 		return decomposed.replaceAll("\\p{M}", "");
 	}
-	
+
 	/**
 	 * Converts whatever it gets to a string. But it does it in a sensitive way.
-	 * E.g. it tries to detect collections and returns the first element (if there is only one). 
-	 * Never returns null. Returns empty string instead. 
+	 * E.g. it tries to detect collections and returns the first element (if there is only one).
+	 * Never returns null. Returns empty string instead.
 	 */
 	public String stringify(Object whatever) {
-		
+
 		if (whatever == null) {
 			return "";
 		}
-		
+
 		if (whatever instanceof String) {
 			return (String)whatever;
 		}
-		
+
 		if (whatever instanceof PolyString) {
 			return ((PolyString)whatever).getOrig();
 		}
@@ -257,7 +257,7 @@ public class BasicExpressionFunctions {
 		if (whatever instanceof PolyStringType) {
 			return ((PolyStringType)whatever).getOrig();
 		}
-		
+
 		if (whatever instanceof Collection) {
 			Collection collection = (Collection)whatever;
 			if (collection.isEmpty()) {
@@ -268,7 +268,7 @@ public class BasicExpressionFunctions {
 			}
 			whatever = collection.iterator().next();
 		}
-		
+
 		Class<? extends Object> whateverClass = whatever.getClass();
 		if (whateverClass.isArray()) {
 			Object[] array = (Object[])whatever;
@@ -280,15 +280,15 @@ public class BasicExpressionFunctions {
 			}
 			whatever = array[0];
 		}
-		
+
 		if (whatever == null) {
 			return "";
 		}
-		
+
 		if (whatever instanceof String) {
 			return (String)whatever;
 		}
-		
+
 		if (whatever instanceof PolyString) {
 			return ((PolyString)whatever).getOrig();
 		}
@@ -296,7 +296,7 @@ public class BasicExpressionFunctions {
 		if (whatever instanceof PolyStringType) {
 			return ((PolyStringType)whatever).getOrig();
 		}
-		
+
 		if (whatever instanceof Element) {
 			Element element = (Element)whatever;
 			Element origElement = DOMUtil.getChildElement(element, PolyString.F_ORIG);
@@ -307,19 +307,19 @@ public class BasicExpressionFunctions {
 				return element.getTextContent();
 			}
 		}
-		
+
 		if (whatever instanceof Node) {
 			return ((Node)whatever).getTextContent();
 		}
 
 		return whatever.toString();
 	}
-	
+
 	public Collection<String> getOids(Collection<ObjectReferenceType> refs){
 		if (refs == null){
 			return null;
 		}
-		
+
 		Collection<String> oids = new ArrayList<String>();
 		for (ObjectReferenceType ort : refs){
 			if (StringUtils.isNotBlank(ort.getOid())){
@@ -328,24 +328,24 @@ public class BasicExpressionFunctions {
 				oids.add(ort.asReferenceValue().getObject().getOid());
 			}
 		}
-		
+
 		return oids;
-		
+
 	}
-	
+
 	public Collection<String> getOids(ObjectReferenceType refs){
 		List<ObjectReferenceType> refList = new ArrayList<>();
 		refList.add(refs);
 		return getOids(refList);
 	}
-	
+
 	public Collection<String> getOids(ObjectType refs){
 		List<String> oid = new ArrayList<>();
 		oid.add(refs.getOid());
 		return oid;
-		
+
 	}
-	
+
 	public boolean isEmpty(Object whatever) {
 		if (whatever == null) {
 			return true;
@@ -362,32 +362,32 @@ public class BasicExpressionFunctions {
 		}
 		return whateverString.isEmpty();
 	}
-	
+
 	public <T> Collection<T> getExtensionPropertyValues(ObjectType object, String namespace, String localPart) {
 		return getExtensionPropertyValues(object, new javax.xml.namespace.QName(namespace, localPart));
 	}
-	
+
 	public <T> Collection<T> getExtensionPropertyValues(ObjectType object, groovy.xml.QName propertyQname) {
 		return getExtensionPropertyValues(object, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
 	}
-	
+
 	public <T> Collection<T> getExtensionPropertyValues(ObjectType object, javax.xml.namespace.QName propertyQname) {
 		return ObjectTypeUtil.getExtensionPropertyValuesNotNull(object, propertyQname);
 	}
-	
+
 
 	public <T> T getExtensionPropertyValue(ObjectType object, String namespace, String localPart) throws SchemaException {
 		return getExtensionPropertyValue(object, new javax.xml.namespace.QName(namespace, localPart));
 	}
-	
+
 	public Referencable getExtensionReferenceValue(ObjectType object, String namespace, String localPart) throws SchemaException {
 		return getExtensionReferenceValue(object, new javax.xml.namespace.QName(namespace, localPart));
 	}
-	
+
 	public <T> T getExtensionPropertyValue(ObjectType object, groovy.xml.QName propertyQname) throws SchemaException {
 		return getExtensionPropertyValue(object, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
 	}
-	
+
 	public <T> T getExtensionPropertyValue(ObjectType object, javax.xml.namespace.QName propertyQname) throws SchemaException {
 		if (object == null) {
 			return null;
@@ -395,7 +395,7 @@ public class BasicExpressionFunctions {
 		Collection<T> values = ObjectTypeUtil.getExtensionPropertyValues(object, propertyQname);
 		return toSingle(values, "a multi-valued extension property "+propertyQname);
 	}
-	
+
 	public Referencable getExtensionReferenceValue(ObjectType object, javax.xml.namespace.QName propertyQname) throws SchemaException {
 		if (object == null) {
 			return null;
@@ -403,12 +403,12 @@ public class BasicExpressionFunctions {
 		Collection<Referencable> values = ObjectTypeUtil.getExtensionReferenceValues(object, propertyQname);
 		return toSingle(values, "a multi-valued extension property "+propertyQname);
 	}
-	
+
 	public <T> T getPropertyValue(ObjectType object, String path) throws SchemaException {
 		Collection<T> values = getPropertyValues(object, path);
 		return toSingle(values, "a multi-valued property "+path);
 	}
-	
+
 	public <T> Collection<T> getPropertyValues(ObjectType object, String path) {
 		if (object == null) {
 			return null;
@@ -422,20 +422,20 @@ public class BasicExpressionFunctions {
 		}
 		return property.getRealValues();
 	}
-	
-	
+
+
 	public <T> Collection<T> getAttributeValues(ShadowType shadow, String attributeNamespace, String attributeLocalPart) {
 		return getAttributeValues(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
 	}
-	
+
 	public <T> Collection<T> getAttributeValues(ShadowType shadow, String attributeLocalPart) {
 		return getAttributeValues(shadow, new javax.xml.namespace.QName(MidPointConstants.NS_RI, attributeLocalPart));
 	}
-	
+
 	public <T> Collection<T> getAttributeValues(ShadowType shadow, groovy.xml.QName attributeQname) {
 		return getAttributeValues(shadow, attributeQname.getNamespaceURI(), attributeQname.getLocalPart());
 	}
-	
+
 	public <T> Collection<T> getAttributeValues(ShadowType shadow, javax.xml.namespace.QName attributeQname) {
 		return ShadowUtil.getAttributeValues(shadow, attributeQname);
 	}
@@ -451,23 +451,23 @@ public class BasicExpressionFunctions {
 	public <T> T getAttributeValue(ShadowType shadow, groovy.xml.QName attributeQname) throws SchemaException {
 		return getAttributeValue(shadow, attributeQname.getNamespaceURI(), attributeQname.getLocalPart());
 	}
-	
+
 	public <T> T getAttributeValue(ShadowType shadow, javax.xml.namespace.QName attributeQname) throws SchemaException {
 		return ShadowUtil.getAttributeValue(shadow, attributeQname);
 	}
-	
+
 	public Collection<String> getAttributeStringValues(ShadowType shadow, String attributeNamespace, String attributeLocalPart) {
 		return getAttributeStringValues(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
 	}
-	
+
 	public Collection<String> getAttributeStringValues(ShadowType shadow, groovy.xml.QName attributeQname) {
 		return getAttributeStringValues(shadow, attributeQname.getNamespaceURI(), attributeQname.getLocalPart());
 	}
-	
+
 	public Collection<String> getAttributeStringValues(ShadowType shadow, javax.xml.namespace.QName attributeQname) {
 		return ShadowUtil.getAttributeValues(shadow, attributeQname, String.class);
 	}
-	
+
 	public <T> T getIdentifierValue(ShadowType shadow) throws SchemaException {
 		if (shadow == null) {
 			return null;
@@ -513,7 +513,7 @@ public class BasicExpressionFunctions {
 	public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, PrismProperty attribute) throws NamingException {
 		return determineLdapSingleAttributeValue(dns, attributeName, attribute.getRealValues());
 	}
-	
+
 	public <T> T getResourceIcfConfigurationPropertyValue(ResourceType resource, javax.xml.namespace.QName propertyQname) throws SchemaException {
 		if (propertyQname == null) {
 			return null;
@@ -528,7 +528,7 @@ public class BasicExpressionFunctions {
 		}
 		return property.getRealValue();
 	}
-	
+
 	public <T> T getResourceIcfConfigurationPropertyValue(ResourceType resource, String propertyLocalPart) throws SchemaException {
 		if (propertyLocalPart == null) {
 			return null;
@@ -544,7 +544,7 @@ public class BasicExpressionFunctions {
 		}
 		return null;
 	}
-	
+
 	private PrismContainer<?> getIcfConfigurationProperties(ResourceType resource) {
 		if (resource == null) {
 			return null;
@@ -555,7 +555,7 @@ public class BasicExpressionFunctions {
 		}
 		return connectorConfiguration.findContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES);
 	}
-	
+
 	public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, Collection<String> values) throws NamingException {
 		if (values == null || values.isEmpty()) {
 			// Shortcut. This is maybe the most common case. We want to return quickly and we also need to avoid more checks later.
@@ -569,14 +569,14 @@ public class BasicExpressionFunctions {
 		}
 		return determineLdapSingleAttributeValue(dns.iterator().next(), attributeName, values);
 	}
-		
+
 	// We cannot have Collection<String> here. The generic type information will disappear at runtime and the scripts can pass
 	// anything that they find suitable. E.g. XPath is passing elements
 	public String determineLdapSingleAttributeValue(String dn, String attributeName, Collection<?> values) throws NamingException {
 		if (values == null || values.isEmpty()) {
 			return null;
 		}
-		
+
 		Collection<String> stringValues = null;
 		// Determine item type, try to convert to strings
 		Object firstElement = values.iterator().next();
@@ -591,15 +591,15 @@ public class BasicExpressionFunctions {
 		} else {
 			throw new IllegalArgumentException("Unexpected value type "+firstElement.getClass());
 		}
-		
+
 		if (stringValues.size() == 1) {
 			return stringValues.iterator().next();
 		}
-		
+
 		if (StringUtils.isBlank(dn)) {
 			throw new IllegalArgumentException("No dn argument specified, cannot determine which of "+values.size()+" values to use");
 		}
-		
+
 		LdapName parsedDn =  new LdapName(dn);
 		for (int i=0; i < parsedDn.size(); i++) {
 			Rdn rdn = parsedDn.getRdn(i);
@@ -618,11 +618,11 @@ public class BasicExpressionFunctions {
 				}
 			}
 		}
-		
+
 		// Fallback. No values in DN. Just return the first alphabetically-wise value.
 		return Collections.min(stringValues);
 	}
-	
+
 	public <T> T toSingle(Collection<T> values) throws SchemaException {
 		if (values == null || values.isEmpty()) {
 			return null;
@@ -632,7 +632,7 @@ public class BasicExpressionFunctions {
 			return values.iterator().next();
 		}
 	}
-	
+
 	private <T> T toSingle(Collection<T> values, String contextDesc) throws SchemaException {
 		if (values == null || values.isEmpty()) {
 			return null;
@@ -646,7 +646,7 @@ public class BasicExpressionFunctions {
     public static String readFile(String filename) throws IOException {
         return FileUtils.readFileToString(new File(filename));
     }
-    
+
     public String formatDateTime(String format, XMLGregorianCalendar xmlCal) {
     	if (xmlCal == null || format == null) {
     		return null;
@@ -655,7 +655,7 @@ public class BasicExpressionFunctions {
     	Date date = XmlTypeConverter.toDate(xmlCal);
 		return sdf.format(date);
     }
-    
+
     public String formatDateTime(String format, Long millis) {
     	if (millis == null || format == null) {
     		return null;
@@ -663,7 +663,7 @@ public class BasicExpressionFunctions {
     	SimpleDateFormat sdf = new SimpleDateFormat(format);
 		return sdf.format(millis);
     }
-    
+
     public XMLGregorianCalendar parseDateTime(String format, String stringDate) throws ParseException {
     	if (format == null || stringDate == null) {
     		return null;
@@ -675,20 +675,20 @@ public class BasicExpressionFunctions {
 		}
 		return XmlTypeConverter.createXMLGregorianCalendar(date);
     }
-    
+
     public XMLGregorianCalendar currentDateTime() {
     	return XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
     }
-    
+
     private ParsedFullName parseFullName(String fullName) {
     	if (StringUtils.isBlank(fullName)) {
     		return null;
     	}
     	String root = fullName.trim();
     	ParsedFullName p = new ParsedFullName();
-    	
+
 //    	LOGGER.trace("(1) root=", root);
-    	
+
     	Matcher m = PATTERN_NICK_NAME.matcher(root);
     	if (m.matches()) {
     		String nickName = m.group(2).trim();
@@ -696,12 +696,12 @@ public class BasicExpressionFunctions {
     		root = m.group(1) + " " + m.group(3);
 //    		LOGGER.trace("nick={}, root={}", nickName, root);
     	}
-    	
+
     	String[] words = root.split(STRING_PATTERN_WHITESPACE);
     	int i = 0;
-    	
+
 //    	LOGGER.trace("(2) i={}, words={}", i, Arrays.toString(words));
-    	
+
     	StringBuilder honorificPrefixBuilder = new StringBuilder();
     	while (i < words.length && words[i].matches(STRING_PATTERN_HONORIFIC_PREFIX_ENDS_WITH_DOT)) {
     		honorificPrefixBuilder.append(words[i]);
@@ -712,15 +712,15 @@ public class BasicExpressionFunctions {
     		honorificPrefixBuilder.setLength(honorificPrefixBuilder.length() - 1);
     		p.setHonorificPrefix(honorificPrefixBuilder.toString());
     	}
-    	
+
 //    	LOGGER.trace("(3) i={}, words={}", i, Arrays.toString(words));
-    	
+
     	List<String> rootNameWords = new ArrayList<>();
     	while (i < words.length && !words[i].endsWith(",")) {
     		rootNameWords.add(words[i]);
     		i++;
     	}
-    		
+
     	if (i < words.length && words[i].endsWith(",")) {
     		String word = words[i];
     		i++;
@@ -729,20 +729,20 @@ public class BasicExpressionFunctions {
     			rootNameWords.add(word);
     		}
     	}
-    	
+
 //    	LOGGER.trace("(4) i={}, words={}", i, Arrays.toString(words));
 //    	LOGGER.trace("(4) rootNameWords={}", rootNameWords);
-    	
+
     	if (rootNameWords.size() > 1) {
-    		p.setFamilyName(rootNameWords.get(rootNameWords.size() - 1)); 
+    		p.setFamilyName(rootNameWords.get(rootNameWords.size() - 1));
     		rootNameWords.remove(rootNameWords.size() - 1);
     		p.setGivenName(rootNameWords.get(0));
     		rootNameWords.remove(0);
     		p.setAdditionalName(StringUtils.join(rootNameWords, " "));
     	} else if (rootNameWords.size() == 1) {
-    		p.setFamilyName(rootNameWords.get(0)); 
+    		p.setFamilyName(rootNameWords.get(0));
     	}
-    	
+
     	StringBuilder honorificSuffixBuilder = new StringBuilder();
     	while (i < words.length) {
     		honorificSuffixBuilder.append(words[i]);
@@ -755,10 +755,10 @@ public class BasicExpressionFunctions {
     	}
 
     	LOGGER.trace("Parsed full name '{}' as {}", fullName, p);
-    	
+
     	return p;
     }
-    
+
     public String parseGivenName(Object fullName) {
     	ParsedFullName p = parseFullName(stringify(fullName));
     	if (p == null) {
@@ -767,7 +767,7 @@ public class BasicExpressionFunctions {
     		return p.getGivenName();
     	}
     }
-        
+
     public String parseFamilyName(Object fullName) {
     	ParsedFullName p = parseFullName(stringify(fullName));
     	if (p == null) {
@@ -776,7 +776,7 @@ public class BasicExpressionFunctions {
     		return p.getFamilyName();
     	}
     }
-    
+
     public String parseAdditionalName(Object fullName) {
     	ParsedFullName p = parseFullName(stringify(fullName));
     	if (p == null) {
@@ -785,7 +785,7 @@ public class BasicExpressionFunctions {
     		return p.getAdditionalName();
     	}
     }
-    
+
     public String parseNickName(Object fullName) {
     	ParsedFullName p = parseFullName(stringify(fullName));
     	if (p == null) {
@@ -794,7 +794,7 @@ public class BasicExpressionFunctions {
     		return p.getNickName();
     	}
     }
-    
+
     public String parseHonorificPrefix(Object fullName) {
     	ParsedFullName p = parseFullName(stringify(fullName));
     	if (p == null) {
@@ -803,7 +803,7 @@ public class BasicExpressionFunctions {
     		return p.getHonorificPrefix();
     	}
     }
-    
+
     public String parseHonorificSuffix(Object fullName) {
     	ParsedFullName p = parseFullName(stringify(fullName));
     	if (p == null) {
@@ -812,7 +812,7 @@ public class BasicExpressionFunctions {
     		return p.getHonorificSuffix();
     	}
     }
-    
+
     public String decrypt(ProtectedStringType protectedString) {
     	try {
 			return protector.decryptString(protectedString);
@@ -820,7 +820,7 @@ public class BasicExpressionFunctions {
 			throw new SystemException(e.getMessage(), e);
 		}
     }
-    
+
     public ProtectedStringType encrypt(String string) {
     	try {
 			return protector.encryptString(string);
@@ -828,18 +828,18 @@ public class BasicExpressionFunctions {
 			throw new SystemException(e.getMessage(), e);
 		}
     }
-    
+
     /**
      * Creates a valid LDAP distinguished name from the wide range of components. The method
      * can be invoked in many ways, e.g.:
-     * 
+     *
      * composeDn("cn","foo","o","bar")
 	 * composeDn("cn","foo",new Rdn("o","bar"))
      * composeDn(new Rdn("cn","foo"),"ou","baz",new Rdn("o","bar"))
      * composeDn(new Rdn("cn","foo"),"ou","baz","o","bar")
 	 * composeDn(new Rdn("cn","foo"),new LdapName("ou=baz,o=bar"))
      * composeDn("cn","foo",new LdapName("ou=baz,o=bar"))
-     * 
+     *
      * Note: the DN is not normalized. The case of the attribute names and white spaces are
      * preserved.
      */
@@ -876,7 +876,7 @@ public class BasicExpressionFunctions {
 					rdns.addFirst(new Rdn(attrName, (String)component));
     				attrName = null;
     			}
-    		} 
+    		}
     		if (component instanceof LdapName) {
     			rdns.addAll(0,((LdapName)component).getRdns());
     		}
@@ -884,18 +884,18 @@ public class BasicExpressionFunctions {
     	LdapName dn = new LdapName(rdns);
     	return dn.toString();
     }
-    
+
     /**
      * Creates a valid LDAP distinguished name from the wide range of components assuming that
      * the last component is a suffix. The method can be invoked in many ways, e.g.:
-     * 
+     *
      * composeDn("cn","foo","o=bar")
      * composeDn(new Rdn("cn","foo"),"ou=baz,o=bar")
 	 * composeDn(new Rdn("cn","foo"),new LdapName("ou=baz,o=bar"))
      * composeDn("cn","foo",new LdapName("ou=baz,o=bar"))
-     * 
+     *
      * The last element is a complete suffix represented either as String or LdapName.
-     * 
+     *
      * Note: the DN is not normalized. The case of the attribute names and white spaces are
      * preserved.
      */
@@ -932,7 +932,7 @@ public class BasicExpressionFunctions {
     	components[components.length - 1] = suffix;
     	return composeDn(components);
     }
-	
+
     public static String debugDump(Object o) {
     	if (o == null) {
     		return "null";
@@ -942,7 +942,7 @@ public class BasicExpressionFunctions {
     	}
     	return DebugUtil.debugDump(o, 0);
     }
-    
+
     public static String debugDump(Object o, int indent) {
     	if (o == null) {
     		return "null";
@@ -952,5 +952,5 @@ public class BasicExpressionFunctions {
     	}
     	return DebugUtil.debugDump(o, indent);
     }
-    
+
 }

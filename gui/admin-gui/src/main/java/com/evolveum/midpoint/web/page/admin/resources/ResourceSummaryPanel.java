@@ -38,7 +38,7 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 		Label summaryTag  = new Label(ID_UP_DOWN_TAG, down ? "DOWN" : "UP");
 		addTag(summaryTag);
 	}
-	
+
 	@Override
 	protected String getIconCssClass() {
 		return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON;

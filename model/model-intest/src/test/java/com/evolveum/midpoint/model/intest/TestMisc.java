@@ -57,19 +57,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMisc extends AbstractInitializedModelIntegrationTest {
-	
+
 	public static final byte[] KEY = { 0x01, 0x02, 0x03, 0x04, 0x05 };
-	
+
 	private static final String USER_CLEAN_NAME = "clean";
 	private static final String USER_CLEAN_GIVEN_NAME = "John";
 	private static final String USER_CLEAN_FAMILY_NAME = "Clean";
-	
+
 	private String userCleanOid;
-		
+
 	public TestMisc() throws JAXBException {
 		super();
 	}
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
@@ -84,11 +84,11 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-   
+
         // WHEN
         displayWhen(TEST_NAME);
         RepositoryDiag diag = modelDiagnosticService.getRepositoryDiag(task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
 		display("Diag", diag);
@@ -98,7 +98,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         assertNotNull("Missing implementationDescription", diag.getImplementationDescription());
         // TODO
 	}
-	
+
 	@Test
     public void test110RepositorySelfTest() throws Exception {
 		final String TEST_NAME = "test110RepositorySelfTest";
@@ -106,11 +106,11 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // GIVEN
         Task task = createTask(TEST_NAME);
-   
+
         // WHEN
         displayWhen(TEST_NAME);
         OperationResult testResult = modelDiagnosticService.repositorySelfTest(task);
-        
+
         // THEN
         displayThen(TEST_NAME);
 		display("Repository self-test result", testResult);
@@ -118,7 +118,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // TODO: check the number of tests, etc.
 	}
-	
+
 	@Test
     public void test200ExportUsers() throws Exception {
 		final String TEST_NAME = "test200ExportUsers";
@@ -127,12 +127,12 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-   
+
         // WHEN
         displayWhen(TEST_NAME);
-        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, 
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null,
         		SelectorOptions.createCollection(ItemPath.EMPTY_PATH, GetOperationOptions.createRaw()), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
@@ -144,18 +144,18 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         	display("Definition", user.getDefinition());
         	String xmlString = prismContext.serializerFor(PrismContext.LANG_XML).serialize(user);
         	display("Exported user", xmlString);
-        	
+
         	Document xmlDocument = DOMUtil.parseDocument(xmlString);
     		Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
     		Validator validator = javaxSchema.newValidator();
     		validator.setResourceResolver(prismContext.getEntityResolver());
     		validator.validate(new DOMSource(xmlDocument));
-    		
+
     		PrismObject<Objectable> parsedUser = prismContext.parseObject(xmlString);
     		assertTrue("Re-parsed user is not equal to original: "+user, user.equals(parsedUser));
-    		
+
         }
-        
+
 	}
 
 	/**
@@ -170,11 +170,11 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-           
+
         // WHEN
         displayWhen(TEST_NAME);
         recomputeUser(USER_JACK_OID, task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
 		assertSuccess(result);
@@ -182,7 +182,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
 	}
-	
+
 	/**
 	 * Modify custom binary property.
 	 * MID-3999
@@ -195,11 +195,11 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-           
+
         // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_KEY), task, result, KEY);
-        
+
         // THEN
         displayThen(TEST_NAME);
 		assertSuccess(result);
@@ -208,7 +208,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         display("User after", userAfter);
         PrismAsserts.assertPropertyValue(userAfter, getExtensionPath(PIRACY_KEY), KEY);
 	}
-	
+
 	@Test
     public void test310AddUserClean() throws Exception {
 		final String TEST_NAME = "test310AddUserClean";
@@ -217,23 +217,23 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = createUser(USER_CLEAN_NAME, USER_CLEAN_GIVEN_NAME, USER_CLEAN_FAMILY_NAME, true);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         addObject(userBefore, task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
 		assertSuccess(result);
-		
+
 		userCleanOid = userBefore.getOid();
 
         PrismObject<UserType> userAfter = getUser(userCleanOid);
         display("User after", userAfter);
 	}
-	
+
 	/**
 	 * Modify custom binary property.
 	 * MID-3999
@@ -246,11 +246,11 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-           
+
         // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(userCleanOid, getExtensionPath(PIRACY_BINARY_ID), task, result, KEY);
-        
+
         // THEN
         displayThen(TEST_NAME);
 		assertSuccess(result);

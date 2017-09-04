@@ -10,22 +10,22 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import java.util.Map;
 
 public class ItemPathUtil {
-	
+
 	private ItemPathUtil(){
-		
+
 	}
-	
+
 	public static boolean isDefault(ItemPathType itemPathType){
 		if (itemPathType == null){
 			return true;
 		}
-		
+
 		ItemPath itemPath = itemPathType.getItemPath();
-		
+
 		if (itemPath == null){
 			return true;
 		}
-		
+
 		return itemPath.isEmpty();
 	}
 

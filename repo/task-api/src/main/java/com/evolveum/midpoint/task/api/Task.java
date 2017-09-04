@@ -34,26 +34,26 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Task instance - a logical unit of work that is either done synchronously, asynchronously, it is deferred, scheduled, etc.
- * 
+ *
  * The classes that implement this interface hold a "java" task state. They represent the in-memory task data structure.
  * The instances must be able to serialize the state to the repository object (TaskType) when needed.
- * 
+ *
  * The task implementation should be simple Java objects (POJOs). They are created also for a synchronous tasks, which means
  * they are created frequently. We want a low overhead for task management until the task is made persistent.
- * 
- * API for modifying task properties works like this: 
- * 
+ *
+ * API for modifying task properties works like this:
+ *
  * - A getter (get<property-name>) reads data from the in-memory representation of a task.
  * - A setter (set<property-name>) writes data to the in-memory representation, and prepares a PropertyDelta to be
  *   written into repository later (of course, only for persistent tasks).
- *   
+ *
  * PropertyDeltas should be then written by calling savePendingModifications method.
- * 
+ *
  * In case you want to write property change into the repository immediately, you have to use
  * set<property-name>Immediate method. In that case, the property change does not go into
  * the list of pending modifications, but it is instantly written into the repository
- * (so the method uses OperationResult as parameter, and can throw relevant exceptions as well).  
- * 
+ * (so the method uses OperationResult as parameter, and can throw relevant exceptions as well).
+ *
  * @author Radovan Semancik
  * @author Pavol Mederly
  *
@@ -137,7 +137,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * Sets task description, immediately storing it into the repo.
      */
     void setDescriptionImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-    
+
     /**
      * Gets the policy rule defined for the task
      */
@@ -147,9 +147,9 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
 	/**
 	 * Returns execution status.
-	 * 
+	 *
 	 * @see TaskExecutionStatus
-	 * 
+	 *
 	 * @return execution status.
 	 */
 	public TaskExecutionStatus getExecutionStatus();
@@ -226,9 +226,9 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     /**
 	 * Returns task persistence status.
-	 * 
+	 *
 	 * @see TaskPersistenceStatus
-	 * 
+	 *
 	 * @return task persistence status.
 	 */
 	public TaskPersistenceStatus getPersistenceStatus();
@@ -264,7 +264,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     /**
 	 * Returns task recurrence status.
-	 * 
+	 *
 	 * @return task recurrence status
 	 */
 	public TaskRecurrence getRecurrenceStatus();
@@ -394,20 +394,20 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
 	/**
 	 * Returns handler URI.
-	 * 
+	 *
 	 * Handler URI indirectly specifies which class is responsible to handle the task. The handler will execute
      * reaction to a task lifecycle events such as executing the task, task heartbeat, etc.
-	 * 
+	 *
 	 * @return handler URI
 	 */
 	public String getHandlerUri();
 
 	/**
 	 * Sets handler URI.
-	 * 
+	 *
 	 * Handler URI indirectly specifies which class is responsible to handle the task. The handler will execute
      * reaction to a task lifecycle events such as executing the task, task heartbeat, etc.
-	 * 
+	 *
 	 * @param value new handler URI
 	 */
 	void setHandlerUri(String value);
@@ -424,12 +424,12 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
 	/**
 	 * Returns the stack of other handlers URIs.
-	 * 
+	 *
 	 * The idea is that a task may have a chain of handlers, forming a stack. After a handler at the top
 	 * of the stack finishes its processing, TaskManager will remove it from the stack and invoke
 	 * the then-current handler. After that finishes, the next handler will be called, and so on,
 	 * until the stack is empty.
-	 *   
+	 *
 	 * @return
 	 */
 	public UriStack getOtherHandlersUriStack();
@@ -938,14 +938,14 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
 	/**
 	 * Re-reads the task state from the persistent storage.
-	 * 
+	 *
 	 * The task state may be synchronized with the repository all the time. But the specified timing is implementation-specific.
 	 * Call to this method will make sure that the task contains fresh data.
-	 * 
+	 *
 	 * This has no effect on transient tasks.
 	 * @param parentResult
-	 * @throws SchemaException 
-	 * @throws ObjectNotFoundException 
+	 * @throws SchemaException
+	 * @throws ObjectNotFoundException
 	 */
 	public void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 

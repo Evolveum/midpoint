@@ -60,7 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionRetu
 
 /**
  * Expression evaluator that is using javax.script (JSR-223) engine.
- * 
+ *
  * @author Radovan Semancik
  *
  */
@@ -71,9 +71,9 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 	private ScriptEngine scriptEngine;
 	private PrismContext prismContext;
 	private Protector protector;
-	
+
 	private Map<String, CompiledScript> scriptCache;
-	
+
 	public Jsr223ScriptEvaluator(String engineName, PrismContext prismContext, Protector protector) {
 		ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
 		scriptEngine = scriptEngineManager.getEngineByName(engineName);
@@ -84,7 +84,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		this.protector = protector;
 		this.scriptCache = new ConcurrentHashMap<>();
 	}
-	
+
 	@Override
 	public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluatorType expressionType,
 			ExpressionVariables variables, ItemDefinition outputDefinition,
@@ -93,9 +93,9 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
 			String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException {
-		
+
 		Bindings bindings = convertToBindings(variables, objectResolver, functions, contextDescription, task, result);
-		
+
 		String codeString = expressionType.getCode();
 		if (codeString == null) {
 			throw new ExpressionEvaluationException("No script code in " + contextDescription);
@@ -105,25 +105,25 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		if (expressionType.isAllowEmptyValues() != null) {
 			allowEmptyValues = expressionType.isAllowEmptyValues();
 		}
-		
+
 		CompiledScript compiledScript = createCompiledScript(codeString, contextDescription);
-		
+
 		Object evalRawResult;
 		try {
 			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
 			evalRawResult = compiledScript.eval(bindings);
 		} catch (Throwable e) {
-			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e, 
+			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e,
 					ExceptionUtil.getUserFriendlyMessage(e));
 		}
-		
+
 		if (outputDefinition == null) {
 			// No outputDefinition means "void" return type, we can return right now
 			return null;
 		}
-		
+
 		QName xsdReturnType = outputDefinition.getTypeName();
-		
+
 		Class<T> javaReturnType = XsdTypeMapper.toJavaType(xsdReturnType);
 		if (javaReturnType == null) {
 			javaReturnType = prismContext.getSchemaRegistry().getCompileTimeClass(xsdReturnType);
@@ -134,9 +134,9 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			// ...and enums (xsd:simpleType) are not parsed into ComplexTypeDefinitions
 			javaReturnType = (Class) String.class;
 		}
-        
+
 		List<V> pvals = new ArrayList<V>();
-		
+
 		// TODO: what about PrismContainer and
 		// PrismReference? Shouldn't they be processed in the same way as
 		// PrismProperty?
@@ -155,16 +155,16 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 				pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, outputDefinition, contextDescription, prismContext));
 			}
 		}
-		
+
 		return pvals;
 	}
 
 	public <T> Object evaluateReportScript(String codeString, ExpressionVariables variables, ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
 			String contextDescription, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException {
-		
+
 		Bindings bindings = convertToBindings(variables, objectResolver, functions, contextDescription, (Task) null, result);
-		
+
 //		String codeString = code;
 		if (codeString == null) {
 			throw new ExpressionEvaluationException("No script code in " + contextDescription);
@@ -174,9 +174,9 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 //		if (expressionType.isAllowEmptyValues() != null) {
 //			allowEmptyValues = expressionType.isAllowEmptyValues();
 //		}
-		
+
 		CompiledScript compiledScript = createCompiledScript(codeString, contextDescription);
-		
+
 		Object evalRawResult;
 		try {
 			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
@@ -184,12 +184,12 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		} catch (Throwable e) {
 			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);
 		}
-		
-		
-				
+
+
+
 		return evalRawResult;
 	}
-	
+
 	private CompiledScript createCompiledScript(String codeString, String contextDescription) throws ExpressionEvaluationException {
 		CompiledScript compiledScript = scriptCache.get(codeString);
 		if (compiledScript != null) {
@@ -213,7 +213,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);
 		}
 	}
-	
+
 	private Bindings convertToBindings(ExpressionVariables variables, ObjectResolver objectResolver,
 									   Collection<FunctionLibrary> functions,
 									   String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {

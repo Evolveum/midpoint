@@ -41,11 +41,11 @@ import org.jetbrains.annotations.Nullable;
 public interface ModelContext<F extends ObjectType> extends Serializable, DebugDumpable {
 
 	ModelState getState();
-	
+
 	ModelElementContext<F> getFocusContext();
-	
+
 	Collection<? extends ModelProjectionContext> getProjectionContexts();
-	
+
 	ModelProjectionContext findProjectionContext(ResourceShadowDiscriminator rat);
 
 	ModelExecuteOptions getOptions();
@@ -56,7 +56,7 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 	Class<F> getFocusClass();
 
 	void reportProgress(ProgressInformation progress);
-    
+
     DeltaSetTriple<? extends EvaluatedAssignment<?>> getEvaluatedAssignmentTriple();
 
     PrismContext getPrismContext();       // use with care

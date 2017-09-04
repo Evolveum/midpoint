@@ -42,7 +42,7 @@ public class ProvisioningContextFactory {
 
 	@Autowired(required = true)
 	private ResourceManager resourceManager;
-	
+
 	public ProvisioningContext create(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		ProvisioningContext ctx = new ProvisioningContext(resourceManager, parentResult);
 		ctx.setTask(task);
@@ -51,7 +51,7 @@ public class ProvisioningContextFactory {
 		ctx.setResourceOid(resourceOid);
 		return ctx;
 	}
-	
+
 	public ProvisioningContext create(PrismObject<ShadowType> shadow, Collection<QName> additionalAuxiliaryObjectClassQNames, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		ProvisioningContext ctx = new ProvisioningContext(resourceManager, parentResult);
 		ctx.setTask(task);
@@ -61,7 +61,7 @@ public class ProvisioningContextFactory {
 		ctx.setResourceOid(resourceOid);
 		return ctx;
 	}
-	
+
 	public ProvisioningContext create(ResourceShadowDiscriminator coords, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		ProvisioningContext ctx = new ProvisioningContext(resourceManager, parentResult);
 		ctx.setTask(task);
@@ -70,5 +70,5 @@ public class ProvisioningContextFactory {
 		ctx.setResourceOid(resourceOid);
 		return ctx;
 	}
-	
+
 }

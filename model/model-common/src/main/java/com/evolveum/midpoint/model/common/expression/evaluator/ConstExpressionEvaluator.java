@@ -57,7 +57,7 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java
 	 * .util.Collection, java.util.Map, boolean, java.lang.String,
@@ -69,11 +69,11 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
 
 		String constName = constEvaluatorType.getValue();
 		String stringValue = constantsManager.getConstantValue(constName);
-		
+
 		Item<V, D> output = outputDefinition.instantiate();
 
 		Object value = ExpressionUtil.convertToOutputValue(stringValue, outputDefinition, protector);
-		
+
 		if (output instanceof PrismProperty) {
 			PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value);
 			((PrismProperty<Object>) output).add(pValue);
@@ -87,7 +87,7 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#
 	 * shortDebugDump()
 	 */

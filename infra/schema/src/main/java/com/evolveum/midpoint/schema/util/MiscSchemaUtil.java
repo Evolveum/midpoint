@@ -57,10 +57,10 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class MiscSchemaUtil {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(MiscSchemaUtil.class);
 	private static final Random RND = new Random();
-	
+
 	public static ObjectListType toObjectListType(List<PrismObject<? extends ObjectType>> list) {
 		ObjectListType listType = new ObjectListType();
 		for (PrismObject<? extends ObjectType> o : list) {
@@ -68,7 +68,7 @@ public class MiscSchemaUtil {
 		}
 		return listType;
 	}
-	
+
 	public static <T extends ObjectType> List<PrismObject<T>> toList(Class<T> type, ObjectListType listType) {
 		List<PrismObject<T>> list = new ArrayList<>();
 		for (ObjectType o : listType.getObject()) {
@@ -76,7 +76,7 @@ public class MiscSchemaUtil {
 		}
 		return list;
 	}
-	
+
 	public static <T extends ObjectType> List<T> toObjectableList(List<PrismObject<T>> objectList) {
 		if (objectList == null) {
 			return null;
@@ -87,7 +87,7 @@ public class MiscSchemaUtil {
 		}
 		return objectableList;
 	}
-	
+
 	public static ImportOptionsType getDefaultImportOptions() {
 		ImportOptionsType options = new ImportOptionsType();
 		options.setOverwrite(false);
@@ -138,7 +138,7 @@ public class MiscSchemaUtil {
 		}
 		return itemPathList;
 	}
-	
+
 	public static SelectorQualifiedGetOptionsType optionsToOptionsType(Collection<SelectorOptions<GetOperationOptions>> options){
 		SelectorQualifiedGetOptionsType optionsType = new SelectorQualifiedGetOptionsType();
 		List<SelectorQualifiedGetOptionType> retval = new ArrayList<>();
@@ -148,7 +148,7 @@ public class MiscSchemaUtil {
 		optionsType.getOption().addAll(retval);
 		return optionsType;
 	}
-	
+
 	private static SelectorQualifiedGetOptionType selectorOptionToSelectorQualifiedGetOptionType(SelectorOptions<GetOperationOptions> selectorOption){
 		OptionObjectSelectorType selectorType = selectorToSelectorType(selectorOption.getSelector());
 		GetOperationOptionsType getOptionsType = getOptionsToGetOptionsType(selectorOption.getOptions());
@@ -166,7 +166,7 @@ public class MiscSchemaUtil {
 			selectorType.setPath(new ItemPathType(selector.getPath()));
 			return selectorType;
 		}
-	 
+
 	 private static GetOperationOptionsType getOptionsToGetOptionsType(GetOperationOptions options) {
 		 GetOperationOptionsType optionsType = new GetOperationOptionsType();
 		 optionsType.setRetrieve(RetrieveOption.toRetrieveOptionType(options.getRetrieve()));
@@ -224,7 +224,7 @@ public class MiscSchemaUtil {
 		}
 		return new ObjectSelector(selectorType.getPath().getItemPath());
 	}
-	
+
     /**
      * Convenience method that helps avoid some compiler warnings.
      */
@@ -232,7 +232,7 @@ public class MiscSchemaUtil {
 	public static Collection<ObjectDelta<? extends ObjectType>> createCollection(ObjectDelta<?>... deltas) {
     	return (Collection)MiscUtil.createCollection(deltas);
     }
-    
+
     /**
      * Convenience method that helps avoid some compiler warnings.
      */
@@ -240,7 +240,7 @@ public class MiscSchemaUtil {
 	public static Collection<? extends ItemDelta<?,?>> createCollection(ItemDelta<?,?>... deltas) {
     	return (Collection)MiscUtil.createCollection(deltas);
     }
-    
+
 	public static Collection<ObjectDelta<? extends ObjectType>> cloneObjectDeltaCollection(
 			Collection<ObjectDelta<? extends ObjectType>> origCollection) {
 		if (origCollection == null) {
@@ -252,7 +252,7 @@ public class MiscSchemaUtil {
 		}
 		return clonedCollection;
 	}
-	
+
 	public static Collection<ObjectDeltaOperation<? extends ObjectType>> cloneObjectDeltaOperationCollection(
 			Collection<ObjectDeltaOperation<? extends ObjectType>> origCollection) {
 		if (origCollection == null) {
@@ -271,7 +271,7 @@ public class MiscSchemaUtil {
         ref.setType(type);
         return ref;
     }
-    
+
     public static boolean equalsIntent(String intent1, String intent2) {
 		if (intent1 == null) {
 			intent1 = SchemaConstants.INTENT_DEFAULT;
@@ -281,7 +281,7 @@ public class MiscSchemaUtil {
 		}
 		return intent1.equals(intent2);
 	}
-    
+
 	public static boolean matchesKind(ShadowKindType expectedKind, ShadowKindType actualKind) {
 		if (expectedKind == null) {
 			return true;
@@ -319,7 +319,7 @@ public class MiscSchemaUtil {
 		rval.setTargetType(refType.getType());
 		return rval;
 	}
-	
+
 	public static PropertyLimitationsType getLimitationsType(List<PropertyLimitationsType> limitationsTypes, LayerType layer) throws SchemaException {
 		if (limitationsTypes == null) {
 			return null;
@@ -336,7 +336,7 @@ public class MiscSchemaUtil {
 		}
 		return found;
 	}
-	
+
 	private static boolean contains(List<LayerType> layers, LayerType layer) {
 		if (layers == null || layers.isEmpty()) {
 			if (layer == null) {
@@ -366,7 +366,7 @@ public class MiscSchemaUtil {
 	}
 
 	/**
-	 * Returns modification time or creation time (if there was no mo 
+	 * Returns modification time or creation time (if there was no mo
 	 */
 	public static XMLGregorianCalendar getChangeTimestamp(MetadataType metadata) {
 		if (metadata == null) {
@@ -407,7 +407,7 @@ public class MiscSchemaUtil {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Make quick and reasonably reliable comparison. E.g. compare prism objects only by
 	 * comparing OIDs. This is ideal for cases when the compare is called often and the

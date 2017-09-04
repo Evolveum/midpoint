@@ -29,6 +29,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 public interface EventHandler {
 
     // true if we should continue with processing, false otherwise
-    boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 
+    boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager,
     		Task task, OperationResult result) throws SchemaException;
 }

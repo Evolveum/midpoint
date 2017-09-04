@@ -33,7 +33,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author Radovan Semancik
  */
 public class PasswordCallback implements CallbackHandler {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(PasswordCallback.class);
 
     private PasswordAuthenticationEvaluatorImpl passwordAuthenticationEvaluatorImpl;
@@ -49,7 +49,7 @@ public class PasswordCallback implements CallbackHandler {
         String username = pc.getIdentifier();
         String wssPasswordType = pc.getType();
         LOGGER.trace("Username: '{}', Password type: {}", username, wssPasswordType);
-        
+
         try {
         	ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
         	pc.setPassword(passwordAuthenticationEvaluatorImpl.getAndCheckUserPassword(connEnv, username));

@@ -36,7 +36,7 @@ public abstract class Selectable<S> implements Serializable {
     public void setSelected(boolean selected) {
         this.selected = selected;
     }
-    
+
     public S getValue() {
     	return (S) this;
     }

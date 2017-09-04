@@ -98,16 +98,16 @@ public class PageReport extends PageAdminReports {
 
         initLayout();
     }
-    
+
     public PageReport(final ReportDto reportDto) {
     	model = new LoadableModel<ReportDto>(reportDto, false) {
-    		
+
     		@Override
     		protected ReportDto load() {
     			// never called
     			return reportDto;
     		}
-    		
+
 		};
 		initLayout();
     }
@@ -117,14 +117,14 @@ public class PageReport extends PageAdminReports {
 
         Task task = createSimpleTask(OPERATION_LOAD_REPORT);
         OperationResult result = task.getResult();
-        PrismObject<ReportType> prismReport = WebModelServiceUtils.loadObject(ReportType.class, reportOid.toString(), 
+        PrismObject<ReportType> prismReport = WebModelServiceUtils.loadObject(ReportType.class, reportOid.toString(),
         		this, task, result);
-        
+
         if (prismReport == null) {
             LOGGER.error("Couldn't load report.");
             throw new RestartResponseException(PageReports.class);
         }
-        
+
         return new ReportDto(prismReport.asObjectable());
 
 //        return prismReport;
@@ -307,10 +307,10 @@ public class PageReport extends PageAdminReports {
                             getPrismContext().adopt(delta);
                             getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
 			}
-			
+
         } catch (Exception e) {
             result.recordFatalError("Couldn't save report.", e);
-           
+
         } finally {
             result.computeStatusIfUnknown();
         }

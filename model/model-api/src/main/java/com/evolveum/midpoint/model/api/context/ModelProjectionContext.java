@@ -28,12 +28,12 @@ public interface ModelProjectionContext extends ModelElementContext<ShadowType> 
 
 	/**
 	 * Returns synchronization delta.
-	 * 
+	 *
 	 * Synchronization delta describes changes that have recently happened. MidPoint reacts to these
 	 * changes by "pulling them in" (e.g. using them in inbound mappings).
 	 */
 	public ObjectDelta<ShadowType> getSyncDelta();
-	
+
 	public void setSyncDelta(ObjectDelta<ShadowType> syncDelta);
 
     ResourceShadowDiscriminator getResourceShadowDiscriminator();
@@ -41,9 +41,9 @@ public interface ModelProjectionContext extends ModelElementContext<ShadowType> 
     /**
 	 * Decision regarding the account. It describes the overall situation of the account e.g. whether account
 	 * is added, is to be deleted, unliked, etc.
-	 * 
+	 *
 	 * If set to null no decision was made yet. Null is also a typical value when the context is created.
-	 * 
+	 *
 	 * @see SynchronizationPolicyDecision
 	 */
 	public SynchronizationPolicyDecision getSynchronizationPolicyDecision();

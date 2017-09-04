@@ -36,7 +36,7 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
 
     public static final String F_OID = "oid";
     public static final String F_NAME = "name";
-    
+
     public static final String F_RESOURCE_NAME = "resourceName";
     public static final String F_RESOURCE_TYPE = "resourceType";
     public static final String F_FULL_NAME = "fullName";
@@ -62,7 +62,7 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
     public String getName() {
         return name;
     }
-    
+
     public String getOid() {
         return oid;
     }

@@ -61,7 +61,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 @Component
 public class ModelDiagController implements ModelDiagnosticService {
-	
+
 	public static final String CLASS_NAME_WITH_DOT = ModelDiagController.class.getName() + ".";
 	private static final String REPOSITORY_SELF_TEST_USER = CLASS_NAME_WITH_DOT + "repositorySelfTest.user";
 	private static final String REPOSITORY_SELF_TEST_LOOKUP_TABLE = CLASS_NAME_WITH_DOT + "repositorySelfTest.lookupTable";
@@ -69,7 +69,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 
 	private static final String NAME_PREFIX = "selftest";
 	private static final int NAME_RANDOM_LENGTH = 5;
-	
+
 	private static final String USER_FULL_NAME = "Grăfula Fèlix Teleke z Tölökö";
 	private static final String USER_GIVEN_NAME = "Fëľïx";
 	private static final String USER_FAMILY_NAME = "Ţæĺêké";
@@ -77,20 +77,20 @@ public class ModelDiagController implements ModelDiagnosticService {
 	private static final String[] USER_EMPLOYEE_TYPE = {"Ģŗąfųŀą", "CANTATOR"};
 
 	private static final String INSANE_NATIONAL_STRING = "Pørúga ném nå väšȍm apârátula";
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ModelDiagController.class);
 	private static final String LOG_FILE_CONFIG_KEY = "logFile";
 
 	@Autowired
 	private DataModelVisualizer dataModelVisualizer;
-	
+
 	@Autowired
 	private PrismContext prismContext;
-	
+
 	@Autowired
 	@Qualifier("repositoryService")
 	private transient RepositoryService repositoryService;
-	
+
 	@Autowired
 	private ProvisioningService provisioningService;
 
@@ -108,7 +108,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 	ModelDiagController() {
 		randomString = new RandomString(NAME_RANDOM_LENGTH, true);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.api.ModelDiagnosticService#getRepositoryDiag(com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
@@ -125,7 +125,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		OperationResult testResult = new OperationResult(REPOSITORY_SELF_TEST);
 		// Give repository chance to run its own self-test if available
 		repositoryService.repositorySelfTest(testResult);
-		
+
 		repositorySelfTestUser(task, testResult);
 		repositorySelfTestLookupTable(task, testResult);
 
@@ -196,7 +196,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		OperationResult testResult = new OperationResult(PROVISIONING_SELF_TEST);
 		// Give provisioning chance to run its own self-test
 		provisioningService.provisioningSelfTest(testResult, task);
-		
+
 		testResult.computeStatus();
 		return testResult;
 	}
@@ -208,16 +208,16 @@ public class ModelDiagController implements ModelDiagnosticService {
 
     private void repositorySelfTestUser(Task task, OperationResult testResult) {
 		OperationResult result = testResult.createSubresult(REPOSITORY_SELF_TEST_USER);
-		
+
 		PrismObject<UserType> user;
 		try {
 			user = getObjectDefinition(UserType.class).instantiate();
 		} catch (SchemaException e) {
 			result.recordFatalError(e);
 			return;
-		} 
+		}
 		UserType userType = user.asObjectable();
-		
+
 		String name = generateRandomName();
 		PolyStringType namePolyStringType = toPolyStringType(name);
 		userType.setName(namePolyStringType);
@@ -231,7 +231,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		userType.getEmployeeType().add(USER_EMPLOYEE_TYPE[1]);
 		userType.getOrganization().add(toPolyStringType(USER_ORGANIZATION[0]));
 		userType.getOrganization().add(toPolyStringType(USER_ORGANIZATION[1]));
-		
+
 		String oid;
 		try {
 			oid = repositoryService.addObject(user, null, result);
@@ -239,12 +239,12 @@ public class ModelDiagController implements ModelDiagnosticService {
 			result.recordFatalError(e);
 			return;
 		}
-		
+
 		try {
 
 			{
 				OperationResult subresult = result.createSubresult(result.getOperation()+".getObject");
-				
+
 				PrismObject<UserType> userRetrieved;
 				try {
 					userRetrieved = repositoryService.getObject(UserType.class, oid, null, subresult);
@@ -252,20 +252,20 @@ public class ModelDiagController implements ModelDiagnosticService {
 					result.recordFatalError(e);
 					return;
 				}
-				
+
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Self-test:user getObject:\n{}", userRetrieved.debugDump());
 				}
-				
+
 				checkUser(userRetrieved, name, subresult);
-				
+
 				subresult.recordSuccessIfUnknown();
 			}
-			
+
 			{
 				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.fullName");
 				try {
-					
+
 					ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
 							.item(UserType.F_FULL_NAME).eq(toPolyString(USER_FULL_NAME))
 							.build();
@@ -275,10 +275,10 @@ public class ModelDiagController implements ModelDiagnosticService {
 						LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
 					}
 					assertSingleSearchResult("user", foundObjects, subresult);
-					
+
 					PrismObject<UserType> userRetrieved = foundObjects.iterator().next();
 					checkUser(userRetrieved, name, subresult);
-					
+
 					subresult.recordSuccessIfUnknown();
 				} catch (SchemaException | RuntimeException e) {
 					subresult.recordFatalError(e);
@@ -299,17 +299,17 @@ public class ModelDiagController implements ModelDiagnosticService {
 						LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
 					}
 					assertSingleSearchResult("user", foundObjects, subresult);
-					
+
 					PrismObject<UserType> userRetrieved = foundObjects.iterator().next();
 					checkUser(userRetrieved, name, subresult);
-					
+
 					subresult.recordSuccessIfUnknown();
 				} catch (SchemaException | RuntimeException e) {
 					subresult.recordFatalError(e);
 					return;
 				}
 			}
-			
+
 			// MID-1116
 			{
 				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.organization");
@@ -323,20 +323,20 @@ public class ModelDiagController implements ModelDiagnosticService {
 						LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
 					}
 					assertSingleSearchResult("user", foundObjects, subresult);
-					
+
 					PrismObject<UserType> userRetrieved = foundObjects.iterator().next();
 					checkUser(userRetrieved, name, subresult);
-					
+
 					subresult.recordSuccessIfUnknown();
 				} catch (SchemaException | RuntimeException e) {
 					subresult.recordFatalError(e);
 					return;
 				}
 			}
-			
+
 
 		} finally {
-			
+
 			try {
 				repositoryService.deleteObject(UserType.class, oid, testResult);
 			} catch (ObjectNotFoundException | RuntimeException e) {
@@ -346,7 +346,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 
 			result.computeStatus();
 		}
-		
+
 	}
 
 	private void checkUser(PrismObject<UserType> userRetrieved, String name, OperationResult subresult) {
@@ -461,7 +461,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		assertTrue("Expected to find a single "+objectTypeMessage+" but found "+foundObjects.size(), foundObjects.size() == 1, result);
 		result.recordSuccessIfUnknown();
 	}
-	
+
 	private <O extends ObjectType,T> void checkObjectProperty(PrismObject<O> object, QName propQName, OperationResult parentResult, T... expectedValues) {
 		String propName = propQName.getLocalPart();
 		OperationResult result = parentResult.createSubresult(parentResult.getOperation() + ".checkObjectProperty." + propName);
@@ -471,7 +471,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		assertMultivalue("User, property '"+propName+"'", expectedValues, actualValues, result);
 		result.recordSuccessIfUnknown();
 	}
-	
+
 	private <T> void assertMultivalue(String message, T expectedVals[], Collection<T> actualVals, OperationResult result) {
 		if (expectedVals.length != actualVals.size()) {
 			fail(message+": expected "+expectedVals.length+" values but has "+actualVals.size()+" values: "+actualVals, result);
@@ -501,7 +501,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		assertMultivaluePolyString("User, property '"+propName+"'", expectedValues, actualValues, result);
 		result.recordSuccessIfUnknown();
 	}
-	
+
 	private void assertMultivaluePolyString(String message, String expectedOrigs[], Collection<PolyString> actualPolyStrings, OperationResult result) {
 		if (expectedOrigs.length != actualPolyStrings.size()) {
 			fail(message+": expected "+expectedOrigs.length+" values but has "+actualPolyStrings.size()+" values: "+actualPolyStrings, result);
@@ -522,7 +522,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 			}
 		}
 	}
-	
+
 	private void assertPolyString(String message, String expectedOrig, PolyString actualPolyString, OperationResult result) {
 		assertEquals(message+ ", orig", expectedOrig, actualPolyString.getOrig(), result);
 		assertEquals(message+ ", norm", polyStringNorm(expectedOrig), actualPolyString.getNorm(), result);
@@ -536,7 +536,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 	private String polyStringNorm(String orig) {
 		return prismContext.getDefaultPolyStringNormalizer().normalize(orig);
 	}
-	
+
 	private void assertTrue(String message, boolean condition, OperationResult result) {
 		if (!condition) {
 			fail(message, result);
@@ -548,7 +548,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 			fail(message + "; expected "+expected+", actual "+actual, result);
 		}
 	}
-	
+
 	private void fail(String message, OperationResult result) {
 		result.recordFatalError(message);
 		LOGGER.error("Repository self-test assertion failed: {}", message);
@@ -563,7 +563,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		polyStringType.setOrig(orig);
 		return polyStringType;
 	}
-	
+
 	private PolyString toPolyString(String orig) {
 		PolyString polyString = new PolyString(orig);
 		polyString.recompute(prismContext.getDefaultPolyStringNormalizer());

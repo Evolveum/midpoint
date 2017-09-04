@@ -94,7 +94,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	protected String getProcessShortName() {
 		return processShortName;
 	}
-	
+
 	protected String getProcessShortNameCapitalized() {
 		return StringUtils.capitalize(processShortName);
 	}
@@ -459,15 +459,15 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	public long getProgress() {
 		return objectsProcessed.get();
 	}
-	
+
 	public long getErrors() {
 		return errors.get();
 	}
-	
+
 	public boolean isStopOnError() {
 		return stopOnError;
 	}
-	
+
 	public void setStopOnError(boolean stopOnError) {
 		this.stopOnError = stopOnError;
 	}

@@ -41,9 +41,9 @@ import java.util.List;
  */
 @Component
 public class AccessCertificationCloseStageApproachingTriggerHandler implements TriggerHandler {
-	
+
 	public static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/close-stage-approaching/handler-3";
-	
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationCloseStageApproachingTriggerHandler.class);
 
 	@Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
@@ -55,7 +55,7 @@ public class AccessCertificationCloseStageApproachingTriggerHandler implements T
 	private void initialize() {
 		triggerHandlerRegistry.register(HANDLER_URI, this);
 	}
-	
+
 	@Override
 	public <O extends ObjectType> void handle(PrismObject<O> prismObject, TriggerType trigger, Task task, OperationResult result) {
 		try {

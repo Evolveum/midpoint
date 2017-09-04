@@ -54,19 +54,19 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
      * This list is lazily evaluated.
      */
     private List<LayerRefinedAttributeDefinition<?>> layerRefinedAttributeDefinitions;
-	
+
 	private LayerRefinedObjectClassDefinitionImpl(RefinedObjectClassDefinition refinedAccountDefinition, LayerType layer) {
 		this.refinedObjectClassDefinition = refinedAccountDefinition;
 		this.layer = layer;
 	}
-	
+
 	static LayerRefinedObjectClassDefinition wrap(RefinedObjectClassDefinition rOCD, LayerType layer) {
 		if (rOCD == null) {
 			return null;
 		}
 		return new LayerRefinedObjectClassDefinitionImpl(rOCD, layer);
 	}
-	
+
 	static List<? extends LayerRefinedObjectClassDefinition> wrapCollection(Collection<? extends RefinedObjectClassDefinition> rOCDs, LayerType layer) {
 		return(rOCDs.stream()
 				.map(rAccountDef -> wrap(rAccountDef, layer))
@@ -189,7 +189,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	public Collection<? extends LayerRefinedAttributeDefinition<?>> getPrimaryIdentifiers() {
         return substituteLayerRefinedAttributeDefinitionCollection(refinedObjectClassDefinition.getPrimaryIdentifiers());
 	}
-    
+
     @Override
 	public Collection<? extends LayerRefinedAttributeDefinition<?>> getAllIdentifiers() {
         return substituteLayerRefinedAttributeDefinitionCollection(refinedObjectClassDefinition.getAllIdentifiers());
@@ -521,7 +521,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 			return false;
 		return true;
 	}
-	
+
 	@Override
 	public String debugDump() {
 		return debugDump(0);
@@ -538,9 +538,9 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
     // Do NOT override&delegate debugDump(int indent, LayerType layer) here.
-    // We want to use code in the context of this class so things like 
+    // We want to use code in the context of this class so things like
     // getDebugDumpClassName() will be correct.
-	
+
 	/**
      * Return a human readable name of this class suitable for logs.
      */

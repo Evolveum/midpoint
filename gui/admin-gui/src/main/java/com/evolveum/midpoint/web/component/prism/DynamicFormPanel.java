@@ -105,7 +105,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 			add(new Label(ID_FORM_FIELDS));			// to avoid wicket exceptions
 			return;
 		}
-		
+
 		final ObjectWrapperFactory owf = new ObjectWrapperFactory(parentPage);
 		ObjectWrapper<O> objectWrapper = createObjectWrapper(owf, task, prismObject, enforceRequiredFields);
 		wrapperModel = LoadableModel.create(() -> objectWrapper, true);

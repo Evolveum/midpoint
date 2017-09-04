@@ -72,14 +72,14 @@ public class UploadDownloadPanel extends InputPanel {
         add(fileUpload);
 
         final AjaxDownloadBehaviorFromStream downloadBehavior = new AjaxDownloadBehaviorFromStream() {
-			
+
 			@Override
 			protected InputStream initStream() {
 				return getStream();
 			}
 		};
 		add(downloadBehavior);
-		
+
         add(new AjaxSubmitButton(ID_BUTTON_DOWNLOAD) {
 
             @Override
@@ -147,11 +147,11 @@ public class UploadDownloadPanel extends InputPanel {
 
     public void updateValue(byte[] file) {
     }
-    
+
     public InputStream getStream() {
     	return null;
     }
-    
+
     private void downloadPerformed(AjaxDownloadBehaviorFromStream downloadBehavior,
 			AjaxRequestTarget target) {
 		downloadBehavior.initiate(target);

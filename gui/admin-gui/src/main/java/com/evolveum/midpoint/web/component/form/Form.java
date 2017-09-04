@@ -33,7 +33,7 @@ public class Form<T> extends org.apache.wicket.markup.html.form.Form<T> {
     public Form(String id) {
     	super(id);
     }
-    
+
     public Form(String id, final IModel<T> model) {
     	super(id);
     }
@@ -68,5 +68,5 @@ public class Form<T> extends org.apache.wicket.markup.html.form.Form<T> {
                 "<input type=\"password\" style=\"display:none\">");
         }
     }
-	
+
 }

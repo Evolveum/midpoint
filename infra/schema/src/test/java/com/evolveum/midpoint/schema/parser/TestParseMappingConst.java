@@ -59,16 +59,16 @@ public class TestParseMappingConst extends AbstractPropertyValueParserTest<Mappi
 	@Test
 	public void testParseSerialize() throws Exception{
 		displayTestTitle("testParseSerialize");
-		
+
 		PrismContext prismContext = getPrismContext();
 		PrismParser parser = prismContext.parserFor(getFile());
 		PrismPropertyValue<MappingType> mappingPval = parser.parseItemValue();
-		
+
 		System.out.println("\nmappingPval:\n"+mappingPval.debugDump(1));
-		
+
 		PrismSerializer<RootXNode> xserializer = prismContext.xnodeSerializer();
 		RootXNode xnode = xserializer.root(new QName("dummy")).serialize(mappingPval);
-		
+
 		System.out.println("\nSerialized xnode:\n"+xnode.debugDump(1));
 		MapXNode xexpression = (MapXNode)((MapXNode)xnode.getSubnode()).get(new QName("expression"));
 		ListXNode xconstList = (ListXNode) xexpression.get(new QName("const"));
@@ -77,7 +77,7 @@ public class TestParseMappingConst extends AbstractPropertyValueParserTest<Mappi
 			AssertJUnit.fail("const is not primitive: "+xconst);
 		}
 	}
-	
+
 	@Test
 	public void testParseRoundTrip() throws Exception{
 		displayTestTitle("testParseRoundTrip");
@@ -85,7 +85,7 @@ public class TestParseMappingConst extends AbstractPropertyValueParserTest<Mappi
 		processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1");
 		processParsings(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_USER).serialize(v), "s2");		// misleading item name
 	}
-		
+
 	private void processParsings(SerializingFunction<PrismPropertyValue<MappingType>> serializer, String serId) throws Exception {
 		PrismPropertyDefinition<MappingType> definition = getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstantsGenerated.C_MAPPING);
 		processParsings(MappingType.class, MappingType.COMPLEX_TYPE, definition, serializer, serId);
@@ -100,7 +100,7 @@ public class TestParseMappingConst extends AbstractPropertyValueParserTest<Mappi
 		JAXBElement<?> expressionEvaluatorElement = expressionEvaluatorElements.get(0);
 		Object evaluatorElementObject = expressionEvaluatorElement.getValue();
 		if (!(evaluatorElementObject instanceof ConstExpressionEvaluatorType)) {
-		        AssertJUnit.fail("Const expression is of type " 
+		        AssertJUnit.fail("Const expression is of type "
 		        		+ evaluatorElementObject.getClass().getName());
 		}
 		ConstExpressionEvaluatorType constExpressionEvaluatorType = (ConstExpressionEvaluatorType)evaluatorElementObject;

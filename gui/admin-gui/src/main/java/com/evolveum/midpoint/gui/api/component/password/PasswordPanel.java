@@ -64,9 +64,9 @@ public class PasswordPanel extends InputPanel {
 	private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_PASSWORD_ONE = "password1";
     private static final String ID_PASSWORD_TWO = "password2";
-    
+
     private static final Trace LOGGER = TraceManager.getTrace(PasswordPanel.class);
-    
+
     private boolean passwordInputVisble;
 
     public PasswordPanel(String id, IModel<ProtectedStringType> model) {
@@ -78,7 +78,7 @@ public class PasswordPanel extends InputPanel {
         this.passwordInputVisble = model.getObject() == null;
         initLayout(model, isReadOnly);
     }
-    
+
     public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible) {
         super(id);
         this.passwordInputVisble = isInputVisible;
@@ -95,7 +95,7 @@ public class PasswordPanel extends InputPanel {
 		};
 		inputContainer.setOutputMarkupId(true);
 		add(inputContainer);
-    	
+
         final PasswordTextField password1 = new PasswordTextField(ID_PASSWORD_ONE, new PasswordModel(model));
         password1.setRequired(false);
         password1.setResetPassword(false);
@@ -109,7 +109,7 @@ public class PasswordPanel extends InputPanel {
         password2.setOutputMarkupId(true);
         password2.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         inputContainer.add(password2);
-        
+
         password1.add(new AjaxFormComponentUpdatingBehavior("change") {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -121,7 +121,7 @@ public class PasswordPanel extends InputPanel {
 			}
 		});
         password2.add(new PasswordValidator(password1, password2));
-        
+
         final WebMarkupContainer linkContainer = new WebMarkupContainer(ID_LINK_CONTAINER) {
 			@Override
 			public boolean isVisible() {
@@ -131,10 +131,10 @@ public class PasswordPanel extends InputPanel {
 		inputContainer.setOutputMarkupId(true);
         linkContainer.setOutputMarkupId(true);
 		add(linkContainer);
-		
+
 		final Label passwordSetLabel = new Label(ID_PASSWORD_SET, new ResourceModel("passwordPanel.passwordSet"));
 		linkContainer.add(passwordSetLabel);
-        
+
 		final Label passwordRemoveLabel = new Label(ID_PASSWORD_REMOVE, new ResourceModel("passwordPanel.passwordRemoveLabel"));
         passwordRemoveLabel.setVisible(false);
 		linkContainer.add(passwordRemoveLabel);
@@ -170,7 +170,7 @@ public class PasswordPanel extends InputPanel {
 
         };
         removePassword.add(new VisibleEnableBehaviour() {
-        	
+
         	@Override
         	public boolean isVisible() {
         		PageBase pageBase = (PageBase)getPage();
@@ -192,7 +192,7 @@ public class PasswordPanel extends InputPanel {
         removeButtonContainer.add(removePassword);
         add(removeButtonContainer);
     }
-    
+
 	private void onLinkClick(AjaxRequestTarget target) {
     	passwordInputVisble = true;
     	target.add(this);
@@ -239,7 +239,7 @@ public class PasswordPanel extends InputPanel {
             if (StringUtils.isEmpty(s1) && StringUtils.isEmpty(s2)) {
                 return;
             }
-            
+
             boolean equal = s1 != null ? s1.equals(s2) : s2 == null;
             if (!equal) {
             	validatable = p1.newValidatable();
@@ -249,7 +249,7 @@ public class PasswordPanel extends InputPanel {
             }
         }
     }
-    
+
     private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
 
         public EmptyOnBlurAjaxFormUpdatingBehaviour() {
@@ -260,15 +260,15 @@ public class PasswordPanel extends InputPanel {
         protected void onUpdate(AjaxRequestTarget target) {
         }
     }
-    
+
     private class PasswordModel implements IModel<String> {
 
     	IModel<ProtectedStringType> psModel;
-    	
+
     	PasswordModel(IModel<ProtectedStringType> psModel) {
     		this.psModel = psModel;
     	}
-    	
+
 		@Override
 		public void detach() {
 			// Nothing to do
@@ -294,6 +294,6 @@ public class PasswordPanel extends InputPanel {
 				psModel.getObject().setClearValue(object);
 			}
 		}
-    	
+
     }
 }

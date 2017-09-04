@@ -263,7 +263,7 @@ public class PageAccounts extends PageAdminConfiguration {
         WebMarkupContainer filesContainer = new WebMarkupContainer(ID_FILES_CONTAINER);
         filesContainer.setOutputMarkupId(true);
         accForm.add(filesContainer);
-        
+
         ModalWindow resultPopup = createModalWindow(ID_RESULT_DIALOG, createStringResource("PageAccounts.result.popoup"), 1100, 560);
         resultPopup.setContent(new AceEditorDialog(resultPopup.getContentId()));
         add(resultPopup);
@@ -305,8 +305,8 @@ public class PageAccounts extends PageAdminConfiguration {
         });
         accounts.setItemsPerPage(50);
         accountsContainer.add(accounts);
-        
-        
+
+
     }
 
     private void initSearchForm(Form searchForm){
@@ -343,7 +343,7 @@ public class PageAccounts extends PageAdminConfiguration {
         failedOperationType.setOutputMarkupId(true);
         failedOperationType.setNullValid(true);
         searchForm.add(failedOperationType);
-        
+
         DropDownChoice kind = new DropDownChoice<>(ID_SEARCH_KIND,
                 new PropertyModel<ShadowKindType>(searchModel, AccountDetailsSearchDto.F_KIND),
                 WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<ShadowKindType>(this));
@@ -642,7 +642,7 @@ public class PageAccounts extends PageAdminConfiguration {
 //        columns.add(new PropertyColumn<>(createStringResource("PageAccounts.accounts.result"),
 //                ShadowType.F_RESULT.getLocalPart(), SelectableBean.F_VALUE + ".result.status"));
 
-        
+
         columns.add(new LinkColumn<SelectableBean>(createStringResource("PageAccounts.accounts.result")){
 
             @Override
@@ -665,7 +665,7 @@ public class PageAccounts extends PageAdminConfiguration {
                 showShadowResult(target, rowModel);
             }
         });
-        
+
         columns.add(new LinkColumn<SelectableBean>(createStringResource("PageAccounts.accounts.owner")){
 
             @Override
@@ -688,14 +688,14 @@ public class PageAccounts extends PageAdminConfiguration {
 
         return columns;
     }
-    
+
     private void showShadowResult(AjaxRequestTarget target, IModel<SelectableBean> rowModel){
     	OperationResultType result = getResult(rowModel);
     	String xml;
     	ModalWindow aceDialog = (ModalWindow) get(createComponentPath(ID_RESULT_DIALOG));
     	AceEditorDialog aceEditor = (AceEditorDialog) aceDialog.get(aceDialog.getContentId());
-    	
-    	
+
+
 		try {
 			xml = getPrismContext().xmlSerializer().serializeRealValue(result, ShadowType.F_RESULT);
 			aceEditor.updateModel(new Model<String>(xml));
@@ -703,10 +703,10 @@ public class PageAccounts extends PageAdminConfiguration {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse result", e);
 			aceEditor.updateModel(new Model<String>("Unable to show result. For more information see logs."));
 		}
-		
+
 		aceDialog.show(target);
     	target.add(getFeedbackPanel());
-    	
+
     }
 
     private ObjectFilter createResourceAndQueryFilter(){
@@ -1046,18 +1046,18 @@ public class PageAccounts extends PageAdminConfiguration {
         target.add(getSearchPanel());
         target.add(getAccountsContainer());
     }
-    
+
     private OperationResultType getResult(IModel<SelectableBean> model){
-    	 
+
          ShadowType shadow = getShadow(model);
          return shadow.getResult();
     }
-    
+
     private ShadowType getShadow(IModel<SelectableBean> model){
     	 if(model == null || model.getObject() == null || model.getObject().getValue() == null){
              return null;
          }
-    	 
+
     	 return (ShadowType) model.getObject().getValue();
     }
 
@@ -1108,7 +1108,7 @@ public class PageAccounts extends PageAdminConfiguration {
 
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, focus.getOid());
-        
+
         if (focus instanceof UserType){
         	navigateToNext(PageUser.class, parameters);
         } else if (focus instanceof RoleType){

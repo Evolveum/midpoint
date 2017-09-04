@@ -45,7 +45,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectNameColumn.class);
-	
+
 	public ObjectNameColumn(IModel<String> displayModel) {
 		super(displayModel, ObjectType.F_NAME.getLocalPart());
 	}
@@ -60,7 +60,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 
 		IModel<String> labelModel = new AbstractReadOnlyModel<String>() {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public String getObject() {
 				SelectableBean<O> selectableBean = rowModel.getObject();
@@ -80,8 +80,8 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 						return complexName.toString();
 					}
 						return name;
-					
-					
+
+
 				}
 			}
 		};
@@ -110,7 +110,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 			cellItem.add(new Label(componentId, labelModel));
 		}
 	}
-	
+
 	public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
         return true;
     }

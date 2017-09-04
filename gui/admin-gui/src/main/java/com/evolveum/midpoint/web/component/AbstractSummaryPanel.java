@@ -65,7 +65,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     protected static final String ICON_BOX_CSS_CLASS = "info-box-icon";
 
     protected SummaryPanelSpecificationType configuration;
-    
+
     protected WebMarkupContainer box;
     protected WebMarkupContainer tagBox;
     protected WebMarkupContainer iconBox;
@@ -82,7 +82,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         add(box);
 
         box.add(new AttributeModifier("class", BOX_CSS_CLASS + " " + getBoxAdditionalCssClass()));
-        
+
 		box.add(new Label(ID_DISPLAY_NAME, createLabelModel(getDisplayNamePropertyName(), SummaryPanelSpecificationType.F_DISPLAY_NAME, serviceLocator)));
 
         WebMarkupContainer identifierPanel = new WebMarkupContainer(ID_IDENTIFIER_PANEL);
@@ -172,7 +172,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 	private FlexibleLabelModel<C> createLabelModel(QName modelPropertyName, QName configurationPropertyName, ModelServiceLocator serviceLocator) {
 		return createFlexibleLabelModel(modelPropertyName, serviceLocator, getLabelConfiguration(configurationPropertyName));
 	}
-	
+
 	private FlexibleLabelModel<C> createFlexibleLabelModel(QName modelPropertyName, ModelServiceLocator serviceLocator, GuiFlexibleLabelType configuration) {
 		return new FlexibleLabelModel<C>(getModel(), modelPropertyName, serviceLocator, configuration) {
 			private static final long serialVersionUID = 1L;
@@ -183,9 +183,9 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 			}
 		};
 	}
-    
+
     protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
-    	
+
     }
 
 	private GuiFlexibleLabelType getLabelConfiguration(QName configurationPropertyName) {
@@ -262,7 +262,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     		return getDefaltParentOrgModel();
     	}
     }
-    
+
     protected IModel<String> getDefaltParentOrgModel() {
 		return new Model<>(null);
 	}

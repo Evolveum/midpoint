@@ -70,20 +70,20 @@ public class OpResult implements Serializable, Visitable {
 	// we assume there is at most one background task created (TODO revisit this assumption)
 	private String backgroundTaskOid;
 	private Boolean backgroundTaskVisible;			// available on root opResult only
-    
+
     private boolean showMore;
     private boolean showError;
-    
+
     private boolean alreadyShown;
-    
+
     public boolean isAlreadyShown() {
 		return alreadyShown;
 	}
-    
+
     public void setAlreadyShown(boolean alreadyShown) {
 		this.alreadyShown = alreadyShown;
 	}
-    
+
         public static OpResult getOpResult(PageBase page, OperationResult result){
         OpResult opResult = new OpResult();
         Validate.notNull(result, "Operation result must not be null.");
@@ -97,8 +97,8 @@ public class OpResult implements Serializable, Visitable {
 				.setParameters(localizableMessage.getArgs());
         		opResult.message = stringResourceModel.getString();
         	}
-        } 
-        
+        }
+
         if (opResult.message == null) {
         	opResult.message = result.getMessage();
         }
@@ -126,7 +126,7 @@ public class OpResult implements Serializable, Visitable {
                 opResult.getParams().add(new Param(entry.getKey(), paramValue));
             }
         }
-        
+
         if(result.getContext() != null){
         	for (Map.Entry<String, Collection<String>> entry : result.getContext().entrySet()) {
                 String contextValue = null;
@@ -197,19 +197,19 @@ public class OpResult implements Serializable, Visitable {
 	public boolean isShowMore() {
 		return showMore;
 	}
-    
+
     public void setShowMore(boolean showMore) {
 		this.showMore = showMore;
 	}
-    
+
     public boolean isShowError() {
 		return showError;
 	}
-    
+
     public void setShowError(boolean showError) {
 		this.showError = showError;
 	}
-    
+
     public List<OpResult> getSubresults() {
         if (subresults == null) {
             subresults = new ArrayList<OpResult>();
@@ -239,7 +239,7 @@ public class OpResult implements Serializable, Visitable {
         }
         return params;
     }
-    
+
     public List<Context> getContexts() {
         if (contexts == null) {
         	contexts = new ArrayList<Context>();
@@ -254,7 +254,7 @@ public class OpResult implements Serializable, Visitable {
     public int getCount() {
         return count;
     }
-    
+
     public String getXml() {
     	return xml;
     }
@@ -275,15 +275,15 @@ public class OpResult implements Serializable, Visitable {
 
 	@Override
 	public void accept(Visitor visitor) {
-		
+
 		visitor.visit(this);
-		
+
 		for (OpResult result : this.getSubresults()){
 			result.accept(visitor);
 		}
-		
+
 	}
-	
+
 	public void setShowMoreAll(final boolean show) {
 		Visitor visitor = new Visitor() {
 

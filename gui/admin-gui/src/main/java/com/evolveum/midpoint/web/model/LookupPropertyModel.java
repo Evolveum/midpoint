@@ -49,7 +49,7 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
         this.lookupTable = lookupTable;
         this.isStrict = isStrict;
     }
-    
+
     public boolean isSupportsDisplayName() {
 		return false;
 	}
@@ -68,7 +68,7 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
 
         final Object target = getInnermostModelOrObject();
         if (target != null) {
-        	
+
         	Object value = null;
         	if (isSupportsDisplayName()) {
         		 value = PropertyResolver.getValue("displayName", target);
@@ -76,12 +76,12 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
         			 return (T) value;
         		 }
         	}
-        	
+
         	value = PropertyResolver.getValue(expression, target);
         	if (value == null) {
         		return null;
         	}
-            String key = value.toString(); 
+            String key = value.toString();
 
             if (lookupTable != null) {
                 for (LookupTableRowType row : lookupTable.getRow()) {
@@ -94,7 +94,7 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
         }
     	return null;
     }
-    
+
     @Override
     public void setObject(T object) {
         final String expression = propertyExpression();

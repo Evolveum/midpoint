@@ -31,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ErrorSelectorType;
  *
  */
 public class ExceptionUtil {
-	
+
 	public static Throwable lookForTunneledException(Throwable ex) {
 		if (ex instanceof TunnelException) {
 			return ex.getCause();
@@ -51,7 +51,7 @@ public class ExceptionUtil {
 		}
 		return null;
 	}
-	
+
 	public static boolean isSelected(ErrorSelectorType selector, Throwable exception, boolean defaultValue) {
 		if (selector == null) {
 			return defaultValue;
@@ -81,7 +81,7 @@ public class ExceptionUtil {
 			return value;
 		}
 	}
-	
+
 	public static LocalizableMessage getUserFriendlyMessage(Throwable cause) {
 		while (cause != null) {
 			if (cause instanceof CommonException) {
@@ -94,5 +94,5 @@ public class ExceptionUtil {
 		}
 		return null;
 	}
-	
+
 }

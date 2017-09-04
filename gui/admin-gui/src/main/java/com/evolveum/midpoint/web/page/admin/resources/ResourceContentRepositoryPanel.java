@@ -51,13 +51,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSitua
 
 public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceContentRepositoryPanel.class);
-	
+
 	private static final String DOT_CLASS = ResourceContentRepositoryPanel.class.getName() + ".";
     private static final String OPERATION_GET_TOTALS = DOT_CLASS + "getTotals";
-	
-	
+
+
     private static final String ID_TOTAL = "total";
     private static final String ID_DELETED = "deleted";
     private static final String ID_UNMATCHED = "unmatched";
@@ -65,7 +65,7 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
     private static final String ID_LINKED = "linked";
     private static final String ID_UNLINKED = "unlinked";
     private static final String ID_NOTHING = "nothing";
-    
+
       private LoadableModel<Integer> totalModel;
 	    private LoadableModel<Integer> deletedModel;
 	    private LoadableModel<Integer> unmatchedModel;
@@ -73,17 +73,17 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 	    private LoadableModel<Integer> linkedModel;
 	    private LoadableModel<Integer> unlinkedModel;
 	    private LoadableModel<Integer> nothingModel;
-	    
+
 
 	public ResourceContentRepositoryPanel(String id, IModel<PrismObject<ResourceType>> resourceModel,
 			QName objectClass, ShadowKindType kind, String intent, String searchMode, PageBase pageBase) {
 		super(id, resourceModel, objectClass, kind, intent, searchMode, pageBase);
-		
-		
+
+
 	}
-	
+
 	 protected void initShadowStatistics(WebMarkupContainer totals) {
-	        
+
 		 totals.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 
@@ -129,7 +129,7 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 	            }
 	        };
 	    }
-	
+
 	 private LoadableModel<Integer> createTotalsModel(final SynchronizationSituationType situation) {
 	        return new LoadableModel<Integer>(false) {
 	        	private static final long serialVersionUID = 1L;

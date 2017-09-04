@@ -17,7 +17,7 @@
 /**
  * GUI API package contains classes that are stable and intended for
  * public (third-party) usage.
- * 
+ *
  * @author Radovan Semancik
  */
 package com.evolveum.midpoint.gui.api;

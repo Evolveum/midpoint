@@ -59,14 +59,14 @@ public class AssignmentListDataProvider extends BaseSortableDataProvider<Assignm
         this.model = model;
 		this.sortable = sortable;
     }
-    
+
 
     @Override
     public Iterator<? extends AssignmentDto> internalIterator(long first, long count) {
         getAvailableData().clear();
 
         List<AssignmentDto> list = searchThroughList();
-              
+
 		if (sortable && getSort() != null) {
 			sort(list);
 		}
@@ -112,22 +112,22 @@ public class AssignmentListDataProvider extends BaseSortableDataProvider<Assignm
 
         return list.size();
     }
-    
+
     public List<AssignmentDto> getSelectedData() {
     	return getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
     }
-    
+
     private List<AssignmentDto> searchThroughList() {
     	List<AssignmentDto> list = model.getObject();
-    	
+
     	if (list == null || list.isEmpty()) {
     		return null;
     	}
-    	
+
     	if (getQuery() == null || getQuery().getFilter() == null) {
     		return list;
     	}
-    	
+
     	List<AssignmentDto> filtered = list.stream().filter(a -> {
 			try {
 				return ObjectQuery.match(a.getAssignment(), getQuery().getFilter(), null);
@@ -136,10 +136,10 @@ public class AssignmentListDataProvider extends BaseSortableDataProvider<Assignm
 			}
 		}).collect(Collectors.toList());
     	return filtered;
-    	
+
     }
-    
-    
-    
-    
+
+
+
+
 }

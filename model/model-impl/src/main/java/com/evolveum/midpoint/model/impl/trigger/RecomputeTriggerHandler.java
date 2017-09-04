@@ -50,38 +50,38 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @Component
 public class RecomputeTriggerHandler implements TriggerHandler {
-	
+
 	public static final String HANDLER_URI = ModelConstants.NS_MODEL_TRIGGER_PREFIX + "/recompute/handler-3";
-	
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(RecomputeTriggerHandler.class);
 
 	@Autowired(required = true)
 	private TriggerHandlerRegistry triggerHandlerRegistry;
-	
+
 	@Autowired(required = true)
     private Clockwork clockwork;
-	
+
 	@Autowired(required=true)
 	private PrismContext prismContext;
-	
+
 	@Autowired(required = true)
     private ProvisioningService provisioningService;
-	
+
 	@Autowired(required = true)
 	private ContextFactory contextFactory;
-	
+
 	@PostConstruct
 	private void initialize() {
 		triggerHandlerRegistry.register(HANDLER_URI, this);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.trigger.TriggerHandler#handle(com.evolveum.midpoint.prism.PrismObject)
 	 */
 	@Override
 	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, Task task, OperationResult result) {
 		try {
-			
+
 			LOGGER.trace("Recomputing {}", object);
 			// Reconcile option used for compatibility. TODO: do we need it?
 			LensContext<UserType> lensContext = contextFactory.createRecomputeContext(object, ModelExecuteOptions.createReconcile(), task, result);
@@ -90,7 +90,7 @@ public class RecomputeTriggerHandler implements TriggerHandler {
 			}
 			clockwork.run(lensContext, task, result);
 			LOGGER.trace("Recomputing of {}: {}", object, result.getStatus());
-			
+
 		} catch (SchemaException e) {
 			LOGGER.error(e.getMessage(), e);
 		} catch (ObjectNotFoundException e) {

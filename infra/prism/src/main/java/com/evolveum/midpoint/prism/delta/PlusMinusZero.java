@@ -18,14 +18,14 @@ package com.evolveum.midpoint.prism.delta;
 /**
  * Simple enumeration that refers to the plus, minus or zero concepts
  * used in delta set triples.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public enum PlusMinusZero {
 
 	PLUS, MINUS, ZERO;
-	
+
 	public static PlusMinusZero compute(PlusMinusZero mode1, PlusMinusZero mode2) {
 		if (mode1 == null || mode2 == null) {
 			return null;

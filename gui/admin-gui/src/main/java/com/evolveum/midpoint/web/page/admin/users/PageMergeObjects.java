@@ -130,17 +130,17 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
 
     @Override
     protected AbstractObjectMainPanel<UserType> createMainPanel(String id){
-    	
+
     	//empty assignments model
     	CountableLoadableModel<AssignmentDto> assignemtns = new CountableLoadableModel<AssignmentDto>() {
         	private static final long serialVersionUID = 1L;
-        	
+
             @Override
             protected List<AssignmentDto> load() {
                 return new ArrayList<>();
             }
     	};
-    	
+
     	//empty projections model
     	 CountableLoadableModel<AssignmentDto> policyRules = new CountableLoadableModel<AssignmentDto>() {
          	private static final long serialVersionUID = 1L;
@@ -150,7 +150,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
                  return new ArrayList<>();
              }
          };
-         
+
          //empty projections model
          LoadableModel<List<FocusSubwrapperDto<ShadowType>>> shadows = new LoadableModel<List<FocusSubwrapperDto<ShadowType>>>() {
          	private static final long serialVersionUID = 1L;
@@ -159,7 +159,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
                          return new ArrayList<>();
                      }
                  };
-    	
+
         return new FocusMainPanel<UserType>(id, getObjectModel(), assignemtns, policyRules, shadows, this) {
 
 			private static final long serialVersionUID = 1L;
@@ -191,7 +191,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
             }
         };
     }
-    
+
     @Override
     protected FocusSummaryPanel<UserType> createSummaryPanel(){
         UserSummaryPanel summaryPanel = new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
@@ -203,7 +203,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     protected void setSummaryPanelVisibility(FocusSummaryPanel summaryPanel){
         summaryPanel.setVisible(false);
     }
-    
+
     @Override
     protected Class getRestartResponsePage() {
         return PageUsers.class;

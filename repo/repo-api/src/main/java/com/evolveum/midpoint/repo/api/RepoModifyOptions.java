@@ -44,7 +44,7 @@ public class RepoModifyOptions implements Serializable {
 		opts.setExecuteIfNoChanges(true);
 		return opts;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "RepoModifyOptions(executeIfNoChanges=" + executeIfNoChanges + ")";

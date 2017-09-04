@@ -67,22 +67,22 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
- * 
+ *
  * @author semancik
  */
 public class SchemaDebugUtil {
 
 	private static int SHOW_LIST_MEMBERS = 3;
-	
+
 	public static String debugDump(Collection<? extends DebugDumpable> dumpables) {
 		return debugDump(dumpables,0);
 	}
-	
+
 	public static String debugDump(Collection<? extends DebugDumpable> dumpables, int indent) {
 		StringBuilder sb = new StringBuilder();
 		indentDebugDump(sb, indent);
 		sb.append(getCollectionOpeningSymbol(dumpables));
-		if (!dumpables.isEmpty()) {		
+		if (!dumpables.isEmpty()) {
 			sb.append("\n");
 			for (DebugDumpable dd : dumpables) {
 				if (dd == null) {
@@ -98,7 +98,7 @@ public class SchemaDebugUtil {
 		sb.append(getCollectionClosingSymbol(dumpables));
 		return sb.toString();
 	}
-	
+
 	public static String debugDumpXsdAnyProperties(Collection<?> xsdAnyCollection, int indent) {
 		StringBuilder sb = new StringBuilder();
 		indentDebugDump(sb, indent);
@@ -151,19 +151,19 @@ public class SchemaDebugUtil {
 		}
 		return ")";
 	}
-	
+
 	public static void indentDebugDump(StringBuilder sb, int indent) {
 		for(int i = 0; i < indent; i++) {
 			sb.append(DebugDumpable.INDENT_STRING);
 		}
 	}
-	
+
 	public static <K, V extends DebugDumpable> String dumpMapMultiLine(Map<K, V> map) {
 		StringBuilder sb = new StringBuilder();
 		debugDumpMapMultiLine(sb, map, 0);
 		return sb.toString();
 	}
-	
+
 	public static <K, V extends DebugDumpable> void debugDumpMapMultiLine(StringBuilder sb, Map<K, V> map, int indent) {
 		Iterator<Entry<K, V>> i = map.entrySet().iterator();
 		while (i.hasNext()) {
@@ -202,7 +202,7 @@ public class SchemaDebugUtil {
 			}
 		}
 	}
-	
+
 	public static String debugDump(ObjectType objectType, int indent) {
 		if (objectType == null) {
 			StringBuilder sb = new StringBuilder();
@@ -228,7 +228,7 @@ public class SchemaDebugUtil {
 		sb.append(getCollectionClosingSymbol(collection));
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(QName qname) {
 		if (qname == null) {
 			return "null";
@@ -238,7 +238,7 @@ public class SchemaDebugUtil {
 		}
 		return qname.toString();
 	}
-	
+
 	public static String prettyPrint(AssignmentType assignmentType) {
 		if (assignmentType == null) {
 			return "null";
@@ -262,7 +262,7 @@ public class SchemaDebugUtil {
 		sb.append(")");
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(ConstructionType act) {
 		if (act == null) {
 			return "null";
@@ -289,7 +289,7 @@ public class SchemaDebugUtil {
 		sb.append(")");
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(ResourceAttributeDefinitionType vc) {
 		if (vc == null) {
 			return "null";
@@ -313,12 +313,12 @@ public class SchemaDebugUtil {
 				sb.append(", ...");
 			}
 		}
-		
+
 		// TODO: Other properties
 		sb.append(")");
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(CachingMetadataType cachingMetadata) {
 		if (cachingMetadata == null) {
 			return "null";
@@ -335,7 +335,7 @@ public class SchemaDebugUtil {
 		sb.append(")");
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(ScheduleType scheduleType) {
 		if (scheduleType == null) {
 			return "null";
@@ -345,7 +345,7 @@ public class SchemaDebugUtil {
 			sb.append("cronLikePattern:");
 			sb.append(scheduleType.getCronLikePattern());
 		}
-		
+
 		if (scheduleType.getEarliestStartTime() != null) {
 			sb.append("earliestStartTime:");
 			sb.append(prettyPrint(scheduleType.getEarliestStartTime()));
@@ -366,11 +366,11 @@ public class SchemaDebugUtil {
 			sb.append("misfireAction:");
 			sb.append(prettyPrint(scheduleType.getMisfireAction()));
 		}
-		
+
 		sb.append(")");
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(ObjectReferenceType ref) {
 		if (ref == null) {
 			return "null";
@@ -407,17 +407,17 @@ public class SchemaDebugUtil {
 		return object.asPrismObject().toString();
 	}
 
-	
+
 	public static String prettyPrint(ProtectedStringType protectedStringType) {
 		if (protectedStringType == null) {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder("ProtectedStringType(");
-		
+
 		if (protectedStringType.getEncryptedDataType() != null) {
 			sb.append("[encrypted data]");
 		}
-		
+
 		if (protectedStringType.getHashedDataType() != null) {
 			sb.append("[hashed data]");
 		}
@@ -435,7 +435,7 @@ public class SchemaDebugUtil {
 		sb.append(")");
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(OperationResultType resultType) {
 		if (resultType == null) {
 			return "null";
@@ -477,7 +477,7 @@ public class SchemaDebugUtil {
 
 	/**
 	 * Assumes that all elements in the lists have the same QName
-	 * 
+	 *
 	 * @param list
 	 * @return
 	 */
@@ -626,7 +626,7 @@ public class SchemaDebugUtil {
 //
 //		return sb.toString();
 //	}
-	
+
 	private static void prettyPrintFilter(StringBuilder sb, Element filter) {
 
 		if (filter == null) {
@@ -676,7 +676,7 @@ public class SchemaDebugUtil {
 		sb.append(filter.toString());
 		sb.append(")");
 	}
-	
+
 	private static void prettyPrintPaging(StringBuilder sb, ObjectPaging paging) {
 
 		if (paging == null) {
@@ -688,7 +688,7 @@ public class SchemaDebugUtil {
 		sb.append(paging.toString());
 		sb.append(")");
 	}
-	
+
 	public static String prettyPrint(PagingType paging) {
 
 		if (paging == null) {
@@ -723,7 +723,7 @@ public class SchemaDebugUtil {
 
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(SynchronizationSituationDescriptionType syncDescType) {
 		if (syncDescType == null) {
 			return "null";
@@ -742,7 +742,7 @@ public class SchemaDebugUtil {
 		sb.append(")");
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(ObjectDeltaType deltaType) {
 		if (deltaType == null) {
 			return "null";
@@ -759,7 +759,7 @@ public class SchemaDebugUtil {
 		sb.append(")");
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(ObjectDeltaOperationType deltaOpType) {
 		if (deltaOpType == null) {
 			return "null";
@@ -777,28 +777,28 @@ public class SchemaDebugUtil {
 		sb.append(")");
 		return sb.toString();
 	}
-		
+
 	public static String prettyPrint(JAXBElement<?> element) {
 		return "JAXBElement("+PrettyPrinter.prettyPrint(element.getName())+"): "+element.getValue();
 	}
-	
+
 	public static String prettyPrint(UnknownJavaObjectType xml) {
 		if (xml == null) {
 			return "null";
 		}
 		return "Java("+xml.getClazz()+","+xml.getToString()+")";
 	}
-	
+
 //	public static String prettyPrint(OperationProvisioningScriptsType scriptsType) {
 //		if (scriptsType == null) {
 //			return "null";
 //		}
 //		StringBuilder sb = new StringBuilder("")
 //		for (OperationProvisioningScriptType scriptType: scriptsType.getScript()) {
-//			
+//
 //		}
 //	}
-	
+
 	public static String prettyPrint(Object value) {
 		if (value == null) {
 			return "null";
@@ -863,10 +863,10 @@ public class SchemaDebugUtil {
 	}
 
 	public static String prettyPrint(ObjectQuery query){
-		
+
 		return query.toString();
 	}
-	
+
 	static {
 		PrettyPrinter.registerPrettyPrinter(SchemaDebugUtil.class);
 	}

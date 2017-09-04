@@ -30,7 +30,7 @@ import org.apache.commons.lang.Validate;
  * @author mederly
  */
 public class SimpleObjectRefImpl implements SimpleObjectRef {
-	
+
     private String oid;
     private ObjectType objectType;
     private NotificationFunctionsImpl functions;        // used to resolve object refs

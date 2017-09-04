@@ -242,12 +242,12 @@ public class ReportUtils {
         }
         return val;
     }
-    
+
 	public static String getPropertyString(String key, Object values, String defaultValue) {
 		if (key == null || values == null) {
 			return defaultValue;
 		}
-		
+
 		if (!List.class.isAssignableFrom(values.getClass())) {
 			return getPropertyString((key.endsWith(".") ? key + values.toString() : key + "." + values.toString()), defaultValue);
 		}
@@ -282,7 +282,7 @@ public class ReportUtils {
 				builder.append(", ");
 			}
 		}
-		
+
 		return builder.toString();
 
 	}
@@ -322,11 +322,11 @@ public class ReportUtils {
                 sb.append(prettyPrintForReport(item2));
                 sb.append(", ");
             }
-            sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+            sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter
             sb.append("}");
             sb.append(", ");
         }
-        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter
         return sb.toString();
     }
 
@@ -403,7 +403,7 @@ public class ReportUtils {
         if (ba == null) {
             return "null";
         }
-        return "[" + ((byte[]) ba).length + " bytes]"; //Jasper doesnt like byte[] 
+        return "[" + ((byte[]) ba).length + " bytes]"; //Jasper doesnt like byte[]
     }
 
     public static String prettyPrintForReport(Collection prismValueList) {
@@ -415,14 +415,14 @@ public class ReportUtils {
                 sb.append("#");
             }
         }
-        sb.setLength(Math.max(sb.length() - 1, 0)); // delete last # delimiter        
+        sb.setLength(Math.max(sb.length() - 1, 0)); // delete last # delimiter
         return sb.toString();
     }
 
     /*
      Multiplexer method for various input classes, using Reflection
      - Mostly Copied from com.evolveum.midpoint.util.PrettyPrinter
-     - Credit goes to Evolveum        
+     - Credit goes to Evolveum
      */
     public static String prettyPrintForReport(Object value) {
         if (value == null) {
@@ -433,7 +433,7 @@ public class ReportUtils {
             return "";
         }
 
-        //special handling for byte[], some problems with jasper when printing 
+        //special handling for byte[], some problems with jasper when printing
         if (byte[].class.equals(value.getClass())) {
             return prettyPrintForReport((byte[]) value);
         }
@@ -475,7 +475,7 @@ public class ReportUtils {
                 sb.append(", ");
             }
         }
-        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter
         return sb.toString();
     }
 
@@ -515,7 +515,7 @@ public class ReportUtils {
                 sb.append(", ");
             }
         }
-        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter
         return sb.toString();
 
     }
@@ -725,20 +725,20 @@ public class ReportUtils {
 
     public static String prettyPrintForReport(EvaluatedPolicyRuleTriggerType trigger) {
         return prettyPrintRuleTriggerForReport(trigger);
-    }    
-    
+    }
+
     public static String prettyPrintForReport(EvaluatedSituationTriggerType trigger) {
         return prettyPrintRuleTriggerForReport(trigger);
-    } 
-    
+    }
+
     public static String prettyPrintForReport(EvaluatedExclusionTriggerType trigger) {
         return prettyPrintRuleTriggerForReport(trigger);
     }
-    
+
     public static String prettyPrintForReport(PrismObjectValue pov) {
         return prettyPrintForReport((PrismContainerValue) pov);
     }
-            
+
     private static String prettyPrintRuleTriggerForReport(EvaluatedPolicyRuleTriggerType trigger) {
         if (trigger == null) {
             return "";

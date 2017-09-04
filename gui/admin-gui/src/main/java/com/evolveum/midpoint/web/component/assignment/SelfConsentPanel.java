@@ -29,51 +29,51 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 public class SelfConsentPanel extends BasePanel<AssignmentDto>{
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final String ID_DISPLAY_NAME = "displayName";
 	private static final String ID_CONSENT_ICON = "consentIcon";
 	private static final String ID_VALIDITY = "validity";
-	
+
 	private static final String ID_REVOKE = "revoke";
 	private static final String ID_AGREE = "agree";
-	
+
 	private static final String DOT_CLASS = SelfConsentPanel.class.getSimpleName() + ".";
 	private static final String OPERATION_LOAD_TARGET = DOT_CLASS + "loadTargetRef";
 //	private PageBase parentPage;
 
 	public SelfConsentPanel(String id, IModel<AssignmentDto> model, PageBase parentPage) {
 		super(id, model);
-		
+
 		Task task = parentPage.createSimpleTask(OPERATION_LOAD_TARGET);
 		OperationResult result = task.getResult();
 		PrismObject<AbstractRoleType> abstractRole = WebModelServiceUtils
 						.loadObject(getModelObject().getAssignment().getTargetRef(), parentPage, task, result);
-		
+
 		if (abstractRole == null) {
 			getSession().error("Failed to load target ref");
 			throw new RestartResponseException(PageSelfDashboard.class);
 		}
-		
+
 		initLayout(abstractRole.asObjectable());
 	}
-	
+
 	private void initLayout(final AbstractRoleType abstractRole) {
-		
+
 		DisplayNamePanel<? extends AbstractRoleType> displayName = new DisplayNamePanel<>(ID_DISPLAY_NAME, Model.of(abstractRole));
 		displayName.setOutputMarkupId(true);
 		add(displayName);
-		
+
 		WebMarkupContainer iconCssClass = new WebMarkupContainer(ID_CONSENT_ICON);
 		iconCssClass.add(AttributeAppender.append("class", getIconCssClass(getModelObject())));
 		iconCssClass.setOutputMarkupId(true);
 		add(iconCssClass);
-		
+
 		Label validityLabel = new Label(ID_VALIDITY, AssignmentsUtil.createActivationTitleModelExperimental(getModel(), displayName));
 		validityLabel.setOutputMarkupId(true);
 		add(validityLabel);
-		
+
 		AjaxButton revoke = new AjaxButton(ID_REVOKE, createStringResource("SelfConsentPanel.button.revoke")) {
-			
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -84,7 +84,7 @@ public class SelfConsentPanel extends BasePanel<AssignmentDto>{
 		};
 		add(revoke);
 		revoke.add(new VisibleEnableBehaviour() {
-		
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -92,9 +92,9 @@ public class SelfConsentPanel extends BasePanel<AssignmentDto>{
 				return isActiveConsent();
 			}
 		});
-		
+
 AjaxButton activate = new AjaxButton(ID_AGREE, createStringResource("SelfConsentPanel.button.agree")) {
-			
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -105,7 +105,7 @@ AjaxButton activate = new AjaxButton(ID_AGREE, createStringResource("SelfConsent
 		};
 		add(activate);
 		activate.add(new VisibleEnableBehaviour() {
-		
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -114,37 +114,37 @@ AjaxButton activate = new AjaxButton(ID_AGREE, createStringResource("SelfConsent
 			}
 		});
 	}
-	
-		//TODO move to the WebComponentUtil ??? 
+
+		//TODO move to the WebComponentUtil ???
 	private String getIconCssClass(AssignmentDto assignment) {
 		AssignmentType assignmentType = assignment.getAssignment();
 		String currentLifecycle = assignmentType.getLifecycleState();
 		if (StringUtils.isBlank(currentLifecycle)) {
 			return GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_FUTURE_COLORED;
 		}
-		
+
 		if (SchemaConstants.LIFECYCLE_DRAFT.equals(currentLifecycle) || SchemaConstants.LIFECYCLE_PROPOSED.equals(currentLifecycle)) {
 			return GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_IN_PROGRESS_COLORED;
 		}
-		
+
 		if (SchemaConstants.LIFECYCLE_ACTIVE.equals(currentLifecycle)) {
 			return GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_APPROVED_COLORED;
 		}
-		
+
 		if (SchemaConstants.LIFECYCLE_FAILED.equals(currentLifecycle)) {
 			return GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_REJECTED_COLORED;
 		}
-		
+
 		return GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_FUTURE_COLORED;
 	}
-	
+
 	private boolean isActiveConsent(){
 		String lifecycle = SelfConsentPanel.this.getModelObject().getAssignment().getLifecycleState();
 		if (StringUtils.isBlank(lifecycle)) {
 			return false;
 		}
-		
+
 		return lifecycle.equals(SchemaConstants.LIFECYCLE_ACTIVE);
 	}
-	
+
 }

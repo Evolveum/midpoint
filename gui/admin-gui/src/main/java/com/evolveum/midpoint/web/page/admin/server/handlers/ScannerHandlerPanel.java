@@ -36,7 +36,7 @@ public class ScannerHandlerPanel extends BasePanel<ScannerHandlerDto> {
 		initLayout();
 		setOutputMarkupId(true);
 	}
-	
+
 	private void initLayout() {
 		WebMarkupContainer lastScanTimestampContainer = new WebMarkupContainer(ID_LAST_SCAN_TIMESTAMP_CONTAINER);
 //		lastScanTimestampContainer.add(new VisibleEnableBehaviour() {

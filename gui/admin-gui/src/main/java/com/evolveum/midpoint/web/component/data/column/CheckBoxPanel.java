@@ -71,13 +71,13 @@ public class CheckBoxPanel extends Panel {
 
     public void onUpdate(AjaxRequestTarget target) {
     }
-    
+
     public boolean getValue() {
     	Boolean val = getPanelComponent().getModelObject();
     	if (val == null) {
     		return false;
     	}
-    	
+
     	return val.booleanValue();
     }
 }

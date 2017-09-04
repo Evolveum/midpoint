@@ -98,13 +98,13 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
 
     protected static final String SEARCH_SCOPE_SUBTREE = "subtree";
     protected static final String SEARCH_SCOPE_ONE = "one";
-    
+
     protected static final ObjectTypes OBJECT_TYPES_DEFAULT = ObjectTypes.OBJECT;
-    
+
     protected static final List<String> SEARCH_SCOPE_VALUES = Arrays.asList( SEARCH_SCOPE_SUBTREE, SEARCH_SCOPE_ONE);
-    
+
     protected IModel<SelectableBean<OrgType>> selected;
-    
+
     public AbstractTreeTablePanel(String id, IModel<String> rootOid) {
         super(id, rootOid);
     }

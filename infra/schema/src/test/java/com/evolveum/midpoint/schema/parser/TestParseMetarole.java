@@ -117,7 +117,7 @@ public class TestParseMetarole extends AbstractObjectParserTest<RoleType> {
 		assertEquals("Wrong class in role", RoleType.class, metarole.getCompileTimeClass());
 		RoleType roleType = metarole.asObjectable();
 		assertNotNull("asObjectable resulted in null", roleType);
-		
+
 		assertPropertyValue(metarole, "name", PrismTestUtil.createPolyString("Generic Metarole"));
 		assertPropertyDefinition(metarole, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 
@@ -127,7 +127,7 @@ public class TestParseMetarole extends AbstractObjectParserTest<RoleType> {
 		assertEquals("Wrong # of assignment constraints", 1, assignmentConstraints.size());
 		assertTrue("Wrong (not empty) assignment constraints", assignmentConstraints.getValues().get(0).isEmpty());
 	}
-	
+
 	private void assertMetaroleJaxb(RoleType roleType, boolean isObject) throws SchemaException {
 		assertEquals("Wrong name", PrismTestUtil.createPolyStringType("Generic Metarole"), roleType.getName());
 		boolean found = false;

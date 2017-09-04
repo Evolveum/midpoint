@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.model.intest.manual;
 
@@ -71,22 +71,22 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestSemiManual extends AbstractManualResourceTest {
-	
+
 	protected static final File CSV_SOURCE_FILE = new File(TEST_DIR, "semi-manual.csv");
 	protected static final File CSV_TARGET_FILE = new File("target/semi-manual.csv");
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(TestSemiManual.class);
-	
+
 	protected static final String ATTR_DISABLED = "disabled";
 	protected static final QName ATTR_DISABLED_QNAME = new QName(MidPointConstants.NS_RI, ATTR_DISABLED);
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		FileUtils.copyFile(CSV_SOURCE_FILE, CSV_TARGET_FILE);
 	}
-	
+
 	@Override
 	protected String getResourceOid() {
 		return RESOURCE_SEMI_MANUAL_OID;
@@ -96,47 +96,47 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	protected File getResourceFile() {
 		return RESOURCE_SEMI_MANUAL_FILE;
 	}
-	
+
 	@Override
 	protected String getRoleOneOid() {
 		return ROLE_ONE_SEMI_MANUAL_OID;
 	}
-	
+
 	@Override
 	protected File getRoleOneFile() {
 		return ROLE_ONE_SEMI_MANUAL_FILE;
 	}
-	
+
 	@Override
 	protected String getRoleTwoOid() {
 		return ROLE_TWO_SEMI_MANUAL_OID;
 	}
-	
+
 	@Override
 	protected File getRoleTwoFile() {
 		return ROLE_TWO_SEMI_MANUAL_FILE;
 	}
-	
+
 	@Override
 	protected boolean supportsBackingStore() {
 		return true;
 	}
-	
+
 	@Override
 	protected boolean hasMultivalueInterests() {
 		return false;
 	}
-	
+
 	@Override
 	protected void assertResourceSchemaBeforeTest(Element resourceXsdSchemaElementBefore) {
 		AssertJUnit.assertNull("Resource schema sneaked in before test connection", resourceXsdSchemaElementBefore);
 	}
-	
+
 	@Override
 	protected int getNumberOfAccountAttributeDefinitions() {
 		return 5;
 	}
-	
+
 	/**
 	 * MID-4002
 	 */
@@ -147,17 +147,17 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		
+
 		if (accountJackOid != null) {
 			PrismObject<ShadowType> shadowRepoBefore = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
 			display("Repo shadow before", shadowRepoBefore);
 			assertPendingOperationDeltas(shadowRepoBefore, 0);
 		}
-		
+
 		backingStoreAddJack();
-		
+
 		clock.overrideDuration("PT5M");
-		
+
 		accountJackReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
@@ -171,20 +171,20 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		assertNull("Unexpected ticket in result", result.getAsynchronousOperationReference());
 
 		accountJackReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
-		
+
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
 		accountJackOid = getSingleLinkOid(userAfter);
-		
+
 		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
 		display("Repo shadow", shadowRepo);
 		assertPendingOperationDeltas(shadowRepo, 0);
 		assertShadowExists(shadowRepo, true);
 		assertNoShadowPassword(shadowRepo);
-			
+
 		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
 				accountJackOid, null, task, result);
-		
+
 		display("Model shadow", shadowModel);
 		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
 		assertShadowName(shadowModel, USER_JACK_USERNAME);
@@ -193,10 +193,10 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_JACK_FULL_NAME);
 		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
 		assertShadowExists(shadowModel, true);
-		
-		assertPendingOperationDeltas(shadowModel, 0);		
+
+		assertPendingOperationDeltas(shadowModel, 0);
 	}
-	
+
 	/**
 	 * MID-4002
 	 */
@@ -207,9 +207,9 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		
+
 		clock.overrideDuration("PT5M");
-		
+
 		accountJackReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
@@ -224,20 +224,20 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
 		accountJackOid = getSingleLinkOid(userAfter);
-		
+
 		accountJackReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
 		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
 		display("Repo shadow", shadowRepo);
-		
+
 		assertPendingOperationDeltas(shadowRepo, 1);
 		PendingOperationType pendingOperation = findPendingOperation(shadowRepo, OperationResultStatusType.IN_PROGRESS);
 		assertPendingOperation(shadowRepo, pendingOperation, accountJackReqestTimestampStart, accountJackReqestTimestampEnd);
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
-			
+
 		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
 				accountJackOid, null, task, result);
-		
+
 		display("Model shadow", shadowModel);
 		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
 		assertShadowName(shadowModel, USER_JACK_USERNAME);
@@ -247,18 +247,18 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		assertPendingOperationDeltas(shadowModel, 1);
 		pendingOperation = findPendingOperation(shadowModel, OperationResultStatusType.IN_PROGRESS);
 		assertPendingOperation(shadowModel, pendingOperation, accountJackReqestTimestampStart, accountJackReqestTimestampEnd);
-		
+
 		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountJackOid, 
+				accountJackOid,
 				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
 				task, result);
 		display("Model shadow (future)", shadowModelFuture);
 		assertShadowName(shadowModelFuture, USER_JACK_USERNAME);
 		assertUnassignedFuture(shadowModelFuture, true);
-		
+
 		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
-	
+
 	/**
 	 * MID-4002
 	 */
@@ -271,11 +271,11 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		OperationResult result = task.getResult();
 
 		backingStoreDeleteJack();
-		
+
 		closeCase(jackLastCaseOid);
-		
+
 		accountJackCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
-		
+
 		// WHEN
 		displayWhen(TEST_NAME);
 		// We need reconcile and not recompute here. We need to fetch the updated case status.
@@ -285,42 +285,42 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		displayThen(TEST_NAME);
 		display("result", result);
 		assertSuccess(result);
-		
+
 		accountJackCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
-		
+
 		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
 		display("Repo shadow", shadowRepo);
-		assertSinglePendingOperation(shadowRepo, 
+		assertSinglePendingOperation(shadowRepo,
 				accountJackReqestTimestampStart, accountJackReqestTimestampEnd,
 				OperationResultStatusType.SUCCESS,
 				accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd);
 		assertUnassignedShadow(shadowRepo, null);
-			
+
 		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
 				accountJackOid, null, task, result);
-		
+
 		display("Model shadow", shadowModel);
 		ShadowType shadowTypeModel = shadowModel.asObjectable();
 		assertShadowName(shadowModel, USER_JACK_USERNAME);
 		assertEquals("Wrong kind (model)", ShadowKindType.ACCOUNT, shadowTypeModel.getKind());
 		assertUnassignedShadow(shadowModel, ActivationStatusType.DISABLED);
 
-		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowModel, 
+		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowModel,
 				accountJackReqestTimestampStart, accountJackReqestTimestampEnd,
 				OperationResultStatusType.SUCCESS,
 				accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd);
-		
+
 		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountJackOid, 
+				accountJackOid,
 				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
 				task, result);
 		display("Model shadow (future)", shadowModelFuture);
 		assertShadowName(shadowModelFuture, USER_JACK_USERNAME);
 		assertUnassignedFuture(shadowModelFuture, false);
-		
+
 		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
-	
+
 	/**
 	 * MID-4002
 	 */
@@ -333,7 +333,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		OperationResult result = task.getResult();
 
 		clock.overrideDuration("PT30M");
-		
+
 		// WHEN
 		displayWhen(TEST_NAME);
 		// We need reconcile and not recompute here. We need to fetch the updated case status.
@@ -347,10 +347,10 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
 		assertDeprovisionedTimedOutUser(userAfter, accountJackOid);
-		
+
 		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
-	
+
 	/**
 	 * Put everything in a clean state so we can start over.
 	 */
@@ -358,15 +358,15 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	public void test719CleanUp() throws Exception {
 		final String TEST_NAME = "test719CleanUp";
 		displayTestTitle(TEST_NAME);
-		
+
 		cleanupUser(TEST_NAME, USER_JACK_OID, USER_JACK_USERNAME, accountJackOid);
 	}
-	
+
 	@Override
 	protected void backingStoreProvisionWill(String interest) throws IOException {
 		appendToCsv(new String[]{USER_WILL_NAME, USER_WILL_FULL_NAME, ACCOUNT_WILL_DESCRIPTION_MANUAL, interest, "false", USER_WILL_PASSWORD_OLD});
 	}
-	
+
 	@Override
 	protected void backingStoreUpdateWill(String newFullName, String interest, ActivationStatusType newAdministrativeStatus, String password) throws IOException {
 		String disabled;
@@ -377,20 +377,20 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		}
 		replaceInCsv(new String[]{USER_WILL_NAME, newFullName, ACCOUNT_WILL_DESCRIPTION_MANUAL, interest, disabled, password});
 	}
-	
+
 	@Override
 	protected void backingStoreDeprovisionWill() throws IOException {
 		deprovisionInCsv(USER_WILL_NAME);
 	}
-	
+
 	protected void backingStoreAddJack() throws IOException {
 		appendToCsv(new String[]{USER_JACK_USERNAME, USER_JACK_FULL_NAME, ACCOUNT_JACK_DESCRIPTION_MANUAL, "", "false", USER_JACK_PASSWORD_OLD});
 	}
-	
+
 	protected void backingStoreDeleteJack() throws IOException {
 		deprovisionInCsv(USER_JACK_USERNAME);
 	}
-	
+
 	protected void deprovisionInCsv(String username) throws IOException {
 		deleteInCsv(username);
 	}
@@ -400,7 +400,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		data[4] = "true";
 		replaceInCsv(data);
 	}
-	
+
 	protected String[] readFromCsv(String username) throws IOException {
 		List<String> lines = Files.readAllLines(Paths.get(CSV_TARGET_FILE.getPath()));
 		for (int i = 0; i < lines.size(); i++) {
@@ -412,7 +412,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		}
 		return null;
 	}
-	
+
 	private String[] unescape(String[] cols) {
 		String[] out = new String[cols.length];
 		for (int i = 0; i < cols.length; i++) {
@@ -427,7 +427,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		String line = formatCsvLine(data);
 		Files.write(Paths.get(CSV_TARGET_FILE.getPath()), line.getBytes(), StandardOpenOption.APPEND);
 	}
-	
+
 	protected void replaceInCsv(String[] data) throws IOException {
 		List<String> lines = Files.readAllLines(Paths.get(CSV_TARGET_FILE.getPath()));
 		boolean found = false;
@@ -445,7 +445,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		Files.write(Paths.get(CSV_TARGET_FILE.getPath()), lines,
 				StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
 	}
-	
+
 	protected void deleteInCsv(String username) throws IOException {
 		List<String> lines = Files.readAllLines(Paths.get(CSV_TARGET_FILE.getPath()));
 		Iterator<String> iterator = lines.iterator();
@@ -463,12 +463,12 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	private String formatCsvLine(String[] data) {
 		return Arrays.stream(data).map(s -> "\""+s+"\"").collect(Collectors.joining(","));
 	}
-	
+
 	@Override
 	protected void displayBackingStore() throws IOException {
 		display("CSV", dumpCsv());
 	}
-	
+
 	protected String dumpCsv() throws IOException {
 		return StringUtils.join(Files.readAllLines(Paths.get(CSV_TARGET_FILE.getPath())), "\n");
 	}

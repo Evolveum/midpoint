@@ -62,13 +62,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> implements Popupable{
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final String ID_TYPE = "type";
 	private static final String ID_RELATION = "relation";
 	private static final String ID_ROLE_TABLE = "roleTable";
 	private static final String ID_RESOURCE_TABLE = "resourceTable";
 	private static final String ID_ORG_TABLE = "orgTable";
-	
+
 	private static final String ID_SELECTED_ROLES = "rolesSelected";
 	private static final String ID_SELECTED_RESOURCES = "resourcesSelected";
 	private static final String ID_SELECTED_ORGS = "orgSelected";
@@ -77,7 +77,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 	private static final String ID_COUNT_CONTAINER = "countContainer";
 	private static final String ID_SERVICE_TABLE = "serviceTable";
 	private static final String ID_SELECTED_SERVICES = "servicesSelected";
-	
+
 	private static final String ID_BUTTON_ASSIGN = "assignButton";
 
     private static final String DOT_CLASS = TypedAssignablePanel.class.getName();
@@ -103,7 +103,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 		initLayout(type, multiselect);
 	}
-	
+
 	private void initLayout(Class<T> type, final boolean multiselect) {
 		initAssignmentParametersPanel();
 
@@ -119,13 +119,13 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		tablesContainer.add(listOrgPanel);
 		PopupObjectListPanel<T> listServicePanel = createObjectListPanel(ID_SERVICE_TABLE, ID_SELECTED_SERVICES, ServiceType.COMPLEX_TYPE);
 		tablesContainer.add(listServicePanel);
-		
-		
-		
+
+
+
 		WebMarkupContainer countContainer = createCountContainer();
 		add(countContainer);
-		
-		
+
+
 		AjaxButton addButton = new AjaxButton(ID_BUTTON_ASSIGN,
 				createStringResource("userBrowserDialog.button.addButton")) {
 
@@ -140,9 +140,9 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 				TypedAssignablePanel.this.addPerformed(target, selected, getSelectedRelation());
 			}
 		};
-		
+
 		addButton.add(new VisibleEnableBehaviour() {
-			
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -153,7 +153,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 		add(addButton);
 	}
-	
+
 	protected void initAssignmentParametersPanel(){
 		DropDownChoicePanel<QName> typeSelect = new DropDownChoicePanel<>(ID_TYPE, typeModel, Model.ofList(WebComponentUtil.createAssignableTypesList()), new QNameChoiceRenderer());
 		typeSelect.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
@@ -169,10 +169,10 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		typeSelect.setOutputMarkupId(true);
 		add(typeSelect);
 
-		
+
 		DropDownChoicePanel<RelationTypes> relationSelector = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
                 WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class), Model.of(RelationTypes.MEMBER), TypedAssignablePanel.this, false);
-        relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());        
+        relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         relationSelector.add(new VisibleEnableBehaviour(){
             private static final long serialVersionUID = 1L;
 
@@ -180,32 +180,32 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
             public boolean isEnabled(){
                 return !ResourceType.COMPLEX_TYPE.equals(typeModel.getObject());
             }
-            
+
             @Override
             public boolean isVisible() {
             	return TypedAssignablePanel.this.isRelationPanelVisible();
             }
-            
+
         });
         relationSelector.setOutputMarkupId(true);
         relationSelector.setOutputMarkupPlaceholderTag(true);
         add(relationSelector);
-		
+
 	}
 
 	private List<T> getSelectedData(String id){
 		return ((ObjectListPanel) get(createComponentPath(ID_TABLES_CONTAINER, id))).getSelectedObjects();
 	}
-	
+
 	private QName getSelectedRelation(){
 		DropDownChoicePanel<RelationTypes> relationPanel = (DropDownChoicePanel<RelationTypes>) get(ID_RELATION);
 		RelationTypes relation = relationPanel.getModel().getObject();
 		if (relation == null) {
-			return SchemaConstants.ORG_DEFAULT; 
+			return SchemaConstants.ORG_DEFAULT;
 		}
 		return relation.getRelation();
 	}
-	
+
 	private WebMarkupContainer createCountContainer(){
 		WebMarkupContainer countContainer = new WebMarkupContainer(ID_COUNT_CONTAINER);
 		countContainer.setOutputMarkupId(true);
@@ -215,17 +215,17 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		countContainer.add(createCountLabel(ID_SELECTED_SERVICES, (PopupObjectListPanel<T>)get(createComponentPath(ID_TABLES_CONTAINER, ID_SERVICE_TABLE))));
 		return countContainer;
 	}
-	
+
 	private Label  createCountLabel(String id, ObjectListPanel panel){
 		Label label = new Label(id, panel.getSelectedObjects().size());
 		label.setOutputMarkupId(true);
 		return label;
 	}
-	
+
 	protected void onClick(AjaxRequestTarget target, T focus) {
 		getPageBase().hideMainPopup(target);
 	}
-	
+
 	private void refreshCounts(AjaxRequestTarget target) {
 		addOrReplace(createCountContainer());
 		target.add(get(ID_COUNT_CONTAINER));
@@ -233,7 +233,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 	private PopupObjectListPanel<T> createObjectListPanel(String id, final String countId, final QName type) {
 		PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(id, qnameToCompileTimeClass(type), true, getPageBase()) {
-			
+
 			private static final long serialVersionUID = 1L;
 
 
@@ -270,7 +270,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
                 }
                 return query;
             }
-		
+
 		};
 
 		listPanel.setOutputMarkupId(true);
@@ -284,7 +284,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		});
 		return listPanel;
 	}
-	
+
 	protected boolean isRelationPanelVisible() {
 		return true;
 	}

@@ -134,7 +134,7 @@ public class TestParseForm extends AbstractObjectParserTest<FormType> {
 		assertEquals("Wrong class in form", FormType.class, form.getCompileTimeClass());
 		FormType formType = form.asObjectable();
 		assertNotNull("asObjectable resulted in null", formType);
-		
+
 		assertPropertyValue(form, "name", PrismTestUtil.createPolyString("form1"));
 		assertPropertyDefinition(form, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 
@@ -142,7 +142,7 @@ public class TestParseForm extends AbstractObjectParserTest<FormType> {
 		assertNotNull("no formDefinition property", formDefinition);
 
 	}
-	
+
 	private void assertFormJaxb(FormType form, boolean isObject) throws SchemaException {
 		assertEquals("Wrong name", PrismTestUtil.createPolyStringType("form1"), form.getName());
 		FormDefinitionType formDefinition = form.getFormDefinition();

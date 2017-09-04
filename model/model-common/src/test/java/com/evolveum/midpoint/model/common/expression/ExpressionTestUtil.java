@@ -46,7 +46,7 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
  *
  */
 public class ExpressionTestUtil {
-	
+
 	public static ProtectorImpl createInitializedProtector(PrismContext prismContext) {
 		ProtectorImpl protector = new ProtectorImpl();
         protector.setKeyStorePath(MidPointTestConstants.KEYSTORE_PATH);
@@ -54,12 +54,12 @@ public class ExpressionTestUtil {
         protector.init();
         return protector;
 	}
-	
-	public static ExpressionFactory createInitializedExpressionFactory(ObjectResolver resolver, ProtectorImpl protector, 
+
+	public static ExpressionFactory createInitializedExpressionFactory(ObjectResolver resolver, ProtectorImpl protector,
 			PrismContext prismContext, SecurityEnforcer securityEnforcer) {
     	ExpressionFactory expressionFactory = new ExpressionFactory(securityEnforcer, prismContext);
     	expressionFactory.setObjectResolver(resolver);
-    	
+
     	// asIs
     	AsIsExpressionEvaluatorFactory asIsFactory = new AsIsExpressionEvaluatorFactory(prismContext, protector);
     	expressionFactory.addEvaluatorFactory(asIsFactory);
@@ -68,17 +68,17 @@ public class ExpressionTestUtil {
     	// value
     	LiteralExpressionEvaluatorFactory valueFactory = new LiteralExpressionEvaluatorFactory(prismContext);
     	expressionFactory.addEvaluatorFactory(valueFactory);
-    	
+
 		// const
     	ConstantsManager constManager = new ConstantsManager(createConfiguration());
     	ConstExpressionEvaluatorFactory constFactory = new ConstExpressionEvaluatorFactory(protector, constManager, prismContext);
     	expressionFactory.addEvaluatorFactory(constFactory);
-    	
+
     	// path
     	PathExpressionEvaluatorFactory pathFactory = new PathExpressionEvaluatorFactory(prismContext, protector);
     	pathFactory.setObjectResolver(resolver);
     	expressionFactory.addEvaluatorFactory(pathFactory);
-    	
+
     	// generate
     	ValuePolicyProcessor valuePolicyGenerator = new ValuePolicyProcessor();
     	valuePolicyGenerator.setExpressionFactory(expressionFactory);
@@ -99,10 +99,10 @@ public class ExpressionTestUtil {
         scriptExpressionFactory.registerEvaluator(groovyEvaluator.getLanguageUrl(), groovyEvaluator);
         ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory = new ScriptExpressionEvaluatorFactory(scriptExpressionFactory, securityEnforcer);
         expressionFactory.addEvaluatorFactory(scriptExpressionEvaluatorFactory);
-        
+
         return expressionFactory;
 	}
-	
+
 	private static Configuration createConfiguration() {
     	BaseConfiguration config = new BaseConfiguration();
     	config.addProperty("foo", "foobar");

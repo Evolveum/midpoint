@@ -29,11 +29,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public interface MappingOutputProcessor<V extends PrismValue> {
 
 	/**
-	 * 
+	 *
 	 * @return if true is returned then the detaul processing will take place
 	 *         after the processor is finished. If false then the defaul processing
 	 *         will be skipped.
 	 */
 	boolean process(ItemPath mappingOutputPath, MappingOutputStruct<V> outputStruct) throws SchemaException, ExpressionEvaluationException;
-	
+
 }

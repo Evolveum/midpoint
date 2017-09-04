@@ -29,5 +29,5 @@ public class PageAdminServices extends PageAdmin {
     public static final String AUTH_SERVICES_ALL_LABEL = "PageAdminServices.auth.servicesAll.label";
     public static final String AUTH_SERVICES_ALL_DESCRIPTION = "PageAdminServices.auth.servicesAll.description";
 
-    
+
 }

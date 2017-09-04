@@ -78,7 +78,7 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeTask
 				"check object integrity", "check object integrity", taskManager, prismContext,
                 repositoryService, systemObjectCache, opResult);
 	}
-	
+
 	@Override
 	protected boolean initializeRun(ObjectIntegrityCheckResultHandler handler,
 			TaskRunResult runResult, Task task, OperationResult opResult) {

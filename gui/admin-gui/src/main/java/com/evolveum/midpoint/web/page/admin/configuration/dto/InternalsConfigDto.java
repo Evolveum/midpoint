@@ -27,7 +27,7 @@ import java.io.Serializable;
  */
 public class InternalsConfigDto implements Serializable {
 	private static final long serialVersionUID = 1L;
-	
+
 	public static final String F_CONSISTENCY_CHECKS = "consistencyChecks";
     public static final String F_ENCRYPTION_CHECKS = "encryptionChecks";
     public static final String F_READ_ENCRYPTION_CHECKS = "readEncryptionChecks";
@@ -50,7 +50,7 @@ public class InternalsConfigDto implements Serializable {
 
         detailedDebugDump = DebugUtil.isDetailedDebugDump();
 
-        tolerateUndeclaredPrefixes = QNameUtil.isTolerateUndeclaredPrefixes();        
+        tolerateUndeclaredPrefixes = QNameUtil.isTolerateUndeclaredPrefixes();
     }
 
     public boolean isConsistencyChecks() {

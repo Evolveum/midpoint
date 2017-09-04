@@ -21,15 +21,15 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 
 /**
  * Error regarding schema.
- * 
- * E.g. Object class violation, missing object class, inconsistent schema, etc. 
- * 
+ *
+ * E.g. Object class violation, missing object class, inconsistent schema, etc.
+ *
  * @author Radovan Semancik
  *
  */
 public class SchemaException extends CommonException {
 	private static final long serialVersionUID = -6016220825724355014L;
-	
+
 	private QName propertyName;
 
 	public SchemaException() {
@@ -39,7 +39,7 @@ public class SchemaException extends CommonException {
 	public SchemaException(String message, Throwable cause) {
 		super(message, cause);
 	}
-	
+
 	public SchemaException(LocalizableMessage userFriendlyMessage, Throwable cause) {
 		super(userFriendlyMessage, cause);
 	}
@@ -48,11 +48,11 @@ public class SchemaException extends CommonException {
 		super(message, cause);
 		this.propertyName = propertyName;
 	}
-	
+
 	public SchemaException(String message) {
 		super(message);
 	}
-	
+
 	public SchemaException(LocalizableMessage userFriendlyMessage) {
 		super(userFriendlyMessage);
 	}
@@ -61,12 +61,12 @@ public class SchemaException extends CommonException {
 		super(message);
 		this.propertyName = propertyName;
 	}
-		
+
 	@Override
 	public String getErrorTypeMessage() {
 		return "Schema problem";
 	}
-	
+
 	public QName getPropertyName() {
 		return propertyName;
 	}

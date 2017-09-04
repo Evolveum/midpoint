@@ -19,9 +19,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 public enum OperationResultStatus {
 
@@ -33,7 +33,7 @@ public enum OperationResultStatus {
 	UNKNOWN,
 
 	/**
-	 * Used when operation and sub operations finish successfully. 
+	 * Used when operation and sub operations finish successfully.
 	 * The operation is completed and the result is final.
 	 */
 	SUCCESS,
@@ -58,7 +58,7 @@ public enum OperationResultStatus {
 	 * The operation is completed and the result is final.
 	 */
 	FATAL_ERROR,
-	
+
 	/**
 	 * The operation didn't finish correctly but that was expected and handled. It is
 	 * equivalent to success for all practical cases except for displaying the result. But using
@@ -66,7 +66,7 @@ public enum OperationResultStatus {
 	 * The operation is completed and the result is final.
 	 */
 	HANDLED_ERROR,
-	
+
 	/**
 	 * Result does not make any sense for the operation. This is useful in cases that the
 	 * operation is not supported (e.g. an optional part of the interface).
@@ -75,7 +75,7 @@ public enum OperationResultStatus {
 	 * The operation is completed and the result is final.
 	 */
 	NOT_APPLICABLE,
-	
+
 	/**
 	 * The operation is being executed. This is set for operations that are executed
 	 * asynchronously or take a significant amount of time. Short synchronous operations

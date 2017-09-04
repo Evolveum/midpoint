@@ -30,9 +30,9 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 public class QNameChoiceRenderer implements IChoiceRenderer<QName> {
 	private static final long serialVersionUID = 1L;
-	
+
 	private static Map<String, String> prefixMap;
-	
+
 	static {
 		prefixMap = new HashMap<>();
 		prefixMap.put(SchemaConstantsGenerated.NS_ICF_SCHEMA, "icfs:");
@@ -43,7 +43,7 @@ public class QNameChoiceRenderer implements IChoiceRenderer<QName> {
 	}
 
 	private boolean usePrefix = false;
-	
+
 	public QNameChoiceRenderer() {
 		this(false);
 	}
@@ -70,7 +70,7 @@ public class QNameChoiceRenderer implements IChoiceRenderer<QName> {
 				sb.append(prefix);
 			}
 		}
-	
+
 		sb.append(object.getLocalPart());
 		return sb.toString();
 	}

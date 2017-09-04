@@ -44,8 +44,8 @@ public class ClassLogger extends LoggerConfiguration {
 	@Override
 	public void setName(String name) {
 		this._package = name;
-	} 
-    
+	}
+
 	public ClassLoggerConfigurationType toXmlType() {
 		ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
 		type.setPackage(_package);

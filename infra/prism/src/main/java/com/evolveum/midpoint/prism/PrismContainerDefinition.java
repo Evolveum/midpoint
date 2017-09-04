@@ -52,7 +52,7 @@ public interface PrismContainerDefinition<C extends Containerable> extends ItemD
 	PrismContainerDefinition<C> clone();
 
 	PrismContainerDefinition<C> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition);
-	
+
 	void replaceDefinition(QName itemName, ItemDefinition newDefinition);
 
 	PrismContainerValue<C> createValue();

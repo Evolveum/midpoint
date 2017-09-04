@@ -44,7 +44,7 @@ public class TableConfigurationPanel extends BasePanel {
     private static final String ID_FORM = "form";
     private static final String ID_INPUT = "input";
     private static final String ID_BUTTON = "button";
-    
+
 //    private static final String ID_FEEDBACK = "feedback";
 
     public TableConfigurationPanel(String id) {
@@ -118,7 +118,7 @@ public class TableConfigurationPanel extends BasePanel {
         input.add(new SearchFormEnterBehavior(button));
         input.setType(Integer.class);
         input.setOutputMarkupId(true);
-        
+
         FeedbackPanel feedback = new FeedbackPanel("inputFeedback", new ComponentFeedbackMessageFilter(input));
 		feedback.setOutputMarkupId(true);
 		form.add(feedback);
@@ -163,8 +163,8 @@ public class TableConfigurationPanel extends BasePanel {
 
     protected void pageSizeChanged(AjaxRequestTarget target) {
     }
-    
+
     protected void onPageSizeChangedError(AjaxRequestTarget target) {
-    	
+
     }
 }

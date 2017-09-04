@@ -25,7 +25,7 @@ import org.w3c.dom.Node;
  *
  */
 public class DomVisitorUtil {
-	
+
 	public static void visitElements(Node node, DomElementVisitor visitor) {
 		if (node instanceof Element) {
 			visitor.visit((Element)node);

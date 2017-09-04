@@ -69,7 +69,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 	private static final String OBJECTCLASS_NATIVE_ACCOUNT = "account";
 	private static final String OBJECTCLASS_NATIVE_GROUP = "group";
 	private static final String OBJECTCLASS_NATIVE_PRIVILEGE = "privilege";
-	
+
 	private static final String OBJECTCLASS_LEGACY_ACCOUNT = "CustomaccountObjectClass";
 	private static final String OBJECTCLASS_LEGACY_GROUP = "CustomgroupObjectClass";
 	private static final String OBJECTCLASS_LEGACY_PRIVILEGE = "CustomprivilegeObjectClass";
@@ -90,7 +90,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		provisioningService.postInit(initResult);
-		
+
 		InternalsConfig.encryptionChecks = false;
 
 		resourceNative = addResourceFromFile(RESOURCE_DUMMY_NATIVE_FILE, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
@@ -105,7 +105,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 		dummyResourceLegacyCtl.setResource(resourceLegacy);
 		dummyResourceLegacy = dummyResourceLegacyCtl.getDummyResource();
 }
-	
+
 	@Test
 	public void test100NativeIntegrity() throws Exception {
 		final String TEST_NAME = "test100NativeIntegrity";
@@ -117,20 +117,20 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 		assertNotNull("ResourceType is null", resourceTypeNative);
 
 		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult(); 
+		OperationResult result = task.getResult();
 
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NATIVE_OID, null, result)
-				.asObjectable();		
+				.asObjectable();
 	}
-	
+
 	@Test
 	public void test103NativeTestResource() throws Exception {
 		final String TEST_NAME = "test103NativeTestResource";
 		TestUtil.displayTestTitle(TEST_NAME);
-		
+
 		// GIVEN
 		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult(); 
+		OperationResult result = task.getResult();
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NATIVE_OID, null, result)
 				.asObjectable();
@@ -167,7 +167,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 	public void test105NativeParsedSchema() throws Exception {
 		final String TEST_NAME = "test105NativeParsedSchema";
 		TestUtil.displayTestTitle(TEST_NAME);
-		
+
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyLegacy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
@@ -183,7 +183,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 		ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceTypeNative, prismContext);
 		display("Parsed resource schema", returnedSchema);
 		assertNotNull("No parsed schema", returnedSchema);
-		
+
 		assertObjectClass(returnedSchema, OBJECTCLASS_NATIVE_ACCOUNT);
 		assertObjectClass(returnedSchema, OBJECTCLASS_NATIVE_GROUP);
 		assertObjectClass(returnedSchema, OBJECTCLASS_NATIVE_PRIVILEGE);
@@ -191,7 +191,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 		assertNoObjectClass(returnedSchema, OBJECTCLASS_LEGACY_GROUP);
 		assertNoObjectClass(returnedSchema, OBJECTCLASS_LEGACY_PRIVILEGE);
 	}
-	
+
 	@Test
 	public void test200LegacyIntegrity() throws Exception {
 		final String TEST_NAME = "test200LegacyIntegrity";
@@ -203,20 +203,20 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 		assertNotNull("ResourceType is null", resourceTypeLegacy);
 
 		Task task = taskManager.createTaskInstance(TestDummyLegacy.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult(); 
+		OperationResult result = task.getResult();
 
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_LEGACY_OID, null, result)
 				.asObjectable();
 	}
-	
+
 	@Test
 	public void test203LegacyTestResource() throws Exception {
 		final String TEST_NAME = "test203LegacyTestResource";
 		TestUtil.displayTestTitle(TEST_NAME);
-		
+
 		// GIVEN
 		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult(); 
+		OperationResult result = task.getResult();
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_LEGACY_OID, null, result)
 				.asObjectable();
@@ -253,7 +253,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 	public void test205LegacyParsedSchema() throws Exception {
 		final String TEST_NAME = "test205LegacyParsedSchema";
 		TestUtil.displayTestTitle(TEST_NAME);
-		
+
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyLegacy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
@@ -269,7 +269,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 		ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceTypeLegacy, prismContext);
 		display("Parsed resource schema", returnedSchema);
 		assertNotNull("No parsed schema", returnedSchema);
-		
+
 		assertObjectClass(returnedSchema, OBJECTCLASS_LEGACY_ACCOUNT);
 		assertObjectClass(returnedSchema, OBJECTCLASS_LEGACY_GROUP);
 		assertObjectClass(returnedSchema, OBJECTCLASS_LEGACY_PRIVILEGE);
@@ -280,7 +280,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 
 	private void assertObjectClass(ResourceSchema schema, String objectClassLocalName) {
 		ObjectClassComplexTypeDefinition ocDef = schema.findObjectClassDefinition(objectClassLocalName);
-		assertNotNull("No objectclass "+objectClassLocalName+" found in schema", ocDef);		
+		assertNotNull("No objectclass "+objectClassLocalName+" found in schema", ocDef);
 	}
 
 	private void assertNoObjectClass(ResourceSchema schema, String objectClassLocalName) {

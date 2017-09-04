@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.provisioning.impl.manual;
 
@@ -64,22 +64,22 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestSemiManual extends AbstractManualResourceTest {
-	
+
 	private static final File CSV_SOURCE_FILE = new File(TEST_DIR, "semi-manual.csv");
 	private static final File CSV_TARGET_FILE = new File("target/semi-manual.csv");
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(TestSemiManual.class);
-	
+
 	protected static final String ATTR_DISABLED = "disabled";
 	protected static final QName ATTR_DISABLED_QNAME = new QName(MidPointConstants.NS_RI, ATTR_DISABLED);
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		resource = addResource(initResult);
 		resourceType = resource.asObjectable();
-		
+
 		FileUtils.copyFile(CSV_SOURCE_FILE, CSV_TARGET_FILE);
 	}
 
@@ -87,12 +87,12 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	protected File getResourceFile() {
 		return RESOURCE_SEMI_MANUAL_FILE;
 	}
-	
+
 	@Override
 	protected boolean supportsBackingStore() {
 		return true;
 	}
-	
+
 	protected PrismObject<ResourceType> addResource(OperationResult result)
 			throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 		PrismObject<ResourceType> resource = prismContext.parseObject(getResourceFile());
@@ -104,12 +104,12 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		resource.setOid(oid);
 		return resource;
 	}
-	
+
 	@Override
 	protected void assertResourceSchemaBeforeTest(Element resourceXsdSchemaElementBefore) {
 		AssertJUnit.assertNull("Resource schema sneaked in before test connection", resourceXsdSchemaElementBefore);
 	}
-	
+
 	@Override
 	protected int getNumberOfAccountAttributeDefinitions() {
 		return 5;
@@ -119,7 +119,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	protected void backingStoreAddWill() throws IOException {
 		appendToCsv(new String[]{ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_FULLNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL, "", "false", ACCOUNT_WILL_PASSWORD_OLD});
 	}
-	
+
 	@Override
 	protected void backingStoreUpdateWill(String newFullName, ActivationStatusType newAdministrativeStatus, String password) throws IOException {
 		String disabled;
@@ -135,7 +135,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		String line = formatCsvLine(data) + "\n";
 		Files.write(Paths.get(CSV_TARGET_FILE.getPath()), line.getBytes(), StandardOpenOption.APPEND);
 	}
-	
+
 	private void replaceInCsv(String[] data) throws IOException {
 		List<String> lines = Files.readAllLines(Paths.get(CSV_TARGET_FILE.getPath()));
 		for (int i = 0; i < lines.size(); i++) {

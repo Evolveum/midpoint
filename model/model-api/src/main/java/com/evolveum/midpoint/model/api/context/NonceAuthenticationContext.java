@@ -6,17 +6,17 @@ public class NonceAuthenticationContext extends AbstractAuthenticationContext {
 
 	private String nonce;
 	private NonceCredentialsPolicyType policy;
-	
+
 	public NonceAuthenticationContext(String username, String nonce, NonceCredentialsPolicyType policy) {
 		super(username);
 		this.nonce = nonce;
 		this.policy = policy;
 	}
-	
+
 	public String getNonce() {
 		return nonce;
 	}
-	
+
 	public NonceCredentialsPolicyType getPolicy() {
 		return policy;
 	}

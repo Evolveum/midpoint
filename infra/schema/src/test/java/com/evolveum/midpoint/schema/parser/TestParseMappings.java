@@ -72,7 +72,7 @@ public class TestParseMappings extends AbstractContainerValueParserTest<Mappings
 //		assertEquals("Wrong CTD typeName", AccessCertificationAssignmentCaseType.COMPLEX_TYPE, ctd.getTypeName());
 //		assertEquals("Wrong real class in PCV", AccessCertificationAssignmentCaseType.class, pcv.getRealClass());
 //	}
-	
+
 //	private void assertJaxb(AccessCertificationCaseType aCase) throws SchemaException {
 //		PrismAsserts.assertRefEquivalent("Wrong objectRef",
 //				new PrismReferenceValue("ee53eba7-5c16-4c16-ad15-dd6a2360ab1a", UserType.COMPLEX_TYPE),

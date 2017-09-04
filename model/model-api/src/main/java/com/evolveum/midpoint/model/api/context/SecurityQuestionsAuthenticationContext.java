@@ -8,14 +8,14 @@ public class SecurityQuestionsAuthenticationContext extends AbstractAuthenticati
 
 	private Map<String, String> questionAnswerMap;
 	private SecurityQuestionsCredentialsPolicyType policy;
-	
-	
+
+
 	public SecurityQuestionsAuthenticationContext(String username, Map<String, String> questionAnswerMap) {
 		super(username);
 		this.questionAnswerMap = questionAnswerMap;
 	}
-	
-	
+
+
 	public Map<String, String> getQuestionAnswerMap() {
 		return questionAnswerMap;
 	}
@@ -24,14 +24,14 @@ public class SecurityQuestionsAuthenticationContext extends AbstractAuthenticati
 	public Object getEnteredCredential() {
 		return getQuestionAnswerMap();
 	}
-	
+
 	public SecurityQuestionsCredentialsPolicyType getPolicy() {
 		return policy;
 	}
-	
+
 	public void setPolicy(SecurityQuestionsCredentialsPolicyType policy) {
 		this.policy = policy;
 	}
-	
-	
+
+
 }

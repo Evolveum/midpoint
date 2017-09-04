@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 
+ *
  * @author katkav
  *
  */
@@ -101,7 +101,7 @@ public class ProfilingConfigPanel extends BasePanel<ProfilingDto> {
 
         //Subsystem and general profiling init
         CheckBox requestFilter = WebComponentUtil.createAjaxCheckBox("requestFilter", new PropertyModel<Boolean>(getModel(), "requestFilter"));
-        
+
         CheckBox performanceStatistics = WebComponentUtil.createAjaxCheckBox("performanceStatistics", new PropertyModel<Boolean>(getModel(), "performanceStatistics"));
         CheckBox subsystemModel = WebComponentUtil.createAjaxCheckBox("subsystemModel", new PropertyModel<Boolean>(getModel(), "subsystemModel"));
         CheckBox subsystemRepository = WebComponentUtil.createAjaxCheckBox("subsystemRepository", new PropertyModel<Boolean>(getModel(), "subsystemRepository"));
@@ -130,5 +130,5 @@ public class ProfilingConfigPanel extends BasePanel<ProfilingDto> {
     }
 
 
-  
+
 }

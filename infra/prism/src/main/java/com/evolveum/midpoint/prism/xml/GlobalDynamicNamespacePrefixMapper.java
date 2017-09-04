@@ -35,12 +35,12 @@ import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 /**
  * Maps namespaces to preferred prefixes. Should be used through the code to
  * avoid generation of prefixes.
- * 
+ *
  * Although this is usually used as singleton (static), it can also be instantiated to locally
  * override some namespace mappings. This is useful for prefixes like "tns" (schema) or "ri" (resource schema).
- * 
+ *
  * @see <a href="https://jira.evolveum.com/browse/MID-349">MID-349</a>
- * 
+ *
  * @author Igor Farinic
  * @author Radovan Semancik
  */
@@ -51,7 +51,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 	private String defaultNamespace = null;
 	private boolean alwaysExplicit = false;
     private final Set<String> prefixesDeclaredByDefault = new HashSet<>();
-	
+
 	public String getDefaultNamespace() {
 		return defaultNamespace;
 	}
@@ -59,7 +59,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 	public synchronized void setDefaultNamespace(String defaultNamespace) {
 		this.defaultNamespace = defaultNamespace;
 	}
-	
+
 	@Override
 	public boolean isAlwaysExplicit() {
 		return alwaysExplicit;
@@ -94,16 +94,16 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 			defaultNamespace = namespace;
 		}
 	}
-	
+
 	private static synchronized void registerPrefixGlobal(String namespace, String prefix) {
 		globalNamespacePrefixMap.put(namespace, prefix);
 	}
-	
+
 	@Override
 	public synchronized void registerPrefixLocal(String namespace, String prefix) {
 		localNamespacePrefixMap.put(namespace, prefix);
 	}
-	
+
 	@Override
 	public String getPrefix(String namespace) {
 		if (defaultNamespace != null && defaultNamespace.equals(namespace) && !alwaysExplicit) {
@@ -111,7 +111,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 		}
 		return getPrefixExplicit(namespace);
 	}
-	
+
 	public synchronized String getPrefixExplicit(String namespace) {
 		String prefix = localNamespacePrefixMap.get(namespace);
 		if (prefix == null) {
@@ -119,7 +119,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 		}
 		return prefix;
 	}
-	
+
 	@Override
 	public QName setQNamePrefix(QName qname) {
 		String namespace = qname.getNamespaceURI();
@@ -129,7 +129,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 		}
 		return new QName(qname.getNamespaceURI(),qname.getLocalPart(),prefix);
 	}
-	
+
 	@Override
 	public QName setQNamePrefixExplicit(QName qname) {
 		String namespace = qname.getNamespaceURI();
@@ -145,12 +145,12 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 		//for JAXB we are mapping midpoint common namespace to default namespace
 		if (defaultNamespace != null && defaultNamespace.equals(namespaceUri) && !alwaysExplicit) {
 			return "";
-		} 
+		}
 		return getPreferredPrefix(namespaceUri, suggestion);
 	}
 
 	/**
-	 * 
+	 *
 	 * @param namespace
 	 * @return preferred prefix for the namespace, if no prefix is assigned yet,
 	 *         then it will assign a prefix and return it.
@@ -188,7 +188,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 		return prefix;
 
 	}
-	
+
 	@Override
 	public synchronized GlobalDynamicNamespacePrefixMapper clone() {
 		GlobalDynamicNamespacePrefixMapper clone = new GlobalDynamicNamespacePrefixMapper();
@@ -213,7 +213,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 	public String debugDump() {
 		return debugDump(0);
 	}
-	
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();

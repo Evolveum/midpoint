@@ -42,7 +42,7 @@ public abstract class AbstractWrapperModel<T,O extends ObjectType> implements IM
     public ObjectWrapper<O> getWrapper() {
 		return wrapperModel.getObject();
 	}
-    
+
     public O getObjectType() {
 		return wrapperModel.getObject().getObject().asObjectable();
 	}

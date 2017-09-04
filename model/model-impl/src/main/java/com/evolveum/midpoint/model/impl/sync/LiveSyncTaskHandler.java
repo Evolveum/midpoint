@@ -50,27 +50,27 @@ import java.util.List;
 
 /**
  * The task hander for a live synchronization.
- * 
+ *
  *  This handler takes care of executing live synchronization "runs". It means that the handler "run" method will
  *  be called every few seconds. The responsibility is to scan for changes that happened since the last run.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 @Component
 public class LiveSyncTaskHandler implements TaskHandler {
-	
+
 	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/live-sync/handler-3";
 
     @Autowired(required=true)
 	private TaskManager taskManager;
-	
+
 	@Autowired(required=true)
 	private ProvisioningService provisioningService;
-	
+
 	@Autowired(required = true)
     private PrismContext prismContext;
-	
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(LiveSyncTaskHandler.class);
 
 	@PostConstruct
@@ -90,12 +90,12 @@ public class LiveSyncTaskHandler implements TaskHandler {
 
 	private TaskRunResult runInternal(Task task) {
 		LOGGER.trace("LiveSyncTaskHandler.run starting");
-		
+
 		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(OperationConstants.LIVE_SYNC);
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
-		
+
 		 String resourceOid = task.getObjectOid();
 	        if (resourceOid == null) {
 	            LOGGER.error("Live Sync: No resource OID specified in the task");
@@ -103,7 +103,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 	            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 	            return runResult;
 	        }
-	        
+
 	        ResourceType resource = null;
 	        try {
 
@@ -157,7 +157,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
-        
+
 		RefinedResourceSchema refinedSchema;
         try {
             refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
@@ -167,14 +167,14 @@ public class LiveSyncTaskHandler implements TaskHandler {
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
-        
+
         if (refinedSchema == null){
         	opResult.recordFatalError("No refined schema defined. Probably some configuration problem.");
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             LOGGER.error("Live Sync: No refined schema defined. Probably some configuration problem.");
             return runResult;
         }
-        
+
         ObjectClassComplexTypeDefinition objectClass;
 		try {
 			objectClass = Utils.determineObjectClass(refinedSchema, task);
@@ -189,11 +189,11 @@ public class LiveSyncTaskHandler implements TaskHandler {
         }
 
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(resourceOid, objectClass==null?null:objectClass.getTypeName());
-        		
+
         int changesProcessed;
-		
+
 		try {
-			
+
 			// MAIN PART
 			// Calling synchronize(..) in provisioning.
 			// This will detect the changes and notify model about them.
@@ -202,7 +202,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
             Utils.clearRequestee(task);
 			changesProcessed = provisioningService.synchronize(coords, task, opResult);
             progress += changesProcessed;
-			
+
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.error("Live Sync: A required object does not exist, OID: {}", ex.getOid());
             LOGGER.error("Exception stack trace", ex);
@@ -255,7 +255,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			runResult.setProgress(progress);
 			return runResult;
 		}
-		
+
 		opResult.computeStatus("Live sync run has failed");
 
         opResult.createSubresult(OperationConstants.LIVE_SYNC_STATISTICS).recordStatus(OperationResultStatus.SUCCESS, "Changes processed: " + changesProcessed);
@@ -274,7 +274,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 
 	@Override
 	public void refreshStatus(Task task) {
-		// Do nothing. Everything is fresh already.		
+		// Do nothing. Everything is fresh already.
 	}
 
     @Override

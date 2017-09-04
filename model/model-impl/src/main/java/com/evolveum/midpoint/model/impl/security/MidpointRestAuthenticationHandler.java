@@ -39,12 +39,12 @@ import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
  * @author Radovan Semancik
  */
 public class MidpointRestAuthenticationHandler implements ContainerRequestFilter, ContainerResponseFilter {
-	
+
 //	private static final Trace LOGGER = TraceManager.getTrace(MidpointRestAuthenticationHandler.class);
-	
+
 	@Autowired(required=true)
 	private MidpointRestPasswordAuthenticator passwordAuthenticator;
-	
+
 	@Autowired(required=true)
 	private MidpointRestSecurityQuestionsAuthenticator securityQuestionAuthenticator;
 
@@ -57,20 +57,20 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 	@Override
 	public void filter(ContainerRequestContext requestCtx) throws IOException {
 		Message m = JAXRSUtils.getCurrentMessage();
-		
+
 		AuthorizationPolicy policy = (AuthorizationPolicy) m.get(AuthorizationPolicy.class);
 		if (policy != null) {
 			passwordAuthenticator.handleRequest(policy, m, requestCtx);
 			return;
 		}
-		
+
 		String authorization = requestCtx.getHeaderString("Authorization");
-		
+
 		if (StringUtils.isBlank(authorization)){
 			RestServiceUtil.createAbortMessage(requestCtx);
 			return;
 		}
-		
+
 		String[] parts = authorization.split(" ");
 		String authenticationType = parts[0];
 
@@ -102,13 +102,13 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 		}
 
 	}
-	
+
 
 
 //	protected void createAbortMessage(ContainerRequestContext requestCtx){
 //		requestCtx.abortWith(Response.status(Status.UNAUTHORIZED)
 //				.header("WWW-Authenticate", AuthenticationType.BASIC.getAuthenticationType() + " realm=\"midpoint\", " + AuthenticationType.SECURITY_QUESTIONS.getAuthenticationType()).build());
 //	}
-//	
+//
 
 }

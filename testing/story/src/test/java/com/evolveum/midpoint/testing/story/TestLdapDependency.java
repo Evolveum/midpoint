@@ -72,25 +72,25 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * There are two meta-roles for orgs.
  * Org Metarole contains two inducements, one for creating organizationalUnit (intent=ou) and one for creating groupOfUniqueNames (intent=group) in ldap.
  * group depends on ou (since it is created in ou)
- * 
+ *
  * Org Metarole VIP is very similar it also contains two inducements, one for creating (intent=ou-vip) and one for creating groupOfUniqueNames (intent=group-vip) in ldap.
  * group-vip depends on ou-cip (since it is created in ou-vip)
- * 
+ *
  * @author michael gruber
  *
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public  class TestLdapDependency extends AbstractStoryTest {
-	
+
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap-dependency");
-	
+
 	private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
 	private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 	private static final QName OPENDJ_ASSOCIATION_GROUP_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "group");
 
 	public static final String ORG_TOP_OID = "00000000-8888-6666-0000-100000000001";
-	
+
 	public static final String ROLE_META_ORG_OID = "10000000-0000-0000-0000-000000006601";
 	public static final String ROLE_META_ORG_VIP_OID = "10000000-0000-0000-0000-000000006602";
 	public static final String ROLE_META_ORG_SUPERVIP_OID = "10000000-0000-0000-0000-000000006603";
@@ -99,47 +99,47 @@ public  class TestLdapDependency extends AbstractStoryTest {
 	private static final String ORG_HR_NAME = "HR";
 	private static String orgItOid;
 	private static String orgHrOid;
-	
+
 
 	private static final String ORG_TYPE_FUNCTIONAL = "functional";
 
 	private static final String LDAP_GROUP_INTENT = "group";
 	private static final String LDAP_GROUP_VIP_INTENT = "group-vip";
 	private static final String LDAP_GROUP_SUPERVIP_INTENT = "group-supervip";
-		
+
 	private static final String LDAP_OU_INTENT = "ou";
 	private static final String LDAP_OU_VIP_INTENT = "ou-vip";
 
-	
+
 	private ResourceType resourceOpenDjType;
 	private PrismObject<ResourceType> resourceOpenDj;
 
-	
+
 	@Override
 	protected String getTopOrgOid() {
 		return ORG_TOP_OID;
 	}
-	
+
 	private File getTestDir() {
 		return TEST_DIR;
 	}
-	
+
 	private File getResourceOpenDjFile() {
 		return new File(getTestDir(), "resource-opendj.xml");
 	}
-	
+
 	private File getOrgTopFile() {
 		return new File(getTestDir(), "org-top.xml");
 	}
-	
+
 	private File getRoleMetaOrgFile() {
 		return new File(getTestDir(), "role-meta-org.xml");
 	}
-	
+
 	private File getRoleMetaOrgVipFile() {
 		return new File(getTestDir(), "role-meta-org-vip.xml");
 	}
-	
+
 	private File getRoleMetaOrgSuperVipFile() {
 		return new File(getTestDir(), "role-meta-org-supervip.xml");
 	}
@@ -153,13 +153,13 @@ public  class TestLdapDependency extends AbstractStoryTest {
     public static void stopResources() throws Exception {
         openDJController.stop();
     }
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
-		
-		// Resources	
+
+
+		// Resources
 		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, getResourceOpenDjFile(), RESOURCE_OPENDJ_OID, initTask, initResult);
 		resourceOpenDjType = resourceOpenDj.asObjectable();
 		openDJController.setResource(resourceOpenDj);
@@ -172,20 +172,20 @@ public  class TestLdapDependency extends AbstractStoryTest {
 		importObjectFromFile(getRoleMetaOrgVipFile(), initResult);
 		importObjectFromFile(getRoleMetaOrgSuperVipFile(), initResult);
 	}
-	
+
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
         TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
-        
+
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
         TestUtil.assertSuccess(testResultOpenDj);
 
         dumpOrgTree();
         dumpLdap();
 	}
-	
+
 	@Test
     public void test100AddOrgIT() throws Exception {
 		final String TEST_NAME = "test100AddOrgIT";
@@ -194,7 +194,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_IT_NAME, ORG_TOP_OID);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         display("Adding org", orgBefore);
@@ -204,17 +204,17 @@ public  class TestLdapDependency extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         dumpOrgTree();
 		dumpLdap();
-        
+
 		PrismObject<OrgType> orgAfter = getOrg(ORG_IT_NAME);
         orgItOid = orgAfter.getOid();
 
 		assertSubOrgs(orgAfter, 0);
 		assertSubOrgs(ORG_TOP_OID, 1);
 	}
-	
+
 	@Test
     public void test150AssignFunctionalRoleToITOrg() throws Exception {
 		final String TEST_NAME = "test150AssignFunctionalRoleToITOrg";
@@ -223,7 +223,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_IT_NAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         display("orgBefore: ", orgBefore);
@@ -233,10 +233,10 @@ public  class TestLdapDependency extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         dumpOrgTree();
 		dumpLdap();
-        
+
         PrismObject<OrgType> orgAfter = getOrg(ORG_IT_NAME);
         display("AFTER Assigning functional role org", orgAfter);
 		assertSubOrgs(orgAfter, 0);
@@ -245,7 +245,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
 		assertLdapObject(orgAfter, ShadowKindType.ENTITLEMENT, LDAP_GROUP_INTENT);
 		assertLdapObject(orgAfter, ShadowKindType.GENERIC, LDAP_OU_INTENT);
 	}
-	
+
 	@Test
     public void test170UnassignFunctionalRoleFromITOrg() throws Exception {
 		final String TEST_NAME = "test170UnassignFunctionalRoleFromITOrg";
@@ -254,20 +254,20 @@ public  class TestLdapDependency extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_IT_NAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         display("unassigning vip role org", orgBefore);
         unassignRoleFromOrg(orgItOid, ROLE_META_ORG_OID, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         dumpOrgTree();
 		dumpLdap();
-        
+
         PrismObject<OrgType> orgAfter = getOrg(ORG_IT_NAME);
         display("AFTER unassigning functional role org", orgAfter);
 		assertSubOrgs(orgAfter, 0);
@@ -276,8 +276,8 @@ public  class TestLdapDependency extends AbstractStoryTest {
 		assertNotAssignedRole(orgAfter, ROLE_META_ORG_OID);
 		//TODO: assert ldap objects deleted...
 	}
-	
-	
+
+
 	@Test
     public void test200AddOrgHR() throws Exception {
 		final String TEST_NAME = "test200AddOrgHR";
@@ -286,7 +286,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_HR_NAME, ORG_TOP_OID);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         display("Adding org", orgBefore);
@@ -296,17 +296,17 @@ public  class TestLdapDependency extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         dumpOrgTree();
 		dumpLdap();
-        
+
 		PrismObject<OrgType> orgAfter = getOrg(ORG_HR_NAME);
         orgHrOid = orgAfter.getOid();
 
 		assertSubOrgs(orgAfter, 0);
 		assertSubOrgs(ORG_TOP_OID, 2);
 	}
-	
+
 	@Test
     public void test250AssignFunctionalAndVipRoleToHROrg() throws Exception {
 		final String TEST_NAME = "test250AssignFunctionalAndVipRoleToHROrg";
@@ -315,7 +315,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         display("orgBefore: ", orgBefore);
@@ -326,10 +326,10 @@ public  class TestLdapDependency extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         dumpOrgTree();
 		dumpLdap();
-        
+
         PrismObject<OrgType> orgAfter = getOrg(ORG_HR_NAME);
         display("AFTER Assigning functional and vip role org", orgAfter);
 		assertSubOrgs(orgAfter, 0);
@@ -340,7 +340,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
 		assertLdapObject(orgAfter, ShadowKindType.ENTITLEMENT, LDAP_GROUP_VIP_INTENT);
 		assertLdapObject(orgAfter, ShadowKindType.GENERIC, LDAP_OU_VIP_INTENT);
 	}
-	
+
 	@Test
     public void test270UnassignVipRoleFromHROrg() throws Exception {
 		final String TEST_NAME = "test270UnassignVipRoleFromHROrg";
@@ -349,20 +349,20 @@ public  class TestLdapDependency extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         display("unassigning vip role org", orgBefore);
         unassignRoleFromOrg(orgHrOid, ROLE_META_ORG_VIP_OID, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         dumpOrgTree();
 		dumpLdap();
-        
+
         PrismObject<OrgType> orgAfter = getOrg(ORG_HR_NAME);
         display("AFTER unassigning vip role org", orgAfter);
 		assertSubOrgs(orgAfter, 0);
@@ -373,7 +373,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
 		assertLdapObject(orgAfter, ShadowKindType.GENERIC, LDAP_OU_INTENT);
 		//TODO: assert ldap vip objects deleted...
 	}
-	
+
 	//test280AssignVipAndSuperVipRoleToHROrg required for  test290UnassignVipRoleFromHROrg
 	@Test
     public void test280AssignVipAndSuperVipRoleToHROrg() throws Exception {
@@ -383,7 +383,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         display("orgBefore: ", orgBefore);
@@ -394,10 +394,10 @@ public  class TestLdapDependency extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         dumpOrgTree();
 		dumpLdap();
-        
+
         PrismObject<OrgType> orgAfter = getOrg(ORG_HR_NAME);
         display("AFTER Assigning supervip role org", orgAfter);
 		assertSubOrgs(orgAfter, 0);
@@ -418,28 +418,28 @@ public  class TestLdapDependency extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_HR_NAME);
-        
+
         display("unassigning vip role org", orgBefore);
-        
+
         try {
 	        // WHEN
 	        TestUtil.displayWhen(TEST_NAME);
 	        unassignRoleFromOrg(orgHrOid, ROLE_META_ORG_VIP_OID, task, result);
-	        
+
 	        assertNotReached();
-	        
+
         } catch (PolicyViolationException e) {
         	// this is expected
         }
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertFailure(result);
-        
+
         dumpOrgTree();
 		dumpLdap();
-        
+
         PrismObject<OrgType> orgAfter = getOrg(ORG_HR_NAME);
         display("AFTER unassigning vip role org", orgAfter);
 		assertSubOrgs(orgAfter, 0);
@@ -470,7 +470,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
 	private void assertLdapObjectsFunctionalOrg(PrismObject<OrgType> org) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
 		String orgName =  org.getName().toString();
 		display("assert org", org.getName());
-		
+
 		String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, LDAP_GROUP_INTENT);
 		PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
 		display("Org "+orgName+" group shadow", groupShadow);
@@ -482,17 +482,17 @@ public  class TestLdapDependency extends AbstractStoryTest {
 		openDJController.assertObjectClass(groupEntry, "groupOfUniqueNames");
 
 	}
-	
-	
+
+
 	private void assertLdapObject(PrismObject<OrgType> org, ShadowKindType kind, String intent) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
 		String orgName =  org.getName().toString();
 		display("assert org", orgName);
-		
+
 		String objOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, kind, intent);
 		PrismObject<ShadowType> objShadow = getShadowModel(objOid);
 		display("Org "+orgName+" kind " +kind + " intent " + intent +" shadow", objShadow);
 		// TODO assert shadow content
-		
+
 		String search = "";
 		if (kind.equals(ShadowKindType.ENTITLEMENT)){
 			if (LDAP_GROUP_INTENT.equals(intent)) search = "cn="+orgName;
@@ -506,7 +506,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
 		Entry objEntry = openDJController.searchSingle(search);
 		assertNotNull("No LDAP entry for "+orgName, objEntry);;
 		display("LDAP entry kind " +kind + " inten " + intent +" ldapObj", objEntry);
-		
+
 		if (kind.equals(ShadowKindType.ENTITLEMENT)){
 			openDJController.assertObjectClass(objEntry, "groupOfUniqueNames");
 		}
@@ -515,61 +515,61 @@ public  class TestLdapDependency extends AbstractStoryTest {
 		}
 
 	}
-	
+
 	private void dumpLdap() throws DirectoryException {
 		display("LDAP server tree", openDJController.dumpTree());
 		display("LDAP server content", openDJController.dumpEntries());
 	}
-	
+
 	////should be in AbstractModelIntegrationTest
-	
-	private void modifyOrgAssignment(String orgOid, String roleOid, QName refType, QName relation, Task task, 
-			PrismContainer<?> extension, ActivationType activationType, boolean add, OperationResult result) 
+
+	private void modifyOrgAssignment(String orgOid, String roleOid, QName refType, QName relation, Task task,
+			PrismContainer<?> extension, ActivationType activationType, boolean add, OperationResult result)
 			throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
 		ObjectDelta<OrgType> orgDelta = createAssignmentOrgDelta(orgOid, roleOid, refType, relation, extension, activationType, add);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(orgDelta);
-		modelService.executeChanges(deltas, null, task, result);		
+		modelService.executeChanges(deltas, null, task, result);
 	}
-	
-	private ObjectDelta<OrgType> createAssignmentOrgDelta(String orgOid, String roleOid, QName refType, QName relation, 
+
+	private ObjectDelta<OrgType> createAssignmentOrgDelta(String orgOid, String roleOid, QName refType, QName relation,
 			PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(roleOid, refType, relation, extension, activationType, add)));
 		ObjectDelta<OrgType> userDelta = ObjectDelta.createModifyDelta(orgOid, modifications, OrgType.class, prismContext);
 		return userDelta;
 	}
-	
+
 	private void assignRoleToOrg(String orgOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
 	SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 	PolicyViolationException, SecurityViolationException {
 	assignRoleToOrg(orgOid, roleOid, (ActivationType) null, task, result);
 	}
-	
+
 	private void assignRoleToOrg(String orgOid, String roleOid, ActivationType activationType, Task task, OperationResult result) throws ObjectNotFoundException,
 	SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 	PolicyViolationException, SecurityViolationException {
 	modifyOrgAssignment(orgOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, true, result);
 	}
-	
+
 	private void unassignRoleFromOrg(String orgOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
 	SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 	PolicyViolationException, SecurityViolationException {
 	unassignRoleFromOrg(orgOid, roleOid, (ActivationType) null, task, result);
 	}
-	
+
 	private void unassignRoleFromOrg(String orgOid, String roleOid, ActivationType activationType, Task task, OperationResult result) throws ObjectNotFoundException,
 	SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 	PolicyViolationException, SecurityViolationException {
 	modifyOrgAssignment(orgOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, false, result);
 	}
-	
+
 	public static <F extends FocusType> void assertOrgNotAssignedRole(PrismObject<F> focus, String roleOid) {
 		assertNotAssigned(focus, roleOid, RoleType.COMPLEX_TYPE);
 		//assertNotAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
 	}
-	
+
 	//TODO: maybe a replacement for MidpointAsserts.assertNotAssigned()
 	//it can be used not only for user
 	public static <F extends FocusType> void assertNotAssigned(PrismObject<F> focus, String targetOid, QName refType) {
@@ -585,8 +585,8 @@ public  class TestLdapDependency extends AbstractStoryTest {
 			}
 		}
 	}
-	
 
-	
-	
+
+
+
 }

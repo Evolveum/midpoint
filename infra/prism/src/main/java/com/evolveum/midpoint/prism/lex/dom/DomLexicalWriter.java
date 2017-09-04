@@ -48,7 +48,7 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
  *
  */
 public class DomLexicalWriter {
-	
+
 	private Document doc;
 	private boolean serializeCompositeObjects = false;
 	private SchemaRegistry schemaRegistry;
@@ -109,7 +109,7 @@ public class DomLexicalWriter {
         initializeWithExistingDocument(document);
         return serializeInternal(rootxnode, null);
     }
-    
+
     public Element serializeUnderElement(RootXNode rootxnode, Element parentElement) throws SchemaException {
     	initializeWithExistingDocument(parentElement.getOwnerDocument());
     	return serializeInternal(rootxnode, parentElement);
@@ -170,7 +170,7 @@ public class DomLexicalWriter {
 		serializeMap(xmap, element);
 		return element;
 	}
-	
+
 	private void serializeMap(MapXNode xmap, Element topElement) throws SchemaException {
 		for (Entry<QName,XNode> entry: xmap.entrySet()) {
 			QName elementQName = entry.getKey();
@@ -178,7 +178,7 @@ public class DomLexicalWriter {
 			serializeSubnode(xsubnode, topElement, elementQName);
 		}
 	}
-	
+
 	private void serializeSubnode(XNode xsubnode, Element parentElement, QName elementName) throws SchemaException {
 		if (xsubnode == null) {
 			return;
@@ -392,7 +392,7 @@ public class DomLexicalWriter {
             return name;
         }
     }
-	
+
 	private QName setQNamePrefixExplicit(QName qname) {
 		DynamicNamespacePrefixMapper namespacePrefixMapper = getNamespacePrefixMapper();
 		if (namespacePrefixMapper == null) {

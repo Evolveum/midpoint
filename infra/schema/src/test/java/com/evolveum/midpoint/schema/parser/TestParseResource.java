@@ -231,14 +231,14 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 		// THEN
 		System.out.println("Parsed resource:");
 		System.out.println(resource.debugDump());
-		
+
 		assertResourceExpression(resource, prismContext, true);
 
 	}
-	
+
 	private void assertResourceExpression(PrismObject<ResourceType> resource, PrismContext prismContext, boolean checkExpressions) throws SchemaException {
 		resource.checkConsistence();
-		
+
 		AssertJUnit.assertEquals("Wrong oid (prism)", TestConstants.RESOURCE_OID, resource.getOid());
 		PrismObjectDefinition<ResourceType> resourceDefinition = resource.getDefinition();
 		assertNotNull("No resource definition", resourceDefinition);
@@ -270,14 +270,14 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 			hostProp.applyDefinition(new PrismPropertyDefinitionImpl<>(new QName("whatever","host"), DOMUtil.XSD_STRING, prismContext));
 			assertNotRaw(hostProp);
 			assertExpression(hostProp, "const");
-			
+
 			PrismProperty<String> baseContextsProp = findProp(ldapConfigPropItems, "baseContexts");
 			assertRaw(baseContextsProp);
 			baseContextsProp.applyDefinition(new PrismPropertyDefinitionImpl<>(new QName("whatever","baseContexts"), DOMUtil.XSD_STRING, prismContext));
 			assertNotRaw(baseContextsProp);
 			assertExpression(baseContextsProp, "script");
 		}
-		
+
 		PrismContainer<Containerable> schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
 		assertNull("Schema sneaked in", schemaContainer);
 
@@ -285,7 +285,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 		assertNull("SchemaHandling sneaked in", schemaHandlingContainer);
 
 	}
-	
+
 	@Test
 	public void testParseResourceExpressionRoundtripXml() throws Exception {
 		displayTestTitle("testParseResourceExpressionRoundtripXml");
@@ -342,14 +342,14 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 		assertTrue("Delta is not empty", objectDelta.isEmpty());
 
 		PrismAsserts.assertEquivalent("Resource re-parsed equivalence", resource, reparsedResource);
-		
+
 		// SERIALIZE (2)
 		// Do roundtrip again, this time after the expressions were checked and definitions applied.
-		
+
 		assertResourceExpression(resource, prismContext, true);
 		System.out.println("\nResource (2):");
 		System.out.println(resource.debugDump());
-		
+
 		serializedResource = prismContext.serializerFor(serializeInto).serialize(resource);
 
 		System.out.println("\nserialized resource (2):");
@@ -369,11 +369,11 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 		assertResourceExpression(reparsedResource, prismContext, true);
 
 	}
-	
+
 	private void assertRaw(PrismProperty<String> prop) {
 		assertTrue("Prop "+prop+" no raw", prop.isRaw());
 	}
-	
+
 	private void assertNotRaw(PrismProperty<String> prop) {
 		assertFalse("Prop "+prop+" raw (unexpected)", prop.isRaw());
 	}
@@ -404,7 +404,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 			assertEquals("Wrong expression evaluator name", evaluatorName, evaluatorElement.getName().getLocalPart());
 		}
 	}
-	
+
 	@Override
 	protected void assertPrismContainerValueLocal(PrismContainerValue<ResourceType> value) throws SchemaException {
 		//assertResource(object.asContainerable().asPrismObject(), true, true);

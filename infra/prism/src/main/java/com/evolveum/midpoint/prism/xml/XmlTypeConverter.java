@@ -57,7 +57,7 @@ import java.util.*;
  * @author Radovan Semancik
  */
 public class XmlTypeConverter {
-	
+
 	private static DatatypeFactory datatypeFactory = null;
 
     private static final Trace LOGGER = TraceManager.getTrace(XmlTypeConverter.class);
@@ -72,7 +72,7 @@ public class XmlTypeConverter {
         }
         return datatypeFactory;
     }
-    
+
     public static <T> T toJavaValue(Element xmlElement, Class<T> type) throws SchemaException {
         if (type.equals(Element.class)) {
             return (T) xmlElement;
@@ -92,11 +92,11 @@ public class XmlTypeConverter {
             return javaValue;
         }
     }
-    
+
     public static <T> T toJavaValue(String stringContent, Class<T> type) {
     	return toJavaValue(stringContent, type, false);
     }
-    
+
     public static <T> T toJavaValue(String stringContent, QName typeQName) {
     	Class<T> javaClass = XsdTypeMapper.getXsdToJavaMapping(typeQName);
     	return toJavaValue(stringContent, javaClass, false);
@@ -244,7 +244,7 @@ public class XmlTypeConverter {
         toXsdElement(val, element, recordType);
         return element;
     }
-    
+
     public static void toXsdElement(Object val, Element element, boolean recordType) throws SchemaException {
         if (val instanceof Element) {
             return;
@@ -261,7 +261,7 @@ public class XmlTypeConverter {
             DOMUtil.setXsiType(element, xsdType);
         }
     }
-    
+
 	public static String toXmlTextContent(Object val, QName elementName) {
         if (val == null) {
             // if no value is specified, do not create element
@@ -321,11 +321,11 @@ public class XmlTypeConverter {
     public static boolean canConvert(Class<?> clazz) {
         return (XsdTypeMapper.getJavaToXsdMapping(clazz) != null);
     }
-    
+
     public static boolean canConvert(QName xsdType) {
         return (XsdTypeMapper.getXsdToJavaMapping(xsdType) != null);
     }
-    
+
 	public static boolean isMatchingType(Class<?> expectedClass, Class<?> actualClass) {
 		if (expectedClass.isAssignableFrom(actualClass)) {
 			return true;
@@ -478,7 +478,7 @@ public class XmlTypeConverter {
         gregorianCalendar.setTimeInMillis(timeInMillis);
         return createXMLGregorianCalendar(gregorianCalendar);
     }
-    
+
 	public static XMLGregorianCalendar createXMLGregorianCalendar(Date date) {
         if (date == null) {
             return null;
@@ -487,11 +487,11 @@ public class XmlTypeConverter {
 		gregorianCalendar.setTime(date);
 		return createXMLGregorianCalendar(gregorianCalendar);
 	}
-	
+
 	public static XMLGregorianCalendar createXMLGregorianCalendar(String string) {
 		return getDatatypeFactory().newXMLGregorianCalendar(string);
 	}
-    
+
     public static XMLGregorianCalendar createXMLGregorianCalendar(GregorianCalendar cal) {
         return getDatatypeFactory().newXMLGregorianCalendar(cal);
     }
@@ -503,12 +503,12 @@ public class XmlTypeConverter {
         }
         return getDatatypeFactory().newXMLGregorianCalendar(cal.toGregorianCalendar()); // TODO find a better way
     }
-    
+
     public static XMLGregorianCalendar createXMLGregorianCalendar(int year, int month, int day, int hour, int minute,
     		int second, int millisecond, int timezone) {
         return getDatatypeFactory().newXMLGregorianCalendar(year, month, day, hour, minute, second, millisecond, timezone);
     }
-    
+
     public static XMLGregorianCalendar createXMLGregorianCalendar(int year, int month, int day, int hour, int minute,
     		int second) {
         return getDatatypeFactory().newXMLGregorianCalendar(year, month, day, hour, minute, second, 0, 0);
@@ -524,11 +524,11 @@ public class XmlTypeConverter {
 	public static Date toDate(XMLGregorianCalendar xmlCal) {
 		return xmlCal != null ? new Date(xmlCal.toGregorianCalendar().getTimeInMillis()) : null;
 	}
-    
+
     public static Duration createDuration(long durationInMilliSeconds) {
     	return getDatatypeFactory().newDuration(durationInMilliSeconds);
     }
-    
+
     public static Duration createDuration(String lexicalRepresentation) {
     	return lexicalRepresentation != null ? getDatatypeFactory().newDuration(lexicalRepresentation) : null;
     }
@@ -536,7 +536,7 @@ public class XmlTypeConverter {
     public static Duration createDuration(boolean isPositive, int years, int months, int days, int hours, int minutes, int seconds) {
     	return getDatatypeFactory().newDuration(isPositive, years, months, days, hours, minutes, seconds);
     }
-    
+
     /**
      * Parse PolyString from DOM element.
      */
@@ -560,7 +560,7 @@ public class XmlTypeConverter {
 		}
 		return new PolyString(orig, norm);
 	}
-	
+
 	/**
 	 * Serialize PolyString to DOM element.
 	 */
@@ -572,9 +572,9 @@ public class XmlTypeConverter {
 		if (polyString.getNorm() != null) {
 			Element origElement = DOMUtil.createSubElement(polyStringElement, PrismConstants.POLYSTRING_ELEMENT_NORM_QNAME);
 			origElement.setTextContent(polyString.getNorm());
-		}		
+		}
 	}
-	
+
 	public static <T> T toXmlEnum(Class<T> expectedType, String stringValue) {
 		if (stringValue == null) {
 			return null;
@@ -595,7 +595,7 @@ public class XmlTypeConverter {
 		}
 		throw new IllegalArgumentException("No enum value '"+stringValue+"' in "+expectedType);
 	}
-	
+
 	public static <T> String fromXmlEnum(T enumValue) {
 		if (enumValue == null) {
 			return null;
@@ -618,7 +618,7 @@ public class XmlTypeConverter {
 		later.add(duration);
 		return later;
 	}
-	
+
 	public static XMLGregorianCalendar addDuration(XMLGregorianCalendar now, String duration) {
 		XMLGregorianCalendar later = createXMLGregorianCalendar(toMillis(now));
 		later.add(createDuration(duration));

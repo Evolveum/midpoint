@@ -102,12 +102,12 @@ public class Main {
                 ExportObjects objects = new ExportObjects(path);
                 objects.execute();
             }
-            
+
             if (line.hasOption(keyStore.getOpt())){
             	KeyStoreDumper keyStoreDumper = new KeyStoreDumper();
             	keyStoreDumper.execute();
             }
-            
+
             if (line.hasOption(trans.getOpt())){
             	if (!checkCommand(line)){
             		return;
@@ -129,7 +129,7 @@ public class Main {
 		transformer.setOutputDirecorty(line.getOptionValue(outputDirectory.getOpt()));
 		transformer.setOutputFormat(line.getOptionValue(outputFormat.getOpt()));
 		transformer.setInput(line.getOptionValue(input.getOpt()));
-		
+
 	}
 
 	private static boolean checkCommand(CommandLine line) {

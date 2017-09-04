@@ -23,5 +23,5 @@ package com.evolveum.midpoint.util;
 public interface HeteroComparator<A,B> {
 
 	boolean isEquivalent(A a, B b);
-	
+
 }

@@ -33,7 +33,7 @@ import org.w3c.dom.Node;
 
 /**
  * QName &lt;-&gt; URI conversion.
- * 
+ *
  * Very simplistic but better than nothing.
  *
  * @author semancik
@@ -201,11 +201,11 @@ public class QNameUtil {
 			throw new IllegalArgumentException("The URI (" + uri + ") does not contain slash character");
 		}
     }
-	
+
 	public static QName getNodeQName(Node node) {
 		return new QName(node.getNamespaceURI(),node.getLocalName());
 	}
-	
+
 	public static boolean compareQName(QName qname, Node node) {
 		return (qname.getNamespaceURI().equals(node.getNamespaceURI()) && qname.getLocalPart().equals(node.getLocalName()));
 	}
@@ -254,7 +254,7 @@ public class QNameUtil {
 		return match(qname, uriToQName(uri, true));
 	}
 
-	
+
 	public static QName resolveNs(QName a, Collection<QName> col){
 		if (col == null) {
 			return null;
@@ -270,7 +270,7 @@ public class QNameUtil {
 		}
 		return found;
 	}
-	
+
 	public static boolean matchAny(QName a, Collection<QName> col) {
 		if (resolveNs(a, col) == null){
 			return false;
@@ -286,7 +286,7 @@ public class QNameUtil {
 //		}
 //		return false;
 	}
-	
+
 	public static Collection<QName> createCollection(QName... qnames) {
 		return Arrays.asList(qnames);
 	}

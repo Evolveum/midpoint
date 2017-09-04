@@ -38,5 +38,5 @@ public class TestInboundLiveSyncTaskDeprecated extends TestInboundLiveSyncTask {
 	protected File getResourceDummyEmeraldFile() {
 		return RESOURCE_DUMMY_EMERALD_DEPRECATED_FILE;
 	}
-	
+
 }

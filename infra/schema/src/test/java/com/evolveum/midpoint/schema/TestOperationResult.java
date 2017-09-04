@@ -38,13 +38,13 @@ import static org.testng.AssertJUnit.assertEquals;
  *
  */
 public class TestOperationResult {
-	
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-	
+
 	@Test
 	public void testCleanup() throws Exception {
 		System.out.println("===[ testCleanup ]===");

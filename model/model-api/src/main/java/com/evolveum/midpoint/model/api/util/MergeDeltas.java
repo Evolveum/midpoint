@@ -32,7 +32,7 @@ public class MergeDeltas<O extends ObjectType> implements DebugDumpable, Seriali
 	private ObjectDelta<O> leftObjectDelta;
 	private ObjectDelta<O> leftLinkDelta;
 	private ObjectDelta<O> rightLinkDelta;
-	
+
 	public MergeDeltas(ObjectDelta<O> leftObjectDelta, ObjectDelta<O> leftLinkDelta,
 			ObjectDelta<O> rightLinkDelta) {
 		super();

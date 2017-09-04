@@ -46,10 +46,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *
  */
 public class RepoObjectResolver implements ObjectResolver {
-	
+
 	@Autowired(required = true)
 	private transient PrismContext prismContext;
-	
+
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
@@ -84,9 +84,9 @@ public class RepoObjectResolver implements ObjectResolver {
 			OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
-		
+
 		cacheRepositoryService.searchObjectsIterative(type, query, handler, options, false, parentResult);
-		
+
 	}
 
 }

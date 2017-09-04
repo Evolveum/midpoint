@@ -20,46 +20,46 @@ import java.util.List;
 
 /**
  * DTO that contains repository run-time configuration and diagnostic information.
- * 
+ *
  * All information contained in this class are meant for information purposes only.
  * They are not meant to be used by a machine or algorithm, they are meant to be displayed
  * to a human user.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class RepositoryDiag implements Serializable {
-	
+
 	/**
 	 * Short description of the implementation type, e.g. "SQL", "BaseX", "LDAP"
 	 */
 	private String implementationShortName;
-	
+
 	/**
 	 * Longer (possible multi-line) description of the implementation;
 	 */
 	private String implementationDescription;
-	
+
 	private boolean isEmbedded;
-	
+
 	/**
 	 * Short description of a driver or a library used to access the repository.
 	 * It is usually a named of the JDBC driver (e.g. "org.postgresql.Driver") or
 	 * something equivalent for other implementations (e.g. "Mozilla SDK" for LDAP).
 	 */
 	private String driverShortName;
-	
+
 	/**
 	 * Version of the driver (if known)
 	 */
 	private String driverVersion;
-	
+
 	/**
-	 * URL-formatted location of the repository, usually JDBC connection string, 
+	 * URL-formatted location of the repository, usually JDBC connection string,
 	 * LDAP server URL or a similar construction.
 	 */
 	private String repositoryUrl;
-	
+
 	/**
 	 * Additional repository information that do not fit the structured data above.
 	 * May be anything that the implementations thinks is important.
@@ -74,7 +74,7 @@ public class RepositoryDiag implements Serializable {
 	public void setImplementationShortName(String implementationShortName) {
 		this.implementationShortName = implementationShortName;
 	}
-	
+
 	public String getImplementationDescription() {
 		return implementationDescription;
 	}
@@ -187,6 +187,6 @@ public class RepositoryDiag implements Serializable {
 				+ ", driverShortName=" + driverShortName + ", driverVersion=" + driverVersion + ", repositoryUrl="
 				+ repositoryUrl + ", additionalDetails=" + additionalDetails + ")";
 	}
-	
-	
+
+
 }

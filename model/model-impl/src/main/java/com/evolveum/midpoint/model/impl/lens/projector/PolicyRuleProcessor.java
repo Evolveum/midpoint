@@ -68,9 +68,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 @Component
 public class PolicyRuleProcessor {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleProcessor.class);
-	
+
 	@Autowired private PrismContext prismContext;
 	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 	@Autowired private MappingFactory mappingFactory;
@@ -241,7 +241,7 @@ public class PolicyRuleProcessor {
 	private boolean excludes(ExclusionPolicyConstraintType constraint, EvaluatedAssignmentTargetImpl targetAssignment) throws SchemaException {
 		if (constraint.getTargetRef() == null || targetAssignment.getOid() == null) {
 			return false;		// shouldn't occur
-			
+
 		} else if (constraint.getTargetRef() != null) {
 			ObjectReferenceType targetRef = constraint.getTargetRef();
 			if (targetRef.getOid() != null) {
@@ -262,7 +262,7 @@ public class PolicyRuleProcessor {
 					throw new SchemaException("No OID in exclusion reference");
 				}
 			}
-			
+
 		} else {
 			throw new SchemaException("No target reference in exclusion");
 		}
@@ -330,7 +330,7 @@ public class PolicyRuleProcessor {
 			}
 		}
 	}
-	
+
 	private <F extends FocusType> void checkAssigneeConstraints(LensContext<F> context, EvaluatedAssignment<F> assignment, PlusMinusZero plusMinus, OperationResult result) throws PolicyViolationException, SchemaException {
 		PrismObject<?> target = assignment.getTarget();
 		if (target == null || !(target.asObjectable() instanceof AbstractRoleType)) {
@@ -444,18 +444,18 @@ public class PolicyRuleProcessor {
 								+", the exclusion prune rule was triggered but there is no conflicting assignment in the trigger");
 					}
 					LOGGER.debug("Pruning assignment {} because it conflicts with added assignment {}", conflictingAssignment, plusAssignment);
-					
+
 					PrismContainerValue<AssignmentType> assignmentValueToRemove = conflictingAssignment.getAssignmentType().asPrismContainerValue().clone();
 					PrismObjectDefinition<F> focusDef = context.getFocusContext().getObjectDefinition();
 					ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(FocusType.F_ASSIGNMENT, focusDef);
 					assignmentDelta.addValuesToDelete(assignmentValueToRemove);
 					context.getFocusContext().swallowToSecondaryDelta(assignmentDelta);
-					
+
 					needToReevaluateAssignments = true;
 				}
 			}
 		}
-		
+
 		return needToReevaluateAssignments;
 	}
 

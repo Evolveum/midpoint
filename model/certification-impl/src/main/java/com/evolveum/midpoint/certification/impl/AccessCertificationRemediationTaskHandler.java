@@ -47,7 +47,7 @@ import java.util.List;
 
 /**
  * The task hander for automatic remediation.
- * 
+ *
  * @author mederly
  */
 @Component
@@ -70,11 +70,11 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
 	private void initialize() {
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
-	
+
 	@Override
 	public TaskRunResult run(Task task) {
 		LOGGER.trace("Task run starting");
-		
+
 		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(CLASS_DOT+"run");
         opResult.setSummarizeSuccesses(true);
@@ -157,7 +157,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
 
 	@Override
 	public void refreshStatus(Task task) {
-		// Do nothing. Everything is fresh already.		
+		// Do nothing. Everything is fresh already.
 	}
 
     @Override

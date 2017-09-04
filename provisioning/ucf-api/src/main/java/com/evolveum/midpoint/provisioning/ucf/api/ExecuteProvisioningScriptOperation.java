@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
 
 /**
- * 
+ *
  * @author Radovan Semancik
  */
 public class ExecuteProvisioningScriptOperation extends Operation {
@@ -39,9 +39,9 @@ public class ExecuteProvisioningScriptOperation extends Operation {
 	private String language;
 
 	private BeforeAfterType scriptOrder;
-	
+
 	private CriticalityType criticality;
-	
+
 	public ExecuteProvisioningScriptOperation() {
 
 	}
@@ -176,7 +176,7 @@ public class ExecuteProvisioningScriptOperation extends Operation {
 	public String toString() {
 		return "ExecuteProvisioningScriptOperation(" + toStringInternal() + ")";
 	}
-	
+
 	private String toStringInternal() {
 		StringBuilder sb = new StringBuilder();
 		if (connectorHost) {

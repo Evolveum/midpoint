@@ -139,7 +139,7 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
             @Override
             protected IChoiceRenderer<String> createRenderer() {
             	return new StringChoiceRenderer("Channel.", "#");
-            	
+
             }
         };
         add(channel);

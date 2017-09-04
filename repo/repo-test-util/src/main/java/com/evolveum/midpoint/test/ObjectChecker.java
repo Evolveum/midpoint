@@ -21,7 +21,7 @@ package com.evolveum.midpoint.test;
  */
 @FunctionalInterface
 public interface ObjectChecker<T> {
-	
+
 	public void check(T change);
 
 }

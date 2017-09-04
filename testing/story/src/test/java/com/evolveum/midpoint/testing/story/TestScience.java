@@ -50,7 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- * 
+ *
  * @author Katarina Valalikova
  *
  */
@@ -58,57 +58,57 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestScience  extends AbstractStoryTest {
-	
+
 	private static final String TEST_DIR = "src/test/resources/science";
-	
+
 	public static final String NS_SCIENCE_EXT = "http://midpoint.evolveum.com/xml/ns/science/user/ext";
 	private static final QName SCIENCE_EXTENSION_UID_QNAME = new QName(NS_SCIENCE_EXT, "aixUserId");
-	
+
 	private static final File ROLE_STATISTICS_FILE = new File(TEST_DIR, "role-statistics.xml");
 	private static final String ROLE_STATISTICS_OID = "23d90f70-1924-419e-9beb-78a8bde6d261";
-	
+
 	private static final File ROLE_MATH_FILE = new File(TEST_DIR, "role-math.xml");
 	private static final String ROLE_MATH_OID = "";
-	
+
 	private static final File GROUP_STATS_USERS_LDIF_FILE = new File(TEST_DIR, "group-stats.ldif");
-	
+
 	private static final File RESOURCE_OPENDJ_AD_SIMULATION_FILE = new File(TEST_DIR, "resource-opendj-ad-simulation.xml");
 	private static final String RESOURCE_OPENDJ_AD_SIMULATION_OID = "10000000-0000-0000-0000-0000000001ad";
-	
+
 	private static final File RESOURCE_DUMMY_STATS_FILE = new File(TEST_DIR, "resource-dummy-stats.xml");
 	private static final String RESOURCE_DUMMY_STATS_OID = "10000000-0000-0000-0000-0000000005sa";
 	protected static final String RESOURCE_DUMMY_STATS_ID = "stats";
-	
+
 	private static final File RESOURCE_DUMMY_UNIX_FILE = new File(TEST_DIR, "resource-dummy-unix.xml");
 	private static final String RESOURCE_DUMMY_UNIX_OID = "10000000-0000-0000-0000-0000000004ax";
 	protected static final String RESOURCE_DUMMY_UNIX_ID = "unix";
-	
+
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_UNIX_SHELL_NAME = "Shell";
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_UNIX_SYSTEM_NAME = "SYSTEM";
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_UNIX_DIR_NAME = "Dir";
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_UNIX_UID_NAME = "Uid";
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_UNIX_DESCRIPTION_NAME = "Description";
-	
+
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_STATS_DESC_NAME = "Desc";
-	
+
 	private static final String NS_RESOURCE_INSTANCE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
-	
+
 	private static final QName UNIX_INTERNAL_ID = new QName(NS_RESOURCE_INSTANCE, DummyAccount.ATTR_INTERNAL_ID);
-	
-	
+
+
 	protected static DummyResource dummyResourceUnix;
 	protected static DummyResourceContoller dummyResourceCtlUnix;
 	protected ResourceType resourceDummyUnixType;
 	protected PrismObject<ResourceType> resourceDummyUnix;
-	
+
 	protected static DummyResource dummyResourceStats;
 	protected static DummyResourceContoller dummyResourceCtlStats;
 	protected ResourceType resourceDummyStatsType;
 	protected PrismObject<ResourceType> resourceDummyStats;
-	
+
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
-	
+
 	@Override
     protected void startResources() throws Exception {
         openDJController.startCleanServer();
@@ -118,21 +118,21 @@ public class TestScience  extends AbstractStoryTest {
     public static void stopResources() throws Exception {
         openDJController.stop();
     }
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		// Roles
 		repoAddObjectFromFile(ROLE_STATISTICS_FILE, initResult);
 //		repoAddObjectFromFile(ROLE_MATH_FILE, RoleType.class, initResult);
-		
+
 		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_AD_SIMULATION_FILE, RESOURCE_OPENDJ_AD_SIMULATION_OID, initTask, initResult);
 		resourceOpenDjType = resourceOpenDj.asObjectable();
 		openDJController.setResource(resourceOpenDj);
-		
+
 		openDJController.addEntryFromLdifFile(GROUP_STATS_USERS_LDIF_FILE);
-		
+
 		// Resources
 		dummyResourceCtlUnix = DummyResourceContoller.create(RESOURCE_DUMMY_UNIX_ID, resourceDummyUnix);
 		dummyResourceCtlUnix.populateWithDefaultSchema();
@@ -147,17 +147,17 @@ public class TestScience  extends AbstractStoryTest {
 		resourceDummyUnix = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_UNIX_FILE, RESOURCE_DUMMY_UNIX_OID, initTask, initResult);
 		resourceDummyUnixType = resourceDummyUnix.asObjectable();
 		dummyResourceCtlUnix.setResource(resourceDummyUnix);
-		
+
 		dummyResourceCtlStats = DummyResourceContoller.create(RESOURCE_DUMMY_STATS_ID, resourceDummyStats);
 		dummyResourceCtlStats.populateWithDefaultSchema();
 		DummyObjectClass dummyStatsAccountObjectClass = dummyResourceCtlStats.getDummyResource().getAccountObjectClass();
 		dummyResourceCtlStats.addAttrDef(dummyStatsAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_STATS_DESC_NAME, String.class, false, false);
-		
+
 		dummyResourceStats = dummyResourceCtlStats.getDummyResource();
 		resourceDummyStats = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_STATS_FILE, RESOURCE_DUMMY_STATS_OID, initTask, initResult);
 		resourceDummyStatsType = resourceDummyStats.asObjectable();
 		dummyResourceCtlStats.setResource(resourceDummyStats);
-		
+
 	}
 
 	@Test
@@ -165,130 +165,130 @@ public class TestScience  extends AbstractStoryTest {
 		final String TEST_NAME = "test000Sanity";
         TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
-        
+
         OperationResult testResultStats = modelService.testResource(RESOURCE_DUMMY_STATS_OID, task);
         TestUtil.assertSuccess(testResultStats);
-        
+
         OperationResult testResultUnix = modelService.testResource(RESOURCE_DUMMY_UNIX_OID, task);
         TestUtil.assertSuccess(testResultUnix);
-        
+
         OperationResult testResultAd = modelService.testResource(RESOURCE_OPENDJ_AD_SIMULATION_OID, task);
         TestUtil.assertSuccess(testResultAd);
-        
+
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);
         waitForTaskStart(TASK_VALIDITY_SCANNER_OID, true);
 	}
-	
+
 	@Test
 	public void test100JackAssignRoleStatistics() throws Exception {
 		final String TEST_NAME = "test100JackAssignRoleStatistics";
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
-		
+
 		OperationResult result = task.getResult();
-		
+
 		assignRole(USER_JACK_OID, ROLE_STATISTICS_OID);
-		
+
 		PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
 		AssertJUnit.assertNotNull("User jack not found", userJack);
 		UserType jackType = userJack.asObjectable();
-		
+
 		IntegrationTestTools.display("User Jack", jackType);
-		
+
 		AssertJUnit.assertEquals("Wrong number of link refs", 3, jackType.getLinkRef().size());
-		
+
 		assertUserJack(userJack);
 		assertLinks(userJack, 3);
 		String accountStatsOid = getLinkRefOid(userJack, RESOURCE_DUMMY_STATS_OID);
 		String accountUnixOid = getLinkRefOid(userJack, RESOURCE_DUMMY_UNIX_OID);
 		String accountOpenDjOid = getLinkRefOid(userJack, RESOURCE_OPENDJ_AD_SIMULATION_OID);
-		
+
 		PrismObject<ShadowType> shadowStats = provisioningService.getObject(ShadowType.class, accountStatsOid, null, task, result);
 		IntegrationTestTools.display("Stats account: ", shadowStats);
 		PrismObject<ShadowType> shadowUnix = provisioningService.getObject(ShadowType.class, accountUnixOid, null, task, result);
 		IntegrationTestTools.display("Unix account: ", shadowUnix);
 		PrismObject<ShadowType> shadowOpenDj = provisioningService.getObject(ShadowType.class, accountOpenDjOid, null, task, result);
 		IntegrationTestTools.display("AD account: ", shadowOpenDj);
-		
-		
+
+
 		//internalId on unix dummy resource and title on openDJ simulation must be the same
 		PrismProperty unixId = shadowUnix.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, UNIX_INTERNAL_ID));
 		assertNotNull("No "+UNIX_INTERNAL_ID+" in "+shadowUnix, unixId);
 		PrismProperty openDjSyncedId = shadowOpenDj.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(NS_RESOURCE_INSTANCE, "title")));
 		assertNotNull("No 'title' in "+shadowOpenDj, openDjSyncedId);
 		PrismAsserts.assertEquals("Unix id was not synced to the opendj properly.", String.valueOf(unixId.getAnyRealValue()), openDjSyncedId.getAnyRealValue());
-		
+
 		PrismProperty<Integer> generatedValue = userJack.findExtensionItem(SCIENCE_EXTENSION_UID_QNAME);
  		assertNotNull("Generated id value must not be null", generatedValue);
  		assertFalse("Generated value must not be empty", generatedValue.isEmpty());
-		
+
 	}
-	
+
 	@Test
 	public void test101UnassignRoleStats() throws Exception{
 		final String TEST_NAME = "test101UnassignRoleStats";
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
-		
+
 		OperationResult result = task.getResult();
-		
-		
+
+
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-		
+
 		unassignRole(USER_JACK_OID, ROLE_STATISTICS_OID);
-		
-		
+
+
 		PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
 		AssertJUnit.assertNotNull("User jack not found", userJack);
 		UserType jackType = userJack.asObjectable();
-		
+
 		IntegrationTestTools.display("User Jack", jackType);
-		
+
 		AssertJUnit.assertEquals("Wrong number of link refs", 3, jackType.getLinkRef().size());
-		
+
 		assertUserJack(userJack);
 		assertLinks(userJack, 3);
 		String accountStatsOid = getLinkRefOid(userJack, RESOURCE_DUMMY_STATS_OID);
 		String accountUnixOid = getLinkRefOid(userJack, RESOURCE_DUMMY_UNIX_OID);
 		String accountOpenDjOid = getLinkRefOid(userJack, RESOURCE_OPENDJ_AD_SIMULATION_OID);
-		
+
 		PrismObject<ShadowType> shadowStats = provisioningService.getObject(ShadowType.class, accountStatsOid, null, task, result);
 		IntegrationTestTools.display("Stats account: ", shadowStats);
 		PrismObject<ShadowType> shadowUnix = provisioningService.getObject(ShadowType.class, accountUnixOid, null, task, result);
 		IntegrationTestTools.display("Unix account: ", shadowUnix);
 		PrismObject<ShadowType> shadowOpenDj = provisioningService.getObject(ShadowType.class, accountOpenDjOid, null, task, result);
 		IntegrationTestTools.display("AD account: ", shadowOpenDj);
-		
+
 		ObjectDelta<UserType> delteStatsAccountDelta= ObjectDelta.createModificationDeleteReference(UserType.class, USER_JACK_OID, UserType.F_LINK_REF, prismContext, accountStatsOid);
 		modelService.executeChanges((Collection) MiscUtil.createCollection(delteStatsAccountDelta), null, task, result);
-	
+
 		AssertJUnit.assertTrue("Expected empty assignment", jackType.getAssignment().isEmpty());
-		
+
 		PrismObject<UserType> userJackAfter = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
 		AssertJUnit.assertNotNull("User jack not found", userJackAfter);
 		UserType jackTypeAfter = userJackAfter.asObjectable();
-		
+
 		IntegrationTestTools.display("User Jack", jackTypeAfter);
-		
+
 		AssertJUnit.assertEquals("Wrong number of link refs", 2, jackTypeAfter.getLinkRef().size());
-		
+
 	}
-	
+
 	@Test
 	public void test102AssignRoleStats() throws Exception{
 		final String TEST_NAME = "test102AssignRoleStats";
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
-		
+
 		OperationResult result = task.getResult();
-		
-		
+
+
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 		openDJController.stop();
-		
+
 		// WHEN
 		assignRole(USER_JACK_OID, ROLE_STATISTICS_OID, task, result);
-		
+
 		// THEN
 		result.computeStatus();
 		if (!result.isSuccess() && !result.isPartialError()) {
@@ -298,52 +298,52 @@ public class TestScience  extends AbstractStoryTest {
 		PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
 		AssertJUnit.assertNotNull("User jack not found", userJack);
 		UserType jackType = userJack.asObjectable();
-		
+
 		IntegrationTestTools.display("User Jack", jackType);
-		
+
 		AssertJUnit.assertEquals("Wrong number of link refs", 3, jackType.getLinkRef().size());
-		
+
 		assertUserJack(userJack);
 		assertLinks(userJack, 3);
 		String accountStatsOid = getLinkRefOid(userJack, RESOURCE_DUMMY_STATS_OID);
 		String accountUnixOid = getLinkRefOid(userJack, RESOURCE_DUMMY_UNIX_OID);
 		String accountOpenDjOid = getLinkRefOid(userJack, RESOURCE_OPENDJ_AD_SIMULATION_OID);
-		
+
 		PrismObject<ShadowType> shadowStats = provisioningService.getObject(ShadowType.class, accountStatsOid, null, task, result);
 		IntegrationTestTools.display("Stats account: ", shadowStats);
 		PrismObject<ShadowType> shadowUnix = provisioningService.getObject(ShadowType.class, accountUnixOid, null, task, result);
 		IntegrationTestTools.display("Unix account: ", shadowUnix);
 		PrismObject<ShadowType> shadowOpenDj = provisioningService.getObject(ShadowType.class, accountOpenDjOid, null, task, result);
 		IntegrationTestTools.display("AD account: ", shadowOpenDj);
-		
+
 		openDJController.start();
-	
-		
+
+
 	}
-	
-	
+
+
 	@Test
 	public void test200DelteUserJack() throws Exception {
 		final String TEST_NAME = "test200DelteUserJack";
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
-		
+
 		OperationResult result = task.getResult();
-		
+
 		// WHEN
 		deleteObject(UserType.class, USER_JACK_OID, task, result);
-		
+
 		// THEN
 		result.computeStatus();
-		
+
 		IntegrationTestTools.display("Result: ", result);
 		if (!result.isSuccess() && !result.isHandledError()) {
 			IntegrationTestTools.display(result);
 			AssertJUnit.fail("Expected success or handled error, but got "+result.getStatus());
 		}
-		
+
 		assertNoObject(UserType.class, USER_JACK_OID, task, result);
-				
-	}		
+
+	}
 
 }

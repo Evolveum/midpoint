@@ -98,7 +98,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 		iconType.setOutputMarkupId(true);
 		iconType.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public String getObject() {
 				StringBuilder sb = new StringBuilder();
@@ -163,7 +163,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 		};
 		backgroundTask.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public boolean isVisible() {
 				return getModelObject().getBackgroundTaskOid() != null
@@ -182,7 +182,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 		};
 		showAll.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public boolean isVisible() {
 				return !OperationResultPanel.this.getModelObject().isShowMore();
@@ -201,7 +201,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 		};
 		hideAll.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public boolean isVisible() {
 				return OperationResultPanel.this.getModelObject().isShowMore();
@@ -295,7 +295,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 		operationPanel.setOutputMarkupId(true);
 		operationPanel.add(new AttributeAppender("class", new LoadableModel<String>() {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			protected String load() {
 				return getLabelCss(getModel());
@@ -448,7 +448,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
 		ListView<Context> contexts = new ListView<Context>("contexts", createContextsModel(model)) {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			protected void populateItem(ListItem<Context> item) {
 				item.add(new Label("contextName", new PropertyModel<Object>(item.getModel(), "name")));

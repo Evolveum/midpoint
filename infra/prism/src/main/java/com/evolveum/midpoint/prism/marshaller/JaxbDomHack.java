@@ -43,13 +43,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * This is a mix of DOM and JAXB code that allows the use of "any" methods on JAXB-generated objects.
  * Prism normally does not use of of that. But JAXB code (such as JAX-WS) can invoke it and therefore
  * it has to return correct DOM/JAXB elements as expected.
- *  
+ *
  * @author Radovan Semancik
  */
 public class JaxbDomHack {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(JaxbDomHack.class);
-	
+
 	private PrismContext prismContext;
 	private DomLexicalProcessor domParser;
 
@@ -71,8 +71,8 @@ public class JaxbDomHack {
 			// Try to locate xsi:type definition in the element
 			def = resolveDynamicItemDefinition(containerDefinition, elementQName, (Element) valueElements,
 					prismContext);
-		} 
-		
+		}
+
 		if (valueElements instanceof List){
 			List elements = (List) valueElements;
 			if (elements.size() == 1){
@@ -146,23 +146,23 @@ public class JaxbDomHack {
 		// QName elementQName = JAXBUtil.getElementQName(firstElement);
 		return prismContext.getSchemaRegistry().resolveGlobalItemDefinition(elementQName, containerDefinition);
 	}
-	
+
 	/**
-	 * This is used in a form of "fromAny" to parse elements from a JAXB getAny method to prism. 
+	 * This is used in a form of "fromAny" to parse elements from a JAXB getAny method to prism.
 	 */
 	public <IV extends PrismValue,ID extends ItemDefinition,C extends Containerable> Item<IV,ID> parseRawElement(Object element, PrismContainerDefinition<C> definition) throws SchemaException {
 		Validate.notNull(definition, "Attempt to parse raw element in a container without definition");
-		
+
 		QName elementName = JAXBUtil.getElementQName(element);
 		ItemDefinition itemDefinition = definition.findItemDefinition(elementName);
-		
+
 		if (itemDefinition == null) {
 			itemDefinition = locateItemDefinition(definition, elementName, element);
 			if (itemDefinition == null) {
 	            throw new SchemaException("No definition for item "+elementName);
 			}
 		}
-		
+
 		PrismContext prismContext = definition.getPrismContext();
 		Item<IV,ID> subItem;
 		if (element instanceof Element) {
@@ -199,16 +199,16 @@ public class JaxbDomHack {
 				} else{
 					throw new IllegalArgumentException("Unsupported JAXB bean" + jaxbBean);
 				}
-				
+
 			} else {
 				throw new IllegalArgumentException("Unsupported definition type "+itemDefinition.getClass());
 			}
 		} else {
 			throw new IllegalArgumentException("Unsupported element type "+element.getClass());
-		}	
+		}
 		return subItem;
 	}
-	
+
 
 	/**
 	 * Serializes prism value to JAXB "any" format as returned by JAXB getAny() methods.

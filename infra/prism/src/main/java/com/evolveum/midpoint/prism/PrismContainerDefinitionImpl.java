@@ -109,13 +109,13 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 		if (complexTypeDefinition == null) {
 			return null;
 		}
-		return (Class<C>) complexTypeDefinition.getCompileTimeClass();	
+		return (Class<C>) complexTypeDefinition.getCompileTimeClass();
 	}
 
 	public void setCompileTimeClass(Class<C> compileTimeClass) {
 		this.compileTimeClass = compileTimeClass;
 	}
-    
+
     protected String getSchemaNamespace() {
         return getName().getNamespaceURI();
     }
@@ -136,7 +136,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         }
 		return complexTypeDefinition != null && complexTypeDefinition.isAbstract();
 	}
-    
+
     @Override
 	public void revive(PrismContext prismContext) {
 		if (this.prismContext != null) {
@@ -212,7 +212,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         		}
         	}
         }
-        
+
         for (ItemDefinition def : getDefinitions()) {
             if (firstName.equals(def.getName())) {
                 return (ID) def.findItemDefinition(rest, clazz);
@@ -324,7 +324,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         clone.complexTypeDefinition = this.complexTypeDefinition;
         clone.compileTimeClass = this.compileTimeClass;
     }
-    
+
     @Override
 	public ItemDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap) {
 		PrismContainerDefinitionImpl<C> clone = clone();
@@ -365,7 +365,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         addDefinition(propDef);
         return propDef;
     }
-    
+
     private void addDefinition(ItemDefinition itemDef) {
 		if (complexTypeDefinition == null) {
 			throw new UnsupportedOperationException("Cannot add an item definition because there's no complex type definition");
@@ -454,11 +454,11 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         propertyDefinition.setMaxOccurs(maxOccurs);
         return propertyDefinition;
     }
-    
+
     public PrismContainerDefinition createContainerDefinition(QName name, QName typeName) {
     	return createContainerDefinition(name, typeName, 1, 1);
     }
-    
+
     public PrismContainerDefinition createContainerDefinition(QName name, QName typeName,
             int minOccurs, int maxOccurs) {
     	PrismSchema typeSchema = prismContext.getSchemaRegistry().findSchemaByNamespace(typeName.getNamespaceURI());
@@ -471,7 +471,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     	}
     	return createContainerDefinition(name, typeDefinition, minOccurs, maxOccurs);
     }
-    
+
     public PrismContainerDefinition<C> createContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition,
             int minOccurs, int maxOccurs) {
     	PrismContainerDefinitionImpl<C> def = new PrismContainerDefinitionImpl<C>(name, complexTypeDefinition, prismContext);
@@ -480,7 +480,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         addDefinition(def);
         return def;
     }
-    
+
 	@Override
 	public PrismContainerValue<C> createValue() {
 		return new PrismContainerValue<>(prismContext);
@@ -512,7 +512,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 	public boolean isEmpty() {
         return complexTypeDefinition.isEmpty();
     }
-    
+
     /**
      * Return a human readable name of this class suitable for logs.
      */

@@ -49,25 +49,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
-	
+
 	protected static final File TEST_DIR = new File("src/test/resources/refinedschema");
-	
-	public static final File TASK_RECONCILE_DUMMY_OBJECTCLASS_FILE = new File(TEST_DIR, 
+
+	public static final File TASK_RECONCILE_DUMMY_OBJECTCLASS_FILE = new File(TEST_DIR,
 			"task-reconcile-dummy-objectclass.xml");
 	public static final String TASK_RECONCILE_DUMMY_OBJECTCLASS_OID = "bed15976-e604-11e5-a181-af0dade5e5a0";
 
-	public static final File TASK_RECONCILE_DUMMY_KIND_INTENT_FILE = new File(TEST_DIR, 
+	public static final File TASK_RECONCILE_DUMMY_KIND_INTENT_FILE = new File(TEST_DIR,
 			"task-reconcile-dummy-kind-intent.xml");
 	public static final String TASK_RECONCILE_DUMMY_KIND_INTENT_OID = "d4cd18f2-e60c-11e5-a806-3faae6c13aff";
 
-	public static final File TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_FILE = new File(TEST_DIR, 
+	public static final File TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_FILE = new File(TEST_DIR,
 			"task-reconcile-dummy-kind-intent-objectclass.xml");
 	public static final String TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_OID = "3f2a1140-e60e-11e5-adb7-776abfbb2227";
 
-	
+
 	private RefinedResourceSchema refinedSchema;
 	private RefinedResourceSchema refinedSchemaModel;
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -82,13 +82,13 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
         // WHEN
         refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(getDummyResourceType(), prismContext);
-        
+
         display("Dummy refined schema", refinedSchema);
-        
+
         // THEN
         getDummyResourceController().assertRefinedSchemaSanity(refinedSchema);
 	}
-	
+
 	@Test
     public void test010SanityModel() throws Exception {
 		final String TEST_NAME = "test010SanityModel";
@@ -96,12 +96,12 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
         // WHEN
         refinedSchemaModel = RefinedResourceSchemaImpl.getRefinedSchema(getDummyResourceType(), LayerType.MODEL, prismContext);
-        
+
         display("Dummy refined schema (MODEL)", refinedSchemaModel);
-        
+
         // THEN
         getDummyResourceController().assertRefinedSchemaSanity(refinedSchemaModel);
-        
+
         assertTrue("Not layer refined schema, it is "+refinedSchemaModel.getClass(), refinedSchemaModel instanceof LayerRefinedResourceSchema);
         assertEquals("Wrong layer", LayerType.MODEL, ((LayerRefinedResourceSchema)refinedSchemaModel).getLayer());
 	}
@@ -113,18 +113,18 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
         // WHEN
         Collection<? extends RefinedObjectClassDefinition> entitlementROcDefs = refinedSchema.getRefinedDefinitions(ShadowKindType.ENTITLEMENT);
-        
+
         display("entitlement rOcDefs", entitlementROcDefs);
-        
+
         // THEN
-        
+
         for (RefinedObjectClassDefinition entitlementROcDef: entitlementROcDefs) {
         	assertEquals("Wrong kind in "+entitlementROcDef, ShadowKindType.ENTITLEMENT, entitlementROcDef.getKind());
         }
-        
+
         assertEquals("Wrong number of entitlement rOcDefs", 6, entitlementROcDefs.size());
 	}
-	
+
 	@Test
     public void test101EntitlementRefinedObjectClassesModel() throws Exception {
 		final String TEST_NAME = "test101EntitlementRefinedObjectClassesModel";
@@ -132,15 +132,15 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 
         // WHEN
         Collection<? extends RefinedObjectClassDefinition> entitlementROcDefs = refinedSchemaModel.getRefinedDefinitions(ShadowKindType.ENTITLEMENT);
-        
+
         display("entitlement rOcDefs", entitlementROcDefs);
-        
+
         // THEN
-        
+
         for (RefinedObjectClassDefinition entitlementROcDef: entitlementROcDefs) {
         	assertEquals("Wrong kind in "+entitlementROcDef, ShadowKindType.ENTITLEMENT, entitlementROcDef.getKind());
         }
-        
+
         assertEquals("Wrong number of entitlement rOcDefs", 6, entitlementROcDefs.size());
 	}
 
@@ -150,20 +150,20 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         OperationResult result = new OperationResult(TestRefinedSchema.class.getName()  + "." + TEST_NAME);
-        
+
         importObjectFromFile(TASK_RECONCILE_DUMMY_OBJECTCLASS_FILE);
-        
+
         Task task = taskManager.getTask(TASK_RECONCILE_DUMMY_OBJECTCLASS_OID, result);
         display("Task", task);
-        
+
         // WHEN
         ObjectClassComplexTypeDefinition objectClass = Utils.determineObjectClass(refinedSchema, task);
-        
+
         // THEN
         display("Object class", objectClass);
-        
+
         deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_OBJECTCLASS_OID);
-        
+
         assertObjectClass(objectClass, RESOURCE_DUMMY_ACCOUNT_OBJECTCLASS_QNAME);
 	}
 
@@ -173,20 +173,20 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         OperationResult result = new OperationResult(TestRefinedSchema.class.getName()  + "." + TEST_NAME);
-        
+
         importObjectFromFile(TASK_RECONCILE_DUMMY_KIND_INTENT_FILE);
-        
+
         Task task = taskManager.getTask(TASK_RECONCILE_DUMMY_KIND_INTENT_OID, result);
         display("Task", task);
-        
+
         // WHEN
         ObjectClassComplexTypeDefinition objectClass = Utils.determineObjectClass(refinedSchema, task);
-        
+
         // THEN
         display("Object class", objectClass);
-        
+
         deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_KIND_INTENT_OID);
-        
+
         assertRefinedObjectClass(objectClass, RESOURCE_DUMMY_PRIVILEGE_OBJECTCLASS_QNAME, ShadowKindType.ENTITLEMENT, "privilege");
 	}
 
@@ -196,20 +196,20 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         OperationResult result = new OperationResult(TestRefinedSchema.class.getName()  + "." + TEST_NAME);
-        
+
         importObjectFromFile(TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_FILE);
-        
+
         Task task = taskManager.getTask(TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_OID, result);
         display("Task", task);
-        
+
         // WHEN
         ObjectClassComplexTypeDefinition objectClass = Utils.determineObjectClass(refinedSchema, task);
-        
+
         // THEN
         display("Object class", objectClass);
-        
+
         deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_OID);
-        
+
         assertRefinedObjectClass(objectClass, RESOURCE_DUMMY_PRIVILEGE_OBJECTCLASS_QNAME, ShadowKindType.ENTITLEMENT, "privilege");
 	}
 
@@ -219,21 +219,21 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         OperationResult result = new OperationResult(TestRefinedSchema.class.getName()  + "." + TEST_NAME);
-        
+
         importObjectFromFile(TASK_RECONCILE_DUMMY_OBJECTCLASS_FILE);
-        
+
         Task task = taskManager.getTask(TASK_RECONCILE_DUMMY_OBJECTCLASS_OID, result);
         display("Task", task);
-        
+
         // WHEN
         ObjectClassComplexTypeDefinition objectClass = Utils.determineObjectClass(refinedSchemaModel, task);
-        
+
         // THEN
         display("Object class", objectClass);
         display("Object class (toString)", objectClass.toString());
-        
+
         deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_OBJECTCLASS_OID);
-        
+
         assertObjectClass(objectClass, RESOURCE_DUMMY_ACCOUNT_OBJECTCLASS_QNAME);
 	}
 
@@ -243,22 +243,22 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         OperationResult result = new OperationResult(TestRefinedSchema.class.getName()  + "." + TEST_NAME);
-        
+
         importObjectFromFile(TASK_RECONCILE_DUMMY_KIND_INTENT_FILE);
-        
+
         Task task = taskManager.getTask(TASK_RECONCILE_DUMMY_KIND_INTENT_OID, result);
         display("Task", task);
-        
+
         // WHEN
         ObjectClassComplexTypeDefinition objectClass = Utils.determineObjectClass(refinedSchemaModel, task);
-        
+
         // THEN
         display("Object class", objectClass);
         display("Object class (toString)", objectClass.toString());
-        
+
         deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_KIND_INTENT_OID);
-        
-        assertLayerRefinedObjectClass(objectClass, RESOURCE_DUMMY_PRIVILEGE_OBJECTCLASS_QNAME, 
+
+        assertLayerRefinedObjectClass(objectClass, RESOURCE_DUMMY_PRIVILEGE_OBJECTCLASS_QNAME,
         		ShadowKindType.ENTITLEMENT, "privilege", LayerType.MODEL);
 	}
 
@@ -268,22 +268,22 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         OperationResult result = new OperationResult(TestRefinedSchema.class.getName()  + "." + TEST_NAME);
-        
+
         importObjectFromFile(TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_FILE);
-        
+
         Task task = taskManager.getTask(TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_OID, result);
         display("Task", task);
-        
+
         // WHEN
         ObjectClassComplexTypeDefinition objectClass = Utils.determineObjectClass(refinedSchemaModel, task);
-        
+
         // THEN
         display("Object class", objectClass);
         display("Object class (toString)", objectClass.toString());
-        
+
         deleteObject(TaskType.class, TASK_RECONCILE_DUMMY_KIND_INTENT_OBJECTCLASS_OID);
-        
-        assertLayerRefinedObjectClass(objectClass, RESOURCE_DUMMY_PRIVILEGE_OBJECTCLASS_QNAME, 
+
+        assertLayerRefinedObjectClass(objectClass, RESOURCE_DUMMY_PRIVILEGE_OBJECTCLASS_QNAME,
         		ShadowKindType.ENTITLEMENT, "privilege", LayerType.MODEL);
 	}
 
@@ -304,7 +304,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 		assertEquals("Wrong kind in rOcDef "+rOcDef, kind, rOcDef.getKind());
 		assertEquals("Wrong kind in rOcDef "+rOcDef, intent, rOcDef.getIntent());
 	}
-	
+
 	private void assertLayerRefinedObjectClass(ObjectClassComplexTypeDefinition objectClass,
 			QName objectClassQName, ShadowKindType kind, String intent, LayerType layer) {
 		assertRefinedObjectClass(objectClass, objectClassQName, kind, intent);

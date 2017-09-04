@@ -377,7 +377,7 @@ public class PrismUnmarshaller {
             	if (expression != null) {
             		PrismPropertyValue<T> ppv = new PrismPropertyValue<>(null, prismContext, null, null, expression);
             		return ppv;
-            		
+
             	}
             }
             PrismPropertyValue<T> ppv = new PrismPropertyValue<>(realValue);
@@ -483,7 +483,7 @@ public class PrismUnmarshaller {
 			if (!pc.isAllowMissingRefTypes() && !allowMissingRefTypesOverride) {
 				type = definition.getTargetTypeName();
 				if (type == null) {
-					throw new SchemaException("Target type in reference " + definition.getName() + 
+					throw new SchemaException("Target type in reference " + definition.getName() +
 							" not specified in reference nor in the schema");
 				}
 			}
@@ -494,7 +494,7 @@ public class PrismUnmarshaller {
             QName defTargetType = definition.getTargetTypeName();
             if (defTargetType != null) {
                 if (!(prismContext.getSchemaRegistry().isAssignableFrom(defTargetType, type))) {
-                    throw new SchemaException("Target type specified in reference " + definition.getName() + 
+                    throw new SchemaException("Target type specified in reference " + definition.getName() +
                     		" (" + type + ") does not match target type in schema (" + defTargetType + ")");
                 }
             }
@@ -514,7 +514,7 @@ public class PrismUnmarshaller {
         refVal.setDescription(map.getParsedPrimitiveValue(XNode.KEY_REFERENCE_DESCRIPTION, DOMUtil.XSD_STRING));
 
         refVal.setFilter(parseFilter(map.get(XNode.KEY_REFERENCE_FILTER)));
-        
+
         String resolutionTimeString = map.getParsedPrimitiveValue(XNode.KEY_REFERENCE_RESOLUTION_TIME, DOMUtil.XSD_STRING);
         if (resolutionTimeString != null) {
         	EvaluationTimeType resolutionTime = EvaluationTimeType.fromValue(resolutionTimeString);

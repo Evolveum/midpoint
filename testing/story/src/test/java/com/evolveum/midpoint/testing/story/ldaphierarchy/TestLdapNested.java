@@ -46,26 +46,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * reflected to nested LDAP groups. Users are members of the groups to reflect
  * their direct membership in orgstruct. Group are member of other groups to reflect
  * the org tree. Not there is no structure of OUs.
- *  
+ *
  * @author Radovan Semancik
  *
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapNested extends AbstractLdapHierarchyTest {
-	
+
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap-nested");
-		
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 	}
-	
+
 	@Override
 	protected File getTestDir() {
 		return TEST_DIR;
 	}
-	
+
 	@Override
 	protected PrismObject<UserType> getAndAssertUser(String username, String directOrgGroupname, String... indirectGroupNames) throws SchemaException, CommonException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
 		PrismObject<UserType> user = super.getAndAssertUser(username, directOrgGroupname, indirectGroupNames);
@@ -74,10 +74,10 @@ public class TestLdapNested extends AbstractLdapHierarchyTest {
 		Entry groupEntry = openDJController.searchSingle("cn="+directOrgGroupname);
 		assertNotNull("No group LDAP entry for "+directOrgGroupname, groupEntry);
 		openDJController.assertUniqueMember(groupEntry, accountEntry.getDN().toString());
-		
+
 		return user;
 	}
-	
+
 	@Override
 	protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
 		PrismObject<OrgType> org = super.getAndAssertFunctionalOrg(orgName, directParentOrgOid);

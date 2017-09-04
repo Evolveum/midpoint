@@ -35,9 +35,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 public final class JAXBUtil {
 
@@ -84,7 +84,7 @@ public final class JAXBUtil {
 			return false;
 		}
 	}
-	
+
 	public static QName getElementQName(Object element) {
 		if (element == null) {
 			return null;
@@ -114,9 +114,9 @@ public final class JAXBUtil {
 	/**
 	 * Returns short description of element content for diagnostics use (logs,
 	 * dumps).
-	 * 
+	 *
 	 * Works with DOM and JAXB elements.
-	 * 
+	 *
 	 * @param element
 	 *            DOM or JAXB element
 	 * @return short description of element content
@@ -147,7 +147,7 @@ public final class JAXBUtil {
 	/**
 	 * Looks for an element with specified name. Considers both DOM and JAXB
 	 * elements. Assumes single element instance in the list.
-	 * 
+	 *
 	 * @param elements
 	 * @param elementName
 	 */
@@ -210,7 +210,7 @@ public final class JAXBUtil {
 		}
 		return childElements;
 	}
-	
+
 	private static Method lookForXsdAnyElementMethod(Object jaxbObject) {
 		Class<? extends Object> jaxbClass = jaxbObject.getClass();
 		for (Method method: jaxbClass.getMethods()) {
@@ -259,7 +259,7 @@ public final class JAXBUtil {
 
 		return null;
 	}
-	
+
 	public static boolean compareElementList(List<Object> aList, List<Object> bList, boolean considerNamespacePrefixes) {
 		if (aList.size() != bList.size()) {
 			return false;
@@ -279,7 +279,7 @@ public final class JAXBUtil {
 					return false;
 				}
 			}
-			
+
 		}
 		return true;
 	}

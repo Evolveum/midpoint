@@ -41,15 +41,15 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * Almost the same as TestDummy but using incomplete attribute flags
- * 
+ *
  * MID-3573
- * 
+ *
  * @author Radovan Semancik
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestDummyIncomplete extends TestDummy {
-	
+
 	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-incomplete");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
@@ -57,12 +57,12 @@ public class TestDummyIncomplete extends TestDummy {
 	protected File getResourceDummyFilename() {
 		return RESOURCE_DUMMY_FILE;
 	}
-	
+
 	@Override
 	protected int getExpectedRefinedSchemaDefinitions() {
 		return super.getExpectedRefinedSchemaDefinitions() + 1;
 	}
-	
+
 	@Override
 	protected void assertNativeCredentialsCapability(CredentialsCapabilityType capCred) {
 		PasswordCapabilityType passwordCapabilityType = capCred.getPassword();
@@ -84,10 +84,10 @@ public class TestDummyIncomplete extends TestDummy {
 		assertTrue("Unexpected password value in "+shadow+": "+valueProperty, valueProperty.getValues().isEmpty());
 		assertTrue("No incompleteness in password value in "+shadow+": "+valueProperty, valueProperty.isIncomplete());
 	}
-	
+
 	@Test
 	public void testFakeToEnableDebug() {
-		
+
 	}
-	
+
 }

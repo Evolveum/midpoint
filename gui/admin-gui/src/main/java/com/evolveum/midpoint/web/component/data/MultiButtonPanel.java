@@ -62,7 +62,7 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
         for (int id = 0; id < numberOfButtons; id++) {
             final int finalId = getButtonId(id);
             AjaxButton button = new AjaxButton(String.valueOf(finalId), createStringResource(getCaption(finalId))) {
-              
+
             	private static final long serialVersionUID = 1L;
 				@Override
                 public void onClick(AjaxRequestTarget target) {
@@ -73,11 +73,11 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
                     super.updateAjaxAttributes(attributes);
                     attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
                 }
-                
+
             };
-            
+
             button.add(new VisibleEnableBehaviour() {
-            	
+
             	private static final long serialVersionUID = 1L;
             	@Override
                 public boolean isEnabled(){

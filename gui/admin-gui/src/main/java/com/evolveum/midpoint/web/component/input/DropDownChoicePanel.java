@@ -55,7 +55,7 @@ public class DropDownChoicePanel<T> extends InputPanel {
     public DropDownChoicePanel(String id, IModel<T> model, IModel<? extends List<? extends T>> choices, IChoiceRenderer<T> renderer) {
         this(id, model, choices, renderer, false);
     }
-    
+
     public DropDownChoicePanel(String id, IModel<T> model, IModel<? extends List<? extends T>> choices, IChoiceRenderer<T> renderer,
                                boolean allowNull) {
         super(id);
@@ -77,7 +77,7 @@ public class DropDownChoicePanel<T> extends InputPanel {
     public DropDownChoice<T> getBaseFormComponent() {
         return (DropDownChoice) get("input");
     }
-    
+
     public IModel<T> getModel() {
     	return getBaseFormComponent().getModel();
     }

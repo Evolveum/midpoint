@@ -25,29 +25,29 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel{
 
 	private static final long serialVersionUID = 1L;
-	
+
 	public GdprAssignmentPanel(String id, IModel<List<AssignmentDto>> assignmentsModel, PageBase pageBase) {
 		super(id, assignmentsModel, pageBase);
 	}
 
-	
+
 	@Override
 	protected List<IColumn<AssignmentDto, String>> initColumns() {
 		List<IColumn<AssignmentDto, String>> columns = new ArrayList<>();
 		columns.add(new PropertyColumn<>(createStringResource("AssignmentType.lifecycle"), AssignmentDto.F_VALUE + "." + AssignmentType.F_LIFECYCLE_STATE.getLocalPart()));
-		
+
 		columns.add(new CheckBoxColumn<AssignmentDto>(createStringResource("AssignmnetType.accepted")) {
-			
+
 			private static final long serialVersionUID = 1L;
 			@Override
 			protected IModel<Boolean> getEnabled() {
 				return Model.of(Boolean.FALSE);
 			}
-			
+
 			@Override
 			protected IModel<Boolean> getCheckBoxValueModel(IModel<AssignmentDto> rowModel) {
 				return new AbstractReadOnlyModel<Boolean>() {
-					
+
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -57,18 +57,18 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel{
 						if (assignmentType.getLifecycleState() == null) {
 							return Boolean.FALSE;
 						}
-						
+
 						if (assignmentType.getLifecycleState().equals(SchemaConstants.LIFECYCLE_ACTIVE)) {
 							return Boolean.TRUE;
 						}
-						
+
 						return Boolean.FALSE;
 					}
 				};
 			}
-		
+
 		});
-		
+
 		return columns;
 	}
 
@@ -76,13 +76,13 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel{
 	protected boolean isRelationVisible() {
 		return false;
 	}
-	
+
 	@Override
 	protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList,
 			QName relation) {
 		super.addSelectedAssignmentsPerformed(target, assignmentsList, SchemaConstants.ORG_CONSENT);
 	}
-	
-	
-	
+
+
+
 }

@@ -460,7 +460,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 					closeSelectedCampaignsConfirmedPerformed(target);
 				}
 			}
-			
+
 			@Override
 			public StringResourceModel getTitle() {
 				return createStringResource("PageCertCampaigns.dialog.title.confirmCloseCampaign");
@@ -488,7 +488,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 					deleteSelectedCampaignsConfirmedPerformed(target);
 				}
 			}
-			
+
 			@Override
 			public StringResourceModel getTitle() {
 				return createStringResource("PageCertCampaigns.dialog.title.confirmDeleteCampaign");
@@ -527,7 +527,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 					closeStageConfirmedPerformed(target, relevantCampaign);
 				}
 			}
-			
+
 			@Override
 			public StringResourceModel getTitle() {
 				return createStringResource("PageCertCampaigns.dialog.title.confirmCloseStage");
@@ -552,7 +552,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 					closeCampaignConfirmedPerformed(target, relevantCampaign);
 				}
 			}
-			
+
 			@Override
 			public StringResourceModel getTitle() {
 				return createStringResource("PageCertCampaigns.dialog.title.confirmCloseCampaign");
@@ -577,7 +577,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 					deleteCampaignConfirmedPerformed(target);
 				}
 			}
-			
+
 			@Override
 			public StringResourceModel getTitle() {
 				return createStringResource("PageCertCampaigns.dialog.title.confirmDeleteCampaign");

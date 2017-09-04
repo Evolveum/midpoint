@@ -72,23 +72,23 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Registry and resolver of schema files and resources.
- * 
- * 
+ *
+ *
  * @author Radovan Semancik
  *
  */
 public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
-	
+
 	private static final QName DEFAULT_XSD_TYPE = DOMUtil.XSD_STRING;
 
     private static final String DEFAULT_RUNTIME_CATALOG_RESOURCE = "META-INF/catalog-runtime.xml";
 
 	private File[] catalogFiles;														// overrides catalog resource name
     private String catalogResourceName = DEFAULT_RUNTIME_CATALOG_RESOURCE;
-	
+
 	private javax.xml.validation.SchemaFactory schemaFactory;
 	private javax.xml.validation.Schema javaxSchema;
-	private EntityResolver builtinSchemaResolver;	
+	private EntityResolver builtinSchemaResolver;
 	final private List<SchemaDescription> schemaDescriptions = new ArrayList<>();
 	final private Map<String,SchemaDescription> parsedSchemas = new HashMap<>();
 	final private Map<QName,ComplexTypeDefinition> extensionSchemas = new HashMap<>();
@@ -100,7 +100,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
 	@Autowired		// TODO does this work?
 	private PrismContext prismContext;
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaRegistry.class);
 
 	@Override
@@ -167,7 +167,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		desc.setUsualPrefix(usualPrefix);
 		registerSchemaDescription(desc);
 	}
-	
+
 	/**
 	 * Must be called before call to initialize()
 	 */
@@ -252,7 +252,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		desc.setUsualPrefix(usualPrefix);
 		registerSchemaDescription(desc);
 	}
-	
+
 	public void registerPrismSchemaFile(File file) throws FileNotFoundException, SchemaException {
 		loadPrismSchemaFileDescription(file);
 	}
@@ -290,7 +290,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		parsedSchemas.put(desc.getNamespace(), desc);
 		schemaDescriptions.add(desc);
 	}
-	
+
 	public void registerPrismSchemasFromDirectory(File directory) throws FileNotFoundException, SchemaException {
         File[] fileArray = directory.listFiles();
         if (fileArray != null) {
@@ -312,7 +312,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
             }
         }
 	}
-	
+
 	/**
 	 * This can be used to read additional schemas even after the registry was initialized.
 	 */
@@ -334,7 +334,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 			}
 		}
 	}
-	
+
 	public void loadPrismSchemaFile(File file) throws FileNotFoundException, SchemaException {
 		SchemaDescription desc = loadPrismSchemaFileDescription(file);
 		parsePrismSchema(desc, false);
@@ -349,7 +349,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
     /**
 	 * This can be used to read additional schemas even after the registry was initialized.
-	 */	
+	 */
 	@Override
 	public void initialize() throws SAXException, IOException, SchemaException {
 		if (prismContext == null) {
@@ -369,7 +369,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 			compileCompileTimeClassList();
 			LOGGER.trace("compileCompileTimeClassList() done");
 			initialized = true;
-			
+
 		} catch (SAXException ex) {
 			if (ex instanceof SAXParseException) {
 				SAXParseException sex = (SAXParseException)ex;
@@ -420,7 +420,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
 	private void parsePrismSchema(SchemaDescription schemaDescription, boolean allowDelayedItemDefinitions) throws SchemaException {
 		String namespace = schemaDescription.getNamespace();
-		
+
 		Element domElement = schemaDescription.getDomElement();
 		boolean isRuntime = schemaDescription.getCompileTimeClassesPackage() == null;
 		long started = System.currentTimeMillis();
@@ -451,7 +451,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 			}
 		}
 	}
-	
+
 	private void applySchemaExtensions() throws SchemaException {
 		for (Entry<QName,ComplexTypeDefinition> entry: extensionSchemas.entrySet()) {
 			QName typeQName = entry.getKey();
@@ -466,9 +466,9 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 			((PrismContainerDefinitionImpl) extensionContainer).setTypeName(extensionCtd.getTypeName());
 		}
 	}
-	
+
 	private void compileCompileTimeClassList() {
-		for (SchemaDescription schemaDescription : schemaDescriptions) {	
+		for (SchemaDescription schemaDescription : schemaDescriptions) {
 			Package pkg = schemaDescription.getCompileTimeClassesPackage();
 			if (pkg != null) {
 				Map<QName, Class<?>> map = createXsdTypeMap(pkg);
@@ -512,7 +512,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	public javax.xml.validation.Schema getJavaxSchema() {
 		return javaxSchema;
 	}
-	
+
 	@Override
 	public Collection<Package> getCompileTimePackages() {
 		Collection<Package> compileTimePackages = new ArrayList<Package>(schemaDescriptions.size());
@@ -523,7 +523,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		}
 		return compileTimePackages;
 	}
-	
+
 	private Map<QName, Class<?>> createXsdTypeMap(Package pkg) {
 		Map<QName, Class<?>> map = new HashMap<QName, Class<?>>();
 		for (Class clazz: ClassPathUtil.listClasses(pkg)) {
@@ -552,7 +552,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	public String debugDump() {
 		return debugDump(0);
 	}
-	
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
@@ -574,19 +574,19 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	public <C extends Containerable> void applyDefinition(PrismContainer<C> container, Class<C> type) throws SchemaException {
 		applyDefinition(container, type, true);
 	}
-	
+
 	@Override
 	public <C extends Containerable> void applyDefinition(PrismContainer<C> container, Class<C> compileTimeClass, boolean force) throws SchemaException {
 		PrismContainerDefinition<C> definition = determineDefinitionFromClass(compileTimeClass);
 		container.applyDefinition(definition, force);
 	}
-	
+
 	@Override
 	public <O extends Objectable> void applyDefinition(ObjectDelta<O> objectDelta, Class<O> compileTimeClass, boolean force) throws SchemaException {
 		PrismObjectDefinition<O> objectDefinition = determineDefinitionFromClass(compileTimeClass);
 		objectDelta.applyDefinition(objectDefinition, force);
 	}
-	
+
 	@Override
 	public <C extends Containerable, O extends Objectable> void applyDefinition(PrismContainerValue<C> prismContainerValue,
 			Class<O> compileTimeClass, ItemPath path, boolean force) throws SchemaException {

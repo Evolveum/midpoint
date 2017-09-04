@@ -25,7 +25,7 @@ public class SelfRegistrationDto implements Serializable {
 	enum AuthenticationPolicy {
 		MAIL, SMS, NONE;
 	}
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private String name;
@@ -33,10 +33,10 @@ public class SelfRegistrationDto implements Serializable {
 	private MailAuthenticationPolicyType mailAuthenticationPolicy;
 	private SmsAuthenticationPolicyType smsAuthenticationPolicy;
 	private NonceCredentialsPolicyType noncePolicy;
-	
+
 	private String requiredLifecycleState;
 	private String initialLifecycleState;
-	
+
 	private ObjectReferenceType formRef;
 
 	public void initSelfRegistrationDto(SecurityPolicyType securityPolicy) throws SchemaException {
@@ -52,9 +52,9 @@ public class SelfRegistrationDto implements Serializable {
 		this.defaultRoles = selfRegistration.getDefaultRole();
 		this.initialLifecycleState = selfRegistration.getInitialLifecycleState();
 		this.requiredLifecycleState = selfRegistration.getRequiredLifecycleState();
-		
+
 		this.formRef = selfRegistration.getFormRef();
-		
+
 		AbstractAuthenticationPolicyType authPolicy = SecurityPolicyUtil.getAuthenticationPolicy(
 				selfRegistration.getAdditionalAuthenticationName(), securityPolicy);
 
@@ -66,7 +66,7 @@ public class SelfRegistrationDto implements Serializable {
 			noncePolicy = SecurityPolicyUtil.getCredentialPolicy(((SmsAuthenticationPolicyType) authPolicy).getSmsNonce(), securityPolicy);
 		}
 
-		
+
 
 	}
 
@@ -74,16 +74,16 @@ public class SelfRegistrationDto implements Serializable {
 		return StringUtils.isEmpty(name) && CollectionUtils.isEmpty(defaultRoles)
 				&& mailAuthenticationPolicy == null && smsAuthenticationPolicy == null && noncePolicy == null;
 	}
-	
+
 	public AuthenticationPolicy getAuthenticationMethod () {
 		if (mailAuthenticationPolicy != null) {
 			return AuthenticationPolicy.MAIL;
 		}
-		
+
 		if (smsAuthenticationPolicy != null) {
 			return AuthenticationPolicy.SMS;
 		}
-		
+
 		return AuthenticationPolicy.NONE;
 	}
 
@@ -261,19 +261,19 @@ public class SelfRegistrationDto implements Serializable {
 	public void setNoncePolicy(NonceCredentialsPolicyType noncePolicy) {
 		this.noncePolicy = noncePolicy;
 	}
-	
+
 	public String getInitialLifecycleState() {
 		return initialLifecycleState;
 	}
-	
+
 	public void setInitialLifecycleState(String initialLifecycleState) {
 		this.initialLifecycleState = initialLifecycleState;
 	}
-	
+
 	public String getRequiredLifecycleState() {
 		return requiredLifecycleState;
 	}
-	
+
 	public void setRequiredLifecycleState(String requiredLifecycleState) {
 		this.requiredLifecycleState = requiredLifecycleState;
 	}

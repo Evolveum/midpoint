@@ -27,14 +27,14 @@ package com.evolveum.midpoint.task.api;
  * @author semancik
  */
 public class LightweightIdentifier {
-	
+
 	private static final String SEPARATOR = "-";
-	
+
 	private long timestamp;
 	private int hostIdentifier;
 	private int sequenceNumber;
 	private String string;
-	
+
 	public LightweightIdentifier(long timestamp, int hostIdentifier, int sequenceNumber) {
 		this.timestamp = timestamp;
 		this.hostIdentifier = hostIdentifier;
@@ -45,11 +45,11 @@ public class LightweightIdentifier {
 	public long getTimestamp() {
 		return timestamp;
 	}
-	
+
 	public int getHostIdentifier() {
 		return hostIdentifier;
 	}
-	
+
 	public int getSequenceNumber() {
 		return sequenceNumber;
 	}
@@ -93,5 +93,5 @@ public class LightweightIdentifier {
 	public String toString() {
 		return string;
 	}
-	
+
 }

@@ -37,9 +37,9 @@ import java.util.List;
 
 /**
  * <p>Java class for EventStatusFilterType complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="EventStatusFilterType">
  *   &lt;complexContent>
@@ -51,8 +51,8 @@ import java.util.List;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "EventStatusFilterType", propOrder = {
@@ -68,7 +68,7 @@ public class EventStatusFilterType
 
     /**
      * Creates a new {@code EventStatusFilterType} instance.
-     * 
+     *
      */
     public EventStatusFilterType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -77,8 +77,8 @@ public class EventStatusFilterType
 
     /**
      * Creates a new {@code EventStatusFilterType} instance by deeply copying a given {@code EventStatusFilterType} instance.
-     * 
-     * 
+     *
+     *
      * @param o
      *     The instance to copy.
      * @throws NullPointerException
@@ -98,25 +98,25 @@ public class EventStatusFilterType
 
     /**
      * Gets the value of the status property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the status property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getStatus().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link String }
-     * 
-     * 
+     *
+     *
      */
     public List<String> getStatus() {
         if (status == null) {
@@ -128,7 +128,7 @@ public class EventStatusFilterType
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     * 
+     *
      */
 
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
@@ -176,7 +176,7 @@ public class EventStatusFilterType
 
     /**
      * Copies all values of property {@code Status} deeply.
-     * 
+     *
      * @param source
      *     The source to copy from.
      * @param target
@@ -203,8 +203,8 @@ public class EventStatusFilterType
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

@@ -68,68 +68,68 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabi
 /**
  * Common abstract superclass for all manual connectors. There are connectors that do not
  * talk to the resource directly. They rather rely on a human to manually execute the
- * modification task. These connectors are efficiently write-only. 
- * 
+ * modification task. These connectors are efficiently write-only.
+ *
  * @author Radovan Semancik
  */
 @ManagedConnector
 public abstract class AbstractManualConnectorInstance extends AbstractManagedConnectorInstance implements AsynchronousOperationQueryable {
-	
+
 	private static final String OPERATION_ADD = AbstractManualConnectorInstance.class.getName() + ".addObject";
 	private static final String OPERATION_MODIFY = AbstractManualConnectorInstance.class.getName() + ".modifyObject";
 	private static final String OPERATION_DELETE = AbstractManualConnectorInstance.class.getName() + ".deleteObject";
-	
-	private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory CAPABILITY_OBJECT_FACTORY 
+
+	private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory CAPABILITY_OBJECT_FACTORY
 	= new com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory();
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractManualConnectorInstance.class);
-		
+
 	// test(), connect() and dispose() are lifecycle operations to be implemented in the subclasses
-	
+
 	// Operations to be implemented in the subclasses. These operations create the tickets.
 
 	protected abstract String createTicketAdd(PrismObject<? extends ShadowType> object,
 			Collection<Operation> additionalOperations, OperationResult result) throws CommunicationException,
 				GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException;
-	
+
 	protected abstract String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
 			Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes,
-			OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
+			OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
 			ObjectAlreadyExistsException, ConfigurationException;
-	
+
 	protected abstract String createTicketDelete(ObjectClassComplexTypeDefinition objectClass,
-			Collection<? extends ResourceAttribute<?>> identifiers, OperationResult result) 
-					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
+			Collection<? extends ResourceAttribute<?>> identifiers, OperationResult result)
+					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
 						ConfigurationException;
-	
+
 	@Override
 	public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(
 			PrismObject<? extends ShadowType> object, Collection<Operation> additionalOperations,
 			StateReporter reporter, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
-		
+
 		OperationResult result = parentResult.createSubresult(OPERATION_ADD);
-		
+
 		String ticketIdentifier = null;
-		
+
 		try {
-			
+
 			ticketIdentifier = createTicketAdd(object, additionalOperations, result);
-			
+
 		} catch (CommunicationException | GenericFrameworkException | SchemaException |
 				ObjectAlreadyExistsException | ConfigurationException | RuntimeException | Error e) {
 			result.recordFatalError(e);
 			throw e;
 		}
-		
+
 		result.recordInProgress();
 		result.setAsynchronousOperationReference(ticketIdentifier);
-		
+
 		AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> ret = new AsynchronousOperationReturnValue<>();
 		ret.setOperationResult(result);
 		return ret;
 	}
-	
+
 
 	@Override
 	public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
@@ -138,30 +138,30 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 			StateReporter reporter, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
 			SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ConfigurationException {
-		
+
 		OperationResult result = parentResult.createSubresult(OPERATION_MODIFY);
-		
+
 		String ticketIdentifier = null;
-		
+
 		try {
-			
+
 			ticketIdentifier = createTicketModify(objectClass, identifiers, changes, result);
-			
+
 		} catch (ObjectNotFoundException | CommunicationException | GenericFrameworkException | SchemaException |
 				ObjectAlreadyExistsException | ConfigurationException | RuntimeException | Error e) {
 			result.recordFatalError(e);
 			throw e;
 		}
-		
+
 		result.recordInProgress();
 		result.setAsynchronousOperationReference(ticketIdentifier);
-		
+
 		AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> ret = new AsynchronousOperationReturnValue<>();
 		ret.setOperationResult(result);
 		return ret;
 	}
 
-	
+
 	@Override
 	public AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass,
 			Collection<Operation> additionalOperations,
@@ -170,22 +170,22 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 			GenericFrameworkException, SchemaException, ConfigurationException {
 
 		OperationResult result = parentResult.createSubresult(OPERATION_DELETE);
-		
+
 		String ticketIdentifier = null;
-		
+
 		try {
-			
+
 			ticketIdentifier = createTicketDelete(objectClass, identifiers, result);
-			
+
 		} catch (ObjectNotFoundException | CommunicationException | GenericFrameworkException | SchemaException |
 				ConfigurationException | RuntimeException | Error e) {
 			result.recordFatalError(e);
 			throw e;
 		}
-		
+
 		result.recordInProgress();
 		result.setAsynchronousOperationReference(ticketIdentifier);
-		
+
 		return AsynchronousOperationResult.wrap(result);
 	}
 
@@ -193,40 +193,40 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 	public Collection<Object> fetchCapabilities(OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ConfigurationException {
 		Collection<Object> capabilities = new ArrayList<>();
-		
+
 		// caching-only read capabilities
 		ReadCapabilityType readCap = new ReadCapabilityType();
 		readCap.setCachingOnly(true);
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createRead(readCap));
-		
+
 		CreateCapabilityType createCap = new CreateCapabilityType();
 		setManual(createCap);
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createCreate(createCap));
-		
+
 		UpdateCapabilityType updateCap = new UpdateCapabilityType();
 		setManual(updateCap);
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(updateCap));
-		
+
 		AddRemoveAttributeValuesCapabilityType addRemoveAttributeValuesCap = new AddRemoveAttributeValuesCapabilityType();
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createAddRemoveAttributeValues(addRemoveAttributeValuesCap));
-		
+
 		DeleteCapabilityType deleteCap = new DeleteCapabilityType();
 		setManual(deleteCap);
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createDelete(deleteCap));
-		
+
 		ActivationCapabilityType activationCap = new ActivationCapabilityType();
 		ActivationStatusCapabilityType activationStatusCap = new ActivationStatusCapabilityType();
 		activationCap.setStatus(activationStatusCap);
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createActivation(activationCap));
-		
+
 		CredentialsCapabilityType credentialsCap = new CredentialsCapabilityType();
 		PasswordCapabilityType passwordCapabilityType = new PasswordCapabilityType();
 		credentialsCap.setPassword(passwordCapabilityType);
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createCredentials(credentialsCap));
-		
+
 		return capabilities;
 	}
-	
+
 	private void setManual(AbstractWriteCapabilityType cap) {
 		cap.setManual(true);
 	}
@@ -239,7 +239,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		// Read operations are not supported. We cannot really manually read the content of an off-line resource.
 		return null;
 	}
-	
+
 	@Override
 	public SearchResultMetadata search(
 			ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
@@ -251,7 +251,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		// Read operations are not supported. We cannot really manually read the content of an off-line resource.
 		return null;
 	}
-	
+
 	@Override
 	public int count(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
 			PagedSearchCapabilityType pagedSearchConfigurationType, StateReporter reporter,
@@ -261,7 +261,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		return 0;
 	}
 
-	
+
 	@Override
 	public ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException {
 		ConnectorOperationalStatus opstatus = new ConnectorOperationalStatus();
@@ -275,7 +275,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		// Schema discovery is not supported. Schema must be defined manually. Or other connector has to provide it.
 		return null;
 	}
-	
+
 	@Override
 	public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass,
 			StateReporter reporter, OperationResult parentResult)
@@ -292,13 +292,13 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		// not supported
 		return null;
 	}
-	
+
 	@Override
 	public PrismProperty<?> deserializeToken(Object serializedToken) {
 		// not supported
 		return null;
 	}
-	
+
 	@Override
 	public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException {

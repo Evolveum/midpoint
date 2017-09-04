@@ -33,22 +33,22 @@ import java.util.Iterator;
 
 /**
  * Autocomplete field for Strings.
- * 
+ *
  * TODO: may need some work to properly support non-string values.
- * 
+ *
  *  @author shood
  *  @author semancik
  * */
 public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel {
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final String ID_INPUT = "input";
 
     public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type) {
     	super(id);
 
         AutoCompleteSettings autoCompleteSettings = createAutoCompleteSettings();
-        
+
         // this has to be copied because the  AutoCompleteTextField dies if renderer=null
         final AutoCompleteTextField<T> input = new AutoCompleteTextField<T>(ID_INPUT, model, type, autoCompleteSettings) {
         	private static final long serialVersionUID = 1L;
@@ -64,12 +64,12 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
                 attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ONE_SECOND, true));
             }
         };
-        
+
         input.setType(type);
         if (model instanceof LookupPropertyModel) {
             input.add(new OnChangeAjaxBehavior() {
             	private static final long serialVersionUID = 1L;
-            	
+
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {
                     checkInputValue(input, target, (LookupPropertyModel<T>)model);

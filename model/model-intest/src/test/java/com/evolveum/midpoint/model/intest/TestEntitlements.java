@@ -58,7 +58,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Test of account-entitlement association.
- * 
+ *
  * @author Radovan Semancik
  *
  */
@@ -89,7 +89,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	public static final String ROLE_THUG_OID = "10000000-0000-0000-0000-000000001607";
 	public static final String ROLE_THUG_NAME = "Thug";
 	public static final String GROUP_THUG_NAME = "thug";
-	
+
 	public static final File ROLE_CREW_OF_GUYBRUSH_FILE = new File(TEST_DIR, "role-crew-of-guybrush.xml");
 	public static final String ROLE_CREW_OF_GUYBRUSH_OID = "93d3e436-3c6c-11e7-8168-23796882a64e";
 
@@ -122,7 +122,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         importObjectFromFile(ROLE_LANDLUBER_FILE);
         importObjectFromFile(ROLE_MAPMAKER_FILE);
         importObjectFromFile(ROLE_CREW_OF_GUYBRUSH_FILE);
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
     }
 
@@ -875,7 +875,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         // Orange resource has explicit referential integrity switched off
         assertNoGroupMember(dummyGroupWimpsAtOrange, USER_RAPP_USERNAME);
 	}
-    
+
     @Test
     public void test350AssignOrangeAccountToGuybrushAndRapp() throws Exception {
 		final String TEST_NAME = "test350AssignOrangeAccountToGuybrushAndRapp";
@@ -912,7 +912,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before", userRappBefore);
-        
+
         // preconditions
         assertNotNull("No rapp", userRappBefore);
         assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
@@ -930,20 +930,20 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         String guybrushShadowOid = getLinkRefOid(userGuybrushAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> guybrushShadow = getShadowModel(guybrushShadowOid);
         display("Shadow guybrush", guybrushShadow);
-        
+
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp after", userRappAfter);
         String rappShadowOid = getSingleLinkOid(userRappAfter);
         PrismObject<ShadowType> rappShadow = getShadowModel(rappShadowOid);
         display("Shadow rapp", rappShadow);
         assertAssociation(rappShadow, RESOURCE_DUMMY_ORANGE_ASSOCIATION_CREW_QNAME, guybrushShadowOid);
-        
+
         DummyAccount dummyOrangeAccountRapp = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_RAPP_USERNAME);
         display("Rapp account", dummyOrangeAccountRapp);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_ORANGE_NAME, USER_RAPP_USERNAME, 
-        		DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_ORANGE_NAME, USER_RAPP_USERNAME,
+        		DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 	}
-    
+
     /**
      * MID-2668
      */
@@ -957,7 +957,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
         display("User rapp before", userRappBefore);
-        
+
         // preconditions
         assertNotNull("No rapp", userRappBefore);
         assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
@@ -973,20 +973,20 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
         display("User guybrush after", userGuybrushAfter);
         String guybrushShadowOid = getLinkRefOid(userGuybrushAfter, RESOURCE_DUMMY_ORANGE_OID);
-        
+
         PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
         display("User rapp before", userRappAfter);
         String rappShadowOid = getSingleLinkOid(userRappAfter);
         PrismObject<ShadowType> rappShadow = getShadowModel(rappShadowOid);
         display("Shadow rapp", rappShadow);
         assertNoAssociation(rappShadow, RESOURCE_DUMMY_ORANGE_ASSOCIATION_CREW_QNAME, guybrushShadowOid);
-        
+
         DummyAccount dummyOrangeAccountRapp = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_RAPP_USERNAME);
         display("Rapp account", dummyOrangeAccountRapp);
-        assertNoDummyAccountAttribute(RESOURCE_DUMMY_ORANGE_NAME, USER_RAPP_USERNAME, 
-        		DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME);        
+        assertNoDummyAccountAttribute(RESOURCE_DUMMY_ORANGE_NAME, USER_RAPP_USERNAME,
+        		DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME);
 	}
-    
+
     @Test
     public void test359UnassignOrangeAccountFromGuybrushAndRapp() throws Exception {
 		final String TEST_NAME = "test359UnassignOrangeAccountFromGuybrushAndRapp";
@@ -1007,7 +1007,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_RAPP_USERNAME);
 	}
-    
+
     @Test
     public void test600AssignRolePirateToJack() throws Exception {
 		final String TEST_NAME = "test600AssignRolePirateToJack";
@@ -1264,7 +1264,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate", "Swashbuckler");
 	}
-    
+
     @Test
     public void test659UnassignRoleSwashbucklerFromJack() throws Exception {
 		final String TEST_NAME = "test659UnassignRoleSwashbucklerFromJack";
@@ -1302,7 +1302,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate");
 	}
-    
+
     @Test
     public void test699UnassignRolePirateFromJack() throws Exception {
 		final String TEST_NAME = "test699UnassignRolePirateFromJack";
@@ -1342,10 +1342,10 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 		dumpOrangeGroups(task, result);
 
 		// GIVEN
-		
+
 		DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
 		dummyGroup.addMember(USER_GUYBRUSH_USERNAME);
-		
+
 		assertGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
 		// WHEN
@@ -1454,7 +1454,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 		assertGroupMember(GROUP_THUG_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource(RESOURCE_DUMMY_ORANGE_NAME));
 		assertNoGroupMember(GROUP_THUG_NAME+"-wannabe", ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource(RESOURCE_DUMMY_ORANGE_NAME));
 	}
-	
+
 	/**
 	 * MID-4021
 	 */
@@ -1465,9 +1465,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-        
+
         // preconditions
         assertJackClean();
 
@@ -1486,7 +1486,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	/**
 	 * MID-4021
 	 */
@@ -1497,9 +1497,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
@@ -1528,7 +1528,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
@@ -1541,9 +1541,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("User after", userAfter);
         assertAssignments(userAfter, 0);
 
-        assertJackNoAccountNoSwashbuckler();        
+        assertJackNoAccountNoSwashbuckler();
 	}
-	
+
 	/**
 	 * MID-4021
 	 */
@@ -1554,9 +1554,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-        
+
         // preconditions
         assertJackClean();
 
@@ -1575,7 +1575,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertJackAccountSwashbuckler();
 	}
-	
+
 	/**
 	 * MID-4021
 	 */
@@ -1586,9 +1586,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
@@ -1604,7 +1604,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertJackAccountSwashbuckler();
 	}
-	
+
 	/**
 	 * MID-4021
 	 */
@@ -1617,7 +1617,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
@@ -1632,7 +1632,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertJackAccountSwashbuckler();
 	}
-	
+
 	/**
 	 * MID-4021
 	 */
@@ -1643,9 +1643,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
@@ -1658,12 +1658,12 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("User after", userAfter);
         assertAssignments(userAfter, 0);
 
-        // Group association is non-tolerant. 
+        // Group association is non-tolerant.
         // So, account should remain, but the group should be gone
         // (removed by reconciliation)
         assertJackAccountNoSwashbuckler();
 	}
-	
+
 	/**
 	 * Jack has account and entitlement from previous test. Now we are in full
 	 * enforcement. Recompute should remove the account and entitlement.
@@ -1676,9 +1676,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        
+
         // preconditions
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
 
@@ -1696,7 +1696,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertJackNoAccountNoSwashbuckler();
 	}
-	
+
 	/**
 	 * MID-4021
 	 */
@@ -1707,9 +1707,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        
+
         // preconditions
         assertJackClean();
 
@@ -1728,7 +1728,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertJackAccountSwashbuckler();
 	}
-	
+
 	/**
 	 * MID-4021
 	 */
@@ -1739,9 +1739,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
@@ -1757,7 +1757,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertJackAccountSwashbuckler();
 	}
-	
+
 	/**
 	 * MID-4021
 	 */
@@ -1770,7 +1770,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
@@ -1785,7 +1785,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertJackNoAccountNoSwashbuckler();
 	}
-	
+
 	/**
 	 * MID-4021
 	 */
@@ -1796,9 +1796,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         reconcileUser(USER_JACK_OID, task, result);
@@ -1813,7 +1813,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertJackNoAccountNoSwashbuckler();
 	}
-	
+
 	/**
 	 * For next few tests keep account assigned, add/remove just the entitlement assignment
 	 * MID-4021
@@ -1825,9 +1825,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        
+
         // preconditions
         assertJackClean();
 
@@ -1845,7 +1845,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertJackAccountNoSwashbuckler();
  	}
-	
+
 	/**
 	 * MID-4021
 	 */
@@ -1856,9 +1856,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-        
+
         // preconditions
         assertJackJustAccount();
 
@@ -1877,7 +1877,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertJackAccountNoSwashbuckler();
 	}
-	
+
 	/**
 	 * MID-4021
 	 */
@@ -1888,9 +1888,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
@@ -1905,7 +1905,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertJackAccountNoSwashbuckler();
 	}
-	
+
 	/**
 	 * MID-4021
 	 */
@@ -1916,9 +1916,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-        
+
         // preconditions
         assertJackJustAccount();
 
@@ -1937,7 +1937,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertJackAccountSwashbuckler();
 	}
-	
+
 	/**
 	 * MID-4021
 	 */
@@ -1948,9 +1948,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
@@ -1965,7 +1965,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertJackAccountSwashbuckler();
 	}
-	
+
 	/**
 	 * Jack has account and entitlement from previous test. Now we are in full
 	 * enforcement. Recompute should remove the entitlement.
@@ -1978,9 +1978,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         recomputeUser(USER_JACK_OID, task, result);
@@ -1995,7 +1995,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertJackAccountNoSwashbuckler();
 	}
-	
+
 	/**
 	 * MID-4021
 	 */
@@ -2006,9 +2006,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        
+
         // preconditions
         assertJackJustAccount();
 
@@ -2027,7 +2027,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertJackAccountSwashbuckler();
 	}
-	
+
 	/**
 	 * MID-4021
 	 */
@@ -2038,9 +2038,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
@@ -2055,7 +2055,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertJackAccountNoSwashbuckler();
 	}
-	
+
 	/**
 	 * MID-4021
 	 */
@@ -2068,7 +2068,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
@@ -2083,14 +2083,14 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertJackNoAccountNoSwashbuckler();
 	}
-		
+
 	private void assertJackClean() throws SchemaViolationException, ConflictException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 0);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	private void assertJackJustAccount() throws SchemaViolationException, ConflictException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ConnectException, FileNotFoundException {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
@@ -2112,7 +2112,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-    
+
 	/**
 	 * Account: yes, group: no
 	 */

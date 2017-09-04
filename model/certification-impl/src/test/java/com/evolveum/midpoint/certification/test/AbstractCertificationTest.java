@@ -62,10 +62,10 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	@Autowired
 	private AccCertResponseComputationHelper computationHelper;
-	
+
 	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
-	
+
 	protected static final File ORGS_AND_USERS_FILE = new File(COMMON_DIR, "orgs-and-users.xml");
 	protected static final File USER_BOB_FILE = new File(COMMON_DIR, "user-bob.xml");
 	protected static final File USER_BOB_DEPUTY_FULL_FILE = new File(COMMON_DIR, "user-bob-deputy-full.xml");
@@ -178,7 +178,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		super.initSystem(initTask, initResult);
 
 		modelService.postInit(initResult);
-		
+
 		// System Configuration
 		try {
 			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);

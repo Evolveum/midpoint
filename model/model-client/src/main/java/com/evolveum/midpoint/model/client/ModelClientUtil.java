@@ -70,24 +70,24 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  *
  */
 public class ModelClientUtil {
-	
+
 	// XML constants
 	public static final String NS_COMMON = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
     public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
     public static final String NS_RI = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
     public static final String NS_ICFS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
-	
+
     public static final QName COMMON_PATH = new QName(NS_COMMON, "path");
 	public static final QName COMMON_VALUE = new QName(NS_COMMON, "value");
     public static final QName COMMON_GIVEN_NAME = new QName(NS_COMMON, "givenName");
 	public static final QName COMMON_ASSIGNMENT = new QName(NS_COMMON, "assignment");
-	
+
 	private static final QName TYPES_POLYSTRING_ORIG = new QName(NS_TYPES, "orig");
     public static final QName TYPES_CLEAR_VALUE = new QName(NS_TYPES, "clearValue");
 
 	private static final DocumentBuilder domDocumentBuilder;
 	private static final JAXBContext jaxbContext;
-	
+
 	public static JAXBContext instantiateJaxbContext() throws JAXBException {
 		return JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_3:" +
 				"com.evolveum.midpoint.xml.ns._public.common.common_3:" +
@@ -99,7 +99,7 @@ public class ModelClientUtil {
 				"com.evolveum.prism.xml.ns._public.query_3:" +
 				"com.evolveum.prism.xml.ns._public.types_3");
 	}
-	
+
 	public static Element createPathElement(String stringPath, Document doc) {
 		String pathDeclaration = "declare default namespace '" + NS_COMMON + "'; " + stringPath;
 		return createTextElement(COMMON_PATH, pathDeclaration, doc);
@@ -124,11 +124,11 @@ public class ModelClientUtil {
 		polyStringType.getContent().add(string);
 		return polyStringType;
 	}
-    
+
     public static PolyStringType createPolyStringType(String string) {
 		return createPolyStringType(string, getDocumnent());
 	}
-    
+
     public static String getOrig(PolyStringType polyStringType) {
         if (polyStringType == null) {
             return null;
@@ -151,19 +151,19 @@ public class ModelClientUtil {
         }
         return sb.toString();
     }
-	
+
 	public static Element createTextElement(QName qname, String value, Document doc) {
 		Element element = doc.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
 		element.setTextContent(value);
 		return element;
 	}
-	
+
 	public static CredentialsType createPasswordCredentials(String password) {
 		CredentialsType credentialsType = new CredentialsType();
 		credentialsType.setPassword(createPasswordType(password));
 		return credentialsType;
 	}
-	
+
 	public static PasswordType createPasswordType(String password) {
 		PasswordType passwordType = new PasswordType();
 		passwordType.setValue(createProtectedString(password));
@@ -189,7 +189,7 @@ public class ModelClientUtil {
 		String typeUri = NS_COMMON + "#" + type.getSimpleName();
 		return typeUri;
 	}
-	
+
 	public static QName getTypeQName(Class<? extends ObjectType> type) {
 		QName typeQName = new QName(NS_COMMON, type.getSimpleName());
 		return typeQName;
@@ -205,8 +205,8 @@ public class ModelClientUtil {
 			local = local.substring(0,1).toLowerCase() + local.substring(1);
 		}
 		return new QName(NS_COMMON, local);
-	}	
-	
+	}
+
 	public static Element parseElement(String stringXml) throws SAXException, IOException {
 		Document document = domDocumentBuilder.parse(IOUtils.toInputStream(stringXml, "utf-8"));
 		return getFirstChildElement(document);
@@ -263,8 +263,8 @@ public class ModelClientUtil {
         }
         return null;
     }
-    
-    public static <O extends ObjectType> ObjectDeltaListType createModificationDeltaList(Class<O> type, String oid, 
+
+    public static <O extends ObjectType> ObjectDeltaListType createModificationDeltaList(Class<O> type, String oid,
     		String path, ModificationTypeType modType, Object... values) {
 		ObjectDeltaListType deltaList = new ObjectDeltaListType();
     	ObjectDeltaType delta = new ObjectDeltaType();
@@ -279,21 +279,21 @@ public class ModelClientUtil {
 		deltaList.getDelta().add(delta);
 		return deltaList;
 	}
-    
+
     @Deprecated
-    public static <O extends ObjectType, T extends ObjectType> ObjectDeltaListType createAssignDeltaList(Class<O> focusType, String focusOid, 
+    public static <O extends ObjectType, T extends ObjectType> ObjectDeltaListType createAssignDeltaList(Class<O> focusType, String focusOid,
     		Class<T> targetType, String targetOid) {
     	return createAssignmentDeltaList(focusType, focusOid, targetType, targetOid, ModificationTypeType.ADD);
     }
 
     @Deprecated
-    public static <O extends ObjectType, T extends ObjectType> ObjectDeltaListType createUnassignDeltaList(Class<O> focusType, String focusOid, 
+    public static <O extends ObjectType, T extends ObjectType> ObjectDeltaListType createUnassignDeltaList(Class<O> focusType, String focusOid,
     		Class<T> targetType, String targetOid) {
     	return createAssignmentDeltaList(focusType, focusOid, targetType, targetOid, ModificationTypeType.DELETE);
     }
 
     @Deprecated
-    private static <O extends ObjectType, T extends ObjectType> ObjectDeltaListType createAssignmentDeltaList(Class<O> focusType, String focusOid, 
+    private static <O extends ObjectType, T extends ObjectType> ObjectDeltaListType createAssignmentDeltaList(Class<O> focusType, String focusOid,
     		Class<T> targetType, String targetOid, ModificationTypeType modificationType) {
     	AssignmentType assignment = new AssignmentType();
     	ObjectReferenceType targetRef = new ObjectReferenceType();
@@ -302,10 +302,10 @@ public class ModelClientUtil {
 		assignment.setTargetRef(targetRef);
     	return createModificationDeltaList(focusType, focusOid, "assignment", modificationType, assignment);
     }
-    
+
     public static <O> O unmarshallResource(String path) throws JAXBException, FileNotFoundException {
-		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller(); 
-		 
+		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+
 		InputStream is = null;
 		JAXBElement<O> element = null;
 		try {
@@ -326,8 +326,8 @@ public class ModelClientUtil {
 	}
 
     public static <O> O unmarshallFile(File file) throws JAXBException, FileNotFoundException {
-		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller(); 
-		 
+		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+
 		InputStream is = null;
 		JAXBElement<O> element = null;
 		try {
@@ -343,11 +343,11 @@ public class ModelClientUtil {
 		}
 		return element.getValue();
 	}
-    
+
     public static <O extends ObjectType> String marshallToSting(O object) throws JAXBException {
     	return marshallToSting(object, true);
     }
-    
+
     public static <O extends ObjectType> String marshallToSting(O object, boolean formatted) throws JAXBException {
     	Marshaller marshaller = jaxbContext.createMarshaller();
     	marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
@@ -360,7 +360,7 @@ public class ModelClientUtil {
     	marshaller.marshal(element, sw);
     	return sw.toString();
     }
-    
+
     public static <T> String marshallToSting(QName elementName, T object, boolean formatted) throws JAXBException {
     	Marshaller marshaller = jaxbContext.createMarshaller();
     	marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
@@ -372,15 +372,15 @@ public class ModelClientUtil {
     	marshaller.marshal(element, sw);
     	return sw.toString();
     }
-    
+
     public static <O extends ObjectType> ObjectDeltaType createRoleAssignDelta(Class<O> focusType, String focusOid, String... roleOids) {
     	return createRoleAssignmentDelta(focusType, focusOid, ModificationTypeType.ADD, roleOids);
     }
-    
+
     public static <O extends ObjectType> ObjectDeltaType createRoleUnassignDelta(Class<O> focusType, String focusOid, String... roleOids) {
     	return createRoleAssignmentDelta(focusType, focusOid, ModificationTypeType.DELETE, roleOids);
     }
-    
+
     public static <O extends ObjectType> ObjectDeltaType createRoleAssignmentDelta(Class<O> focusType, String focusOid, ModificationTypeType modType, String... roleOids) {
     	ItemDeltaType assignmentDelta = new ItemDeltaType();
     	assignmentDelta.setModificationType(modType);
@@ -395,7 +395,7 @@ public class ModelClientUtil {
         deltaType.getItemDelta().add(assignmentDelta);
         return deltaType;
     }
-    
+
     public static AssignmentType createRoleAssignment(String roleOid) {
 		AssignmentType roleAssignment = new AssignmentType();
 		ObjectReferenceType roleRef = new ObjectReferenceType();
@@ -404,15 +404,15 @@ public class ModelClientUtil {
 		roleAssignment.setTargetRef(roleRef);
 		return roleAssignment;
 	}
-    
+
     public static <O extends ObjectType> ObjectDeltaType createConstructionAssignDelta(Class<O> focusType, String focusOid, String resourceOid) {
     	return createConstructionAssignmentDelta(focusType, focusOid, ModificationTypeType.ADD, resourceOid, null, null);
     }
-    
+
     public static <O extends ObjectType> ObjectDeltaType createConstructionAssignDelta(Class<O> focusType, String focusOid, String resourceOid, ShadowKindType kind) {
     	return createConstructionAssignmentDelta(focusType, focusOid, ModificationTypeType.ADD, resourceOid, kind, null);
     }
-    
+
     public static <O extends ObjectType> ObjectDeltaType createConstructionAssignDelta(Class<O> focusType, String focusOid, String resourceOid, ShadowKindType kind, String intent) {
     	return createConstructionAssignmentDelta(focusType, focusOid, ModificationTypeType.ADD, resourceOid, kind, intent);
     }
@@ -429,7 +429,7 @@ public class ModelClientUtil {
         deltaType.getItemDelta().add(assignmentDelta);
         return deltaType;
     }
-    
+
     public static AssignmentType createConstructionAssignment(String resourceOid) {
     	return createConstructionAssignment(resourceOid, null, null);
     }
@@ -437,7 +437,7 @@ public class ModelClientUtil {
     public static AssignmentType createConstructionAssignment(String resourceOid, ShadowKindType kind) {
     	return createConstructionAssignment(resourceOid, kind, null);
     }
-    
+
     public static AssignmentType createConstructionAssignment(String resourceOid, ShadowKindType kind, String intent) {
 		AssignmentType assignment = new AssignmentType();
 		ConstructionType construction = new ConstructionType();
@@ -453,7 +453,7 @@ public class ModelClientUtil {
 		assignment.setConstruction(construction);
 		return assignment;
 	}
-    
+
     public static ObjectDeltaListType createDeltaList(ObjectDeltaType... deltas) {
     	ObjectDeltaListType list = new ObjectDeltaListType();
     	for (ObjectDeltaType delta: deltas) {
@@ -461,7 +461,7 @@ public class ModelClientUtil {
     	}
     	return list;
     }
-    
+
 	public static SelectorQualifiedGetOptionsType createRootGetOptions(GetOperationOptionsType opt) {
 		SelectorQualifiedGetOptionsType rootOpts = new SelectorQualifiedGetOptionsType();
 		SelectorQualifiedGetOptionType selOpt = new SelectorQualifiedGetOptionType();
@@ -469,13 +469,13 @@ public class ModelClientUtil {
 		rootOpts.getOption().add(selOpt);
 		return rootOpts;
 	}
-	
+
 	public static GetOperationOptionsType createRawGetOption() {
 		GetOperationOptionsType opts = new GetOperationOptionsType();
 		opts.setRaw(Boolean.TRUE);
 		return opts;
 	}
-	
+
 	public static ModelExecuteOptionsType createRawExecuteOption() {
 		ModelExecuteOptionsType opts = new ModelExecuteOptionsType();
 		opts.setRaw(Boolean.TRUE);
@@ -499,7 +499,7 @@ public class ModelClientUtil {
 		sb.append(")");
 		return sb.toString();
 	}
-	
+
 	public static String toString(PolyStringType poly) {
 		if (poly == null) {
 			return null;
@@ -507,7 +507,7 @@ public class ModelClientUtil {
 		return getOrig(poly);
 	}
 
-	
+
 	static {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -516,7 +516,7 @@ public class ModelClientUtil {
 		} catch (ParserConfigurationException e) {
 			throw new IllegalStateException("Error creating XML document " + e.getMessage());
 		}
-		
+
 		try {
 			jaxbContext = ModelClientUtil.instantiateJaxbContext();
 		} catch (JAXBException e) {
@@ -524,5 +524,5 @@ public class ModelClientUtil {
 		}
 	}
 
-	
+
 }

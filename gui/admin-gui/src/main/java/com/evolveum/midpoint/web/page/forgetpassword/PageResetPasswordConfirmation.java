@@ -33,15 +33,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 @PageDescriptor(urls = {@Url(mountUrl = SchemaConstants.PASSWORD_RESET_CONFIRMATION_PREFIX)})
 public class PageResetPasswordConfirmation extends PageRegistrationBase{
 
-	
+
 private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfirmation.class);
-	
+
 	private static final String DOT_CLASS = PageRegistrationConfirmation.class.getName() + ".";
 
-	
+
 	private static final String ID_LABEL_ERROR = "errorLabel";
 	private static final String ID_ERROR_PANEL = "errorPanel";
-	
+
 	private static final String OPERATION_ASSIGN_DEFAULT_ROLES = DOT_CLASS + ".assignDefaultRoles";
 	private static final String OPERATION_FINISH_REGISTRATION = DOT_CLASS + "finishRegistration";
 
@@ -63,7 +63,7 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
 		if (params == null) {
 			params = getPageParameters();
 		}
-		
+
 		OperationResult result = new OperationResult(OPERATION_FINISH_REGISTRATION);
 		if (params == null) {
 			LOGGER.error("Confirmation link is not valid. No credentials provided in it");
@@ -78,7 +78,7 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
 		Validate.notEmpty(userNameValue.toString());
 		StringValue tokenValue = params.get(SchemaConstants.TOKEN);
 		Validate.notEmpty(tokenValue.toString());
-			
+
 		UsernamePasswordAuthenticationToken token = authenticateUser(userNameValue.toString(), tokenValue.toString(), result);
 		if (token == null) {
 			initLayout(result);
@@ -87,7 +87,7 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
 //			SecurityContextHolder.getContext().setAuthentication(token);
 			MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
 			Collection<Authorization> authz = principal.getAuthorities();
-			
+
 			if (authz != null) {
 				Iterator<Authorization> authzIterator = authz.iterator();
 				while (authzIterator.hasNext()) {
@@ -99,11 +99,11 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
 							actionIterator.remove();
 						}
 					}
-					
+
 				}
-				
+
 			}
-			
+
 			AuthorizationType authorizationType = new AuthorizationType();
 			authorizationType.getAction().add(AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL);
 			Authorization selfServiceCredentialsAuthz = new Authorization(authorizationType);
@@ -114,7 +114,7 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
 
 		initLayout(result);
 	}
-	
+
 	private UsernamePasswordAuthenticationToken authenticateUser(String username, String nonce, OperationResult result) {
 		ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
 		try {
@@ -133,10 +133,10 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
 			return null;
 		}
 	}
-	
-	
-	
-	
+
+
+
+
 	private void initLayout(final OperationResult result) {
 
 		WebMarkupContainer errorPanel = new WebMarkupContainer(ID_ERROR_PANEL);
@@ -160,7 +160,7 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
 		errorPanel.add(errorMessage);
 
 	}
-	
+
 	@Override
 	protected void createBreadcrumb() {
 		// don't create breadcrumb for registration confirmation page

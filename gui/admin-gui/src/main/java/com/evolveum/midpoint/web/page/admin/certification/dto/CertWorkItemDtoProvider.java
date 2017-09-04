@@ -73,7 +73,7 @@ public class CertWorkItemDtoProvider extends BaseSortableDataProvider<CertWorkIt
         try {
             ObjectPaging paging = createPaging(first, count);
             Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
-            
+
             ObjectQuery caseQuery = getQuery();
             caseQuery = caseQuery != null ? caseQuery.clone() : new ObjectQuery();
             caseQuery.setPaging(paging);

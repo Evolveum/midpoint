@@ -23,20 +23,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 
 /**
- * Service that exposes security functions for GUI and other spring-security-enabled authentication front-ends. 
+ * Service that exposes security functions for GUI and other spring-security-enabled authentication front-ends.
  *
  * @author lazyman
  * @author Igor Farinic
  * @author Radovan Semancik
  */
 public interface UserProfileService extends OwnerResolver {
-    
+
     String DOT_CLASS = UserProfileService.class.getName() + ".";
     String OPERATION_GET_PRINCIPAL = DOT_CLASS + "getPrincipal";
     String OPERATION_UPDATE_USER = DOT_CLASS + "updateUser";
 
     public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException;
-    
+
     public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException;
 
     public void updateUser(MidPointPrincipal principal);

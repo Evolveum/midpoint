@@ -491,7 +491,7 @@ public class ObjectRetriever {
         } catch (SchemaException | RuntimeException | Error e) {
         	// This is a serious thing. We have corrupted XML in the repo. This may happen even
         	// during system init. We want really loud and detailed error here.
-            LOGGER.error("Couldn't parse object {} {}: {}: {}\n{}", 
+            LOGGER.error("Couldn't parse object {} {}: {}: {}\n{}",
             		type.getSimpleName(), oid, e.getClass().getName(), e.getMessage(), xml, e);
             throw e;
         }
@@ -561,7 +561,7 @@ public class ObjectRetriever {
             QName name = RUtil.stringToQName((String) value[0]);
             QName type = RUtil.stringToQName((String) value[1]);
             Item item = attributes.findItem(name);
-            
+
             if (item == null) {
             	// Just skip. Cannot throw exceptions here. Otherwise we
             	// could break raw reading.

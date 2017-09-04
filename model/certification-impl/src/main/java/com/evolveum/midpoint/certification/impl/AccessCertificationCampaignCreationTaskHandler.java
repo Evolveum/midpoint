@@ -37,7 +37,7 @@ import java.util.List;
 
 /**
  * The task handler for automatic campaign start.
- * 
+ *
  * @author mederly
  */
 @Component
@@ -49,7 +49,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
 
     @Autowired
 	private TaskManager taskManager;
-	
+
 	@Autowired
     private PrismContext prismContext;
 
@@ -62,11 +62,11 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
 	private void initialize() {
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
-	
+
 	@Override
 	public TaskRunResult run(Task task) {
 		LOGGER.trace("Task run starting");
-		
+
 		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(CLASS_DOT+"run");
         opResult.setSummarizeSuccesses(true);
@@ -130,7 +130,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
 
 	@Override
 	public void refreshStatus(Task task) {
-		// Do nothing. Everything is fresh already.		
+		// Do nothing. Everything is fresh already.
 	}
 
     @Override
