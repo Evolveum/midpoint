@@ -364,12 +364,12 @@ public class ItemPathHolder {
 				} else if (IdentifierPathSegment.QNAME.equals(qname)) {
 					sb.append(IdentifierPathSegment.SYMBOL);
 				} else if (!StringUtils.isEmpty(qname.getPrefix())) {
-                    sb.append(qname.getPrefix() + ":" + qname.getLocalPart());
+                    sb.append(qname.getPrefix()).append(':').append(qname.getLocalPart());
                 } else {
                     if (StringUtils.isNotEmpty(qname.getNamespaceURI())) {
                         String prefix = GlobalDynamicNamespacePrefixMapper.getPreferredPrefix(qname.getNamespaceURI());
                         seg.setQNamePrefix(prefix);     // hack - we modify the path segment here (only the form, not the meaning), but nevertheless it's ugly
-                        sb.append(seg.getQName().getPrefix() + ":" + seg.getQName().getLocalPart());
+                        sb.append(seg.getQName().getPrefix()).append(':').append(seg.getQName().getLocalPart());
                     } else {
                         // no namespace, no prefix
                         sb.append(qname.getLocalPart());

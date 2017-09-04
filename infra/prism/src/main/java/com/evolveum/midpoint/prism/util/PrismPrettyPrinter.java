@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import javax.xml.namespace.QName;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -33,6 +34,8 @@ import java.util.stream.Collectors;
 public class PrismPrettyPrinter {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismPrettyPrinter.class);
+	private static final String CRLF_REGEX = "(\\r|\\n|\\r\\n)+";
+	private static final Pattern CRLF_PATTERN = Pattern.compile(CRLF_REGEX);
 
 	public static String prettyPrint(RawType raw) {
 		if (raw.getAlreadyParsedValue() != null) {
@@ -41,7 +44,7 @@ public class PrismPrettyPrinter {
 		if (raw.getXnode() != null && raw.getPrismContext() != null) {
 			try {
 				String jsonText = raw.getPrismContext().jsonSerializer().serialize(raw.getRootXNode(new QName("value")));
-				return jsonText.replaceAll("(\\r|\\n|\\r\\n)+", "");
+				return CRLF_PATTERN.matcher(jsonText).replaceAll("");
 			} catch (Throwable t) {
 				LoggingUtils.logException(LOGGER, "Couldn't serialize raw value for pretty printing, using 'toString' instead: {}", t, raw.getXnode());
 			}

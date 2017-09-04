@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.util;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
@@ -333,11 +334,14 @@ public class QNameUtil {
         return namespacePrefix != null && namespacePrefix.startsWith(UNDECLARED_PREFIX_MARK);
     }
 
+	private static final String WORDS_COLON_REGEX = "^\\w+:.*";
+	private static final Pattern WORDS_COLON_PATTERN = Pattern.compile(WORDS_COLON_REGEX);
+
 	public static boolean isUri(String string) {
 		if (string == null) {
 			return false;
 		}
-		return string.matches("^\\w+:.*");
+		return WORDS_COLON_PATTERN.matcher(string).matches();
 	}
 
 	public static String getLocalPart(QName name) {
