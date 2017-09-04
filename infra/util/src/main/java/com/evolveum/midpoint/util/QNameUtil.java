@@ -32,8 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 
 /**
- *
- * QName <-> URI conversion.
+ * QName &lt;-&gt; URI conversion.
  * 
  * Very simplistic but better than nothing.
  *

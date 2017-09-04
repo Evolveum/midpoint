@@ -40,7 +40,7 @@ import java.util.*;
 
 /**
  * Definition of a property container.
- * <p/>
+ * <p>
  * Property container groups properties into logical blocks. The reason for
  * grouping may be as simple as better understandability of data structure. But
  * the group usually means different meaning, source or structure of the data.
@@ -48,13 +48,13 @@ import java.util.*;
  * that are dynamic, not fixed by a static schema. Such grouping also naturally
  * translates to XML and helps to "quarantine" such properties to avoid Unique
  * Particle Attribute problems.
- * <p/>
+ * <p>
  * Property Container contains a set of (potentially multi-valued) properties.
  * The order of properties is not significant, regardless of the fact that it
  * may be fixed in the XML representation. In the XML representation, each
  * element inside Property Container must be either Property or a Property
  * Container.
- * <p/>
+ * <p>
  * This class represents schema definition for property container. See
  * {@link Definition} for more details.
  *
@@ -247,10 +247,10 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     /**
      * Returns set of property definitions.
-     * <p/>
+     * <p>
      * WARNING: This may return definitions from the associated complex type.
      * Therefore changing the returned set may influence also the complex type definition.
-     * <p/>
+     * <p>
      * The set contains all property definitions of all types that were parsed.
      * Order of definitions is insignificant.
      *
@@ -268,10 +268,10 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     /**
      * Returns set of property definitions.
-     * <p/>
+     * <p>
      * The set contains all property definitions of all types that were parsed.
      * Order of definitions is insignificant.
-     * <p/>
+     * <p>
      * The returned set is immutable! All changes may be lost.
      *
      * @return set of definitions
@@ -353,7 +353,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     /**
      * Creates new instance of property definition and adds it to the container.
-     * <p/>
+     * <p>
      * This is the preferred method of creating a new definition.
      *
      * @param name     name of the property (element name)
@@ -378,7 +378,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     /**
      * Creates new instance of property definition and adds it to the container.
-     * <p/>
+     * <p>
      * This is the preferred method of creating a new definition.
      *
      * @param name      name of the property (element name)
@@ -407,7 +407,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     /**
      * Creates new instance of property definition and adds it to the container.
-     * <p/>
+     * <p>
      * This is the preferred method of creating a new definition.
      *
      * @param localName name of the property (element name) relative to the schema namespace
@@ -421,7 +421,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     /**
      * Creates new instance of property definition and adds it to the container.
-     * <p/>
+     * <p>
      * This is the preferred method of creating a new definition.
      *
      * @param localName     name of the property (element name) relative to the schema namespace
@@ -436,7 +436,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     /**
      * Creates new instance of property definition and adds it to the container.
-     * <p/>
+     * <p>
      * This is the preferred method of creating a new definition.
      *
      * @param localName     name of the property (element name) relative to the schema namespace

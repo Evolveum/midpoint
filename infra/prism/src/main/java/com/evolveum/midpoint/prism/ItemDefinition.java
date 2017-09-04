@@ -97,8 +97,8 @@ public interface ItemDefinition<I extends Item> extends Definition {
 	boolean canAdd();
 
 	/**
-	 * Returns the name of an element this one can be substituted for (e.g. c:user -> c:object,
-	 * s:pipeline -> s:expression, etc). EXPERIMENTAL
+	 * Returns the name of an element this one can be substituted for (e.g. c:user -&gt; c:object,
+	 * s:pipeline -&gt; s:expression, etc). EXPERIMENTAL
 	 */
 	QName getSubstitutionHead();
 

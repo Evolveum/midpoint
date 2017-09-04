@@ -27,28 +27,28 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Property Definition.
- * <p/>
+ * <p>
  * Property is a basic unit of information in midPoint. This class provides
  * definition of property type, multiplicity and so on.
- * <p/>
+ * <p>
  * Property is a specific characteristic of an object. It may be considered
  * object "attribute" or "field". For example User has fullName property that
  * contains string value of user's full name.
- * <p/>
+ * <p>
  * Properties may be single-valued or multi-valued
- * <p/>
+ * <p>
  * Properties may contain primitive types or complex types (defined by XSD
  * schema)
- * <p/>
+ * <p>
  * Property values are unordered, implementation may change the order of values
- * <p/>
+ * <p>
  * Duplicate values of properties should be silently removed by implementations,
  * but clients must be able tolerate presence of duplicate values.
- * <p/>
+ * <p>
  * Operations that modify the objects work with the granularity of properties.
  * They add/remove/replace the values of properties, but do not "see" inside the
  * property.
- * <p/>
+ * <p>
  * This class represents schema definition for property. See {@link Definition}
  * for more details.
  *

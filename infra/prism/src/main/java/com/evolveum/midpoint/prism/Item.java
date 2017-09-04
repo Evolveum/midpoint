@@ -35,7 +35,7 @@ import java.util.function.Function;
 
 /**
  * Item is a common abstraction of Property and PropertyContainer.
- * <p/>
+ * <p>
  * This is supposed to be a superclass for all items. Items are things
  * that can appear in property containers, which generally means only a property
  * and property container itself. Therefore this is in fact superclass for those
@@ -92,7 +92,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
         
     /**
      * Returns applicable property definition.
-     * <p/>
+     * <p>
      * May return null if no definition is applicable or the definition is not
      * know.
      *
@@ -109,11 +109,11 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 
     /**
      * Returns the name of the property.
-     * <p/>
+     * <p>
      * The name is a QName. It uniquely defines a property.
-     * <p/>
+     * <p>
      * The name may be null, but such a property will not work.
-     * <p/>
+     * <p>
      * The name is the QName of XML element in the XML representation.
      *
      * @return property name
@@ -125,11 +125,11 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 
     /**
      * Sets the name of the property.
-     * <p/>
+     * <p>
      * The name is a QName. It uniquely defines a property.
-     * <p/>
+     * <p>
      * The name may be null, but such a property will not work.
-     * <p/>
+     * <p>
      * The name is the QName of XML element in the XML representation.
      *
      * @param elementName the name to set
@@ -152,9 +152,9 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 
 	/**
      * Returns a display name for the property type.
-     * <p/>
+     * <p>
      * Returns null if the display name cannot be determined.
-     * <p/>
+     * <p>
      * The display name is fetched from the definition. If no definition
      * (schema) is available, the display name will not be returned.
      *
@@ -166,9 +166,9 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 
     /**
      * Returns help message defined for the property type.
-     * <p/>
+     * <p>
      * Returns null if the help message cannot be determined.
-     * <p/>
+     * <p>
      * The help message is fetched from the definition. If no definition
      * (schema) is available, the help message will not be returned.
      *

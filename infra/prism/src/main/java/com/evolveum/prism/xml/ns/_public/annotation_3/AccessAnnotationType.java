@@ -12,15 +12,14 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
- * &lt;simpleType name="AccessAnnotationType">
- *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
- *     &lt;enumeration value="read"/>
- *     &lt;enumeration value="update"/>
- *     &lt;enumeration value="create"/>
- *   &lt;/restriction>
- * &lt;/simpleType>
+ * &lt;simpleType name="AccessAnnotationType"&gt;
+ *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string"&gt;
+ *     &lt;enumeration value="read"/&gt;
+ *     &lt;enumeration value="update"/&gt;
+ *     &lt;enumeration value="create"/&gt;
+ *   &lt;/restriction&gt;
+ * &lt;/simpleType&gt;
  * </pre>
- * 
  */
 @XmlType(name = "AccessAnnotationType", namespace = "http://prism.evolveum.com/xml/ns/public/annotation-2")
 @XmlEnum

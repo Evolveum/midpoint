@@ -59,19 +59,19 @@ import org.w3c.dom.Element;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="PropertySimpleValueFilterType">
- *   &lt;complexContent>
- *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/query-2}FilterType">
- *       &lt;sequence>
- *         &lt;element name="property" type="{http://prism.evolveum.com/xml/ns/public/types-3}XPathType"/>
- *         &lt;choice>
- *           &lt;element name="value" type="{http://www.w3.org/2001/XMLSchema}anyType"/>
- *           &lt;any namespace='##other'/>
- *         &lt;/choice>
- *       &lt;/sequence>
- *     &lt;/extension>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="PropertySimpleValueFilterType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/query-2}FilterType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="property" type="{http://prism.evolveum.com/xml/ns/public/types-3}XPathType"/&gt;
+ *         &lt;choice&gt;
+ *           &lt;element name="value" type="{http://www.w3.org/2001/XMLSchema}anyType"/&gt;
+ *           &lt;any namespace='##other'/&gt;
+ *         &lt;/choice&gt;
+ *       &lt;/sequence&gt;
+ *     &lt;/extension&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
