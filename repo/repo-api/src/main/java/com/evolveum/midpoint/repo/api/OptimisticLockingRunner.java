@@ -61,9 +61,14 @@ public class OptimisticLockingRunner<O extends ObjectType, R> {
 		int numberOfAttempts = 0;
 		while (true) {
 			try {
+
+				R ret = lambda.run(object);
 				
-				return lambda.run(object);
+				LOGGER.trace("Finished repository operation (attempt {} of {})",
+						numberOfAttempts, maxNumberOfAttempts);
 				
+				return ret;
+
 			} catch (PreconditionViolationException e) {
 				if (numberOfAttempts < maxNumberOfAttempts) {
 					LOGGER.trace("Restarting repository operation due to optimistic locking conflict (attempt {} of {})",

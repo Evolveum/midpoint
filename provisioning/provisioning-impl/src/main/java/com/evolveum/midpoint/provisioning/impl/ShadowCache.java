@@ -717,6 +717,12 @@ public abstract class ShadowCache {
 
 		ProvisioningContext ctx = ctxFactory.create(repoShadow, additionalAuxiliaryObjectClassQNames, task,
 				parentResult);
+		
+		PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingModifyOperationBeforeExecution(ctx, repoShadow, modifications, task, parentResult);
+		if (duplicateOperation != null) {
+			parentResult.recordInProgress();
+			return repoShadow.getOid();
+		}
 
 		AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncReturnValue;
 		try {
@@ -1027,7 +1033,7 @@ public abstract class ShadowCache {
 			XMLGregorianCalendar completionTimestamp = pendingOperation.getCompletionTimestamp();
 						
 			if (isCompleted(statusType) && isOverGrace(now, gracePeriod, completionTimestamp)) {
-				LOGGER.trace("Deleting pending operation because it is completed '{}' (and over grace): {}", statusType.value(), pendingOperation);
+				LOGGER.trace("Deleting pending operation because it is completed '{}' (and over grace): {}", statusType==null?null:statusType.value(), pendingOperation);
 				shadowDelta.addModificationDeleteContainer(new ItemPath(ShadowType.F_PENDING_OPERATION), pendingOperation.clone());
 			} else {
 				atLeastOneOperationRemains = true;

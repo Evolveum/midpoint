@@ -673,7 +673,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			} else {
 				cacheRepositoryService.modifyObject(type, oid, modifications, result);
 			}
-			result.computeStatus();
+			if (!result.isInProgress()) {
+				// This is the case when there is already a conflicting pending operation.
+				result.computeStatus();
+			}
 
 		} catch (CommunicationException e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't modify object: communication problem: " + e.getMessage(), e);
