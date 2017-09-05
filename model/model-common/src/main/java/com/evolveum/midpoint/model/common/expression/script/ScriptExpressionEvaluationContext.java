@@ -17,27 +17,30 @@ package com.evolveum.midpoint.model.common.expression.script;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 
 /**
  * @author semancik
  *
  */
 public class ScriptExpressionEvaluationContext {
-	
-	private static ThreadLocal<ScriptExpressionEvaluationContext> threadLocalContext = new ThreadLocal<ScriptExpressionEvaluationContext>();
-	
-	private ExpressionVariables variables;
-	private String contextDescription;
-	private OperationResult result;
-	private ScriptExpression scriptExpression;
+
+	private static final ThreadLocal<ScriptExpressionEvaluationContext> threadLocalContext = new ThreadLocal<ScriptExpressionEvaluationContext>();
+
+	private final ExpressionVariables variables;
+	private final String contextDescription;
+	private final OperationResult result;
+	private final Task task;
+	private final ScriptExpression scriptExpression;
 	private boolean evaluateNew = false;
 
 	ScriptExpressionEvaluationContext(ExpressionVariables variables, String contextDescription,
-			OperationResult result, ScriptExpression scriptExpression) {
+			OperationResult result, Task task, ScriptExpression scriptExpression) {
 		super();
 		this.variables = variables;
 		this.contextDescription = contextDescription;
 		this.result = result;
+		this.task = task;
 		this.scriptExpression = scriptExpression;
 	}
 
@@ -53,10 +56,14 @@ public class ScriptExpressionEvaluationContext {
 		return result;
 	}
 
+	public Task getTask() {
+		return task;
+	}
+
 	public ScriptExpression getScriptExpression() {
 		return scriptExpression;
 	}
-	
+
 	public boolean isEvaluateNew() {
 		return evaluateNew;
 	}
@@ -68,11 +75,11 @@ public class ScriptExpressionEvaluationContext {
 	public void setupThreadLocal() {
 		threadLocalContext.set(this);
 	}
-	
+
 	public void cleanupThreadLocal() {
 		threadLocalContext.set(null);
 	}
-	
+
 	public static ScriptExpressionEvaluationContext getThreadLocal() {
 		return threadLocalContext.get();
 	}

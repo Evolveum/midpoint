@@ -97,7 +97,7 @@ public class ScriptExpression {
 			boolean useNew, String contextDescription, Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
-		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext(variables, contextDescription, result, this);
+		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext(variables, contextDescription, result, task, this);
 		context.setEvaluateNew(useNew);
 		
 		try {
