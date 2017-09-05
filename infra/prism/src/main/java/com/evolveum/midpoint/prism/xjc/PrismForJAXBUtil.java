@@ -61,9 +61,9 @@ public final class PrismForJAXBUtil {
         if (pvalue == null) {
             return null;
         }
-        
+
         Object propertyRealValue = pvalue.getValue();
-        
+
         if (propertyRealValue instanceof Element) {
         	if (requestedType.isAssignableFrom(Element.class)) {
         		return (T) propertyRealValue;
@@ -87,10 +87,10 @@ public final class PrismForJAXBUtil {
 			}
 			return requestedTypeInstance;
         }
-        
+
         return JaxbTypeConverter.mapPropertyRealValueToJaxb(propertyRealValue);
     }
-    
+
     private static <T> Field getAnyField(Class<T> clazz) {
     	for (Field field: clazz.getDeclaredFields()) {
     		XmlAnyElement xmlAnyElementAnnotation = field.getAnnotation(XmlAnyElement.class);
@@ -100,7 +100,7 @@ public final class PrismForJAXBUtil {
     	}
     	return null;
     }
-    
+
     public static <T> List<T> getPropertyValues(PrismContainerValue<?> container, QName name, Class<T> clazz) {
         Validate.notNull(container, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");
@@ -119,7 +119,7 @@ public final class PrismForJAXBUtil {
         return new PropertyArrayList<>(property, container);
     }
 
-    
+
     public static <T> void setPropertyValue(PrismContainerValue<?> container, QName name, T value) {
         Validate.notNull(container, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");
@@ -368,7 +368,7 @@ public final class PrismForJAXBUtil {
         }
         return filter.getFilterClauseXNode();
     }
-    
+
     public static PolyStringType getReferenceTargetName(PrismReferenceValue rval) {
         PolyString targetName = rval.getTargetName();
         if (targetName == null) {
@@ -376,7 +376,7 @@ public final class PrismForJAXBUtil {
         }
         return new PolyStringType(targetName);
     }
-    
+
     public static void setReferenceTargetName(PrismReferenceValue rval, PolyStringType name) {
         if (name == null) {
         	rval.setTargetName((PolyString) null);

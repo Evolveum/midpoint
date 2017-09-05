@@ -88,11 +88,11 @@ public class XsdTypeMapper {
         addMapping(GregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
         addMapping(XMLGregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
         addMapping(Duration.class, DOMUtil.XSD_DURATION, true);
-        
+
         addMapping(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);
         addMapping(ItemPath.class, ItemPathType.COMPLEX_TYPE, false);
         addMapping(QName.class, DOMUtil.XSD_QNAME, true);
-        
+
         addMapping(PolyString.class, PrismConstants.POLYSTRING_TYPE_QNAME, true);
         addMappingExt(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);				// TODO remove
 
@@ -122,7 +122,7 @@ public class XsdTypeMapper {
         }
         return xsdType;
     }
-    
+
     public static QName getJavaToXsdMapping(Class<?> type) {
         if (javaToXsdTypeMap.containsKey(type)) {
             return javaToXsdTypeMap.get(type);
@@ -133,7 +133,7 @@ public class XsdTypeMapper {
         }
         return null;
     }
-    
+
     public static QName determineQNameWithNs(QName xsdType){
     	if (StringUtils.isNotBlank(xsdType.getNamespaceURI())){
     		return xsdType;
@@ -147,7 +147,7 @@ public class XsdTypeMapper {
     	}
     	return null;
     }
-    
+
     public static <T> Class<T> getXsdToJavaMapping(QName xsdType) {
     	Class clazz = xsdToJavaTypeMap.get(xsdType);
     	if (clazz == null){
@@ -222,7 +222,7 @@ public class XsdTypeMapper {
         Class<T> typedClass = (Class<T>) javaType;
         return typedClass;
     }
-    
+
     public static String multiplicityToString(Integer integer) {
 		if (integer == null) {
 			return null;
@@ -252,7 +252,7 @@ public class XsdTypeMapper {
 		}
 		return true;
 	}
-	
+
     static {
         try {
             initTypeMap();

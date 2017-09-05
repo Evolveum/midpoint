@@ -54,7 +54,7 @@ public class TaskApprovalsTabPanel extends AbstractObjectTabPanel<TaskType> impl
 		initLayout(taskDtoModel);
 		setOutputMarkupId(true);
 	}
-	
+
 	private void initLayout(final IModel<TaskDto> taskDtoModel) {
 
 		childPanel = new TaskWfChildPanel(ID_WORKFLOW_CHILD_PANEL, taskDtoModel, parentPage);

@@ -54,14 +54,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * @author Radovan Semancik
  */
-public class AssociationTargetSearchExpressionEvaluator 
+public class AssociationTargetSearchExpressionEvaluator
 			extends AbstractSearchExpressionEvaluator<PrismContainerValue<ShadowAssociationType>,
 			                                          PrismContainerDefinition<ShadowAssociationType>> {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(AssociationTargetSearchExpressionEvaluator.class);
-	
-	public AssociationTargetSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType, 
-			PrismContainerDefinition<ShadowAssociationType> outputDefinition, Protector protector, ObjectResolver objectResolver, 
+
+	public AssociationTargetSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType,
+			PrismContainerDefinition<ShadowAssociationType> outputDefinition, Protector protector, ObjectResolver objectResolver,
 			ModelService modelService, PrismContext prismContext, SecurityEnforcer securityEnforcer) {
 		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer);
 	}
@@ -77,7 +77,7 @@ public class AssociationTargetSearchExpressionEvaluator
 		if (rAssocTargetDef == null) {
 			throw new ExpressionEvaluationException("No association target object class definition variable in "+
 					params.getContextDescription()+"; the expression may be used in a wrong place. It is only supposed to create an association.");
-		}		
+		}
 		ObjectFilter resourceFilter = ObjectQueryUtil.createResourceFilter(rAssocTargetDef.getResourceOid(), getPrismContext());
 		ObjectFilter objectClassFilter = ObjectQueryUtil.createObjectClassFilter(rAssocTargetDef.getObjectClassDefinition().getTypeName(),
 				getPrismContext());
@@ -85,7 +85,7 @@ public class AssociationTargetSearchExpressionEvaluator
 		query.setFilter(extendedFilter);
 		return query;
 	}
-	
+
 	@Override
 	protected void extendOptions(Collection<SelectorOptions<GetOperationOptions>> options,
 			boolean searchOnResource) {
@@ -103,13 +103,13 @@ public class AssociationTargetSearchExpressionEvaluator
 		targetRef.setOid(oid);
 		targetRef.setType(targetTypeQName);
 		associationType.setShadowRef(targetRef);
-		
+
 		try {
-			
+
 			if (additionalAttributeDeltas != null) {
 				ItemDelta.applyTo(additionalAttributeDeltas, associationCVal);
 			}
-			
+
 			getPrismContext().adopt(associationCVal, ShadowType.COMPLEX_TYPE, new ItemPath(ShadowType.F_ASSOCIATION));
 			if (InternalsConfig.consistencyChecks) {
 				associationCVal.assertDefinitions("associationCVal in assignment expression in "+params.getContextDescription());
@@ -118,10 +118,10 @@ public class AssociationTargetSearchExpressionEvaluator
 			// Should not happen
 			throw new SystemException(e);
 		}
-		
+
 		return associationCVal;
 	}
-	
+
 	@Override
 	protected QName getDefaultTargetType() {
 		return ShadowType.COMPLEX_TYPE;

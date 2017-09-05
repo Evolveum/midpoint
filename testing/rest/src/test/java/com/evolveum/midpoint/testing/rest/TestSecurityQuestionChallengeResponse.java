@@ -37,13 +37,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class TestSecurityQuestionChallengeResponse extends RestServiceInitializer{
-  
+
 	private static final Trace LOGGER = TraceManager.getTrace(TestSecurityQuestionChallengeResponse.class);
-	
+
 	@Test
 	public void testChallengeResponse(){
-		Response response = getUserAdministrator("SecQ"); 
-		
+		Response response = getUserAdministrator("SecQ");
+
 		String challengeBase64 = assertAndGetChallenge(response);
 		String usernameChallenge = null;
 		try {
@@ -52,10 +52,10 @@ public class TestSecurityQuestionChallengeResponse extends RestServiceInitialize
 		} catch (Base64Exception e) {
 			fail("Failed to decode base64 username challenge");
 		}
-		
+
 		String secQusernameChallenge = usernameChallenge.replace("username", "administrator");
 		LOGGER.info("Username response: " +secQusernameChallenge);
-		
+
 		response = getUserAdministrator("SecQ " + Base64Utility.encode(secQusernameChallenge.getBytes()));
 		challengeBase64 = assertAndGetChallenge(response);
 		String answerChallenge = null;
@@ -69,49 +69,49 @@ public class TestSecurityQuestionChallengeResponse extends RestServiceInitialize
 				+ "\"user\" : \"administrator\","
 				+ "\"answer\" : ["
 					+ "{ "
-						+ "\"qid\" : \"http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001\"," 
+						+ "\"qid\" : \"http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001\","
 						+ "\"qans\" : \"5ecr3t\""
 					+ "},"
 					+ "{ "
-							+ "\"qid\" : \"http://midpoint.evolveum.com/xml/ns/public/security/question-2#q002\"," 
+							+ "\"qid\" : \"http://midpoint.evolveum.com/xml/ns/public/security/question-2#q002\","
 							+ "\"qans\" : \"black\""
 						+ "}"
 				+ "]"
 				+ "}";
-		
+
 		LOGGER.info("Answer response: " +secQAnswerChallenge);
-		
+
 		response = getUserAdministrator("SecQ " + Base64Utility.encode(secQAnswerChallenge.getBytes()));
-		
+
 		assertEquals("Unexpected status code. Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 		UserType user = response.readEntity(UserType.class);
 		assertNotNull("Returned entity in body must not be null.", user);
 		LOGGER.info("Returned entity: {}", user.asPrismObject().debugDump());
-		
-		
+
+
 	}
-	
+
 	private String assertAndGetChallenge(Response response){
 		assertEquals("Unexpected status code. Expected 401 but was "+ response.getStatus(), 401, response.getStatus());
 		assertNotNull("Headers null. Somthing very strange happened", response.getHeaders());
-		
+
 		List<Object> wwwAuthenticateHeaders = response.getHeaders().get("WWW-Authenticate");
 		assertNotNull("WWW-Authenticate headers null. Somthing very strange happened", wwwAuthenticateHeaders);
 		LOGGER.info("WWW-Atuhenticate header: " + wwwAuthenticateHeaders);
 		assertEquals("Expected WWW-Authenticate header, but the actual size is " + wwwAuthenticateHeaders.size(), 1, wwwAuthenticateHeaders.size());
 		String secQHeader = (String) wwwAuthenticateHeaders.iterator().next();
-		
+
 		String[] headerSplitted = secQHeader.split(" ");
 		assertEquals("Expected the challenge in the SecQ but haven't got one.", 2, headerSplitted.length);
 		String challengeBase64 = headerSplitted[1];
 		assertNotNull("Unexpected null challenge in the SecQ header", challengeBase64);
 		return challengeBase64;
 	}
-	
+
 	private Response getUserAdministrator(String authorizationHeader){
 		WebClient client = WebClient.create(ENDPOINT_ADDRESS);
 		client.authorization(authorizationHeader);
-		
+
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 		Response response = client.get();
 		return response;

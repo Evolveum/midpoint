@@ -34,14 +34,14 @@ import java.util.stream.Collectors;
 /**
  *
  * @author Radovan Semancik
- * 
+ *
  */
 public class PrismSchemaImpl implements PrismSchema {
 
 	//private static final long serialVersionUID = 5068618465625931984L;
 
 	//private static final Trace LOGGER = TraceManager.getTrace(PrismSchema.class);
-	
+
 	@NotNull protected final Collection<Definition> definitions = new ArrayList<>();
 	@NotNull private final Map<QName, ItemDefinition<?>> itemDefinitionMap = new HashMap<>();		// key is the item name (qualified or unqualified)
 	protected String namespace;			// may be null if not properly initialized
@@ -55,7 +55,7 @@ public class PrismSchemaImpl implements PrismSchema {
 	protected PrismSchemaImpl(PrismContext prismContext) {
 		this.prismContext = prismContext;
 	}
-	
+
 	public PrismSchemaImpl(@NotNull String namespace, PrismContext prismContext) {
 		if (StringUtils.isEmpty(namespace)) {
 			throw new IllegalArgumentException("Namespace can't be null or empty.");
@@ -111,7 +111,7 @@ public class PrismSchemaImpl implements PrismSchema {
 			itemDefinitionMap.put(itemDef.getName(), itemDef);
 		}
 	}
-	
+
 	@Override
 	public PrismContext getPrismContext() {
 		return prismContext;
@@ -124,16 +124,16 @@ public class PrismSchemaImpl implements PrismSchema {
 		return parse(element, prismContext.getEntityResolver(), new PrismSchemaImpl(prismContext), isRuntime, shortDescription,
 				false, prismContext);
 	}
-	
+
 	public static PrismSchema parse(Element element, EntityResolver resolver, boolean isRuntime, String shortDescription,
 			boolean allowDelayedItemDefinitions, PrismContext prismContext) throws SchemaException {
 		return parse(element, resolver, new PrismSchemaImpl(prismContext), isRuntime, shortDescription, allowDelayedItemDefinitions, prismContext);
 	}
-	
+
 	protected static PrismSchema parse(Element element, PrismSchemaImpl schema, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
 		return parse(element, prismContext.getEntityResolver(), schema, isRuntime, shortDescription, false, prismContext);
 	}
-	
+
 	private static PrismSchema parse(Element element, EntityResolver resolver, PrismSchemaImpl schema, boolean isRuntime,
 			String shortDescription, boolean allowDelayedItemDefinitions, PrismContext prismContext) throws SchemaException {
 		if (element == null) {
@@ -162,9 +162,9 @@ public class PrismSchemaImpl implements PrismSchema {
 	//region Creating definitions
 	/**
 	 * Creates a new property container definition and adds it to the schema.
-	 * 
+	 *
 	 * This is a preferred way how to create definition in the schema.
-	 * 
+	 *
 	 * @param localTypeName
 	 *            type name "relative" to schema namespace
 	 * @return new property container definition
@@ -178,7 +178,7 @@ public class PrismSchemaImpl implements PrismSchema {
 		add(def);
 		return def;
 	}
-	
+
 	public PrismContainerDefinitionImpl createPropertyContainerDefinition(String localElementName, String localTypeName) {
 		QName typeName = new QName(getNamespace(), localTypeName);
 		QName name = new QName(getNamespace(), localElementName);
@@ -191,7 +191,7 @@ public class PrismSchemaImpl implements PrismSchema {
 		add(def);
 		return def;
 	}
-	
+
 	public ComplexTypeDefinition createComplexTypeDefinition(QName typeName) {
 		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinitionImpl(typeName, prismContext);
 		add(cTypeDef);
@@ -200,9 +200,9 @@ public class PrismSchemaImpl implements PrismSchema {
 
 	/**
 	 * Creates a top-level property definition and adds it to the schema.
-	 * 
+	 *
 	 * This is a preferred way how to create definition in the schema.
-	 * 
+	 *
 	 * @param localName
 	 *            element name "relative" to schema namespace
 	 * @param typeName
@@ -216,9 +216,9 @@ public class PrismSchemaImpl implements PrismSchema {
 
 	/*
 	 * Creates a top-level property definition and adds it to the schema.
-	 * 
+	 *
 	 * This is a preferred way how to create definition in the schema.
-	 * 
+	 *
 	 * @param localName
 	 *            element name "relative" to schema namespace
 	 * @param localTypeName
@@ -233,9 +233,9 @@ public class PrismSchemaImpl implements PrismSchema {
 
 	/**
 	 * Creates a top-level property definition and adds it to the schema.
-	 * 
+	 *
 	 * This is a preferred way how to create definition in the schema.
-	 * 
+	 *
 	 * @param name
 	 *            element name
 	 * @param typeName

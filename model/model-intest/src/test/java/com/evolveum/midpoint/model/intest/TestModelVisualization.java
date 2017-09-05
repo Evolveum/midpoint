@@ -37,7 +37,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestModelVisualization extends AbstractInitializedModelIntegrationTest {
-	
+
 	public static final File TEST_DIR = new File("src/test/resources/modelVisualization");
 
 	@Override

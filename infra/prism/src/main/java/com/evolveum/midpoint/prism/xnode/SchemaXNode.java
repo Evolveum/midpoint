@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 public class SchemaXNode extends XNode {
 
 	private Element schemaElement;
-	
+
 	public Element getSchemaElement() {
 		return schemaElement;
 	}
@@ -41,7 +41,7 @@ public class SchemaXNode extends XNode {
 	public boolean isEmpty() {
 		return schemaElement == null || DOMUtil.isEmpty(schemaElement);
 	}
-	
+
 	@Override
 	public void accept(Visitor visitor) {
 		visitor.visit(this);

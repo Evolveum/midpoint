@@ -33,16 +33,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 /**
  * A service provided by the IDM Model focused on system diagnostic. It allows to retrieve diagnostic data
  * that are not exactly part of system configuration (such as repository configuration). It can also be used
- * to initiate self-tests and similar diagnostic routines. 
- * 
+ * to initiate self-tests and similar diagnostic routines.
+ *
  * UNSTABLE: This is likely to change
  * PRIVATE: This interface is not supposed to be used outside of midPoint
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public interface ModelDiagnosticService {
-	
+
 	String CLASS_NAME_WITH_DOT = ModelDiagnosticService.class.getName() + ".";
 	String REPOSITORY_SELF_TEST = CLASS_NAME_WITH_DOT + "repositorySelfTest";
     String REPOSITORY_TEST_ORG_CLOSURE_CONSISTENCY = CLASS_NAME_WITH_DOT + "repositoryTestOrgClosureConsistency";
@@ -51,12 +51,12 @@ public interface ModelDiagnosticService {
 	String PROVISIONING_SELF_TEST = CLASS_NAME_WITH_DOT + "provisioningSelfTest";
 	String GET_LOG_FILE_CONTENT = CLASS_NAME_WITH_DOT + "getLogFileContent";
 	String GET_LOG_FILE_SIZE = CLASS_NAME_WITH_DOT + "getLogFileSize";
-	
+
 	/**
 	 * Provide repository run-time configuration and diagnostic information.
 	 */
 	RepositoryDiag getRepositoryDiag(Task task, OperationResult parentResult);
-	
+
 	/**
 	 * Runs a short, non-destructive repository self test.
 	 * This methods should never throw a (checked) exception. All the results

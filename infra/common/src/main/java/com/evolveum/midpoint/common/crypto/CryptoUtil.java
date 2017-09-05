@@ -53,7 +53,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  *
  */
 public class CryptoUtil {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(CryptoUtil.class);
 
 	/**
@@ -153,7 +153,7 @@ public class CryptoUtil {
             }
         }
     }
-	
+
 	// Checks that everything is encrypted
 	public static <T extends ObjectType> void checkEncrypted(final PrismObject<T> object) {
 	    Visitor visitor = new Visitor() {
@@ -173,7 +173,7 @@ public class CryptoUtil {
 		}
 
 	}
-	
+
 	// Checks that everything is encrypted
 	public static <T extends ObjectType> void checkEncrypted(final ObjectDelta<T> delta) {
 	    Visitor visitor = new Visitor() {
@@ -192,7 +192,7 @@ public class CryptoUtil {
 			throw new IllegalStateException(e.getMessage() + " in delta " + delta, e);
 		}
 	}
-	
+
 	private static <T extends ObjectType> void checkEncrypted(PrismPropertyValue<?> pval) {
     	Itemable item = pval.getParent();
     	if (item == null) {
@@ -258,10 +258,10 @@ public class CryptoUtil {
         (byte) 0x51,(byte) 0x65,(byte) 0x22,(byte) 0x23,
         (byte) 0x64,(byte) 0x05,(byte) 0x6A,(byte) 0xBE,
     };
-	
+
 	public static void securitySelfTest(OperationResult parentTestResult) {
 		OperationResult result = parentTestResult.createSubresult(CryptoUtil.class.getName()+".securitySelfTest");
-		
+
 		// Providers
 		for (Provider provider: Security.getProviders()) {
 			String providerName = provider.getName();
@@ -278,7 +278,7 @@ public class CryptoUtil {
 				providerResult.recordFatalError(e);
 			}
 		}
-		
+
 		securitySelfTestAlgorithm("AES", "AES/CBC/PKCS5Padding", null, false, result);
 		OperationResult cryptoResult = result.getLastSubresult();
 		if (cryptoResult.isError()) {
@@ -291,11 +291,11 @@ public class CryptoUtil {
 				cryptoResult.setStatus(OperationResultStatus.HANDLED_ERROR);
 			}
 		}
-		
+
 		result.computeStatus();
 	}
 
-	private static void securitySelfTestAlgorithm(String algorithmName, String transformationName, 
+	private static void securitySelfTestAlgorithm(String algorithmName, String transformationName,
 			Integer keySize, boolean critical, OperationResult parentResult) {
 		OperationResult subresult = parentResult.createSubresult(CryptoUtil.class.getName()+".securitySelfTest.algorithm."+algorithmName);
 		try {
@@ -306,17 +306,17 @@ public class CryptoUtil {
 			subresult.addReturn("keyGeneratorProvider", keyGenerator.getProvider().getName());
 			subresult.addReturn("keyGeneratorAlgorithm", keyGenerator.getAlgorithm());
 			subresult.addReturn("keyGeneratorKeySize", keySize);
-			
+
 			SecretKey key = keyGenerator.generateKey();
 			subresult.addReturn("keyAlgorithm", key.getAlgorithm());
 			subresult.addReturn("keyLength", key.getEncoded().length*8);
 			subresult.addReturn("keyFormat", key.getFormat());
 			subresult.recordSuccess();
-			
+
 			IvParameterSpec iv = new IvParameterSpec(DEFAULT_IV_BYTES);
-			
+
 			String plainString = "Scurvy seadog";
-			
+
 			Cipher cipher = Cipher.getInstance(transformationName);
 			subresult.addReturn("cipherAlgorithmName", algorithmName);
 			subresult.addReturn("cipherTansfromationName", transformationName);
@@ -326,26 +326,26 @@ public class CryptoUtil {
 			subresult.addReturn("cipherMaxAllowedKeyLength", cipher.getMaxAllowedKeyLength(transformationName));
             cipher.init(Cipher.ENCRYPT_MODE, key, iv);
             byte[] encryptedBytes = cipher.doFinal(plainString.getBytes());
-            
+
             cipher = Cipher.getInstance(transformationName);
             cipher.init(Cipher.DECRYPT_MODE, key, iv);
             byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
             String decryptedString = new String(decryptedBytes);
-			
+
             if (!plainString.equals(decryptedString)) {
             	subresult.recordFatalError("Encryptor roundtrip failed; encrypted="+plainString+", decrypted="+decryptedString);
 			} else {
 				subresult.recordSuccess();
 			}
-            LOGGER.debug("Security self test (algorithmName={}, transformationName={}, keySize={}) success", 
+            LOGGER.debug("Security self test (algorithmName={}, transformationName={}, keySize={}) success",
 					new Object[] {algorithmName, transformationName, keySize});
 		} catch (Throwable e) {
 			if (critical) {
-				LOGGER.error("Security self test (algorithmName={}, transformationName={}, keySize={}) failed: {}", 
+				LOGGER.error("Security self test (algorithmName={}, transformationName={}, keySize={}) failed: {}",
 						new Object[] {algorithmName, transformationName, keySize, e.getMessage() ,e});
 				subresult.recordFatalError(e);
 			} else {
-				LOGGER.warn("Security self test (algorithmName={}, transformationName={}, keySize={}) failed: {} (failure is expected in some cases)", 
+				LOGGER.warn("Security self test (algorithmName={}, transformationName={}, keySize={}) failed: {} (failure is expected in some cases)",
 						new Object[] {algorithmName, transformationName, keySize, e.getMessage() ,e});
 				subresult.recordWarning(e);
 			}

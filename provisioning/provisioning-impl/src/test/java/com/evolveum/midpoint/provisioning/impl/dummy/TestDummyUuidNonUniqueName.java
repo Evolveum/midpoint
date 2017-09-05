@@ -63,17 +63,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Almost the same as TestDummy but this is using a UUID as ICF UID.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestDummyUuidNonUniqueName extends TestDummyUuid {
-	
+
 	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-uuid-nonunique-name");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
-	
+
 	public static final String ACCOUNT_FETTUCINI_NAME = "fettucini";
 	public static final File ACCOUNT_FETTUCINI_ALFREDO_FILE = new File(TEST_DIR, "account-alfredo-fettucini.xml");
 	public static final String ACCOUNT_FETTUCINI_ALFREDO_OID = "c0c010c0-d34d-b44f-f11d-444400009ffa";
@@ -87,12 +87,12 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 	protected File getResourceDummyFilename() {
 		return RESOURCE_DUMMY_FILE;
 	}
-	
+
 	@Override
 	protected boolean isNameUnique() {
 		return false;
 	}
-	
+
 	@Test
 	public void test770AddAccountFettuciniAlfredo() throws Exception {
 		final String TEST_NAME = "test770AddAccountFettuciniAlfredo";
@@ -100,7 +100,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		addFettucini(TEST_NAME, ACCOUNT_FETTUCINI_ALFREDO_FILE, ACCOUNT_FETTUCINI_ALFREDO_OID, ACCOUNT_FETTUCINI_ALFREDO_FULLNAME);
 		searchFettucini(1);
 	}
-	
+
 	@Test
 	public void test772AddAccountFettuciniBill() throws Exception {
 		final String TEST_NAME = "test772AddAccountFettuciniBill";
@@ -108,7 +108,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		addFettucini(TEST_NAME, ACCOUNT_FETTUCINI_BILL_FILE, ACCOUNT_FETTUCINI_BILL_OID, ACCOUNT_FETTUCINI_BILL_FULLNAME);
 		searchFettucini(2);
 	}
-	
+
 	/**
 	 * Add directly on resource. Therefore provisioning must create the shadow during search.
 	 */
@@ -119,7 +119,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		dummyResourceCtl.addAccount(ACCOUNT_FETTUCINI_NAME, ACCOUNT_FETTUCINI_CARLO_FULLNAME);
 		searchFettucini(3);
 	}
-	
+
 	@Override
 	@Test
 	public void test600AddAccountAlreadyExist() throws Exception {
@@ -155,7 +155,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountTypeRepo.getKind());
 		assertAttribute(accountRepo, SchemaConstants.ICFS_NAME, ACCOUNT_FETTUCINI_NAME);
 		String icfUid = getIcfUid(accountRepo);
-		
+
 		syncServiceMock.assertNotifySuccessOnly();
 
 		PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
@@ -183,10 +183,10 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 
 		checkConsistency(accountProvisioning);
 		assertSteadyResource();
-		
+
 		return icfUid;
 	}
-	
+
 	private void searchFettucini(int expectedNumberOfFettucinis) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = createTask(TestDummy.class.getName() + ".searchFettucini");
 		OperationResult result = task.getResult();
@@ -205,5 +205,5 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		return new PrismPropertyDefinitionImpl<>(SchemaConstants.ICFS_NAME,
 				DOMUtil.XSD_STRING, prismContext);
 	}
-		
+
 }

@@ -25,7 +25,7 @@ public final class QueryFilterFactory {
 
     private QueryFilterFactory() {
     }
-    
+
     public static QueryFilter createQueryFilter(Element element) {
         return null;
     }

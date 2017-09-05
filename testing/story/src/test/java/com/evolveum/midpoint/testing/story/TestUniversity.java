@@ -76,12 +76,12 @@ import static org.testng.AssertJUnit.assertTrue;
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestUniversity extends AbstractStoryTest {
-	
+
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "university");
-	
+
 	public static final File OBJECT_TEMPLATE_ORG_FILE = new File(TEST_DIR, "object-template-org.xml");
 	public static final String OBJECT_TEMPLATE_ORG_OID = "10000000-0000-0000-0000-000000000231";
-	
+
 	protected static final File RESOURCE_DUMMY_HR_FILE = new File(TEST_DIR, "resource-dummy-hr.xml");
 	protected static final String RESOURCE_DUMMY_HR_ID = "HR";
 	protected static final String RESOURCE_DUMMY_HR_OID = "10000000-0000-0000-0000-000000000001";
@@ -95,10 +95,10 @@ public class TestUniversity extends AbstractStoryTest {
 
 	public static final File ORG_TOP_FILE = new File(TEST_DIR, "org-top.xml");
 	public static final String ORG_TOP_OID = "00000000-8888-6666-0000-100000000001";
-	
+
 	public static final File ROLE_META_ORG_FILE = new File(TEST_DIR, "role-meta-org.xml");
 	public static final String ROLE_META_ORG_OID = "10000000-0000-0000-0000-000000006601";
-	
+
 	protected static final File TASK_LIVE_SYNC_DUMMY_HR_FILE = new File(TEST_DIR, "task-dummy-hr-livesync.xml");
 	protected static final String TASK_LIVE_SYNC_DUMMY_HR_OID = "10000000-0000-0000-5555-555500000001";
 
@@ -114,14 +114,14 @@ public class TestUniversity extends AbstractStoryTest {
 
     @Autowired
 	private ReconciliationTaskHandler reconciliationTaskHandler;
-	
+
 	private DebugReconciliationTaskResultListener reconciliationTaskResultListener;
-	
+
 	protected static DummyResource dummyResourceHr;
 	protected static DummyResourceContoller dummyResourceCtlHr;
 	protected ResourceType resourceDummyHrType;
 	protected PrismObject<ResourceType> resourceDummyHr;
-	
+
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
 
@@ -129,7 +129,7 @@ public class TestUniversity extends AbstractStoryTest {
 	protected String getTopOrgOid() {
 		return ORG_TOP_OID;
 	}
-	
+
 	@Override
     protected void startResources() throws Exception {
         openDJController.startCleanServerRI();
@@ -139,14 +139,14 @@ public class TestUniversity extends AbstractStoryTest {
     public static void stopResources() throws Exception {
         openDJController.stop();
     }
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		reconciliationTaskResultListener = new DebugReconciliationTaskResultListener();
 		reconciliationTaskHandler.setReconciliationTaskResultListener(reconciliationTaskResultListener);
-		
+
 		// Resources
 		dummyResourceCtlHr = DummyResourceContoller.create(RESOURCE_DUMMY_HR_ID, resourceDummyHr);
 		DummyObjectClass privilegeObjectClass = dummyResourceCtlHr.getDummyResource().getPrivilegeObjectClass();
@@ -156,7 +156,7 @@ public class TestUniversity extends AbstractStoryTest {
 		resourceDummyHrType = resourceDummyHr.asObjectable();
 		dummyResourceCtlHr.setResource(resourceDummyHr);
 		dummyResourceHr.setSyncStyle(DummySyncStyle.SMART);
-		
+
 		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
 		resourceOpenDjType = resourceOpenDj.asObjectable();
 		openDJController.setResource(resourceOpenDj);
@@ -179,16 +179,16 @@ public class TestUniversity extends AbstractStoryTest {
 		// Tasks
 		importObjectFromFile(TASK_LIVE_SYNC_DUMMY_HR_FILE, initResult);
 	}
-	
+
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
         TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
-        
+
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
         TestUtil.assertSuccess(testResultHr);
-        
+
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
         TestUtil.assertSuccess(testResultOpenDj);
 
@@ -196,7 +196,7 @@ public class TestUniversity extends AbstractStoryTest {
 
         dumpOrgTree();
 	}
-	
+
 	@Test
     public void test100AddComeniusUniversity() throws Exception {
 		final String TEST_NAME = "test100AddComeniusUniversity";
@@ -543,5 +543,5 @@ public class TestUniversity extends AbstractStoryTest {
 
 		return org;
 	}
-	
+
 }

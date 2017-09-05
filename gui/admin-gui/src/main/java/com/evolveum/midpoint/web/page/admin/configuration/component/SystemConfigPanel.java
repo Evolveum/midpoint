@@ -53,7 +53,7 @@ public class SystemConfigPanel extends BasePanel<SystemConfigurationDto> {
     private static final String ID_CLEANUP_CLOSED_TASKS_TOOLTIP = "closedTasksCleanupTooltip";
 
     private static final String ID_EXPERIMENTAL_CODE_CHECKBOX = "experimentalCodeCheckbox";
-   
+
 
     public SystemConfigPanel(String id, IModel<SystemConfigurationDto> model) {
         super(id, model);
@@ -86,26 +86,26 @@ public class SystemConfigPanel extends BasePanel<SystemConfigurationDto> {
         }
         aepLevel.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(aepLevel);
-        
+
 
         TextField<String> auditRecordsField = WebComponentUtil.createAjaxTextField(ID_CLEANUP_AUDIT_RECORDS, new PropertyModel<String>(getModel(), SystemConfigurationDto.F_AUDIT_CLEANUP));
-        
+
         TextField<String> closedTasksField = WebComponentUtil.createAjaxTextField(ID_CLEANUP_CLOSED_TASKS, new PropertyModel<String>(getModel(), SystemConfigurationDto.F_TASK_CLEANUP));
-        
+
         add(auditRecordsField);
         add(closedTasksField);
 
         createTooltip(ID_CLEANUP_AUDIT_RECORDS_TOOLTIP);
         createTooltip(ID_CLEANUP_CLOSED_TASKS_TOOLTIP);
 
-        
+
         CheckBox experimentalCodeCheck = WebComponentUtil.createAjaxCheckBox(ID_EXPERIMENTAL_CODE_CHECKBOX, new PropertyModel<Boolean>(getModel(), SystemConfigurationDto.F_ENABLE_EXPERIMENTAL_CODE));
         add(experimentalCodeCheck);
-       
-    
+
+
     }
 
-   
+
 
     private void createTooltip(String id) {
         Label tooltip = new Label(id);

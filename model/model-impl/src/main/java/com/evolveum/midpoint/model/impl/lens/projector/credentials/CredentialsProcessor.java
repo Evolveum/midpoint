@@ -80,22 +80,22 @@ public class CredentialsProcessor {
 	public <F extends FocusType> void processFocusCredentials(LensContext<F> context,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
 					ObjectNotFoundException, SchemaException, PolicyViolationException {
-		
+
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null || !UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 			LOGGER.trace("Skipping processing credentials because focus is not user");
 			return;
 		}
-		
+
 		processFocusPassword((LensContext<UserType>) context, now, task, result);
 		processFocusNonce((LensContext<UserType>) context, now, task, result);
 		processFocusSecurityQuestions((LensContext<UserType>) context, now, task, result);
 	}
-	
+
 	private <F extends FocusType> void processFocusPassword(LensContext<UserType> context, XMLGregorianCalendar now,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
 					SchemaException, PolicyViolationException {
-		
+
 		PasswordPolicyEvaluator evaluator = new PasswordPolicyEvaluator();
 		evaluator.setContext(context);
 		evaluator.setMetadataManager(metadataManager);
@@ -109,12 +109,12 @@ public class CredentialsProcessor {
 
 		evaluator.process();
 	}
-	
+
 	//for now just saving metadata
 	private void processFocusNonce(LensContext<UserType> context, XMLGregorianCalendar now,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
 					SchemaException, PolicyViolationException {
-		
+
 		NoncePolicyEvaluator evaluator = new NoncePolicyEvaluator();
 		evaluator.setContext(context);
 		evaluator.setMetadataManager(metadataManager);
@@ -129,11 +129,11 @@ public class CredentialsProcessor {
 		evaluator.process();
 
 	}
-	
+
 	private void processFocusSecurityQuestions(LensContext<UserType> context, XMLGregorianCalendar now,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
 					SchemaException, PolicyViolationException {
-		
+
 		SecurityQuestionsPolicyEvaluator evaluator = new SecurityQuestionsPolicyEvaluator();
 		evaluator.setContext(context);
 		evaluator.setMetadataManager(metadataManager);
@@ -149,7 +149,7 @@ public class CredentialsProcessor {
 
 	}
 
-	
+
 	/**
 	 * Called from ChangeExecutor. Will modify the execution deltas to hash or remove credentials if needed.
 	 */
@@ -166,7 +166,7 @@ public class CredentialsProcessor {
 		ObjectDelta<O> transformedDelta = focusDelta.clone();
 		transformFocusExectionDeltaCredential(context, credsType, credsType.getPassword(), SchemaConstants.PATH_PASSWORD_VALUE, transformedDelta);
 		// TODO: nonce and others
-		
+
 		return transformedDelta;
 	}
 
@@ -177,7 +177,7 @@ public class CredentialsProcessor {
 			return;
 		}
 		CredentialPolicyType defaltCredPolicyType = credsType.getDefault();
-		CredentialsStorageMethodType storageMethod = 
+		CredentialsStorageMethodType storageMethod =
 				SecurityUtil.getCredPolicyItem(defaltCredPolicyType, credPolicyType, pol -> pol.getStorageMethod());
 		if (storageMethod == null) {
 			return;
@@ -211,7 +211,7 @@ public class CredentialsProcessor {
 		} else {
 			throw new SchemaException("Unkwnon storage type "+storageType);
 		}
-		
+
 	}
 
 	private void hashValues(Collection<PrismPropertyValue<ProtectedStringType>> values,
@@ -228,7 +228,7 @@ public class CredentialsProcessor {
 	}
 
 	/**
-	 * Legacy. Invoked from mappings. TODO: fix 
+	 * Legacy. Invoked from mappings. TODO: fix
 	 */
 	public <F extends ObjectType> ValuePolicyType determinePasswordPolicy(LensFocusContext<F> focusContext, Task task, OperationResult result) {
 		if (focusContext == null) {

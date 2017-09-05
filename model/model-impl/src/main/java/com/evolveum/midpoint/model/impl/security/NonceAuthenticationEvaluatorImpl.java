@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 @Component("nonceAuthenticationEvaluator")
 public class NonceAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImpl<NonceType, NonceAuthenticationContext>{
 
-	
+
 	@Override
 	protected void checkEnteredCredentials(ConnectionEnvironment connEnv,
 			NonceAuthenticationContext authCtx) {
@@ -46,7 +46,7 @@ public class NonceAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImp
 			recordAuthenticationFailure(principal, connEnv, "no stored password value");
 			throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
 		}
-		
+
 	}
 
 	@Override
@@ -65,7 +65,7 @@ public class NonceAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImp
 		return policy;
 	}
 
-	
+
 
 	@Override
 	protected boolean supportsActivation() {

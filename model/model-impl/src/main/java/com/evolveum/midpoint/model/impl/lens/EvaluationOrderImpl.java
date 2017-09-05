@@ -81,7 +81,7 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 		}
 		return rv;
 	}
-	
+
 	@Override
 	public EvaluationOrder advance(QName relation) {
 		checkConsistence();
@@ -183,14 +183,14 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 	public String toString() {
 		return "EvaluationOrder(" + shortDump() + ")";
 	}
-	
+
 	@Override
 	public String shortDump() {
 		StringBuilder sb = new StringBuilder();
 		shortDump(sb);
 		return sb.toString();
 	}
-	
+
 	@Override
 	public void shortDump(StringBuilder sb) {
 		for (Entry<QName,Integer> entry: orderMap.entrySet()) {

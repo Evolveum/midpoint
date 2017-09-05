@@ -19,7 +19,7 @@ package com.evolveum.midpoint.model.impl.sync;
 /**
  * Testability interface. It is used in the tests to check correctness
  * of reconciliation run.
- * 
+ *
  * @author Radovan Semancik
  *
  */
@@ -27,5 +27,5 @@ package com.evolveum.midpoint.model.impl.sync;
 public interface ReconciliationTaskResultListener {
 
 	void process(ReconciliationTaskResult reconResult);
-	
+
 }

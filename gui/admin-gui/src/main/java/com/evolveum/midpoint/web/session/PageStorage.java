@@ -26,13 +26,13 @@ import com.evolveum.midpoint.web.component.search.Search;
  *  @author shood
  * */
 public interface PageStorage extends Serializable, DebugDumpable {
-	
+
 	public Search getSearch();
-	
+
 	public void setSearch(Search search);
-	
+
 	public void setPaging(ObjectPaging paging);
-	
+
 	public ObjectPaging getPaging();
 
 }

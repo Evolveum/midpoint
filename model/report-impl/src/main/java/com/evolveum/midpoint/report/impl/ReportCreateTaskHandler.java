@@ -150,7 +150,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
 
             JasperReport jasperReport = ReportTypeUtil.loadJasperReport(parentReport);
             LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
-            
+
             PrismContainer<ReportParameterType> reportParams = (PrismContainer) task.getExtensionItem(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
             if (reportParams != null) {
                 PrismContainerValue<ReportParameterType> reportParamsValues = reportParams.getValue();
@@ -165,14 +165,14 @@ public class ReportCreateTaskHandler implements TaskHandler {
                         } else {
                         	value = pp.getRealValues();
                         }
-                        	
+
                         parameters.put(paramName, value);
-                        
+
                     }
                 }
             }
 
-            
+
 
             String virtualizerS = parentReport.getVirtualizer();
             Integer virtualizerKickOn = parentReport.getVirtualizerKickOn();
@@ -188,7 +188,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
             if (timeout != null && timeout > 0) {
                 LOGGER.trace("Setting timeout on report execution [ms]: " + timeout);
                 jasperReport.setProperty(TimeoutGovernor.PROPERTY_TIMEOUT_ENABLED, Boolean.TRUE.toString());
-                jasperReport.setProperty(TimeoutGovernor.PROPERTY_TIMEOUT, String.valueOf(timeout));           
+                jasperReport.setProperty(TimeoutGovernor.PROPERTY_TIMEOUT, String.valueOf(timeout));
             }
 
             if (virtualizerS != null && virtualizerKickOn != null && virtualizerKickOn > 0) {
@@ -249,7 +249,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
         LOGGER.trace("CreateReportTaskHandler.run stopping");
         return runResult;
     }
-    
+
     private boolean isSingleValue(String paramName, JRParameter[] jrParams) {
     	JRParameter param = Arrays.stream(jrParams).filter(p -> p.getName().equals(paramName)).findAny().get();
     	return !List.class.isAssignableFrom(param.getValueClass());
@@ -276,17 +276,17 @@ public class ReportCreateTaskHandler implements TaskHandler {
     }
 
 //	private JasperReport loadJasperReport(ReportType reportType) throws SchemaException{
-//		
+//
 //			if (reportType.getTemplate() == null) {
 //				throw new IllegalStateException("Could not create report. No jasper template defined.");
 //			}
 //			try	 {
 //		    	 	byte[] reportTemplate = Base64.decodeBase64(reportType.getTemplate());
-//		    	 	
+//		    	
 //		    	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
 //		    	 	JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML);
 //		    	 	LOGGER.trace("load jasper design : {}", jasperDesign);
-//				 
+//
 //				 if (reportType.getTemplateStyle() != null){
 //					JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
 //					jasperDesign.addTemplate(templateStyle);
@@ -295,15 +295,15 @@ public class ReportCreateTaskHandler implements TaskHandler {
 //					parameter.setValueClass(JRTemplate.class);
 //					parameter.setForPrompting(false);
 //					jasperDesign.addParameter(parameter);
-//				 } 
+//				 }
 //				 JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
 //				 return jasperReport;
-//			 } catch (JRException ex){ 
+//			 } catch (JRException ex){
 //				 LOGGER.error("Couldn't create jasper report design {}", ex.getMessage());
 //				 throw new SchemaException(ex.getMessage(), ex.getCause());
 //			 }
-//			 
-//			 
+//
+//
 //	}
     private Map<String, Object> prepareReportParameters(ReportType reportType, OperationResult parentResult) {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -477,19 +477,19 @@ public class ReportCreateTaskHandler implements TaskHandler {
         reportOutputType.setName(new PolyStringType(reportOutputName));
         reportOutputType.setDescription(reportType.getDescription() + " - " + reportType.getExport().value());
         reportOutputType.setExportType(reportType.getExport());
-        
-        
+
+
         SearchResultList<PrismObject<NodeType>> nodes = modelService.searchObjects(NodeType.class, QueryBuilder.queryFor(NodeType.class, prismContext).item(NodeType.F_NODE_IDENTIFIER).eq(task.getNode()).build(), null, task, parentResult);
         if (nodes == null || nodes.isEmpty()) {
         	LOGGER.error("Could not found node for storing the report.");
         	throw new ObjectNotFoundException("Could not find node where to save report");
         }
-        
+
         if (nodes.size() > 1) {
         	LOGGER.error("Found more than one node with ID {}.", task.getNode());
         	throw new IllegalStateException("Found more than one node with ID " + task.getNode());
         }
-        
+
         reportOutputType.setNodeRef(ObjectTypeUtil.createObjectRef(nodes.iterator().next()));
 
         ObjectDelta<ReportOutputType> objectDelta = null;

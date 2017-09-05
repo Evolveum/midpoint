@@ -72,7 +72,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 public class ReportServiceImpl implements ReportService {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(ReportServiceImpl.class);
-	
+
 	@Autowired private ModelService model;
 	@Autowired private TaskManager taskManager;
 	@Autowired private PrismContext prismContext;
@@ -105,10 +105,10 @@ public class ReportServiceImpl implements ReportService {
 
 			ObjectFilter subFilter = ((TypeFilter) f).getFilter();
 			ObjectQuery q = ObjectQuery.createObjectQuery(subFilter);
-			
+
 			ExpressionVariables variables = new ExpressionVariables();
 			variables.addVariableDefinitions(parameters);
-			
+
 			q = ExpressionUtil.evaluateQueryExpressions(q, variables, expressionFactory, prismContext,
 					"parsing expression values for report", task, task.getResult());
 			((TypeFilter) f).setFilter(q.getFilter());
@@ -296,7 +296,7 @@ public class ReportServiceImpl implements ReportService {
 		midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
 		ReportFunctions reportFunctions = new ReportFunctions(prismContext, model, taskManager, auditService);
 		midPointLib.setGenericFunctions(reportFunctions);
-//		
+//
 //		MidpointFunctionsImpl mp = new MidpointFunctionsImpl();
 //		mp.
 

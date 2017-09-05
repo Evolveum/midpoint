@@ -49,20 +49,20 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Hook used to enforce the policy rules that have the enforce action.
- * 
+ *
  * @author semancik
  *
  */
 @Component
 public class PolicyRuleEnforcerHook implements ChangeHook {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleEnforcerHook.class);
-	
+
 	public static final String HOOK_URI = SchemaConstants.NS_MODEL + "/policy-rule-enforcer-hook-3";
-	
+
 	@Autowired private HookRegistry hookRegistry;
 	@Autowired private PrismContext prismContext;
-	
+
 	@PostConstruct
     public void init() {
         hookRegistry.registerChangeHook(HOOK_URI, this);
@@ -79,7 +79,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 	@Override
 	public <O extends ObjectType> HookOperationMode invoke(@NotNull ModelContext<O> context, @NotNull Task task,
 			@NotNull OperationResult result) throws PolicyViolationException {
-		
+
 		if (context.getState() == ModelState.PRIMARY) {
 			EvaluationContext evalCtx = invokeInternal(context, task, result);
 			if (!evalCtx.messages.isEmpty()) {
@@ -119,7 +119,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 			OperationResult result) {
 		enforceTriggeredRules(evalCtx, context.getFocusContext().getPolicyRules());
 	}
-	
+
 	private <F extends FocusType> void evaluateAssignmentRules(EvaluationContext evalCtx, ModelContext<F> context, Task task,
 			OperationResult result) {
 		DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
@@ -139,11 +139,11 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 			if (triggers.isEmpty()) {
 				continue;
 			}
-			
+
 			if (!isEnforce(policyRule)) {
 				continue;
 			}
-			
+
 			for (EvaluatedPolicyRuleTrigger trigger: triggers) {
 				if (trigger.getMessage() != null) {
 					evalCtx.messages.add(trigger.getMessage());
@@ -154,12 +154,12 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 
 	private boolean isEnforce(EvaluatedPolicyRule policyRule) {
 		PolicyActionsType actions = policyRule.getActions();
-		
+
 		if (actions == null) {
 			// enforce is NO LONGER the default
 			return false;
 		}
-		
+
 		EnforcementPolicyActionType enforcement = actions.getEnforcement();
 		if (enforcement == null) {
 			return false;

@@ -93,7 +93,7 @@ public class TextAreaFormGroup extends BasePanel<String> {
 		});
 		tooltipLabel.setOutputMarkupId(true);
 		tooltipLabel.setOutputMarkupPlaceholderTag(true);
-		labelContainer.add(tooltipLabel);		
+		labelContainer.add(tooltipLabel);
 
         WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
         if (StringUtils.isNotEmpty(textSize)) {

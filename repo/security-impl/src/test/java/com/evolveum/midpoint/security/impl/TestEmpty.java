@@ -49,25 +49,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestEmpty extends AbstractIntegrationTest {
-	
+
 	protected static final File TEST_DIR = MidPointTestConstants.TEST_RESOURCES_DIR;
-	
+
 	public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
-	
+
 	protected static final File SECURITY_POLICY_FILE = new File(TEST_DIR, "security-policy.xml");
 	protected static final String SECURITY_POLICY_OID = "28bf845a-b107-11e3-85bc-001e8c717e5b";
-	
+
 	protected static final File USER_JACK_FILE = new File(TEST_DIR, "user-jack.xml");
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	protected static final String USER_JACK_USERNAME = "jack";
 	protected static final String USER_JACK_PASSWORD = "deadmentellnotales";
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(TestEmpty.class);
-	
+
 	@Autowired(required=true)
 	private UserProfileServiceMock userProfileService;
-	
+
 	@Autowired(required = true)
 	private Clock clock;
 
@@ -76,25 +76,25 @@ public class TestEmpty extends AbstractIntegrationTest {
 	 */
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		
+
 		repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
 		repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
 		repoAddObjectFromFile(USER_JACK_FILE, initResult);
 	}
-	
+
 	@Test
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
 		TestUtil.displayTestTitle(TEST_NAME);
-		
+
 		// TODO
 	}
-	
+
 	@Test
 	public void test020UserProfileServiceMockUsername() throws Exception {
 		final String TEST_NAME = "test020UserProfileServiceMockUsername";
 		TestUtil.displayTestTitle(TEST_NAME);
-		
+
 		MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
 		assertPrincipalJack(principal);
 	}
@@ -107,6 +107,6 @@ public class TestEmpty extends AbstractIntegrationTest {
 		assertNotNull("No user in principal",user);
 		assertEquals("Bad name in user in principal", USER_JACK_USERNAME, user.getName().getOrig());
 	}
-	
+
 
 }

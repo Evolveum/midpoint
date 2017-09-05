@@ -40,7 +40,7 @@ public class ExportObjects extends BaseNinjaAction {
 
         return builder.toString();
     }
-    
+
     public boolean execute() throws UnsupportedEncodingException, FileNotFoundException {
         System.out.println("Starting objects export.");
 
@@ -52,33 +52,33 @@ public class ExportObjects extends BaseNinjaAction {
 
         final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(CONTEXTS);
         final OutputStreamWriter stream = new OutputStreamWriter(new FileOutputStream(file), "utf-8");
-        
+
         try {
-        	
+
             System.out.println("Loading spring contexts.");
-            
+
             System.out.println("Set repository.");
-            
+
             RepositoryService repository = context.getBean("repositoryService", RepositoryService.class);
-            
-            ResultHandler<ObjectType> handler = new ResultHandler<ObjectType>() 
+
+            ResultHandler<ObjectType> handler = new ResultHandler<ObjectType>()
             {
-            	
+
             	PrismContext prismContext = context.getBean(PrismContext.class);
 
             	@Override
-                public boolean handle(PrismObject<ObjectType> object, OperationResult parentResult) 
+                public boolean handle(PrismObject<ObjectType> object, OperationResult parentResult)
                 {
                     String displayName = getDisplayName(object);
                     System.out.println("Exporting object " + displayName);
 
                     OperationResult resultExport = new OperationResult("Export " + displayName);
-                    try 
+                    try
                     {
                     	String stringObject = prismContext.serializeObjectToString(object, PrismContext.LANG_XML);
                         stream.write("\t" + stringObject + "\n");
-                    } 
-                    catch (Exception ex) 
+                    }
+                    catch (Exception ex)
                     {
                     	System.out.println("Failed to parse objects to string for xml. Reason: " +  ex);
                         resultExport.recordFatalError("Failed to parse objects to string for xml. Reason: ", ex);
@@ -87,24 +87,24 @@ public class ExportObjects extends BaseNinjaAction {
                     return true;
                 }
             };
-            
+
             stream.write(createHeaderForXml());
-                    
+
             OperationResult result = new OperationResult("search set");
 
             System.out.println("Creating xml file " + file.getName());
 
             repository.searchObjectsIterative(ObjectType.class, null, handler, null, false, result);
-            
+
             stream.write("</objects>");
             System.out.println("Created xml file " + file.getName());
-            
+
         } catch (Exception ex) {
             System.out.println("Exception occurred during context loading, reason: " + ex.getMessage());
             ex.printStackTrace();
         } finally {
             destroyContext(context);
-            if (stream != null) 
+            if (stream != null)
             {
             	IOUtils.closeQuietly(stream);
             }
@@ -115,7 +115,7 @@ public class ExportObjects extends BaseNinjaAction {
         System.out.println("Objects export finished.");
         return true;
     }
-        
+
         private String getDisplayName(PrismObject object) {
             StringBuilder builder = new StringBuilder();
 

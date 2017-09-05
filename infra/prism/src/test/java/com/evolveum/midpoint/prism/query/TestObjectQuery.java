@@ -40,17 +40,17 @@ import java.io.IOException;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
 
 public class TestObjectQuery {
-	
+
 	private static MatchingRuleRegistry matchingRuleRegistry;
-	
+
 	@BeforeSuite
 	public void setupDebug() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-		
+
 		matchingRuleRegistry = MatchingRuleRegistryFactory.createRegistry();
 	}
-	
+
 	@Test
 	public void testMatchAndFilter() throws Exception{
 		PrismObject user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
@@ -62,8 +62,8 @@ public class TestObjectQuery {
 		boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
 		AssertJUnit.assertTrue("filter does not match object", match);
 	}
-	
-	
+
+
 	@Test
 	public void testMatchOrFilter() throws Exception{
 		PrismObject user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
@@ -74,7 +74,7 @@ public class TestObjectQuery {
 		boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
 		AssertJUnit.assertTrue("filter does not match object", match);
 	}
-	
+
 	@Test
 	public void testDontMatchEqualFilter() throws Exception{
 		PrismObject user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
@@ -84,7 +84,7 @@ public class TestObjectQuery {
 		boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
 		AssertJUnit.assertFalse("filter matches object, but it should not", match);
 	}
-	
+
 	@Test
 	public void testMatchEqualMultivalue() throws Exception{
 		PrismObject user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
@@ -147,7 +147,7 @@ public class TestObjectQuery {
 		boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
 		AssertJUnit.assertTrue("filter does not match object", match);
 	}
-	
+
 	@Test
 	public void testPolystringMatchEqualFilter() throws Exception{
 		PrismObject user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);

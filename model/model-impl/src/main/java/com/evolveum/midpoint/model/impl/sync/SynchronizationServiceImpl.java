@@ -102,7 +102,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * Synchronization service receives change notifications from provisioning. It
  * decides which synchronization policy to use and evaluates it (correlation,
  * confirmation, situations, reaction, ...)
- * 
+ *
  * @author lazyman
  * @author Radovan Semancik
  *
@@ -113,26 +113,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class SynchronizationServiceImpl implements SynchronizationService {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SynchronizationServiceImpl.class);
-	
+
 	@Autowired(required = true)
 	private ActionManager<Action> actionManager;
-	
+
 	@Autowired
 	private CorrelationConfirmationEvaluator correlationConfirmationEvaluator;
-	
+
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
-	
+
 	@Autowired(required = true)
 	private ContextFactory contextFactory;
-	
+
 	@Autowired(required = true)
 	private Clockwork clockwork;
-	
+
 	@Autowired(required = true)
 	private ExpressionFactory expressionFactory;
-	
+
 	@Autowired(required = true)
 	private SystemObjectCache systemObjectCache;
 
@@ -312,20 +312,20 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			eventInfo.setNewSituation(newSituation);
 			eventInfo.record(task);
 			subResult.computeStatus();
-			
+
 		} catch (SystemException ex) {
 			// avoid unnecessary re-wrap
 			eventInfo.setException(ex);
 			eventInfo.record(task);
 			subResult.recordFatalError(ex);
 			throw ex;
-			
+
 		} catch (Exception ex) {
 			eventInfo.setException(ex);
 			eventInfo.record(task);
 			subResult.recordFatalError(ex);
 			throw new SystemException(ex);
-			
+
 		} finally {
 			task.markObjectActionExecutedBoundary();
 			// if (LOGGER.isTraceEnabled()) {
@@ -398,7 +398,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			PrismObject<? extends ShadowType> currentShadow,
 			PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		
+
 		SynchronizationType synchronization = resourceType.getSynchronization();
 		if (synchronization == null) {
 			return null;
@@ -420,7 +420,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		if (!SynchronizationUtils.isPolicyApplicable(currentShadow, synchronizationPolicy, resource)) {
 			return false;
 		}
-	
+
 		Boolean conditionResult = evaluateSynchronizationPolicyCondition(synchronizationPolicy, currentShadow,
 				resource, configuration, task, result);
 		if (conditionResult != null) {
@@ -776,14 +776,14 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			LensProjectionContext originalProjectionContext = iterator.hasNext() ? iterator.next() : null;
 
 			try {
-				
+
 				clockwork.run(lensContext, task, parentResult);
-				
+
 			} catch (ConfigurationException | ObjectNotFoundException | SchemaException |
 					PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException |
 					CommunicationException | SecurityViolationException e) {
 				LOGGER.error("SYNCHRONIZATION: Error in synchronization on {} for situation {}: {}: {}. Change was {}",
-						new Object[] {resource, situation.getSituation(), e.getClass().getSimpleName(), 
+						new Object[] {resource, situation.getSituation(), e.getClass().getSimpleName(),
 								e.getMessage(), change, e});
 				// what to do here? We cannot throw the error back. All that the notifyChange method
 				// could do is to convert it to SystemException. But that indicates an internal error and it will
@@ -1037,7 +1037,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		List<PropertyDelta<?>> deltas = SynchronizationUtils
 				.createSynchronizationSituationAndDescriptionDelta(shadow, situation.getSituation(),
 						change.getSourceChannel(), true);
-		
+
 		if (shadowType.getKind() == null) {
 			ShadowKindType kind = synchronizationPolicy.getKind();
 			if (kind == null) {
@@ -1139,7 +1139,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#
 	 * getName ()
 	 */

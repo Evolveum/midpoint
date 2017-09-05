@@ -75,7 +75,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	private Collection<SelectorOptions<GetOperationOptions>> options;
 
 	private boolean multiselect;
-	
+
 	private TableId tableId;
 
 	protected List<O> selectedObjects = null;
@@ -151,7 +151,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		mainForm.add(table);
 
 	}
-	
+
 	private LoadableModel<Search> initSearchModel(){
 		return new LoadableModel<Search>(false) {
 
@@ -174,11 +174,11 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			}
 		};
 	}
-	
+
 	protected Search createSearch() {
 		return SearchFactory.createSearch(type, parentPage);
 	}
-	
+
 	private BoxedTablePanel<SelectableBean<O>> createTable() {
 
 		List<IColumn<SelectableBean<O>, String>> columns;
@@ -189,8 +189,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		}
 
 		BaseSortableDataProvider<SelectableBean<O>> provider = initProvider();
-		
-		
+
+
 		BoxedTablePanel<SelectableBean<O>> table = new BoxedTablePanel<SelectableBean<O>>(ID_TABLE, provider,
 				columns, tableId, tableId == null ? 10 : parentPage.getSessionStorage().getUserProfile().getPagingSize(tableId)) {
 			private static final long serialVersionUID = 1L;
@@ -216,7 +216,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		table.setOutputMarkupId(true);
 		String storageKey = getStorageKey();
 		if (StringUtils.isNotEmpty(storageKey)) {
-			PageStorage storage = getPageStorage(storageKey); 
+			PageStorage storage = getPageStorage(storageKey);
 			if (storage != null) {
 				table.setCurrentPage(storage.getPaging());
 			}
@@ -224,7 +224,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 		return table;
 	}
-	
+
 	protected List<IColumn<SelectableBean<O>, String>> initCustomColumns() {
 		LOGGER.trace("Start to init custom columns for table of type {}", type);
 		List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<IColumn<SelectableBean<O>, String>>();
@@ -324,10 +324,10 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 				}
 				return bean;
 			}
-			
+
 			@Override
 					protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-				List<ObjectOrdering> customOrdering =  createCustomOrdering(sortParam);		
+				List<ObjectOrdering> customOrdering =  createCustomOrdering(sortParam);
 				if (customOrdering != null) {
 							return customOrdering;
 						}
@@ -346,14 +346,14 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			provider.setOptions(options);
 		}
 		provider.setQuery(getQuery());
-		
+
 		return provider;
 	}
-	
+
 	protected List<ObjectOrdering> createCustomOrdering(SortParam<String> sortParam) {
 		return null;
 	}
-	
+
 	private SearchFormPanel initSearch(String headerId) {
 		SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
 
@@ -384,15 +384,15 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	protected WebMarkupContainer createTableButtonToolbar(String id) {
 		return null;
 	}
-	
+
 	private String getStorageKey() {
 		String storageKey =  WebComponentUtil.getStorageKeyForPage(parentPage.getClass());
 		if (storageKey == null) {
 			storageKey = WebComponentUtil.getStorageKeyForTableId(tableId);
 		}
-		
+
 		return storageKey;
-		
+
 	}
 
 	private PageStorage getPageStorage(String storageKey){
@@ -416,8 +416,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	protected BoxedTablePanel<SelectableBean<O>> getTable() {
 		return (BoxedTablePanel<SelectableBean<O>>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
 	}
-	
-		
+
+
 	@SuppressWarnings("deprecation")
 	private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
 

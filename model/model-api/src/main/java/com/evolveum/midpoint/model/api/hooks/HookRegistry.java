@@ -23,7 +23,7 @@ import java.util.List;
  *
  */
 public interface HookRegistry {
-	
+
 	void registerChangeHook(String url, ChangeHook changeHook);
 
 	List<ChangeHook> getAllChangeHooks();

@@ -177,7 +177,7 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 	}
 
 	/**
-	 * @pre value has to be parent-less
+	 * @param value value, has to be parent-less
 	 */
 	public void setValue(V value) {
 		this.values = new ArrayList<>();

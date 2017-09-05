@@ -51,7 +51,7 @@ import org.jetbrains.annotations.NotNull;
  * Task manager provides controls task execution, coordination, distribution and failover between nodes, etc.
  * </p><p>
  * This interface is just a basic framework for task management now. Although we hope that this is roughly almost final
- * shape of the interface, the implementation is not complete and some changes may happen.  
+ * shape of the interface, the implementation is not complete and some changes may happen.
  * </p>
  * <p>
  * This definition specifies interface of Task Manager - a component that controls (asynchronous) task execution.
@@ -92,7 +92,7 @@ public interface TaskManager {
     <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException;
 
     <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<T> handler, OperationResult parentResult) throws SchemaException;
-    
+
     /**
      * Counts the number of objects.
      *
@@ -217,20 +217,20 @@ public interface TaskManager {
 
 	/**
 	 * Creates new transient, running task instance.
-	 * 
+	 *
 	 * This is fact creates usual "synchronous" task.
-	 * 
+	 *
 	 * This is useful for normal day-to-day tasks that are either
 	 * synchronous or start as a synchronous and are switched to
 	 * asynchronous task later.
-	 * 
+	 *
 	 * @return transient, running task instance
 	 */
 	public Task createTaskInstance();
-	
+
 	/**
 	 * Creates task instance from the XML task representation.
-	 * 
+	 *
 	 * @param taskPrism JAXB (XML) representation of the task
 	 * @return new Java representation of the task
 	 * @throws SchemaException The provided taskType is not compliant to schema
@@ -240,16 +240,16 @@ public interface TaskManager {
 
 	/**
 	 * Creates new transient, running task instance.
-	 * 
+	 *
 	 * This is fact creates usual "synchronous" task.
-	 * 
+	 *
 	 * This is useful for normal day-to-day tasks that are either
 	 * synchronous or start as a synchronous and are switched to
 	 * asynchronous task later.
-	 * 
+	 *
 	 * The result inside the task will be initialized with
 	 * specified operation name.
-	 * 
+	 *
 	 * @param operationName operation name to use as a root for new result in task
 	 * @return new Java representation of the task
 	 */
@@ -257,10 +257,10 @@ public interface TaskManager {
 
 	/**
 	 * Creates task instance from the XML task representation.
-	 * 
+	 *
 	 * If there is not a result inside the task, it will create the
 	 * result with specified operation name.
-	 * 
+	 *
 	 * @param taskPrism Prism representation of the task
 	 * @param operationName operation name to use as a root for new result in task
 	 * @return new Java representation of the task
@@ -268,14 +268,14 @@ public interface TaskManager {
 	 */
 	@NotNull
 	public Task createTaskInstance(PrismObject<TaskType> taskPrism, String operationName, OperationResult parentResult) throws SchemaException;
-	
+
 	/**
 	 * Returns a task with specified OID.
-	 * 
+	 *
 	 * This operation will look up a task instance in the repository and return it in a form of Task object.
-	 * 
+	 *
 	 * Works only on persistent tasks.
-	 * 
+	 *
 	 * @param taskOid OID of the persistent task.
 	 * @return Task instance
 	 * @throws SchemaException error dealing with resource schema
@@ -436,9 +436,9 @@ public interface TaskManager {
 
     /**
 	 * Resume suspended task.
-	 * 
+	 *
 	 * @param task task instance to be resumed.
-	 * @throws SchemaException 
+	 * @throws SchemaException
 	 * @throws ObjectNotFoundException
 	 */
 	public void resumeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
@@ -548,15 +548,15 @@ public interface TaskManager {
      * Waits until all tasks on this node finish.
 	 */
 	void shutdown();
-	
+
 	/**
 	 * Deactivates service threads (temporarily).
-	 * 
+	 *
 	 * This will suspend all background activity such as scanning threads, heartbeats and similar mechanisms.
-	 * 
+	 *
 	 * Note: The threads are normally activated after task manager implementation starts. This methods should not be used
 	 * in a normal case.
-	 *  
+	 *
 	 *  WARNING: this feature is intended for development-time diagnostics and should not be used on production environments.
 	 *  Suspending the threads may affect correct behavior of the system (such as timeouts on heartbeats). Use this feature
 	 *  only if you really know what you are doing.
@@ -565,17 +565,17 @@ public interface TaskManager {
      *  (if it waits separately for several threads completion)
 	 */
 	boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult);
-	
+
 	/**
 	 * Re-activates the service threads after they have been deactivated.
 	 */
 	void reactivateServiceThreads(OperationResult parentResult);
-		
+
 	/**
 	 * Returns true if the service threads are running.
-	 * 
-	 * This method returns true in a normal case. It returns false is the threads were temporarily suspended.  
-	 * 
+	 *
+	 * This method returns true in a normal case. It returns false is the threads were temporarily suspended.
+	 *
 	 * @return true if the service threads are running.
 	 */
 	boolean getServiceThreadsActivationState();

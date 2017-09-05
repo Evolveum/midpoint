@@ -60,11 +60,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSecurityAdvanced extends AbstractSecurityTest {
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_SECURITY_OID, initResult);
 	}
 
@@ -77,15 +77,15 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PERSONA_MANAGEMENT_OID);
         login(USER_JACK_USERNAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        
+
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertGetDeny(UserType.class, USER_LECHUCK_OID);
         assertGetDeny(UserType.class, USER_CHARLES_OID);
-        
+
         assertSearch(UserType.class, null, 1);
         assertSearch(ObjectType.class, null, 1);
         assertSearch(OrgType.class, null, 0);
@@ -104,10 +104,10 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         cleanupAutzTest(USER_LECHUCK_OID);
         assignRole(USER_LECHUCK_OID, ROLE_PERSONA_MANAGEMENT_OID);
         login(USER_LECHUCK_USERNAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        
+
         assertGetDeny(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertGetAllow(UserType.class, USER_LECHUCK_OID);
@@ -123,7 +123,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertDeleteDeny();
         assertGlobalStateUntouched();
 	}
-    
+
     @Test
     public void test110AutzJackPersonaAdmin() throws Exception {
 		final String TEST_NAME = "test110AutzJackAddPersonaAdmin";
@@ -132,65 +132,65 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PERSONA_MANAGEMENT_OID);
         login(USER_JACK_USERNAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
-        assertAllow("assign application role 1 to jack", 
+        assertAllow("assign application role 1 to jack",
         		(task,result) -> assignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result));
-        
+
         PrismObject<UserType> userJack = assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertGetDeny(UserType.class, USER_LECHUCK_OID);
         assertGetDeny(UserType.class, USER_CHARLES_OID);
-        
+
         assertPersonaLinks(userJack, 1);
         String personaJackOid = userJack.asObjectable().getPersonaRef().get(0).getOid();
-        
+
         PrismObject<UserType> personaJack = assertGetAllow(UserType.class, personaJackOid);
         assertEquals("Wrong jack persona givenName before change", USER_JACK_GIVEN_NAME, personaJack.asObjectable().getGivenName().getOrig());
-        
+
 //      TODO: MID-3899
 //      assertSearch(UserType.class, null, 2);
 //      assertSearch(ObjectType.class, null, 2);
         assertSearch(OrgType.class, null, 0);
-        
-        assertAllow("modify jack givenName", 
-        		(task,result) -> modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, 
+
+        assertAllow("modify jack givenName",
+        		(task,result) -> modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result,
         				createPolyString(USER_JACK_GIVEN_NAME_NEW)));
-        
+
         userJack = assertGetAllow(UserType.class, USER_JACK_OID);
         assertEquals("Wrong jack givenName after change", USER_JACK_GIVEN_NAME_NEW, userJack.asObjectable().getGivenName().getOrig());
 
         personaJack = assertGetAllow(UserType.class, personaJackOid);
         assertEquals("Wrong jack persona givenName after change", USER_JACK_GIVEN_NAME_NEW, personaJack.asObjectable().getGivenName().getOrig());
 
-        assertAllow("unassign application role 1 to jack", 
+        assertAllow("unassign application role 1 to jack",
         		(task,result) -> unassignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result));
-        
+
         userJack = assertGetAllow(UserType.class, USER_JACK_OID);
         assertPersonaLinks(userJack, 0);
-        
+
         assertNoObject(UserType.class, personaJackOid);
-        
+
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
         assertGlobalStateUntouched();
 	}
-    
+
 	@Test
     public void test120AutzJackDelagator() throws Exception {
 		final String TEST_NAME = "test120AutzJackDelagator";
         TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
-        cleanupAutzTest(USER_JACK_OID);        
+        cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_DELEGATOR_OID);
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
+
         login(USER_JACK_USERNAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
@@ -202,95 +202,95 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertAssignments(userJack, 1);
         assertAssignedRole(userJack, ROLE_DELEGATOR_OID);
-        
+
         PrismObject<UserType> userBarbossa = getUser(USER_BARBOSSA_OID);
         assertNoAssignments(userBarbossa);
-        
+
         assertDeny("assign business role to jack",
         	(task, result) -> {
 				assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result);
 			});
-        
+
         userJack = getUser(USER_JACK_OID);
         assertAssignments(userJack, 1);
-        
+
         // Wrong direction. It should NOT work.
-        assertDeny("delegate from Barbossa to Jack", 
+        assertDeny("delegate from Barbossa to Jack",
             	(task, result) -> {
             		assignDeputy(USER_JACK_OID, USER_BARBOSSA_OID, task, result);
     			});
 
         // Good direction
-        assertAllow("delegate to Barbossa", 
+        assertAllow("delegate to Barbossa",
         	(task, result) -> {
         		assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result);
 			});
-        
+
         userJack = getUser(USER_JACK_OID);
         display("Jack delegator", userJack);
         assertAssignments(userJack, 1);
-        
+
         userBarbossa = getUser(USER_BARBOSSA_OID);
         display("Barbossa delegate", userBarbossa);
         assertAssignments(userBarbossa, 1);
         assertAssignedDeputy(userBarbossa, USER_JACK_OID);
-        
+
         // Non-delegate. We should be able to read just the name. Not the assignments.
         PrismObject<UserType> userRum = getUser(userRumRogersOid);
         display("User Rum Rogers", userRum);
         assertNoAssignments(userRum);
-        
+
         login(USER_BARBOSSA_USERNAME);
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         display("Logged in as Barbossa");
-        
+
         assertReadAllow(NUMBER_OF_ALL_USERS);
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
-        
+
         login(USER_JACK_USERNAME);
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         display("Logged in as Jack");
 
-        assertAllow("undelegate from Barbossa", 
+        assertAllow("undelegate from Barbossa",
         	(task, result) -> {
         		unassignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result);
         	});
 
         userJack = getUser(USER_JACK_OID);
         assertAssignments(userJack, 1);
-        
+
         userBarbossa = getUser(USER_BARBOSSA_OID);
         assertNoAssignments(userBarbossa);
-                
+
         assertGlobalStateUntouched();
-        
+
         login(USER_BARBOSSA_USERNAME);
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         display("Logged in as Barbossa");
-        
+
         assertReadDeny();
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
 
-        assertDeny("delegate to Jack", 
+        assertDeny("delegate to Jack",
         	(task, result) -> {
         		assignDeputy(USER_JACK_OID, USER_BARBOSSA_OID, task, result);
 			});
-        
-        assertDeny("delegate from Jack to Barbossa", 
+
+        assertDeny("delegate from Jack to Barbossa",
         	(task, result) -> {
         		assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result);
 			});
-        
+
         assertGlobalStateUntouched();
 	}
-    
+
     @Test
     public void test150AutzJackApproverUnassignRoles() throws Exception {
 		final String TEST_NAME = "test150AutzJackApproverUnassignRoles";
@@ -299,20 +299,20 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID);
         assignRole(USER_JACK_OID, ROLE_ORDINARY_OID, SchemaConstants.ORG_APPROVER);
-        
+
         PrismObject<UserType> userCobbBefore = getUser(userCobbOid);
         IntegrationTestTools.display("User cobb before", userCobbBefore);
         assertRoleMembershipRef(userCobbBefore, ROLE_ORDINARY_OID, ROLE_UNINTERESTING_OID, ORG_SCUMM_BAR_OID);
-        
+
         login(USER_JACK_USERNAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
         assertGetAllow(RoleType.class, ROLE_ORDINARY_OID);
         assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN_OID); // no assignment
         assertGetDeny(RoleType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID); // assignment exists, but wrong relation
-        
+
         PrismObject<UserType> userRum = assertGetAllow(UserType.class, userRumRogersOid); // member of ROLE_ORDINARY_OID
         display("User Rum Rogers", userRumRogersOid);
         assertRoleMembershipRef(userRum, ROLE_ORDINARY_OID, ROLE_UNINTERESTING_OID, ORG_MINISTRY_OF_RUM_OID);
@@ -320,9 +320,9 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertGetDeny(UserType.class, USER_JACK_OID);     // assignment exists, but wrong relation
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID); // no assignment to ROLE_ORDINARY_OID
         assertGetDeny(UserType.class, USER_LECHUCK_OID);  // no assignment to ROLE_ORDINARY_OID
-        
+
         assertSearch(OrgType.class, null, 0);
-        
+
         // The appr-read-roles authorization is maySkipOnSearch and there is no other authorization that would
         // allow read, so no role are returned
         assertSearch(RoleType.class, null, 0);
@@ -330,12 +330,12 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         // The appr-read-users authorization is maySkipOnSearch and there is no other authorization that would
         // allow read, so no users are returned
         assertSearch(UserType.class, null, 0);
-        
+
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID), 0);
-        
+
         assert15xCommon();
     }
-    
+
 	@Test
     public void test151AutzJackApproverUnassignRolesAndRead() throws Exception {
 		final String TEST_NAME = "test151AutzJackApproverUnassignRolesAndRead";
@@ -345,16 +345,16 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID);
         assignRole(USER_JACK_OID, ROLE_READ_BASIC_ITEMS_OID);
         assignRole(USER_JACK_OID, ROLE_ORDINARY_OID, SchemaConstants.ORG_APPROVER);
-        
+
         login(USER_JACK_USERNAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
         assertGetAllow(RoleType.class, ROLE_ORDINARY_OID);
         assertGetAllow(RoleType.class, ROLE_PERSONA_ADMIN_OID); // no assignment
         assertGetAllow(RoleType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID); // assignment exists, but wrong relation
-        
+
         PrismObject<UserType> userRum = assertGetAllow(UserType.class, userRumRogersOid); // member of ROLE_ORDINARY_OID
         display("User Rum Rogers", userRumRogersOid);
         assertRoleMembershipRef(userRum, ROLE_ORDINARY_OID, ROLE_UNINTERESTING_OID, ORG_MINISTRY_OF_RUM_OID);
@@ -363,19 +363,19 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertNoRoleMembershipRef(userJack);
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID); // no assignment to ROLE_ORDINARY_OID
         assertGetAllow(UserType.class, USER_LECHUCK_OID);  // no assignment to ROLE_ORDINARY_OID
-        
+
         assertSearch(OrgType.class, null, NUMBER_OF_ALL_ORGS);
-        
+
         // The appr-read-roles authorization is maySkipOnSearch and the readonly role allows read.
         assertSearch(RoleType.class, null, getNumberOfRoles());
 
         // The appr-read-users authorization is maySkipOnSearch and the readonly role allows read.
         assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS);
 
-        
+
         assert15xCommon();
     }
-	
+
 	/**
 	 * Jack is an approver of a role, but he does not have any authorization
 	 * except very basic object read.
@@ -388,9 +388,9 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_BASIC_ITEMS_OID);
         assignRole(USER_JACK_OID, ROLE_ORDINARY_OID, SchemaConstants.ORG_APPROVER);
-        
+
         login(USER_JACK_USERNAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
@@ -399,48 +399,48 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertGetAllow(RoleType.class, ROLE_PERSONA_ADMIN_OID);
         PrismObject<RoleType> roleAppr = assertGetAllow(RoleType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID);
         assertNoRoleMembershipRef(roleAppr);
-        
+
         PrismObject<UserType> userRum = assertGetAllow(UserType.class, userRumRogersOid);
         assertNoRoleMembershipRef(userRum);
         assertGetAllow(UserType.class, userCobbOid);
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
         assertGetAllow(UserType.class, USER_LECHUCK_OID);
-        
-        assertSearch(OrgType.class, null, NUMBER_OF_ALL_ORGS);        
+
+        assertSearch(OrgType.class, null, NUMBER_OF_ALL_ORGS);
         assertSearch(RoleType.class, null, getNumberOfRoles());
         assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS);
-        
+
 		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 0);
 		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID), 0);
-		
+
 		assertCanSearchRoleMemberUsers(ROLE_ORDINARY_OID, false);
 		assertCanSearchRoleMembers(ROLE_ORDINARY_OID, false);
 		assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING_OID, false);
 		assertCanSearchRoleMembers(ROLE_UNINTERESTING_OID, false);
 		assertCanSearchRoleMemberUsers(ROLE_APPROVER_UNASSIGN_ROLES_OID, false);
 		assertCanSearchRoleMembers(ROLE_UNINTERESTING_OID, false);
-		
-		assertDeny("unassign ordinary role from cobb", 
+
+		assertDeny("unassign ordinary role from cobb",
 				(task,result) -> unassignRole(userCobbOid, ROLE_ORDINARY_OID, task, result));
-		
+
 		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 0);
-		
-		assertDeny("unassign uninteresting role from cobb", 
+
+		assertDeny("unassign uninteresting role from cobb",
 				(task,result) -> unassignRole(userCobbOid, ROLE_UNINTERESTING_OID, task, result));
-		assertDeny("unassign uninteresting role from rum", 
-				(task,result) -> unassignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result));		
-		assertDeny("unassign approver role from jack", 
+		assertDeny("unassign uninteresting role from rum",
+				(task,result) -> unassignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result));
+		assertDeny("unassign approver role from jack",
 				(task,result) -> unassignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID, task, result));
-		assertDeny("unassign ordinary role from lechuck", 
+		assertDeny("unassign ordinary role from lechuck",
 				(task,result) -> unassignRole(USER_LECHUCK_OID, ROLE_ORDINARY_OID, task, result));
-		        
+
 		assertAddDeny();
 		assertModifyDeny();
 		assertDeleteDeny();
 		assertGlobalStateUntouched();
     }
-	
+
 	/**
 	 * Jack is an approver of a role, but he does not have any authorization
 	 * except reading self.
@@ -454,56 +454,56 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_OID);
         assignRole(USER_JACK_OID, ROLE_ORDINARY_OID, SchemaConstants.ORG_APPROVER);
-        
+
         login(USER_JACK_USERNAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
         assertGetDeny(RoleType.class, ROLE_ORDINARY_OID);
         assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN_OID);
         assertGetDeny(RoleType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID);
-        
+
         assertGetAllow(UserType.class, USER_JACK_OID);
-        
+
         assertGetDeny(UserType.class, userRumRogersOid);
         assertGetDeny(UserType.class, userCobbOid);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertGetDeny(UserType.class, USER_LECHUCK_OID);
-        
+
         assertSearch(OrgType.class, null, 0);
         assertSearch(RoleType.class, null, 0);
         assertSearch(UserType.class, null, 1);
-        
+
 		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 0);
 		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID), 0);
-		
+
 		assertCanSearchRoleMemberUsers(ROLE_ORDINARY_OID, false);
 		assertCanSearchRoleMembers(ROLE_ORDINARY_OID, false);
 		assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING_OID, false);
 		assertCanSearchRoleMembers(ROLE_UNINTERESTING_OID, false);
 		assertCanSearchRoleMemberUsers(ROLE_APPROVER_UNASSIGN_ROLES_OID, false);
 		assertCanSearchRoleMembers(ROLE_UNINTERESTING_OID, false);
-		
-		assertDeny("unassign ordinary role from cobb", 
+
+		assertDeny("unassign ordinary role from cobb",
 				(task,result) -> unassignRole(userCobbOid, ROLE_ORDINARY_OID, task, result));
-		
+
 		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 0);
-		
-		assertDeny("unassign uninteresting role from cobb", 
+
+		assertDeny("unassign uninteresting role from cobb",
 				(task,result) -> unassignRole(userCobbOid, ROLE_UNINTERESTING_OID, task, result));
-		assertDeny("unassign uninteresting role from rum", 
-				(task,result) -> unassignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result));		
-		assertDeny("unassign ordinary role from lechuck", 
+		assertDeny("unassign uninteresting role from rum",
+				(task,result) -> unassignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result));
+		assertDeny("unassign ordinary role from lechuck",
 				(task,result) -> unassignRole(USER_LECHUCK_OID, ROLE_ORDINARY_OID, task, result));
-		        
+
 		assertAddDeny();
 		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
         assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
 		assertDeleteDeny();
 		assertGlobalStateUntouched();
     }
-	
+
 	@Test
     public void test157AutzJackReadRoleMembers() throws Exception {
 		final String TEST_NAME = "test157AutzJackReadRoleMembers";
@@ -511,9 +511,9 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_ROLE_MEMBERS_OID);
-        
+
         login(USER_JACK_USERNAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
@@ -522,41 +522,41 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         PrismObject<RoleType> roleAppr = assertGetAllow(RoleType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID);
         assertNoRoleMembershipRef(roleAppr);
         assertGetAllow(RoleType.class, ROLE_PERSONA_ADMIN_OID);
-        
+
         PrismObject<UserType> userRum = assertGetAllow(UserType.class, userRumRogersOid);
         assertRoleMembershipRef(userRum, ROLE_ORDINARY_OID, ROLE_UNINTERESTING_OID, ORG_MINISTRY_OF_RUM_OID);
-        assertGetAllow(UserType.class, userCobbOid); 
+        assertGetAllow(UserType.class, userCobbOid);
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
         assertGetAllow(UserType.class, USER_LECHUCK_OID);
-        
+
         assertSearch(RoleType.class, null, getNumberOfRoles());
         assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS);
         assertSearch(OrgType.class, null, 0);
-        
+
 		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 2);
 		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID), 0);
-		
+
 		assertCanSearchRoleMemberUsers(ROLE_ORDINARY_OID, true);
 		assertCanSearchRoleMembers(ROLE_ORDINARY_OID, true);
 		assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING_OID, true);
 		assertCanSearchRoleMembers(ROLE_UNINTERESTING_OID, true);
 		assertCanSearchRoleMemberUsers(ROLE_APPROVER_UNASSIGN_ROLES_OID, true);
 		assertCanSearchRoleMembers(ROLE_UNINTERESTING_OID, true);
-		
-		assertDeny("unassign ordinary role from cobb", 
-				(task,result) -> unassignRole(userCobbOid, ROLE_ORDINARY_OID, task, result));		
-		assertDeny("unassign uninteresting role from rum", 
+
+		assertDeny("unassign ordinary role from cobb",
+				(task,result) -> unassignRole(userCobbOid, ROLE_ORDINARY_OID, task, result));
+		assertDeny("unassign uninteresting role from rum",
 				(task,result) -> unassignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result));
-		assertDeny("unassign approver role from jack", 
+		assertDeny("unassign approver role from jack",
 				(task,result) -> unassignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID, task, result));
-		        
+
 		assertAddDeny();
 		assertModifyDeny();
 		assertDeleteDeny();
 		assertGlobalStateUntouched();
     }
-	
+
 	@Test
     public void test158AutzJackReadRoleMembersWrong() throws Exception {
 		final String TEST_NAME = "test158AutzJackReadRoleMembersWrong";
@@ -564,9 +564,9 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_ROLE_MEMBERS_WRONG_OID);
-        
+
         login(USER_JACK_USERNAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
@@ -575,41 +575,41 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         PrismObject<RoleType> roleAppr = assertGetAllow(RoleType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID);
         assertNoRoleMembershipRef(roleAppr);
         assertGetAllow(RoleType.class, ROLE_PERSONA_ADMIN_OID);
-        
+
         PrismObject<UserType> userRum = assertGetAllow(UserType.class, userRumRogersOid); // member of ROLE_ORDINARY_OID
         assertNoRoleMembershipRef(userRum);
-        assertGetAllow(UserType.class, userCobbOid); 
+        assertGetAllow(UserType.class, userCobbOid);
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
         assertGetAllow(UserType.class, USER_LECHUCK_OID);
-        
+
         assertSearch(RoleType.class, null, getNumberOfRoles());
         assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS);
         assertSearch(OrgType.class, null, 0);
-        
+
 		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 0);
 		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID), 0);
-		
+
 		assertCanSearchRoleMemberUsers(ROLE_ORDINARY_OID, false);
 		assertCanSearchRoleMembers(ROLE_ORDINARY_OID, true); // We can read roleMembershipRef from roles that are members of those roles
 		assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING_OID, false);
 		assertCanSearchRoleMembers(ROLE_UNINTERESTING_OID, true);
 		assertCanSearchRoleMemberUsers(ROLE_APPROVER_UNASSIGN_ROLES_OID, false);
 		assertCanSearchRoleMembers(ROLE_UNINTERESTING_OID, true);
-		
-		assertDeny("unassign ordinary role from cobb", 
-				(task,result) -> unassignRole(userCobbOid, ROLE_ORDINARY_OID, task, result));		
-		assertDeny("unassign uninteresting role from rum", 
+
+		assertDeny("unassign ordinary role from cobb",
+				(task,result) -> unassignRole(userCobbOid, ROLE_ORDINARY_OID, task, result));
+		assertDeny("unassign uninteresting role from rum",
 				(task,result) -> unassignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result));
-		assertDeny("unassign approver role from jack", 
+		assertDeny("unassign approver role from jack",
 				(task,result) -> unassignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID, task, result));
-		        
+
 		assertAddDeny();
 		assertModifyDeny();
 		assertDeleteDeny();
 		assertGlobalStateUntouched();
     }
-	
+
 	@Test
     public void test159AutzJackReadRoleMembersNone() throws Exception {
 		final String TEST_NAME = "test159AutzJackReadRoleMembersNone";
@@ -617,9 +617,9 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_ROLE_MEMBERS_NONE_OID);
-        
+
         login(USER_JACK_USERNAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
@@ -628,35 +628,35 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         PrismObject<RoleType> roleAppr = assertGetAllow(RoleType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID);
         assertNoRoleMembershipRef(roleAppr);
         assertGetAllow(RoleType.class, ROLE_PERSONA_ADMIN_OID);
-        
+
         PrismObject<UserType> userRum = assertGetAllow(UserType.class, userRumRogersOid); // member of ROLE_ORDINARY_OID
         assertNoRoleMembershipRef(userRum);
-        assertGetAllow(UserType.class, userCobbOid); 
+        assertGetAllow(UserType.class, userCobbOid);
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
         assertGetAllow(UserType.class, USER_LECHUCK_OID);
-        
+
         assertSearch(RoleType.class, null, getNumberOfRoles());
         assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS);
         assertSearch(OrgType.class, null, 0);
-        
+
 		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 0);
 		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID), 0);
-		
+
 		assertCanSearchRoleMemberUsers(ROLE_ORDINARY_OID, false);
 		assertCanSearchRoleMembers(ROLE_ORDINARY_OID, false);
 		assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING_OID, false);
 		assertCanSearchRoleMembers(ROLE_UNINTERESTING_OID, false);
 		assertCanSearchRoleMemberUsers(ROLE_APPROVER_UNASSIGN_ROLES_OID, false);
 		assertCanSearchRoleMembers(ROLE_UNINTERESTING_OID, false);
-		
-		assertDeny("unassign ordinary role from cobb", 
-				(task,result) -> unassignRole(userCobbOid, ROLE_ORDINARY_OID, task, result));		
-		assertDeny("unassign uninteresting role from rum", 
+
+		assertDeny("unassign ordinary role from cobb",
+				(task,result) -> unassignRole(userCobbOid, ROLE_ORDINARY_OID, task, result));
+		assertDeny("unassign uninteresting role from rum",
 				(task,result) -> unassignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result));
-		assertDeny("unassign approver role from jack", 
+		assertDeny("unassign approver role from jack",
 				(task,result) -> unassignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID, task, result));
-		        
+
 		assertAddDeny();
 		assertModifyDeny();
 		assertDeleteDeny();
@@ -664,7 +664,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     }
 
 	private void assert15xCommon()  throws Exception {
-        
+
         // list ordinary role members, this is allowed
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 2);
         assertSearch(FocusType.class, createMembersQuery(FocusType.class, ROLE_ORDINARY_OID), 2);
@@ -672,7 +672,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         // list approver role members, this is not allowed
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID), 0);
         assertSearch(FocusType.class, createMembersQuery(FocusType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID), 0);
-        
+
         assertCanSearchRoleMemberUsers(ROLE_ORDINARY_OID, true);
         assertCanSearchRoleMembers(ROLE_ORDINARY_OID, true);
         assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING_OID, false);
@@ -680,33 +680,33 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertCanSearchRoleMemberUsers(ROLE_APPROVER_UNASSIGN_ROLES_OID, false);
         assertCanSearchRoleMembers(ROLE_APPROVER_UNASSIGN_ROLES_OID, false);
 
-        assertAllow("unassign ordinary role from cobb", 
+        assertAllow("unassign ordinary role from cobb",
         		(task,result) -> unassignRole(userCobbOid, ROLE_ORDINARY_OID, task, result));
-        
+
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 1);
-        
+
         // Jack is not approver of uninteresting role, so this should be denied
-        assertDeny("unassign uninteresting role from cobb", 
+        assertDeny("unassign uninteresting role from cobb",
         		(task,result) -> unassignRole(userCobbOid, ROLE_UNINTERESTING_OID, task, result));
-        
-        // Jack is not approver of uninteresting role, so this should be denied 
+
+        // Jack is not approver of uninteresting role, so this should be denied
         // - even though Rum Rogers is a member of a role that jack is an approver of
-        assertDeny("unassign uninteresting role from rum", 
+        assertDeny("unassign uninteresting role from rum",
         		(task,result) -> unassignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result));
-        
-        assertDeny("unassign approver role from jack", 
+
+        assertDeny("unassign approver role from jack",
         		(task,result) -> unassignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID, task, result));
-        
-        // Lechuck is not a member of ordinary role 
-        assertDeny("unassign ordinary role from lechuck", 
+
+        // Lechuck is not a member of ordinary role
+        assertDeny("unassign ordinary role from lechuck",
         		(task,result) -> unassignRole(USER_LECHUCK_OID, ROLE_ORDINARY_OID, task, result));
-                
+
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
         assertGlobalStateUntouched();
 	}
-	
+
 	/**
 	 * User template will assign organizations to this user. However, the user
 	 * does not have request authorization for organizations. Check that this
@@ -718,13 +718,13 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		final String TEST_NAME = "test200AutzJackModifyOrgunit";
         TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
-        cleanupAutzTest(USER_JACK_OID);        
+        cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_SELF_MODIFY_ORGUNIT_OID);
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
+
         login(USER_JACK_USERNAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
@@ -732,40 +732,40 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
-        
+
         // This is supposed to fail. Jack does not have authorization for org assignment
-        assertDeny("assign org to jack", 
+        assertDeny("assign org to jack",
         		(task, result) -> assignOrg(USER_JACK_OID, ORG_SCUMM_BAR_OID, task, result));
-        
+
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAssignments(user, 1);
-        
+
         // ... but this should work. Indirect assignment in object template is OK.
-        assertModifyAllow(UserType.class, USER_JACK_OID, 
+        assertModifyAllow(UserType.class, USER_JACK_OID,
         		UserType.F_ORGANIZATIONAL_UNIT, createPolyString(ORG_SCUMM_BAR_NAME));
 
         user = getUser(USER_JACK_OID);
         display("Jack in medias res", user);
         assertAssignments(user, 2);
         assertAssignedOrg(user, ORG_SCUMM_BAR_OID);
-         
-        assertModifyAllow(UserType.class, USER_JACK_OID, 
+
+        assertModifyAllow(UserType.class, USER_JACK_OID,
         		UserType.F_ORGANIZATIONAL_UNIT, createPolyString(ORG_MINISTRY_OF_RUM_NAME));
 
         user = getUser(USER_JACK_OID);
         display("Jack in medias res", user);
         assertAssignments(user, 2);
         assertAssignedOrg(user, ORG_MINISTRY_OF_RUM_OID);
-        
-        assertModifyAllow(UserType.class, USER_JACK_OID, 
+
+        assertModifyAllow(UserType.class, USER_JACK_OID,
         		UserType.F_ORGANIZATIONAL_UNIT);
-        
+
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 1);
-                
+
         assertGlobalStateUntouched();
 	}
-	
+
 	/**
 	 * User template will assign organizations to this user. However, the user
 	 * does not have request authorization for organizations. Check that this
@@ -779,14 +779,14 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		final String TEST_NAME = "test202AutzJackModifyOrgunitAndAssignRole";
         TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
-        cleanupAutzTest(USER_JACK_OID);        
+        cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_SELF_MODIFY_ORGUNIT_OID);
         assignRole(USER_JACK_OID, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
-        
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
+
         login(USER_JACK_USERNAME);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 
@@ -794,15 +794,15 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
-        
+
         // This is supposed to fail. Jack does not have authorization for org assignment
-        assertDeny("assign org to jack", 
+        assertDeny("assign org to jack",
         		(task, result) -> assignOrg(USER_JACK_OID, ORG_SCUMM_BAR_OID, task, result));
-        
+
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAssignments(user, 2);
-        
-        assertAllow("doing the thing", 
+
+        assertAllow("doing the thing",
         		(task, result) -> {
         			ObjectDelta<UserType> focusDelta = createAssignmentFocusDelta(UserType.class, USER_JACK_OID,
         					ROLE_BUSINESS_1_OID, RoleType.COMPLEX_TYPE, null, null, true);
@@ -810,14 +810,14 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(focusDelta);
         			modelService.executeChanges(deltas, null, task, result);
         		});
-        
+
         user = getUser(USER_JACK_OID);
         display("Jack in medias res", user);
         assertAssignments(user, 4);
         assertAssignedOrg(user, ORG_SCUMM_BAR_OID);
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
-         
-        assertModifyAllow(UserType.class, USER_JACK_OID, 
+
+        assertModifyAllow(UserType.class, USER_JACK_OID,
         		UserType.F_ORGANIZATIONAL_UNIT, createPolyString(ORG_MINISTRY_OF_RUM_NAME));
 
         user = getUser(USER_JACK_OID);
@@ -825,36 +825,36 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertAssignments(user, 4);
         assertAssignedOrg(user, ORG_MINISTRY_OF_RUM_OID);
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
-        
-        assertModifyAllow(UserType.class, USER_JACK_OID, 
+
+        assertModifyAllow(UserType.class, USER_JACK_OID,
         		UserType.F_ORGANIZATIONAL_UNIT);
-        
+
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
         assertNotAssignedOrg(user, ORG_MINISTRY_OF_RUM_OID);
-                
-        assertAllow("unassign role from jack", 
+
+        assertAllow("unassign role from jack",
         		(task, result) -> unassignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result));
-        
+
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 2);
         assertNotAssignedRole(user, ROLE_BUSINESS_1_OID);
-        
+
         assertGlobalStateUntouched();
 	}
-    
+
     @Override
     protected void cleanupAutzTest(String userOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
     	super.cleanupAutzTest(userOid);
-        
+
         Task task = taskManager.createTaskInstance(TestSecurityAdvanced.class.getName() + ".cleanupAutzTest");
         OperationResult result = task.getResult();
-        
+
         assignRole(userRumRogersOid, ROLE_ORDINARY_OID, task, result);
 		assignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result);
 		assignRole(userCobbOid, ROLE_ORDINARY_OID, task, result);
 		assignRole(userCobbOid, ROLE_UNINTERESTING_OID, task, result);
-        
+
 	}
 }

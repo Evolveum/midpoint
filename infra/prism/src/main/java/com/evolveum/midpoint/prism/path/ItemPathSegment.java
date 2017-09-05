@@ -22,7 +22,7 @@ import java.io.Serializable;
  *
  */
 public abstract class ItemPathSegment implements Serializable, Cloneable {
-	
+
 	private boolean wildcard = false;
 
 	public boolean isWildcard() {

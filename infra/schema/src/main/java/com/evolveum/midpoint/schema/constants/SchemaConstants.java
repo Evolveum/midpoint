@@ -57,7 +57,7 @@ public abstract class SchemaConstants {
 	public static final String NS_FAULT = "http://midpoint.evolveum.com/xml/ns/public/common/fault-3";
 	public static final String NS_SAMPLES_EXTENSION = "http://midpoint.evolveum.com/xml/ns/samples/extension-3";
 	public static final String NS_CASE = "http://midpoint.evolveum.com/xml/ns/public/common/case-3";
-	
+
 	/**
 	 * Namespace for default (bult-in) object collections, such as "all objects", "all roles", ...
 	 */
@@ -165,35 +165,35 @@ public abstract class SchemaConstants {
 	 * Specifies that the subject is a deputy of another user.
 	 */
 	public static final QName ORG_DEPUTY = new QName(NS_ORG, "deputy");
-	
+
 	/**
 	 * Relation "is approver of". Used as a relation value in object references.
 	 * Specifies that the subject is a (general) approver of specified (abstract) role.
 	 * The approver will be asked for decision if the role is assigned, if there is
 	 * a rule conflict during assignment (e.g. SoD conflict) or if there is any similar
 	 * situation.
-	 * 
+	 *
 	 * This is a generic approver used for all the situation. The system may be customized
 	 * with more specific approver roles, e.g. technicalApprover, securityApprover, etc.
-	 * 
+	 *
 	 * This approver is responsible for the use of the role, which mostly means
 	 * that he decides about role assignment. It is NOT meant to approve role changes.
 	 * Role owner is meant for that purpose.
 	 */
 	public static final QName ORG_APPROVER = new QName(NS_ORG, "approver");
-	
+
 	/**
 	 * Relation "is owner of". Used as a relation value in object references.
 	 * Specifies that the subject is a (business) owner of specified (abstract) role.
 	 * The owner will be asked for decision if the role is modified, when the associated
 	 * policy changes and so on.
-	 * 
+	 *
 	 * This owner is responsible for maintaining role definition and policies. It is
 	 * NPT necessarily concerned with role use (e.g. assignment). The approver relation
-	 * is meant for that purpose. 
+	 * is meant for that purpose.
 	 */
 	public static final QName ORG_OWNER = new QName(NS_ORG, "owner");
-	
+
 	/**
 	 * Relation "is consent for". Used as a relation value in object references.
 	 * Specifies that the subject gave a consent for using personnel information related to this role.
@@ -208,7 +208,7 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_NONCE = new ItemPath(C_CREDENTIALS, CredentialsType.F_NONCE);
 	public static final ItemPath PATH_NONCE_VALUE = new ItemPath(C_CREDENTIALS, CredentialsType.F_NONCE,
 			NonceType.F_VALUE);
-	
+
 	public static final ItemPath PATH_SECURITY_QUESTIONS = new ItemPath(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS);
 	public static final ItemPath PATH_SECURITY_QUESTIONS_QUESTION_ANSWER = new ItemPath(C_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS,
 			SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);
@@ -247,7 +247,7 @@ public abstract class SchemaConstants {
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";
 	public static final QName SYNC_TOKEN = new QName(NS_PROVISIONING_LIVE_SYNC, "token");
-        
+
 	// Synchronization constants
 	public static final String NS_PROVISIONING_CHANNEL = NS_PROVISIONING + "/channels-3";
 	public static final QName CHANGE_CHANNEL_LIVE_SYNC = new QName(NS_PROVISIONING_CHANNEL, "liveSync");
@@ -293,24 +293,24 @@ public abstract class SchemaConstants {
 			NS_MODEL_EXTENSION, "lastScanTimestamp");
 
 	public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
-	public static final String MODEL_DISABLE_REASON_EXPLICIT = 
+	public static final String MODEL_DISABLE_REASON_EXPLICIT =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "explicit"));
-	public static final String MODEL_DISABLE_REASON_DEPROVISION = 
+	public static final String MODEL_DISABLE_REASON_DEPROVISION =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "deprovision"));
-	public static final String MODEL_DISABLE_REASON_MAPPED = 
+	public static final String MODEL_DISABLE_REASON_MAPPED =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "mapped"));
 
 	public static final String NS_MODEL_POLICY = NS_MODEL + "/policy";
 	public static final String NS_MODEL_POLICY_SITUATION = NS_MODEL_POLICY + "/situation";
-	public static final String MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION = 
+	public static final String MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "exclusionViolation"));
-	public static final String MODEL_POLICY_SITUATION_UNDERASSIGNED = 
+	public static final String MODEL_POLICY_SITUATION_UNDERASSIGNED =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "underassigned"));
-	public static final String MODEL_POLICY_SITUATION_OVERASSIGNED = 
+	public static final String MODEL_POLICY_SITUATION_OVERASSIGNED =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "overassigned"));
-	public static final String MODEL_POLICY_SITUATION_MODIFIED = 
+	public static final String MODEL_POLICY_SITUATION_MODIFIED =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "modified"));
-	public static final String MODEL_POLICY_SITUATION_ASSIGNED = 
+	public static final String MODEL_POLICY_SITUATION_ASSIGNED =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "assigned"));
 	public static final String MODEL_POLICY_SITUATION_TIME_VALIDITY =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "timeValidity"));			// currently unused, planned for 3.7+
@@ -388,11 +388,11 @@ public abstract class SchemaConstants {
 	public static final String REGISTRATION_CONFIRAMTION_PREFIX = "/confirm/registration";
 	public static final String PASSWORD_RESET_CONFIRMATION_PREFIX = "/confirm/reset";
 	public static final String ACCOUNT_ACTIVATION_PREFIX = "/activate/accounts";
-	
+
 	public static final String INTENT_DEFAULT = "default";
 
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME = "ConfigurationType";
-	
+
 	// This constant should not be here. It is used by schema processor to
 	// supply correct import. But the dependency should
 	// be inverted, eventually (MID-356)
@@ -412,13 +412,13 @@ public abstract class SchemaConstants {
 	public static final QName ICFS_NAME = new QName(NS_ICF_SCHEMA, "name");
 	public static final QName ICFS_UID = new QName(NS_ICF_SCHEMA, "uid");
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME = "configurationProperties";
-	public static final QName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME = new QName(NS_ICF_CONFIGURATION, 
+	public static final QName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME = new QName(NS_ICF_CONFIGURATION,
 			CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME);
 	public static final String ACCOUNT_OBJECT_CLASS_LOCAL_NAME = "AccountObjectClass";
 	public static final String GROUP_OBJECT_CLASS_LOCAL_NAME = "GroupObjectClass";
 
 	public static final String UCF_FRAMEWORK_URI_BUILTIN = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1";
-	
+
 	// OTHER (temporary? [mederly])
 
 	public static final String ICF_CONNECTOR_EXTENSION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-extension-3";
@@ -457,9 +457,9 @@ public abstract class SchemaConstants {
 	public static final QName C_MODEL_CONTEXT = new QName(NS_C, "modelContext");
 	public static final QName C_ITEM_TO_APPROVE = new QName(NS_C, "itemToApprove");
 	public static final QName C_SHADOW_DISCRIMINATOR = new QName(NS_C, "shadowDiscriminator");
-	
+
 	// Lifecycle
-	
+
 	public static final String LIFECYCLE_DRAFT = "draft";
 	public static final String LIFECYCLE_PROPOSED = "proposed";
 	public static final String LIFECYCLE_ACTIVE = "active";
@@ -468,14 +468,14 @@ public abstract class SchemaConstants {
 	public static final String LIFECYCLE_FAILED = "failed";
 
 	// Case: generic reusable case states
-	
+
 	public static final String CASE_STATE_OPEN = "open";
 	public static final QName CASE_STATE_OPEN_QNAME = new QName(NS_CASE, CASE_STATE_OPEN);
 	public static final String CASE_STATE_CLOSED = "closed";
 	public static final QName CASE_STATE_CLOSED_QNAME = new QName(NS_CASE, CASE_STATE_CLOSED);
-	
+
 	// Object collections
-	
+
 	/**
 	 * All objects in role catalog. It means all the objects in all the categories that are placed under the
 	 * primary role catalog defined in the system. If used in a context where the role catalog can be displayed
@@ -483,25 +483,25 @@ public abstract class SchemaConstants {
 	 */
 	public static final QName OBJECT_COLLECTION_ROLE_CATALOG_QNAME = new QName(NS_OBJECT_COLLECTIONS, "roleCatalog");
 	public static final String OBJECT_COLLECTION_ROLE_CATALOG_URI = QNameUtil.qNameToUri(OBJECT_COLLECTION_ROLE_CATALOG_QNAME);
-	
+
 	/**
 	 * Collection that contains all roles.
 	 */
 	public static final QName OBJECT_COLLECTION_ALL_ROLES_QNAME = new QName(NS_OBJECT_COLLECTIONS, "allRoles");
 	public static final String OBJECT_COLLECTION_ALL_ROLES_URI = QNameUtil.qNameToUri(OBJECT_COLLECTION_ALL_ROLES_QNAME);
-	
+
 	/**
 	 * Collection that contains all orgs.
 	 */
 	public static final QName OBJECT_COLLECTION_ALL_ORGS_QNAME = new QName(NS_OBJECT_COLLECTIONS, "allOrgs");
 	public static final String OBJECT_COLLECTION_ALL_ORGS_URI = QNameUtil.qNameToUri(OBJECT_COLLECTION_ALL_ORGS_QNAME);
-	
+
 	/**
 	 * Collection that contains all services.
 	 */
 	public static final QName OBJECT_COLLECTION_ALL_SERVICES_QNAME = new QName(NS_OBJECT_COLLECTIONS, "allServices");
 	public static final String OBJECT_COLLECTION_ALL_SERVICES_URI = QNameUtil.qNameToUri(OBJECT_COLLECTION_ALL_SERVICES_QNAME);
-	
+
 	/**
 	 * Collection that contains user's assignments.
 	 */
@@ -514,14 +514,15 @@ public abstract class SchemaConstants {
 	public static final QName SAMPLES_DOMAIN = new QName(SchemaConstants.NS_SAMPLES_EXTENSION, "domain");
 
 	// Misc
-	
-	public static String SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH = "localization/schema";
+
+	public static String BUNDLE_NAME = "schema";
+	public static String SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH = "localization/" + BUNDLE_NAME;
 	public static final QName APPROVAL_LEVEL_OUTCOME_TYPE_COMPLEX_TYPE = new QName(SchemaConstants.NS_C, ApprovalLevelOutcomeType.class.getSimpleName());
 
 	// registration
 	public static final String USER_ID = "user";
 	public static final String TOKEN = "token";
-	
+
 //	// resetPassword
 //	public static final String RESET_PASSWORD_ID = "user";
 //	public static final String RESET_PASSWORD_TOKEN = "token";

@@ -59,16 +59,16 @@ import static org.testng.AssertJUnit.*;
  * @author semancik
  */
 public class TestScriptCaching {
-	
+
 	private static final File TEST_DIR = new File("src/test/resources/expression/groovy");
 	protected static File OBJECTS_DIR = new File("src/test/resources/objects");
-	
+
 	private static final QName PROPERTY_NAME = new QName(MidPointConstants.NS_MIDPOINT_TEST_PREFIX, "whatever");
 	private static final String NS_WHATEVER = "http://whatever/xml/ns";
 
 	 protected ScriptExpressionFactory scriptExpressionfactory;
 	 protected ScriptEvaluator evaluator;
-	
+
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -90,44 +90,44 @@ public class TestScriptCaching {
         String languageUrl = evaluator.getLanguageUrl();
         scriptExpressionfactory.registerEvaluator(languageUrl, evaluator);
     }
-    
+
     @Test
     public void testGetExtensionPropertyValue() throws Exception {
     	final String TEST_NAME = "testGetExtensionPropertyValue";
     	TestUtil.displayTestTitle(TEST_NAME);
-    	
+
     	// GIVEN
     	InternalMonitor.reset();
-    	
+
     	assertScriptMonitor(0,0, "init");
-    	
+
     	// WHEN, THEN
     	long etimeFirst = executeScript("expression-string-variables.xml", "FOOBAR", "first");
     	assertScriptMonitor(1,1, "first");
-    	
+
     	long etimeSecond = executeScript("expression-string-variables.xml", "FOOBAR", "second");
     	assertScriptMonitor(1,2, "second");
     	assertTrue("Einstein was wrong! "+etimeFirst+" -> "+etimeSecond, etimeSecond <= etimeFirst);
-    	
+
     	long etimeThird = executeScript("expression-string-variables.xml", "FOOBAR", "second");
     	assertScriptMonitor(1,3, "third");
     	assertTrue("Einstein was wrong again! "+etimeFirst+" -> "+etimeThird, etimeThird <= etimeFirst);
-    	
+
     	// Different script. Should compile.
     	long horatio1Time = executeScript("expression-func-concatname.xml", "Horatio Torquemada Marley", "horatio");
     	assertScriptMonitor(2,4, "horatio");
-    	
+
     	// Same script. No compilation.
     	long etimeFourth = executeScript("expression-string-variables.xml", "FOOBAR", "fourth");
     	assertScriptMonitor(2,5, "fourth");
     	assertTrue("Einstein was wrong all the time! "+etimeFirst+" -> "+etimeFourth, etimeFourth <= etimeFirst);
-    	
+
     	// Try this again. No compile.
     	long horatio2Time = executeScript("expression-func-concatname.xml", "Horatio Torquemada Marley", "horatio2");
     	assertScriptMonitor(2,6, "horatio2");
     	assertTrue("Even Horatio was wrong! "+horatio1Time+" -> "+horatio2Time, horatio2Time <= horatio1Time);
     }
-    	
+
     private void assertScriptMonitor(int expCompilations, int expExecutions, String desc) {
 		assertEquals("Unexpected number of script compilations after "+desc, expCompilations, InternalMonitor.getCount(InternalCounters.SCRIPT_COMPILE_COUNT));
 		assertEquals("Unexpected number of script executions after "+desc, expExecutions, InternalMonitor.getCount(InternalCounters.SCRIPT_EXECUTION_COUNT));
@@ -138,14 +138,14 @@ public class TestScriptCaching {
     	OperationResult result = new OperationResult(desc);
     	ScriptExpressionEvaluatorType scriptType = parseScriptType(filname);
     	ItemDefinition outputDefinition = new PrismPropertyDefinitionImpl(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
-    	
+
     	ScriptExpression scriptExpression = scriptExpressionfactory.createScriptExpression(scriptType, outputDefinition, desc);
 
         ExpressionVariables variables = ExpressionVariables.create(
 				new QName(NS_WHATEVER, "foo"), "FOO",
 				new QName(NS_WHATEVER, "bar"), "BAR"
 		);
-        
+
 		// WHEN
         long startTime = System.currentTimeMillis();
     	List<PrismPropertyValue<String>> scripResults = scriptExpression.evaluate(variables , null, false, desc, null, result);
@@ -154,19 +154,19 @@ public class TestScriptCaching {
         // THEN
     	System.out.println("Script results "+desc+", etime: "+(endTime - startTime)+" ms");
     	System.out.println(scripResults);
-    	
+
     	String scriptResult = asScalarString(scripResults);
     	assertEquals("Wrong script "+desc+" result", expectedResult, scriptResult);
-    	
+
     	return (endTime - startTime);
     }
-    
+
     private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException, JAXBException {
 		ScriptExpressionEvaluatorType expressionType = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);
 		return expressionType;
 	}
-    
+
     private String asScalarString(List<PrismPropertyValue<String>> expressionResultList) {
 		if (expressionResultList.size() > 1) {
 			AssertJUnit.fail("Expression produces a list of "+expressionResultList.size()+" while only expected a single value: "+expressionResultList);

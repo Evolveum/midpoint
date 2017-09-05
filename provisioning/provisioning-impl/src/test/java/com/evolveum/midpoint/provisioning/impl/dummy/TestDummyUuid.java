@@ -22,14 +22,14 @@ import org.springframework.test.context.ContextConfiguration;
 
 /**
  * Almost the same as TestDummy but this is using a UUID as ICF UID.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestDummyUuid extends TestDummy {
-	
+
 	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-uuid");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
@@ -42,10 +42,10 @@ public class TestDummyUuid extends TestDummy {
 	protected boolean isIcfNameUidSame() {
 		return false;
 	}
-	
+
 	@Override
 	protected boolean isNameUnique(){
 		return false;
 	}
-		
+
 }

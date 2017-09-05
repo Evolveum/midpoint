@@ -85,7 +85,7 @@ public abstract class AbstractConstruction<F extends FocusType, T extends Abstra
 	public void setLensContext(LensContext<F> lensContext) {
 		this.lensContext = lensContext;
 	}
-	
+
 	public T getConstructionType() {
 		return constructionType;
 	}
@@ -117,7 +117,7 @@ public abstract class AbstractConstruction<F extends FocusType, T extends Abstra
 	public String getDescription() {
 		return constructionType.getDescription();
 	}
-	
+
 	public boolean isWeak() {
 		return constructionType.getStrength() == ConstructionStrengthType.WEAK;
 	}

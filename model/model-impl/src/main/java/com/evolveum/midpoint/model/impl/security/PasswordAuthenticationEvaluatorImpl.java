@@ -40,14 +40,14 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
 
 	@Override
 	protected void validateCredentialNotNull(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, PasswordType credential) {
-		
+
 		ProtectedStringType protectedString = credential.getValue();
-		
+
 		if (protectedString == null) {
 			recordAuthenticationFailure(principal, connEnv, "no stored password value");
 			throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
 		}
-		
+
 	}
 
 	@Override
@@ -62,11 +62,11 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
 			PasswordAuthenticationContext authnCtx) throws SchemaException {
 		return SecurityUtil.getEffectivePasswordCredentialsPolicy(securityPolicy);
 	}
-	
+
 	@Override
 	protected boolean supportsActivation() {
 		return true;
 	}
-	
+
 
 }

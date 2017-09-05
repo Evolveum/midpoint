@@ -35,20 +35,20 @@ import org.jetbrains.annotations.NotNull;
  * used to represent association between objects. For example reference from
  * User object to Account objects that belong to the user. The reference is a
  * simple uni-directional link using an OID as an identifier.
- * 
+ *
  * This type should be used for all object references so the implementations can
  * detect them and automatically resolve them.
- * 
+ *
  * @author semancik
- * 
+ *
  */
 public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefinition> {
 	private static final long serialVersionUID = 1872343401395762657L;
-	
+
 	public PrismReference(QName name) {
         super(name);
     }
-	
+
 	PrismReference(QName name, PrismReferenceDefinition definition, PrismContext prismContext) {
 		super(name, definition, prismContext);
 	}
@@ -82,7 +82,7 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
         }
         return getValues().iterator().next();
     }
-    
+
 	private PrismReferenceValue getValue(String oid) {
 		// We need to tolerate null OIDs here. Because of JAXB.
 		for (PrismReferenceValue val: getValues()) {
@@ -92,7 +92,7 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
 		}
 		return null;
 	}
-	
+
 	@Override
 	public Referencable getRealValue() {
 		if (getValue() == null) {
@@ -100,7 +100,7 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
 		}
 		return getValue().asReferencable();
 	}
-	
+
 	@Override
 	public Collection<Referencable> getRealValues() {
 		if (getValues() == null) {
@@ -113,12 +113,12 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
 		return realValues;
 	}
 
-    
+
     public boolean add(@NotNull PrismReferenceValue value) {
     	value.setParent(this);
     	return getValues().add(value);
     }
-    
+
     public boolean merge(PrismReferenceValue value) {
     	String newOid = value.getOid();
     	// We need to tolerate null OIDs here. Because of JAXB.
@@ -126,7 +126,7 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
 		if (existingValue == null) {
 			return add(value);
 		}
-		
+
 		// if there is newValue containing object (instead of oid only) and also
 		// old value containing object (instead of oid only) we need to compare
 		// these two object if they are equals..this can avoid of bad resolving
@@ -140,8 +140,8 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
 		if (value.getObject() != null) {
 			existingValue.setObject(value.getObject());
 			return true;
-		}  
-		
+		}
+
 		// in the case, if the existing value and new value are not equal, add
 		// also another reference alhtrough one with the same oid exist. It is
 		// needed for parent org refs, becasue there can exist more than one
@@ -150,15 +150,15 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
 		if (!value.equalsComplex(existingValue, false, false)) {
 			return add(value);
 		}
-		
+
 		if (value.getTargetType() != null) {
 			existingValue.setTargetType(value.getTargetType());
 //			return true;
-		} 
+		}
     	// No need to copy OID as OIDs match
     	return true;
     }
-    
+
 
 	public String getOid() {
     	return getValue().getOid();
@@ -167,7 +167,7 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
 	public PolyString getTargetName() {
 		return getValue().getTargetName();
 	}
-    
+
     public PrismReferenceValue findValueByOid(String oid) {
     	for (PrismReferenceValue pval: getValues()) {
     		if (oid.equals(pval.getOid())) {
@@ -176,7 +176,7 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
     	}
     	return null;
     }
-    
+
     @Override
 	public Object find(ItemPath path) {
     	if (path == null || path.isEmpty()) {
@@ -189,8 +189,8 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
 		return value.find(path);
 	}
 
-    
-    
+
+
 	@Override
 	public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
 		if (path == null || path.isEmpty()) {
@@ -207,7 +207,7 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
 	public ReferenceDelta createDelta() {
     	return new ReferenceDelta(getPath(), getDefinition(), prismContext);
 	}
-	
+
 	@Override
 	public ReferenceDelta createDelta(ItemPath path) {
     	return new ReferenceDelta(path, getDefinition(), prismContext);
@@ -233,7 +233,7 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
             clone.add(value.clone());
         }
     }
-			
+
 	@Override
     public String toString() {
         return getClass().getSimpleName() + "(" + PrettyPrinter.prettyPrint(getElementName()) + "):" + getValues();
@@ -278,7 +278,7 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
                 }
             }
         }
-        
+
         return sb.toString();
     }
 

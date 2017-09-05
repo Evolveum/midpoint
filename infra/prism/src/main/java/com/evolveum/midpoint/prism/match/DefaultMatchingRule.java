@@ -25,11 +25,11 @@ import com.evolveum.midpoint.prism.PrismConstants;
 /**
  * Default matching rule used as a fall-back if no explicit matching rule is specified.
  * It is simply using java equals() method to match values.
- * 
+ *
  * @author Radovan Semancik
  */
 public class DefaultMatchingRule<T> implements MatchingRule<T> {
-	
+
 	public static final QName NAME = new QName(PrismConstants.NS_MATCHING_RULE, "default");
 
 	/* (non-Javadoc)
@@ -48,7 +48,7 @@ public class DefaultMatchingRule<T> implements MatchingRule<T> {
 		// We support everything. We are the default.
 		return true;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.match.MatchingRule#match(java.lang.Object, java.lang.Object)
 	 */
@@ -77,7 +77,7 @@ public class DefaultMatchingRule<T> implements MatchingRule<T> {
 
 	@Override
 	public boolean matchRegex(T a, String regex) {
-		String valueToMatch = null;  
+		String valueToMatch = null;
 		if (a instanceof Matchable){
 			return ((Matchable) a).matches(regex);
 		} else if (a instanceof String){
@@ -87,8 +87,8 @@ public class DefaultMatchingRule<T> implements MatchingRule<T> {
 		} else {
 			valueToMatch = String.valueOf(a);
 		}
-		
+
 		return Pattern.matches(regex, valueToMatch);
 	}
-	
+
 }

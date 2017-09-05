@@ -135,11 +135,10 @@ public class LoggingConfigurationManager {
 		if (!StringUtils.isEmpty(internalLog)) {
 			//Parse internal log
 			res.recordSuccess();
-			String internalLogLines[] = internalLog.split("\n");
-			for (int i = 0; i < internalLogLines.length; i++) {
-				if (internalLogLines[i].contains("|-ERROR"))
-					res.recordPartialError(internalLogLines[i]);
-				res.appendDetail(internalLogLines[i]);
+			for (String internalLogLine : internalLog.split("\n")) {
+				if (internalLogLine.contains("|-ERROR"))
+					res.recordPartialError(internalLogLine);
+				res.appendDetail(internalLogLine);
 			}
 			LOGGER.trace("LogBack internal log:\n{}",internalLog);
 		} else {
@@ -332,7 +331,7 @@ public class LoggingConfigurationManager {
 
 	private static void prepareCommonAppenderHeader(StringBuilder sb,
 			AppenderConfigurationType appender, LoggingConfigurationType config, String appenderClass) {
-		sb.append("\t<appender name=\"").append(appender.getName()).append("\" class=\""+appenderClass+"\">\n");
+		sb.append("\t<appender name=\"").append(appender.getName()).append("\" class=\"").append(appenderClass).append("\">\n");
 
         //Apply profiling appender filter if necessary
         if(IDM_PROFILE_APPENDER.equals(appender.getName())){

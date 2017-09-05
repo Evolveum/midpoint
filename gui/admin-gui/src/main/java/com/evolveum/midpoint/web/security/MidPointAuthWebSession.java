@@ -118,7 +118,7 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession implements D
 		DebugUtil.debugDumpWithLabel(sb, "sessionStorage", sessionStorage, indent+1);
 		return sb.toString();
 	}
-	
+
 	public String dumpSizeEstimates(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.dumpObjectSizeEstimate(sb, "MidPointAuthWebSession", this, indent);

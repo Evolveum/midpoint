@@ -44,7 +44,7 @@ public class CertGuiHandlerRegistry {
                 throw new IllegalArgumentException("Unknown handler URI: " + uri);
         }
     }
-    
+
     @SuppressWarnings("unused")
 	private void doNothing() {
     	// no nothing. Just for maven dependency analyze to properly detect the dependency.

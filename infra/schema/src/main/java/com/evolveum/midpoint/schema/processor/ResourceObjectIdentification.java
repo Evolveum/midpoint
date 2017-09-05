@@ -36,9 +36,9 @@ public class ResourceObjectIdentification implements Serializable {
 	private Collection<? extends ResourceAttribute<?>> primaryIdentifiers;
 	private Collection<? extends ResourceAttribute<?>> secondaryIdentifiers;
 	// TODO: identification strategy
-	
-	public ResourceObjectIdentification(ObjectClassComplexTypeDefinition objectClassDefinition, 
-			Collection<? extends ResourceAttribute<?>> primaryIdentifiers, 
+
+	public ResourceObjectIdentification(ObjectClassComplexTypeDefinition objectClassDefinition,
+			Collection<? extends ResourceAttribute<?>> primaryIdentifiers,
 			Collection<? extends ResourceAttribute<?>> secondaryIdentifiers) {
 		this.objectClassDefinition = objectClassDefinition;
 		this.primaryIdentifiers = primaryIdentifiers;
@@ -48,7 +48,7 @@ public class ResourceObjectIdentification implements Serializable {
 	public Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiers() {
 		return primaryIdentifiers;
 	}
-	
+
 	public <T> ResourceAttribute<T> getPrimaryIdentifier() throws SchemaException {
 		if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
 			return null;
@@ -62,7 +62,7 @@ public class ResourceObjectIdentification implements Serializable {
 	public Collection<? extends ResourceAttribute<?>> getSecondaryIdentifiers() {
 		return secondaryIdentifiers;
 	}
-	
+
 	public <T> ResourceAttribute<T> getSecondaryIdentifier() throws SchemaException {
 		if (secondaryIdentifiers == null || secondaryIdentifiers.isEmpty()) {
 			return null;
@@ -77,8 +77,8 @@ public class ResourceObjectIdentification implements Serializable {
 	public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
 		return objectClassDefinition;
 	}
-	
-	public static ResourceObjectIdentification create(ObjectClassComplexTypeDefinition objectClassDefinition, 
+
+	public static ResourceObjectIdentification create(ObjectClassComplexTypeDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute<?>> allIdentifiers) throws SchemaException {
 		if (allIdentifiers == null) {
 			throw new IllegalArgumentException("Cannot create ResourceObjectIdentification with null identifiers");
@@ -102,8 +102,8 @@ public class ResourceObjectIdentification implements Serializable {
 		}
 		return new ResourceObjectIdentification(objectClassDefinition, primaryIdentifiers, secondaryIdentifiers);
 	}
-	
-	public static ResourceObjectIdentification createFromAttributes(ObjectClassComplexTypeDefinition objectClassDefinition, 
+
+	public static ResourceObjectIdentification createFromAttributes(ObjectClassComplexTypeDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute<?>> attributes) throws SchemaException {
 		Collection<? extends ResourceAttribute<?>> primaryIdentifiers =  null;
 		Collection<? extends ResourceAttribute<?>> secondaryIdentifiers = null;
@@ -122,22 +122,22 @@ public class ResourceObjectIdentification implements Serializable {
 		}
 		return new ResourceObjectIdentification(objectClassDefinition, primaryIdentifiers, secondaryIdentifiers);
 	}
-	
-	public static ResourceObjectIdentification createFromShadow(ObjectClassComplexTypeDefinition objectClassDefinition, 
+
+	public static ResourceObjectIdentification createFromShadow(ObjectClassComplexTypeDefinition objectClassDefinition,
 			ShadowType shadowType) throws SchemaException {
 		return createFromAttributes(objectClassDefinition, ShadowUtil.getAttributes(shadowType));
 	}
-	
+
 	public void validatePrimaryIdenfiers() {
 		if (!hasPrimaryIdentifiers()) {
 			throw new IllegalStateException("No primary identifiers in " + this);
 		}
 	}
-	
+
 	public boolean hasPrimaryIdentifiers() {
 		return primaryIdentifiers != null && !primaryIdentifiers.isEmpty();
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -171,8 +171,8 @@ public class ResourceObjectIdentification implements Serializable {
 
 	@Override
 	public String toString() {
-		return "ResourceObjectIdentification(" + PrettyPrinter.prettyPrint(objectClassDefinition.getTypeName()) 
+		return "ResourceObjectIdentification(" + PrettyPrinter.prettyPrint(objectClassDefinition.getTypeName())
 				+ ": primary=" + primaryIdentifiers + ", secondary=" + secondaryIdentifiers + ")";
 	}
-	
+
 }

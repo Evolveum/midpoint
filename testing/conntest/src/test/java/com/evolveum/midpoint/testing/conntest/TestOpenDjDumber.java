@@ -21,28 +21,28 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 
 /**
  * OpenDJ, but without permissive modify, shortcut attributes, with manual matching rules, etc.
- * 
+ *
  * @author semancik
  */
 public class TestOpenDjDumber extends TestOpenDj {
-	
+
 	private static final int INITIAL_SYNC_TOKEN = 21;
-	
+
 	@Override
 	protected File getBaseDir() {
 		return new File(MidPointTestConstants.TEST_RESOURCES_DIR, "opendj-dumber");
 	}
-	
+
 	@Override
 	protected boolean hasAssociationShortcut() {
 		return false;
 	}
-	
+
 	@Override
 	protected int getInitialSyncToken() {
 		return INITIAL_SYNC_TOKEN;
 	}
-	
+
 	@Override
 	protected boolean isUsingGroupShortcutAttribute() {
 		return false;

@@ -33,41 +33,41 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  * Aggregate bean containing resource OID, intent and thombstone flag.
  * It uniquely identifies an shadow projection (usually account) for a specific user regardless whether it has OID, does not have
  * OID yet, it exists of was deleted.
- * 
+ *
  * This is used mostly as a key in hashes and for searches.
- * 
+ *
  * TODO: split to two objects:
  * 1: ResourceShadowCoordinates which will stay in common
  * 2: ResourceShadowDiscriminator (subclass) which will go to model. This will contains thombstone and order.
- * 
+ *
  * @author Radovan Semancik
  */
 public class ResourceShadowDiscriminator implements Serializable, DebugDumpable, HumanReadableDescribable {
 	private static final long serialVersionUID = 346600684011645741L;
-	
+
 	private String resourceOid;
 	private ShadowKindType kind = ShadowKindType.ACCOUNT;
 	private String intent;
 	private QName objectClass;
 	private boolean thombstone;
 	private int order = 0;
-	
+
 	public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent, boolean thombstone) {
 		this.resourceOid = resourceOid;
 		this.thombstone = thombstone;
 		setIntent(intent);
 		setKind(kind);
 	}
-	
+
 	public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent) {
 		this(resourceOid, kind, intent, false);
 	}
 
-	
+
 	public ResourceShadowDiscriminator(ShadowDiscriminatorType accRefType) {
 		this(accRefType.getResourceRef().getOid(), accRefType.getKind(), accRefType.getIntent());
 	}
-	
+
 	public ResourceShadowDiscriminator(ShadowDiscriminatorType accRefType, String defaultResourceOid, ShadowKindType defaultKind) {
 		ShadowKindType kind = accRefType.getKind();
 		if (kind == null) {
@@ -82,7 +82,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 		setIntent(accRefType.getIntent());
 		setKind(kind);
 	}
-	
+
 	public ResourceShadowDiscriminator(String resourceOid, QName objectClass) {
 		this.resourceOid = resourceOid;
 		this.objectClass = objectClass;
@@ -92,11 +92,11 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 	public String getResourceOid() {
 		return resourceOid;
 	}
-	
+
 	public void setResourceOid(String resourceOid) {
 		this.resourceOid = resourceOid;
 	}
-	
+
 	public ShadowKindType getKind() {
 		return kind;
 	}
@@ -108,14 +108,14 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 	public String getIntent() {
 		return intent;
 	}
-	
+
 	public void setIntent(String intent) {
 		if (intent == null) {
 			intent = SchemaConstants.INTENT_DEFAULT;
 		}
 		this.intent = intent;
 	}
-	
+
 	public QName getObjectClass() {
 		return objectClass;
 	}
@@ -146,12 +146,12 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 	public void setThombstone(boolean thombstone) {
 		this.thombstone = thombstone;
 	}
-	
+
 	public boolean isWildcard() {
 		return kind == null && objectClass == null;
 	}
 
-	
+
     public ShadowDiscriminatorType toResourceShadowDiscriminatorType() {
         ShadowDiscriminatorType rsdt = new ShadowDiscriminatorType();
         rsdt.setIntent(intent);
@@ -167,13 +167,13 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
         if (resourceShadowDiscriminatorType == null) {
             return null;
         }
-        
+
         // For compatibility. Otherwise the kind should be explicitly serialized.
         ShadowKindType kind = resourceShadowDiscriminatorType.getKind();
         if (kind == null) {
         	kind = ShadowKindType.ACCOUNT;
         }
-        
+
         return new ResourceShadowDiscriminator(
                 resourceShadowDiscriminatorType.getResourceRef() != null ? resourceShadowDiscriminatorType.getResourceRef().getOid() : null,
                 kind,
@@ -222,7 +222,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 	}
 
 	/**
-	 * Similar to equals but ignores the order. 
+	 * Similar to equals but ignores the order.
 	 */
 	public boolean equivalent(Object obj) {
 		if (this == obj)
@@ -246,19 +246,19 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 			return false;
 		return true;
 	}
-	
+
 	public static boolean equalsIntent(String a, String b) {
 		if (a == null || b == null) {
 			return false;
 		}
 		return a.equals(b);
 	}
-	
+
     @Override
 	public String toString() {
     	return toHumanReadableDescription();
 	}
-    
+
     public String toHumanReadableDescription() {
     	StringBuilder sb = new StringBuilder("RSD(");
     	sb.append(kind==null?"null":kind.value());

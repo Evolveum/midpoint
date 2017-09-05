@@ -129,7 +129,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 @ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractLdapSynchronizationTest.class);
 
 	protected static final String ACCOUNT_HT_UID = "ht";
@@ -147,18 +147,18 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	protected static final String GROUP_FOOLS_CN = "fools";
 	protected static final String GROUP_FOOLS_DESCRIPTION = "not quite the shilling";
 
-	
+
 	protected abstract void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd) throws ObjectNotFoundException, SchemaException;
-    
+
 	protected boolean syncCanDetectDelete() {
 		return true;
 	}
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);		
+		super.initSystem(initTask, initResult);
 	}
-		
+
 	@Test
     public void test000Sanity() throws Exception {
 		cleanupDelete(toAccountDn(ACCOUNT_HT_UID, ACCOUNT_HT_CN));
@@ -166,14 +166,14 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 		cleanupDelete(toGroupDn(GROUP_MONKEYS_CN));
 		cleanupDelete(toGroupDn(GROUP_FOOLS_CN));
 	}
-	
+
 	@Override
 	protected void assertAdditionalCapabilities(List<Object> nativeCapabilities) {
 		super.assertAdditionalCapabilities(nativeCapabilities);
-		
+
 		assertCapability(nativeCapabilities, LiveSyncCapabilityType.class);
 	}
-	
+
 	@Test
     public void test800ImportSyncTask() throws Exception {
 		final String TEST_NAME = "test800ImportSyncTask";
@@ -182,25 +182,25 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         long tsStart = System.currentTimeMillis();
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         addObject(getSyncTaskFile(), task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
-        
+
         long tsEnd = System.currentTimeMillis();
-        
+
         assertStepSyncToken(getSyncTaskOid(), 0, tsStart, tsEnd);
 	}
-	
+
 	@Test
     public void test801SyncAddAccountHt() throws Exception {
 		final String TEST_NAME = "test801SyncAddAccountHt";
@@ -209,30 +209,30 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         long tsStart = System.currentTimeMillis();
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         addLdapAccount(ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
         waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         long tsEnd = System.currentTimeMillis();
-        
+
         displayUsers();
-        
+
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_HT_UID);
         assertNotNull("No user "+ACCOUNT_HT_UID+" created", user);
         assertUser(user, user.getOid(), ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
 
         assertStepSyncToken(getSyncTaskOid(), 1, tsStart, tsEnd);
 	}
-	
+
 	// Do not change cn here. This triggers rename in the AD case.
 	@Test
     public void test802ModifyAccountHt() throws Exception {
@@ -242,9 +242,9 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         long tsStart = System.currentTimeMillis();
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         LdapNetworkConnection connection = ldapConnect();
@@ -253,14 +253,14 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 		ldapDisconnect(connection);
 
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         long tsEnd = System.currentTimeMillis();
-        
+
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_HT_UID);
         assertNotNull("No user "+ACCOUNT_HT_UID+" created", user);
         assertUser(user, user.getOid(), ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN_MODIFIED);
@@ -268,7 +268,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         assertStepSyncToken(getSyncTaskOid(), 2, tsStart, tsEnd);
 
 	}
-	
+
 	@Test
     public void test810SyncAddGroupMonkeys() throws Exception {
 		final String TEST_NAME = "test810SyncAddGroupMonkeys";
@@ -277,9 +277,9 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         long tsStart = System.currentTimeMillis();
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         if (needsGroupFakeMemeberEntry()) {
@@ -288,14 +288,14 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         	addLdapGroup(GROUP_MONKEYS_CN, GROUP_MONKEYS_DESCRIPTION);
         }
         waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         long tsEnd = System.currentTimeMillis();
-        
+
         PrismObject<RoleType> role = findObjectByName(RoleType.class, GROUP_MONKEYS_CN);
         display("Role", role);
         assertNotNull("no role "+GROUP_MONKEYS_CN, role);
@@ -304,7 +304,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         assertStepSyncToken(getSyncTaskOid(), 3, tsStart, tsEnd);
 	}
-	
+
 	@Test
     public void test817RenameAccount() throws Exception {
 		final String TEST_NAME = "test817RenameAccount";
@@ -313,33 +313,33 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         long tsStart = System.currentTimeMillis();
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         LdapNetworkConnection connection = ldapConnect();
-        
+
         ModifyDnRequest modDnRequest = new ModifyDnRequestImpl();
         modDnRequest.setName(new Dn(toAccountDn(ACCOUNT_HT_UID, ACCOUNT_HT_CN)));
         modDnRequest.setNewRdn(toAccountRdn(ACCOUNT_HTM_UID, ACCOUNT_HTM_CN));
         modDnRequest.setDeleteOldRdn(true);
 		ModifyDnResponse modDnResponse = connection.modifyDn(modDnRequest);
 		display("Modified "+toAccountDn(ACCOUNT_HT_UID, ACCOUNT_HT_CN)+" -> "+toAccountRdn(ACCOUNT_HTM_UID, ACCOUNT_HTM_CN)+": "+modDnResponse);
-		
+
 		doAdditionalRenameModifications(connection);
-		
+
 		ldapDisconnect(connection);
 
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         long tsEnd = System.currentTimeMillis();
-        
+
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_HTM_UID);
         assertNotNull("No user "+ACCOUNT_HTM_UID+" created", user);
         assertUser(user, user.getOid(), ACCOUNT_HTM_UID, getAccountHtmCnAfterRename(), ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN_MODIFIED);
@@ -348,7 +348,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         assertStepSyncToken(getSyncTaskOid(), 4, tsStart, tsEnd);
 
 	}
-	
+
 	protected String getAccountHtmCnAfterRename() {
 		return ACCOUNT_HT_CN;
 	}
@@ -365,24 +365,24 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_HTM_UID);
-        
+
         long tsStart = System.currentTimeMillis();
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         deleteLdapEntry(toAccountDn(ACCOUNT_HTM_UID, ACCOUNT_HTM_CN));
 
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         long tsEnd = System.currentTimeMillis();
-        
+
         if (syncCanDetectDelete()) {
 	        assertNull("User "+ACCOUNT_HTM_UID+" still exist", findUserByUsername(ACCOUNT_HTM_UID));
 	        assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
@@ -393,10 +393,10 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         assertStepSyncToken(getSyncTaskOid(), 5, tsStart, tsEnd);
 	}
-	
-	
+
+
 	// TODO: sync with "ALL" object class
-	
+
 	@Test
     public void test819DeleteSyncTask() throws Exception {
 		final String TEST_NAME = "test819DeleteSyncTask";
@@ -405,7 +405,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         deleteObject(TaskType.class, getSyncTaskOid(), task, result);
@@ -414,10 +414,10 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertNoObject(TaskType.class, getSyncTaskOid(), task, result);
 	}
-	
+
 	@Test
     public void test820ImportSyncTaskInetOrgPerson() throws Exception {
 		final String TEST_NAME = "test820ImportSyncTaskInetOrgPerson";
@@ -426,25 +426,25 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         long tsStart = System.currentTimeMillis();
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         addObject(getSyncTaskInetOrgPersonFile(), task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
-        
+
         long tsEnd = System.currentTimeMillis();
-        
+
         PrismObject<TaskType> syncTask = getTask(getSyncTaskOid());
         display("Sync task after start", syncTask);
-        
+
         assertStepSyncToken(getSyncTaskOid(), 5, tsStart, tsEnd);
 	}
 
@@ -456,30 +456,30 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         long tsStart = System.currentTimeMillis();
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         addLdapAccount(ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
         waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         long tsEnd = System.currentTimeMillis();
-        
+
         displayUsers();
-        
+
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_HT_UID);
         assertNotNull("No user "+ACCOUNT_HT_UID+" created", user);
         assertUser(user, user.getOid(), ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN);
 
         assertStepSyncToken(getSyncTaskOid(), 6, tsStart, tsEnd);
 	}
-	
+
 	@Test
     public void test822ModifyAccountHt() throws Exception {
 		final String TEST_NAME = "test822ModifyAccountHt";
@@ -488,9 +488,9 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         long tsStart = System.currentTimeMillis();
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         LdapNetworkConnection connection = ldapConnect();
@@ -499,21 +499,21 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 		ldapDisconnect(connection);
 
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         long tsEnd = System.currentTimeMillis();
-        
+
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_HT_UID);
         assertNotNull("No user "+ACCOUNT_HT_UID+" created", user);
         assertUser(user, user.getOid(), ACCOUNT_HT_UID, ACCOUNT_HT_CN, ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN_MODIFIED);
 
         assertStepSyncToken(getSyncTaskOid(), 7, tsStart, tsEnd);
 	}
-	
+
 	/**
 	 * Add a new group. Check that this event is ignored.
 	 */
@@ -525,27 +525,27 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         long tsStart = System.currentTimeMillis();
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         addLdapGroup(GROUP_FOOLS_CN, GROUP_FOOLS_DESCRIPTION, toGroupDn("nobody"));
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         long tsEnd = System.currentTimeMillis();
-        
+
         PrismObject<RoleType> roleFools = findObjectByName(RoleType.class, GROUP_FOOLS_CN);
         assertNull("Unexpected role "+roleFools, roleFools);
 
         assertStepSyncToken(getSyncTaskOid(), 8, tsStart, tsEnd);
 	}
-	
+
 	@Test
     public void test837RenameAccount() throws Exception {
 		final String TEST_NAME = "test837RenameAccount";
@@ -554,33 +554,33 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         long tsStart = System.currentTimeMillis();
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         LdapNetworkConnection connection = ldapConnect();
-        
+
         ModifyDnRequest modDnRequest = new ModifyDnRequestImpl();
         modDnRequest.setName(new Dn(toAccountDn(ACCOUNT_HT_UID, ACCOUNT_HT_CN)));
         modDnRequest.setNewRdn(toAccountRdn(ACCOUNT_HTM_UID, ACCOUNT_HTM_CN));
         modDnRequest.setDeleteOldRdn(true);
 		ModifyDnResponse modDnResponse = connection.modifyDn(modDnRequest);
 		display("Modified "+toAccountDn(ACCOUNT_HT_UID,ACCOUNT_HT_CN)+" -> "+toAccountRdn(ACCOUNT_HTM_UID, ACCOUNT_HTM_CN)+": "+modDnResponse);
-		
+
 		doAdditionalRenameModifications(connection);
-		
+
 		ldapDisconnect(connection);
 
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         long tsEnd = System.currentTimeMillis();
-        
+
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_HTM_UID);
         assertNotNull("No user "+ACCOUNT_HTM_UID+" created", user);
         assertUser(user, user.getOid(), ACCOUNT_HTM_UID, getAccountHtmCnAfterRename(), ACCOUNT_HT_GIVENNAME, ACCOUNT_HT_SN_MODIFIED);
@@ -589,9 +589,9 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         assertStepSyncToken(getSyncTaskOid(), 9, tsStart, tsEnd);
 
 	}
-	
+
 	// TODO: create object of a different object class. See that it is ignored by sync.
-	
+
 	@Test
     public void test838DeleteAccountHtm() throws Exception {
 		final String TEST_NAME = "test838DeleteAccountHtm";
@@ -600,24 +600,24 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> user = findUserByUsername(ACCOUNT_HTM_UID);
-        
+
         long tsStart = System.currentTimeMillis();
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         deleteLdapEntry(toAccountDn(ACCOUNT_HTM_UID,ACCOUNT_HTM_CN));
 
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         long tsEnd = System.currentTimeMillis();
-        
+
         if (syncCanDetectDelete()) {
 	        assertNull("User "+ACCOUNT_HTM_UID+" still exist", findUserByUsername(ACCOUNT_HTM_UID));
 	        assertNull("User "+ACCOUNT_HT_UID+" still exist", findUserByUsername(ACCOUNT_HT_UID));
@@ -637,7 +637,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         deleteObject(TaskType.class, getSyncTaskOid(), task, result);
@@ -646,8 +646,8 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertNoObject(TaskType.class, getSyncTaskOid(), task, result);
 	}
-	
+
 }

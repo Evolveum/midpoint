@@ -182,7 +182,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
         session.close();
     }
-    
+
     @Test
     public void testExtensionEnum() throws Exception {
         Session session = getFactory().openSession();
@@ -193,20 +193,20 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         PrismProperty item = (PrismProperty) def.instantiate();
         item.setValue(new PrismPropertyValue(BeforeAfterType.AFTER));
         ((ItemDefinitionImpl) def).setName(valueName);
-        
-        
+
+
         RAnyConverter converter = new RAnyConverter(prismContext);
         Set<RAnyValue> values = converter.convertToRValue(item, false);
 
         AssertJUnit.assertEquals("Expected only one enum value, but was " + values.size(), 1, values.size());
-        
+
         RAnyValue value = values.iterator().next();
         AssertJUnit.assertEquals("after", value.getValue());
-        
-        
+
+
         session.close();
     }
-    
+
     @Test
     public void testExtensionDecimal() throws Exception {
         Session session = getFactory().openSession();

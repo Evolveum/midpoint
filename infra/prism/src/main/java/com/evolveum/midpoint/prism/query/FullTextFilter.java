@@ -45,7 +45,7 @@ public class FullTextFilter extends ObjectFilter {
 	public static FullTextFilter createFullText(Collection<String> values){
 		return new FullTextFilter(values);
 	}
-	
+
 	public static FullTextFilter createFullText(String... values){
 		return new FullTextFilter(Arrays.asList(values));
 	}
@@ -102,7 +102,7 @@ public class FullTextFilter extends ObjectFilter {
 		}
 		return sb.toString();
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

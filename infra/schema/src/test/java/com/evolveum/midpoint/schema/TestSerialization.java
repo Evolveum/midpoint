@@ -41,16 +41,16 @@ import java.util.List;
  *
  */
 public class TestSerialization {
-	
-	
-	
+
+
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-	
-	
+
+
 	@Test
 	public void testSerializeResource() throws Exception {
 		System.out.println("===[ testSerializeResource ]===");
@@ -64,27 +64,27 @@ public class TestSerialization {
 
 		serializationRoundTrip(TestConstants.USER_FILE);
 	}
-	
+
 	@Test
 	public void testSerializeRole() throws Exception {
 		System.out.println("===[ testSerializeRole ]===");
 
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		PrismObject<RoleType> parsedObject = prismContext.parseObject(TestConstants.ROLE_FILE);
-		
+
 		System.out.println("Parsed object:");
 		System.out.println(parsedObject.debugDump());
-		
+
 		RoleType parsedRoleType = parsedObject.asObjectable();
 		PolicyConstraintsType policyConstraints = parsedRoleType.getPolicyConstraints();
 		List<MultiplicityPolicyConstraintType> minAssignees = policyConstraints.getMinAssignees();
 		minAssignees.iterator().next();
-		
+
 		// WHEN
 		serializationRoundTripPrismObject(parsedObject);
 		serializationRoundTripObjectType(parsedRoleType);
-		
+
 		// WHEN
 		String serializedMinAssignees = SerializationUtil.toString(minAssignees);
 		List<MultiplicityPolicyConstraintType> deserializedMinAssignees = SerializationUtil.fromString(serializedMinAssignees);
@@ -93,29 +93,29 @@ public class TestSerialization {
 
 	private <O extends ObjectType> void serializationRoundTrip(File file) throws Exception {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		PrismObject<O> parsedObject = prismContext.parseObject(file);
 
 		System.out.println("\nParsed object:");
 		System.out.println(parsedObject.debugDump());
-		
+
 		serializationRoundTripPrismObject(parsedObject);
 		serializationRoundTripObjectType(parsedObject.asObjectable());
 	}
 
 	private <O extends ObjectType> void serializationRoundTripPrismObject(PrismObject<O> parsedObject) throws Exception {
-		
+
 		// WHEN
 		String serializedObject = SerializationUtil.toString(parsedObject);
-		
+
 		// THEN
 		System.out.println("\nSerialized object:");
 		System.out.println(serializedObject);
 		PrismObject<O> deserializedObject = SerializationUtil.fromString(serializedObject);
-		
+
 		System.out.println("\nDeserialized object (PrismObject):");
 		System.out.println(deserializedObject.debugDump());
-		
+
 		ObjectDelta<O> diff = parsedObject.diff(deserializedObject);
 		assertTrue("Something changed in serialization of "+parsedObject+" (PrismObject): "+diff, diff.isEmpty());
 	}
@@ -124,13 +124,13 @@ public class TestSerialization {
 
 		// WHEN
 		String serializedObject = SerializationUtil.toString(parsedObject);
-		
+
 		// THEN
 		O deserializedObject = SerializationUtil.fromString(serializedObject);
-		
+
 		System.out.println("Deserialized object (ObjectType):");
 		System.out.println(deserializedObject.asPrismObject().debugDump());
-		
+
 		ObjectDelta<O> diff = parsedObject.asPrismObject().diff((PrismObject) deserializedObject.asPrismObject());
 		assertTrue("Something changed in serializetion of "+parsedObject+" (ObjectType): "+diff, diff.isEmpty());
 	}

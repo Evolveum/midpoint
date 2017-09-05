@@ -68,7 +68,7 @@ public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> impleme
 		initLayout(taskDtoModel, pageBase);
 		setOutputMarkupId(true);
 	}
-	
+
 	private void initLayout(final IModel<TaskDto> taskDtoModel, final PageBase pageBase) {
 		SortableDataProvider<OperationResult, String> provider = new ListDataProvider<>(this,
 				new PropertyModel<List<OperationResult>>(taskDtoModel, TaskDto.F_OP_RESULT));

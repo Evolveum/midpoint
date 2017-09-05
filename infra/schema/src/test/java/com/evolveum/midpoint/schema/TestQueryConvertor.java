@@ -115,7 +115,7 @@ public class TestQueryConvertor {
 		QueryType convertedQueryType = toQueryType(query);
 		System.out.println("Re-converted query type");
 		System.out.println(convertedQueryType.debugDump());
-		
+
 		SearchFilterType convertedFilterType = convertedQueryType.getFilter();
 		MapXNode xFilter = convertedFilterType.serializeToXNode();
 		PrismAsserts.assertSize(xFilter, 1);
@@ -125,19 +125,19 @@ public class TestQueryConvertor {
 		PrismAsserts.assertSubnode(xandmap, EqualFilter.ELEMENT_NAME, ListXNode.class);
 		ListXNode xequalsList = (ListXNode) xandmap.get(EqualFilter.ELEMENT_NAME);
 		PrismAsserts.assertSize(xequalsList, 2);
-		
+
 		Element filterClauseElement = convertedFilterType.getFilterClauseAsElement(getPrismContext());
 		System.out.println("Serialized filter (JAXB->DOM)");
 		System.out.println(DOMUtil.serializeDOMToString(filterClauseElement));
-		
+
 		DomAsserts.assertElementQName(filterClauseElement, AndFilter.ELEMENT_NAME);
 		DomAsserts.assertSubElements(filterClauseElement, 2);
-		
+
 		Element firstSubelement = DOMUtil.getChildElement(filterClauseElement, 0);
 		DomAsserts.assertElementQName(firstSubelement, EqualFilter.ELEMENT_NAME);
 		Element firstValueElement = DOMUtil.getChildElement(firstSubelement, PrismConstants.Q_VALUE);
 		DomAsserts.assertTextContent(firstValueElement, "add");
-		
+
 		Element secondSubelement = DOMUtil.getChildElement(filterClauseElement, 1);
 		DomAsserts.assertElementQName(secondSubelement, EqualFilter.ELEMENT_NAME);
 		Element secondValueElement = DOMUtil.getChildElement(secondSubelement, PrismConstants.Q_VALUE);
@@ -262,11 +262,11 @@ public class TestQueryConvertor {
 		}
 
 	}
-	
+
 	private PrismObjectDefinition<UserType> getUserDefinition(){
 		return getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
-	
+
 	@Test
 	public void testTypeFilterQuery() throws Exception {
 		displayTestTitle("testConnectorQuery");
@@ -279,7 +279,7 @@ public class TestQueryConvertor {
 			assertNotNull(query);
 			ObjectFilter filter = query.getFilter();
 			assertTrue("filter is not an instance of type filter", filter instanceof TypeFilter);
-			
+
 			TypeFilter typeFilter = (TypeFilter) filter;
 			assertEquals(typeFilter.getType(), UserType.COMPLEX_TYPE);
 			assertNotNull("filter in type filter must not be null", typeFilter.getFilter());
@@ -299,7 +299,7 @@ public class TestQueryConvertor {
 		}
 
 	}
-	
+
 	@Test
 	public void testShadowKindTypeQuery() throws Exception {
 		displayTestTitle("testShadowKindTypeQuery");
@@ -313,14 +313,14 @@ public class TestQueryConvertor {
 			assertNotNull(query);
 			ObjectFilter filter = query.getFilter();
 			assertTrue("filter is not an instance of type filter", filter instanceof EqualFilter);
-			
+
 			EqualFilter typeFilter = (EqualFilter) filter;
 			assertEquals(typeFilter.getSingleValue().getRealValue(), ShadowKindType.ACCOUNT);
-			
+
 			QueryType convertedQueryType = toQueryType(query);
-			
+
 			toObjectQuery(ShadowType.class, convertedQueryType);
-			
+
 			displayQueryType(convertedQueryType);
 		} catch (Exception ex) {
 			LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
@@ -344,7 +344,7 @@ public class TestQueryConvertor {
 		return QueryJaxbConvertor.createObjectQuery(type, queryType,
 				getPrismContext());
 	}
-	
+
 	private ObjectQuery toObjectQuery(Class type, SearchFilterType filterType) throws Exception {
 		return QueryJaxbConvertor.createObjectQuery(type, filterType,
 				getPrismContext());
@@ -396,7 +396,7 @@ public class TestQueryConvertor {
 	@Test
 	public void testUserQuery() throws Exception {
 		displayTestTitle("testUserQuery");
-		
+
 		File[] userQueriesToTest = new File[] { new File(TEST_DIR, "filter-user-by-fullName.xml"),
 				new File(TEST_DIR, "filter-user-by-name.xml"),
 				new File(TEST_DIR, "filter-user-substring-fullName.xml"),
@@ -576,18 +576,18 @@ public class TestQueryConvertor {
 				.or().item(ShadowType.F_RESOURCE_REF).ref("oid4", ResourceType.COMPLEX_TYPE)
 				.build();
 		q1object.getFilter().checkConsistence(true);
-		
+
 		String q2xml = FileUtils.readFileToString(new File(TEST_DIR + "/" + TEST_NAME + ".xml"));
 		displayQueryXml(q2xml);
 		QueryType q2jaxb = toQueryType(q2xml);
 		displayQueryType(q2jaxb);
 		ObjectQuery q2object = toObjectQuery(ShadowType.class, q2jaxb);
-		
+
 		System.out.println("q1object:\n"+q1object.debugDump(1));
 		System.out.println("q2object:\n"+q2object.debugDump(1));
-		
+
 		assertEquals("Reparsed query is not as original one (via toString)", q1object.toString(), q2object.toString());	// primitive way of comparing parsed queries
-		
+
 		if (!q1object.equivalent(q2object)) {
 			AssertJUnit.fail("Reparsed query is not as original one (via equivalent):\nq1="+q1object+"\nq2="+q2object);
 		}

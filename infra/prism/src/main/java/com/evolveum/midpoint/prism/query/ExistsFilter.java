@@ -88,7 +88,7 @@ public class ExistsFilter extends ObjectFilter implements ItemFilter {
     public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         throw new UnsupportedOperationException();
     }
-    
+
     @Override
 	public void checkConsistence(boolean requireDefinitions) {
 		if (fullPath.isEmpty()) {

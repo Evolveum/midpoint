@@ -85,7 +85,7 @@ public class DummyTransport implements Transport, DebugDumpable {
     public List<Message> getMessages(String transportName) {
         return messages.get(transportName);
     }
-    
+
     public Map<String,List<Message>> getMessages() {
     	return messages;
     }

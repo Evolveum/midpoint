@@ -48,7 +48,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class FocusConstraintsChecker<F extends FocusType> {
 
 	private static ThreadLocal<Cache> cacheThreadLocal = new ThreadLocal<>();
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(FocusConstraintsChecker.class);
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 
@@ -61,7 +61,7 @@ public class FocusConstraintsChecker<F extends FocusType> {
 
 	public FocusConstraintsChecker() {
 	}
-	
+
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}
@@ -73,11 +73,11 @@ public class FocusConstraintsChecker<F extends FocusType> {
 	public LensContext<F> getContext() {
 		return context;
 	}
-	
+
 	public void setContext(LensContext<F> context) {
 		this.context = context;
 	}
-	
+
 	public RepositoryService getRepositoryService() {
 		return repositoryService;
 	}
@@ -89,7 +89,7 @@ public class FocusConstraintsChecker<F extends FocusType> {
 	public boolean isSatisfiesConstraints() {
 		return satisfiesConstraints;
 	}
-	
+
 	public String getMessages() {
 		return messageBuilder.toString();
 	}
@@ -98,14 +98,14 @@ public class FocusConstraintsChecker<F extends FocusType> {
 		return conflictingObject;
 	}
 	public void check(PrismObject<F> objectNew, OperationResult result) throws SchemaException {
-		
+
 		if (objectNew == null) {
 			// This must be delete
 			LOGGER.trace("No new object. Therefore it satisfies constraints");
 			satisfiesConstraints = true;
 			return;
 		}
-		
+
 		// Hardcode to name ... for now
 		PolyStringType name = objectNew.asObjectable().getName();
 		if (Cache.isOk(name)) {
@@ -117,19 +117,19 @@ public class FocusConstraintsChecker<F extends FocusType> {
 			}
 		}
 	}
-	
+
 	private <T> boolean checkPropertyUniqueness(PrismObject<F> objectNew, ItemPath propPath, LensContext<F> context, OperationResult result) throws SchemaException {
-		
+
 		PrismProperty<T> property = objectNew.findProperty(propPath);
 		if (property == null || property.isEmpty()) {
 			throw new SchemaException("No property "+propPath+" in new object "+objectNew+", cannot check uniqueness");
 		}
 		String oid = objectNew.getOid();
-		
+
 		ObjectQuery query = QueryBuilder.queryFor(objectNew.getCompileTimeClass(), prismContext)
 				.itemAs(property)
 				.build();
-		
+
 		List<PrismObject<F>> foundObjects = repositoryService.searchObjects(objectNew.getCompileTimeClass(), query, null, result);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Uniqueness check of {}, property {} resulted in {} results, using query:\n{}",
@@ -142,8 +142,8 @@ public class FocusConstraintsChecker<F extends FocusType> {
 			LOGGER.trace("Found more than one object with property "+propPath+" = " + property);
 			message("Found more than one object with property "+propPath+" = " + property);
 			return false;
-		} 
-		
+		}
+
 		LOGGER.trace("Comparing {} and {}", foundObjects.get(0).getOid(), oid);
 		boolean match = foundObjects.get(0).getOid().equals(oid);
 		if (!match) {
@@ -156,10 +156,10 @@ public class FocusConstraintsChecker<F extends FocusType> {
 
 			conflictingObject = foundObjects.get(0);
 		}
-		
+
 		return match;
 	}
-	
+
 	private void message(String message) {
 		if (messageBuilder.length() != 0) {
 			messageBuilder.append(", ");

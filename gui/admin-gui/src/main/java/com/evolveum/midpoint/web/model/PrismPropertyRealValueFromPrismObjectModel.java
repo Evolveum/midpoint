@@ -34,9 +34,9 @@ import javax.xml.namespace.QName;
 
 /**
  * Model that returns property real values. This implementation works on PrismObject models (not wrappers).
- * 
+ *
  * Simple implementation, now it can't handle multivalue properties.
- * 
+ *
  * @author lazyman
  * @author semancik
  */

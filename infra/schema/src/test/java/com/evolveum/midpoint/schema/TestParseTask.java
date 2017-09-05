@@ -54,30 +54,30 @@ import static org.testng.AssertJUnit.assertNotNull;
  *
  */
 public class TestParseTask {
-	
+
 	public static final File TASK_FILE = new File("src/test/resources/common/task-1.xml");
-	
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-	
-	
+
+
 	@Test
 	public void testParseTaskFile() throws Exception {
 		System.out.println("===[ testParseTaskFile ]===");
 
 		// GIVEN
 		PrismContext prismContext = getPrismContext();
-		
+
 		// WHEN
 		PrismObject<TaskType> task = prismContext.parserFor(TASK_FILE).xml().parse();
-		
+
 		// THEN
 		System.out.println("Parsed task:");
 		System.out.println(task.debugDump());
-		
+
 		assertTask(task);
 	}
 
@@ -87,17 +87,17 @@ public class TestParseTask {
 
 		// GIVEN
 		PrismContext prismContext = getPrismContext();
-		
+
 		Document document = DOMUtil.parseFile(TASK_FILE);
 		Element taskElement = DOMUtil.getFirstChildElement(document);
-		
+
 		// WHEN
 		PrismObject<TaskType> task = prismContext.parserFor(taskElement).parse();
-		
+
 		// THEN
 		System.out.println("Parsed task:");
 		System.out.println(task.debugDump());
-		
+
 		assertTask(task);
 	}
 
@@ -105,21 +105,21 @@ public class TestParseTask {
     @Test(enabled = false)
 	public void testPrismParseJaxb() throws JAXBException, SchemaException, SAXException, IOException {
 		System.out.println("===[ testPrismParseJaxb ]===");
-		
+
 		// GIVEN
 		PrismContext prismContext = getPrismContext();
         JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
-		
+
 		// WHEN
 		TaskType taskType = jaxbProcessor.unmarshalObject(TASK_FILE, TaskType.class);
-		
+
 		// THEN
 		System.out.println("Parsed task:");
 		System.out.println(taskType.asPrismObject().debugDump());
-		
+
 		assertTask(taskType.asPrismObject());
 	}
-	
+
 	/**
 	 * The definition should be set properly even if the declared type is ObjectType. The Prism should determine
 	 * the actual type.
@@ -128,21 +128,21 @@ public class TestParseTask {
     @Test(enabled = false)
 	public void testPrismParseJaxbObjectType() throws JAXBException, SchemaException, SAXException, IOException {
 		System.out.println("===[ testPrismParseJaxbObjectType ]===");
-		
+
 		// GIVEN
 		PrismContext prismContext = getPrismContext();
         JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
-		
+
 		// WHEN
 		TaskType taskType = jaxbProcessor.unmarshalObject(TASK_FILE, TaskType.class);
-		
+
 		// THEN
 		System.out.println("Parsed task:");
 		System.out.println(taskType.asPrismObject().debugDump());
-		
+
 		assertTask(taskType.asPrismObject());
 	}
-	
+
 	/**
 	 * Parsing in form of JAXBELement
 	 */
@@ -150,19 +150,19 @@ public class TestParseTask {
     @Test(enabled = false)
 	public void testPrismParseJaxbElement() throws JAXBException, SchemaException, SAXException, IOException {
 		System.out.println("===[ testPrismParseJaxbElement ]===");
-		
+
 		// GIVEN
 		PrismContext prismContext = getPrismContext();
         JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
-		
+
 		// WHEN
 		JAXBElement<TaskType> jaxbElement = jaxbProcessor.unmarshalElement(TASK_FILE, TaskType.class);
 		TaskType taskType = jaxbElement.getValue();
-		
+
 		// THEN
 		System.out.println("Parsed task:");
 		System.out.println(taskType.asPrismObject().debugDump());
-		
+
 		assertTask(taskType.asPrismObject());
 	}
 
@@ -173,27 +173,27 @@ public class TestParseTask {
     @Test(enabled = false)
 	public void testPrismParseJaxbElementObjectType() throws JAXBException, SchemaException, SAXException, IOException {
 		System.out.println("===[ testPrismParseJaxbElementObjectType ]===");
-		
+
 		// GIVEN
 		PrismContext prismContext = getPrismContext();
         JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
-		
+
 		// WHEN
 		JAXBElement<TaskType> jaxbElement = jaxbProcessor.unmarshalElement(TASK_FILE, TaskType.class);
 		TaskType taskType = jaxbElement.getValue();
-		
+
 		// THEN
 		System.out.println("Parsed task:");
 		System.out.println(taskType.asPrismObject().debugDump());
-		
+
 		assertTask(taskType.asPrismObject());
 	}
 
-	
+
 	private void assertTask(PrismObject<TaskType> task) {
-		
+
 		task.checkConsistence();
-		
+
 		assertEquals("Wrong oid", "44444444-4444-4444-4444-000000001111", task.getOid());
 //		assertEquals("Wrong version", "42", user.getVersion());
 		PrismObjectDefinition<TaskType> usedDefinition = task.getDefinition();
@@ -206,47 +206,47 @@ public class TestParseTask {
 
 		assertPropertyValue(task, "name", PrismTestUtil.createPolyString("Example Task"));
 		assertPropertyDefinition(task, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
-		
+
 		assertPropertyValue(task, "taskIdentifier", "44444444-4444-4444-4444-000000001111");
 		assertPropertyDefinition(task, "taskIdentifier", DOMUtil.XSD_STRING, 0, 1);
-		
+
 		assertPropertyDefinition(task, "executionStatus", JAXBUtil.getTypeQName(TaskExecutionStatusType.class), 1, 1);
 		PrismProperty<TaskExecutionStatusType> executionStatusProperty = task.findProperty(TaskType.F_EXECUTION_STATUS);
 		PrismPropertyValue<TaskExecutionStatusType> executionStatusValue = executionStatusProperty.getValue();
 		TaskExecutionStatusType executionStatus = executionStatusValue.getValue();
 		assertEquals("Wrong execution status", TaskExecutionStatusType.RUNNABLE, executionStatus);
-		
+
 		// TODO: more tests
-		
+
 //		PrismContainer extension = user.getExtension();
 //		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
 //		PrismContainerValue extensionValue = extension.getValue();
 //		assertTrue("Extension parent", extensionValue.getParent() == extension);
 //		assertNull("Extension ID", extensionValue.getId());
-		
+
 //		PropertyPath enabledPath = new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
 //		PrismProperty enabledProperty1 = task.findProperty(enabledPath);
 //		PrismAsserts.assertDefinition(enabledProperty1.getDefinition(), ActivationType.F_ENABLED, DOMUtil.XSD_BOOLEAN, 0, 1);
 //		assertNotNull("Property "+enabledPath+" not found", enabledProperty1);
 //		PrismAsserts.assertPropertyValue(enabledProperty1, true);
-		
+
 //		PrismProperty validFromProperty = user.findProperty(new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_VALID_FROM));
 //		assertNotNull("Property "+ActivationType.F_VALID_FROM+" not found", validFromProperty);
 //		PrismAsserts.assertPropertyValue(validFromProperty, USER_JACK_VALID_FROM);
-		
+
 //		PrismReference accountRef = task.findReference(UserType.F_ACCOUNT_REF);
 //		assertEquals("Wrong number of accountRef values", 3, accountRef.getValues().size());
 //		PrismAsserts.assertReferenceValue(accountRef, "2f9b9299-6f45-498f-aaaa-000000001111");
 //		PrismAsserts.assertReferenceValue(accountRef, "2f9b9299-6f45-498f-aaaa-000000002222");
 //		PrismAsserts.assertReferenceValue(accountRef, "2f9b9299-6f45-498f-aaaa-000000003333");
 	}
-	
+
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
 			int maxOccurs) {
 		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
 	}
-	
+
 	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
 		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);

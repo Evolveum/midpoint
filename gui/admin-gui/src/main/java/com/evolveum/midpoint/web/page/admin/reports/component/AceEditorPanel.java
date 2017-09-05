@@ -37,7 +37,7 @@ public class AceEditorPanel extends BasePanel<String> {
         this.title = title;
         initLayout(0);
     }
-    
+
     public AceEditorPanel(String id, IModel<String> title, IModel<String> data, int minSize) {
         super(id, data);
 

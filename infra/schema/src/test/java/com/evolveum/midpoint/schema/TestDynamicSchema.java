@@ -48,21 +48,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 public class TestDynamicSchema {
-		
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-	
-	
+
+
 	@Test
 	public void testAssignmentExtensionContainerProperty() throws Exception {
 		System.out.println("===[ testAssignmentExtensionContainerProperty ]===");
 
 		// GIVEN
 		PrismContainer<AssignmentType> assignmentExtensionContainer = parseUserAssignmentContainer();
-					
+
 		// WHEN
 		PrismProperty<String> assignmentExtensionStringProperty = assignmentExtensionContainer.findOrCreateProperty(EXTENSION_STRING_TYPE_ELEMENT);
 
@@ -78,7 +78,7 @@ public class TestDynamicSchema {
 
 		// GIVEN
 		PrismContainer<AssignmentType> assignmentExtensionContainer = parseUserAssignmentContainer();
-		
+
 		// WHEN
 		PrismProperty<String> assignmentExtensionStringProperty = assignmentExtensionContainer.findOrCreateItem(
 				new ItemPath(EXTENSION_STRING_TYPE_ELEMENT), PrismProperty.class);
@@ -96,7 +96,7 @@ public class TestDynamicSchema {
 		// GIVEN
 		PrismContainer<AssignmentType> assignmentExtensionContainer = parseUserAssignmentContainer();
 		PrismContainerValue<AssignmentType> assignmentExtensionContainerValue = assignmentExtensionContainer.getValue();
-					
+
 		// WHEN
 		PrismProperty<String> assignmentExtensionStringProperty = assignmentExtensionContainerValue.findOrCreateProperty(EXTENSION_STRING_TYPE_ELEMENT);
 
@@ -105,7 +105,7 @@ public class TestDynamicSchema {
 		assertNotNull("stringType has no definition", assignmentExtensionStringProperty.getDefinition());
 		PrismAsserts.assertDefinition(assignmentExtensionStringProperty.getDefinition(), EXTENSION_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
 	}
-	
+
 	@Test
 	public void testAssignmentExtensionValueItem() throws Exception {
 		System.out.println("===[ testAssignmentExtensionValueItem ]===");
@@ -113,7 +113,7 @@ public class TestDynamicSchema {
 		// GIVEN
 		PrismContainer<AssignmentType> assignmentExtensionContainer = parseUserAssignmentContainer();
 		PrismContainerValue<AssignmentType> assignmentExtensionContainerValue = assignmentExtensionContainer.getValue();
-					
+
 		// WHEN
 		PrismProperty<String> assignmentExtensionStringProperty = assignmentExtensionContainerValue.findOrCreateItem(
 				EXTENSION_STRING_TYPE_ELEMENT, PrismProperty.class);
@@ -123,16 +123,16 @@ public class TestDynamicSchema {
 		assertNotNull("stringType has no definition", assignmentExtensionStringProperty.getDefinition());
 		PrismAsserts.assertDefinition(assignmentExtensionStringProperty.getDefinition(), EXTENSION_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
 	}
-	
-	
-	
-	
+
+
+
+
 	private PrismContainer<AssignmentType> parseUserAssignmentContainer() throws SchemaException, IOException {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		PrismObject<UserType> user = prismContext.parseObject(USER_FILE);
 		System.out.println("Parsed user:");
 		System.out.println(user.debugDump());
-		
+
 		return user.findContainer(
 				new ItemPath(
 						new NameItemPathSegment(UserType.F_ASSIGNMENT),

@@ -17,12 +17,12 @@ package com.evolveum.midpoint.util;
 
 /**
  * Used mostly in tests to simplify error handling.
- * 
+ *
  * @author semancik
  */
 @FunctionalInterface
 public interface FailableRunnable {
-	
+
 	public abstract void run() throws Exception;
 
 }

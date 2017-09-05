@@ -57,7 +57,7 @@ import static org.testng.AssertJUnit.*;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestNotifications extends AbstractInitializedModelIntegrationTest {
-	
+
 	public static final File TEST_DIR = new File("src/test/resources/notifications");
 	public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
@@ -318,20 +318,20 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 		assertEquals("Wrong message body", expected, dummyTransport.getMessages("dummy:simpleUserNotifier").get(0).getBody());
 
     }
-	
+
 	private void assertDummyScriptsAdd(PrismObject<UserType> user, PrismObject<? extends ShadowType> account, ResourceType resource) {
 		ProvisioningScriptSpec script = new ProvisioningScriptSpec("\nto spiral :size\n" +
 				"   if  :size > 30 [stop]\n   fd :size rt 15\n   spiral :size *1.02\nend\n			");
-		
+
 		String userName = null;
 		if (user != null) {
 			userName = user.asObjectable().getName().getOrig();
 		}
 		script.addArgSingle("usr", "user: "+userName);
-		
+
 		// Note: We cannot test for account name as name is only assigned in provisioning
 		String accountEnabled = null;
-		if (account != null && account.asObjectable().getActivation() != null 
+		if (account != null && account.asObjectable().getActivation() != null
 				&& account.asObjectable().getActivation().getAdministrativeStatus() != null) {
 			accountEnabled = account.asObjectable().getActivation().getAdministrativeStatus().toString();
 		}
@@ -351,7 +351,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 	private void assertDummyScriptsModify(PrismObject<UserType> user) {
 		assertDummyScriptsModify(user, false);
 	}
-	
+
 	private void assertDummyScriptsModify(PrismObject<UserType> user, boolean recon) {
 		ProvisioningScriptSpec modScript = new ProvisioningScriptSpec("Beware the Jabberwock, my son!");
 		String name = null;
@@ -381,7 +381,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 		ProvisioningScriptSpec script = new ProvisioningScriptSpec("The Jabberwock, with eyes of flame");
 		IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), script);
 	}
-	
+
 	private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		assumeAssignmentPolicy(enforcementPolicy);
         dummyAuditService.clear();

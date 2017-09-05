@@ -51,10 +51,10 @@ import java.io.InputStream;
 public class PrismContextImpl implements PrismContext {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismContextImpl.class);
-    
+
     private static boolean allowSchemalessSerialization = true;
 	private static boolean extraValidation = false;										// TODO replace by something serious
-    
+
 	@NotNull private final SchemaRegistryImpl schemaRegistry;
 	@NotNull private final LexicalProcessorRegistry lexicalProcessorRegistry;
 	@NotNull private final PolyStringNormalizer defaultPolyStringNormalizer;			// TODO make non-final when needed
@@ -68,7 +68,7 @@ public class PrismContextImpl implements PrismContext {
 
 	@Autowired		// TODO is this really applied?
 	private Protector defaultProtector;
-	
+
 	// We need to keep this because of deprecated methods and various hacks
 	@NotNull private final JaxbDomHack jaxbDomHack;
 
@@ -98,7 +98,7 @@ public class PrismContextImpl implements PrismContext {
 	public static PrismContextImpl create(@NotNull SchemaRegistryImpl schemaRegistry) {
 		return new PrismContextImpl(schemaRegistry);
 	}
-	
+
 	public static PrismContextImpl createEmptyContext(@NotNull SchemaRegistryImpl schemaRegistry) {
 		return new PrismContextImpl(schemaRegistry);
 	}
@@ -207,7 +207,7 @@ public class PrismContextImpl implements PrismContext {
 	public Protector getDefaultProtector() {
 		return defaultProtector;
 	}
-	
+
 	public void setDefaultProtector(Protector defaultProtector) {
 		this.defaultProtector = defaultProtector;
 	}
@@ -291,7 +291,7 @@ public class PrismContextImpl implements PrismContext {
 		container.revive(this);
 		getSchemaRegistry().applyDefinition(container, declaredType, false);
 	}
-	
+
 	@Override
 	public <C extends Containerable> void adopt(PrismContainer<C> container) throws SchemaException {
 		adopt(container, container.getCompileTimeClass());
@@ -317,7 +317,7 @@ public class PrismContextImpl implements PrismContext {
 		delta.revive(this);
 		getSchemaRegistry().applyDefinition(delta, delta.getObjectTypeClass(), false);
 	}
-	
+
 	@Override
 	public <C extends Containerable, O extends Objectable> void adopt(C containerable, Class<O> type, ItemPath path) throws SchemaException {
 		PrismContainerValue<C> prismContainerValue = containerable.asPrismContainerValue();
@@ -330,7 +330,7 @@ public class PrismContextImpl implements PrismContext {
 		prismContainerValue.revive(this);
 		getSchemaRegistry().applyDefinition(prismContainerValue, type, path, false);
 	}
-	
+
 	@Override
 	public <C extends Containerable, O extends Objectable> void adopt(PrismContainerValue<C> prismContainerValue, QName typeName,
 			ItemPath path) throws SchemaException {

@@ -35,7 +35,7 @@ import java.io.Serializable;
 public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaOperation<T> implements Serializable {
 
 	private boolean audited = false;
-	
+
 	public LensObjectDeltaOperation() {
 		super();
 	}
@@ -51,7 +51,7 @@ public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaO
 	public void setAudited(boolean audited) {
 		this.audited = audited;
 	}
-	
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
@@ -60,7 +60,7 @@ public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaO
 		DebugUtil.debugDumpWithLabel(sb, "audited", audited, indent + 1);
 		return sb.toString();
 	}
-	
+
 	@Override
 	protected String getDebugDumpClassName() {
         return "LensObjectDeltaOperation";

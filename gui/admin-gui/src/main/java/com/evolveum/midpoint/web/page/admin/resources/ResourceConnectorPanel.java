@@ -64,19 +64,19 @@ public class ResourceConnectorPanel extends Panel {
 	private static final String ID_POOL_STATUS_NUM_ACTIVE = "poolStatusNumActive";
 
 	private PageBase parentPage;
-	
+
 	public ResourceConnectorPanel(String id, ShadowKindType kind,
 			final IModel<PrismObject<ResourceType>> model, PageBase parentPage) {
 		super(id, model);
 		this.parentPage = parentPage;
-			
+
 		initLayout(model, parentPage);
 	}
 
-	
+
 	private void initLayout(final IModel<PrismObject<ResourceType>> model, final PageBase parentPage) {
 		setOutputMarkupId(true);
-		
+
 		IModel<List<ConnectorOperationalStatus>> statsModel = new AbstractReadOnlyModel<List<ConnectorOperationalStatus>>() {
 			private static final long serialVersionUID = 1L;
 
@@ -96,7 +96,7 @@ public class ResourceConnectorPanel extends Panel {
 				return status;
 			}
 		};
-		
+
 		ListView<ConnectorOperationalStatus> listview = new ListView<ConnectorOperationalStatus>(ID_CONNECTOR_LIST, statsModel) {
 			private static final long serialVersionUID = 1L;
 
@@ -119,7 +119,7 @@ public class ResourceConnectorPanel extends Panel {
 		add(listview);
 
 	}
-	
+
 	private Label createLabel(IModel<ConnectorOperationalStatus> statsModel, String id, String fieldName) {
 		return new Label(id, new PropertyModel<String>(statsModel, fieldName));
 	}

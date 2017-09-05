@@ -22,7 +22,7 @@ import org.apache.wicket.model.Model;
 /**
  * Simple button that toggles two states (on-off, alphasort-numericsort, etc).
  * The button changes the icon when pressed.
- * 
+ *
  * @author semancik
  */
 public abstract class ToggleIconButton<T> extends AjaxLink<T> {
@@ -30,12 +30,12 @@ public abstract class ToggleIconButton<T> extends AjaxLink<T> {
 
 	private String cssClassOff;
 	private String cssClassOn;
-	
+
 	public ToggleIconButton(String id) {
 		super(id);
 		initLayout();
 	}
-	
+
 	public ToggleIconButton(String id, String cssClassOff, String cssClassOn) {
 		super(id);
 		this.cssClassOff = cssClassOff;
@@ -72,5 +72,5 @@ public abstract class ToggleIconButton<T> extends AjaxLink<T> {
 	}
 
 	public abstract boolean isOn();
-	
+
 }

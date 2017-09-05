@@ -90,17 +90,17 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Assignment processor is recomputing user assignments. It recomputes all the assignments whether they are direct
- * or indirect (roles). 
- * 
+ * or indirect (roles).
+ *
  * Processor does not do the complete recompute. Only the account "existence" is recomputed. I.e. the processor determines
  * what accounts should be added, deleted or kept as they are. The result is marked in account context SynchronizationPolicyDecision.
  * This step does not create any deltas. It recomputes the attributes to delta set triples but does not "refine" them to deltas yet.
  * It cannot create deltas as other mapping may interfere, e.g. outbound mappings. These needs to be computed before we can
  * create the final deltas (because there may be mapping exclusions, interference of weak mappings, etc.)
- * 
+ *
  * The result of assignment processor are intermediary data in the context such as LensContext.evaluatedAssignmentTriple and
  * LensProjectionContext.accountConstructionDeltaSetTriple.
- * 
+ *
  * @author Radovan Semancik
  */
 @Component
@@ -112,7 +112,7 @@ public class AssignmentProcessor {
 
     @Autowired
     private ObjectResolver objectResolver;
-    
+
     @Autowired
 	private SystemObjectCache systemObjectCache;
 
@@ -121,22 +121,22 @@ public class AssignmentProcessor {
 
     @Autowired
     private MappingFactory mappingFactory;
-    
+
     @Autowired
     private MappingEvaluator mappingEvaluator;
-        
+
     @Autowired(required=true)
 	private ActivationComputer activationComputer;
-    
+
     @Autowired(required=true)
     private ProvisioningService provisioningService;
-    
+
     @Autowired(required=true)
     private ConstructionProcessor constructionProcessor;
-    
+
     @Autowired
     private ObjectTemplateProcessor objectTemplateProcessor;
-    
+
     @Autowired
     private PolicyRuleProcessor policyRuleProcessor;
 
@@ -144,7 +144,7 @@ public class AssignmentProcessor {
 
     /**
      * Processing all the assignments to determine which projections should be added, deleted or kept as they are.
-     * Generic method for all projection types (theoretically). 
+     * Generic method for all projection types (theoretically).
      */
     @SuppressWarnings("unchecked")
 	public <O extends ObjectType> void processAssignmentsProjections(LensContext<O> context, XMLGregorianCalendar now,
@@ -162,17 +162,17 @@ public class AssignmentProcessor {
 //    		//do not execute assignment if the execution was triggered by compensation mechanism and limitPropagation is set
 //    		return;
 //    	}
-    	
+
     	OperationResult result = parentResult.createSubresult(AssignmentProcessor.class.getName() + ".processAssignmentsProjections");
-    	
+
     	try {
     		processAssignmentsProjectionsWithFocus((LensContext<? extends FocusType>)context, now, task, result);
-    	} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | 
+    	} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException |
     			CommunicationException | ConfigurationException | SecurityViolationException | RuntimeException | Error e) {
     		result.recordFatalError(e);
     		throw e;
     	}
-    	
+
     	OperationResultStatus finalStatus = OperationResultStatus.SUCCESS;
     	String message = null;
     	int errors = 0;
@@ -191,35 +191,35 @@ public class AssignmentProcessor {
 		result.setMessage(message);
 		result.cleanupResult();
     }
-    
+
     /**
      * Processing focus-projection assignments (including roles).
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	private <F extends FocusType> void processAssignmentsProjectionsWithFocus(LensContext<F> context, XMLGregorianCalendar now, 
+	private <F extends FocusType> void processAssignmentsProjectionsWithFocus(LensContext<F> context, XMLGregorianCalendar now,
     		Task task, OperationResult result) throws SchemaException,
     		ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
-    	
+
     	// PREPARE ASSIGNMENT DELTA
-    	
+
     	LensFocusContext<F> focusContext = context.getFocusContext();
         ObjectDelta<F> focusDelta = focusContext.getDelta();
-        
+
     	if (focusDelta != null && focusDelta.isDelete()) {
 			processFocusDelete(context, result);
 			return;
 		}
 
         checkAssignmentDeltaSanity(context);
-        
-        
+
+
         // ASSIGNMENT EVALUATION
-        
+
         // Initializing assignment evaluator. This will be used later to process all the assignments including the nested
         // assignments (roles).
         AssignmentEvaluator<F> assignmentEvaluator = createAssignmentEvaluator(context, now);
         ObjectType source = determineSource(focusContext);
-        
+
         AssignmentTripleEvaluator<F> assignmentTripleEvaluator = new AssignmentTripleEvaluator<>();
         assignmentTripleEvaluator.setActivationComputer(activationComputer);
         assignmentTripleEvaluator.setAssignmentEvaluator(assignmentEvaluator);
@@ -229,30 +229,30 @@ public class AssignmentProcessor {
         assignmentTripleEvaluator.setResult(result);
         assignmentTripleEvaluator.setSource(source);
         assignmentTripleEvaluator.setTask(task);
-        
+
         // Normal processing. The enforcement policy requires that assigned accounts should be added, so we need to figure out
         // which assignments were added. Do a complete recompute for all the enforcement modes. We can do that because this does
         // not create deltas, it just creates the triples. So we can decide what to do later when we convert triples to deltas.
-        
+
         // Evaluates all assignments and sorts them to triple: added, removed and untouched assignments.
         // This is where most of the assignment-level action happens.
         DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
         policyRuleProcessor.addGlobalPoliciesToAssignments(context, evaluatedAssignmentTriple, task, result);
         context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
-        
+
         if (LOGGER.isTraceEnabled()) {
         	LOGGER.trace("evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDump());
         }
-        
+
         // PROCESSING POLICIES
 
         policyRuleProcessor.processPolicies(context, evaluatedAssignmentTriple, result);
-        
+
         boolean needToReevaluateAssignments = policyRuleProcessor.processPruning(context, evaluatedAssignmentTriple, result);
-        
+
         if (needToReevaluateAssignments) {
         	LOGGER.debug("Re-evaluating assignments because exclusion pruning rule was triggered");
-        	
+
         	assignmentTripleEvaluator.reset();
         	evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
 			context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
@@ -262,21 +262,21 @@ public class AssignmentProcessor {
         	if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDump());
             }
-        	
+
         	policyRuleProcessor.processPolicies(context, evaluatedAssignmentTriple, result);
         }
 
         //policyRuleProcessor.storeAssignmentPolicySituation(context, evaluatedAssignmentTriple, result);
 
         // PROCESSING FOCUS
-        
+
         Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> focusOutputTripleMap = new HashMap<>();
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getPlusSet(), focusOutputTripleMap, PlusMinusZero.PLUS);
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getMinusSet(), focusOutputTripleMap, PlusMinusZero.MINUS);
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getZeroSet(), focusOutputTripleMap, PlusMinusZero.ZERO);
         ObjectDeltaObject<F> focusOdo = focusContext.getObjectDeltaObject();
 		Collection<ItemDelta<?,?>> focusDeltas = objectTemplateProcessor.computeItemDeltas(focusOutputTripleMap, null,
-				focusOdo.getObjectDelta(), focusOdo.getNewObject(), focusContext.getObjectDefinition(), 
+				focusOdo.getObjectDelta(), focusOdo.getNewObject(), focusContext.getObjectDefinition(),
 				"focus mappings in assignments of "+focusContext.getHumanReadableName());
 		LOGGER.trace("Computed focus deltas: {}", focusDeltas);
 		focusContext.applyProjectionWaveSecondaryDeltas(focusDeltas);
@@ -285,7 +285,7 @@ public class AssignmentProcessor {
 		if (context.getPartialProcessingOptions().getProjection() != PartialProcessingTypeType.SKIP) {
 
 			// PROCESSING PROJECTIONS
-			
+
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Projection processing start, evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDump(1));
 			}
@@ -466,7 +466,7 @@ public class AssignmentProcessor {
 					construction -> getConstructionMapKey(context, construction, task, result),
 					consumer,
 					task, result);
-			
+
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Projection processing done");
 			}
@@ -475,9 +475,9 @@ public class AssignmentProcessor {
 			finishLegalDecisions(context);
 		}
     }
-    
 
-	
+
+
 	private <F extends FocusType> ResourceShadowDiscriminator getConstructionMapKey(LensContext<F> context, Construction<F> construction, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		String resourceOid = construction.getResource(task, result).getOid();
         String intent = construction.getIntent();
@@ -533,17 +533,17 @@ public class AssignmentProcessor {
 
 		return focusContext.getObjectNew().asObjectable();
 	}
-    
-    
 
-    private <F extends FocusType> void evaluateConstructions(LensContext<F> context, 
+
+
+    private <F extends FocusType> void evaluateConstructions(LensContext<F> context,
     		DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	evaluateConstructions(context, evaluatedAssignmentTriple.getZeroSet(), task, result);
     	evaluateConstructions(context, evaluatedAssignmentTriple.getPlusSet(), task, result);
     	evaluateConstructions(context, evaluatedAssignmentTriple.getMinusSet(), task, result);
     }
-    
-    private <F extends FocusType> void evaluateConstructions(LensContext<F> context, 
+
+    private <F extends FocusType> void evaluateConstructions(LensContext<F> context,
     		Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	if (evaluatedAssignments == null) {
     		return;
@@ -576,8 +576,8 @@ public class AssignmentProcessor {
             		// This is a role assignment or something like that. Just throw the original exception for now.
             		throw ex;
             	}
-            	ResourceShadowDiscriminator rad = new ResourceShadowDiscriminator(resourceOid, 
-            			FocusTypeUtil.determineConstructionKind(evaluatedAssignment.getAssignmentType()), 
+            	ResourceShadowDiscriminator rad = new ResourceShadowDiscriminator(resourceOid,
+            			FocusTypeUtil.determineConstructionKind(evaluatedAssignment.getAssignmentType()),
             			FocusTypeUtil.determineConstructionIntent(evaluatedAssignment.getAssignmentType()));
     			LensProjectionContext accCtx = context.findProjectionContext(rad);
     			if (accCtx != null) {
@@ -612,7 +612,7 @@ public class AssignmentProcessor {
 		}
 		return accountConstructionPack.getConstructions();
 	}
-	
+
 	private boolean isForceRecon(ConstructionPack accountConstructionPack) {
 		if (accountConstructionPack == null) {
 			return false;
@@ -621,20 +621,20 @@ public class AssignmentProcessor {
 	}
 
 	/**
-	 * Set 'legal' flag for the accounts that does not have it already 
+	 * Set 'legal' flag for the accounts that does not have it already
 	 */
 	private <F extends FocusType> void finishLegalDecisions(LensContext<F> context) throws PolicyViolationException, SchemaException {
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-		
+
 			String desc = projectionContext.toHumanReadableString();
-			
+
 			if (projectionContext.isLegal() != null) {
 				// already have decision
 				LOGGER.trace("Projection {} legal={} (predetermined)", desc, projectionContext.isLegal());
 				propagateLegalDecisionToHigherOrders(context, projectionContext);
 				continue;
 			}
-		
+
 			if (projectionContext.isLegalize()){
 				LOGGER.trace("Projection {} legal: legalized", desc);
 				createAssignmentDelta(context, projectionContext);
@@ -642,11 +642,11 @@ public class AssignmentProcessor {
                 projectionContext.setAssignedOld(false);
 				projectionContext.setLegal(true);
 				projectionContext.setLegalOld(false);
-				
+
 			} else {
-			
+
 				AssignmentPolicyEnforcementType enforcementType = projectionContext.getAssignmentPolicyEnforcementType();
-				
+
 				if (enforcementType == AssignmentPolicyEnforcementType.FULL) {
 					LOGGER.trace("Projection {} illegal: no assignment in FULL enforcement", desc);
 					// What is not explicitly allowed is illegal in FULL enforcement mode
@@ -658,7 +658,7 @@ public class AssignmentProcessor {
 						throw new PolicyViolationException("Attempt to add projection "+projectionContext.toHumanReadableString()
 								+" while the synchronization enforcement policy is FULL and the projection is not assigned");
 					}
-					
+
 				} else if (enforcementType == AssignmentPolicyEnforcementType.NONE && !projectionContext.isThombstone()) {
 					if (projectionContext.isAdd()) {
 						LOGGER.trace("Projection {} legal: added in NONE policy", desc);
@@ -674,13 +674,13 @@ public class AssignmentProcessor {
 						projectionContext.setLegal(projectionContext.isExists());
 						projectionContext.setLegalOld(projectionContext.isExists());
 					}
-				
+
 				} else if (enforcementType == AssignmentPolicyEnforcementType.POSITIVE && !projectionContext.isThombstone()) {
 					// Everything that is not yet dead is legal in POSITIVE enforcement mode
 					LOGGER.trace("Projection {} legal: not dead in POSITIVE policy", desc);
 					projectionContext.setLegal(true);
 					projectionContext.setLegalOld(true);
-					
+
 				} else if (enforcementType == AssignmentPolicyEnforcementType.RELATIVE && !projectionContext.isThombstone() &&
 						projectionContext.isLegal() == null && projectionContext.isLegalOld() == null) {
 					// RELATIVE mode and nothing has changed. Maintain status quo. Pretend that it is legal.
@@ -689,14 +689,14 @@ public class AssignmentProcessor {
 					projectionContext.setLegalOld(true);
 				}
 			}
-			
+
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Finishing legal decision for {}, thombstone {}, enforcement mode {}, legalize {}: {} -> {}",
 						projectionContext.toHumanReadableString(), projectionContext.isThombstone(),
 						projectionContext.getAssignmentPolicyEnforcementType(),
 						projectionContext.isLegalize(), projectionContext.isLegalOld(), projectionContext.isLegal());
 			}
-			
+
 			propagateLegalDecisionToHigherOrders(context, projectionContext);
 		}
 	}
@@ -728,7 +728,7 @@ public class AssignmentProcessor {
 		PrismContainerDefinition<AssignmentType> containerDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass).findContainerDefinition(FocusType.F_ASSIGNMENT);
 		assignmentDelta.applyDefinition(containerDefinition);
 		context.getFocusContext().swallowToProjectionWaveSecondaryDelta(assignmentDelta);
-		
+
 	}
 
 	public <F extends ObjectType> void processOrgAssignments(LensContext<F> context, OperationResult result) throws SchemaException, PolicyViolationException {
@@ -750,7 +750,7 @@ public class AssignmentProcessor {
 			}
 		}
 		setReferences(focusContext, ObjectType.F_PARENT_ORG_REF, shouldBeParentOrgRefs);
-		
+
 		ObjectDelta<F> focusPrimaryDelta = focusContext.getPrimaryDelta();
 		if (focusPrimaryDelta != null) {
 			ReferenceDelta parentOrgRefDelta = focusPrimaryDelta.findReferenceModification(ObjectType.F_PARENT_ORG_REF);
@@ -764,7 +764,7 @@ public class AssignmentProcessor {
 					}
 				}
 				try {
-					
+
 					parentOrgRefDelta.validateValues(
 						(plusMinusZero,val) -> {
 							switch (plusMinusZero) {
@@ -781,7 +781,7 @@ public class AssignmentProcessor {
 									break;
 							}
 						}, parentOrgRefCurrentValues);
-					
+
 				} catch (TunnelException e) {
 					throw (PolicyViolationException)e.getCause();
 				}
@@ -806,15 +806,15 @@ public class AssignmentProcessor {
 			}
 		}
 	}
-	
+
 
 	public void processAssignmentsAccountValues(LensProjectionContext accountContext, OperationResult result) throws SchemaException,
 		ObjectNotFoundException, ExpressionEvaluationException {
-            
+
 		// TODO: reevaluate constructions
 		// This should re-evaluate all the constructions. They are evaluated already, evaluated in the assignment step before.
 		// But if there is any iteration counter that it will not be taken into account
-		
+
     }
 
     private String dumpAccountMap(Map<ResourceShadowDiscriminator, ConstructionPack> accountMap) {
@@ -842,7 +842,7 @@ public class AssignmentProcessor {
     	}
     	return true;
     }
-        
+
     private void markPolicyDecision(LensProjectionContext accountSyncContext, SynchronizationPolicyDecision decision) {
         if (accountSyncContext.getSynchronizationPolicyDecision() == null) {
             accountSyncContext.setSynchronizationPolicyDecision(decision);
@@ -856,7 +856,7 @@ public class AssignmentProcessor {
 		Iterator<LensProjectionContext> projectionIterator = projectionContexts.iterator();
 		while (projectionIterator.hasNext()) {
 			LensProjectionContext projectionContext = projectionIterator.next();
-			
+
 			if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
 				projectionIterator.remove();
 			}
@@ -867,13 +867,13 @@ public class AssignmentProcessor {
     		Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments,
     		Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
     		PlusMinusZero plusMinusZero) throws SchemaException {
-		
+
 		XMLGregorianCalendar nextRecomputeTime = null;
-		
+
 		for (EvaluatedAssignmentImpl<F> ea: evaluatedAssignments) {
 			Collection<Mapping<V,D>> focusMappings = (Collection)ea.getFocusMappings();
 			for (Mapping<V,D> mapping: focusMappings) {
-				
+
 				ItemPath itemPath = mapping.getOutputPath();
 				DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
 				if (outputTriple == null) {
@@ -896,10 +896,10 @@ public class AssignmentProcessor {
 				}
 			}
 		}
-		
+
 		return nextRecomputeTime;
 	}
-    
+
     public <F extends ObjectType> void processMembershipAndDelegatedRefs(LensContext<F> context,
 			OperationResult result) throws SchemaException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
@@ -975,7 +975,7 @@ public class AssignmentProcessor {
 			}
 		}
 	}
-	
+
 	private <F extends FocusType> AssignmentEvaluator<F> createAssignmentEvaluator(LensContext<F> context,
 			XMLGregorianCalendar now) throws SchemaException {
 		return new AssignmentEvaluator.Builder<F>()
@@ -993,5 +993,5 @@ public class AssignmentProcessor {
 				.systemConfiguration(context.getSystemConfiguration())
 				.build();
 	}
-	
+
 }

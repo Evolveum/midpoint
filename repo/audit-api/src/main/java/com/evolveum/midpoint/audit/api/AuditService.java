@@ -45,19 +45,19 @@ public interface AuditService {
      * @throws UnsupportedOperationException if object retrieval is not supported
      */
     List<AuditEventRecord> listRecords(String query, Map<String, Object> params);
-    
+
     void listRecordsIterative(String query, Map<String, Object> params, AuditResultHandler auditResultHandler);
-    
+
     /**
      * Reindex items, e.g. if new columns were created for audit table according to which the search should be possible
      */
     void reindexEntry(AuditEventRecord record);
-    
+
     /**
      * @throws UnsupportedOperationException if object retrieval is not supported
      */
     long countObjects(String query, Map<String, Object> params);
-    
+
     /**
      * Returns true if retrieval of objects from the audit trail is supported.
      * This applies to listRecords, countObjects, reconstructObject and similar

@@ -103,7 +103,7 @@ public class CustomEvent extends BaseEvent {
 			return false;
 		}
     }
-    
+
     @Override
 	public String debugDump(int indent) {
 		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);

@@ -43,7 +43,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  */
 public class TestPath {
-	
+
 	private static final String NS = "http://example.com/";
 
 	@BeforeSuite
@@ -51,11 +51,11 @@ public class TestPath {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
 	}
-	
+
 	@Test
     public void testPathNormalize() throws Exception {
 		System.out.println("\n\n===[ testPathNormalize ]===\n");
-		
+
 		// GIVEN
 		ItemPath path1 = new ItemPath(new QName(NS, "foo"), new QName(NS, "bar"));
 		ItemPath path2 = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L),
@@ -67,7 +67,7 @@ public class TestPath {
 		ItemPath path4 = new ItemPath(new QName(NS, "x"));
 		ItemPath path5 = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L));
 		ItemPath pathE = ItemPath.EMPTY_PATH;
-		
+
 		// WHEN
 		ItemPath normalized1 = path1.normalize();
 		ItemPath normalized2 = path2.normalize();
@@ -76,7 +76,7 @@ public class TestPath {
 		ItemPath normalized4 = path4.normalize();
 		ItemPath normalized5 = path5.normalize();
 		ItemPath normalizedE = pathE.normalize();
-		
+
 		// THEN
 		System.out.println("Normalized path 1:" + normalized1);
 		System.out.println("Normalized path 2:" + normalized2);
@@ -94,11 +94,11 @@ public class TestPath {
 		assertNormalizedPath(normalized5, "foo", 123L);
 		assert normalizedE.isEmpty() : "normalizedE is not empty";
 	}
-	
+
 	@Test
     public void testPathCompare() throws Exception {
 		System.out.println("\n\n===[ testPathCompare ]===\n");
-		
+
 		// GIVEN
 		ItemPath pathFoo = new ItemPath(new QName(NS, "foo"));
 		ItemPath pathFooNull = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment());
@@ -158,23 +158,23 @@ public class TestPath {
 		assertFalse(ItemPath.containsSuperpathOrEquivalent(onlyFooBar, pathFooBarBaz));
 		assertFalse(ItemPath.containsSuperpath(onlyFooBar, pathFooBarBaz));
 	}
-	
+
 	@Test
     public void testPathRemainder() throws Exception {
 		System.out.println("\n\n===[ testPathRemainder ]===\n");
-		
+
 		// GIVEN
 		ItemPath pathFoo = new ItemPath(new QName(NS, "foo"));
 		ItemPath pathBar = new ItemPath(new QName(NS, "bar"));
 		ItemPath pathFooNull = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment());
 		ItemPath pathFoo123 = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L));
 		ItemPath pathFooBar = new ItemPath(new QName(NS, "foo"), new QName(NS, "bar"));
-		ItemPath pathFooNullBar = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(), 
+		ItemPath pathFooNullBar = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(),
 												new NameItemPathSegment(new QName(NS, "bar")));
-				
+
 		// WHEN
 		ItemPath remainder1 = pathFooBar.remainder(pathFooNull);
-		
+
 		// THEN
 		assertEquals("Remainder fooBar, fooNull", pathBar, remainder1);
 	}
@@ -188,7 +188,7 @@ public class TestPath {
 			assert name != null : "name is null";
 			assert name.getNamespaceURI().equals(NS) : "wrong namespace: "+name.getNamespaceURI();
 			assert name.getLocalPart().equals(expected[i]) : "wrong local name, expected "+expected[i]+", was "+name.getLocalPart();
-			
+
 			if (i + 1 < expected.length) {
 				ItemPathSegment idSegment = normalized.getSegments().get(i+1);
 				assert idSegment instanceof IdItemPathSegment : "Expected is segment but it was "+nameSegment.getClass();

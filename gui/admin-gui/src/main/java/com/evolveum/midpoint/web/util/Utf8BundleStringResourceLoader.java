@@ -38,8 +38,15 @@ public class Utf8BundleStringResourceLoader implements IStringResourceLoader {
 
     private final String bundleName;
 
+    private ClassLoader classLoader;
+
     public Utf8BundleStringResourceLoader(String bundleName) {
+        this(bundleName, null);
+    }
+
+    public Utf8BundleStringResourceLoader(String bundleName, ClassLoader classLoader) {
         this.bundleName = bundleName;
+        this.classLoader = classLoader;
     }
 
     @Override
@@ -55,8 +62,16 @@ public class Utf8BundleStringResourceLoader implements IStringResourceLoader {
 
         ResourceBundle.Control control = new UTF8Control();
         try {
-            return ResourceBundle.getBundle(bundleName, locale, control).getString(key);
+            if (classLoader == null) {
+                return ResourceBundle.getBundle(bundleName, locale, control).getString(key);
+            } else {
+                return ResourceBundle.getBundle(bundleName, locale, classLoader, control).getString(key);
+            }
         } catch (MissingResourceException ex) {
+            if (classLoader != null) {
+                return null;
+            }
+
             try {
                 return ResourceBundle.getBundle(bundleName, locale,
                         Thread.currentThread().getContextClassLoader(), control).getString(key);

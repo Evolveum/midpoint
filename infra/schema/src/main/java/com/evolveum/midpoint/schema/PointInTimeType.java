@@ -23,26 +23,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PointInTimeTypeType;
  * that describe situation at the current point in time. But the client code may want to get data from the
  * cache that may be possibly stale. Or the client code may want a projection about the future state of the
  * data (e.g. taking running asynchronous operation into consideration).
- * 
+ *
  * @author semancik
  */
 public enum PointInTimeType {
-	
+
 	/**
 	 * Return cached data (if available).
 	 * Avoid fetching the data from external system.
 	 */
 	CACHED,
-	
+
 	/**
 	 * Return current data. Fetch from external system if needed.
 	 * The "current" has to be understood in Einsteinean sense.
 	 * The returned data are as fresh as possible - but that still
 	 * may be hours or days old for some resources.
-	 * This is usually the default. 
+	 * This is usually the default.
 	 */
 	CURRENT,
-	
+
 	/**
 	 * Returns current data and applies all the available projections
 	 * about future state of the data. E.g. applies projected state of

@@ -57,20 +57,20 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
  * Nested Operation Result.
- * 
+ *
  * This class provides information for better error handling in complex
  * operations. It contains a status (success, failure, warning, ...) and an
  * error message. It also contains a set of sub-results - results on inner
  * operations.
- * 
+ *
  * This object can be used by GUI to display smart (and interactive) error
  * information. It can also be used by the client code to detect deeper problems
  * in the invocations, retry or otherwise compensate for the errors or decide
  * how severe the error was and it is possible to proceed.
- * 
+ *
  * @author lazyman
  * @author Radovan Semancik
- * 
+ *
  */
 public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
@@ -95,7 +95,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public static final String CONTEXT_ITEM = "item";
 	public static final String CONTEXT_TASK = "task";
 	public static final String CONTEXT_RESOURCE = "resource";
-	
+
 	public static final String PARAM_OID = "oid";
 	public static final String PARAM_NAME = "name";
 	public static final String PARAM_TYPE = "type";
@@ -105,21 +105,21 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public static final String PARAM_QUERY = "query";
 	public static final String PARAM_PROJECTION = "projection";
 	public static final String PARAM_LANGUAGE = "language";
-	
+
 	public static final String RETURN_COUNT = "count";
 	public static final String RETURN_BACKGROUND_TASK_OID = "backgroundTaskOid";
 
 	private static long TOKEN_COUNT = 1000000000000000000L;
 	private String operation;
 	private OperationResultStatus status;
-	
+
 	// Values of the following maps should NOT be null. But in reality it does happen.
 	// If there is a null value, it should be stored as a single-item collection, where the item is null.
 	// But the collection should not be null. TODO; fix this
 	private Map<String, Collection<String>> params;
 	private Map<String, Collection<String>> context;
 	private Map<String, Collection<String>> returns;
-	
+
 	private long token;
 	private String messageCode;
 	private String message;
@@ -134,7 +134,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	private boolean summarizePartialErrors;
 	private boolean summarizeSuccesses;
 	private boolean minor = false;
-	
+
 	/**
 	 * Reference to an asynchronous operation that can be used to retrieve
 	 * the status of the running operation. This may be a task identifier,
@@ -143,7 +143,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	 * executed.
 	 */
 	private String asynchronousOperationReference;
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(OperationResult.class);
 
 	public OperationResult(String operation) {
@@ -192,7 +192,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		this(operation, params, status, token, messageCode, message, localizationMessage, null, cause,
 				subresults);
 	}
-	
+
 	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
 			long token, String messageCode, String message, String localizationMessage,
 			List<Serializable> localizationArguments, Throwable cause, List<OperationResult> subresults) {
@@ -237,13 +237,13 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		addSubresult(subresult);
 		return subresult;
 	}
-	
+
 	public OperationResult createMinorSubresult(String operation) {
 		OperationResult subresult = createSubresult(operation);
 		subresult.minor = true;
 		return subresult;
 	}
-	
+
 	/**
 	 * Reference to an asynchronous operation that can be used to retrieve
 	 * the status of the running operation. This may be a task identifier,
@@ -292,13 +292,13 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	 * constant in module interface with description and possible parameters. It
 	 * can be used for further processing. It will be used as key for
 	 * translation in admin-gui.
-	 * 
+	 *
 	 * @return always return non null, non empty string
 	 */
 	public String getOperation() {
 		return operation;
 	}
-	
+
 	public int getCount() {
 		return count;
 	}
@@ -306,7 +306,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public void setCount(int count) {
 		this.count = count;
 	}
-	
+
 	public void incrementCount() {
 		this.count++;
 	}
@@ -346,7 +346,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public void setSummarizeSuccesses(boolean summarizeSuccesses) {
 		this.summarizeSuccesses = summarizeSuccesses;
 	}
-	
+
 	public boolean isEmpty() {
 		return (status == null || status == OperationResultStatus.UNKNOWN) &&
 				(subresults == null || subresults.isEmpty());
@@ -356,7 +356,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	/**
 	 * Method returns list of operation subresults @{link
 	 * {@link OperationResult}.
-	 * 
+	 *
 	 * @return never returns null
 	 */
 	public List<OperationResult> getSubresults() {
@@ -394,7 +394,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public void addSubresult(OperationResult subresult) {
 		getSubresults().add(subresult);
 	}
-	
+
 	public OperationResult findSubresult(String operation) {
 		if (subresults == null) {
 			return null;
@@ -406,7 +406,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 		return null;
 	}
-	
+
 	public List<OperationResult> findSubresults(String operation) {
 		List<OperationResult> found = new ArrayList<>();
 		if (subresults == null) {
@@ -422,7 +422,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
 	/**
 	 * Contains operation status as defined in {@link OperationResultStatus}
-	 * 
+	 *
 	 * @return never returns null
 	 */
 	public OperationResultStatus getStatus() {
@@ -435,10 +435,10 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
 	/**
 	 * Returns true if the result is success.
-	 * 
+	 *
 	 * This returns true if the result is absolute success. Presence of partial
 	 * failures or warnings fail this test.
-	 * 
+	 *
 	 * @return true if the result is success.
 	 */
 	public boolean isSuccess() {
@@ -451,11 +451,11 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
 	/**
 	 * Returns true if the result is acceptable for further processing.
-	 * 
+	 *
 	 * In other words: if there were no fatal errors. Warnings and partial
 	 * errors are acceptable. Yet, this test also fails if the operation state
 	 * is not known.
-	 * 
+	 *
 	 * @return true if the result is acceptable for further processing.
 	 */
 	public boolean isAcceptable() {
@@ -469,7 +469,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
     public boolean isInProgress() {
         return (status == OperationResultStatus.IN_PROGRESS);
     }
-	
+
 	public boolean isError() {
 		return (status == OperationResultStatus.FATAL_ERROR) ||
 					(status == OperationResultStatus.PARTIAL_ERROR);
@@ -478,15 +478,15 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public boolean isFatalError() {
 		return (status == OperationResultStatus.FATAL_ERROR);
 	}
-	
+
 	public boolean isPartialError() {
 		return (status == OperationResultStatus.PARTIAL_ERROR);
 	}
-	
+
 	public boolean isHandledError() {
 		return (status == OperationResultStatus.HANDLED_ERROR);
 	}
-	
+
 	public boolean isNotApplicable() {
 		return (status == OperationResultStatus.NOT_APPLICABLE);
 	}
@@ -507,7 +507,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	/**
 	 * Computes operation result status based on subtask status and sets an
 	 * error message if the status is FATAL_ERROR.
-	 * 
+	 *
 	 * @param errorMessage
 	 *            error message
 	 */
@@ -522,7 +522,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		// therefore we need to check before calling computeStatus
 		boolean noMessage = StringUtils.isEmpty(message);
 		computeStatus();
-		
+
 		switch (status) {
 			case FATAL_ERROR:
 			case PARTIAL_ERROR:
@@ -607,7 +607,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 				}
 			}
 		}
-		
+
 		if (allNotApplicable && !getSubresults().isEmpty()) {
 			status = OperationResultStatus.NOT_APPLICABLE;
 		}
@@ -693,7 +693,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
                 }
             }
 		}
-		
+
 		if (allNotApplicable) {
 			status = OperationResultStatus.NOT_APPLICABLE;
 		} else if (allFatalError) {
@@ -710,7 +710,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
             status = OperationResultStatus.SUCCESS;
         }
 	}
-	
+
 	public OperationResultStatus getComputeStatus() {
 		OperationResultStatus origStatus = status;
 		String origMessage = message;
@@ -734,7 +734,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			computeStatus();
 		}
 	}
-	
+
 	public void recomputeStatus(String message) {
 		// Only recompute if there are subresults, otherwise keep original
 		// status
@@ -756,13 +756,13 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			recordSuccess();
 		}
 	}
-	
+
 	public void recordNotApplicableIfUnknown() {
 		if (isUnknown()) {
 			status = OperationResultStatus.NOT_APPLICABLE;
 		}
 	}
-	
+
 	public boolean isMinor() {
 		return minor;
 	}
@@ -777,11 +777,11 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 		return params;
 	}
-	
+
 	public Collection<String> getParam(String name) {
 		return getParams().get(name);
 	}
-	
+
 	public String getParamSingle(String name) {
 		Collection<String> values = getParams().get(name);
 		if (values == null) {
@@ -799,11 +799,11 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public void addParam(String name, String value) {
 		getParams().put(name, collectionize(value));
 	}
-	
+
 	public void addParam(String name, PrismObject<? extends ObjectType> value) {
 		getParams().put(name, collectionize(stringify(value)));
 	}
-	
+
 	public void addParam(String name, ObjectType value) {
 		getParams().put(name, collectionize(stringify(value)));
 	}
@@ -811,15 +811,15 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public void addParam(String name, boolean value) {
 		getParams().put(name, collectionize(stringify(value)));
 	}
-	
+
 	public void addParam(String name, long value) {
 		getParams().put(name, collectionize(stringify(value)));
 	}
-	
+
 	public void addParam(String name, int value) {
 		getParams().put(name, collectionize(stringify(value)));
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public void addParam(String name, Class<?> value) {
 		if (ObjectType.class.isAssignableFrom(value)) {
@@ -828,24 +828,24 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			getParams().put(name, collectionize(stringify(value)));
 		}
 	}
-	
+
 	public void addParam(String name, QName value) {
 		getParams().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
 	}
-	
+
 	public void addParam(String name, PolyString value) {
 		getParams().put(name, collectionize(value == null ? null : value.getOrig()));
 	}
-	
+
 	public void addParam(String name, ObjectQuery value) {
 		getParams().put(name, collectionize(stringify(value)));
 	}
-	
+
 	public void addParam(String name, ObjectDelta<?> value) {
 		getParams().put(name, collectionize(stringify(value)));
 	}
-	
-	
+
+
 	public void addParam(String name, String... values) {
 		getParams().put(name, collectionize(values));
 	}
@@ -864,31 +864,31 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 		return context;
 	}
-    
+
 	public void addContext(String name, String value) {
 		getContext().put(name, collectionize(value));
 	}
-	
+
 	public void addContext(String name, PrismObject<? extends ObjectType> value) {
 		getContext().put(name, collectionize(stringify(value)));
 	}
-	
+
 	public void addContext(String name, ObjectType value) {
 		getContext().put(name, collectionize(stringify(value)));
 	}
-	
+
 	public void addContext(String name, boolean value) {
 		getContext().put(name, collectionize(stringify(value)));
 	}
-	
+
 	public void addContext(String name, long value) {
 		getContext().put(name, collectionize(stringify(value)));
 	}
-	
+
 	public void addContext(String name, int value) {
 		getContext().put(name, collectionize(stringify(value)));
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public void addContext(String name, Class<?> value) {
 		if (ObjectType.class.isAssignableFrom(value)) {
@@ -897,24 +897,24 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			getContext().put(name, collectionize(stringify(value)));
 		}
 	}
-	
+
 	public void addContext(String name, QName value) {
 		getContext().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
 	}
-	
+
 	public void addContext(String name, PolyString value) {
 		getContext().put(name, collectionize(value == null ? null : value.getOrig()));
 	}
-	
+
 	public void addContext(String name, ObjectQuery value) {
 		getContext().put(name, collectionize(stringify(value)));
 	}
-	
+
 	public void addContext(String name, ObjectDelta<?> value) {
 		getContext().put(name, collectionize(stringify(value)));
 	}
-	
-	
+
+
 	public void addContext(String name, String... values) {
 		getContext().put(name, collectionize(values));
 	}
@@ -926,18 +926,18 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
     public void addArbitraryObjectCollectionAsContext(String paramName, Collection<?> paramValue) {
     	getContext().put(paramName, stringifyCol(paramValue));
     }
-    
+
 	public Map<String, Collection<String>> getReturns() {
 		if (returns == null) {
 			returns = new HashMap<>();
 		}
 		return returns;
 	}
-	
+
 	public Collection<String> getReturn(String name) {
 		return getReturns().get(name);
 	}
-	
+
 	public String getReturnSingle(String name) {
 		Collection<String> values = getReturns().get(name);
 		if (values == null) {
@@ -955,27 +955,27 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public void addReturn(String name, String value) {
 		getReturns().put(name, collectionize(value));
 	}
-	
+
 	public void addReturn(String name, PrismObject<? extends ObjectType> value) {
 		getReturns().put(name, collectionize(stringify(value)));
 	}
-	
+
 	public void addReturn(String name, ObjectType value) {
 		getReturns().put(name, collectionize(stringify(value)));
 	}
-	
+
 	public void addReturn(String name, boolean value) {
 		getReturns().put(name, collectionize(stringify(value)));
 	}
-	
+
 	public void addReturn(String name, long value) {
 		getReturns().put(name, collectionize(stringify(value)));
 	}
-	
+
 	public void addReturn(String name, int value) {
 		getReturns().put(name, collectionize(stringify(value)));
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public void addReturn(String name, Class<?> value) {
 		if (ObjectType.class.isAssignableFrom(value)) {
@@ -984,24 +984,24 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			getReturns().put(name, collectionize(stringify(value)));
 		}
 	}
-	
+
 	public void addReturn(String name, QName value) {
 		getReturns().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
 	}
-	
+
 	public void addReturn(String name, PolyString value) {
 		getReturns().put(name, collectionize(value == null ? null : value.getOrig()));
 	}
-	
+
 	public void addReturn(String name, ObjectQuery value) {
 		getReturns().put(name, collectionize(stringify(value)));
 	}
-	
+
 	public void addReturn(String name, ObjectDelta<?> value) {
 		getReturns().put(name, collectionize(stringify(value)));
 	}
-	
-	
+
+
 	public void addReturn(String name, String... values) {
 		getReturns().put(name, collectionize(values));
 	}
@@ -1012,8 +1012,8 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
     public void addArbitraryObjectCollectionAsReturn(String paramName, Collection<?> paramValue) {
     	getReturns().put(paramName, stringifyCol(paramValue));
-    }	
-    
+    }
+
     private String stringify(Object value) {
 		if (value == null) {
 			return null;
@@ -1021,17 +1021,17 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			return value.toString();
 		}
 	}
-    
+
     private Collection<String> collectionize(String value) {
     	Collection<String> out = new ArrayList<>(1);
     	out.add(value);
     	return out;
     }
-    
+
     private Collection<String> collectionize(String... values) {
     	return Arrays.asList(values);
     }
-    
+
     private Collection<String> stringifyCol(Collection<?> values) {
 		if (values == null) {
 			return null;
@@ -1060,7 +1060,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
 	/**
 	 * Contains mesage code based on module error catalog.
-	 * 
+	 *
 	 * @return Can return null.
 	 */
 	public String getMessageCode() {
@@ -1117,7 +1117,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
     public void recordFatalError(Throwable cause) {
 		recordStatus(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
 	}
-	
+
 	/**
 	 * If the operation is an error then it will switch the status to EXPECTED_ERROR.
 	 * This is used if the error is expected and properly handled.
@@ -1127,7 +1127,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			status = OperationResultStatus.HANDLED_ERROR;
 		}
 	}
-	
+
 	public void muteLastSubresultError() {
 		OperationResult lastSubresult = getLastSubresult();
 		if (lastSubresult != null) {
@@ -1169,15 +1169,15 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public void recordWarning(String message, Throwable cause) {
 		recordStatus(OperationResultStatus.WARNING, message, cause);
 	}
-	
+
 	public void recordHandledError(String message) {
 		recordStatus(OperationResultStatus.HANDLED_ERROR, message);
 	}
-	
+
 	public void recordHandledError(String message, Throwable cause) {
 		recordStatus(OperationResultStatus.HANDLED_ERROR, message, cause);
 	}
-	
+
 	public void recordHandledError(Throwable cause) {
 		recordStatus(OperationResultStatus.HANDLED_ERROR, cause.getMessage(), cause);
 	}
@@ -1203,7 +1203,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	/**
 	 * Records result from a common exception type. This automatically
 	 * determines status and also sets appropriate message.
-	 * 
+	 *
 	 * @param exception
 	 *            common exception
 	 */
@@ -1221,7 +1221,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	/**
 	 * Returns true if result status is UNKNOWN or any of the subresult status
 	 * is unknown (recursive).
-	 * 
+	 *
 	 * May come handy in tests to check if all the operations fill out the
 	 * status as they should.
 	 */
@@ -1267,7 +1267,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		String localizedMessage = message == null ? null : message.getKey();
 		List<Serializable> localizedArguments = message == null ? null : (List<Serializable>) (List) message.getArgument();         // FIXME: brutal hack
 
-		OperationResult opResult = new OperationResult(result.getOperation(), params, context, returns, 
+		OperationResult opResult = new OperationResult(result.getOperation(), params, context, returns,
 				OperationResultStatus.parseStatusType(result.getStatus()), result.getToken(),
 				result.getMessageCode(), result.getMessage(), localizedMessage, localizedArguments, null,
 				subresults);
@@ -1505,11 +1505,11 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public void cleanupResult() {
 		cleanupResult(null);
 	}
-	
+
 	/**
 	 * Removes all the successful minor results. Also checks if the result is roughly consistent
 	 * and complete. (e.g. does not have unknown operation status, etc.)
-	 * 
+	 *
 	 * The argument "e" is for easier use of the cleanup in the exceptions handlers. The original exception is passed
 	 * to the IAE that this method produces for easier debugging.
 	 */
@@ -1552,7 +1552,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		dumpIndent(sb, indent, true);
 		return sb.toString();
 	}
-	
+
 	public String dump(boolean withStack) {
 		StringBuilder sb = new StringBuilder();
 		dumpIndent(sb, 0, withStack);
@@ -1597,7 +1597,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			sb.append(dumpEntry(indent+2, entry.getValue()));
 			sb.append("\n");
 		}
-		
+
 		for (Map.Entry<String, Collection<String>> entry : getReturns().entrySet()) {
 			DebugUtil.indentDebugDump(sb, indent + 2);
 			sb.append("[r]");
@@ -1613,7 +1613,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			sb.append(line);
 			sb.append("\n");
 		}
-		
+
 		if (cause != null) {
 			DebugUtil.indentDebugDump(sb, indent + 2);
 			sb.append("[cause]");
@@ -1770,7 +1770,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public static void setSubresultStripThreshold(Integer value) {
 		subresultStripThreshold = value != null ? value : DEFAULT_SUBRESULT_STRIP_THRESHOLD;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

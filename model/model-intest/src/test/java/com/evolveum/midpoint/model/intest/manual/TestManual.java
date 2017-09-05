@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.model.intest.manual;
 
@@ -33,7 +33,7 @@ import org.w3c.dom.Element;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestManual extends AbstractManualResourceTest {
-	
+
 	@Override
 	protected String getResourceOid() {
 		return RESOURCE_MANUAL_OID;
@@ -43,27 +43,27 @@ public class TestManual extends AbstractManualResourceTest {
 	protected File getResourceFile() {
 		return RESOURCE_MANUAL_FILE;
 	}
-	
+
 	@Override
 	protected String getRoleOneOid() {
 		return ROLE_ONE_MANUAL_OID;
 	}
-	
+
 	@Override
 	protected File getRoleOneFile() {
 		return ROLE_ONE_MANUAL_FILE;
 	}
-	
+
 	@Override
 	protected String getRoleTwoOid() {
 		return ROLE_TWO_MANUAL_OID;
 	}
-	
+
 	@Override
 	protected File getRoleTwoFile() {
 		return ROLE_TWO_MANUAL_FILE;
 	}
-	
+
 	@Override
 	protected void assertResourceSchemaBeforeTest(Element resourceXsdSchemaElementBefore) {
 		AssertJUnit.assertNotNull("No schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);

@@ -279,11 +279,11 @@ public class UserMenuPanel extends BasePanel {
 
         PasswordQuestionsDto dto =new PasswordQuestionsDto();
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
-        
+
         if (parentPage == null) {
         	parentPage = ((PageBase)getPage());
         }
-        
+
         try {
 
         	MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
@@ -342,7 +342,7 @@ public class UserMenuPanel extends BasePanel {
                         continue;
                     }
                 }
-                
+
             }
 
             return secQuestAnswListDTO;

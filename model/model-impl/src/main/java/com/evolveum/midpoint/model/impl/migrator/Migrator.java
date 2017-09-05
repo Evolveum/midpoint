@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 public class Migrator {
-	
+
 	public <I extends ObjectType, O extends ObjectType> PrismObject<O> migrate(PrismObject<I> original) {
 		Class<I> origType = original.getCompileTimeClass();
 		if (ObjectTemplateType.class.isAssignableFrom(origType)) {
@@ -58,7 +58,7 @@ public class Migrator {
 		}
 		return (PrismObject<O>) original;
 	}
-	
+
 	private PrismObject<ObjectTemplateType> migrateObjectTemplate(PrismObject<ObjectTemplateType> orig) {
 		QName elementName = orig.getElementName();
 		if (elementName.equals(SchemaConstants.C_OBJECT_TEMPLATE)) {
@@ -72,12 +72,12 @@ public class Migrator {
 	private PrismObject<ResourceType> migrateResource(PrismObject<ResourceType> orig) {
 		return orig;
 	}
-	
+
 	private void migrateObjectSynchronization(ObjectSynchronizationType sync) {
 		if (sync == null || sync.getReaction() == null){
 			return;
 		}
-		
+
 		List<SynchronizationReactionType> migratedReactions = new ArrayList<SynchronizationReactionType>();
 		for (SynchronizationReactionType reaction : sync.getReaction()){
 			if (reaction.getAction() == null){
@@ -92,7 +92,7 @@ public class Migrator {
 			migratedReaction.getAction().addAll(migratedAction);
 			migratedReactions.add(migratedReaction);
 		}
-		
+
 		sync.getReaction().clear();
 		sync.getReaction().addAll(migratedReactions);
 	}
@@ -101,16 +101,16 @@ public class Migrator {
 		if (action.getUserTemplateRef() == null){
 			return action;
 		}
-		
+
 		action.setObjectTemplateRef(action.getUserTemplateRef());
-		
+
 		return action;
 	}
-	
+
 	private PrismObject<FocusType> migrateFocus(PrismObject<FocusType> orig) {
 		return orig;
 	}
-	
+
 	private PrismObject<UserType> migrateUser(PrismObject<UserType> orig) {
 		return orig;
 	}

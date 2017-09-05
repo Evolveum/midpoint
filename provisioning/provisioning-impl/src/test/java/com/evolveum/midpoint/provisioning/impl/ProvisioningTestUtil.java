@@ -47,31 +47,31 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  */
 public class ProvisioningTestUtil {
-	
+
 	public static final File COMMON_TEST_DIR_FILE = new File("src/test/resources/common/");
 	public static final File TEST_DIR_IMPL_FILE = new File("src/test/resources/impl/");
-	
+
 	public static final File RESOURCE_OPENDJ_FILE = new File(COMMON_TEST_DIR_FILE, "resource-opendj.xml");
-	
+
 	public static final String RESOURCE_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd";
-	
+
 	public static final String DOT_JPG_FILENAME = "src/test/resources/common/dot.jpg";
-	
+
 	public static final File USER_ADMIN_FILE = new File(COMMON_TEST_DIR_FILE, "admin.xml");
-	
+
 	public static final String CONNID_CONNECTOR_FACADE_CLASS_NAME = "org.identityconnectors.framework.api.ConnectorFacade";
 	public static final String CONNID_UID_NAME = "__UID__";
 	public static final String CONNID_NAME_NAME = "__NAME__";
 	public static final String CONNID_DESCRIPTION_NAME = "__DESCRIPTION__";
-	
+
 	public static void checkRepoAccountShadow(PrismObject<ShadowType> repoShadow) {
 		checkRepoShadow(repoShadow, ShadowKindType.ACCOUNT);
 	}
-	
+
 	public static void checkRepoEntitlementShadow(PrismObject<ShadowType> repoShadow) {
 		checkRepoShadow(repoShadow, ShadowKindType.ENTITLEMENT);
 	}
-	
+
 	public static void checkRepoShadow(PrismObject<ShadowType> repoShadow, ShadowKindType kind) {
 		checkRepoShadow(repoShadow, kind, 2);
 	}
@@ -90,7 +90,7 @@ public class ProvisioningTestUtil {
 			assertEquals("Unexpected number of attributes in repo shadow "+repoShadow, (int)expectedNumberOfAttributes, attributes.size());
 		}
 	}
-	
+
 	public static QName getDefaultAccountObjectClass(ResourceType resourceType) {
 		String namespace = ResourceTypeUtil.getResourceNamespace(resourceType);
 		return new QName(namespace, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);

@@ -374,7 +374,7 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
 	public EventHandlerType getAdHocHandler() {
 		return adHocHandler;
 	}
-	
+
 	protected void debugDumpCommon(StringBuilder sb, int indent) {
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "id", getId(), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "requester", getRequester(), indent + 1);

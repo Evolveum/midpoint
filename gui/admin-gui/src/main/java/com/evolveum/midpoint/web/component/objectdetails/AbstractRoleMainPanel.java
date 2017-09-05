@@ -74,7 +74,7 @@ import java.util.List;
  */
 public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends FocusMainPanel<R> {
 	private static final long serialVersionUID = 1L;
-	
+
 	private LoadableModel<List<AssignmentEditorDto>> inducementsModel;
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMainPanel.class);
     private static final String DOT_CLASS = AbstractRoleMainPanel.class.getName();
@@ -84,7 +84,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
     private static final String ID_SHOPPING_CART_BUTTON = "shoppingCartButton";
     private static final String ID_ITEMS_COUNT = "itemsCount";
 
-	public AbstractRoleMainPanel(String id, LoadableModel<ObjectWrapper<R>> objectModel, 
+	public AbstractRoleMainPanel(String id, LoadableModel<ObjectWrapper<R>> objectModel,
 			CountableLoadableModel<AssignmentDto> assignmentsModel,
 			CountableLoadableModel<AssignmentDto> policyRulesModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
@@ -209,7 +209,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 		tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.inducement"), authorization)
 		{
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
 				return new AssignmentTablePanel<R>(panelId, parentPage.createStringResource("FocusType.inducement"), inducementsModel, parentPage) {
@@ -231,7 +231,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 					}
 				};
 			}
-			
+
 			@Override
 			public String getCount() {
 				return Integer.toString(inducementsModel.getObject() == null ? 0 : inducementsModel.getObject().size());
@@ -256,7 +256,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 						isAllowedToReadRoleMembership(getObjectWrapper().getOid(), parentPage);
 			}
 		});
-		
+
 		return tabs;
 	}
 
@@ -283,5 +283,5 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
     }
 
 	public abstract AbstractRoleMemberPanel<R> createMemberPanel(String panelId);
-	
+
 }

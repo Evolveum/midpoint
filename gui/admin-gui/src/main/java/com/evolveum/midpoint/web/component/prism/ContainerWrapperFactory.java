@@ -91,7 +91,7 @@ public class ContainerWrapperFactory {
         cWrapper.setProperties(properties);
 
         cWrapper.computeStripes();
-        
+
         return cWrapper;
     }
 
@@ -103,7 +103,7 @@ public class ContainerWrapperFactory {
 
 		List<ItemWrapper> properties = createProperties(cWrapper, result);
 		cWrapper.setProperties(properties);
-		
+
 		cWrapper.computeStripes();
 
 		return cWrapper;
@@ -214,10 +214,10 @@ public class ContainerWrapperFactory {
             }
 
         } else if (isShadowAssociation(cWrapper)) {
-        	
+
         	// HACK: this should not be here. Find a better place.
         	cWrapper.setDisplayName("prismContainer.shadow.associations");
-        	
+
             PrismContext prismContext = objectWrapper.getObject().getPrismContext();
             Map<QName, PrismContainer<ShadowAssociationType>> assocMap = new HashMap<>();
             PrismContainer<ShadowAssociationType> associationContainer = cWrapper.getItem();
@@ -280,7 +280,7 @@ public class ContainerWrapperFactory {
 
             for (Map.Entry<QName, PrismContainer<ShadowAssociationType>> assocEntry : assocMap.entrySet()) {
             	RefinedAssociationDefinition assocRDef = rOcDef.findAssociationDefinition(assocEntry.getKey());
-                AssociationWrapper assocWrapper = new AssociationWrapper(cWrapper, assocEntry.getValue(), 
+                AssociationWrapper assocWrapper = new AssociationWrapper(cWrapper, assocEntry.getValue(),
                 		cWrapper.isReadonly(), ValueStatus.NOT_CHANGED, assocRDef);
                 properties.add(assocWrapper);
             }
@@ -382,20 +382,20 @@ public class ContainerWrapperFactory {
 		result = new OperationResult(CREATE_PROPERTIES);
 
 		PrismContainer<AssignmentType> assignmentContainer = container.asPrismContainerValue().getContainer();
-		
+
 		ContainerWrapper cWrapper = new ContainerWrapper(assignmentContainer, status, path, readonly);
 
 		List<ItemWrapper> properties = createProperties(container, assignmentContainer.getDefinition(), cWrapper);
 		cWrapper.setProperties(properties);
-		
+
 		cWrapper.computeStripes();
 
 		return cWrapper;
     }
-    
+
 private List<ItemWrapper> createProperties(AssignmentType container, PrismContainerDefinition definition, ContainerWrapper<Containerable> cWrapper) {
 	 Collection<ItemDefinition> propertyDefinitions = definition.getDefinitions();
-	 
+
 	 List<ItemWrapper> properties = new ArrayList<>();
 	 for (ItemDefinition itemDef : propertyDefinitions) {
          //TODO temporary decision to hide adminGuiConfiguration attribute (MID-3305)
@@ -469,13 +469,13 @@ private List<ItemWrapper> createProperties(AssignmentType container, PrismContai
 
          }
      }
-	 
+
 	 Collections.sort(properties, new ItemWrapperComparator());
 
         return properties;
 
 }
-    
+
 	private boolean isShadowAssociation(ContainerWrapper cWrapper) {
         ObjectWrapper oWrapper = cWrapper.getObject();
 		if (oWrapper == null) {

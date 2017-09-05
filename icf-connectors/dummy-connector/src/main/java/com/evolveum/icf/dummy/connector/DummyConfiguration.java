@@ -31,11 +31,11 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public static final String UID_MODE_NAME = "name";
 	public static final String UID_MODE_UUID = "uuid";
-	
+
 	public static final String PASSWORD_READABILITY_MODE_UNREADABLE = "unreadable";
 	public static final String PASSWORD_READABILITY_MODE_INCOMPLETE = "incomplete";
 	public static final String PASSWORD_READABILITY_MODE_READABLE = "readable";
-	
+
     private static final Log log = Log.getLog(DummyConfiguration.class);
 
     private String instanceId;
@@ -52,7 +52,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     private boolean generateDefaultValues = false;
     private boolean tolerateDuplicateValues = true;
 	private boolean varyLetterCase = false;
-	private boolean referentialIntegrity = false; 
+	private boolean referentialIntegrity = false;
     private String uselessString;
     private GuardedString uselessGuardedString;
     private boolean requireUselessString = false;
@@ -80,7 +80,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     public void setInstanceId(String config) {
         this.instanceId = config;
     }
-    
+
     /**
      * If set to false the connector will return UnsupportedOperationException when trying to
      * get the schema.
@@ -94,9 +94,9 @@ public class DummyConfiguration extends AbstractConfiguration {
 	public void setSupportSchema(boolean supportSchema) {
 		this.supportSchema = supportSchema;
 	}
-	
+
 	/**
-     * If set to true the connector will expose activation special attribute (ENABLED). True is the default. 
+     * If set to true the connector will expose activation special attribute (ENABLED). True is the default.
      */
     @ConfigurationProperty(displayMessageKey = "UI_SUPPORT_ACTIVATION",
     		helpMessageKey = "UI_SUPPORT_ACTIVATION_HELP")
@@ -107,9 +107,9 @@ public class DummyConfiguration extends AbstractConfiguration {
 	public void setSupportActivation(boolean supportActivation) {
 		this.supportActivation = supportActivation;
 	}
-	
+
 	/**
-     * If set to true the connector will expose the validity ICF special attributes. 
+     * If set to true the connector will expose the validity ICF special attributes.
      */
     @ConfigurationProperty(displayMessageKey = "UI_SUPPORT_VALIDITY",
     		helpMessageKey = "UI_SUPPORT_VALIDITY_HELP")
@@ -120,7 +120,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	public void setSupportValidity(boolean supportValidity) {
 		this.supportValidity = supportValidity;
 	}
-	
+
 	@ConfigurationProperty(displayMessageKey = "UI_UID_MODE",
     		helpMessageKey = "UI_UID_MODE_HELP")
 	public String getUidMode() {
@@ -140,7 +140,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	public void setEnforceUniqueName(boolean enforceUniqueName) {
 		this.enforceUniqueName = enforceUniqueName;
 	}
-	
+
 	/**
      * If set to true then the password can be read from the resource.
      */
@@ -166,7 +166,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	public void setRequireExplicitEnable(boolean requireExplicitEnable) {
 		this.requireExplicitEnable = requireExplicitEnable;
 	}
-	
+
 	/**
 	 * If set to true then the identifiers will be considered case-insensitive
 	 */
@@ -179,7 +179,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	public void setCaseIgnoreId(boolean caseIgnoreId) {
 		this.caseIgnoreId = caseIgnoreId;
 	}
-	
+
 	/**
 	 * If set to true then the "home dir" will be generated
 	 */
@@ -188,7 +188,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	public boolean isGenerateDefaultValues() {
 		return generateDefaultValues;
 	}
-	
+
 	public void setGenerateDefaultValues(boolean generateDefaultValues) {
 		this.generateDefaultValues = generateDefaultValues;
 	}
@@ -256,7 +256,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	public void setUselessGuardedString(GuardedString uselessGuardedString) {
 		this.uselessGuardedString = uselessGuardedString;
 	}
-	
+
 	@ConfigurationProperty(displayMessageKey = "UI_REQUIRE_USELESS_STRING",
     		helpMessageKey = "UI_REQUIRE_USELESS_STRING_HELP")
 	public boolean isRequireUselessString() {
@@ -370,7 +370,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	public void setRequireNameHint(boolean requireNameHint) {
 		this.requireNameHint = requireNameHint;
 	}
-	
+
 	@ConfigurationProperty
 	public boolean isMonsterized() {
 		return monsterized;
@@ -390,7 +390,7 @@ public class DummyConfiguration extends AbstractConfiguration {
         if (uidMode.equals(UID_MODE_NAME) && !enforceUniqueName) {
         	throw new IllegalArgumentException("Cannot use name UID mode without enforceUniqueName");
         }
-        
+
         log.info("uselessString: {0}", uselessString);
         if (requireUselessString && StringUtils.isBlank(uselessString)) {
         	throw new ConfigurationException("No useless string");
@@ -399,6 +399,6 @@ public class DummyConfiguration extends AbstractConfiguration {
         log.info("end");
     }
 
-	
+
 }
- 
+

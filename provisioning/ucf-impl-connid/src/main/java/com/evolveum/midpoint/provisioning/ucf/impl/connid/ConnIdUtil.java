@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
@@ -91,12 +91,12 @@ import org.identityconnectors.framework.impl.api.remote.RemoteWrappedException;
 
 /**
  * Set of utility methods that work around some of the ConnId and connector problems.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class ConnIdUtil {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ConnIdUtil.class);
     private static final String DOT_NET_EXCEPTION_PACKAGE_PLUS_DOT = "Org.IdentityConnectors.Framework.Common.Exceptions.";
     private static final String JAVA_EXCEPTION_PACKAGE = AlreadyExistsException.class.getPackage().getName();
@@ -108,7 +108,7 @@ public class ConnIdUtil {
 			OperationResult icfResult) {
 		return processConnIdException(connIdException, conn.getHumanReadableName(), icfResult);
 	}
-	
+
 	/**
 	 * Transform ConnId exception to something more usable.
 	 *
@@ -123,10 +123,10 @@ public class ConnIdUtil {
 	 * and "compress" the class names and messages of the inner ICF exceptions.
 	 * The full exception with a stack trace is logged here, so the details are
 	 * still in the log.
-	 * 
+	 *
 	 * WARNING: This is black magic. Really. Blame Sun Identity Connector
 	 * Framework interface design.
-	 * 
+	 *
 	 * @param connIdException
 	 *            exception from the ConnId
 	 * @param connIdResult
@@ -141,12 +141,12 @@ public class ConnIdUtil {
 		// haven't had any "best practice" for error reporting. Now there is some
 		// basic (runtime) exceptions and the connectors are getting somehow better. But this
 		// nightmarish code is still needed to support bad connectors.
-		
+
 		if (connIdException == null) {
 			connIdResult.recordFatalError("Null exception while processing ConnId exception ");
 			throw new IllegalArgumentException("Null exception while processing ConnId exception ");
 		}
-		
+
 		LOGGER.error("ConnId Exception {} in {}: {}", connIdException.getClass().getName(),
 				desc, connIdException.getMessage(), connIdException);
 
@@ -171,11 +171,11 @@ public class ConnIdUtil {
                 }
             }
         }
-		
+
 		if (connIdException instanceof NullPointerException && connIdException.getMessage() != null) {
 			// NPE with a message text is in fact not a NPE but an application exception
 			// this usually means that some parameter is missing
-			Exception newEx = new SchemaException(createMessageFromAllExceptions("Required attribute is missing",connIdException));  
+			Exception newEx = new SchemaException(createMessageFromAllExceptions("Required attribute is missing",connIdException));
 			connIdResult.recordFatalError("Required attribute is missing: "+connIdException.getMessage(),newEx);
 			return newEx;
 		} else if (connIdException instanceof IllegalArgumentException) {
@@ -200,13 +200,13 @@ public class ConnIdUtil {
 			connIdResult.recordFatalError(connIdException);
 			return connIdException;
 		}
-		
+
 		if (connIdException.getClass().getPackage().equals(SchemaException.class.getPackage())) {
 			// Common midPoint exceptions, pass through
 			connIdResult.recordFatalError(connIdException);
 			return connIdException;
 		}
-		
+
 		if (connIdResult == null) {
 			throw new IllegalArgumentException(createMessageFromAllExceptions("Null parent result while processing ConnId exception",connIdException));
 		}
@@ -218,7 +218,7 @@ public class ConnIdUtil {
 			return knownCause;
 		}
 
-		
+
 		// ########
 		// TODO: handle javax.naming.NoPermissionException
 		// relevant message directly in the exception ("javax.naming.NoPermissionException([LDAP: error code 50 - The entry uid=idm,ou=Administrators,dc=example,dc=com cannot be modified due to insufficient access rights])
@@ -229,7 +229,7 @@ public class ConnIdUtil {
 			Exception newEx = new SchemaException(createMessageFromAllExceptions("Schema violation (most likely)", connIdException));
 			connIdResult.recordFatalError("Schema violation: "+connIdException.getMessage(), newEx);
 			return newEx;
-			
+
 		} else if (connIdException instanceof ConfigurationException) {
 			Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromInnermostException("Configuration error", connIdException));
 			connIdResult.recordFatalError("Configuration error: "+connIdException.getMessage(), newEx);
@@ -239,7 +239,7 @@ public class ConnIdUtil {
 			Exception newEx = new ObjectAlreadyExistsException(createMessageFromAllExceptions(null, connIdException));
 			connIdResult.recordFatalError("Object already exists: "+connIdException.getMessage(), newEx);
 			return newEx;
-			
+
 		} else if (connIdException instanceof PermissionDeniedException) {
 			Exception newEx = new SecurityViolationException(createMessageFromAllExceptions(null, connIdException));
 			connIdResult.recordFatalError("Security violation: "+connIdException.getMessage(), newEx);
@@ -279,12 +279,12 @@ public class ConnIdUtil {
 			Exception newEx = new ObjectNotFoundException(createMessageFromAllExceptions(null, connIdException));
 			connIdResult.recordFatalError("Unknown UID: "+connIdException.getMessage(), newEx);
 			return newEx;
-			
+
 		} else if (connIdException instanceof InvalidAttributeValueException) {
 			Exception newEx = new SchemaException(createMessageFromAllExceptions(null, connIdException));
 			connIdResult.recordFatalError("Schema violation: "+connIdException.getMessage(), newEx);
 			return newEx;
-			
+
 		} else if (connIdException instanceof RetryableException) {
 			Exception newEx = new CommunicationException(createMessageFromAllExceptions(null, connIdException));
 			connIdResult.recordFatalError("Retryable errror: "+connIdException.getMessage(), newEx);
@@ -294,17 +294,17 @@ public class ConnIdUtil {
 			// Note: connection refused is also packed inside
 			// ConnectorSecurityException. But that will get addressed by the
 			// lookForKnownCause(..) before
-			
+
 			// Maybe we need special exception for security?
 			Exception newEx =  new SecurityViolationException(createMessageFromAllExceptions("Security violation",connIdException));
 			connIdResult.recordFatalError(
 					"Security violation: " + connIdException.getMessage(), newEx);
 			return newEx;
-			
+
 		}
-		
+
 		// Fallback
-		Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions(null,connIdException)); 
+		Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions(null,connIdException));
 		connIdResult.recordFatalError(newEx);
 		return newEx;
 	}
@@ -321,7 +321,7 @@ public class ConnIdUtil {
 			// connectors
 			Exception newEx = new ObjectAlreadyExistsException(createMessageFromAllExceptions(null, ex));
 			parentResult.recordFatalError("Object already exists: "+ex.getMessage(), newEx);
-			return newEx;		
+			return newEx;
 		} else if (ex instanceof javax.naming.CommunicationException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
@@ -337,15 +337,15 @@ public class ConnIdUtil {
            } else if (ex instanceof ConnectionBrokenException) {
                 Exception newEx = new CommunicationException(createMessageFromAllExceptions("Communication error", ex));
                 parentResult.recordFatalError("Communication error: "+ex.getMessage(), newEx);
-                return newEx;  
+                return newEx;
             } else if (ex instanceof ConnectionFailedException) {
                 Exception newEx = new CommunicationException(createMessageFromAllExceptions("Communication error", ex));
                 parentResult.recordFatalError("Communication error: "+ex.getMessage(), newEx);
-                return newEx;  
+                return newEx;
         } else if (ex instanceof SchemaViolationException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
-			Exception newEx = new SchemaException(createMessageFromAllExceptions("Schema violation", ex)); 
+			Exception newEx = new SchemaException(createMessageFromAllExceptions("Schema violation", ex));
 			parentResult.recordFatalError("Schema violation: "+ex.getMessage(), newEx);
 			return newEx;
         } else if (ex instanceof org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException) {
@@ -382,7 +382,7 @@ public class ConnIdUtil {
 			// Buried deep in many exceptions, usually DB connection problems
 			Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions("DB error", ex));
 			parentResult.recordFatalError("DB error: " + ex.getMessage(), newEx);
-			return newEx;		
+			return newEx;
 		} else if (ex instanceof UnknownUidException) {
 			// Object not found
 			Exception newEx = new ObjectNotFoundException(createMessageFromAllExceptions(null,ex));
@@ -427,13 +427,13 @@ public class ConnIdUtil {
 		}
 		return sb.toString();
 	}
-	
+
 	public static Object dump(Filter filter) {
 		StringBuilder sb = new StringBuilder();
 		dump(filter, sb, 0);
 		return sb.toString();
 	}
-	
+
 	private static void dump(Filter filter, StringBuilder sb, int indent) {
 		DebugUtil.indentDebugDump(sb, indent);
 		if (filter == null) {
@@ -487,7 +487,7 @@ public class ConnIdUtil {
 			addAllExceptionsToMessage(sb, ex.getCause());
 		}
 	}
-	
+
 	private static String createMessageFromInnermostException(String prefix, Throwable ex) {
 		StringBuilder sb = new StringBuilder();
 		if (prefix != null) {
@@ -505,7 +505,7 @@ public class ConnIdUtil {
 			sb.append(ex.getMessage());
 		}
 	}
-	
+
 	public static ResourceAttributeDefinition<String> getUidDefinition(ObjectClassComplexTypeDefinition def, ResourceSchema schema) {
 		ObjectClassComplexTypeDefinition concreteObjectClassDefinition = getConcreteObjectClassDefinition(def, schema);
 		if (concreteObjectClassDefinition == null) {
@@ -514,7 +514,7 @@ public class ConnIdUtil {
 			return getUidDefinition(concreteObjectClassDefinition);
 		}
 	}
-	
+
 	public static ObjectClassComplexTypeDefinition getConcreteObjectClassDefinition(ObjectClassComplexTypeDefinition def, ResourceSchema schema) {
 		if (def == null) {
 			// Return definition from any structural object class. If there is no specific object class definition then
@@ -530,7 +530,7 @@ public class ConnIdUtil {
 			return def;
 		}
 	}
-	
+
 	public static ResourceAttributeDefinition<String> getUidDefinition(ObjectClassComplexTypeDefinition def) {
 		Collection<? extends ResourceAttributeDefinition> primaryIdentifiers = def.getPrimaryIdentifiers();
 		if (primaryIdentifiers.size() > 1) {
@@ -543,7 +543,7 @@ public class ConnIdUtil {
 			return def.findAttributeDefinition(SchemaConstants.ICFS_UID);
 		}
 	}
-	
+
 	public static ResourceAttributeDefinition<String> getNameDefinition(ObjectClassComplexTypeDefinition def) {
 		Collection<? extends ResourceAttributeDefinition> secondaryIdentifiers = def.getSecondaryIdentifiers();
 		if (secondaryIdentifiers.size() > 1) {
@@ -556,8 +556,8 @@ public class ConnIdUtil {
 			return def.findAttributeDefinition(SchemaConstants.ICFS_NAME);
 		}
 	}
-	
-	public static Collection<ResourceAttribute<?>> convertToIdentifiers(Uid uid, 
+
+	public static Collection<ResourceAttribute<?>> convertToIdentifiers(Uid uid,
 			ObjectClassComplexTypeDefinition ocDef, ResourceSchema resourceSchema) throws SchemaException {
 		ObjectClassComplexTypeDefinition concreteObjectClassDefinition = getConcreteObjectClassDefinition(ocDef, resourceSchema);
 		if (concreteObjectClassDefinition == null) {
@@ -609,7 +609,7 @@ public class ConnIdUtil {
 					+ e.getMessage(), e);
 		}
 	}
-	
+
 	public static Object convertValueToIcf(Object value, Protector protector, QName propName) throws SchemaException {
 		if (value == null) {
 			return null;
@@ -625,7 +625,7 @@ public class ConnIdUtil {
 		}
 		return value;
 	}
-	
+
 	public static GuardedString toGuardedString(ProtectedStringType ps, Protector protector, String propertyName) {
 		if (ps == null) {
 			return null;
@@ -674,7 +674,7 @@ public class ConnIdUtil {
 			type = type.getComponentType();
 		}
 		QName propXsdType = null;
-		if (GuardedString.class.equals(type) || 
+		if (GuardedString.class.equals(type) ||
 				(String.class.equals(type) && isConfidential)) {
 			// GuardedString is a special case. It is a ICF-specific
 			// type
@@ -683,7 +683,7 @@ public class ConnIdUtil {
 			// will be fixed later
 //			propXsdType = SchemaConstants.T_PROTECTED_STRING_TYPE;
 			propXsdType = ProtectedStringType.COMPLEX_TYPE;
-		} else if (GuardedByteArray.class.equals(type) || 
+		} else if (GuardedByteArray.class.equals(type) ||
 				(Byte.class.equals(type) && isConfidential)) {
 			// GuardedString is a special case. It is a ICF-specific
 			// type

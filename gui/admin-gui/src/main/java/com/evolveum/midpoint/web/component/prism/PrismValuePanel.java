@@ -97,7 +97,7 @@ public class PrismValuePanel extends Panel {
     private static final String ID_ADD_BUTTON = "addButton";
     private static final String ID_REMOVE_BUTTON = "removeButton";
     private static final String ID_VALUE_CONTAINER = "valueContainer";
-    
+
     private static final Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
 
     private IModel<ValueWrapper> valueWrapperModel;
@@ -395,8 +395,8 @@ public class PrismValuePanel extends Panel {
 
                 // Validation occurs when submitting the form
 //            if (form != null) {
-//                AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "Blur"); 
-//                 
+//                AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "Blur");
+//
 //                formComponent.add(validator);
 //            }
             }
@@ -407,7 +407,7 @@ public class PrismValuePanel extends Panel {
         return component;
     }
 
-    
+
 
     // normally this method returns an InputPanel;
     // however, for some special readonly types (like ObjectDeltaType) it will return a Panel
@@ -415,7 +415,7 @@ public class PrismValuePanel extends Panel {
 //        ValueWrapper valueWrapper = model.getObject();
 //        ItemWrapper itemWrapper =
         final Item item = valueWrapperModel.getObject().getItem().getItem();
-        
+
         Panel panel = null;
         if (item instanceof PrismProperty) {
         	  final PrismProperty property = (PrismProperty) item;
@@ -441,16 +441,16 @@ public class PrismValuePanel extends Panel {
 //                      return WebComponentUtil.createEnumPanel(ActivationStatusType.class, id, new PropertyModel<ActivationStatusType>(valueWrapperModel, baseExpression), this);
 //                  }
 //              }
-              
+
               if (DOMUtil.XSD_DATETIME.equals(valueType)) {
                   panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(valueWrapperModel, baseExpression));
-                  
+
               } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
                   panel = new PasswordPanel(id, new PropertyModel<ProtectedStringType>(valueWrapperModel, baseExpression),
                           valueWrapperModel.getObject().isReadonly());
               } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
                   panel = new TriStateComboPanel(id, new PropertyModel<Boolean>(valueWrapperModel, baseExpression));
-                  
+
               } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
                   InputPanel inputPanel;
                   PrismPropertyDefinition def = property.getDefinition();
@@ -466,22 +466,22 @@ public class PrismValuePanel extends Panel {
                               lookupTableUid, options, pageBase, task, result);
 
                       if (lookupTable != null) {
-                    	  
+
 	                      inputPanel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(valueWrapperModel, baseExpression + ".orig",
 	                              lookupTable.asObjectable()), String.class) {
-	
+
 	                          @Override
 	                          public Iterator<String> getIterator(String input) {
 	                              return prepareAutoCompleteList(input, lookupTable).iterator();
 	                          }
 	                      };
-	                      
+
                       } else {
                     	  inputPanel = new TextPanel<>(id, new PropertyModel<String>(valueWrapperModel, baseExpression + ".orig"), String.class);
                       }
 
                   } else {
-                	  
+
                       inputPanel = new TextPanel<>(id, new PropertyModel<String>(valueWrapperModel, baseExpression + ".orig"), String.class);
                   }
 
@@ -490,18 +490,18 @@ public class PrismValuePanel extends Panel {
 //                      inputPanel.getBaseFormComponent().setRequired(true);
 //                  }
                   panel = inputPanel;
-                  
+
               } else if(DOMUtil.XSD_BASE64BINARY.equals(valueType)) {
                   panel = new UploadDownloadPanel(id, valueWrapperModel.getObject().isReadonly()){
 
-                	  
+
                 	  @Override
                 	public InputStream getStream() {
                           Object object  = ((PrismPropertyValue) valueWrapperModel.getObject().getValue()).getValue();
                 		return object != null ? new ByteArrayInputStream((byte[]) object) : new ByteArrayInputStream(new byte[0]);
 //                		return super.getStream();
                 	}
-                	  
+
                       @Override
                       public void updateValue(byte[] file) {
                           ((PrismPropertyValue) valueWrapperModel.getObject().getValue()).setValue(file);
@@ -547,7 +547,7 @@ public class PrismValuePanel extends Panel {
                   });
               } else if (QueryType.COMPLEX_TYPE.equals(valueType) || CleanupPoliciesType.COMPLEX_TYPE.equals(valueType)) {
 				  return new TextAreaPanel(id, new AbstractReadOnlyModel() {
-					
+
 					  private static final long serialVersionUID = 1L;
 
 					@Override
@@ -578,16 +578,16 @@ public class PrismValuePanel extends Panel {
                   Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);
                   if (type != null && type.isPrimitive()) {
                       type = ClassUtils.primitiveToWrapper(type);
-                      
-                  } 
-                  
+
+                  }
+
                   if (isEnum(property)) {
                 	  	  Class clazz = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(definition.getTypeName());
-                		  
+
                 		  if (clazz != null) {
                 			  return  WebComponentUtil.createEnumPanel(clazz, id, new PropertyModel(valueWrapperModel, baseExpression), this);
                 		  }
-                	  
+
                       return WebComponentUtil.createEnumPanel(definition, id, new PropertyModel<>(valueWrapperModel, baseExpression), this);
                   }
 //                  // default QName validation is a bit weird, so let's treat QNames as strings [TODO finish this - at the parsing side]
@@ -608,11 +608,11 @@ public class PrismValuePanel extends Panel {
                               lookupTableUid, options, pageBase, task, result);
 
                       if (lookupTable != null) {
-                      
+
 	                      panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(valueWrapperModel, baseExpression,
 	                              lookupTable == null ? null : lookupTable.asObjectable()), type) {
-	
-	
+
+
 	                          @Override
 	                          public Iterator<String> getIterator(String input) {
 	                              return prepareAutoCompleteList(input, lookupTable).iterator();
@@ -626,18 +626,18 @@ public class PrismValuePanel extends Panel {
                                   target.add(PrismValuePanel.this.get(ID_FEEDBACK));
                               }
 	                      };
-	                      
+
                       } else {
-                    	  
+
                     	  panel = new TextPanel<>(id, new PropertyModel<String>(valueWrapperModel, baseExpression), type);
-                    	  
+
                       }
 
                   } else {
                       panel = new TextPanel<>(id, new PropertyModel<String>(valueWrapperModel, baseExpression), type);
                   }
               }
-        } else if (item instanceof PrismReference) {        	
+        } else if (item instanceof PrismReference) {
         	PrismContext prismContext = item.getPrismContext();
             if (prismContext == null) {
                 prismContext = pageBase.getPrismContext();
@@ -647,10 +647,10 @@ public class PrismValuePanel extends Panel {
             if (targetTypeName != null && prismContext != null) {
                 targetClass = prismContext.getSchemaRegistry().determineCompileTimeClass(targetTypeName);
         	}
-        	final Class typeClass = targetClass != null ? targetClass : 
+        	final Class typeClass = targetClass != null ? targetClass :
         		(item.getDefinition().getTypeClassIfKnown() != null ? item.getDefinition().getTypeClassIfKnown() : FocusType.class);
         	Collection typeClasses = new ArrayList();
-        	
+
         	// HACK HACK MID-3201 MID-3231
         	if (isUserOrgItem(item, typeClass)) {
         		typeClasses.add(UserType.class);
@@ -658,23 +658,23 @@ public class PrismValuePanel extends Panel {
         	} else {
         		typeClasses.add(typeClass);
         	}
-        	
+
 			panel = new ValueChoosePanel(id,
     				new PropertyModel<>(valueWrapperModel, "value"), item.getValues(), false, typeClasses);
-        	
+
         } else if (item instanceof PrismContainer<?>) {
         	AssociationWrapper itemWrapper = (AssociationWrapper) valueWrapperModel.getObject().getItem();
         	final PrismContainer container = (PrismContainer) item;
         	PrismContainerDefinition definition = container.getDefinition();
             QName valueType = definition.getTypeName();
-        	
+
             if (ShadowAssociationType.COMPLEX_TYPE.equals(valueType)) {
-		
+
 	            PrismContext prismContext = item.getPrismContext();
 	            if (prismContext == null) {
 	                prismContext = pageBase.getPrismContext();
 	            }
-	            
+
 	            ShadowType shadowType = ((ShadowType)itemWrapper.getContainer().getObject().getObject().asObjectable());
 	            PrismObject<ResourceType> resource = shadowType.getResource().asPrismObject();
 	            // HACK. The revive should not be here. Revive is no good. The next use of the resource will
@@ -695,12 +695,12 @@ public class PrismValuePanel extends Panel {
 				}
 	            RefinedAssociationDefinition assocDef = itemWrapper.getRefinedAssociationDefinition();
 	            RefinedObjectClassDefinition assocTargetDef = assocDef.getAssociationTarget();
-	            
+
 	            ObjectQuery query = getAssociationsSearchQuery(prismContext, resource,
 	            		assocTargetDef.getTypeName(), assocTargetDef.getKind());
-	
+
 	            List values = item.getValues();
-	            return new AssociationValueChoicePanel(id, valueWrapperModel, values, false, ShadowType.class, 
+	            return new AssociationValueChoicePanel(id, valueWrapperModel, values, false, ShadowType.class,
 	            		query, assocTargetDef);
             }
         }
@@ -709,7 +709,7 @@ public class PrismValuePanel extends Panel {
     }
 
     private boolean isUserOrgItem(Item item, Class referenceType) {
-		return (referenceType == ObjectType.class || referenceType == FocusType.class) && 
+		return (referenceType == ObjectType.class || referenceType == FocusType.class) &&
 				(AbstractRoleType.F_APPROVER_REF.equals(item.getElementName()) ||
 				AbstractRoleType.F_OWNER_REF.equals(item.getElementName()));
 	}
@@ -744,12 +744,12 @@ public class PrismValuePanel extends Panel {
 ////    	Object realValue = property.getAnyRealValue();
     	if (definition == null){
     		return property.getValueClass().isEnum();
-    	} 
-//    	
+    	}
+//
 //    	QName defName = definition.getName();
 //    	Class clazz = definition.getPrismContext().getSchemaRegistry().determineCompileTimeClass(defName);
-//    	
-//    	return ((clazz != null && clazz.isEnum()) || ActivationType.F_ADMINISTRATIVE_STATUS.equals(definition.getName()) 
+//
+//    	return ((clazz != null && clazz.isEnum()) || ActivationType.F_ADMINISTRATIVE_STATUS.equals(definition.getName())
 //    	 || ActivationType.F_LOCKOUT_STATUS.equals(definition.getName()) || );
     	return (definition.getAllowedValues() != null && definition.getAllowedValues().size() > 0);
     }
@@ -789,15 +789,15 @@ public class PrismValuePanel extends Panel {
 		if (attr.getDisplayName() != null){
 			return attr.getDisplayName();
 		}
-		
+
 		if (attr.getNativeAttributeName() != null){
 			return attr.getNativeAttributeName();
 		}
-		
+
 		if (attr.getElementName() != null){
 			return attr.getElementName().getLocalPart();
 		}
-		
+
 		return null; //TODO: is this ok?? or better is exception or some default name??
 	}
 

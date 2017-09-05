@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.util;
 
@@ -52,13 +52,13 @@ public class ClassPathUtil {
 	public static Set<Class> listClasses(Package pkg) {
 		return listClasses(pkg.getName());
 	}
-	
+
 	public static Set<Class> listClasses(String packageName) {
 		Set<Class> classes = new HashSet<Class>();
 		searchClasses(packageName, c -> classes.add(c));
 		return classes;
 	}
-	
+
 	/**
 	 * This is not entirely reliable method.
 	 * Maybe it would be better to rely on Spring ClassPathScanningCandidateComponentProvider
@@ -80,21 +80,21 @@ public class ClassPathUtil {
 			LOGGER.trace("Candidates from: " + candidateUrl);
 
 			// test if it is a directory or JAR
-            String protocol = candidateUrl.getProtocol(); 
+            String protocol = candidateUrl.getProtocol();
             if ("file".contentEquals(protocol)) {
             	getFromDirectory(candidateUrl, packageName, consumer);
             } else if ("jar".contentEquals(protocol) || "zip".contentEquals(protocol)) {
             	getFromJar(candidateUrl, packageName, consumer);
             } else {
                 LOGGER.warn("Unsupported protocol for candidate URL {}", candidateUrl);
-            }		
+            }
         }
 
 	}
 
 	/**
 	 * Extract specified source on class path to file system dst
-	 * 
+	 *
 	 * @param src
 	 *            source
 	 * @param dst
@@ -110,7 +110,7 @@ public class ClassPathUtil {
 
 		return copyFile(is, src, dst);
 	}
-	
+
 	public static boolean copyFile(InputStream srcStream, String srcName, String dstPath) {
 		OutputStream dstStream = null;
 		try {
@@ -121,7 +121,7 @@ public class ClassPathUtil {
 		}
 		return copyFile(srcStream, srcName, dstStream, dstPath);
 	}
-	
+
 	public static boolean copyFile(InputStream srcStream, String srcName, File dstFile) {
 		OutputStream dstStream = null;
 		try {
@@ -132,7 +132,7 @@ public class ClassPathUtil {
 		}
 		return copyFile(srcStream, srcName, dstStream, dstFile.toString());
 	}
-	
+
 	public static boolean copyFile(InputStream srcStream, String srcName, OutputStream dstStream, String dstName) {
 		byte buf[] = new byte[655360];
 		int len;
@@ -164,7 +164,7 @@ public class ClassPathUtil {
 
 		return true;
 	}
-	
+
 	/**
 	 * Extracts all files in a directory on a classPath (system resource) to
 	 * a directory on a file system.
@@ -192,21 +192,21 @@ public class ClassPathUtil {
 					LOGGER.trace("Not relevant: ", jarEntry.getName());
 					continue;
 				}
-				
+
 				// prepare destination file
 				String filepath = jarEntry.getName().substring(srcPath.length());
 				File dstFile = new File(dstPath, filepath);
-				
+
 				if (!overwrite && dstFile.exists()) {
 					LOGGER.debug("Skipping file {}: exists", dstFile);
 					continue;
 				}
-				
+
 				if (jarEntry.isDirectory()) {
 					dstFile.mkdirs();
 					continue;
 				}
-				
+
 				InputStream is = ClassLoader.getSystemResourceAsStream(jarEntry.getName());
 				LOGGER.debug("Copying {} from {} to {} ", jarEntry.getName(), srcFile, dstFile);
 				copyFile(is, jarEntry.getName(), dstFile);
@@ -235,7 +235,7 @@ public class ClassPathUtil {
 
 	/**
 	 * Get clasess from JAR
-	 * 
+	 *
 	 * @param srcUrl
 	 * @param packageName
 	 * @return
@@ -252,12 +252,12 @@ public class ClassPathUtil {
 		//in Tomcat the form is jar:file:/
 		//in Weblogic the form is only zip:/
 		LOGGER.trace("srcUrl.getProtocol(): {}", srcUrl.getProtocol());
-		
+
 		if ("zip".equals(srcUrl.getProtocol())) {
 			srcName = "file:" + srcName;
 		}
 		LOGGER.trace("srcName: {}", srcName);
-		
+
 		// Probably hepls fix error in windows with URI
 		File jarTmp = null;
 		try {
@@ -321,7 +321,7 @@ public class ClassPathUtil {
 
 	/**
 	 * get classes from directory
-	 * 
+	 *
 	 * @param candidateUrl
 	 * @param packageName
 	 * @return

@@ -207,13 +207,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	// Strictly speaking following fields should be transient.
 	// But making them transient is causing problems on some
-	// JVM version or tomcat configurations (MID-3357). 
+	// JVM version or tomcat configurations (MID-3357).
 	// It seems to be somehow related to session persistence.
 	// But honestly I have no idea about the real cause.
 	// Anyway, setting these fields to non-transient seems to
 	// fix it. And surprisingly it does not affect the session
 	// size.
-	
+
 	@SpringBean(name = "modelController")
 	private ScriptingService scriptingService;
 
@@ -258,7 +258,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	@SpringBean(name = "accessDecisionManager")
 	private SecurityEnforcer securityEnforcer;
-	
+
 	@SpringBean
 	private MidpointFormValidatorRegistry formValidatorRegistry;
 
@@ -275,7 +275,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	// No need to store this in the session. Retrieval is cheap.
 	private transient AdminGuiConfigurationType adminGuiConfiguration;
-	
+
 	// No need for this to store in session. It is used only during single init and render.
 	private transient Task pageTask;
 
@@ -283,7 +283,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		super(parameters);
 
 		LOGGER.debug("Initializing page {}", this.getClass());
-		
+
 		Injector.get().inject(this);
 		Validate.notNull(modelService, "Model service was not injected.");
 		Validate.notNull(taskManager, "Task manager was not injected.");
@@ -294,8 +294,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		add(new NewWindowNotifyingBehavior());
 
 		initializeModel();
-		
-		initLayout();		
+
+		initLayout();
 	}
 
 	@Override
@@ -309,11 +309,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 		createBreadcrumb();
 	}
-	
+
 	private void initializeModel() {
 		workItemCountModel = new LoadableModel<Integer>() {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			protected Integer load() {
 				try {
@@ -523,7 +523,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	public MidpointFormValidatorRegistry getFormValidatorRegistry() {
 		return formValidatorRegistry;
 	}
-	
+
 	public MidPointPrincipal getPrincipal() {
 		return SecurityUtils.getPrincipalUser();
 	}
@@ -540,7 +540,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	public Task createAnonymousTask(String operation) {
 		TaskManager manager = getTaskManager();
 		Task task = manager.createTaskInstance(operation);
-		
+
 		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
 
 		return task;
@@ -774,7 +774,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 		WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Deprecated
 			public String getDescribe() {
 				return PageBase.this.getDescribe();
@@ -782,7 +782,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		};
 		version.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public boolean isVisible() {
 				return RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType());
@@ -858,7 +858,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			}
 		};
 	}
-    
+
     protected boolean isSideMenuVisible(boolean visibleIfLoggedIn) {
     	return SecurityUtils.getPrincipalUser() != null ? visibleIfLoggedIn : !visibleIfLoggedIn;
     }
@@ -941,7 +941,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
 				.setParameters(objects);
 	}
-	
+
 	public StringResourceModel createStringResource(Enum e) {
 		String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
 		return createStringResource(resourceKey);
@@ -969,7 +969,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public OpResult showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
-        
+
         OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
 		opResult.determineBackgroundTaskVisibility(this);
         switch (opResult.getStatus()) {
@@ -1195,7 +1195,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
 			items.add(createRolesItems());
 		}
-		
+
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SERVICES_URL,
 				AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
 				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
@@ -1267,7 +1267,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 					return workItemCount.toString();
 				}
 			}
-			
+
 		};
 
 		List<MenuItem> submenu = item.getItems();
@@ -1749,7 +1749,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 		return item;
 	}
-	
+
 	private MainMenuItem createServicesItems() {
 		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED, createStringResource("PageAdmin.menu.top.services"),
 				null);

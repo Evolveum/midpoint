@@ -54,13 +54,13 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(MidPointLocalQueryExecutor.class);
 	private Object query;
 	private String script;
 	private Class type;
 	private ReportService reportService;
-	
+
 	public String getScript() {
 		return script;
 	}
@@ -70,7 +70,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 	public Class getType() {
 		return type;
 	}
-		
+
 	protected Map<QName, Object> getParameters(){
 		JRParameter[] params = dataset.getParameters();
 		Map<QName, Object> expressionParameters = new HashMap<QName, Object>();
@@ -80,17 +80,17 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 			}
 			//LOGGER.trace(((JRBaseParameter)param).getName());
 			Object v = getParameterValue(param.getName());
-			try{ 
+			try{
 			expressionParameters.put(new QName(param.getName()), new PrismPropertyValue(v));
 			} catch (Exception e){
 				//just skip properties that are not important for midpoint
 			}
-			
+
 			LOGGER.trace("p.val: {}", v);
 		}
 		return expressionParameters;
 	}
-	
+
 	protected Map<QName, Object> getPromptingParameters(){
 		JRParameter[] params = dataset.getParameters();
 		Map<QName, Object> expressionParameters = new HashMap<QName, Object>();
@@ -103,39 +103,39 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 			}
 			//LOGGER.trace(((JRBaseParameter)param).getName());
 			Object v = getParameterValue(param.getName());
-			try{ 
+			try{
 			expressionParameters.put(new QName(param.getName()), new PrismPropertyValue(v));
 			} catch (Exception e){
 				//just skip properties that are not important for midpoint
 			}
-			
+
 			LOGGER.trace("p.val: {}", v);
 		}
 		return expressionParameters;
 	}
-	
+
 	protected abstract Object getParsedQuery(String query, Map<QName, Object> expressionParameters) throws  SchemaException, ObjectNotFoundException, ExpressionEvaluationException;
-	
+
 	protected String getParsedScript(String script){
 		String normalized = script.replace("<code>", "");
 		return normalized.replace("</code>", "");
 	}
-	
+
 		protected MidPointQueryExecutor(JasperReportsContext jasperReportsContext, JRDataset dataset,
 			Map<String, ? extends JRValueParameter> parametersMap) {
 		super(jasperReportsContext, dataset, parametersMap);
 	}
-	
+
 	protected abstract Collection<PrismObject<? extends ObjectType>> searchObjects(Object query, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
 	protected abstract Collection<PrismContainerValue<? extends Containerable>> evaluateScript(String script, Map<QName, Object> parameters) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
-	
+
 	protected abstract Collection<AuditEventRecord> searchAuditRecords(String script, Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException;
-	
+
 	protected abstract JRDataSource createDataSourceFromObjects(Collection<PrismObject<? extends ObjectType>> results);
 
 	protected abstract JRDataSource createDataSourceFromContainerValues(Collection<PrismContainerValue<? extends Containerable>> results);
-	
+
 	@Override
 	protected void parseQuery() {
 		try {
@@ -158,14 +158,14 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 		}
 
 	}
-	
+
 	@Override
 	public JRDataSource createDatasource() throws JRException {
 		try {
 			if (query == null && script == null){
 				throw new JRException("Neither query, nor script defined in the report.");
 			}
-			
+
 			if (query != null) {
 				Collection<PrismObject<? extends ObjectType>> results;
 				results = searchObjects(query, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
@@ -207,7 +207,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 	protected String getParameterReplacement(String parameterName) {
 		 throw new UnsupportedOperationException("QueryExecutor.getParameterReplacement() not supported");
 	}
-	
-	
+
+
 
 }

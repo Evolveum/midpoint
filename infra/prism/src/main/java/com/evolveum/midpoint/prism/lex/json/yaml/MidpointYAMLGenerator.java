@@ -25,8 +25,10 @@ public class MidpointYAMLGenerator extends YAMLGenerator {
 
 	/**
 	 * Brutal hack, as default behavior has lead to the following:
+     * {@code
 	 *  - !<http://midpoint.evolveum.com/xml/ns/public/model/scripting-3/SearchExpressionType>
 	 *    !<http://midpoint.evolveum.com/xml/ns/public/model/scripting-3/SearchExpressionType> '@element': "http://midpoint.evolveum.com/xml/ns/public/model/scripting-3#search"
+     * }
 	 *
 	 * (so we need to explicitly reset typeId after writing it)
 	 */
@@ -36,7 +38,7 @@ public class MidpointYAMLGenerator extends YAMLGenerator {
 
 	@Override
 	protected ScalarEvent _scalarEvent(String value, Character style) {
-		if (value.contains("\n")) {
+		if (value.indexOf('\n') != -1) {
 			style = Character.valueOf('|');
 		}
 

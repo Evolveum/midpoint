@@ -42,13 +42,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 	private static final long serialVersionUID = -5077637168906420769L;
-	
+
 	private static final String ID_TAG_SECURITY = "summaryTagSecurity";
 	private static final String ID_TAG_ORG = "summaryTagOrg";
 
 	public UserSummaryPanel(String id, IModel<ObjectWrapper<UserType>> model, ModelServiceLocator serviceLocator) {
 		super(id, UserType.class, model, serviceLocator);
-		
+
 		SummaryTag<UserType> tagSecurity = new SummaryTag<UserType>(ID_TAG_SECURITY, model) {
 			private static final long serialVersionUID = 1L;
 
@@ -91,7 +91,7 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 			}
 		};
 		addTag(tagSecurity);
-		
+
 		SummaryTag<UserType> tagOrg = new SummaryTag<UserType>(ID_TAG_ORG, model) {
 			private static final long serialVersionUID = 1L;
 

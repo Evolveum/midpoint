@@ -36,11 +36,11 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 	private PolyString objectName;
 	private String resourceOid;
 	private PolyString resourceName;
-	
+
 	public ObjectDeltaOperation() {
 		super();
 	}
-	
+
 	public ObjectDeltaOperation(ObjectDelta<T> objectDelta) {
 		super();
 		this.objectDelta = objectDelta;
@@ -55,15 +55,15 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
     public ObjectDelta<T> getObjectDelta() {
 		return objectDelta;
 	}
-	
+
 	public void setObjectDelta(ObjectDelta<T> objectDelta) {
 		this.objectDelta = objectDelta;
 	}
-	
+
 	public OperationResult getExecutionResult() {
 		return executionResult;
 	}
-	
+
 	public void setExecutionResult(OperationResult executionResult) {
 		this.executionResult = executionResult;
 	}
@@ -95,7 +95,7 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 	public boolean containsDelta(ObjectDelta<T> delta) {
 		return objectDelta.equals(delta);
 	}
-	
+
 	public static <T extends ObjectType> boolean containsDelta(Collection<? extends ObjectDeltaOperation<T>> deltaOps, ObjectDelta<T> delta) {
 		if (deltaOps == null) {
 			return false;
@@ -107,7 +107,7 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 		}
 		return false;
 	}
-	
+
 	public ObjectDeltaOperation<T> clone() {
 		ObjectDeltaOperation<T> clone = new ObjectDeltaOperation<T>();
 		copyToClone(clone);
@@ -135,7 +135,7 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 			objectDelta.checkConsistence();
 		}
 	}
-	
+
 	public static Collection<ObjectDeltaOperation<? extends ObjectType>> cloneCollection(
 			Collection<ObjectDeltaOperation<? extends ObjectType>> origCollection) {
 		Collection<ObjectDeltaOperation<? extends ObjectType>> clonedCollection = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>(origCollection.size());
@@ -145,7 +145,7 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 		}
 		return clonedCollection;
 	}
-	
+
 	public static Collection<ObjectDeltaOperation<? extends ObjectType>> cloneDeltaCollection(
 			Collection<ObjectDelta<? extends ObjectType>> origCollection) {
 		Collection<ObjectDeltaOperation<? extends ObjectType>> clonedCollection = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>(origCollection.size());

@@ -31,12 +31,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  */
 public class ReflectionXPathFunctionWrapper implements XPathFunction {
-	
+
 private static final Object LOG_FUNCTION_NAME = "logDebug";
-	
+
 	public static final Trace LOGGER = TraceManager.getTrace(ReflectionXPathFunctionWrapper.class);
-	
-	private Object functionObject;	
+
+	private Object functionObject;
 	private String functionName;
 	private int arity;
 	private boolean enableDebug;
@@ -58,7 +58,7 @@ private static final Object LOG_FUNCTION_NAME = "logDebug";
 			LogExpressionFunctions.LOGGER.debug("{}", ReflectionUtil.debugDumpArgList(argList));
 			return null;
 		}
-				
+
 		try {
 			return ReflectionUtil.invokeMethod(functionObject, functionName, argList);
 		} catch (IllegalArgumentException e) {

@@ -78,7 +78,7 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
     private void initLayout(ProgressReportingAwarePage page) {
     	progressForm = new Form<>(ID_PROGRESS_FORM, true);
     	add(progressForm);
-    	
+
         contentsPanel = new WebMarkupContainer(ID_CONTENTS_PANEL);
         contentsPanel.setOutputMarkupId(true);
         progressForm.add(contentsPanel);
@@ -203,10 +203,10 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
             }
         });
         contentsPanel.add(executionTime);
-        
+
         initButtons(progressForm, page);
     }
-    
+
     private void initButtons(final Form progressForm, final ProgressReportingAwarePage page) {
 
 		AjaxSubmitButton abortButton = new AjaxSubmitButton(ID_ABORT,

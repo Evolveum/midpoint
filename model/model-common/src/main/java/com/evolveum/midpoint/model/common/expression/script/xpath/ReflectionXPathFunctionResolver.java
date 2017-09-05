@@ -34,11 +34,11 @@ import org.apache.commons.lang.StringUtils;
 public class ReflectionXPathFunctionResolver implements XPathFunctionResolver {
 
 	private static final Object LOG_FUNCTION_NAME = "logDebug";
-	
+
 	public static final Trace LOGGER = TraceManager.getTrace(ReflectionXPathFunctionResolver.class);
-	
+
 	private Collection<FunctionLibrary> functions;
-	
+
 	public ReflectionXPathFunctionResolver(Collection<FunctionLibrary> functions) {
 		super();
 		this.functions = functions;
@@ -57,24 +57,24 @@ public class ReflectionXPathFunctionResolver implements XPathFunctionResolver {
 		} else if (namespace.equals(MidPointConstants.NS_FUNC_BASIC)) {
 			enableDebug = true;
 		}
-		
+
 		FunctionLibrary lib = findLibrary(namespace);
 		if (lib == null) {
 			LOGGER.trace("Unknown namespace for function {} function with {} arguments", functionQName, arity);
 			return null;
 		}
-		
+
 		Object functionObject = null;
 		if (lib.getXmlFunctions() != null) {
 			functionObject = lib.getXmlFunctions();
 		} else {
 			functionObject = lib.getGenericFunctions();
 		}
-		
+
 		String functionName = functionQName.getLocalPart();
-		
+
 		LOGGER.trace("Resolving to {} function with {} arguments", functionName, arity);
-		ReflectionXPathFunctionWrapper xPathFunction = new ReflectionXPathFunctionWrapper(functionObject, functionName, 
+		ReflectionXPathFunctionWrapper xPathFunction = new ReflectionXPathFunctionWrapper(functionObject, functionName,
 				arity, enableDebug);
 		return xPathFunction;
 	}

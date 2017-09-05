@@ -66,7 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * Testing bushy roles hierarchy. Especially reuse of the same role
  * in the rich role hierarchy. It looks like this:
- * 
+ *
  *                    user
  *                     |
  *       +------+------+-----+-----+-....
@@ -78,37 +78,37 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *                     |
  *                     v
  *  +--assignment--> supernotorious org
- *  |                  | 
+ *  |                  |
  *  |    +------+------+-----+-----+-....
  *  |    |      |      |     |     |
  *  |    v      v      v     v     v
  *  +-- Rb1    Rb2    Rb3   Rb4   Rb5 ---..
- *      
+ *
  * Naive mode of evaluation would imply cartesian product of all Rax and Rbx
  * combinations. That's painfully inefficient. Therefore make sure that the
  * notorious roles is evaluated only once and the results of the evaluation
  * are reused.
- * 
+ *
  * @author Radovan Semancik
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestSupernotoriousOrg extends TestNotoriousOrg {
-	
+
 	public static final File ORG_SUPERNOTORIOUS_FILE = new File(TEST_DIR, "org-supernotorious.xml");
 	public static final String ORG_SUPERNOTORIOUS_OID = "16baebbe-5046-11e7-82a0-eb7b7e3400f6";
-	
+
 	@Override
 	protected String getNotoriousOid() {
 		return ORG_SUPERNOTORIOUS_OID;
 	}
-	
+
 	@Override
 	protected File getNotoriousFile() {
 		return ORG_SUPERNOTORIOUS_FILE;
 	}
-	
+
 	@Override
 	protected void fillLevelBRole(RoleType roleType, int i) {
 		super.fillLevelBRole(roleType, i);
@@ -118,19 +118,19 @@ public class TestSupernotoriousOrg extends TestNotoriousOrg {
 //				.focusType(RoleType.COMPLEX_TYPE)
 			.end();
 	}
-	
+
 	@Test
     public void test010LevelBRolesSanity() throws Exception {
 		final String TEST_NAME = "test010LevelBRolesSanity";
         displayTestTitle(TEST_NAME);
 
         ObjectQuery query = queryFor(RoleType.class).item(RoleType.F_ROLE_TYPE).eq(ROLE_LEVEL_B_ROLETYPE).build();
-		searchObjectsIterative(RoleType.class, query, 
+		searchObjectsIterative(RoleType.class, query,
 				role -> {
 					assertRoleMembershipRef(role, getNotoriousOid());
 				}, NUMBER_OF_LEVEL_B_ROLES);
 	}
-	
+
 	@Override
 	protected void assertRoleEvaluationCount(int numberOfNotoriousAssignments, int numberOfOtherAssignments) {
 		inspector.assertRoleEvaluations(getNotoriousOid(), hackify(numberOfNotoriousAssignments));

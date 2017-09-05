@@ -27,7 +27,7 @@ public enum GuiFeature {
 
 	ORGTREE_EXPAND_ALL("orgTreeExpandAll"),
 	ORGTREE_COLLAPSE_ALL("orgTreeCollapseAll");
-	
+
 	private String uri;
 
 	private GuiFeature(String suffix) {
@@ -37,5 +37,5 @@ public enum GuiFeature {
 	public String getUri() {
 		return uri;
 	}
-	
+
 }

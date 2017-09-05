@@ -145,7 +145,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         });
         inner.add(new AttributeAppender("title", assignment.getName()));
         cellContainer.add(inner);
-        
+
         Label nameLabel = new Label(ID_INNER_LABEL, assignment.getName());
         inner.add(nameLabel);
 
@@ -270,7 +270,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     private boolean canAssign(final AssignmentEditorDto assignment) {
     	return assignment.isAssignable();
     }
-    
+
     private void assignmentDetailsPerformed(final AssignmentEditorDto assignment, AjaxRequestTarget target){
         if (!plusIconClicked) {
             assignment.setMinimized(false);

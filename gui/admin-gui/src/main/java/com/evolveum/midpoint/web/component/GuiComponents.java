@@ -59,8 +59,8 @@ public class GuiComponents {
 
     public static <T> DropDownChoice createTriStateCombo(String id, IModel<Boolean> model) {
         final IChoiceRenderer<T> renderer = new IChoiceRenderer<T>() {
-        	
-        
+
+
         	@Override
         	public T getObject(String id, IModel<? extends List<? extends T>> choices) {
         		return id != null ? choices.getObject().get(Integer.parseInt(id)) : null;
@@ -77,7 +77,7 @@ public class GuiComponents {
                 }
 
                 StringResourceModel model = PageBase.createStringResourceStatic(null, key);
-//                
+//
                 return model.getString();
             }
 
@@ -87,7 +87,7 @@ public class GuiComponents {
             }
 
 
-		
+
         };
 
         DropDownChoice dropDown = new DropDownChoice(id, model, createChoices(), renderer) {

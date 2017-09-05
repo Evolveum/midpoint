@@ -49,7 +49,7 @@ import javax.xml.namespace.QName;
 public class CloneUtil {
 
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
-	
+
 	public static <T> T clone(T orig) {
 		if (orig == null) {
 			return null;
@@ -114,7 +114,7 @@ public class CloneUtil {
 			T clone = javaLangClone(orig);
 			if (clone != null) {
 				return clone;
-			} 
+			}
 		}
 		if (orig instanceof Serializable) {
 			// Brute force

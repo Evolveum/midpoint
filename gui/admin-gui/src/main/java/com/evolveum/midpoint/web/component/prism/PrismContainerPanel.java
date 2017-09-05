@@ -51,7 +51,7 @@ public class PrismContainerPanel extends Panel {
 		this.pageBase = pageBase;
 
         LOGGER.trace("Creating container panel for {}", model.getObject());
-        
+
         add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 
@@ -82,7 +82,7 @@ public class PrismContainerPanel extends Panel {
 
         initLayout(model, form);
     }
-    
+
     private void initLayout(final IModel<ContainerWrapper> model, final Form form) {
     	PrismHeaderPanel header = new PrismHeaderPanel(ID_HEADER, model) {
 			private static final long serialVersionUID = 1L;
@@ -91,12 +91,12 @@ public class PrismContainerPanel extends Panel {
 			protected void onButtonClick(AjaxRequestTarget target) {
 				target.add(PrismContainerPanel.this.findParent(PrismObjectPanel.class));
 			}
-			
+
 			@Override
 			public boolean isButtonsVisible() {
 				return false;
 			}
-    		
+
     	};
         header.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;
@@ -137,7 +137,7 @@ public class PrismContainerPanel extends Panel {
                 item.add(new PrismPropertyPanel("property", item.getModel(), form, pageBase));
                 item.add(new VisibleEnableBehaviour() {
                 	private static final long serialVersionUID = 1L;
-                	
+
                 	@Override
                 	public boolean isVisible() {
                 		return item.getModel().getObject().isVisible();

@@ -67,7 +67,7 @@ public class MainMenuItem extends BaseMenuItem {
         }
         return items;
     }
-    
+
     public String getBubbleLabel() {
     	return null;
     }

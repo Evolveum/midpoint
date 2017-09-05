@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * 
+ *
  * @author lazyman
  */
 public class ObjectTypeNameMatcher extends BaseMatcher<PrismObject<ObjectType>> {
@@ -34,7 +34,7 @@ public class ObjectTypeNameMatcher extends BaseMatcher<PrismObject<ObjectType>> 
 	public ObjectTypeNameMatcher(PolyStringType name) {
 		this.name = name.getOrig();
 	}
-	
+
 	public ObjectTypeNameMatcher(String name) {
 		this.name = name;
 	}

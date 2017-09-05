@@ -12,8 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
- * This file is inspired and uses minor parts of the maven-dependency-plugin by Brian Fox. 
+ *
+ * This file is inspired and uses minor parts of the maven-dependency-plugin by Brian Fox.
  */
 
 package com.evolveum.midpoint.tools.schemadist;
@@ -86,12 +86,12 @@ public class SchemaDistMojo extends AbstractMojo {
 	 * @parameter default-value="${project.build.directory}/schemadist-work" required=true
 	 */
     private File workDirectory;
-    
+
     /**
      * @parameter
      */
     private List<ArtifactItem> artifactItems;
-    
+
     /**
 	 * @parameter default-value="true" required=true
 	 */
@@ -107,10 +107,10 @@ public class SchemaDistMojo extends AbstractMojo {
 
     /** @parameter default-value="${localRepository}" */
     private ArtifactRepository local;
-    
+
     /** @parameter default-value="${project.remoteArtifactRepositories}" */
     protected List<ArtifactRepository> remoteRepos;
-    
+
     /**
      * @component
      */
@@ -120,12 +120,12 @@ public class SchemaDistMojo extends AbstractMojo {
      * @component
      */
     private ArtifactResolver resolver;
-    
+
     /**
      * @component
      */
     private ArchiverManager archiverManager;
-    
+
     /**
      * @component
      */
@@ -139,7 +139,7 @@ public class SchemaDistMojo extends AbstractMojo {
     		artifactItem.setArtifact(getArtifact(artifactItem));
     	}
     }
-    
+
     private void fillMissingArtifactVersion(ArtifactItem artifactItem) throws MojoExecutionException {
     	List<Dependency> deps = project.getDependencies();
         List<Dependency> depMngt = project.getDependencyManagement() == null
@@ -155,7 +155,7 @@ public class SchemaDistMojo extends AbstractMojo {
                     + " in either dependency list or in project's dependency management." );
         }
 	}
-    
+
     private boolean findDependencyVersion(ArtifactItem artifact, List<Dependency> dependencies, boolean looseMatch) {
         for ( Dependency dependency : dependencies ) {
             if ( StringUtils.equals( dependency.getArtifactId(), artifact.getArtifactId() )
@@ -172,9 +172,9 @@ public class SchemaDistMojo extends AbstractMojo {
 
 	protected Artifact getArtifact(ArtifactItem artifactItem) throws MojoExecutionException, InvalidVersionSpecificationException {
 	    Artifact artifact;
-	
+
 	    VersionRange vr = VersionRange.createFromVersionSpec(artifactItem.getVersion());
-	
+
 	    if (StringUtils.isEmpty(artifactItem.getClassifier())) {
 	        artifact = factory.createDependencyArtifact( artifactItem.getGroupId(), artifactItem.getArtifactId(), vr,
 	                                                     artifactItem.getType(), null, Artifact.SCOPE_COMPILE );
@@ -183,13 +183,13 @@ public class SchemaDistMojo extends AbstractMojo {
 	                                                     artifactItem.getType(), artifactItem.getClassifier(),
 	                                                     Artifact.SCOPE_COMPILE );
 	    }
-	
+
 	    try {
 			resolver.resolve(artifact, remoteRepos, local);
 		} catch (ArtifactResolutionException | ArtifactNotFoundException e) {
 			throw new MojoExecutionException("Error resolving artifact "+artifact, e);
 		}
-	    
+
 	    return artifact;
     }
 
@@ -205,7 +205,7 @@ public class SchemaDistMojo extends AbstractMojo {
 
         CatalogManager catalogManager = new CatalogManager();
         catalogManager.setVerbosity(999);
-        
+
         for (ArtifactItem artifactItem: artifactItems) {
         	Artifact artifact = artifactItem.getArtifact();
         	getLog().info( "SchemaDist unpacking artifact " + artifact);
@@ -213,7 +213,7 @@ public class SchemaDistMojo extends AbstractMojo {
         	initializeOutDir(workDir);
         	artifactItem.setWorkDir(workDir);
         	unpack(artifactItem, workDir);
-        	
+
         	if (translateSchemaLocation) {
 				String catalogPath = artifactItem.getCatalog();
 				if (catalogPath != null) {
@@ -302,7 +302,7 @@ public class SchemaDistMojo extends AbstractMojo {
 			} catch (IOException e) {
 				throw new MojoExecutionException("Error processing files of artifact "+artifact, e);
 			}
-        	
+
         }
         getLog().info( "SchemaDist plugin finished" );
     }
@@ -315,7 +315,7 @@ public class SchemaDistMojo extends AbstractMojo {
 		}
 		serializeXml(dom, filePath, workDir, outDir);
 	}
-	
+
 	private void serializeXml(Document dom, Path filePath, File workDir, File outDir) throws MojoFailureException, MojoExecutionException {
 		Path fileRelPath = workDir.toPath().relativize(filePath);
 		File outFile = new File(outDir, fileRelPath.toString());
@@ -363,7 +363,7 @@ public class SchemaDistMojo extends AbstractMojo {
 
 	private void processWsdl(Path filePath, File workDir, File outDir) throws MojoExecutionException, MojoFailureException {
 		Document dom = DOMUtil.parseFile(filePath.toFile());
-		
+
 		if (translateSchemaLocation) {
 			Element rootElement = DOMUtil.getFirstChildElement(dom);
 			List<Element> importElements = DOMUtil.getChildElements(rootElement, DOMUtil.WSDL_IMPORT_ELEMENT);
@@ -378,13 +378,13 @@ public class SchemaDistMojo extends AbstractMojo {
 				importElement.setAttribute(DOMUtil.WSDL_ATTR_LOCATION.getLocalPart(),
 						schemaLocation);
 			}
-			
+
 			List<Element> typesElements = DOMUtil.getChildElements(rootElement, DOMUtil.WSDL_TYPES_ELEMENT);
 			for(Element typesElement: typesElements) {
 				processXsdElement(DOMUtil.getFirstChildElement(typesElement),filePath,workDir,outDir);
 			}
 		}
-		
+
 		serializeXml(dom, filePath, workDir, outDir);
 	}
 
@@ -406,13 +406,13 @@ public class SchemaDistMojo extends AbstractMojo {
     			String resolvedPathString = resolvedUrl.getPath();
     			Path resolvedPath = new File(resolvedPathString).toPath();
     			Path workDirPath = workDir.toPath();
-    			
+
     			Path resolvedRelativeToCatalogWorkdir = artifactItem.getWorkDir().toPath().relativize(resolvedPath);
     			Path fileRelativeToWorkdir = workDirPath.relativize(filePath);
-    			
+
     			getLog().debug("workDirPath: "+workDirPath);
     			getLog().debug("resolvedRelativeToCatalogWorkdir: "+resolvedRelativeToCatalogWorkdir+",  fileRelativeToWorkdir: "+fileRelativeToWorkdir);
-    			
+
     			Path relativePath = fileRelativeToWorkdir.getParent().relativize(resolvedRelativeToCatalogWorkdir);
     			getLog().debug("Rel: "+relativePath);
 				String unixSeparators = FilenameUtils.separatorsToUnix(relativePath.toString());
@@ -452,25 +452,25 @@ public class SchemaDistMojo extends AbstractMojo {
 	            UnArchiver unArchiver = archiverManager.getUnArchiver( artifact.getType() );
 	            unArchiver.setSourceFile(file);
 	            unArchiver.setDestDirectory(destDir);
-	
+
 	            if (StringUtils.isNotEmpty(excludes) || StringUtils.isNotEmpty(includes)) {
 	                // Create the selectors that will filter
 	                // based on include/exclude parameters
 	                // MDEP-47
 	                IncludeExcludeFileSelector[] selectors =
 	                    new IncludeExcludeFileSelector[]{ new IncludeExcludeFileSelector() };
-	
+
 	                if ( StringUtils.isNotEmpty( excludes ) ) {
 	                    selectors[0].setExcludes( excludes.split( "," ) );
 	                }
-	
+
 	                if ( StringUtils.isNotEmpty( includes ) ) {
 	                    selectors[0].setIncludes( includes.split( "," ) );
 	                }
-	
+
 	                unArchiver.setFileSelectors( selectors );
 	            }
-	
+
 	            unArchiver.extract();
 	    	} catch (ArchiverException | NoSuchArchiverException e) {
 	            throw new MojoExecutionException(

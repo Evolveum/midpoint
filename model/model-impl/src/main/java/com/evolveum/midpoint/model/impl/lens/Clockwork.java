@@ -116,14 +116,14 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  */
 @Component
 public class Clockwork {
-	
+
 	private static final int DEFAULT_NUMBER_OF_RESULTS_TO_KEEP = 5;
 
 	private static final int DEFAULT_MAX_CONFLICT_RESOLUTION_ATTEMPTS = 1;          // synchronize with common-core-3.xsd
 	private static final int DEFAULT_CONFLICT_RESOLUTION_DELAY_UNIT = 5000;          // synchronize with common-core-3.xsd
 
 	private static final Trace LOGGER = TraceManager.getTrace(Clockwork.class);
-	
+
 	// This is ugly
 	// TODO: cleanup
 	@Autowired private Projector projector;
@@ -149,9 +149,9 @@ public class Clockwork {
 	@Autowired
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService repositoryService;
-    
+
     private LensDebugListener debugListener;
-	
+
 	public LensDebugListener getDebugListener() {
 		return debugListener;
 	}
@@ -348,18 +348,18 @@ public class Clockwork {
 	}
 
 	public <F extends ObjectType> HookOperationMode click(LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-		
+
 		// DO NOT CHECK CONSISTENCY of the context here. The context may not be fresh and consistent yet. Project will fix
 		// that. Check consistency afterwards (and it is also checked inside projector several times).
-		
+
 		if (context.getDebugListener() == null) {
 			context.setDebugListener(debugListener);
 		}
-		
+
 		try {
-			
+
 			XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-			
+
 			// We need to determine focus before auditing. Otherwise we will not know user
 			// for the accounts (unless there is a specific delta for it).
 			// This is ugly, but it is the easiest way now (TODO: cleanup).
@@ -398,11 +398,11 @@ public class Clockwork {
 			} else {
 				LOGGER.trace("Skipping projection because the context is fresh and projection for current wave has already run");
 			}
-			
+
 			if (!context.isRequestAuthorized()) {
 				authorizeContextRequest(context, task, result);
 			}
-			
+
 			LensUtil.traceContext(LOGGER, "CLOCKWORK (" + state + ")", "before processing", true, context, false);
 			if (InternalsConfig.consistencyChecks) {
 				try {
@@ -414,9 +414,9 @@ public class Clockwork {
 			if (InternalsConfig.encryptionChecks && !ModelExecuteOptions.isNoCrypt(context.getOptions())) {
 				context.checkEncrypted();
 			}
-			
+
 	//		LOGGER.info("CLOCKWORK: {}: {}", state, context);
-			
+
 			switch (state) {
 				case INITIAL:
 					processInitialToPrimary(context, task, result);
@@ -433,11 +433,11 @@ public class Clockwork {
 						debugListener.afterSync(context);
 					}
 					return mode;
-			}		
+			}
 			result.recomputeStatus();
 			result.cleanupResult();
 			return invokeHooks(context, task, result);
-			
+
 		} catch (CommunicationException | ConfigurationException | ExpressionEvaluationException | ObjectNotFoundException |
 				PolicyViolationException | SchemaException | SecurityViolationException | RuntimeException |
 				ObjectAlreadyExistsException e) {
@@ -445,18 +445,18 @@ public class Clockwork {
 			throw e;
 		}
 	}
-	
+
 	/**
      * Invokes hooks, if there are any.
      *
      * @return
      *  - ERROR, if any hook reported error; otherwise returns
      *  - BACKGROUND, if any hook reported switching to background; otherwise
-     *  - FOREGROUND (if all hooks reported finishing on foreground) 
+     *  - FOREGROUND (if all hooks reported finishing on foreground)
      */
     private HookOperationMode invokeHooks(LensContext context, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
     	// TODO: following two parts should be merged together in later versions
-    	
+
     	// Execute configured scripting hooks
     	PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
     	// systemConfiguration may be null in some tests
@@ -517,7 +517,7 @@ public class Clockwork {
 	    		}
 	    	}
     	}
-    	
+
     	// Execute registered Java hooks
         HookOperationMode resultMode = HookOperationMode.FOREGROUND;
         if (hookRegistry != null) {
@@ -537,14 +537,14 @@ public class Clockwork {
 
 
     private void evaluateScriptingHook(LensContext context, HookType hookType,
-    		ScriptExpressionEvaluatorType scriptExpressionEvaluatorType, String shortDesc, Task task, OperationResult result) 
+    		ScriptExpressionEvaluatorType scriptExpressionEvaluatorType, String shortDesc, Task task, OperationResult result)
     				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-    	
+
     	LOGGER.trace("Evaluating {}", shortDesc);
 		// TODO: it would be nice to cache this
 		// null output definition: this script has no output
 		ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptExpressionEvaluatorType, null, shortDesc);
-		
+
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.addVariableDefinition(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
 		variables.addVariableDefinition(ExpressionConstants.VAR_MODEL_CONTEXT, context);
@@ -554,55 +554,55 @@ public class Clockwork {
 			focus = focusContext.getObjectAny();
 		}
 		variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus);
-		
+
 		Utils.evaluateScript(scriptExpression, context, variables, false, shortDesc, task, result);
 		LOGGER.trace("Finished evaluation of {}", shortDesc);
 	}
 
     private <F extends ObjectType> void processInitialToPrimary(LensContext<F> context, Task task, OperationResult result) {
 		// Context loaded, nothing special do. Bump state to PRIMARY.
-		context.setState(ModelState.PRIMARY);		
+		context.setState(ModelState.PRIMARY);
 	}
-	
+
 	private <F extends ObjectType> void processPrimaryToSecondary(LensContext<F> context, Task task, OperationResult result) {
 		// Nothing to do now. The context is already recomputed.
 		context.setState(ModelState.SECONDARY);
 	}
-	
+
 	private <F extends ObjectType> void processSecondary(LensContext<F> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 		if (context.getExecutionWave() > context.getMaxWave() + 1) {
 			context.setState(ModelState.FINAL);
 			return;
 		}
-		
+
 		Holder<Boolean> restartRequestedHolder = new Holder<>();
-		
+
 		LensUtil.partialExecute("execution",
-				() -> { 
+				() -> {
 					boolean restartRequested = changeExecutor.executeChanges(context, task, result);
 					restartRequestedHolder.setValue(restartRequested);
-				}, 
+				},
 				context.getPartialProcessingOptions()::getExecution);
-		
+
 		audit(context, AuditEventStage.EXECUTION, task, result);
-		
+
 		rotContextIfNeeded(context);
 
 		boolean restartRequested = false;
 		if (restartRequestedHolder.getValue() != null) {
 			restartRequested = restartRequestedHolder.getValue();
 		}
-		
+
 		if (!restartRequested) {
 			// TODO what if restart is requested indefinitely?
 			context.incrementExecutionWave();
 		} else {
 			// explicitly rot context?
 		}
-		
+
 		LensUtil.traceContext(LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false, context, false);
 	}
-	
+
 	/**
 	 * Force recompute for the next execution wave. Recompute only those contexts that were changed.
 	 * This is more intelligent than context.rot()
@@ -620,7 +620,7 @@ public class Clockwork {
 //			}
     		ObjectDelta<ShadowType> execDelta = projectionContext.getExecutableDelta();
     		if (isShadowDeltaSignificant(execDelta)) {
-    			
+
     			LOGGER.debug("Context rot: projection {} rotten because of executable delta {}", projectionContext, execDelta);
    				projectionContext.setFresh(false);
       			projectionContext.setFullShadow(false);
@@ -648,8 +648,8 @@ public class Clockwork {
     		}
     		//remove secondary deltas from other than execution wave - we need to recompute them..
 //    		cleanUpSecondaryDeltas(context);
-    		
-    		
+
+
     	}
     	if (rot) {
     		context.setFresh(false);
@@ -664,7 +664,7 @@ public class Clockwork {
 //		ObjectDeltaWaves<F> executionWaveDeltaList = focusContext.getSecondaryDeltas();
 //		executionWaveDeltaList.clear();
 //	}
-	
+
 	private <P extends ObjectType> boolean isShadowDeltaSignificant(ObjectDelta<P> delta) {
 		if (delta == null || delta.isEmpty()) {
 			return false;
@@ -678,17 +678,17 @@ public class Clockwork {
 		}
 		return false;
 	}
-	
+
 	private <F extends ObjectType> HookOperationMode processFinal(LensContext<F> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 		auditFinalExecution(context, task, result);
 		logFinalReadable(context, task, result);
 		recordOperationExecution(context, null, task, result);
-		
+
 		HookOperationMode opmode = personaProcessor.processPersonaChanges(context, task, result);
 		if (opmode == HookOperationMode.BACKGROUND) {
 			return opmode;
 		}
-		
+
         return triggerReconcileAffected(context, task, result);
 	}
 
@@ -970,7 +970,7 @@ public class Clockwork {
 			auditEvent(context, stage, null, false, task, result);
 		}
 	}
-	
+
 	/**
 	 * Make sure that at least one execution is audited if a request was already audited. We don't want
 	 * request without execution in the audit logs.
@@ -984,7 +984,7 @@ public class Clockwork {
 		}
 		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result);
 	}
-	
+
 	private <F extends ObjectType> void processClockworkException(LensContext<F> context, Exception e, Task task, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		LOGGER.trace("Processing clockwork exception {}", e.toString());
@@ -994,9 +994,9 @@ public class Clockwork {
 		reclaimSequences(context, task, result);
 	}
 
-	private <F extends ObjectType> void auditEvent(LensContext<F> context, AuditEventStage stage, 
+	private <F extends ObjectType> void auditEvent(LensContext<F> context, AuditEventStage stage,
 			XMLGregorianCalendar timestamp, boolean alwaysAudit, Task task, OperationResult result) throws SchemaException {
-		
+
 		PrismObject<? extends ObjectType> primaryObject;
 		ObjectDelta<? extends ObjectType> primaryDelta;
 		if (context.getFocusContext() != null) {
@@ -1020,7 +1020,7 @@ public class Clockwork {
 			}
 			primaryDelta = projection.getDelta();
 		}
-		
+
 		AuditEventType eventType;
 		if (primaryDelta == null) {
 			eventType = AuditEventType.SYNCHRONIZATION;
@@ -1033,17 +1033,17 @@ public class Clockwork {
 		} else {
 			throw new IllegalStateException("Unknown state of delta "+primaryDelta);
 		}
-		
+
 		AuditEventRecord auditRecord = new AuditEventRecord(eventType, stage);
-		
+
 		if (primaryObject != null) {
 			auditRecord.setTarget(primaryObject.clone());
 //		} else {
 //			throw new IllegalStateException("No primary object in:\n"+context.dump());
 		}
-		
+
 		auditRecord.setChannel(context.getChannel());
-		
+
 		if (stage == AuditEventStage.REQUEST) {
 			Collection<ObjectDeltaOperation<? extends ObjectType>> clonedDeltas = ObjectDeltaOperation.cloneDeltaCollection(context.getPrimaryChanges());
 			checkNamesArePresent(clonedDeltas, primaryObject);
@@ -1064,15 +1064,15 @@ public class Clockwork {
 		} else {
 			throw new IllegalStateException("Unknown audit stage "+stage);
 		}
-		
+
 		if (timestamp != null) {
 			auditRecord.setTimestamp(XmlTypeConverter.toMillis(timestamp));
 		}
-		
+
 		addRecordMessage(auditRecord, result);
-		
+
 		auditService.audit(auditRecord, task);
-		
+
 		if (stage == AuditEventStage.EXECUTION) {
 			// We need to clean up so these deltas will not be audited again in next wave
 			context.markExecutedDeltasAudited();
@@ -1118,7 +1118,7 @@ public class Clockwork {
 				if (!StringUtils.isEmpty(message)) {
 					if (sb.length() != 0) {
 						sb.append("; ");
-					}					
+					}
 					sb.append(message);
 				}
 			}
@@ -1137,7 +1137,7 @@ public class Clockwork {
 			throw new SystemException("Unexpected exception "+e.getClass()+" "+e.getMessage(), e);
 		}
 	}
-	
+
 	/**
 	 * Logs the entire operation in a human-readable fashion.
 	 */
@@ -1145,7 +1145,7 @@ public class Clockwork {
 		if (!LOGGER.isDebugEnabled()) {
 			return;
 		}
-		
+
 		// a priori: sync delta
 		boolean hasSyncDelta = false;
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
@@ -1154,20 +1154,20 @@ public class Clockwork {
 				hasSyncDelta = true;
 			}
 		}
-		
+
 		Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = context.getExecutedDeltas();
 		if (!hasSyncDelta && executedDeltas == null || executedDeltas.isEmpty()) {
 			// Not worth mentioning
 			return;
 		}
-		
+
 		StringBuilder sb = new StringBuilder();
 		String channel = context.getChannel();
 		if (channel != null) {
 			sb.append("Channel: ").append(channel).append("\n");
 		}
-		
-		
+
+
 		if (hasSyncDelta) {
 			sb.append("Triggered by synchronization delta\n");
 			for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
@@ -1194,7 +1194,7 @@ public class Clockwork {
 				sb.append("\n");
 			}
 		}
-		
+
 		// focus primary
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext != null) {
@@ -1206,7 +1206,7 @@ public class Clockwork {
 				sb.append("\n");
 			}
 		}
-		
+
 		// projection primary
 		Collection<ObjectDelta<ShadowType>> projPrimaryDeltas = new ArrayList<ObjectDelta<ShadowType>>();
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
@@ -1223,7 +1223,7 @@ public class Clockwork {
 				sb.append("\n");
 			}
 		}
-				
+
 		if (focusContext != null) {
 			sb.append("Focus: ").append(focusContext.getHumanReadableName()).append("\n");
 		}
@@ -1237,7 +1237,7 @@ public class Clockwork {
 				sb.append("\n");
 			}
 		}
-		
+
 		if (executedDeltas == null || executedDeltas.isEmpty()) {
 			sb.append("Executed: nothing\n");
 		} else {
@@ -1252,17 +1252,17 @@ public class Clockwork {
 				sb.append("\n");
 			}
 		}
-		
+
 		LOGGER.debug("\n###[ CLOCKWORK SUMMARY ]######################################\n{}" +
 				       "##############################################################",
 				sb.toString());
 	}
-	
+
 	private <F extends ObjectType> void authorizeContextRequest(LensContext<F> context, Task task, OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException {
 		OperationResult result = parentResult.createMinorSubresult(Clockwork.class.getName()+".authorizeRequest");
 		LOGGER.trace("Authorizing request");
 		try {
-			
+
 			final LensFocusContext<F> focusContext = context.getFocusContext();
 			OwnerResolver ownerResolver = new LensOwnerResolver<>(context, objectResolver, task, result);
 			if (focusContext != null) {
@@ -1273,15 +1273,15 @@ public class Clockwork {
 			}
 			context.setRequestAuthorized(true);
 			result.recordSuccess();
-			
+
 			LOGGER.trace("Request authorized");
-			
+
 		} catch (Throwable e) {
 			result.recordFatalError(e);
 			throw e;
 		}
 	}
-	
+
 	private <F extends ObjectType, O extends ObjectType> ObjectSecurityConstraints authorizeElementContext(LensContext<F> context, LensElementContext<O> elementContext,
 			OwnerResolver ownerResolver, boolean isFocus, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException {
 		ObjectDelta<O> primaryDelta = elementContext.getPrimaryDelta();
@@ -1290,8 +1290,8 @@ public class Clockwork {
 			primaryDelta = primaryDelta.clone();
 			PrismObject<O> object = elementContext.getObjectCurrent();
 			if (object == null) {
-				// This may happen when object is being added. 
-				// But also in cases such as assignment of account and modification of 
+				// This may happen when object is being added.
+				// But also in cases such as assignment of account and modification of
 				// the same account in one operation
 				object = elementContext.getObjectNew();
 			}
@@ -1322,13 +1322,13 @@ public class Clockwork {
 							throw new AuthorizationException("Access denied");
 						} else {
 							// No explicit decision for assignment modification yet
-							// process each assignment individually							
-							authorizeAssignmentRequest(context, ModelAuthorizationAction.ASSIGN.getUrl(), 
+							// process each assignment individually
+							authorizeAssignmentRequest(context, ModelAuthorizationAction.ASSIGN.getUrl(),
 									object, ownerResolver, PlusMinusZero.PLUS, true, task, result);
-							
+
 							// We want to allow unassignment even if there are policies. Otherwise we would not be able to get
 							// rid of that assignment
-							authorizeAssignmentRequest(context, ModelAuthorizationAction.UNASSIGN.getUrl(), 
+							authorizeAssignmentRequest(context, ModelAuthorizationAction.UNASSIGN.getUrl(),
 									object, ownerResolver,PlusMinusZero.MINUS, false, task, result);
 						}
 					}
@@ -1344,7 +1344,7 @@ public class Clockwork {
 			}
 
 			// Process credential changes explicitly. There is a special authorization for that.
-			
+
 			if (!primaryDelta.isDelete()) {
 				if (primaryDelta.isAdd()) {
 					PrismObject<O> objectToAdd = primaryDelta.getObjectToAdd();
@@ -1387,7 +1387,7 @@ public class Clockwork {
 				// TODO: optimize, avoid evaluating the constraints twice
 				securityEnforcer.authorize(operationUrl, getRequestAuthorizationPhase(context) , object, primaryDelta, null, ownerResolver, result);
 			}
-			
+
 			return securityConstraints;
 		} else {
 			return null;
@@ -1424,27 +1424,27 @@ public class Clockwork {
 			ObjectReferenceType targetRef = changedAssignment.getTargetRef();
 			if (targetRef == null || targetRef.getOid() == null) {
 				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("{} of non-target assignment denied", 
+					LOGGER.debug("{} of non-target assignment denied",
 							assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1));
 				}
 				securityEnforcer.failAuthorization("with assignment", getRequestAuthorizationPhase(context), object, null, null, result);
 			}
 			// We do not worry about performance here too much. The target was already evaluated. This will be retrieved from repo cache anyway.
 			PrismObject<ObjectType> target = objectResolver.resolve(targetRef.asReferenceValue(), "resolving assignment target", task, result);
-			
+
 			if (prohibitPolicies) {
 				if (changedAssignment.getPolicyRule() != null || !changedAssignment.getPolicyException().isEmpty() || !changedAssignment.getPolicySituation().isEmpty()) {
 					securityEnforcer.failAuthorization("with assignment because of policies in the assignment", getRequestAuthorizationPhase(context), object, null, target, result);
 				}
 			}
-			
+
 			ObjectDelta<O> assignmentObjectDelta = object.createModifyDelta();
 			ContainerDelta<AssignmentType> assignmentDelta = assignmentObjectDelta.createContainerModification(FocusType.F_ASSIGNMENT);
 			// We do not care if this is add or delete. All that matters for authorization is that it is in a delta.
 			assignmentDelta.addValuesToAdd(changedAssignment.asPrismContainerValue().clone());
 			if (securityEnforcer.isAuthorized(assignActionUrl, getRequestAuthorizationPhase(context), object, assignmentObjectDelta, target, ownerResolver)) {
 				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("{} of target {} to {} allowed with {} authorization", 
+					LOGGER.debug("{} of target {} to {} allowed with {} authorization",
 							assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1),
 							target, object, assignActionUrl);
 				}
@@ -1454,7 +1454,7 @@ public class Clockwork {
 			if (ObjectTypeUtil.isDelegationRelation(relation)) {
 				if (securityEnforcer.isAuthorized(ModelAuthorizationAction.DELEGATE.getUrl(), getRequestAuthorizationPhase(context), object, assignmentObjectDelta, target, ownerResolver)) {
 					if (LOGGER.isDebugEnabled()) {
-						LOGGER.debug("{} of target {} to {} allowed with {} authorization", 
+						LOGGER.debug("{} of target {} to {} allowed with {} authorization",
 							assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1),
 							target, object, ModelAuthorizationAction.DELEGATE.getUrl());
 					}
@@ -1462,7 +1462,7 @@ public class Clockwork {
 				}
 			}
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("{} of target {} to {} denied", 
+				LOGGER.debug("{} of target {} to {} denied",
 						assignActionUrl.substring(assignActionUrl.lastIndexOf('#')),
 						target, object);
 			}

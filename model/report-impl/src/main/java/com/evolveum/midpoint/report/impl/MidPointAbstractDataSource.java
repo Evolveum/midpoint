@@ -22,12 +22,12 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class MidPointAbstractDataSource implements JRDataSource{
-	
+
 	List<PrismObject<? extends ObjectType>> resultList = null;
 	Iterator<PrismObject<? extends ObjectType>> iterator = null;
-	PrismObject<? extends ObjectType> currentObject = null; 
-	
-	
+	PrismObject<? extends ObjectType> currentObject = null;
+
+
 	@Override
 	public boolean next() throws JRException {
 		// TODO Auto-generated method stub
@@ -54,7 +54,7 @@ public class MidPointAbstractDataSource implements JRDataSource{
 		if (i == null){
 			return null;
 		}
-	
+
 		if (i instanceof PrismProperty){
 			if (i.isSingleValue()){
 				return ((PrismProperty) i).getRealValue();
@@ -64,7 +64,7 @@ public class MidPointAbstractDataSource implements JRDataSource{
 			if (i.isSingleValue()){
 				return ((PrismReference) i).getValue().asReferencable();
 			}
-			
+
 			List<Referencable> refs = new ArrayList<Referencable>();
 			for (PrismReferenceValue refVal : ((PrismReference) i).getValues()){
 				refs.add(refVal.asReferencable());
@@ -81,7 +81,7 @@ public class MidPointAbstractDataSource implements JRDataSource{
 				}
 			}
 			return containers;
-			
+
 		} else
 			throw new JRException("Could not get value of the fileld: " + fieldName);
 	}

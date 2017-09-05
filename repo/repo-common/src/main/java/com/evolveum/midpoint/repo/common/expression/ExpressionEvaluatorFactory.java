@@ -33,9 +33,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  */
 public interface ExpressionEvaluatorFactory {
-	
+
 	QName getElementName();
-	
+
 	<V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
 																							 D outputDefinition, String contextDescription, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException;

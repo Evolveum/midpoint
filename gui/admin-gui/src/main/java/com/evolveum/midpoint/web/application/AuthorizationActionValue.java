@@ -59,5 +59,5 @@ public class AuthorizationActionValue implements DisplayableValue<String>, Seria
 		return "AuthorizationActionValue(value=" + value + ", label=" + label + ", description="
 				+ description + ")";
 	}
-    
+
 }

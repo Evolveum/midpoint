@@ -45,7 +45,7 @@ public class AuditSearchDto implements Serializable {
 	public static final String F_HOST_IDENTIFIER = "hostIdentifier";
 	public static final String F_TARGET_NAME = "targetName";
 	public static final String F_TARGET_NAMES_OBJECTS = "targetNamesObjects";
-	public static final String F_TARGET_OWNER_NAME = "targetOwnerName";    
+	public static final String F_TARGET_OWNER_NAME = "targetOwnerName";
 	public static final String F_EVENT_TYPE = "eventType";
 	public static final String F_EVENT_STAGE = "eventStage";
 	public static final String F_OUTCOME = "outcome";
@@ -65,22 +65,22 @@ public class AuditSearchDto implements Serializable {
 	private OperationResultStatusType outcome;
 	private ItemPathDto changedItem;
 	private List<ObjectType> valueRefTargetNames;
-	
+
 	public AuditSearchDto() {
 	}
-	
+
 	public XMLGregorianCalendar getFrom() {
 		return from;
 	}
-	
+
 	public void setFrom(XMLGregorianCalendar from) {
 		this.from = from;
 	}
-	
+
 	public XMLGregorianCalendar getTo() {
 		return to;
 	}
-	
+
 	public void setTo(XMLGregorianCalendar to) {
 		this.to = to;
 	}
@@ -148,7 +148,7 @@ public class AuditSearchDto implements Serializable {
 	public void setOutcome(OperationResultStatusType outcome) {
 		this.outcome = outcome;
 	}
-	
+
 	public ItemPathDto getChangedItem() {
 		if (changedItem == null) {
 			changedItem = new ItemPathDto();
@@ -156,7 +156,7 @@ public class AuditSearchDto implements Serializable {
 		}
 		return changedItem;
 	}
-	
+
 	public void setChangedItem(ItemPathDto changedItem) {
 		this.changedItem = changedItem;
 	}

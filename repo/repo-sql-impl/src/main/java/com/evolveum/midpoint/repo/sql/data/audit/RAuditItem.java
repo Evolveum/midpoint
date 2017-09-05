@@ -38,12 +38,12 @@ public class RAuditItem {
 
 	public static final String TABLE_NAME = "m_audit_item";
 	public static final String COLUMN_RECORD_ID = "record_id";
-	
+
     private RAuditEventRecord record;
     private Long recordId;
     private String changedItemPath;
 
-    
+
     @ForeignKey(name = "none")
     @MapsId("record")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -62,37 +62,37 @@ public class RAuditItem {
         }
         return recordId;
     }
-   
+
     @Id
     @Column(name = "changedItemPath", length=900)
     public String getChangedItemPath() {
 		return changedItemPath;
 	}
-    
+
     public void setRecord(RAuditEventRecord record) {
 		if (record.getId() != 0) {
 			this.recordId = record.getId();
 		}
     	this.record = record;
 	}
-    
-   
+
+
     public void setRecordId(Long recordId) {
 		this.recordId = recordId;
 	}
-    
+
     public void setChangedItemPath(String changedItemPath) {
 		this.changedItemPath = changedItemPath;
 	}
-    
+
     public static RAuditItem toRepo(RAuditEventRecord record, String itemPath) {
     	RAuditItem itemChanged = new RAuditItem();
     	itemChanged.setRecord(record);
     	itemChanged.setChangedItemPath(itemPath);
     	return itemChanged;
-    	
+
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -112,5 +112,5 @@ public class RAuditItem {
         return result1;
     }
 
-	
+
 }

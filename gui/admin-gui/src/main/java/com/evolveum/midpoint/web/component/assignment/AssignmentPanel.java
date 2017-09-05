@@ -184,17 +184,17 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 
 	protected List<IColumn<AssignmentDto, String>> initBasicColumns() {
 		List<IColumn<AssignmentDto, String>> columns = new ArrayList<>();
-		
+
 		columns.add(new CheckBoxHeaderColumn<AssignmentDto>());
 
 		columns.add(new IconColumn<AssignmentDto>(Model.of("")) {
-			
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected IModel<String> createIconModel(IModel<AssignmentDto> rowModel) {
 				return new AbstractReadOnlyModel<String>() {
-			
+
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -203,9 +203,9 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 					}
 				};
 			}
-			
-		}); 
-		
+
+		});
+
 		columns.add(new LinkColumn<AssignmentDto>(createStringResource("PolicyRulesPanel.nameColumn")){
             private static final long serialVersionUID = 1L;
 
@@ -216,7 +216,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
             	return createStringResource("AssignmentPanel.noName");
             }
             return Model.of(name);
-                
+
             }
 
             @Override
@@ -224,14 +224,14 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
                 assignmentDetailsPerformed(target, rowModel);
             }
         });
-		
+
 		columns.add(new LinkColumn<AssignmentDto>(createStringResource("AssignmentType.activation")){
             private static final long serialVersionUID = 1L;
 
             @Override
             protected IModel<String> createLinkModel(IModel<AssignmentDto> rowModel) {
             	return AssignmentsUtil.createActivationTitleModelExperimental(rowModel, AssignmentPanel.this);
-                
+
             }
 
             @Override
@@ -239,7 +239,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
                 updateAssignmnetActivation(target, rowModel);
             }
         });
-		
+
 //		columns.add(new IconColumn<AssignmentDto>(Model.of("")){
 //            private static final long serialVersionUID = 1L;
 //
@@ -272,17 +272,17 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 //	            }
 //
 //	        });
-		
-     
-        
+
+
+
         columns.addAll(initColumns());
         return columns;
 	}
-	
+
 	protected abstract List<IColumn<AssignmentDto, String>> initColumns();
 
 	protected abstract void newAssignmentClickPerformed(AjaxRequestTarget target);
-	
+
 	protected void initCustomLayout(WebMarkupContainer assignmentsContainer) {
 
 	}
@@ -344,7 +344,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 			}
 		};
 		details.add(doneButton);
-		
+
 		AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
 				createStringResource("AssignmentPanel.cancelButton")) {
 			private static final long serialVersionUID = 1L;
@@ -439,10 +439,10 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 				getParentPage().getMainPopupBodyId(),
 				new PropertyModel<>(rowModel, AssignmentDto.F_VALUE + "." + AssignmentType.F_ACTIVATION.getLocalPart()));
 		activationPanel.setOutputMarkupId(true);
-		
+
 		getParentPage().showMainPopup(activationPanel, target);
 	}
-	
+
 	protected abstract TableId getTableId();
 
 	protected abstract int getItemsPerPage();

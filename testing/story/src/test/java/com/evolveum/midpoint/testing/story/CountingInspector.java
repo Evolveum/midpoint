@@ -39,9 +39,9 @@ public class CountingInspector implements InternalInspector, DebugDumpable {
 
 	@SuppressWarnings("rawtypes")
 	private Map<Class,Integer> readMap = new HashMap<>();
-	
+
 	private Map<NamedObjectKey,Integer> roleEvaluationMap = new HashMap<>();
-	
+
 	@Override
 	public <O extends ObjectType> void inspectRepositoryRead(Class<O> type, String oid) {
 		Integer i = readMap.get(type);
@@ -51,11 +51,11 @@ public class CountingInspector implements InternalInspector, DebugDumpable {
 		i++;
 		readMap.put(type, i);
 	}
-	
+
 	public <O extends ObjectType> void assertRead(Class<O> type, int expectedCount) {
 		assertEquals("Unexpected number of reads of "+type.getSimpleName(), (Integer)expectedCount, readMap.get(type));
 	}
-	
+
 	@Override
 	public <F extends FocusType> void inspectRoleEvaluation(F target, boolean fullEvaluation) {
 		NamedObjectKey key = new NamedObjectKey(target);
@@ -96,7 +96,7 @@ public class CountingInspector implements InternalInspector, DebugDumpable {
 	private class NamedObjectKey {
 		private String oid;
 		private String name;
-		
+
 		public NamedObjectKey(ObjectType object) {
 			this.oid = object.getOid();
 			this.name = object.getName().getOrig();
@@ -152,7 +152,7 @@ public class CountingInspector implements InternalInspector, DebugDumpable {
 		public String toString() {
 			return "(" + oid + ":" + name + ")";
 		}
-		
-		
+
+
 	}
 }

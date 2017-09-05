@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
  * It is quite a bad way to use getAny() methods from the JAXB classes, it is much better to use
  * prism facet instead. However we need this to be fully JAXB compliant and therefore support
  * XML marshalling/unmarshalling. This is important e.g. for JAX-WS.
- * 
+ *
  * @author Radovan Semancik
  */
 public class AnyArrayList<C extends Containerable> extends AbstractList<Object> {
@@ -133,7 +133,7 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
 	    		if (index < item.getValues().size()) {
 	    			item.remove(index);
 	    		} else {
-	    			index -= item.getValues().size(); 
+	    			index -= item.getValues().size();
 	    		}
 	    	}
 	    	throw new IndexOutOfBoundsException();
@@ -153,7 +153,7 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
 			}
     	}
     }
-    
+
     @Override
     public boolean removeAll(Collection<?> objects) {
         boolean changed = false;
@@ -166,19 +166,19 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
         }
         return changed;
     }
-    
+
     private boolean isSchemaless() {
     	return containerValue.getComplexTypeDefinition() == null;
     }
-        
+
     private PrismContainer<C> getContainer() {
     	return containerValue.getContainer();
     }
-    
+
     private PrismContext getPrismContext() {
     	return getContainer().getPrismContext();
     }
-        
+
 	private Object asElement(PrismValue itemValue) {
 		PrismContext prismContext = containerValue.getPrismContext();
         if (prismContext == null) {
@@ -190,6 +190,6 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
 			throw new SystemException("Unexpected schema problem: "+e.getMessage(),e);
 		}
 	}
-	
+
 
 }

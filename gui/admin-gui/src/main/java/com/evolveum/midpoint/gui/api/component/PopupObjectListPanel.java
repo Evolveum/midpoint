@@ -43,7 +43,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 	 */
 	public PopupObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect, PageBase parentPage) {
 		super(id, defaultType, multiselect, parentPage);
-		
+
 	}
 
 	public PopupObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options,
@@ -57,13 +57,13 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 		if (isMultiselect()) {
 			return new CheckBoxHeaderColumn<SelectableBean<O>>() {
 				private static final long serialVersionUID = 1L;
-				
+
 				@Override
 				protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<SelectableBean<O>> rowModel) {
 					super.onUpdateRow(target, table, rowModel);
 					onUpdateCheckbox(target);
 				};
-				
+
 				@Override
 				protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
 					super.onUpdateHeader(target, selected, table);
@@ -122,18 +122,18 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 	protected List<IColumn<SelectableBean<O>, String>> createColumns() {
 		return ColumnUtils.getDefaultColumns(getType());
 	}
-	
+
 	protected void onSelectPerformed(AjaxRequestTarget target, O object){
-		
+
 	}
-	
+
 	@Override
 	protected List<InlineMenuItem> createInlineMenu() {
 		return null;
 	}
-	
+
 	protected void onUpdateCheckbox(AjaxRequestTarget target){
-		
+
 	}
 
 }

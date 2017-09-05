@@ -62,20 +62,20 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
         super(id, model);
         initLayout();
     }
-    
+
     public ChooseTypePanel(String id, ObjectReferenceType ref){
     	super(id, Model.of(new ObjectViewDto<T>(ref != null ? ref.getOid() : null, ref !=null ?  WebComponentUtil.getOrigStringFromPoly(ref.getTargetName()) : null)));
         initLayout();
     }
-    
+
     protected void initLayout() {
 
         final TextField<String> name = new TextField<String>(ID_OBJECT_NAME, new PropertyModel<String>(getModel(), ObjectViewDto.F_NAME));
-        		
-        		
+
+
 //        		new Model<String>(){
 //        	private static final long serialVersionUID = 1L;
-//        	
+//
 //            @Override
 //            public String getObject() {
 //                ObjectViewDto<T> dto = getModel().getObject();
@@ -96,7 +96,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
 
         AjaxLink<String> choose = new AjaxLink<String>(ID_LINK_CHOOSE) {
         	private static final long serialVersionUID = 1L;
-        	
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                  changeOptionPerformed(target);
@@ -152,9 +152,9 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
         target.add(get(ID_OBJECT_NAME));
         executeCustomAction(target, object);
     }
-    
+
     protected void executeCustomAction(AjaxRequestTarget target, T object) {
-    	
+
     }
 
     private void changeOptionPerformed(AjaxRequestTarget target){
@@ -171,7 +171,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     		}
     	};
     	objectBrowserPanel.setOutputMarkupId(true);
-    	
+
     	getPageBase().showMainPopup(objectBrowserPanel, target);
     }
 
@@ -181,9 +181,9 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
         getModel().setObject(dto);
         executeCustomRemoveAction(target);
     }
-    
+
 protected void executeCustomRemoveAction(AjaxRequestTarget target) {
-    	
+
     }
 
     public Class<T> getObjectTypeClass(){

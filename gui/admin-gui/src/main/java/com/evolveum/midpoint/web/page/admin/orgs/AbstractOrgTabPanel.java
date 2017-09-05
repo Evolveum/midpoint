@@ -51,12 +51,12 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractOrgTabPanel.class);
-	
+
 	public static final String PARAM_ORG_RETURN = "org";
 
     private static final String DOT_CLASS = OrgTreeAssignablePanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ORG_UNIT = DOT_CLASS + "loadOrgUnit";
-    
+
     private String ID_TABS = "tabs";
     private List<PrismObject<OrgType>> roots;
 
@@ -65,11 +65,11 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
 		setParent(pageBase);
 		initLayout();
 	}
-	
+
 	private void initLayout() {
         final IModel<List<ITab>> tabModel = new LoadableModel<List<ITab>>(false) {
         	private static final long serialVersionUID = 1L;
-        	
+
             @Override
             protected List<ITab> load() {
                 LOGGER.debug("Loading org. roots for tabs for tabbed panel.");
@@ -86,7 +86,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
                         public WebMarkupContainer getPanel(String panelId) {
                             add(new AjaxEventBehavior("load") {
                             		private static final long serialVersionUID = 1L;
-                            		
+
                                     protected void onEvent(final AjaxRequestTarget target) {
                                         SessionStorage storage = getPageBase().getSessionStorage();
                                         storage.getUsers().setSelectedTabId(tabId);
@@ -97,8 +97,8 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
                             panel.setOutputMarkupId(true);
                             return panel;
                         }
-                        
-                        
+
+
                     });
                 }
 
@@ -118,7 +118,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
         AjaxTabbedPanel<ITab> tabbedPanel = new AjaxTabbedPanel<ITab>(ID_TABS, tabModel.getObject(), new Model<>(selectedTab), null){
 
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public TabbedPanel<ITab> setSelectedTab(int index) {
 				changeTabPerformed(index);
@@ -126,17 +126,17 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
 			}
         };
         tabbedPanel.setOutputMarkupId(true);
-        
+
         if (tabsList == null || tabsList.size() == 0){
             tabbedPanel.setVisible(false);
         }
         add(tabbedPanel);
     }
-	
+
 	protected Panel getPanel(){
 		return (Panel) get(ID_TABS).get("panel");
 	}
-	
+
 	public AjaxTabbedPanel<ITab> getTabbedPanel(){
 		return (AjaxTabbedPanel) get(ID_TABS);
 	}

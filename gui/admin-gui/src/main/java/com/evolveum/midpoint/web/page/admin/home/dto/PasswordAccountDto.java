@@ -86,11 +86,11 @@ public class PasswordAccountDto extends Selectable implements Comparable<Passwor
     public void setCssClass(String cssClass) {
         this.cssClass = cssClass;
     }
-    
+
     public boolean isPasswordCapabilityEnabled() {
 		return passwordCapabilityEnabled;
 	}
-    
+
     public void setPasswordCapabilityEnabled(boolean passwordCapabilityEnabled) {
 		this.passwordCapabilityEnabled = passwordCapabilityEnabled;
 	}

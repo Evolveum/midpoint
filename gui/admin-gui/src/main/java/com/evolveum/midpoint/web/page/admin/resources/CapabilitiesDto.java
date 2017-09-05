@@ -6,41 +6,41 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 public class CapabilitiesDto implements Serializable {
-	
+
 	private boolean activation;
-	
+
 	private boolean activationLockoutStatus;
-	
+
 	private boolean activationStatus;
-	
+
 	private boolean activationValidity;
-	
+
 	private boolean auxiliaryObjectClasses;
-	
+
 	private boolean countObjects;
-	
+
 	private boolean pagedSearch;
-	
+
 	private boolean password;
-	
+
 	private boolean credentials;
-	
+
 	private boolean liveSync;
-	
+
 	private boolean testConnection;
-		
+
 	private boolean create;
-	
+
 	private boolean update;
-	
+
 	private boolean addRemoveAttributeValues;
-	
+
 	private boolean delete;
-	
+
 	private boolean read;
-	
+
 	private boolean script;
-	
+
 	public CapabilitiesDto(ResourceType resource){
 		activation = ResourceTypeUtil.isActivationCapabilityEnabled(resource);
 		activationLockoutStatus = ResourceTypeUtil.isActivationLockoutStatusCapabilityEnabled(resource);
@@ -196,8 +196,8 @@ public class CapabilitiesDto implements Serializable {
 	public void setScript(boolean script) {
 		this.script = script;
 	}
-	
-	
-	
+
+
+
 
 }

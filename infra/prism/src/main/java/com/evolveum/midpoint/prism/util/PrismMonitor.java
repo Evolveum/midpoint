@@ -23,15 +23,15 @@ import com.evolveum.midpoint.prism.PrismObject;
  * interface are called when selected important (usually expensive) operations
  * take place in prism. This can be used for gathering stats, making assertions
  * in the test code, etc.
- * 
+ *
  * @author semancik
  */
 public interface PrismMonitor {
 
 	<O extends Objectable> void recordPrismObjectCompareCount(PrismObject<O> thisObject, Object thatObject);
-	
+
 	<O extends Objectable> void beforeObjectClone(PrismObject<O> orig);
-	
+
 	<O extends Objectable> void afterObjectClone(PrismObject<O> orig, PrismObject<O> clone);
-	
+
 }

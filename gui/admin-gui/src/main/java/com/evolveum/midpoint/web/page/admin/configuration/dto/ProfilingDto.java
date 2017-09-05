@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigura
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProfilingConfigurationType;
 
 /**
- * 
+ *
  * @author katkav
  *
  */
@@ -120,7 +120,7 @@ public class ProfilingDto implements Serializable {
 	}
 
 	public ProfilingConfigurationType getNewObject() {
-		
+
 		ProfilingConfigurationType config = new ProfilingConfigurationType();
 
 		if (isProfilingEnabled() || isPerformanceStatistics() || isRequestFilter()

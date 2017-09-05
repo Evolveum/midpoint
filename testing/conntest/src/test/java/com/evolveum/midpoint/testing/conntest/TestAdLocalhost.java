@@ -26,7 +26,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * AD test to run manually. Assumess connector server on localhost (or a tunneled connection).
- * 
+ *
  * @author semancik
  *
  */
@@ -46,5 +46,5 @@ public class TestAdLocalhost extends AbstractAdTest {
 	protected int getLdapServerPort() {
 		return 44389;
 	}
-	
+
 }

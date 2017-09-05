@@ -94,16 +94,16 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
  	// It is a spring bean and it is supposed to handle all search task instances
  	// Therefore it must not have task-specific fields. It can only contain fields specific to
  	// all tasks of a specified type
-    
+
     @Autowired(required = true)
     private TaskManager taskManager;
-    
+
     @Autowired(required = true)
     private ProvisioningService provisioningService;
 
     @Autowired(required = true)
     private ChangeNotificationDispatcher changeNotificationDispatcher;
-    
+
     private PrismPropertyDefinition<QName> objectclassPropertyDefinition;
 
     private static final Trace LOGGER = TraceManager.getTrace(ImportAccountsFromResourceTaskHandler.class);
@@ -143,7 +143,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         // Readable task name
         PolyStringType polyString = new PolyStringType("Import from resource " + resource.getName());
         task.setName(polyString);
-        
+
 
         // Set reference to the resource
         task.setObjectRef(ObjectTypeUtil.createObjectRef(resource));
@@ -181,28 +181,28 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 	@Override
 	protected SynchronizeAccountResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask,
 			OperationResult opResult) {
-		
+
 		ResourceType resource = resolveObjectRef(ResourceType.class, runResult, coordinatorTask, opResult);
 		if (resource == null) {
 			return null;
 		}
-		
+
         return createHandler(resource, null, runResult, coordinatorTask, opResult);
 	}
 
     // shadowToImport - it is used to derive objectClass/intent/kind when importing a single shadow
 	private SynchronizeAccountResultHandler createHandler(ResourceType resource, PrismObject<ShadowType> shadowToImport,
                                                           TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
-		
+
 		RefinedResourceSchema refinedSchema;
 		ObjectClassComplexTypeDefinition objectClass;
         try {
             refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
-        
+
 	        if (LOGGER.isTraceEnabled()) {
 	        	LOGGER.trace("Refined schema:\n{}", refinedSchema.debugDump());
 	        }
-	        
+
 	        if (shadowToImport != null) {
 	            objectClass = Utils.determineObjectClass(refinedSchema, shadowToImport);
 	        } else {
@@ -220,9 +220,9 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
         }
-        
+
         LOGGER.info("Start executing import from resource {}, importing object class {}", resource, objectClass.getTypeName());
-		
+
 		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, objectClass, "import",
                 coordinatorTask, changeNotificationDispatcher, taskManager);
         handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
@@ -230,10 +230,10 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         handler.setStopOnError(false);
         handler.setContextDesc("from "+resource);
         handler.setLogObjectProgress(true);
-        
+
         return handler;
 	}
-	
+
 	@Override
 	protected boolean initializeRun(SynchronizeAccountResultHandler handler,
 			TaskRunResult runResult, Task task, OperationResult opResult) {
@@ -267,15 +267,15 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     public List<String> getCategoryNames() {
         return null;
     }
-    
+
     /**
-     * Imports a single shadow. Synchronously. The task is NOT switched to background by default. 
+     * Imports a single shadow. Synchronously. The task is NOT switched to background by default.
      */
     public boolean importSingleShadow(String shadowOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-    	
+
     	PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, shadowOid, null, task, parentResult);
     	PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, ShadowUtil.getResourceOid(shadow), null, task, parentResult);
-    	
+
     	// Create a result handler just for one object. Invoke the handle() method manually.
     	TaskRunResult runResult = new TaskRunResult();
 		SynchronizeAccountResultHandler resultHandler = createHandler(resource.asObjectable(), shadow, runResult, task, parentResult);
@@ -284,19 +284,19 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 		}
 		// This is required for proper error reporting
 		resultHandler.setStopOnError(true);
-		
+
 		boolean cont = initializeRun(resultHandler, runResult, task, parentResult);
 		if (!cont) {
 			return false;
 		}
-		
+
 		cont = resultHandler.handle(shadow, parentResult);
 		if (!cont) {
 			return false;
 		}
-		
+
 		finish(resultHandler, runResult, task, parentResult);
-		
+
 		return true;
     }
 }

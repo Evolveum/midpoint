@@ -31,14 +31,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
  *
  */
 public class MockTriggerHandler implements TriggerHandler {
-	
+
 	public static final String HANDLER_URI = SchemaConstants.NS_MIDPOINT_TEST + "/mock-trigger-handler";
-	
+
 	protected static final Trace LOGGER = TraceManager.getTrace(MockTriggerHandler.class);
-	
+
 	private PrismObject<?> lastObject;
 	private int invocationCount;
-	
+
 	public PrismObject<?> getLastObject() {
 		return lastObject;
 	}
@@ -56,7 +56,7 @@ public class MockTriggerHandler implements TriggerHandler {
 		lastObject = object.clone();
 		invocationCount++;
 	}
-	
+
 	public void reset() {
 		lastObject = null;
 		invocationCount = 0;

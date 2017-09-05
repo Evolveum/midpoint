@@ -20,7 +20,7 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 /**
  * Exception indicating violation of security policies.
  * It is SecurityViolationException to avoid confusion with java.lang.SecurityException
- * 
+ *
  * @author Radovan Semancik
  *
  */
@@ -33,7 +33,7 @@ public class SecurityViolationException extends CommonException {
 	public SecurityViolationException(String message) {
 		super(message);
 	}
-	
+
 	public SecurityViolationException(LocalizableMessage userFriendlyMessage) {
 		super(userFriendlyMessage);
 	}
@@ -45,7 +45,7 @@ public class SecurityViolationException extends CommonException {
 	public SecurityViolationException(String message, Throwable cause) {
 		super(message, cause);
 	}
-	
+
 	public SecurityViolationException(LocalizableMessage userFriendlyMessage, Throwable cause) {
 		super(userFriendlyMessage, cause);
 	}

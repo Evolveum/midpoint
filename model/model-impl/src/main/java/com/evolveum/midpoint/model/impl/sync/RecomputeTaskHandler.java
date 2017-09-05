@@ -57,7 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * The task hander for user recompute.
- * 
+ *
  *  This handler takes care of executing recompute "runs". The task will iterate over all objects of a given type
  *  and recompute their assignments and expressions. This is needed after the expressions are changed,
  *  e.g in resource outbound expressions or in a role definition.
@@ -72,18 +72,18 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Foc
 
     @Autowired
 	private TaskManager taskManager;
-	
+
 	@Autowired
 	private PrismContext prismContext;
 
     @Autowired
     private ContextFactory contextFactory;
-    
+
     @Autowired
     private Clockwork clockwork;
-    
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(RecomputeTaskHandler.class);
-	
+
 	public RecomputeTaskHandler() {
         super("Recompute", OperationConstants.RECOMPUTE);
 		setLogFinishInfo(true);
@@ -94,7 +94,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Foc
 	private void initialize() {
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
-	
+
 	@Override
 	protected ObjectQuery createQuery(AbstractSearchIterativeResultHandler<FocusType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 		return createQueryFromTask(handler, runResult, task, opResult);
@@ -107,7 +107,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Foc
 	@Override
 	protected AbstractSearchIterativeResultHandler<FocusType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
 			OperationResult opResult) {
-		
+
 		AbstractSearchIterativeResultHandler<FocusType> handler = new AbstractSearchIterativeResultHandler<FocusType>(
 				coordinatorTask, RecomputeTaskHandler.class.getName(), "recompute", "recompute task", taskManager) {
 			@Override
@@ -131,9 +131,9 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Foc
 		LOGGER.trace("ModelExecuteOptions: {}", modelExecuteOptions);
 		return modelExecuteOptions;
 	}
-	
+
 	private void recompute(PrismObject<FocusType> focalObject, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException,
-			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
+			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 		LOGGER.trace("Recomputing object {}", focalObject);
 

@@ -27,28 +27,28 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Property Definition.
- * <p/>
+ * <p>
  * Property is a basic unit of information in midPoint. This class provides
  * definition of property type, multiplicity and so on.
- * <p/>
+ * <p>
  * Property is a specific characteristic of an object. It may be considered
  * object "attribute" or "field". For example User has fullName property that
  * contains string value of user's full name.
- * <p/>
+ * <p>
  * Properties may be single-valued or multi-valued
- * <p/>
+ * <p>
  * Properties may contain primitive types or complex types (defined by XSD
  * schema)
- * <p/>
+ * <p>
  * Property values are unordered, implementation may change the order of values
- * <p/>
+ * <p>
  * Duplicate values of properties should be silently removed by implementations,
  * but clients must be able tolerate presence of duplicate values.
- * <p/>
+ * <p>
  * Operations that modify the objects work with the granularity of properties.
  * They add/remove/replace the values of properties, but do not "see" inside the
  * property.
- * <p/>
+ * <p>
  * This class represents schema definition for property. See {@link Definition}
  * for more details.
  *
@@ -66,7 +66,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
     public PrismPropertyDefinitionImpl(QName elementName, QName typeName, PrismContext prismContext) {
         super(elementName, typeName, prismContext);
     }
-    
+
     public PrismPropertyDefinitionImpl(QName elementName, QName typeName, PrismContext prismContext, Collection<? extends DisplayableValue<T>> allowedValues, T defaultValue) {
         super(elementName, typeName, prismContext);
         this.allowedValues = allowedValues;
@@ -94,15 +94,15 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
     }
 
 	/**
-     * This is XSD annotation that specifies whether a property should 
+     * This is XSD annotation that specifies whether a property should
      * be indexed in the storage. It can only apply to properties. It
      * has following meaning:
-     * 
+     *
      * true: the property must be indexed. If the storage is not able to
      * index the value, it should indicate an error.
-     * 
+     *
      * false: the property should not be indexed.
-     * 
+     *
      * null: data store decides whether to index the property or
      * not.
      */
@@ -119,7 +119,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 	 * Returns matching rule name. Matching rules are algorithms that specify
 	 * how to compare, normalize and/or order the values. E.g. there are matching
 	 * rules for case insensitive string comparison, for LDAP DNs, etc.
-	 *  
+	 *
 	 * @return matching rule name
 	 */
 	@Override
@@ -175,7 +175,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 			sb.append(",AVals:").append(allowedValues.size());
 		}
 	}
-    
+
     @Override
 	public int hashCode() {
 		final int prime = 31;

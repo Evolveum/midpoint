@@ -61,7 +61,7 @@ public class ReportWebServiceRaw implements Provider<DOMSource> {
 
 	@Autowired(required = true)
 	private ReportWebService reportService;
-	
+
 	 @Override
 	    public DOMSource invoke(DOMSource request) {
 	        try {
@@ -144,7 +144,7 @@ public class ReportWebServiceRaw implements Provider<DOMSource> {
 
 	        return new DOMSource(response);
 	    }
-		
+
 		private void serializeFaultMessage(Detail detail, FaultMessage faultMessage) {
 			MiscSchemaUtil.serializeFaultMessage(detail, faultMessage, prismContext, LOGGER);
 		}

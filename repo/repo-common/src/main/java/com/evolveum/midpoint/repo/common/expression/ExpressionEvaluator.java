@@ -24,13 +24,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author Radovan Semancik
- * 
+ *
  */
 public interface ExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> {
 
 	PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException;
-	
+
 	String shortDebugDump();
 
 }

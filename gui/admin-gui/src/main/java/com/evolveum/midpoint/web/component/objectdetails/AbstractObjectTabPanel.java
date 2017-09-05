@@ -76,7 +76,7 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 	protected PageParameters getPageParameters() {
 		return pageBase.getPageParameters();
 	}
-	
+
 	public PageBase getPageBase() {
 		return pageBase;
 	}
@@ -101,12 +101,12 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 	protected void showResult(OperationResult result) {
 		pageBase.showResult(result);
 	}
-	
+
 	protected void showResult(OperationResult result, boolean showSuccess) {
 		pageBase.showResult(result, false);
 	}
-	
-	
+
+
 	protected WebMarkupContainer getFeedbackPanel() {
 		return pageBase.getFeedbackPanel();
 	}
@@ -137,7 +137,7 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 	protected void addPrismPropertyPanel(MarkupContainer parentComponent, String id, QName propertyName) {
 		addPrismPropertyPanel(parentComponent, id, new ItemPath(propertyName));
 	}
-	
+
 	protected void addPrismPropertyPanel(MarkupContainer parentComponent, String id, ItemPath propertyPath) {
 		parentComponent.add(
 				new PrismPropertyPanel(id,

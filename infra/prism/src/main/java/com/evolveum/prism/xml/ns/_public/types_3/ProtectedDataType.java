@@ -45,7 +45,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 
 /**
  * This class was originally generated. But it was heavily modified by hand.
- * 
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ProtectedDataType", propOrder = {
@@ -56,12 +56,12 @@ import com.evolveum.midpoint.util.QNameUtil;
     ProtectedStringType.class
 })
 public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializable {
-	
+
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ProtectedDataType");
 	public final static QName F_ENCRYPTED_DATA = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "encryptedData");
 	public final static QName F_HASHED_DATA = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "hashedData");
 	public final static QName F_CLEAR_VALUE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "clearValue");
-	
+
 	public static final String NS_XML_ENC = "http://www.w3.org/2001/04/xmlenc#";
 	public static final String NS_XML_DSIG = "http://www.w3.org/2000/09/xmldsig#";
 	public static final QName F_XML_ENC_ENCRYPTED_DATA = new QName(NS_XML_ENC, "EncryptedData");
@@ -72,14 +72,14 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 	public static final QName F_XML_ENC_CIPHER_VALUE = new QName(NS_XML_ENC, "CipherValue");
 	public static final QName F_XML_DSIG_KEY_INFO = new QName(NS_XML_DSIG, "KeyInfo");
 	public static final QName F_XML_DSIG_KEY_NAME = new QName(NS_XML_DSIG, "KeyName");
-	
-	
+
+
 	@XmlTransient
 	private EncryptedDataType encryptedDataType;
-	
+
 	@XmlTransient
 	private HashedDataType hashedDataType;
-	
+
 	@XmlTransient
 	private T clearValue;
 
@@ -89,36 +89,36 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
     protected List<Object> content;
 
     /**
-     * 
+     *
      * 				TODO
      * 				May be either encrypted or hashed or provided in the clear (e.g. for debugging).
-     * 				
+     *
      * 				This type is marked as "mixed" because it may have alternative representation where
      * 				just the plaintext value is presented as the only value.
-     * 				
+     *
      * 				This is considered to be primitive built-in type for prism objects.
      * 			Gets the value of the content property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the content property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getContent().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link Object }
      * {@link String }
      * {@link JAXBElement }{@code <}{@link EncryptedDataType }{@code >}
-     * 
-     * 
+     *
+     *
      */
     public List<Object> getContent() {
         if (content == null) {
@@ -136,12 +136,12 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 	public void setEncryptedData(EncryptedDataType encryptedDataType) {
 		this.encryptedDataType = encryptedDataType;
 	}
-	
+
     @Override
 	public boolean isEncrypted() {
 		return encryptedDataType != null;
 	}
-    
+
     @Override
     public HashedDataType getHashedDataType() {
 		return hashedDataType;
@@ -151,17 +151,17 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 	public void setHashedData(HashedDataType hashedDataType) {
 		this.hashedDataType = hashedDataType;
 	}
-	
+
     @Override
 	public boolean isHashed() {
 		return hashedDataType != null;
 	}
-    
+
     @Override
     public T getClearValue() {
     	return clearValue;
     }
-    
+
     @Override
     public void setClearValue(T clearValue) {
     	this.clearValue = clearValue;
@@ -171,26 +171,26 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 	public boolean canGetCleartext() {
 		return clearValue != null || encryptedDataType != null;
 	}
-    
+
     @Override
 	public void destroyCleartext() {
     	// Not perfect. But OK for now.
 		clearValue = null;
 	}
-    
+
     private JAXBElement<EncryptedDataType> toJaxbElement(EncryptedDataType encryptedDataType) {
     	return new JAXBElement<EncryptedDataType>(F_ENCRYPTED_DATA, EncryptedDataType.class, encryptedDataType);
     }
-    
+
     private JAXBElement<HashedDataType> toJaxbElement(HashedDataType hashedDataType) {
     	return new JAXBElement<HashedDataType>(F_ENCRYPTED_DATA, HashedDataType.class, hashedDataType);
     }
-    
+
     private void clearContent() {
     	encryptedDataType = null;
     	hashedDataType = null;
     }
-    
+
     private boolean addContent(Object newObject) {
     	if (newObject instanceof String){
             String s = (String) newObject;
@@ -226,7 +226,7 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
     		throw new IllegalArgumentException("Attempt to add unknown object "+newObject+" ("+newObject.getClass()+")");
     	}
     }
-    
+
     private EncryptedDataType convertXmlEncToEncryptedDate(Element eEncryptedData) {
     	EncryptedDataType encryptedDataType = new EncryptedDataType();
     	Element eEncryptionMethod = DOMUtil.getChildElement(eEncryptedData, F_XML_ENC_ENCRYPTION_METHOD);
@@ -263,7 +263,7 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
     	}
     	return encryptedDataType;
 	}
-    
+
     public boolean isEmpty() {
     	return encryptedDataType == null && hashedDataType == null && clearValue == null;
     }
@@ -338,7 +338,7 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
         cloned.clearValue = CloneUtil.clone(clearValue);
         cloned.encryptedDataType = CloneUtil.clone(encryptedDataType);
         cloned.hashedDataType = CloneUtil.clone(hashedDataType);
-        
+
         // content is virtual, there is no point in copying it
     }
 
@@ -519,6 +519,6 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 		public List<Object> subList(int fromIndex, int toIndex) {
 			throw new UnsupportedOperationException("we are too lazy for this");
 		}
-    	
+
     }
 }

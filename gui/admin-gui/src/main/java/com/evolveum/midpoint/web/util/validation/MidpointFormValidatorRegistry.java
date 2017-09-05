@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class MidpointFormValidatorRegistry {
-	
+
 	private Collection<MidpointFormValidator> validators = new ArrayList<>();
 
 	public void registerValidator(MidpointFormValidator validator) {
@@ -36,5 +36,5 @@ public class MidpointFormValidatorRegistry {
 	public Collection<MidpointFormValidator> getValidators() {
 		return validators;
 	}
-	
+
 }

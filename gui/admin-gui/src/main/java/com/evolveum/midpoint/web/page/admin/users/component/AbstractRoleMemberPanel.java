@@ -570,7 +570,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	protected String getTaskName(String operation, QueryScope scope) {
 		return getTaskName(operation, scope, false);
 	}
-	
+
 	private String getMemberObjectDisplayName(ObjectType object){
 		if (object == null){
 			return "";

@@ -33,9 +33,9 @@ import java.util.List;
 
 /**
  * <p>Java class for ObjectType complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="ObjectType">
  *   &lt;complexContent>
@@ -51,8 +51,8 @@ import java.util.List;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ObjectType", propOrder = {
@@ -76,7 +76,7 @@ public abstract class ObjectType
 	public final static QName F_DESCRIPTION = new QName(NS_FOO, "description");
 	public final static QName F_EXTENSION = new QName(NS_FOO, "extension");
     public final static QName F_PARENT_ORG_REF = new QName(NS_FOO, "parentOrgRef");
-	
+
     private final static long serialVersionUID = 201202081233L;
     protected PolyStringType name;
     protected String description;
@@ -89,11 +89,11 @@ public abstract class ObjectType
 
     /**
      * Gets the value of the name property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
     public PolyStringType getName() {
         return name;
@@ -101,11 +101,11 @@ public abstract class ObjectType
 
     /**
      * Sets the value of the name property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
     public void setName(PolyStringType value) {
         this.name = value;
@@ -113,11 +113,11 @@ public abstract class ObjectType
 
     /**
      * Gets the value of the description property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
     public String getDescription() {
         return description;
@@ -125,11 +125,11 @@ public abstract class ObjectType
 
     /**
      * Sets the value of the description property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
     public void setDescription(String value) {
         this.description = value;
@@ -137,11 +137,11 @@ public abstract class ObjectType
 
     /**
      * Gets the value of the extension property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link Extension }
-     *     
+     *
      */
     public Extension getExtension() {
         return extension;
@@ -149,11 +149,11 @@ public abstract class ObjectType
 
     /**
      * Sets the value of the extension property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link Extension }
-     *     
+     *
      */
     public void setExtension(Extension value) {
         this.extension = value;
@@ -161,11 +161,11 @@ public abstract class ObjectType
 
     /**
      * Gets the value of the oid property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
     public String getOid() {
         return oid;
@@ -173,11 +173,11 @@ public abstract class ObjectType
 
     /**
      * Sets the value of the oid property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
     public void setOid(String value) {
         this.oid = value;
@@ -185,11 +185,11 @@ public abstract class ObjectType
 
     /**
      * Gets the value of the version property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
     public String getVersion() {
         return version;
@@ -197,11 +197,11 @@ public abstract class ObjectType
 
     /**
      * Sets the value of the version property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
     public void setVersion(String value) {
         this.version = value;
@@ -216,7 +216,7 @@ public abstract class ObjectType
 	public String toDebugType() {
 		return "object";
 	}
-	
+
 	@Override
     public PrismObject asPrismObject() {
         throw new UnsupportedOperationException("not implemented yet");

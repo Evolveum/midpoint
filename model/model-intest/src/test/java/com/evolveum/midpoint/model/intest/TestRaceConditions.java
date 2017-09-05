@@ -42,7 +42,7 @@ import static org.testng.AssertJUnit.*;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRaceConditions extends AbstractInitializedModelIntegrationTest {
-	
+
 	public static final File TEST_DIR = new File("src/test/resources/contract");
 
 	@Override
@@ -83,7 +83,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 		assertUserJack(userJack);
 
 		String accountJackOid = getSingleLinkOid(userJack);
-        
+
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
@@ -95,7 +95,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
         // Check account in dummy resource
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
     }
-	
+
 	/**
 	 * Remove both roles at once, in different threads.
 	 */
@@ -139,5 +139,5 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 			throw new SystemException(t);
 		}
     }
-	
+
 }

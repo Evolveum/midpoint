@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class MockClockworkHook implements ChangeHook, DebugDumpable {
-	
+
 	private List<LensContext<?>> contexts = new ArrayList<LensContext<?>>();
 	private LensContext<?> lastAsyncContext = null;
 	private boolean record = false;
@@ -49,7 +49,7 @@ public class MockClockworkHook implements ChangeHook, DebugDumpable {
 	public void setRecord(boolean record) {
 		this.record = record;
 	}
-	
+
 	public boolean isAsynchronous() {
 		return asynchronous;
 	}
@@ -61,7 +61,7 @@ public class MockClockworkHook implements ChangeHook, DebugDumpable {
 	public List<LensContext<?>> getContexts() {
 		return contexts;
 	}
-	
+
 	public void reset() {
 		System.out.println("RESETING");
 		record = false;
@@ -113,7 +113,7 @@ public class MockClockworkHook implements ChangeHook, DebugDumpable {
 //		// TODO Auto-generated method stub
 //
 //	}
-    
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
 	 */

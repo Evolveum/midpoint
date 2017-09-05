@@ -32,7 +32,7 @@ import org.apache.wicket.model.*;
 
 /**
  * @author semancik
- * 
+ *
  * WARNING: super ugly code ahead
  */
 public class PrismHeaderPanel extends BasePanel {
@@ -45,15 +45,15 @@ public class PrismHeaderPanel extends BasePanel {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismHeaderPanel.class);
 
-    
+
     public PrismHeaderPanel(String id, IModel model) {
         super(id, model);
-        
+
         initLayout(model);
     }
 
 	private void initLayout(final IModel model) {
-		
+
 		VisibleEnableBehaviour buttonsVisibleBehaviour = new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 
@@ -62,7 +62,7 @@ public class PrismHeaderPanel extends BasePanel {
 				return PrismHeaderPanel.this.isButtonsVisible();
 			}
 		};
-		
+
 		ToggleIconButton showMetadataButton = new ToggleIconButton(ID_SHOW_METADATA,
 				GuiStyleConstants.CLASS_ICON_SHOW_METADATA, GuiStyleConstants.CLASS_ICON_SHOW_METADATA) {
 			private static final long serialVersionUID = 1L;
@@ -116,7 +116,7 @@ public class PrismHeaderPanel extends BasePanel {
         ToggleIconButton sortPropertiesButton = new ToggleIconButton(ID_SORT_PROPERTIES,
         		GuiStyleConstants.CLASS_ICON_SORT_ALPHA_ASC, GuiStyleConstants.CLASS_ICON_SORT_AMOUNT_ASC) {
         	private static final long serialVersionUID = 1L;
-        	
+
         	@Override
             public void onClick(AjaxRequestTarget target) {
                 ObjectWrapper objectWrapper = getObjectWrapper(model);
@@ -125,7 +125,7 @@ public class PrismHeaderPanel extends BasePanel {
 
                 onButtonClick(target);
             }
-        	
+
         	@Override
 			public boolean isOn() {
 				return getObjectWrapper(model).isSorted();
@@ -133,13 +133,13 @@ public class PrismHeaderPanel extends BasePanel {
         };
         sortPropertiesButton.add(buttonsVisibleBehaviour);
         add(sortPropertiesButton);
-        
+
         IModel<String> headerLabelModel = new AbstractReadOnlyModel<String>() {
         	private static final long serialVersionUID = 1L;
-        	
+
 			@Override
 			public String getObject() {
-				
+
 				Object wrapper = model.getObject();
 				String displayName = null;
 		    	if (wrapper instanceof ContainerWrapper) {
@@ -158,10 +158,10 @@ public class PrismHeaderPanel extends BasePanel {
 		    	return getString(displayName, null, displayName);
 			}
 		};
-        
+
         add(new Label(ID_LABEL, headerLabelModel));
     }
-    
+
     private ObjectWrapper getObjectWrapper(IModel model) {
     	Object wrapper = model.getObject();
     	ObjectWrapper objectWrapper = null;
@@ -172,11 +172,11 @@ public class PrismHeaderPanel extends BasePanel {
     	}
     	return null;
     }
-    
+
     protected void onButtonClick(AjaxRequestTarget target) {
-    	
+
     }
-    
+
     public boolean isButtonsVisible() {
     	return true;
     }

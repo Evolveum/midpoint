@@ -29,15 +29,15 @@ import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 public class DummyFilterTranslator implements FilterTranslator<String> {
 
 	private static final Log log = Log.getLog(DummyFilterTranslator.class);
-	
+
 	/* (non-Javadoc)
 	 * @see org.identityconnectors.framework.common.objects.filter.FilterTranslator#translate(org.identityconnectors.framework.common.objects.filter.Filter)
 	 */
 	public List<String> translate(Filter filter) {
 		log.info("translate::begin");
-		
+
 		log.info("translate::filter: {0}",filter == null ? "null" : filter.toString());
-		
+
 		log.info("translate::end");
 		return new ArrayList<String>();
 	}

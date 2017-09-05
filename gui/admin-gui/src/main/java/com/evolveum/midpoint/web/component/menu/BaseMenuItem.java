@@ -112,6 +112,6 @@ public class BaseMenuItem implements Serializable {
 		return "BaseMenuItem(nameModel=" + nameModel + ", pageClass=" + pageClass + ", params=" + params
 				+ ", visibleEnable=" + visibleEnable + ", aliases=" + Arrays.toString(aliases) + ")";
 	}
-    
-    
+
+
 }

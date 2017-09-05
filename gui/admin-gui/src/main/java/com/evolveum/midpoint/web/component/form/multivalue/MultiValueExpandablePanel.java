@@ -16,11 +16,14 @@
 package com.evolveum.midpoint.web.component.form.multivalue;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
@@ -34,6 +37,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.util.HashMap;
 import java.util.List;
@@ -51,12 +55,17 @@ public class MultiValueExpandablePanel <T extends Containerable> extends BasePan
     private static final String ID_ATTRIBUTE_LABEL = "attributeLabel";
     private static final String ID_ATTRIBUTE_VALUE = "attributeValue";
 
-    public MultiValueExpandablePanel(String id, IModel<List<T>> model){
+    PageBase pageBase;
+
+    public MultiValueExpandablePanel(String id, IModel<List<T>> model, PageBase pageBase){
         super(id, model);
+        this.pageBase = pageBase;
         initLayout();
     }
 
     private void initLayout(){
+        setOutputMarkupId(true);
+
         ListView repeater = new ListView<T>(ID_REPEATER, getModel()) {
 
             @Override
@@ -67,6 +76,7 @@ public class MultiValueExpandablePanel <T extends Containerable> extends BasePan
                 AjaxButton removeRowButton = new AjaxButton(ID_REMOVE_BUTTON) {
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                        removeItemPerformed(listItem.getModelObject(), ajaxRequestTarget);
                     }
                 };
                 listItem.add(removeRowButton);
@@ -96,7 +106,7 @@ public class MultiValueExpandablePanel <T extends Containerable> extends BasePan
                 listItem.add(attributesPanel);
             }
         };
-
+        repeater.setOutputMarkupId(true);
         add(repeater);
 
     }
@@ -121,7 +131,7 @@ public class MultiValueExpandablePanel <T extends Containerable> extends BasePan
             panel = WebComponentUtil.createEnumPanel(type, componentId, model != null ? new PropertyModel<>(model, expression) : new Model(), this);
         } else if (ObjectReferenceType.class.isAssignableFrom(type)) {
             ObjectReferenceType ort = new ObjectReferenceType();
-            ort.setupReferenceValue((PrismReferenceValue) model.getObject());
+            ort.setupReferenceValue(model != null ? (PrismReferenceValue) model.getObject() : new PrismReferenceValue());
             panel = new ChooseTypePanel<AbstractRoleType>(componentId, ort) {
 
                 private static final long serialVersionUID = 1L;
@@ -152,4 +162,24 @@ public class MultiValueExpandablePanel <T extends Containerable> extends BasePan
         return panel;
     }
 
+    private void removeItemPerformed(T objectToRemove, AjaxRequestTarget target){
+            ConfirmationPanel dialog = new ConfirmationPanel(pageBase.getMainPopupBodyId(),
+                    pageBase.createStringResource("MultiValueExpandablePanel.deleteConfirmationMessage",
+                            objectToRemove.asPrismContainerValue().getPath().last())) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public StringResourceModel getTitle() {
+                    return pageBase.createStringResource("pageUsers.message.confirmActionPopupTitle");
+                }
+
+                @Override
+                public void yesPerformed(AjaxRequestTarget target) {
+                    pageBase.hideMainPopup(target);
+                    getModelObject().remove(objectToRemove);
+                    target.add(MultiValueExpandablePanel.this);
+                }
+            };
+            pageBase.showMainPopup(dialog, target);
+    }
 }

@@ -63,18 +63,18 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 @Service
 public class ModelWebService extends AbstractModelWebService implements ModelPortType, ModelPort {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelWebService.class);
-	
+
 	@Autowired(required = true)
 	private ModelCrudService model;
-	
+
     @Autowired
     private ScriptingService scriptingService;
 
@@ -252,7 +252,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 
         try {
             for (JAXBElement<?> script : scriptsToExecute) {
-            	
+
             	Object scriptValue = script.getValue();
             	if (!(scriptValue instanceof ScriptingExpressionType)) {
             		throw new SchemaException("Expected that scripts will be of type ScriptingExpressionType, but it was "+scriptValue.getClass().getName());
@@ -321,7 +321,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 		result.recordSuccess();
 		return result.createOperationResultType();
 	}
-	
+
 	private void notNullResultHolder(Holder<OperationResultType> holder) throws FaultMessage {
 		notNullArgument(holder, "Holder must not be null.");
 		notNullArgument(holder.value, "Result type must not be null.");
@@ -412,17 +412,17 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			return null;
 		}
 	}
-	
+
 	@Override
 	public TaskType notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription)
 			throws FaultMessage {
 		// TODO Auto-generated method stub
 		notNullArgument(changeDescription, "Change description must not be null");
 		LOGGER.trace("notify change started");
-		
+
 		Task task = createTaskInstance(NOTIFY_CHANGE);
 		OperationResult parentResult = task.getResult();
-		
+
 		try {
 			model.notifyChange(changeDescription, parentResult, task);
 			} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ObjectAlreadyExistsException | ExpressionEvaluationException | RuntimeException | Error ex) {
@@ -430,21 +430,21 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 				auditLogout(task);
 				throwFault(ex, parentResult);
 			}
-		
-		
+
+
 		LOGGER.info("notify change ended.");
 		LOGGER.info("result of notify change: {}", parentResult.debugDump());
 		return handleTaskResult(task);
 	}
-	
+
 	/**
 	 * return appropriate form of taskType (and result) to
 	 * return back to a web service caller.
-	 * 
+	 *
 	 * @param task
 	 */
 	private TaskType handleTaskResult(Task task) {
 		return task.getTaskPrismObject().asObjectable();
 	}
-		
+
 }

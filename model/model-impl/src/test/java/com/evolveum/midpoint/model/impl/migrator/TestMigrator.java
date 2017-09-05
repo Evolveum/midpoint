@@ -53,18 +53,18 @@ import difflib.Patch;
  *
  */
 public class TestMigrator {
-	
+
 	public static final File TEST_DIR = new File("src/test/resources/migrator");
 	private static final File TEST_DIR_BEFORE = new File(TEST_DIR, "before");
 	private static final File TEST_DIR_AFTER = new File(TEST_DIR, "after");
-	
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-	
-	
+
+
 	@Test
 	public void testMigrateUserTemplate() throws Exception {
 		TestUtil.displayTestTitle("testMigrateUserTemplate");
@@ -75,56 +75,56 @@ public class TestMigrator {
 				continue;
 			}
 			File afterFile = new File(TEST_DIR_AFTER, beforeName);
-			
+
 			assertSimpleMigration(beforeFile, afterFile);
 		}
 	}
-	
+
 	@Test
 	public void testUserCredentials() throws Exception{
 		Migrator migrator = createMigrator();
-		
+
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		PrismObject<UserType> oldUser = prismContext.parseObject(new File(TEST_DIR + "/user-migrate-credentials.xml"));
-		
+
 		PrismObject<UserType> newUser = migrator.migrate(oldUser);
-		
+
 		UserType newUserType = newUser.asObjectable();
-		
+
 		assertNull("Credentials in migrated object must be null.", newUserType.getCredentials());
 		assertNotNull("Migrated user must contain assignment.", newUserType.getAssignment());
 		assertEquals("Migrated user must contain 1 assignment.", newUserType.getAssignment().size(), 1);
-		
+
 		AssignmentType superUserRole = newUserType.getAssignment().get(0);
-		
+
 		assertNotNull("Target ref in the user's assignment must not be null.", superUserRole.getTargetRef());
 		assertEquals(superUserRole.getTargetRef().getOid(), SystemObjectsType.ROLE_SUPERUSER.value());
 	}
-	
+
 	private <O extends ObjectType> void assertSimpleMigration(File fileOld, File fileNew) throws SchemaException, IOException {
 		// GIVEN
 		Migrator migrator = createMigrator();
-		
+
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		PrismObject<O> objectOld = prismContext.parseObject(fileOld);
-		
+
 		// WHEN
 		PrismObject<O> objectNew = migrator.migrate(objectOld);
-		
+
 		// THEN
-		
+
 		IntegrationTestTools.display("Migrated object "+fileOld.getName(), objectNew);
 		assertNotNull("No migrated object "+fileOld.getName(), objectNew);
 
 		IntegrationTestTools.display("Migrated object "+fileOld.getName(), objectNew);
 		String migratedXml = PrismTestUtil.serializeObjectToString(objectNew, PrismContext.LANG_XML);
 		IntegrationTestTools.display("Migrated object XML "+fileOld.getName(), migratedXml);
-		
+
 		PrismObject<O> expectedObject = prismContext.parseObject(fileNew);
 		IntegrationTestTools.display("Expected object "+fileOld.getName(), expectedObject);
 		String expectedXml = PrismTestUtil.serializeObjectToString(expectedObject, PrismContext.LANG_XML);
 		IntegrationTestTools.display("Expected object XML "+fileOld.getName(), expectedXml);
-		
+
 		List<String> expectedXmlLines = MiscUtil.splitLines(expectedXml);
 		Patch patch = DiffUtils.diff(expectedXmlLines, MiscUtil.splitLines(migratedXml));
 		List<String> diffLines = DiffUtils.generateUnifiedDiff(fileOld.getPath(), fileNew.getPath(), expectedXmlLines, patch, 3);
@@ -133,7 +133,7 @@ public class TestMigrator {
 		PrismAsserts.assertEquivalent("Unexpected migration result for "+fileOld.getName(), expectedObject, objectNew);
 		assertEquals("Unexpected element name for "+fileOld.getName(), expectedObject.getElementName(), objectNew.getElementName());
 	}
-	
+
 	private Migrator createMigrator() {
 		return new Migrator();
 	}

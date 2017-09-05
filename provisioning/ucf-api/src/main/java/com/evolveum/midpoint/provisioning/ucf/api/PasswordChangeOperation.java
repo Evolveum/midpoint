@@ -26,12 +26,12 @@ public class PasswordChangeOperation extends Operation {
 
 	private ProtectedStringType newPassword;
 	private ProtectedStringType oldPassword;
-	
+
 	public PasswordChangeOperation(ProtectedStringType newPassword) {
 		super();
 		this.newPassword = newPassword;
 	}
-		
+
 	public PasswordChangeOperation(ProtectedStringType newPassword, ProtectedStringType oldPassword) {
 		super();
 		this.newPassword = newPassword;
@@ -41,19 +41,19 @@ public class PasswordChangeOperation extends Operation {
 	public ProtectedStringType getNewPassword() {
 		return newPassword;
 	}
-	
+
 	public void setNewPassword(ProtectedStringType newPassword) {
 		this.newPassword = newPassword;
 	}
-	
+
 	public ProtectedStringType getOldPassword() {
 		return oldPassword;
 	}
-	
+
 	public void setOldPassword(ProtectedStringType oldPassword) {
 		this.oldPassword = oldPassword;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -119,5 +119,5 @@ public class PasswordChangeOperation extends Operation {
 			sb.append("null");
 		}
 	}
-	
+
 }

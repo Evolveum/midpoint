@@ -26,6 +26,7 @@
 	<logger name="com.evolveum.midpoint" level="TRACE" />
 	<logger name="com.evolveum.midpoint.provisioning.impl" level="ALL" />
 	<logger name="com.evolveum.midpoint.repo" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.repo.api.OptimisticLockingRunner" level="TRACE" />
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="INFO"/>
     
     <!-- Do not change this. Make sure complete ConnId logging is always enabled in

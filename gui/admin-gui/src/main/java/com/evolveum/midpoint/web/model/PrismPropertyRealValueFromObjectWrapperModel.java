@@ -35,7 +35,7 @@ import javax.xml.namespace.QName;
 
 /**
  * Model that returns property real values. This implementation works on ObjectWrapper models (not PrismObject).
- * 
+ *
  * Simple implementation, now it can't handle multivalue properties.
  *
  * @author lazyman
@@ -59,7 +59,7 @@ public class PrismPropertyRealValueFromObjectWrapperModel<T,O extends ObjectType
     public PrismPropertyRealValueFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, ItemPath path) {
     	this(model, path, null);
     }
-    
+
     public PrismPropertyRealValueFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, ItemPath path, T defaltValue) {
     	super(model);
         Validate.notNull(path, "Item path must not be null.");

@@ -26,14 +26,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 /**
  * Almost same sa TestOpenDj, but there is unsafeNameHint setting and maybe
  * some other possibly risky and alternative connector settings.
- * 
+ *
  * @author semancik
  */
 public class TestOpenDjUnsafe extends TestOpenDj {
-	
+
 	@Override
 	protected File getResourceFile() {
 		return new File(getBaseDir(), "resource-unsafe.xml");
 	}
-	
+
 }

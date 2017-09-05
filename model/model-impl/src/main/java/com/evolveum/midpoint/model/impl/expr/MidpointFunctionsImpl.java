@@ -104,9 +104,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Autowired
     private ModelService modelService;
-    
+
     @Autowired ModelInteractionService modelInteractionService;
-    
+
     @Autowired
     private ModelObjectResolver modelObjectResolver;
 
@@ -116,7 +116,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Autowired
     private ProvisioningService provisioningService;
-    
+
     @Autowired
     private SecurityEnforcer securityEnforcer;
 
@@ -128,14 +128,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
 	@Autowired
 	private WorkflowService workflowService;
-	
+
 	@Autowired
 	private ConstantsManager constantsManager;
 
 	public String hello(String name) {
         return "Hello "+name;
     }
-    
+
     public PrismContext getPrismContext() {
 		return prismContext;
 	}
@@ -266,7 +266,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             return null;
         }
     }
-    
+
     public <F extends ObjectType> boolean hasLinkedAccount(String resourceOid) {
     	LensContext<F> ctx = ModelExpressionThreadLocalHolder.getLensContext();
     	if (ctx == null) {
@@ -300,7 +300,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		if (projectionContext.isThombstone()) {
 			return false;
 		}
-		
+
 		SynchronizationPolicyDecision synchronizationPolicyDecision = projectionContext.getSynchronizationPolicyDecision();
 		SynchronizationIntent synchronizationIntent = projectionContext.getSynchronizationIntent();
 		if (scriptContext == null) {
@@ -355,7 +355,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			}
 	    }
     }
-    
+
     @Override
     public <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid) {
     	for (AssignmentType assignment: focusType.getAssignment()) {
@@ -366,12 +366,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     	}
     	return false;
     }
-    
+
     @Override
     public <F extends FocusType> boolean isDirectlyAssigned(F focusType, ObjectType target) {
     	return isDirectlyAssigned(focusType, target.getOid());
     }
-    
+
     @Override
     public boolean isDirectlyAssigned(String targetOid) {
     	LensContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
@@ -382,7 +382,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     	if (focusContext == null) {
     		throw new IllegalStateException("No focus in lens context");
     	}
-    	
+
     	PrismObject<? extends FocusType> focus;
     	ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
     	if (scriptContext == null) {
@@ -405,13 +405,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     	}
     	return isDirectlyAssigned(focus.asObjectable(), targetOid);
     }
-    
+
     @Override
     public boolean isDirectlyAssigned(ObjectType target) {
     	return isDirectlyAssigned(target.getOid());
     }
 
-    
+
     @Override
 	public ShadowType getLinkedShadow(FocusType focus, ResourceType resource) throws SchemaException,
 			SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -424,12 +424,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		return getLinkedShadow(focus, resource.getOid(), repositoryObjectOnly);
 	}
 
-    
+
     @Override
 	public ShadowType getLinkedShadow(FocusType focus, String resourceOid) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
     	return getLinkedShadow(focus, resourceOid, false);
     }
-    
+
 	@Override
 	public ShadowType getLinkedShadow(FocusType focus, String resourceOid, boolean repositoryObjectOnly) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (focus == null) {
@@ -456,19 +456,19 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 						// It is safe to ignore this error in this method.
 						LOGGER.trace("Ignoring shadow "+linkRef.getOid()+" linked in "+focus+" because it no longer exists on resource");
 						continue;
-					}	
+					}
 				}
 				return shadowType;
 			}
 		}
 		return null;
     }
-    
+
 	@Override
 	public ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		return getLinkedShadow(focus, resourceOid, kind, intent, false);
 	}
-	
+
     @Override
 	public ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent, boolean repositoryObjectOnly) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		List<ObjectReferenceType> linkRefs = focus.getLinkRef();
@@ -492,14 +492,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 						// It is safe to ignore this error in this method.
 						LOGGER.trace("Ignoring shadow "+linkRef.getOid()+" linked in "+focus+" because it no longer exists on resource");
 						continue;
-					}	
+					}
 				}
 				return shadowType;
 			}
 		}
 		return null;
 	}
-    
+
     @Override
     public boolean isFullShadow() {
     	LensProjectionContext projectionContext = getProjectionContext();
@@ -515,20 +515,20 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     	ResourceType resourceType = modelObjectResolver.getObjectSimple(ResourceType.class, resourceOid, null, null, result);
     	return countAccounts(resourceType, attributeName, attributeValue, getCurrentTask(), result);
     }
-    
+
     public <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
     	return countAccounts(resourceType, attributeName, attributeValue, getCurrentTask(), result);
     }
-    
+
     public <T> Integer countAccounts(ResourceType resourceType, String attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
     	QName attributeQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeName);
 		return countAccounts(resourceType, attributeQName, attributeValue, getCurrentTask(), result);
     }
-    
+
     private <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue, Task task, OperationResult result)
-    		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
+    		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
     		SecurityViolationException, ExpressionEvaluationException {
     	RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
         RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
@@ -623,7 +623,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     private <T> boolean isUniqueAccountValue(ResourceType resourceType, final ShadowType shadowType,
     		QName attributeName, T attributeValue, Task task, OperationResult result)
-    		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
+    		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
     		SecurityViolationException, ExpressionEvaluationException {
     	Validate.notNull(resourceType, "Null resource");
     	Validate.notNull(shadowType, "Null shadow");
@@ -640,7 +640,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Determining uniqueness of attribute {} using query:\n{}", attributeName, query.debugDump());
 		}
-        
+
         final Holder<Boolean> isUniqueHolder = new Holder<Boolean>(true);
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 			@Override
@@ -661,12 +661,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 				}
 			}
 		};
-        
+
 		modelObjectResolver.searchIterative(ShadowType.class, query, null, handler, task, result);
-		
+
 		return isUniqueHolder.getValue();
     }
-    
+
     private LensProjectionContext getProjectionContext() {
     	return ModelExpressionThreadLocalHolder.getProjectionContext();
     }
@@ -683,7 +683,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	    }
 	    return rv;
     }
-    
+
     private OperationResult getCurrentResult() {
 	    OperationResult rv = ModelExpressionThreadLocalHolder.getCurrentResult();
 	    if (rv == null) {
@@ -695,7 +695,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	    }
 	    return rv;
     }
-    
+
     private OperationResult getCurrentResult(String operationName) {
     	OperationResult currentResult = ModelExpressionThreadLocalHolder.getCurrentResult();
     	if (currentResult == null) {
@@ -704,7 +704,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     		return currentResult;
     	}
     }
-        
+
     private OperationResult createSubresult(String operationName) {
     	OperationResult currentResult = ModelExpressionThreadLocalHolder.getCurrentResult();
     	if (currentResult == null) {
@@ -733,9 +733,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public LensContextType wrapModelContext(LensContext<?> lensContext) throws SchemaException {
         return lensContext.toLensContextType();
     }
-    
+
     // Convenience functions
-    
+
 	@Override
 	public <T extends ObjectType> T createEmptyObject(Class<T> type) throws SchemaException {
 		PrismObjectDefinition<T> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
@@ -763,7 +763,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		objectType.setName(name);
 		return objectType;
 	}
-    
+
     // Functions accessing modelService
 
     @Override
@@ -796,7 +796,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-	public <T extends ObjectType> T getObject(Class<T> type, String oid, 
+	public <T extends ObjectType> T getObject(Class<T> type, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options)
 			throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException,
@@ -978,9 +978,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SecurityViolationException, ExpressionEvaluationException {
 		modelService.searchObjectsIterative(type, query, handler, null, getCurrentTask(), getCurrentResult());
 	}
-	
+
 	@Override
-	public <T extends ObjectType> T searchObjectByName(Class<T> type, String name) 
+	public <T extends ObjectType> T searchObjectByName(Class<T> type, String name)
 				throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException {
 		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
 		List<PrismObject<T>> foundObjects = modelService.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
@@ -992,9 +992,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		}
 		return foundObjects.iterator().next().asObjectable();
 	}
-	
+
 	@Override
-	public <T extends ObjectType> T searchObjectByName(Class<T> type, PolyString name) 
+	public <T extends ObjectType> T searchObjectByName(Class<T> type, PolyString name)
 				throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException {
 		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
 		List<PrismObject<T>> foundObjects = modelService.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
@@ -1006,9 +1006,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		}
 		return foundObjects.iterator().next().asObjectable();
 	}
-	
+
 	@Override
-	public <T extends ObjectType> T searchObjectByName(Class<T> type, PolyStringType name) 
+	public <T extends ObjectType> T searchObjectByName(Class<T> type, PolyStringType name)
 				throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException {
 		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
 		List<PrismObject<T>> foundObjects = modelService.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
@@ -1058,11 +1058,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         ObjectDelta<ShadowType> sum = ObjectDelta.summarize(deltas);
         return DeltaConvertor.toObjectDeltaType(sum);
     }
-    
+
     public long getSequenceCounter(String sequenceOid) throws ObjectNotFoundException, SchemaException {
     	return SequentialValueExpressionEvaluator.getSequenceCounter(sequenceOid, repositoryService, getCurrentResult());
     }
-    
+
     // orgstruct related methods
 
     @Override
@@ -1263,7 +1263,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 				.build();
 		return searchObjects(UserType.class, query, null);
 	}
-	
+
 	@Override
 	public <F extends FocusType> String computeProjectionLifecycle(F focus, ShadowType shadow, ResourceType resource) {
 		if (focus == null || shadow == null) {
@@ -1292,7 +1292,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		}
 		return SchemaConstants.LIFECYCLE_PROPOSED;
 	}
-	
+
 	public MidPointPrincipal getPrincipal() throws SecurityViolationException {
 		return securityEnforcer.getPrincipal();
 	}
@@ -1307,13 +1307,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	public WorkflowService getWorkflowService() {
 		return workflowService;
 	}
-	
+
 	@Override
 	public List<ShadowType> getShadowsToActivate(Collection<ModelElementContext> projectionContexts) {
 		List<ShadowType> shadows = new ArrayList<>();
-		
+
 		for (ModelElementContext<ShadowType> projectionCtx : projectionContexts) {
-			
+
 			List<? extends ObjectDeltaOperation> executedShadowDelas = projectionCtx.getExecutedDeltas();
 			for (ObjectDeltaOperation<ShadowType> shadowDelta : executedShadowDelas) {
 				if (shadowDelta.getExecutionResult().getStatus() == OperationResultStatus.SUCCESS && shadowDelta.getObjectDelta().getChangeType() == ChangeType.ADD) {
@@ -1322,7 +1322,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 					if (pLifecycleState != null && !pLifecycleState.isEmpty() && SchemaConstants.LIFECYCLE_PROPOSED.equals(pLifecycleState.getRealValue())) {
 						shadows.add(shadow.asObjectable());
 					}
-					
+
 				}
 			}
 		}
@@ -1343,19 +1343,19 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	public String createAccountActivationLink(UserType userType) {
 		return createBaseConfirmationLink(SchemaConstants.ACCOUNT_ACTIVATION_PREFIX, userType.getOid());
 	}
-	
+
 	private String createBaseConfirmationLink(String prefix, UserType userType) {
-		return getDefaultHostname() + prefix + "?" + SchemaConstants.USER_ID + "=" + userType.getName().getOrig(); 
+		return getDefaultHostname() + prefix + "?" + SchemaConstants.USER_ID + "=" + userType.getName().getOrig();
 	}
-	
+
 	private String createBaseConfirmationLink(String prefix, String oid) {
-		return getDefaultHostname() + prefix + "?" + SchemaConstants.USER_ID + "=" + oid; 
+		return getDefaultHostname() + prefix + "?" + SchemaConstants.USER_ID + "=" + oid;
 	}
-	
+
 	private String createTokenConfirmationLink(String prefix, UserType userType) {
-		return createBaseConfirmationLink(prefix, userType) + "&" + SchemaConstants.TOKEN + "=" + getNonce(userType); 
+		return createBaseConfirmationLink(prefix, userType) + "&" + SchemaConstants.TOKEN + "=" + getNonce(userType);
 	}
-	
+
 	private String getDefaultHostname(){
 		SystemConfigurationType systemConfiguration;
 		try {
@@ -1372,25 +1372,25 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		if (StringUtils.isBlank(defautlHostname)) {
 			LOGGER.error("No hostname defined. It can break link generation.");
 		}
-		
+
 		return defautlHostname;
-		
-		
+
+
 	}
-	
+
 	private String getNonce(UserType user) {
 		if (user.getCredentials() == null) {
 			return null;
 		}
-		
+
 		if (user.getCredentials().getNonce() == null) {
 			return null;
 		}
-		
+
 		if (user.getCredentials().getNonce().getValue() == null) {
 			return null;
 		}
-		
+
 		try {
 			return getPlaintext(user.getCredentials().getNonce().getValue());
 		} catch (EncryptionException e) {

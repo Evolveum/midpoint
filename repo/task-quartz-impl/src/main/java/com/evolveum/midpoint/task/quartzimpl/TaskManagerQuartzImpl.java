@@ -157,7 +157,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Qualifier("securityEnforcer")
     private SecurityEnforcer securityEnforcer;
 	@Autowired private PrismContext prismContext;
-	
+
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.class);
 
     // how long to wait after TaskManager shutdown, if using JDBC Job Store (in order to give the jdbc thread pool a chance
@@ -233,7 +233,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 				throw new SystemException("Quartz task scheduler couldn't be started.");
 			}
 		}
-        
+
         result.computeStatus();
     }
 
@@ -514,14 +514,14 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	public Task createTaskInstance() {
 		return createTaskInstance(null);
 	}
-	
+
 	@Override
 	public Task createTaskInstance(String operationName) {
 		LightweightIdentifier taskIdentifier = generateTaskIdentifier();
 		TaskQuartzImpl taskImpl = new TaskQuartzImpl(this, taskIdentifier, operationName);
 		return taskImpl;
 	}
-	
+
 	private LightweightIdentifier generateTaskIdentifier() {
 		return lightweightIdentifierGenerator.generate();
 	}
@@ -553,7 +553,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "getTask");          // todo ... or .createSubresult (without 'minor')?
 		result.addParam(OperationResult.PARAM_OID, taskOid);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
-		
+
 		Task task;
 		try {
 			PrismObject<TaskType> taskPrism = repositoryService.getObject(TaskType.class, taskOid, null, result);
@@ -565,7 +565,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 			result.recordFatalError("Task schema error: "+e.getMessage(), e);
 			throw e;
 		}
-		
+
 		result.recordSuccess();
 		return task;
 	}
@@ -617,7 +617,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         if (taskImpl.getCategory() == null) {
             taskImpl.setCategoryTransient(taskImpl.getCategoryFromHandler());
         }
-		
+
 //		taskImpl.setPersistenceStatusTransient(TaskPersistenceStatus.PERSISTENT);
 
 		// Make sure that the task has repository service instance, so it can fully work as "persistent"
@@ -636,7 +636,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 			throw new IllegalStateException("Got SchemaException while not expecting it (task:"+task+")",ex);
 		}
 	}
-	
+
 	@Override
 	public String addTask(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "addTask");
@@ -673,7 +673,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
 
 		((TaskQuartzImpl) task).setOid(oid);
-		
+
 		synchronizeTaskWithQuartz((TaskQuartzImpl) task, result);
 
         result.computeStatus();
@@ -1068,7 +1068,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             throw new IllegalArgumentException("Unsupported object type: " + type);
         }
     }
-	
+
 	@Override
 	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type,
 			ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
@@ -1087,11 +1087,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         } else {
             throw new IllegalArgumentException("Unsupported object type: " + type);
         }
-        
+
         for (PrismObject<T> object: objects) {
         	handler.handle(object, result);
         }
-        
+
         result.computeStatus();
         return objects.getMetadata();
 	}
@@ -1267,7 +1267,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         LOGGER.trace("Registering task handler for URI " + uri);
 		handlers.put(uri, handler);
 	}
-	
+
 	public TaskHandler getHandler(String uri) {
 		if (uri != null)
 			return handlers.get(uri);
@@ -1428,7 +1428,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     /*
      *  ********************* OTHER METHODS + GETTERS AND SETTERS *********************
      */
-	
+
     PrismObjectDefinition<TaskType> getTaskObjectDefinition() {
 		if (taskPrismDefinition == null) {
 			taskPrismDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
@@ -1476,7 +1476,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     public RepositoryService getRepositoryService() {
         return repositoryService;
     }
-    
+
     public void setConfiguration(TaskManagerConfiguration configuration) {
         this.configuration = configuration;
     }
@@ -1484,7 +1484,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     public ExecutionManager getExecutionManager() {
         return executionManager;
     }
-    
+
     public SecurityEnforcer getSecurityEnforcer() {
 		return securityEnforcer;
 	}

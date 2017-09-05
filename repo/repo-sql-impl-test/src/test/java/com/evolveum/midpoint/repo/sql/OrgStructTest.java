@@ -612,7 +612,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         // THEN
         AssertJUnit.assertEquals(4, orgClosure.size());
     }
-    
+
     @Test
     public void test100ParentOrgRefFilterNullRelation() throws Exception {
     	final String TEST_NAME = "test100ParentOrgRefFilterNullRelation";
@@ -629,7 +629,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         // THEN
         PrismAsserts.assertOids(orgs, ORG_F002_OID, ORG_F003_OID, ORG_F004_OID, ELAINE_OID);
     }
-    
+
     @Test
     public void test101ParentOrgRefFilterManagerRelation() throws Exception {
     	final String TEST_NAME = "test101ParentOrgRefFilterManagerRelation";
@@ -648,7 +648,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         // THEN
         PrismAsserts.assertOids(orgs, ELAINE_OID);
     }
-    
+
     @Test
     public void test102ParentOrgRefFilterAnyRelation() throws Exception {
     	final String TEST_NAME = "test102ParentOrgRefFilterAnyRelation";

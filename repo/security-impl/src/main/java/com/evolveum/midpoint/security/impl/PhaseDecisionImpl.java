@@ -24,22 +24,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisio
  *
  */
 public class PhaseDecisionImpl implements DebugDumpable {
-	
+
 	private AuthorizationDecisionType requestDecision;
 	private AuthorizationDecisionType execDecision;
-	
+
 	public AuthorizationDecisionType getRequestDecision() {
 		return requestDecision;
 	}
-	
+
 	public void setRequestDecision(AuthorizationDecisionType requestDecision) {
 		this.requestDecision = requestDecision;
 	}
-	
+
 	public AuthorizationDecisionType getExecDecision() {
 		return execDecision;
 	}
-	
+
 	public void setExecDecision(AuthorizationDecisionType execDecision) {
 		this.execDecision = execDecision;
 	}

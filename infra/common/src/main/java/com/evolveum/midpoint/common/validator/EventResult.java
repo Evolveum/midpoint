@@ -22,40 +22,40 @@ package com.evolveum.midpoint.common.validator;
 public class  EventResult {
 
 	public enum EventResultStatus {
-	
+
 		/**
 		 * Continue normal processing.
 		 */
 		CONTINUE,
-		
+
 		/**
 		 * Skip the rest of processing of this object, continue with the next object.
 		 */
 		SKIP_OBJECT,
-		
+
 		/**
 		 * Stop processing.
 		 */
 		STOP;
 	}
-	
+
 	private EventResultStatus status;
 	private String reason;
-	
+
 	private EventResult(EventResultStatus status, String reason) {
 		super();
 		this.status = status;
 		this.reason = reason;
 	}
-	
+
 	public static EventResult cont() {
 		return new EventResult(EventResultStatus.CONTINUE,null);
 	}
-	
+
 	public static EventResult skipObject() {
 		return new EventResult(EventResultStatus.SKIP_OBJECT,null);
 	}
-	
+
 	public static EventResult skipObject(String reason) {
 		return new EventResult(EventResultStatus.SKIP_OBJECT, reason);
 	}
@@ -63,7 +63,7 @@ public class  EventResult {
 	public static EventResult stop() {
 		return new EventResult(EventResultStatus.STOP,null);
 	}
-	
+
 	public static EventResult stop(String reason) {
 		return new EventResult(EventResultStatus.STOP,reason);
 	}
@@ -75,11 +75,11 @@ public class  EventResult {
 	public String getReason() {
 		return reason;
 	}
-	
+
 	public boolean isCont() {
 		return status==EventResultStatus.CONTINUE;
 	}
-	
+
 	public boolean isStop() {
 		return status==EventResultStatus.STOP;
 	}

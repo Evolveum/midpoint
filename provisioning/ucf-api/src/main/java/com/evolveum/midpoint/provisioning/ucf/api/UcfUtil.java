@@ -46,7 +46,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  */
 public class UcfUtil {
-	
+
 	public static void addConnectorNames(ConnectorType connectorType, String frameworkPrefix, String bundle, String type, String version, ConnectorHostType hostType) {
 		StringBuilder connectorName = new StringBuilder();
 		connectorName.append(frameworkPrefix).append(" ");
@@ -76,18 +76,18 @@ public class UcfUtil {
 		PrismSchema connectorSchema = PrismSchemaImpl.parse(xsdElement, true, connectorType.toString(), prismContext);
 		return connectorSchema;
 	}
-	
+
 	public static void setConnectorSchema(ConnectorType connectorType, PrismSchema connectorSchema) throws SchemaException {
 		Document xsdDoc = connectorSchema.serializeToXsd();
 		Element xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
 		ConnectorTypeUtil.setConnectorXsdSchema(connectorType, xsdElement);
 	}
-	
+
 	public static PropertyDescriptor findAnnotatedProperty(Class<?> connectorClass, Class<? extends Annotation> annotationClass) {
 		BeanWrapper connectorBean = new BeanWrapperImpl(connectorClass);
 		return findAnnotatedProperty(connectorBean, annotationClass);
 	}
-	
+
 	public static PropertyDescriptor findAnnotatedProperty(BeanWrapper connectorBean, Class<? extends Annotation> annotationClass) {
 		for (PropertyDescriptor prop: connectorBean.getPropertyDescriptors()) {
 			if (hasAnnotation(prop, annotationClass)) {
@@ -112,5 +112,5 @@ public class UcfUtil {
 		}
 		return false;
 	}
-	
+
 }

@@ -21,19 +21,19 @@ package com.evolveum.midpoint.test.util;
  */
 public class Counter {
 	private int count = 0;
-	
+
 	public int getCount() {
 		return count;
 	}
-	
+
 	public synchronized void click() {
 		count++;
 	}
-	
+
 	public void assertCount(int expectedCount) {
 		assert count == expectedCount : "Wrong counter, expected "+expectedCount+", was "+count;
 	}
-	
+
 	public void assertCount(String message, int expectedCount) {
 		assert count == expectedCount : message + ", expected "+expectedCount+", was "+count;
 	}
@@ -69,5 +69,5 @@ public class Counter {
 		return "Counter(" + count + ")";
 	}
 
-	
+
 }

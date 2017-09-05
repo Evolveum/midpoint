@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueSetDefinitionTy
  *
  */
 public class ValueSetDefinition {
-	
+
 	private ValueSetDefinitionType setDefinitionType;
 	private String shortDesc;
 	private Task task;
@@ -56,17 +56,17 @@ public class ValueSetDefinition {
 		this.task = task;
 		this.result = result;
 	}
-	
+
 	public void init(ExpressionFactory expressionFactory) throws SchemaException, ObjectNotFoundException {
 		ExpressionType conditionType = setDefinitionType.getCondition();
-		condition =  ExpressionUtil.createCondition(conditionType, expressionFactory, 
+		condition =  ExpressionUtil.createCondition(conditionType, expressionFactory,
 				shortDesc, task, result);
 	}
 
 	public <IV extends PrismValue> boolean contains(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		return evalCondition(pval.getRealValue());
 	}
-	
+
 	/**
 	 * Same as contains, but wraps exceptions in TunnelException.
 	 */
@@ -91,7 +91,7 @@ public class ValueSetDefinition {
 		}
 		return ExpressionUtil.computeConditionResult(outputTriple.getNonNegativeValues());
 	}
-	
-	
+
+
 
 }

@@ -48,15 +48,15 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeTaskHandle
 
     @Autowired
 	private TaskManager taskManager;
-	
+
 	@Autowired
 	private PrismContext prismContext;
 
     @Autowired
     private ModelService model;
-    
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(ExecuteChangesTaskHandler.class);
-	
+
 	public ExecuteChangesTaskHandler() {
         super("Execute", OperationConstants.EXECUTE);
 		setLogFinishInfo(true);
@@ -75,11 +75,11 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeTaskHandle
 	protected Class<? extends ObjectType> getType(Task task) {
 		return getTypeFromTask(task, UserType.class);
 	}
-	
+
 	@Override
 	protected AbstractSearchIterativeResultHandler<FocusType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
 			OperationResult opResult) {
-		
+
 		AbstractSearchIterativeResultHandler<FocusType> handler = new AbstractSearchIterativeResultHandler<FocusType>(
 				coordinatorTask, ExecuteChangesTaskHandler.class.getName(), "execute", "execute task", taskManager) {
 			@Override
@@ -93,7 +93,7 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeTaskHandle
 	}
 
 	private <T extends ObjectType> void executeChange(PrismObject<T> focalObject, Task coordinatorTask, Task task, OperationResult result) throws SchemaException,
-			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
+			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 		LOGGER.trace("Recomputing object {}", focalObject);
 
@@ -107,11 +107,11 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeTaskHandle
 			delta.setObjectTypeClass(focalObject.getCompileTimeClass());
 		}
 		prismContext.adopt(delta);
-		
+
 		model.executeChanges(Collections.singletonList(delta), getExecuteOptionsFromTask(task), task, result);
 		LOGGER.trace("Execute changes {} for object {}: {}", delta, focalObject, result.getStatus());
 	}
-	
+
 	private <T extends ObjectType> ObjectDelta<T> createDeltaFromTask(Task task) throws SchemaException {
 		PrismProperty<ObjectDeltaType> objectDeltaType = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
         if (objectDeltaType != null && objectDeltaType.getRealValue() != null) {

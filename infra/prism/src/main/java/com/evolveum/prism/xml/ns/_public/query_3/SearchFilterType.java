@@ -81,13 +81,13 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     // this one is not exposed via JAXB
     protected MapXNode filterClauseXNode;           // single-subnode map node (key = filter element qname, value = contents)
-    
+
     public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "SearchFilterType");
 	public static final QName F_DESCRIPTION = new QName(PrismConstants.NS_QUERY, "description");
 
     /**
      * Creates a new {@code QueryType} instance.
-     * 
+     *
      */
     public SearchFilterType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -96,8 +96,8 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates a new {@code QueryType} instance by deeply copying a given {@code QueryType} instance.
-     * 
-     * 
+     *
+     *
      * @param o
      *     The instance to copy.
      * @throws NullPointerException
@@ -228,7 +228,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     * 
+     *
      */
     @Override
     public String toString() {
@@ -264,7 +264,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 				return false;
 		} else if (!filterClauseXNode.equals(that.filterClauseXNode))
 			return false;
-      
+
         return true;
     }
 
@@ -275,7 +275,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given object.
-     * 
+     *
      * @param o
      *     The instance to copy or {@code null}.
      * @return
@@ -413,7 +413,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -458,7 +458,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -476,7 +476,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -494,7 +494,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -512,7 +512,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -530,7 +530,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -548,7 +548,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -566,7 +566,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -584,7 +584,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -602,7 +602,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given {@code JAXBElement} instance.
-     * 
+     *
      * @param element
      *     The instance to copy or {@code null}.
      * @return
@@ -622,7 +622,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given {@code Serializable}.
-     * 
+     *
      * @param serializable
      *     The instance to copy or {@code null}.
      * @return
@@ -662,8 +662,8 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

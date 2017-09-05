@@ -81,7 +81,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	public RoleMemberPanel(String id, IModel<T> model, PageBase pageBase) {
 		super(id, TableId.ROLE_MEMEBER_PANEL, model, pageBase);
 	}
-	
+
 	public RoleMemberPanel(String id, IModel<T> model, List<RelationTypes> relations, PageBase pageBase) {
 		super(id, TableId.ROLE_MEMEBER_PANEL, model, relations, pageBase);
 	}
@@ -133,7 +133,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		getMemberTable().refreshTable(WebComponentUtil.qnameToClass(getPrismContext(), type, FocusType.class), target);
 	}
 
-	
+
 
 	private MainObjectListPanel<FocusType> getMemberTable() {
 		return (MainObjectListPanel<FocusType>) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
@@ -220,14 +220,14 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		DropDownChoice<QName> typeSelect = createDropDown(ID_OBJECT_TYPE, Model.of(FocusType.COMPLEX_TYPE),
 				allowedTypes, new QNameChoiceRenderer());
 		add(typeSelect);
-		
+
 		ChooseTypePanel<OrgType> tenant = createParameterPanel(ID_TENANT, true);
-		
+
 //			DropDownChoice<OrgType> tenant = createDropDown(ID_TENANT, new Model(),
 //				createTenantList(), new ObjectTypeChoiceRenderer<OrgType>());
 		add(tenant);
 		tenant.add(new VisibleEnableBehaviour() {
-			
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -235,14 +235,14 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 				return isRole();
 			}
 		});
-		
+
 		ChooseTypePanel<OrgType> project = createParameterPanel(ID_PROJECT, false);
 		add(project);
-		
+
 		project.add(new VisibleEnableBehaviour() {
 
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public boolean isVisible() {
 				return isRole();
@@ -264,49 +264,49 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		indirectMembersContainer.add(includeIndirectMembers);
 
 	}
-	
+
 	private ChooseTypePanel<OrgType> createParameterPanel(String id, boolean isTenant) {
-		
+
 		ChooseTypePanel<OrgType> orgSelector = new ChooseTypePanel<OrgType>(id, Model.of(new ObjectViewDto())) {
-		
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void executeCustomAction(AjaxRequestTarget target, OrgType object) {
 				refreshTable(target);
 			}
-			
+
 			@Override
 			protected void executeCustomRemoveAction(AjaxRequestTarget target) {
 				refreshTable(target);
 			}
-			
+
 			@Override
 			protected ObjectQuery getChooseQuery() {
 				ObjectFilter tenantFilter = QueryBuilder.queryFor(OrgType.class, getPrismContext()).item(OrgType.F_TENANT).eq(true).buildFilter();
-				
+
 				if (isTenant) {
 					return ObjectQuery.createObjectQuery(tenantFilter);
-				} 
+				}
 				return ObjectQuery.createObjectQuery(NotFilter.createNot(tenantFilter));
-				
+
 			}
-			
+
 			@Override
 			protected boolean isSearchEnabled() {
 				return true;
 			}
-			
+
 			@Override
 			public Class<OrgType> getObjectTypeClass() {
 				return OrgType.class;
 			}
-			
-			
+
+
 		};
-		
+
 		return orgSelector;
-		
+
 	}
 
 	@Override
@@ -368,7 +368,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		boolean indirect = ((CheckBoxPanel) get(createComponentPath(ID_INDIRECT_MEMBERS_CONTAINER, ID_INDIRECT_MEMBERS))).getValue();
 
 		return indirect ? createAllMemberQuery() : createDirectMemberQuery();
-		
+
 	}
 
 	protected ObjectQuery createDirectMemberQuery() {

@@ -30,27 +30,27 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Abstract item definition in the schema.
- * 
+ *
  * This is supposed to be a superclass for all item definitions. Items are things
  * that can appear in property containers, which generally means only a property
  * and property container itself. Therefore this is in fact superclass for those
  * two definitions.
- * 
+ *
  * The definitions represent data structures of the schema. Therefore instances
  * of Java objects from this class represent specific <em>definitions</em> from
  * the schema, not specific properties or objects. E.g the definitions does not
  * have any value.
- * 
+ *
  * To transform definition to a real property or object use the explicit
  * instantiate() methods provided in the definition classes. E.g. the
  * instantiate() method will create instance of Property using appropriate
  * PropertyDefinition.
- * 
+ *
  * The convenience methods in Schema are using this abstract class to find
  * appropriate definitions easily.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl implements ItemDefinition<I> {
 
@@ -73,7 +73,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 	/**
 	 * The constructors should be used only occasionally (if used at all).
 	 * Use the factory methods in the ResourceObjectDefintion instead.
-	 * 
+	 *
 	 * @param name definition name (element Name)
 	 * @param typeName type name (XSD complex or simple type)
 	 */
@@ -84,17 +84,17 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 
 	/**
 	 * Returns name of the defined entity.
-	 * 
+	 *
 	 * The name is a name of the entity instance if it is fixed by the schema.
 	 * E.g. it may be a name of the property in the container that cannot be
 	 * changed.
-	 * 
+	 *
 	 * The name corresponds to the XML element name in the XML representation of
 	 * the schema. It does NOT correspond to a XSD type name.
-	 * 
+	 *
 	 * Name is optional. If name is not set the null value is returned. If name is
 	 * not set the type is "abstract", does not correspond to the element.
-	 * 
+	 *
 	 * @return the name name of the entity or null.
 	 */
 	@Override
@@ -106,12 +106,12 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 	public void setName(@NotNull QName name) {
 		this.name = name;
 	}
-	
+
     @Override
 	public String getNamespace() {
     	return getName().getNamespaceURI();
     }
-	
+
     /**
      * Return the number of minimal value occurrences.
      *
@@ -125,10 +125,10 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
     public void setMinOccurs(int minOccurs) {
         this.minOccurs = minOccurs;
     }
-    
+
     /**
      * Return the number of maximal value occurrences.
-     * <p/>
+     * <p>
      * Any negative number means "unbounded".
      *
      * @return the maxOccurs
@@ -141,7 +141,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
     public void setMaxOccurs(int maxOccurs) {
         this.maxOccurs = maxOccurs;
     }
-    
+
     /**
      * Returns true if property is single-valued.
      *
@@ -197,11 +197,11 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 	public boolean isDynamic() {
 		return dynamic;
 	}
-	
+
 	public void setDynamic(boolean dynamic) {
 		this.dynamic = dynamic;
 	}
-	
+
     /**
      * Returns true if the property can be read. I.e. if it is returned in objects
      * retrieved from "get", "search" and similar operations.
@@ -271,7 +271,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 	/**
      * Reference to an object that directly or indirectly represents possible values for
      * this item. We do not define here what exactly the object has to be. It can be a lookup
-     * table, script that dynamically produces the values or anything similar. 
+     * table, script that dynamically produces the values or anything similar.
      * The object must produce the values of the correct type for this item otherwise an
      * error occurs.
      */
@@ -295,7 +295,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 		return clazz.isAssignableFrom(this.getClass())
 				&& QNameUtil.match(elementQName, getName(), caseInsensitive);
 	}
-	
+
 	@Override
 	public void adoptElementDefinitionFrom(ItemDefinition otherDef) {
 		if (otherDef == null) {
@@ -348,10 +348,10 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 
 	/**
 	 * Make a deep clone, cloning all the sub-items and definitions.
-	 * 
-	 * @param ultraDeep if set to true then even the objects that were same instance in the original will be 
+	 *
+	 * @param ultraDeep if set to true then even the objects that were same instance in the original will be
 	 *                  cloned as separate instances in the clone.
-	 * 
+	 *
 	 */
 	@Override
 	public ItemDefinition<I> deepClone(boolean ultraDeep) {
@@ -361,12 +361,12 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 			return deepClone(new HashMap<>());
 		}
 	}
-	
+
 	@Override
 	public ItemDefinition<I> deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
 		return clone();
 	}
-	
+
 	@Override
 	public void revive(PrismContext prismContext) {
 		if (this.prismContext != null) {
@@ -374,7 +374,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 		}
 		this.prismContext = prismContext;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -425,7 +425,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 		debugDumpShortToString(sb);
 		return sb.toString();
 	}
-	
+
 	/**
 	 * Used in debugDumping items. Does not need to have name in it as item already has it. Does not need
 	 * to have class as that is just too much info that is almost anytime pretty obvious anyway.
@@ -470,7 +470,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
         }
         return sb.toString();
     }
-	
+
 	protected void extendToString(StringBuilder sb) {
 		sb.append(",");
 		if (canRead()) {

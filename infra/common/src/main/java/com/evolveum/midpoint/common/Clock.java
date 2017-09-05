@@ -29,13 +29,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * test time-based behavior. Using the Clock avoids changing the actual system time (or JVM's perception
  * of time) therefore the tests are easier to use and usual tools still make sense (e.g. log record timestamps
  * are correct).
- * 
+ *
  * @author Radovan Semancik
  */
 public class Clock {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(Clock.class);
-	
+
 	private Long override = null;
 	// TODO: more sophisticated functions
 
@@ -45,7 +45,7 @@ public class Clock {
 		}
 		return System.currentTimeMillis();
 	}
-	
+
 	public XMLGregorianCalendar currentTimeXMLGregorianCalendar() {
 		long millis = currentTimeMillis();
 		return XmlTypeConverter.createXMLGregorianCalendar(millis);
@@ -58,8 +58,8 @@ public class Clock {
 	public boolean isPast(XMLGregorianCalendar date) {
 		return isPast(XmlTypeConverter.toMillis(date));
 	}
-	
-	
+
+
 	public boolean isFuture(long date) {
 		return currentTimeMillis() < date;
 	}
@@ -67,7 +67,7 @@ public class Clock {
 	public boolean isFuture(XMLGregorianCalendar date) {
 		return isFuture(XmlTypeConverter.toMillis(date));
 	}
-	
+
 	public void override(long overrideTimestamp) {
 		LOGGER.info("Clock override: {}", override);
 		this.override = overrideTimestamp;
@@ -75,11 +75,11 @@ public class Clock {
 			LOGGER.debug("Clock current time: {}", currentTimeXMLGregorianCalendar());
 		}
 	}
-	
+
 	public void override(XMLGregorianCalendar overrideTimestamp) {
 		override(XmlTypeConverter.toMillis(overrideTimestamp));
 	}
-	
+
 	public void overrideDuration(String durationString) {
 		overrideDuration(XmlTypeConverter.createDuration(durationString));
 	}

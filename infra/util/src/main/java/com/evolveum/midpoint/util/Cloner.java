@@ -23,5 +23,5 @@ package com.evolveum.midpoint.util;
 public interface Cloner<T> {
 
 	public T clone(T original);
-	
+
 }
