@@ -134,13 +134,13 @@ public class ChangeExecutor {
 
 	@Autowired
 	private ModelObjectResolver objectResolver;
-	
+
 	@Autowired
 	private OperationalDataManager metadataManager;
 
 	@Autowired
 	private PolicyRuleProcessor policyRuleProcessor;
-	
+
 	@Autowired
 	private CredentialsProcessor credentialsProcessor;
 
@@ -182,7 +182,7 @@ public class ChangeExecutor {
 
 				OperationResult subResult = result.createSubresult(
 						OPERATION_EXECUTE_FOCUS + "." + focusContext.getObjectTypeClass().getSimpleName());
-				
+
 				try {
 					// Will remove credential deltas or hash them
 					focusDelta = credentialsProcessor.transformFocusExectionDelta(context, focusDelta);
@@ -545,7 +545,7 @@ public class ChangeExecutor {
 						LOGGER.trace("Updating situation after shadow was linked.");
 						updateSituationInShadow(task, SynchronizationSituationType.LINKED, focusObjectContext, projCtx,
 								result);
-		} else {		
+		} else {
 			// Link should NOT exist
 
 			if (!focusContext.isDelete()) {
@@ -586,7 +586,7 @@ public class ChangeExecutor {
 						projOid);
 				updateSituationInShadow(task, null, focusObjectContext, projCtx, result);
 			}
-			// Not linked, that's OK			
+			// Not linked, that's OK
 		}
 	}
 
@@ -1060,29 +1060,29 @@ public class ChangeExecutor {
 		provisioningOptions.setOverwrite(options.getOverwrite());
 		return provisioningOptions;
 	}
-	
-	private <F extends ObjectType> ProvisioningOperationOptions getProvisioningOptions(LensContext<F> context,  
+
+	private <F extends ObjectType> ProvisioningOperationOptions getProvisioningOptions(LensContext<F> context,
 			ModelExecuteOptions modelOptions) {
 		if (modelOptions == null && context != null) {
 			modelOptions = context.getOptions();
 		}
 		ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(modelOptions);
-		
+
 		if (context != null && context.getChannel() != null) {
-			
+
 			if (context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))) {
 				// TODO: this is probably wrong. We should not have special case
 				// for recon channel! This should be handled by the provisioning task
 				// setting the right options there.
 				provisioningOptions.setCompletePostponed(false);
 			}
-			
+
 			if (context.getChannel().equals(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI)) {
 				// We want to avoid endless loops in error handling.
 				provisioningOptions.setDoNotDiscovery(true);
 			}
 		}
-		
+
 		return provisioningOptions;
 	}
 
@@ -1156,7 +1156,7 @@ public class ChangeExecutor {
 			} else if (objectTypeToAdd instanceof NodeType) {
 				throw new UnsupportedOperationException("NodeType cannot be added using model interface");
 			} else if (ObjectTypes.isManagedByProvisioning(objectTypeToAdd)) {
-				
+
 				ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options);
 
 				oid = addProvisioningObject(objectToAdd, context, objectContext, provisioningOptions,
@@ -1294,7 +1294,7 @@ public class ChangeExecutor {
 		}
 	}
 
-	
+
 
 	private String addTask(TaskType task, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException {
@@ -1419,7 +1419,7 @@ public class ChangeExecutor {
 				user = context.getFocusContext().getObjectOld();
 			}
 		}
-		
+
 		LensProjectionContext projectionCtx = (LensProjectionContext) objectContext;
 		PrismObject<ShadowType> shadow = null;
 		if (projectionCtx.getObjectNew() != null) {
@@ -1429,7 +1429,7 @@ public class ChangeExecutor {
 		} else {
 			shadow = projectionCtx.getObjectOld();
 		}
-		
+
 		if (shadow == null) {
 			//put at least something
 			shadow = resourceObject.clone();
@@ -1456,7 +1456,7 @@ public class ChangeExecutor {
 			OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		OperationProvisioningScriptsType outScripts = new OperationProvisioningScriptsType();
-		
+
 		if (resourceScripts != null) {
 			OperationProvisioningScriptsType scripts = resourceScripts.clone();
 			for (OperationProvisioningScriptType script : scripts.getScript()) {
@@ -1489,23 +1489,23 @@ public class ChangeExecutor {
 
 		return outScripts;
 	}
-	
+
 	private boolean evaluateScriptCondition(OperationProvisioningScriptType script,
 			ExpressionVariables variables, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		ExpressionType condition = script.getCondition();
 		if (condition == null) {
 			return true;
 		}
-		
+
 		PrismPropertyValue<Boolean> conditionOutput = ExpressionUtil.evaluateCondition(variables, condition, expressionFactory, " condition for provisioning script ", task, result);
 		if (conditionOutput == null) {
 			return true;
 		}
-		
+
 		Boolean conditionOutputValue = conditionOutput.getValue();
-		
+
 		return BooleanUtils.isNotFalse(conditionOutputValue);
-		
+
 	}
 
 	private void evaluateScriptArgument(ProvisioningScriptArgumentType argument,
@@ -1622,7 +1622,7 @@ public class ChangeExecutor {
 		} finally {
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
-		
+
 	}
 
 }

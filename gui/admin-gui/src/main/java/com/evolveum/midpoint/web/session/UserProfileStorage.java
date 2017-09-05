@@ -32,7 +32,7 @@ import java.util.Map;
  */
 public class UserProfileStorage implements Serializable, DebugDumpable {
 
-	
+
 	private static final long serialVersionUID = 1L;
 	public static final int DEFAULT_PAGING_SIZE = 20;
 
@@ -115,5 +115,5 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
 		DebugUtil.debugDumpWithLabel(sb, "tables", tables, indent+1);
 		return sb.toString();
 	}
-    
+
 }

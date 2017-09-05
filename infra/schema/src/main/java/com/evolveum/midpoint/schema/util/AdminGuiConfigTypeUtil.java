@@ -133,7 +133,7 @@ public class AdminGuiConfigTypeUtil {
 		}
 		objectForms.getObjectForm().add(newForm.clone());
 	}
-	
+
 	private static void joinObjectDetails(GuiObjectDetailsSetType objectDetailsSet, GuiObjectDetailsPageType newObjectDetails) {
 		Iterator<GuiObjectDetailsPageType> iterator = objectDetailsSet.getObjectDetailsPage().iterator();
 		while (iterator.hasNext()) {
@@ -144,7 +144,7 @@ public class AdminGuiConfigTypeUtil {
 		}
 		objectDetailsSet.getObjectDetailsPage().add(newObjectDetails.clone());
 	}
-	
+
 	private static boolean isTheSameObjectType(AbstractObjectTypeConfigurationType oldConf, AbstractObjectTypeConfigurationType newConf) {
 		return QNameUtil.match(oldConf.getType(), newConf.getType());
 	}
@@ -193,7 +193,7 @@ public class AdminGuiConfigTypeUtil {
 		}
 		objectLists.getObjectList().add(newList.clone());
 	}
-	
+
 	private static void mergeWidget(DashboardLayoutType compositeDashboard, DashboardWidgetType newWidget) {
 		String newWidgetIdentifier = newWidget.getIdentifier();
 		DashboardWidgetType compositeWidget = findWidget(compositeDashboard, newWidgetIdentifier);
@@ -203,7 +203,7 @@ public class AdminGuiConfigTypeUtil {
 			mergeWidget(compositeWidget, newWidget);
 		}
 	}
-	
+
 	public static DashboardWidgetType findWidget(DashboardLayoutType dashboard, String widgetIdentifier) {
 		return findFeature(dashboard.getWidget(), widgetIdentifier);
 	}
@@ -212,7 +212,7 @@ public class AdminGuiConfigTypeUtil {
 		mergeFeature(compositeWidget, newWidget, UserInterfaceElementVisibilityType.VACANT);
 		// merge other widget properties (in the future)
 	}
-	
+
 	private static void mergeFeature(List<UserInterfaceFeatureType> compositeFeatures, UserInterfaceFeatureType newFeature) {
 		String newIdentifier = newFeature.getIdentifier();
 		UserInterfaceFeatureType compositeFeature = findFeature(compositeFeatures, newIdentifier);
@@ -222,12 +222,12 @@ public class AdminGuiConfigTypeUtil {
 			mergeFeature(compositeFeature, newFeature, UserInterfaceElementVisibilityType.AUTOMATIC);
 		}
 	}
-	
+
 	private static <T extends UserInterfaceFeatureType> void mergeFeature(T compositeFeature, T newFeature, UserInterfaceElementVisibilityType defaultVisibility) {
 		UserInterfaceElementVisibilityType newCompositeVisibility = mergeVisibility(compositeFeature.getVisibility(), newFeature.getVisibility(), defaultVisibility);
 		compositeFeature.setVisibility(newCompositeVisibility);
 	}
-	
+
 	public static <T extends UserInterfaceFeatureType> T findFeature(List<T> features, String identifier) {
 		for (T feature: features) {
 			if (feature.getIdentifier().equals(identifier)) {
@@ -236,7 +236,7 @@ public class AdminGuiConfigTypeUtil {
 		}
 		return null;
 	}
-	
+
 	public static UserInterfaceElementVisibilityType getFeatureVisibility(AdminGuiConfigurationType adminGuiConfig, String identifier) {
 		UserInterfaceFeatureType feature = findFeature(adminGuiConfig.getFeature(), identifier);
 		if (feature == null) {
@@ -248,16 +248,16 @@ public class AdminGuiConfigTypeUtil {
 		}
 		return visibility;
 	}
-	
+
 	public static boolean isFeatureVisible(AdminGuiConfigurationType adminGuiConfig, String identifier) {
 		return isFeatureVisible(adminGuiConfig, identifier, null);
 	}
-	
+
 	public static boolean isFeatureVisible(AdminGuiConfigurationType adminGuiConfig, String identifier, BooleanSupplier automaticPredicate) {
 		UserInterfaceElementVisibilityType visibility = getFeatureVisibility(adminGuiConfig, identifier);
 		return isVisible(visibility, automaticPredicate);
 	}
-	
+
 	public static boolean isVisible(UserInterfaceElementVisibilityType visibility, BooleanSupplier automaticPredicate) {
 		if (visibility == UserInterfaceElementVisibilityType.HIDDEN) {
 			return false;

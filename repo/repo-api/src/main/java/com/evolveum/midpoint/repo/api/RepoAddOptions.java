@@ -21,9 +21,9 @@ import java.io.Serializable;
  * @author semancik
  *
  */
-public class RepoAddOptions implements Serializable {	
+public class RepoAddOptions implements Serializable {
 	private static final long serialVersionUID = -6243926109579064467L;
-	
+
 	private boolean overwrite = false;
 	private boolean allowUnencryptedValues = false;
 
@@ -34,7 +34,7 @@ public class RepoAddOptions implements Serializable {
 	public void setOverwrite(boolean overwrite) {
 		this.overwrite = overwrite;
 	}
-	
+
 	public static boolean isOverwrite(RepoAddOptions options) {
 		if (options == null) {
 			return false;
@@ -47,7 +47,7 @@ public class RepoAddOptions implements Serializable {
 		opts.setOverwrite(true);
 		return opts;
 	}
-	
+
 
 	public boolean isAllowUnencryptedValues() {
 		return allowUnencryptedValues;
@@ -56,14 +56,14 @@ public class RepoAddOptions implements Serializable {
 	public void setAllowUnencryptedValues(boolean allowUnencryptedValues) {
 		this.allowUnencryptedValues = allowUnencryptedValues;
 	}
-	
+
 	public static boolean isAllowUnencryptedValues(RepoAddOptions options) {
 		if (options == null) {
 			return false;
 		}
 		return options.isAllowUnencryptedValues();
 	}
-	
+
 	public static RepoAddOptions createAllowUnencryptedValues() {
 		RepoAddOptions opts = new RepoAddOptions();
 		opts.setAllowUnencryptedValues(true);

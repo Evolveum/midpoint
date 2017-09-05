@@ -19,11 +19,11 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 import java.io.Serializable;
 
 public class RAuditItemId implements Serializable{
-	
+
 	private static final long serialVersionUID = 1L;
 	private Long recordId;
 	private String changedItemPath;
-    
+
     public Long getRecordId() {
         return recordId;
     }
@@ -31,16 +31,16 @@ public class RAuditItemId implements Serializable{
     public void setRecordId(Long recordId) {
         this.recordId = recordId;
     }
-    
+
     public String getChangedItemPath() {
 		return changedItemPath;
 	}
-    
+
     public void setChangedItemPath(String changedItemPath) {
 		this.changedItemPath = changedItemPath;
 	}
 
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

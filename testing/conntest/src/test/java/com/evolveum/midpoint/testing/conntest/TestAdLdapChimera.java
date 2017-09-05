@@ -39,7 +39,7 @@ public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
 	protected String getResourceOid() {
 		return "eced6d24-73e3-11e5-8457-93eff15a6b85";
 	}
-	
+
 	@Override
 	protected File getResourceFile() {
 		return new File(getBaseDir(), "resource-chimera.xml");
@@ -64,5 +64,5 @@ public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
 	protected void assertAccountEnabled(PrismObject<ShadowType> shadow) {
 		assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
 	}
-	
+
 }

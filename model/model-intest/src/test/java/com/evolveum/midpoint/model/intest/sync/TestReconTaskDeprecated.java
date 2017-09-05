@@ -43,7 +43,7 @@ public class TestReconTaskDeprecated extends TestReconTask {
 	protected File getResourceDummyGreenFile() {
 		return RESOURCE_DUMMY_GREEN_DEPRECATED_FILE;
 	}
-	
+
 	@Override
 	public void test700AddDummyGreenAccountXjojo() throws Exception {
 		// Skip this test. It does not make sense in deprecated syntax

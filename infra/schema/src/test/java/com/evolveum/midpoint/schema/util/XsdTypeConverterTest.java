@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.schema.util;
 
@@ -51,13 +51,13 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  */
 public class XsdTypeConverterTest {
 
-	// TODO: convert this test to create a Protected string structure in prism and then check it in the DOM view 
-	
+	// TODO: convert this test to create a Protected string structure in prism and then check it in the DOM view
+
 	private static final String FOO_NAMESPACE = "http://foo.com/";
 	private static final QName FOO_QNAME = new QName(FOO_NAMESPACE,"foo");
 	private static final QName BAR_QNAME = new QName(FOO_NAMESPACE,"bar");
 
-	
+
 	@Test(enabled=false)
 	public void testConvertFromProtectedString() throws SchemaException {
 		Document document = DOMUtil.parseDocument(
@@ -67,29 +67,29 @@ public class XsdTypeConverterTest {
 				"xsi:type=\"c:ProtectedStringType\">"+
 				"<c:clearValue>3lizab3th</c:clearValue></password>");
 		Element element = DOMUtil.getFirstChildElement(document);
-		
+
 		Object value = XmlTypeConverter.toJavaValue(element);
-		
+
 		System.out.println("XML -> ProtectedStringType: "+value);
 		assertNotNull(value);
 		assertTrue(value instanceof ProtectedStringType);
 		assertEquals("3lizab3th",((ProtectedStringType)value).getClearValue());
 	}
-	
+
 	@Test(enabled=false)
 	public void testConvertToProtectedString() throws JAXBException, SchemaException {
 		ProtectedStringType ps = new ProtectedStringType();
 		ps.setClearValue("abra kadabra");
 		Document doc = DOMUtil.getDocument();
-		
+
 		Object xsdElement = XmlTypeConverter.toXsdElement(ps, FOO_QNAME, doc, true);
-		
+
 		System.out.println("ProtectedStringType -> XML");
 		System.out.println(xsdElement);
-		
+
 		assertTrue(xsdElement instanceof JAXBElement);
 		Object value = ((JAXBElement)xsdElement).getValue();
-		
+
 		System.out.println(value);
 		assertTrue(value instanceof ProtectedStringType);
 		assertEquals("abra kadabra",((ProtectedStringType)value).getClearValue());
@@ -107,31 +107,31 @@ public class XsdTypeConverterTest {
 		ps.setClearValue("foo");
 		JAXBElement<ProtectedStringType> pse = new JAXBElement<ProtectedStringType>(FOO_QNAME,ProtectedStringType.class,ps);
 		shadow.getAttributes().getAny().add(pse);
-		
+
 		shadow.getAttributes().getAny().add(XmlTypeConverter.toXsdElement(42, BAR_QNAME, null, true));
-		
+
 		Document doc = DOMUtil.getDocument();
-		JAXBElement<ShadowType> accountElement = 
+		JAXBElement<ShadowType> accountElement =
 				new JAXBElement<ShadowType>(ObjectTypes.SHADOW.getQName(),
 						ShadowType.class,shadow);
 		JaxbTestUtil.getInstance().marshalElementToDom(accountElement, doc);
-		
+
 		System.out.println("marshalled shadow: "+DOMUtil.serializeDOMToString(doc));
 		Element rootElement = DOMUtil.getFirstChildElement(doc);
 		System.out.println("root element: "+rootElement);
-		
+
 		Element attrElement = (Element) rootElement.getElementsByTagNameNS(SchemaConstants.NS_C,"attributes").item(0);
 		System.out.println("attrElement element: "+attrElement);
-		
+
 		Element fooElement = (Element) attrElement.getElementsByTagNameNS(FOO_QNAME.getNamespaceURI(), FOO_QNAME.getLocalPart()).item(0);
 		System.out.println("fooElement element: "+fooElement);
 		Element clearValue = DOMUtil.getFirstChildElement(fooElement);
 		assertEquals("foo",clearValue.getTextContent());
-		
+
 		Element barElement = (Element) attrElement.getElementsByTagNameNS(BAR_QNAME.getNamespaceURI(), BAR_QNAME.getLocalPart()).item(0);
 		System.out.println("barElement element: "+barElement);
 		assertEquals(DOMUtil.XSD_INT,DOMUtil.resolveXsiType(barElement));
 		assertEquals("42",barElement.getTextContent());
 	}
-	
+
 }

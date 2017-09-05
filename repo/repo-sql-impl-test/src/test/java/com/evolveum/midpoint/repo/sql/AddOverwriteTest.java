@@ -83,8 +83,8 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
     @Test
     public void addWithOverwrite() throws Exception {
         List<PrismObject<?>> objects = prismContext.parserFor(new File(ORG_STRUCT_OBJECTS)).parseObjects();
-        
-    
+
+
         OperationResult opResult = new OperationResult("Import file");
         for (PrismObject o : objects) {
             repositoryService.addObject(o, null, opResult);
@@ -160,17 +160,17 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
         result.recomputeStatus();
         AssertJUnit.assertTrue(result.isSuccess());
     }
-    
+
     @Test
     public void addWithOverwriteResource() throws Exception {
     	// GIVEN
-    	
+
         SchemaRegistry reg= prismContext.getSchemaRegistry();
         PrismPropertyDefinition def = reg.findPropertyDefinitionByElementName(CapabilitiesType.F_NATIVE);
-    	
+
         PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_FILE);
         OperationResult opResult = new OperationResult("Import resource");
-        
+
         repositoryService.addObject(resource, null, opResult);
 
         opResult.computeStatus();
@@ -179,25 +179,25 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
         PrismObject<ResourceType> resourceAfterAdd = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
         MidPointAsserts.assertOid(resourceAfterAdd, RESOURCE_OPENDJ_OID);
         MidPointAsserts.assertVersion(resourceAfterAdd, 0);
-        
+
         // Precondition
         assertNotNull("no schema", resourceAfterAdd.asObjectable().getSchema());
         assertNotNull("no capabilities", resourceAfterAdd.asObjectable().getCapabilities());
 
         resource.asObjectable().setSchema(null);
         resource.asObjectable().setCapabilities(null);
-        
+
         // WHEN
         repositoryService.addObject(resource, RepoAddOptions.createOverwrite(), opResult);
-        
+
         // THEN
         opResult.computeStatus();
         AssertJUnit.assertTrue(opResult.isSuccess());
-        
+
         PrismObject<ResourceType> resourceAfterOverwrite = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
         MidPointAsserts.assertOid(resourceAfterOverwrite, RESOURCE_OPENDJ_OID);
         MidPointAsserts.assertVersion(resourceAfterOverwrite, 1);
-        
+
         assertNull("schema not gone", resourceAfterOverwrite.asObjectable().getSchema());
         assertNull("capabilities not gone", resourceAfterOverwrite.asObjectable().getCapabilities());
     }

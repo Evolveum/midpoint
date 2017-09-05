@@ -76,7 +76,7 @@ public class ScriptExpression {
     public void setObjectResolver(ObjectResolver objectResolver) {
         this.objectResolver = objectResolver;
     }
-	
+
 	public Collection<FunctionLibrary> getFunctions() {
 		return functions;
 	}
@@ -97,14 +97,14 @@ public class ScriptExpression {
 			boolean useNew, String contextDescription, Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
-		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext(variables, contextDescription, result, this);
+		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext(variables, contextDescription, result, task, this);
 		context.setEvaluateNew(useNew);
-		
+
 		try {
 			context.setupThreadLocal();
-			
+
 			List<V> expressionResult = evaluator.evaluate(scriptType, variables, outputDefinition, additionalConvertor, suggestedReturnType, objectResolver, functions, contextDescription, task, result);
-			
+
 			traceExpressionSuccess(variables, contextDescription, expressionResult);
 	        return expressionResult;
 
@@ -144,11 +144,11 @@ public class ScriptExpression {
         		"Error: {}", shortDesc, evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(variables),
 				formatCode(), SchemaDebugUtil.prettyPrint(exception));
     }
-    
+
     private boolean isTrace() {
-		return LOGGER.isTraceEnabled() || (scriptType != null && scriptType.isTrace() == Boolean.TRUE); 
+		return LOGGER.isTraceEnabled() || (scriptType != null && scriptType.isTrace() == Boolean.TRUE);
 	}
-	
+
 	private void trace(String msg, Object... args) {
 		if (scriptType != null && scriptType.isTrace() == Boolean.TRUE) {
 			LOGGER.info(msg, args);
@@ -167,7 +167,7 @@ public class ScriptExpression {
 	private String formatCode() {
 		return DebugUtil.excerpt(scriptType.getCode().replaceAll("[\\s\\r\\n]+", " "), MAX_CODE_CHARS);
     }
-	
+
 	public ItemPath parsePath(String path) {
 		if (path == null) {
 			return null;

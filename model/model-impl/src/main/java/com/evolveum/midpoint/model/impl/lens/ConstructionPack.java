@@ -28,19 +28,19 @@ import com.evolveum.midpoint.util.DebugUtil;
  *
  */
 public class ConstructionPack<T extends AbstractConstruction> implements DebugDumpable {
-	
+
 	private final Collection<PrismPropertyValue<T>> constructions = new ArrayList<>();
 	private boolean forceRecon;
 	private boolean hasValidAssignment = false;
-	
+
 	public boolean isForceRecon() {
 		return forceRecon;
 	}
-	
+
 	public void setForceRecon(boolean forceRecon) {
 		this.forceRecon = forceRecon;
 	}
-	
+
 	public Collection<PrismPropertyValue<T>> getConstructions() {
 		return constructions;
 	}
@@ -56,7 +56,7 @@ public class ConstructionPack<T extends AbstractConstruction> implements DebugDu
 	public void setHasValidAssignment(boolean hasValidAssignment) {
 		this.hasValidAssignment = hasValidAssignment;
 	}
-	
+
 	public boolean hasStrongConstruction() {
     	for (PrismPropertyValue<T> construction: constructions) {
 			if (!construction.getValue().isWeak()) {
@@ -65,7 +65,7 @@ public class ConstructionPack<T extends AbstractConstruction> implements DebugDu
 		}
     	return false;
     }
-	
+
 	@Override
 	public String toString() {
 		return "ConstructionPack(" + SchemaDebugUtil.prettyPrint(constructions) + (forceRecon ? ", forceRecon" : "") + ")";

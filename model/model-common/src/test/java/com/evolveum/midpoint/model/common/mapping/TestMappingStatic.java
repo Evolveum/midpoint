@@ -32,13 +32,13 @@ import java.io.IOException;
 public class TestMappingStatic {
 
 	private MappingTestEvaluator evaluator;
-	    
+
     @BeforeClass
     public void setupFactory() throws SAXException, IOException, SchemaException {
     	evaluator = new MappingTestEvaluator();
     	evaluator.init();
     }
-    
+
     @Test
     public void testValueSingleDeep() throws Exception {
         // WHEN
@@ -46,13 +46,13 @@ public class TestMappingStatic {
     			"mapping-value-single-deep.xml",
     			"testValue",
     			"costCenter");				// target
-    	
+
         // THEN
     	PrismAsserts.assertTripleZero(outputTriple, "foobar");
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
-    
+
     @Test
     public void testValueSingleShallow() throws Exception {
         // WHEN
@@ -60,13 +60,13 @@ public class TestMappingStatic {
     			"mapping-value-single-shallow.xml",
     			"testValue",
     			"costCenter");				// target
-    	
+
         // THEN
     	PrismAsserts.assertTripleZero(outputTriple, "foobar");
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
-    
+
     @Test
     public void testValueMultiDeep() throws Exception {
     	// WHEN
@@ -74,11 +74,11 @@ public class TestMappingStatic {
     			"mapping-value-multi-deep.xml",
     			"testValueMulti",
     			"employeeType");				// target
-    	
+
     	// THEN
     	PrismAsserts.assertTripleZero(outputTriple, "12345", "67890");
     	PrismAsserts.assertTripleNoPlus(outputTriple);
-    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
     @Test
@@ -88,13 +88,13 @@ public class TestMappingStatic {
     			"mapping-value-multi-shallow.xml",
     			"testValueMulti",
     			"employeeType");				// target
-    	
+
     	// THEN
     	PrismAsserts.assertTripleZero(outputTriple, "12345", "67890");
     	PrismAsserts.assertTripleNoPlus(outputTriple);
-    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
-    
+
     @Test
     public void testPathNoSource() throws Exception {
     	// WHEN
@@ -102,13 +102,13 @@ public class TestMappingStatic {
     			"mapping-path-system-variables-nosource.xml",
     			"testPathNoSource",
     			"employeeType");				// target
-    	
+
     	// THEN
     	PrismAsserts.assertTripleZero(outputTriple, "jack");
     	PrismAsserts.assertTripleNoPlus(outputTriple);
-    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
-    
+
     @Test
     public void testConstFoo() throws Exception {
         // WHEN
@@ -116,7 +116,7 @@ public class TestMappingStatic {
     			"mapping-const-foo.xml",
     			"testValue",
     			"costCenter");				// target
-    	
+
         // THEN
     	PrismAsserts.assertTripleZero(outputTriple, "foobar");
     	PrismAsserts.assertTripleNoPlus(outputTriple);

@@ -42,7 +42,7 @@ public abstract class SummaryTagSimple<C extends Containerable> extends Panel {
 
 	public SummaryTagSimple(String id, final IModel<C> model) {
 		super(id, model);
-		
+
 		Label tagIcon = new Label(ID_TAG_ICON, "");
 		tagIcon.add(new AttributeModifier("class", new SummaryTagModel<String>(model) {
 			@Override
@@ -51,14 +51,14 @@ public abstract class SummaryTagSimple<C extends Containerable> extends Panel {
 			}
 		}));
 		add(tagIcon);
-		
+
 		add(new Label(ID_TAG_LABEL, new SummaryTagModel<String>(model) {
 			@Override
 			protected String getValue() {
 				return getLabel();
 			}
 		}));
-		
+
 		add(new AttributeModifier("style", new SummaryTagModel<String>(model) {
 			@Override
 			protected String getValue() {
@@ -68,8 +68,8 @@ public abstract class SummaryTagSimple<C extends Containerable> extends Panel {
 				return "color: " + getColor();
 			}
 		}));
-		
-		add(new VisibleEnableBehaviour(){    		
+
+		add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible(){
             	if (!initialized) {
@@ -87,7 +87,7 @@ public abstract class SummaryTagSimple<C extends Containerable> extends Panel {
 	public void setIconCssClass(String iconCssClass) {
 		this.iconCssClass = iconCssClass;
 	}
-	
+
 	public String getLabel() {
 		return label;
 	}
@@ -95,7 +95,7 @@ public abstract class SummaryTagSimple<C extends Containerable> extends Panel {
 	public void setLabel(String label) {
 		this.label = label;
 	}
-	
+
 	public String getColor() {
 		return color;
 	}
@@ -103,7 +103,7 @@ public abstract class SummaryTagSimple<C extends Containerable> extends Panel {
 	public void setColor(String color) {
 		this.color = color;
 	}
-	
+
 	public boolean isHideTag() {
 		return hideTag;
 	}

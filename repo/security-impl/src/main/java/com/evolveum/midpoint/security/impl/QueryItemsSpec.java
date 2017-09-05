@@ -30,29 +30,29 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Helper class to SecurityEnforcer, used to evaluate query item authorizations.
- * 
+ *
  * @author semancik
  */
 public class QueryItemsSpec {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(QueryItemsSpec.class);
-	
+
 	private List<ItemPath> requiredItems = new ArrayList<>();
 	private List<ItemPath> allowedItems = new ArrayList<>();
 	private boolean allItemsAllowed = false;
-	
+
 	public List<ItemPath> getRequiredItems() {
 		return requiredItems;
 	}
-	
+
 	public void addRequiredItem(ItemPath path) {
 		requiredItems.add(path);
 	}
-	
+
 	public List<ItemPath> getAllowedItems() {
 		return allowedItems;
 	}
-	
+
 	public void addAllowedItem(ItemPath path) {
 		allowedItems.add(path);
 	}
@@ -66,7 +66,7 @@ public class QueryItemsSpec {
 			}
 		}
 	}
-	
+
 	public void addRequiredItems(ObjectFilter filter) {
 		filter.accept(visitable -> {
 			if (visitable instanceof ItemFilter) {
@@ -75,7 +75,7 @@ public class QueryItemsSpec {
 		});
 	}
 
-	
+
 	public List<ItemPath> evaluateUnsatisfierItems() {
 		List<ItemPath> unsatisfiedItems = new ArrayList<>();
 		if (!allItemsAllowed) {
@@ -114,5 +114,5 @@ public class QueryItemsSpec {
 			}
 		}
 	}
-	
+
 }

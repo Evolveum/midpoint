@@ -148,23 +148,23 @@ public class PageSecurityQuestions extends PageBase {
 	protected void createBreadcrumb() {
 		//don't create breadcrumb for this page
 	}
-	
+
 	public void initLayout() {
-			
+
 		Form mainForm = new Form(ID_MAIN_FORM);
-		
+
 		pqPanels = new ArrayList<MyPasswordQuestionsPanel>();
-		
+
 		PrismObject<SecurityPolicyType> securityPolicy = getSecurityPolicy();
 		LOGGER.trace("Found security policy: {}", securityPolicy);
-		
+
 		if (securityPolicy == null) {
 			LOGGER.error("No security policy, cannot process security questions");
 			// Just log the error, but do not display it. We are still in unprivileged part of the web
 			// we do not want to provide any information to the attacker.
 			throw new RestartResponseException(PageError.class);
 		}
-		
+
 		questionNumber = securityPolicy.asObjectable().getCredentials() != null &&
 		        securityPolicy.asObjectable().getCredentials().getSecurityQuestions() != null ?
 		        securityPolicy.asObjectable().getCredentials().getSecurityQuestions().getQuestionNumber() : 0;
@@ -172,33 +172,33 @@ public class PageSecurityQuestions extends PageBase {
 		        securityPolicy.asObjectable().getCredentials().getSecurityQuestions() != null ?
 		        securityPolicy.asObjectable().getCredentials().getSecurityQuestions().getQuestion() :
 		        new ArrayList<SecurityQuestionDefinitionType>();
-		
+
 		List<SecurityQuestionAnswerDTO> userQuestionList = model.getObject().getSecurityAnswers();
-		
+
 		if (userQuestionList == null) {
 			getSession().error(getString("pageForgetPassword.message.ContactAdminQuestionsNotSet"));
 			SecurityContext securityContext = SecurityContextHolder.getContext();
 			securityContext.setAuthentication(null);
 			throw new RestartResponseException(PageForgotPassword.class);
 		}
-		
+
 		if (questionNumber <= userQuestionList.size()) {
-		
+
 		// Loop for finding the preset questions from the Policy
 		// Questions
 		for (Iterator iterator = policyQuestionList.iterator(); iterator.hasNext();) {
-		
+
 			SecurityQuestionDefinitionType securityQuestionDefinitionType = (SecurityQuestionDefinitionType) iterator
 					.next();
-		
+
 			// user's question List loop to match the questions
 			for (int userQuestint = 0; userQuestint < userQuestionList.size(); userQuestint++) {
-		
+
 				// if the question is in the policy check
 				int panelNumber = 0;
 				if (userQuestionList.get(userQuestint).getPwdQuestion()
 						.equalsIgnoreCase(securityQuestionDefinitionType.getIdentifier())) {
-		
+
 					SecurityQuestionAnswerDTO a = new SecurityQuestionAnswerDTO(userQuestionList
 							.get(userQuestint).getPwdQuestion(), "", userQuestionList.get(
 							userQuestint).getQuestionItself());
@@ -207,33 +207,33 @@ public class PageSecurityQuestions extends PageBase {
 							ID_PASSWORD_QUESTIONS_PANEL + panelNumber, a);
 					pqPanels.add(panel);
 					panelNumber++;
-		
+
 					// This is the Question!
-		
+
 					}
 				}
-		
+
 			}
-		
+
 		}
 
 		add(mainForm);
 		mainForm.add(getPanels(pqPanels));
 
 		initButtons(mainForm);
-		
+
 	}
-	
+
 	private PrismObject<SecurityPolicyType> getSecurityPolicy() {
-		
+
 		return runPrivileged(new Producer<PrismObject<SecurityPolicyType>>() {
 
 			@Override
 			public PrismObject<SecurityPolicyType> run() {
-				
+
 				Task task = getPageBase().createAnonymousTask(OPERATION_LOAD_QUESTION_POLICY);
 				OperationResult result = task.getResult();
-				
+
 				PrismObject<SystemConfigurationType> config;
 				try {
 					config = getPageBase().getModelService().getObject(SystemConfigurationType.class,
@@ -243,7 +243,7 @@ public class PageSecurityQuestions extends PageBase {
 					LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
 					return null;
 				}
-				
+
                 if (config.asObjectable().getGlobalSecurityPolicyRef() != null) {
 	                    try {
 							return getModelService().getObject(SecurityPolicyType.class,
@@ -258,14 +258,14 @@ public class PageSecurityQuestions extends PageBase {
                 	return null;
                 }
 			}
-			
+
 		});
 	}
-	
+
 	public ListView<MyPasswordQuestionsPanel> getPanels(List<MyPasswordQuestionsPanel> p) {
 		ListView lw = new ListView(ID_PASSWORD_QUESTIONS_PANEL, p) {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			protected void populateItem(ListItem item) {
 
@@ -274,7 +274,7 @@ public class PageSecurityQuestions extends PageBase {
 		};
 		return lw;
 	}
-	
+
 	public void initButtons(Form mainForm) {
 		AjaxSubmitButton save = new AjaxSubmitButton(ID_SAVE, createStringResource("PageBase.button.send")) {
 
@@ -330,7 +330,7 @@ public class PageSecurityQuestions extends PageBase {
 
 		if (questionNumber == correctAnswers) {
 			getSession().removeAttribute(SESSION_ATTRIBUTE_POID);
-			
+
 			runPrivileged(new Producer<Object>() {
 				@Override
 				public Object run() {
@@ -347,13 +347,13 @@ public class PageSecurityQuestions extends PageBase {
 		}
 
 	}
-	
+
 
 	private PasswordQuestionsDto loadPageModel() {
 		LOGGER.debug("Loading user.");
-		
+
 		final String userOid = getPageParameters().get(SESSION_ATTRIBUTE_POID).toString();
-		
+
 		PrismObject<UserType> user = runPrivileged(new Producer<PrismObject<UserType>>() {
 			@Override
 			public PrismObject<UserType> run() {
@@ -370,12 +370,12 @@ public class PageSecurityQuestions extends PageBase {
 					// we do not want to provide any information to the attacker.
 					return null;
 				}
-				
+
 			}
 		});
-		
+
 		principalModel.setObject(user);
-		
+
 		PasswordQuestionsDto dto = new PasswordQuestionsDto();
 		dto.setSecurityAnswers(createUsersSecurityQuestionsList(user));
 
@@ -459,9 +459,9 @@ public class PageSecurityQuestions extends PageBase {
 
 		Task task = createAnonymousTask(OPERATION_RESET_PASSWORD);
 		OperationResult result = task.getResult();
-		
+
 		LOGGER.debug("Resetting password for {}", user);
-		
+
 		ProtectedStringType password = new ProtectedStringType();
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
 				GetOperationOptions.createResolve(), SystemConfigurationType.F_DEFAULT_USER_TEMPLATE,
@@ -627,9 +627,9 @@ public class PageSecurityQuestions extends PageBase {
 			/*
 			 * Session mailSession = Session.getDefaultInstance(props);
 			 * MimeMessage message = new MimeMessage(mailSession);
-			 * 
+			 *
 			 * message.setSubject("Engerek KYS Yeni Şifreniz");
-			 * 
+			 *
 			 * message.setText("User Login : " + userLogin + "\n Password : " +
 			 * password + "\n"); message.setFrom(new InternetAddress(sender));
 			 * message.addRecipient(Message.RecipientType.TO, new

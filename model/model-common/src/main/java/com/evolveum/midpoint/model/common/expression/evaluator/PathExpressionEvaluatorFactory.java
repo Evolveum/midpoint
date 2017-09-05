@@ -41,7 +41,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  *
  */
 public class PathExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
-	
+
 	private PrismContext prismContext;
 	private ObjectResolver objectResolver;
 	private Protector protector;
@@ -69,21 +69,21 @@ public class PathExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
 																									 D outputDefinition, String contextDescription, Task task, OperationResult result) throws SchemaException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for path expression evaluator");
-		
+
 		if (evaluatorElements.size() > 1) {
 			throw new SchemaException("More than one evaluator specified in "+contextDescription);
 		}
 		JAXBElement<?> evaluatorElement = evaluatorElements.iterator().next();
-		
+
 		Object evaluatorElementObject = evaluatorElement.getValue();
 		 if (!(evaluatorElementObject instanceof ItemPathType)) {
-		        throw new IllegalArgumentException("Path expression cannot handle elements of type " 
+		        throw new IllegalArgumentException("Path expression cannot handle elements of type "
 		        		+ evaluatorElementObject.getClass().getName()+" in "+contextDescription);
 		}
         ItemPath path = ((ItemPathType)evaluatorElementObject).getItemPath();
-        
+
         return new PathExpressionEvaluator<>(path, objectResolver, outputDefinition, protector, prismContext);
-        
+
 	}
 
 }

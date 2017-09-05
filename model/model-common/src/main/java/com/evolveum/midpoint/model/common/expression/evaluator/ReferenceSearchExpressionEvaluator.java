@@ -35,24 +35,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectRefExpre
 /**
  * @author Radovan Semancik
  */
-public class ReferenceSearchExpressionEvaluator 
+public class ReferenceSearchExpressionEvaluator
 			extends AbstractSearchExpressionEvaluator<PrismReferenceValue,PrismReferenceDefinition> {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ReferenceSearchExpressionEvaluator.class);
-	
-	public ReferenceSearchExpressionEvaluator(SearchObjectRefExpressionEvaluatorType expressionEvaluatorType, 
-			PrismReferenceDefinition outputDefinition, Protector protector, ObjectResolver objectResolver, 
+
+	public ReferenceSearchExpressionEvaluator(SearchObjectRefExpressionEvaluatorType expressionEvaluatorType,
+			PrismReferenceDefinition outputDefinition, Protector protector, ObjectResolver objectResolver,
 			ModelService modelService, PrismContext prismContext, SecurityEnforcer securityEnforcer) {
 		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer);
 	}
-	
+
 	protected PrismReferenceValue createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismReferenceValue, PrismReferenceDefinition>> additionalAttributeValues, ExpressionEvaluationContext params) {
 		PrismReferenceValue refVal = new PrismReferenceValue();
-		
+
 		refVal.setOid(oid);
 		refVal.setTargetType(targetTypeQName);
 		refVal.setRelation(((SearchObjectRefExpressionEvaluatorType)getExpressionEvaluatorType()).getRelation());
-		
+
 		return refVal;
 	}
 

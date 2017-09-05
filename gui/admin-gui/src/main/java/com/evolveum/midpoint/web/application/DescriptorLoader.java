@@ -101,11 +101,11 @@ public final class DescriptorLoader implements DebugDumpable {
             if (customDescriptor != null) {
                 scanPackagesForPages(customDescriptor.getPackagesToScan(), application);
             }
-            
+
             if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("loaded:\n{}", debugDump(1));
             }
-            
+
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't process application descriptor", ex);
         }

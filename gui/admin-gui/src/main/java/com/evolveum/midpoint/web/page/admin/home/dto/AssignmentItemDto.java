@@ -23,7 +23,7 @@ import java.io.Serializable;
 
 /**
  * TODO: unify with AssignmentEditorDto
- * 
+ *
  * @author lazyman
  */
 public class AssignmentItemDto implements Serializable, Comparable<AssignmentItemDto> {

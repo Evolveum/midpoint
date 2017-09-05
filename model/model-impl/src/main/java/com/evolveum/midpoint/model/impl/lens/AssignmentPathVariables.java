@@ -82,5 +82,5 @@ public class AssignmentPathVariables {
 	public void setImmediateRole(PrismObject<? extends AbstractRoleType> immediateRole) {
 		this.immediateRole = immediateRole;
 	}
-	
+
 }

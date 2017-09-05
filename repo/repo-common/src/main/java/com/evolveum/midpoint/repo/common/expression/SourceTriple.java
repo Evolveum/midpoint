@@ -58,5 +58,5 @@ public class SourceTriple<V extends PrismValue,D extends ItemDefinition> extends
 	public ItemPath getResidualPath() {
 		return source.getResidualPath();
 	}
-	
+
 }

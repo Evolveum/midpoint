@@ -62,7 +62,7 @@ import java.util.List;
 
 /**
  * Used as a main component of the Org tree page.
- * 
+ *
  * todo create function computeHeight() in midpoint.js, update height properly
  * when in "mobile" mode... [lazyman] todo implement midpoint theme for tree
  * [lazyman]

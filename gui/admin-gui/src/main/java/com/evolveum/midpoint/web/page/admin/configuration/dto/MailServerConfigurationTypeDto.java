@@ -64,7 +64,7 @@ public class MailServerConfigurationTypeDto implements Serializable, Choiceable 
     public String getName() {
     	return host;
     }
-    
+
     public String getHost() {
         return host;
     }

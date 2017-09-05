@@ -56,12 +56,12 @@ public class TestQueryBuilder {
     public static final QName USER_TYPE_QNAME = new QName(NS_FOO, "UserType");
     public static final QName ASSIGNMENT_TYPE_QNAME = new QName(NS_FOO, "AssignmentType");
     private static MatchingRuleRegistry matchingRuleRegistry;
-	
+
 	@BeforeSuite
 	public void setupDebug() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-		
+
 		matchingRuleRegistry = MatchingRuleRegistryFactory.createRegistry();
 	}
 
@@ -69,7 +69,7 @@ public class TestQueryBuilder {
     public void beforeMethod(Method method) throws Exception {
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> START TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
     }
-	
+
 	@Test
 	public void test100EmptyFilter() throws Exception{
 		ObjectQuery actual = QueryBuilder.queryFor(UserType.class, getPrismContext()).build();

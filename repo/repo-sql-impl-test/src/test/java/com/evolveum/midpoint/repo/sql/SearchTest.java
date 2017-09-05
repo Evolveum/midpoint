@@ -333,7 +333,7 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
 
     }
-    
+
     @Test
     public void orgAssignmentSearchTest() throws Exception {
         PrismReferenceValue org = new PrismReferenceValue("00000000-8888-6666-0000-100000000085", OrgType.COMPLEX_TYPE);
@@ -348,7 +348,7 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
 
     }
-    
+
     @Test
     public void roleAndOrgAssignmentSearchTest() throws Exception {
         PrismReferenceValue r123 = new PrismReferenceValue("r123", RoleType.COMPLEX_TYPE);

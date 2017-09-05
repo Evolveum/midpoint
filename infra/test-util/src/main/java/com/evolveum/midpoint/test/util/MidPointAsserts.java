@@ -49,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  */
 public class MidPointAsserts {
-	
+
 	public static <F extends FocusType> AssignmentType assertAssigned(PrismObject<F> user, String targetOid, QName refType) {
 		F userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
@@ -65,7 +65,7 @@ public class MidPointAsserts {
 		AssertJUnit.fail(user + " does not have assigned "+refType.getLocalPart()+" "+targetOid);
 		return null; // not reachable
 	}
-	
+
 	public static void assertAssigned(PrismObject<? extends FocusType> focus, String targetOid, QName refType, QName relation) {
 		FocusType focusType = focus.asObjectable();
 		for (AssignmentType assignmentType: focusType.getAssignment()) {
@@ -81,7 +81,7 @@ public class MidPointAsserts {
 		}
 		AssertJUnit.fail(focus + " does not have assigned "+refType.getLocalPart()+" "+targetOid+ ", relation "+relation);
 	}
-	
+
 	public static <F extends FocusType> void assertNotAssigned(PrismObject<F> user, String targetOid, QName refType) {
 		F userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
@@ -103,7 +103,7 @@ public class MidPointAsserts {
 
 	public static <R extends AbstractRoleType> void assertInducements(PrismObject<R> role, int expectedNumber) {
 		R roleType = role.asObjectable();
-		assertEquals("Unexepected number of inducements in "+role+": "+roleType.getInducement(), 
+		assertEquals("Unexepected number of inducements in "+role+": "+roleType.getInducement(),
 				expectedNumber, roleType.getInducement().size());
 	}
 
@@ -125,29 +125,29 @@ public class MidPointAsserts {
 		}
 		assertEquals("Unexepected number of assignments of type "+expectedType+" in "+user+": "+userType.getAssignment(), expectedNumber, actualAssignments);
 	}
-	
+
 	public static <F extends FocusType> void assertNoAssignments(PrismObject<F> user) {
 		F userType = user.asObjectable();
 		List<AssignmentType> assignments = userType.getAssignment();
 		assertTrue(user + " does have assignments "+assignments+" while not expecting it", assignments.isEmpty());
 	}
-	
+
 	public static <F extends FocusType> AssignmentType assertAssignedRole(PrismObject<F> user, String roleOid) {
 		return assertAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
 	}
-	
+
 	public static <F extends FocusType> void assertNotAssignedRole(PrismObject<F> user, String roleOid) {
 		assertNotAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
 	}
-	
+
 	public static <F extends FocusType> void assertAssignedRoles(PrismObject<F> user, String... roleOids) {
 		assertAssignedTargets(user, "roles", RoleType.COMPLEX_TYPE, roleOids);
 	}
-	
+
 	public static <F extends FocusType> void assertAssignedOrgs(PrismObject<F> user, String... orgOids) {
 		assertAssignedTargets(user, "orgs", OrgType.COMPLEX_TYPE, orgOids);
 	}
-	
+
 	public static <F extends FocusType> void assertAssignedTargets(PrismObject<F> user, String typeDesc, QName type, String... expectedTargetOids) {
 		F userType = user.asObjectable();
 		List<String> haveTagetOids = new ArrayList<>();
@@ -206,19 +206,19 @@ public class MidPointAsserts {
             }
         }
     }
-	
+
 	public static void assertAssignedOrg(PrismObject<? extends FocusType> focus, String orgOid) {
 		assertAssigned(focus, orgOid, OrgType.COMPLEX_TYPE);
 	}
-	
+
 	public static void assertNotAssignedOrg(PrismObject<? extends FocusType> focus, String orgOid) {
 		assertNotAssigned(focus, orgOid, OrgType.COMPLEX_TYPE);
 	}
-	
+
 	public static void assertAssignedOrg(PrismObject<? extends FocusType> focus, String orgOid, QName relation) {
 		assertAssigned(focus, orgOid, OrgType.COMPLEX_TYPE, relation);
 	}
-	
+
 	public static <O extends ObjectType> void assertHasOrg(PrismObject<O> object, String orgOid) {
 		for (ObjectReferenceType orgRef: object.asObjectable().getParentOrgRef()) {
 			if (orgOid.equals(orgRef.getOid())) {
@@ -227,7 +227,7 @@ public class MidPointAsserts {
 		}
 		AssertJUnit.fail(object + " does not have org " + orgOid);
 	}
-	
+
 	public static <O extends ObjectType> boolean hasOrg(PrismObject<O> user, String orgOid, QName relation) {
 		for (ObjectReferenceType orgRef: user.asObjectable().getParentOrgRef()) {
 			if (orgOid.equals(orgRef.getOid()) &&
@@ -245,7 +245,7 @@ public class MidPointAsserts {
 	public static <O extends ObjectType> void assertHasNoOrg(PrismObject<O> user, String orgOid, QName relation) {
 		AssertJUnit.assertFalse(user + " has org " + orgOid + ", relation "+relation+ " even if should NOT have it", hasOrg(user, orgOid, relation));
 	}
-	
+
 	public static <O extends ObjectType> void assertHasNoOrg(PrismObject<O> user) {
 		assertTrue(user + " does have orgs "+user.asObjectable().getParentOrgRef()+" while not expecting them", user.asObjectable().getParentOrgRef().isEmpty());
 	}
@@ -254,8 +254,8 @@ public class MidPointAsserts {
 		O userType = user.asObjectable();
 		assertEquals("Unexepected number of orgs in "+user+": "+userType.getParentOrgRef(), expectedNumber, userType.getParentOrgRef().size());
 	}
-	
-    
+
+
     public static <O extends ObjectType> void assertVersionIncrease(PrismObject<O> objectOld, PrismObject<O> objectNew) {
 		Long versionOld = parseVersion(objectOld);
 		Long versionNew = parseVersion(objectNew);
@@ -273,11 +273,11 @@ public class MidPointAsserts {
 	public static <O extends ObjectType> void assertVersion(PrismObject<O> object, int expectedVersion) {
 		assertVersion(object, Integer.toString(expectedVersion));
 	}
-	
+
 	public static <O extends ObjectType> void assertVersion(PrismObject<O> object, String expectedVersion) {
 		assertEquals("Wrong version for "+object, expectedVersion, object.getVersion());
 	}
-	
+
 	public static <O extends ObjectType> void assertOid(PrismObject<O> object, String expectedOid) {
 		assertEquals("Wrong OID for "+object, expectedOid, object.getOid());
 	}
@@ -291,7 +291,7 @@ public class MidPointAsserts {
 		}
 		AssertJUnit.fail(message+", expected "+expectedValue+", got "+actualValues);
 	}
-	
+
 	public static void assertNotContainsCaseIgnore(String message, Collection<String> actualValues, String expectedValue) {
 		if (actualValues == null) {
 			return;

@@ -27,7 +27,7 @@ import com.evolveum.midpoint.util.DisplayableValue;
  *
  */
 public class RoleSelectionSpecification {
-	
+
 	private List<? extends DisplayableValue<String>> roleTypes = null;
 	private ObjectFilter filter = null;
 
@@ -42,21 +42,21 @@ public class RoleSelectionSpecification {
 	public void setNoRoleTypes() {
 		roleTypes = new ArrayList<DisplayableValue<String>>();
 	}
-	
+
 	public void addRoleType(DisplayableValue<String> roleType) {
 		if (roleTypes == null) {
 			roleTypes = new ArrayList<DisplayableValue<String>>();
 		}
 		((Collection)roleTypes).add(roleType);
 	}
-	
+
 	public void addRoleTypes(Collection<? extends DisplayableValue<String>> roleTypes) {
 		if (this.roleTypes == null) {
 			this.roleTypes = new ArrayList<DisplayableValue<String>>();
 		}
 		this.roleTypes.addAll((Collection)roleTypes);
 	}
-	
+
 	/**
 	 * Returns "additional filter" that should be used to search for assignible roles.
 	 * This filter should be AND-ed with any application level filter.
@@ -106,6 +106,6 @@ public class RoleSelectionSpecification {
 	public String toString() {
 		return "RoleSelectionSpecification(" + roleTypes + ": "+filter+")";
 	}
-	
-	
+
+
 }

@@ -44,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements ProgressReportingAwarePage {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageOrgUnit.class);
-	
+
 	public PageOrgUnit() {
 		initialize(null);
 	}
@@ -57,11 +57,11 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 		getPageParameters().overwriteWith(parameters);
 		initialize(null);
 	}
-	
+
 	@Override
 	protected OrgType createNewObject() {
 		return new OrgType();
-	}	
+	}
 
 	@Override
 	public Class<OrgType> getCompileTimeClass() {
@@ -82,12 +82,12 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 	protected AbstractObjectMainPanel<OrgType> createMainPanel(String id) {
 		return new AbstractRoleMainPanel<OrgType>(id, getObjectModel(), getAssignmentsModel(), getPolicyRulesModel(),
 				getProjectionModel(), getInducementsModel(), this) {
-			
+
 			@Override
 			public AbstractRoleMemberPanel<OrgType> createMemberPanel(String panelId) {
 				return new OrgMemberPanel(panelId, Model.of(getObject().asObjectable()), PageOrgUnit.this);
 			}
 		};
 	}
-	
+
 }

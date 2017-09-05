@@ -43,7 +43,7 @@ import org.apache.commons.lang.Validate;
  *
  */
 public class ReferenceSearchExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
-	
+
 	private PrismContext prismContext;
 	private Protector protector;
 	private ObjectResolver objectResolver;
@@ -86,7 +86,7 @@ public class ReferenceSearchExpressionEvaluatorFactory implements ExpressionEval
 			}
 			evaluatorElement = evaluatorElements.iterator().next();
 		}
-		
+
 		Object evaluatorTypeObject = null;
         if (evaluatorElement != null) {
         	evaluatorTypeObject = evaluatorElement.getValue();
@@ -94,7 +94,7 @@ public class ReferenceSearchExpressionEvaluatorFactory implements ExpressionEval
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof SearchObjectRefExpressionEvaluatorType)) {
             throw new SchemaException("reference search expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        ReferenceSearchExpressionEvaluator expressionEvaluator = new ReferenceSearchExpressionEvaluator((SearchObjectRefExpressionEvaluatorType)evaluatorTypeObject, 
+        ReferenceSearchExpressionEvaluator expressionEvaluator = new ReferenceSearchExpressionEvaluator((SearchObjectRefExpressionEvaluatorType)evaluatorTypeObject,
         		(PrismReferenceDefinition) outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer);
         return (ExpressionEvaluator<V,D>) expressionEvaluator;
 	}

@@ -134,9 +134,9 @@ public class TestJaxbParsing {
         System.out.println("Parsed account:");
         System.out.println(account.debugDump());
 
-        account.checkConsistence(); 
+        account.checkConsistence();
         assertPropertyValue(account, ShadowType.F_NAME, PrismTestUtil.createPolyString("jack"));
-        assertPropertyValue(account, ShadowType.F_OBJECT_CLASS, 
+        assertPropertyValue(account, ShadowType.F_OBJECT_CLASS,
         		new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff", "AccountObjectClass"));
         assertPropertyValue(account, ShadowType.F_INTENT, "default");
 
@@ -180,21 +180,21 @@ public class TestJaxbParsing {
         PrismObject<GenericObjectType> prism = object.asPrismObject();
         prism.revive(prismContext);
 
-        prism.checkConsistence(); 
+        prism.checkConsistence();
         assertPropertyValue(prism, GenericObjectType.F_NAME, PrismTestUtil.createPolyString("My Sample Config Object"));
         assertPropertyValue(prism, GenericObjectType.F_DESCRIPTION, "Sample description");
         assertPropertyValue(prism, GenericObjectType.F_OBJECT_TYPE, "http://midpoint.evolveum.com/xml/ns/test/extension#SampleConfigType");
         //assert extension
         PrismContainer<?> extension = prism.findContainer(GenericObjectType.F_EXTENSION);
         assertNotNull(extension);
-        
+
         PrismAsserts.assertPropertyValue(extension, SchemaTestConstants.EXTENSION_STRING_TYPE_ELEMENT, "X marks the spot");
 		PrismAsserts.assertPropertyValue(extension, SchemaTestConstants.EXTENSION_INT_TYPE_ELEMENT, 1234);
 		PrismAsserts.assertPropertyValue(extension, SchemaTestConstants.EXTENSION_DOUBLE_TYPE_ELEMENT, 456.789D);
 		PrismAsserts.assertPropertyValue(extension, SchemaTestConstants.EXTENSION_LONG_TYPE_ELEMENT, 567890L);
 		XMLGregorianCalendar calendar = DatatypeFactory.newInstance().newXMLGregorianCalendar("2002-05-30T09:10:11");
 		PrismAsserts.assertPropertyValue(extension, SchemaTestConstants.EXTENSION_DATE_TYPE_ELEMENT, calendar);
-        
+
         //todo locations ????? how to test DOM ??????
     }
 
@@ -261,7 +261,7 @@ public class TestJaxbParsing {
 
         Document doc = DOMUtil.parseFile(new File(TestConstants.COMMON_DIR, "value-filter-with-any.xml"));
         Element rootElement = DOMUtil.getFirstChildElement(doc);
-        
+
         // WHEN
 
         Object parsedObject = prismContext.parserFor(rootElement).parseRealValue();

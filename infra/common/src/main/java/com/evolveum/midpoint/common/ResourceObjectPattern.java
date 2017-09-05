@@ -40,22 +40,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  */
 public class ResourceObjectPattern implements Serializable {
-	
+
 	private Collection<ResourceAttribute<?>> identifiers;
 	private RefinedObjectClassDefinition rOcDef;
 	private ObjectFilter objectFilter;
-	
+
 	public ResourceObjectPattern(RefinedObjectClassDefinition rOcDef) {
 		this.rOcDef = rOcDef;
 	}
-	
+
 	public Collection<ResourceAttribute<?>> getIdentifiers() {
 		if (identifiers == null) {
 			identifiers = new ArrayList<ResourceAttribute<?>>();
 		}
 		return identifiers;
 	}
-	
+
 	public void addIdentifier(ResourceAttribute<?> identifier) {
 		getIdentifiers().add(identifier);
 	}

@@ -76,8 +76,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
 	private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceImpl.class);
 	private static final Integer CLEANUP_AUDIT_BATCH_SIZE = 500;
-	
-	private static final String QUERY_MAX_RESULT = "setMaxResults"; 
+
+	private static final String QUERY_MAX_RESULT = "setMaxResults";
 	private static final String QUERY_FIRST_RESULT = "setFirstResult";
 
 	public SqlAuditServiceImpl(SqlRepositoryFactory repositoryFactory) {
@@ -166,21 +166,21 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		Session session = null;
 		try {
 			session = baseHelper.beginTransaction();
-			
+
 			RAuditEventRecord reindexed = RAuditEventRecord.toRepo(record, getPrismContext());
 			//TODO FIXME temporary hack, merge will eventyually load the object to the session if there isn't one,
 			// but in this case we force loading object because of "objectDeltaOperation". There is some problem probably
 			// during serializing/deserializing which causes constraint violation on priamry key..
 			Object o = session.load(RAuditEventRecord.class, record.getRepoId());
-			
+
 			if (o instanceof RAuditEventRecord) {
 				RAuditEventRecord rRecord = (RAuditEventRecord) o;
 				rRecord.getChangedItems().clear();
 				rRecord.getChangedItems().addAll(reindexed.getChangedItems());
-				
+
 				session.merge(rRecord);
 			}
-			
+
 			session.getTransaction().commit();
 
 		} catch (DtoTranslationException ex) {
@@ -205,9 +205,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
 		try {
 			session = baseHelper.beginReadOnlyTransaction();
-			
+
 			Query q;
-			
+
 			if (StringUtils.isBlank(query)) {
 				query = "from RAuditEventRecord as aer where 1=1 order by aer.timestamp desc";
 				q = session.createQuery(query);
@@ -221,7 +221,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("List records attempt\n  processed query: {}", q);
 			}
-			
+
 			ScrollableResults resultList = q.scroll();
 
 			while (resultList.next()) {
@@ -258,7 +258,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
 		LOGGER.trace("List records iterative attempt processed {} records", count);
 	}
-	
+
 	private void setParametersToQuery(Query q, Map<String, Object> params) {
 		if (params == null) {
 			return;
@@ -278,10 +278,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 				q.setParameter(p.getKey(), null);
 				continue;
 			}
-			
+
 			if (List.class.isAssignableFrom(p.getValue().getClass())){
 				q.setParameterList(p.getKey(), convertValues((List)p.getValue()));
-			} else { 
+			} else {
 				q.setParameter(p.getKey(), toRepoType(p.getValue()));
 			}
 //			if (XMLGregorianCalendar.class.isAssignableFrom(p.getValue().getClass())) {
@@ -295,7 +295,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 //			}
 		}
 	}
-	
+
 	private List<?> convertValues(List<?> originValues) {
 		List<Object> repoValues = new ArrayList<>();
 		for (Object value : originValues) {
@@ -303,7 +303,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		}
 		return repoValues;
 	}
-	
+
 	private Object toRepoType(Object value){
 		if (XMLGregorianCalendar.class.isAssignableFrom(value.getClass())) {
 			return MiscUtil.asDate((XMLGregorianCalendar) value);
@@ -311,8 +311,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 			return RAuditEventType.toRepo((AuditEventType) value);
 		} else if (value instanceof AuditEventStage) {
 			return RAuditEventStage.toRepo((AuditEventStage) value);
-		} 
-		
+		}
+
 		return value;
 	}
 

@@ -37,8 +37,8 @@ public class LocalizableMessage implements Serializable, ShortDumpable {
 	}
 
 	/**
-	 * Message key. This is the key in localization files that 
-	 * determine message or message template. 
+	 * Message key. This is the key in localization files that
+	 * determine message or message template.
 	 */
 	public String getKey() {
 		return key;
@@ -124,5 +124,5 @@ public class LocalizableMessage implements Serializable, ShortDumpable {
 			sb.append(fallbackMessage);
 		};
 	}
-	
+
 }

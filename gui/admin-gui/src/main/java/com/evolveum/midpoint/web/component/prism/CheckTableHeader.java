@@ -66,7 +66,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
     }
 
     private void initLayout() {
-    	
+
         AjaxCheckBox check = new AjaxCheckBox(ID_CHECK,
                 new PropertyModel<Boolean>(getModel(), ObjectWrapper.F_SELECTED)) {
 			private static final long serialVersionUID = 1L;
@@ -151,16 +151,16 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
             }
         });
         add(description);
-        
+
         ToggleIconButton expandButton = new ToggleIconButton(ID_EXPAND,
         		GuiStyleConstants.CLASS_ICON_EXPAND, GuiStyleConstants.CLASS_ICON_COLLAPSE) {
         	private static final long serialVersionUID = 1L;
-        	
+
         	@Override
             public void onClick(AjaxRequestTarget target) {
         		onClickPerformed(target);
             }
-        	
+
         	@Override
 			public boolean isOn() {
 				return !CheckTableHeader.this.getModelObject().isMinimalized();

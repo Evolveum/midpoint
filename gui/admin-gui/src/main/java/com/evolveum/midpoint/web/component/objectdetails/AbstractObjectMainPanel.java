@@ -56,9 +56,9 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	private static final String ID_PREVIEW_CHANGES = "previewChanges";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectMainPanel.class);
-	
+
 	private Form mainForm;
-	
+
 	private LoadableModel<ObjectWrapper<O>> objectModel;
 	private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
 		@Override
@@ -86,7 +86,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	public LoadableModel<ObjectWrapper<O>> getObjectModel() {
 		return objectModel;
 	}
-	
+
 	public ObjectWrapper<O> getObjectWrapper() {
 		return objectModel.getObject();
 	}
@@ -94,7 +94,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	public PrismObject<O> getObject() {
 		return objectModel.getObject().getObject();
 	}
-	
+
 	public Form getMainForm() {
 		return mainForm;
 	}
@@ -106,7 +106,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 		initLayoutOptions();
 		initLayoutButtons(parentPage);
 	}
-	
+
 	protected void initLayoutTabs(final PageAdminObjectDetails<O> parentPage) {
 		List<ITab> tabs = createTabs(parentPage);
 		TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, parentPage, tabs, null,
@@ -130,7 +130,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 		});
 		mainForm.add(optionsPanel);
 	}
-	
+
 	protected void initLayoutButtons(PageAdminObjectDetails<O> parentPage) {
 		initLayoutPreviewButton(parentPage);
 		initLayoutSaveButton(parentPage);
@@ -226,11 +226,11 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 			public void onClick(AjaxRequestTarget target) {
 				backPerformed(target);
 			}
-			
+
 		};
 		mainForm.add(back);
 	}
-	
+
 	public ExecuteChangeOptionsDto getExecuteChangeOptionsDto() {
 		return executeOptionsModel.getObject();
 	}
@@ -238,7 +238,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	private void backPerformed(AjaxRequestTarget target) {
 		getDetailsPage().redirectBack();
 	}
-	
+
 	protected PageAdminObjectDetails<O> getDetailsPage() {
 		return (PageAdminObjectDetails<O>)getPage();
 	}

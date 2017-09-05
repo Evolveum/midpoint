@@ -25,7 +25,7 @@ import org.apache.wicket.model.IModel;
 
 /**
  * Model that returns property real values. This implementation works on ObjectWrapper models (not PrismObject).
- * 
+ *
  * Simple implementation, now it can't handle multivalue properties.
  *
  * @author mederly

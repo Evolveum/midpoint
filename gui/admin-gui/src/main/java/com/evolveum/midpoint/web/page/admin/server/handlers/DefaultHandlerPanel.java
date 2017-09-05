@@ -41,7 +41,7 @@ public class DefaultHandlerPanel<D extends HandlerDto> extends BasePanel<D> {
 		initLayout(parentPage);
 		setOutputMarkupId(true);
 	}
-	
+
 	private void initLayout(final PageTaskEdit parentPage) {
 		WebMarkupContainer objectRefContainer = new WebMarkupContainer(ID_OBJECT_REF_CONTAINER);
 		objectRefContainer.add(new VisibleEnableBehaviour() {

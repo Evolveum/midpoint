@@ -267,18 +267,18 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
             	CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(id) {
-					
+
             		private static final long serialVersionUID = 1L;
             		@Override
             		protected DataTable<?, ?> getDataTable() {
             			return getTaskTable().getDataTable();
             		}
-            		
+
             		@Override
             		protected String getFilename() {
             			return "TaskType_" + createStringResource("MainObjectListPanel.exportFileName").getString();
             		}
-					
+
 				};
                 return exportDataLink;
             }

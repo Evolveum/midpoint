@@ -105,7 +105,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Implementation of the UCF Connector Manager API interface for ConnId framework.
- * 
+ *
  * @author Radovan Semancik
  */
 
@@ -119,7 +119,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	public static final QName ICFS_ACCOUNT = new QName(SchemaConstants.NS_ICF_SCHEMA, "account");
 
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME = "ConfigurationPropertiesType";
-	public static final QName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_QNAME = new QName(SchemaConstants.NS_ICF_CONFIGURATION, 
+	public static final QName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_QNAME = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
 			CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME);
 
 	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME = "connectorPoolConfiguration";
@@ -137,7 +137,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
 			CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME);
 	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE = DOMUtil.XSD_INT;
-	
+
 	public static final String CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME = "legacySchema";
 	public static final QName CONNECTOR_SCHEMA_LEGACY_SCHEMA_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
 			CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME);
@@ -163,28 +163,28 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 	private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = SchemaConstants.ICF_FRAMEWORK_URI + "/bundle/";
 	private static final String CONNECTOR_IDENTIFIER_SEPARATOR = "/";
-	
+
 	public static final int ATTR_DISPLAY_ORDER_START = 120;
 	public static final int ATTR_DISPLAY_ORDER_INCREMENT = 10;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryConnIdImpl.class);
-	
+
 	// This is not really used in the code. It is here just to make sure that the JUL logger is loaded
 	// by the parent classloader so we can correctly adjust the log levels from the main code
 	static final java.util.logging.Logger JUL_LOGGER = java.util.logging.Logger.getLogger(ConnectorFactoryConnIdImpl.class.getName());
-	
+
 
 	private ConnectorInfoManagerFactory connectorInfoManagerFactory;
 	private ConnectorInfoManager localConnectorInfoManager;
 	private Set<URL> bundleURLs;
 	private Set<ConnectorType> localConnectorTypes = null;
-	
+
 	@Autowired(required = true)
 	private MidpointConfiguration midpointConfiguration;
 
 	@Autowired(required = true)
 	private Protector protector;
-	
+
 	@Autowired(required = true)
 	private PrismContext prismContext;
 
@@ -227,14 +227,14 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 	/**
 	 * Creates new connector instance.
-	 * 
+	 *
 	 * It will initialize the connector by taking the XML Resource definition,
 	 * transforming it to the ICF configuration and applying that to the new
 	 * connector instance.
-	 * 
+	 *
 	 * @throws ObjectNotFoundException
-	 * @throws SchemaException 
-	 * 
+	 * @throws SchemaException
+	 *
 	 */
 	@Override
 	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace, String desc)
@@ -251,7 +251,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			throw new ObjectNotFoundException("The classes (JAR) of " + ObjectTypeUtil.toShortString(connectorType)
 					+ " were not found by the ICF framework; bundle="+connectorType.getConnectorBundle()+" connector type=" + connectorType.getConnectorType() + ", version="+connectorType.getConnectorVersion());
 		}
-		
+
 		PrismSchema connectorSchema = UcfUtil.getConnectorSchema(connectorType, prismContext);
 		if (connectorSchema == null) {
 			connectorSchema = generateConnectorConfigurationSchema(cinfo, connectorType);
@@ -260,15 +260,15 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		ConnectorInstanceConnIdImpl connectorImpl = new ConnectorInstanceConnIdImpl(cinfo, connectorType, namespace,
 				connectorSchema, protector, prismContext);
 		connectorImpl.setDescription(desc);
-		
+
 		return connectorImpl;
 	}
 
-	
+
 
 	/**
 	 * Returns a list XML representation of the ICF connectors.
-	 * 
+	 *
 	 * @throws CommunicationException
 	 */
 	@Override
@@ -314,7 +314,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			// Lazy initialize connector list
 			localConnectorTypes = new HashSet<ConnectorType>();
 
-			
+
 			// Fetch list of local connectors from ICF
 			List<ConnectorInfo> connectorInfos = getLocalConnectorInfoManager().getConnectorInfos();
 
@@ -353,16 +353,16 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 	/**
 	 * Converts ICF ConnectorInfo into a midPoint XML connector representation.
-	 * 
+	 *
 	 * TODO: schema transformation
-	 * 
+	 *
 	 * @param hostType
 	 *            host that this connector runs on or null for local connectors
 	 */
 	private ConnectorType convertToConnectorType(ConnectorInfo cinfo, ConnectorHostType hostType) throws SchemaException {
 		ConnectorType connectorType = new ConnectorType();
 		ConnectorKey key = cinfo.getConnectorKey();
-		UcfUtil.addConnectorNames(connectorType, "ConnId", key.getBundleName(), key.getConnectorName(), key.getBundleVersion(), hostType);		
+		UcfUtil.addConnectorNames(connectorType, "ConnId", key.getBundleName(), key.getConnectorName(), key.getBundleVersion(), hostType);
 		String stringID = keyToNamespaceSuffix(key);
 		connectorType.setFramework(SchemaConstants.ICF_FRAMEWORK_URI);
 		connectorType.setConnectorType(key.getConnectorName());
@@ -381,18 +381,18 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 				connectorType.setConnectorHost(hostType);
 			}
 		}
-		
+
 		PrismSchema connectorSchema = generateConnectorConfigurationSchema(cinfo, connectorType);
 		LOGGER.trace("Generated connector schema for {}: {} definitions",
 				connectorType, connectorSchema.getDefinitions().size());
 		UcfUtil.setConnectorSchema(connectorType, connectorSchema);
-		
+
 		return connectorType;
 	}
 
 	/**
 	 * Converts ICF connector key to a simple string.
-	 * 
+	 *
 	 * The string may be used as an OID.
 	 */
 	private String keyToNamespaceSuffix(ConnectorKey key) {
@@ -411,7 +411,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		ConnectorInfo cinfo = getConnectorInfo(connectorType);
 		return generateConnectorConfigurationSchema(cinfo, connectorType);
 	}
-	
+
 	private PrismSchema generateConnectorConfigurationSchema(ConnectorInfo cinfo, ConnectorType connectorType) {
 
 		LOGGER.trace("Generating configuration schema for {}", this);
@@ -498,11 +498,11 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		return connectorSchema;
 	}
 
-	
+
 	/**
 	 * Returns ICF connector info manager that manages local connectors. The
 	 * manager will be created if it does not exist yet.
-	 * 
+	 *
 	 * @return ICF connector info manager that manages local connectors
 	 */
 	private ConnectorInfoManager getLocalConnectorInfoManager() {
@@ -515,7 +515,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	/**
 	 * Returns ICF connector info manager that manages local connectors. The
 	 * manager will be created if it does not exist yet.
-	 * 
+	 *
 	 * @return ICF connector info manager that manages local connectors
 	 */
 	private ConnectorInfoManager getRemoteConnectorInfoManager(ConnectorHostType hostType) {
@@ -544,7 +544,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 	/**
 	 * Scan class path for connector bundles
-	 * 
+	 *
 	 * @return Set of all bundle URL
 	 */
 	private Set<URL> scanClassPathForBundles() {
@@ -611,7 +611,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 	/**
 	 * Scan directory for bundles only on first lval we do the scan
-	 * 
+	 *
 	 * @param path
 	 * @return
 	 */
@@ -698,7 +698,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 	/**
 	 * Test if provided file is connector bundle
-	 * 
+	 *
 	 * @param file
 	 *            tested file
 	 * @return boolean
@@ -760,7 +760,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 	/**
 	 * Get contect informations
-	 * 
+	 *
 	 * @param connectorType
 	 * @return
 	 * @throws ObjectNotFoundException
@@ -787,7 +787,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		return new ConnectorKey(connectorType.getConnectorBundle(), connectorType.getConnectorVersion(),
 				connectorType.getConnectorType());
 	}
-	
+
 	@Override
 	public void selfTest(OperationResult parentTestResult) {
 		selfTestGuardedString(parentTestResult);
@@ -797,7 +797,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	public boolean supportsFramework(String frameworkIdentifier) {
 		return SchemaConstants.ICF_FRAMEWORK_URI.equals(frameworkIdentifier);
 	}
-	
+
     @Override
     public String getFrameworkVersion() {
         Version version = FrameworkUtil.getFrameworkVersion();
@@ -809,7 +809,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
     private void selfTestGuardedString(OperationResult parentTestResult) {
 		OperationResult result = parentTestResult.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString");
-		
+
 		OperationResult subresult = result.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString.encryptorReflection");
 		EncryptorFactory encryptorFactory = EncryptorFactory.getInstance();
 		subresult.addReturn("encryptorFactoryImpl", encryptorFactory.getClass());
@@ -838,7 +838,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 				subresult.recordPartialError("Reflection introspection failed", e);
 			}
 		}
-		
+
 		OperationResult encryptorSubresult = result.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString.encryptor");
 		try {
 			String plainString = "Scurvy seadog";
@@ -854,8 +854,8 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			LOGGER.error("Encryptor operation error: {}", e.getMessage(), e);
 			encryptorSubresult.recordFatalError("Encryptor opeation error: " + e.getMessage(), e);
 		}
-		
-		
+
+
 		final OperationResult guardedStringSubresult = result.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString.guardedString");
 		// try to encrypt and decrypt GuardedString
 		try {
@@ -867,7 +867,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 				@Override
 				public void access(char[] decryptedChars) {
 					if (!(new String(decryptedChars)).equals(origString)) {
-						guardedStringSubresult.recordFatalError("GuardeString roundtrip failed; encrypted="+origString+", decrypted="+(new String(decryptedChars))); 
+						guardedStringSubresult.recordFatalError("GuardeString roundtrip failed; encrypted="+origString+", decrypted="+(new String(decryptedChars)));
 					}
 				}
 			});
@@ -876,7 +876,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			LOGGER.error("GuardedString operation error: {}", e.getMessage(), e);
 			guardedStringSubresult.recordFatalError("GuardedString opeation error: " + e.getMessage(), e);
 		}
-		
+
 		result.computeStatus();
 	}
 

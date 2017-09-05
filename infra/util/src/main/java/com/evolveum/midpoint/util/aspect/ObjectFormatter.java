@@ -21,7 +21,7 @@ package com.evolveum.midpoint.util.aspect;
  */
 @FunctionalInterface
 public interface ObjectFormatter {
-	
+
 	public String format(Object o);
-	
+
 }

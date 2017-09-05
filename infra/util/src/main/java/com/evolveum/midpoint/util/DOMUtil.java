@@ -107,7 +107,7 @@ public class DOMUtil {
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_ATTR_SCHEMA_LOCATION = new QName(W3C_XML_SCHEMA_NS_URI, "schemaLocation",
 			NS_W3C_XML_SCHEMA_PREFIX);
-	
+
     public static final QName XSD_DECIMAL = new QName(W3C_XML_SCHEMA_NS_URI, "decimal",
             NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_STRING = new QName(W3C_XML_SCHEMA_NS_URI, "string",
@@ -162,7 +162,7 @@ public class DOMUtil {
 
     // To generate random namespace prefixes
 	private static Random rnd = new Random();
-	
+
 	private static final DocumentBuilder loader;
 
 	static {
@@ -178,9 +178,9 @@ public class DOMUtil {
     public static String serializeDOMToString(org.w3c.dom.Node node) {
 		return printDom(node).toString();
 	}
-	
+
 	public static void serializeDOMToFile(org.w3c.dom.Node node, File file) throws TransformerFactoryConfigurationError, TransformerException {
-		
+
 		Transformer transformer = TransformerFactory.newInstance().newTransformer();
 		Result output = new StreamResult(file);
 		Source input = new DOMSource(node);
@@ -395,7 +395,7 @@ public class DOMUtil {
 
 		return null;
 	}
-	
+
 	public static List<Element> getChildElements(Element element, QName elementName) {
 		Validate.notNull(elementName, "Element name to get must not be null");
 		List<Element> elements = new ArrayList<>();
@@ -645,7 +645,7 @@ public class DOMUtil {
 					return preferredPrefix;
 				} else {
 					// Prefix conflict, we need to create different prefix
-					// Just going on will do that 
+					// Just going on will do that
 				}
 			}
 		}
@@ -700,7 +700,7 @@ public class DOMUtil {
 		attr.setValue(namespaceUri);
 		attributes.setNamedItem(attr);
 	}
-	
+
 	/**
 	 * Returns map of all namespace declarations from specified element (prefix -&gt; namespace).
 	 */
@@ -868,7 +868,7 @@ public class DOMUtil {
 		return attrs;
 	}
 
-	
+
 	public static boolean hasApplicationAttributes(Element element) {
 		NamedNodeMap attributes = element.getAttributes();
 		for(int i=0; i<attributes.getLength(); i++) {
@@ -916,7 +916,7 @@ public class DOMUtil {
 		}
 		return null;
 	}
-	
+
 	public static Element getChildElement(Element element, int index) {
 		return listChildElements(element).get(index);
 	}
@@ -975,11 +975,11 @@ public class DOMUtil {
 		}
 		return resolveQName(element, attrContent);
 	}
-	
+
 	public static QName getQNameValue(Attr attr) {
 		return resolveQName(attr, attr.getTextContent());
 	}
-	
+
 	public static Integer getIntegerValue(Element element) {
 		if (element == null) {
 			return null;
@@ -1029,7 +1029,7 @@ public class DOMUtil {
 				definitionElement, true);
 		return createElement(document, qname);
 	}
-	
+
 	public static Element createSubElement(Element parent, QName subElementQName) {
 		Document doc = parent.getOwnerDocument();
 		Element subElement = createElement(doc, subElementQName);
@@ -1040,7 +1040,7 @@ public class DOMUtil {
 	public static boolean compareElement(Element a, Element b, boolean considerNamespacePrefixes) {
 		return compareElement(a, b, considerNamespacePrefixes, true);
 	}
-	
+
 	public static boolean compareElement(Element a, Element b, boolean considerNamespacePrefixes, boolean considerWhitespaces) {
 		if (a==b) {
 			return true;
@@ -1062,7 +1062,7 @@ public class DOMUtil {
 		}
 		return true;
 	}
-	
+
 	public static boolean compareDocument(Document a, Document b, boolean considerNamespacePrefixes, boolean considerWhitespaces) {
 		if (a==b) {
 			return true;
@@ -1078,11 +1078,11 @@ public class DOMUtil {
 		}
 		return true;
 	}
-	
+
 	public static boolean compareElementList(List<Element> aList, List<Element> bList, boolean considerNamespacePrefixes) {
 		return compareElementList(aList, bList, considerNamespacePrefixes, true);
 	}
-	
+
 	public static boolean compareElementList(List<Element> aList, List<Element> bList, boolean considerNamespacePrefixes, boolean considerWhitespaces) {
 		if (aList.size() != bList.size()) {
 			return false;
@@ -1192,7 +1192,7 @@ public class DOMUtil {
 	public static boolean compareTextNodeValues(String a, String b) {
 		return compareTextNodeValues(a, b, true);
 	}
-	
+
 	public static boolean compareTextNodeValues(String a, String b, boolean considerWhitespaces) {
 		if (StringUtils.equals(a,b)) {
 			return true;
@@ -1294,7 +1294,7 @@ public class DOMUtil {
 		}
 		return null;
 	}
-    
+
     public static QName getQNameWithoutPrefix(Node node) {
         QName qname = getQName(node);
         return new QName(qname.getNamespaceURI(), qname.getLocalPart());

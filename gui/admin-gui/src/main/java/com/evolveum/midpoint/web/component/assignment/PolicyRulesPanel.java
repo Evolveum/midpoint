@@ -52,15 +52,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
  * @author katkav
  */
 public class PolicyRulesPanel extends AssignmentPanel {
-	
+
     private static final long serialVersionUID = 1L;
-    
-    
+
+
     public PolicyRulesPanel(String id, IModel<List<AssignmentDto>> policyRulesModel, PageBase pageBase){
         super(id, policyRulesModel, pageBase);
-        
+
     }
-    
+
     protected List<IColumn<AssignmentDto, String>> initColumns() {
         List<IColumn<AssignmentDto, String>> columns = new ArrayList<>();
         columns.add(new AbstractColumn<AssignmentDto, String>(createStringResource("PolicyRulesPanel.constraintsColumn")){
@@ -117,11 +117,11 @@ public class PolicyRulesPanel extends AssignmentPanel {
         });
         return columns;
     }
-    
+
 	@Override
 	protected void initPaging() {
 		  getPolicyRulesTabStorage().setPaging(ObjectPaging.createPaging(0, getItemsPerPage()));
-		
+
 	}
 
 	@Override
@@ -141,7 +141,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 	@Override
 	protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override

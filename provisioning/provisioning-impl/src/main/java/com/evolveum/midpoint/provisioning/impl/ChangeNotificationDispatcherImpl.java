@@ -48,14 +48,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 @Component
 public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispatcher {
-	
+
 	private boolean filterProtectedObjects = true;
 	private List<ResourceObjectChangeListener> changeListeners = new ArrayList<ResourceObjectChangeListener>();
 	private List<ResourceOperationListener> operationListeners = new ArrayList<ResourceOperationListener>();
 	private List<ResourceEventListener> eventListeners = new ArrayList<ResourceEventListener>();
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ChangeNotificationDispatcherImpl.class);
-	
+
 	public boolean isFilterProtectedObjects() {
 		return filterProtectedObjects;
 	}
@@ -78,7 +78,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 		}
 
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager#registerNotificationListener(com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener)
 	 */
@@ -108,10 +108,10 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	@Override
 	public void unregisterNotificationListener(ResourceEventListener listener) {
 		eventListeners.remove(listener);
-		
+
 	}
 
-	
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager#unregisterNotificationListener(com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener)
 	 */
@@ -119,7 +119,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	public synchronized void unregisterNotificationListener(ResourceOperationListener listener) {
 		changeListeners.remove(listener);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager#unregisterNotificationListener(com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener)
 	 */
@@ -132,13 +132,13 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	@Override
 	public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
 		Validate.notNull(change, "Change description of resource object shadow must not be null.");
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("SYNCHRONIZATION change notification\n{} ", change.debugDump());
 		}
-		
+
 		if (InternalsConfig.consistencyChecks) change.checkConsistence();
-		
+
 		if ((null != changeListeners) && (!changeListeners.isEmpty())) {
 			for (ResourceObjectChangeListener listener : new ArrayList<>(changeListeners)) {		// sometimes there is registration/deregistration from within
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
@@ -155,7 +155,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 			LOGGER.warn("Change notification received but listener list is empty, there is nobody to get the message");
 		}
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
@@ -163,13 +163,13 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	public void notifyFailure(ResourceOperationDescription failureDescription,
 			Task task, OperationResult parentResult) {
 		Validate.notNull(failureDescription, "Operation description of resource object shadow must not be null.");
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Resource operation failure notification\n{} ", failureDescription.debugDump());
 		}
-		
+
 		failureDescription.checkConsistence();
-		
+
 		if ((null != changeListeners) && (!changeListeners.isEmpty())) {
 			for (ResourceOperationListener listener : new ArrayList<>(operationListeners)) {		// sometimes there is registration/deregistration from within
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
@@ -185,7 +185,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 			LOGGER.debug("Operation failure received but listener list is empty, there is nobody to get the message");
 		}
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
@@ -193,13 +193,13 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	public void notifySuccess(ResourceOperationDescription failureDescription,
 			Task task, OperationResult parentResult) {
 		Validate.notNull(failureDescription, "Operation description of resource object shadow must not be null.");
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Resource operation success notification\n{} ", failureDescription.debugDump());
 		}
-		
+
 		failureDescription.checkConsistence();
-		
+
 		if ((null != changeListeners) && (!changeListeners.isEmpty())) {
 			for (ResourceOperationListener listener : new ArrayList<>(operationListeners)) {		// sometimes there is registration/deregistration from within
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
@@ -223,13 +223,13 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	public void notifyInProgress(ResourceOperationDescription failureDescription,
 			Task task, OperationResult parentResult) {
 		Validate.notNull(failureDescription, "Operation description of resource object shadow must not be null.");
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Resource operation in-progress notification\n{} ", failureDescription.debugDump());
 		}
-		
+
 		failureDescription.checkConsistence();
-		
+
 		if ((null != changeListeners) && (!changeListeners.isEmpty())) {
 			for (ResourceOperationListener listener : new ArrayList<>(operationListeners)) {		// sometimes there is registration/deregistration from within
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
@@ -261,18 +261,18 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 			SecurityViolationException, ObjectNotFoundException,
 			GenericConnectorException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 		Validate.notNull(eventDescription, "Event description must not be null.");
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("SYNCHRONIZATION change notification\n{} ", eventDescription.debugDump());
 		}
-		
+
 		if (filterProtectedObjects && eventDescription.isProtected()) {
 			LOGGER.trace("Skipping dispatching of {} because it is protected", eventDescription);
 			return;
 		}
-		
+
 //		if (InternalsConfig.consistencyChecks) eventDescription.checkConsistence();
-		
+
 		if ((null != eventListeners) && (!eventListeners.isEmpty())) {
 			for (ResourceEventListener listener : new ArrayList<>(eventListeners)) {			// sometimes there is registration/deregistration from within
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
@@ -288,8 +288,8 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 		} else {
 			LOGGER.warn("Event notification received but listener list is empty, there is nobody to get the message");
 		}
-		
+
 	}
 
-	
+
 }

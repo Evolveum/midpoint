@@ -21,9 +21,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 public class SynchronizationSituation<F extends FocusType> {
 

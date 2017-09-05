@@ -17,12 +17,12 @@ package com.evolveum.midpoint.test.util;
 
 /**
  * Used mostly in tests to simplify error handling.
- * 
+ *
  * @author semancik
  */
 @FunctionalInterface
 public interface MultithreadRunner {
-	
+
 	public abstract void run(int i) throws Exception;
 
 }

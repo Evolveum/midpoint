@@ -26,65 +26,65 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
                 label = "PageSelfCredentials.auth.credentials.label",
                 description = "PageSelfCredentials.auth.credentials.description")})
 public class PageResetPassword extends PageAbstractSelfCredentials{
-	
+
 	private static final long serialVersionUID = 1L;
 
-	
+
 	public PageResetPassword() {
 		// TODO Auto-generated constructor stub
 	}
-	
+
 	@Override
 	protected boolean isSideMenuVisible(boolean visibleIfLoggedIn) {
 		return false;
 	}
-		
-	
+
+
 	@Override
 	protected boolean isCheckOldPassword() {
 		return false;
 	}
-	
+
 	@Override
 	protected void finishChangePassword(final OperationResult result, AjaxRequestTarget target) {
-		
-		
+
+
 		if (result.getStatus() == OperationResultStatus.SUCCESS) {
 			result.setMessage(getString("PageResetPassword.reset.successful"));
 			setResponsePage(PageLogin.class);
-			
+
 			PrismObject<UserType> user = getUser();
 			if (user == null) {
 				SecurityContextHolder.getContext().setAuthentication(null);
 				return;
 			}
-			
+
 			UserType userType = user.asObjectable();
-			
+
 			if (userType.getCredentials() != null && userType.getCredentials().getNonce() != null) {
-			
+
 				try {
 					ObjectDelta<UserType> deleteNonceDelta = ObjectDelta.createModificationDeleteContainer(UserType.class, userType.getOid(), SchemaConstants.PATH_NONCE, getPrismContext(), userType.getCredentials().getNonce().clone());
 					WebModelServiceUtils.save(deleteNonceDelta, result, this);
 				} catch (SchemaException e) {
-					//nothing to do, just let the nonce here.. it will be invalid 
+					//nothing to do, just let the nonce here.. it will be invalid
 				}
 			}
-			
+
 			SecurityContextHolder.getContext().setAuthentication(null);
 		}
-		
+
 		showResult(result);
 		target.add(getFeedbackPanel());
 //		get(ID_MAIN_FORM).setVisible(false);
-		
-		
+
+
 	}
-	
+
 	@Override
 	protected void createBreadcrumb() {
 		// we don't want breadcrumbs here
 	}
-	
+
 
 }

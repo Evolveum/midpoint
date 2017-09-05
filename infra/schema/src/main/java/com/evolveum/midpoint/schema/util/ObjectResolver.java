@@ -38,20 +38,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * The callback from some of the object utilities to resolve objects.
- * 
+ *
  * The classes implementing this will most likely fetch the objects from the
  * repository or from some kind of object cache.
- * 
+ *
  * @author Radovan Semancik
  */
 public interface ObjectResolver {
-	
+
 	/**
 	 * Resolve the provided reference to object (ObjectType).
-	 * 
+	 *
 	 * Note: The reference is used instead of just OID because the reference
 	 * also contains object type. This speeds up the repository operations.
-	 * 
+	 *
 	 * @param ref object reference to resolve
 	 * @param contextDescription short description of the context of resolution, e.g. "executing expression FOO". Used in error messages.
 	 * @param task
@@ -68,7 +68,7 @@ public interface ObjectResolver {
 	<T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType, Collection<SelectorOptions<GetOperationOptions>> options,
 			String contextDescription, Object task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException;
-	
+
 	<O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Object task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 

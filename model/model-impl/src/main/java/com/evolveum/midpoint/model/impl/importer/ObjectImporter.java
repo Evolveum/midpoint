@@ -96,7 +96,7 @@ public class ObjectImporter {
     private ModelService modelService;
     @Autowired(required = true)
     private Clock clock;
-    
+
     private Migrator migrator = new Migrator();
 
     // this method is responsible for computing the operation result!
@@ -312,7 +312,7 @@ public class ObjectImporter {
         if (options == null) {
         	options = new ImportOptionsType();
         }
-        
+
         if (BooleanUtils.isTrue(options.isKeepOid()) && object.getOid() == null) {
 			// Try to check if there is existing object with the same type and name
         	ObjectQuery query = ObjectQueryUtil.createNameQuery(object);
@@ -322,19 +322,19 @@ public class ObjectImporter {
         		object.setOid(oid);
         	}
         }
-        
+
         try {
-			String oid = addObject(object, BooleanUtils.isTrue(options.isOverwrite()), 
+			String oid = addObject(object, BooleanUtils.isTrue(options.isOverwrite()),
 					BooleanUtils.isFalse(options.isEncryptProtectedValues()), raw, task, result);
-			
+
             if (object.canRepresent(TaskType.class)) {
             	taskManager.onTaskCreate(oid, result);
             }
             result.recordSuccess();
 
-        } catch (ObjectAlreadyExistsException e) {            
-        	if (BooleanUtils.isTrue(options.isOverwrite() && 
-        		BooleanUtils.isNotTrue(options.isKeepOid()) && 
+        } catch (ObjectAlreadyExistsException e) {
+        	if (BooleanUtils.isTrue(options.isOverwrite() &&
+        		BooleanUtils.isNotTrue(options.isKeepOid()) &&
         		object.getOid() == null)) {
      	 	 	// This is overwrite, without keep oid, therefore we do not have conflict on OID
         		// this has to be conflict on name. So try to delete the conflicting object and create new one (with a new OID).
@@ -383,7 +383,7 @@ public class ObjectImporter {
 
     private <T extends ObjectType> String addObject(PrismObject<T> object, boolean overwrite, boolean noCrypt, boolean raw,
     		Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-    	
+
     	ObjectDelta<T> delta = ObjectDelta.createAddDelta(object);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 		ModelExecuteOptions options = new ModelExecuteOptions();
@@ -394,9 +394,9 @@ public class ObjectImporter {
 		if (noCrypt) {
 			options.setNoCrypt(true);
 		}
-		
+
 		modelService.executeChanges(deltas, options, task, parentResult);
-    	
+
 		return deltas.iterator().next().getOid();
     }
 
@@ -463,7 +463,7 @@ public class ObjectImporter {
                 LOGGER.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}", new Object[]{connectorOid, resourceType.getName(), e.getMessage(), e});
                 return;
             }
-            
+
             Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connector);
             PrismSchema connectorSchema;
             if (connectorSchemaElement == null) {
@@ -483,7 +483,7 @@ public class ObjectImporter {
     			result.recordFatalError("Definition of configuration container " + configContainerQName + " not found in the schema of of " + connector);
                 return;
     		}
-            
+
             try {
 				configurationContainer.applyDefinition(configContainerDef);
 			} catch (SchemaException e) {
@@ -499,12 +499,12 @@ public class ObjectImporter {
                 result.recordFatalError("Configuration error in " + resource + " (probably incorrect connector property, see the following error): " + e.getMessage(), e);
                 return;
             }
-            
+
             // Also check integrity of the resource schema
             checkSchema(resourceType.getSchema(), "resource", result);
 
             result.computeStatus("Dynamic schema error");
-            
+
 
         } else if (object.canRepresent(ShadowType.class)) {
             // TODO
@@ -581,6 +581,6 @@ public class ObjectImporter {
 			}
 		}
 	}
-    
+
 }
 

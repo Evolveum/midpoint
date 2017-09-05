@@ -43,9 +43,9 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractLensTest extends AbstractInternalModelIntegrationTest {
-		
+
 	protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "lens");
-	
+
 	protected static final File ASSIGNMENT_DIRECT_FILE = new File(TEST_DIR, "assignment-direct.xml");
 	protected static final File ASSIGNMENT_DIRECT_EXPRESSION_FILE = new File(TEST_DIR, "assignment-direct-expression.xml");
     protected static final File ASSIGNMENT_ROLE_ENGINEER_FILE = new File(TEST_DIR, "assignment-role-engineer.xml");
@@ -57,8 +57,8 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 
 //	protected static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ = TEST_RESOURCE_DIR_NAME +
 //            "/user-jack-modify-add-assignment-account-opendj.xml";
-	
-	protected static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY = new File(TEST_DIR, 
+
+	protected static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY = new File(TEST_DIR,
     		"user-jack-modify-add-assignment-account-dummy.xml");
 
 	protected static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR = new File(TEST_DIR,
@@ -72,27 +72,27 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 
 	protected static final File REQ_USER_JACK_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY = new File(TEST_DIR,
 			"user-jack-modify-delete-assignment-account-dummy.xml");
-	
+
 	protected static final File REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR = new File(TEST_DIR,
             "user-barbossa-modify-add-assignment-account-dummy-attr.xml");
-	
+
 	protected static final File REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY_ATTR = new File(TEST_DIR,
             "user-barbossa-modify-delete-assignment-account-dummy-attr.xml");
-	
+
 	protected static final File ROLE_PIRATE_FILE = new File(TEST_DIR, "role-pirate.xml");
 	protected static final File ROLE_PIRATE_SITUATION_ONLY_FILE = new File(TEST_DIR, "role-pirate-situation-only.xml");
 	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
-	
+
 	protected static final File ROLE_MUTINIER_FILE = new File(TEST_DIR, "role-mutinier.xml");
 	protected static final String ROLE_MUTINIER_OID = "12345678-d34d-b33f-f00d-555555556668";
 
 	protected static final File ROLE_JUDGE_FILE = new File(TEST_DIR, "role-judge.xml");
 	protected static final File ROLE_JUDGE_SITUATION_ONLY_FILE = new File(TEST_DIR, "role-judge-situation-only.xml");
 	protected static final String ROLE_JUDGE_OID = "12345111-1111-2222-1111-121212111111";
-	
+
 	protected static final File ROLE_CONSTABLE_FILE = new File(TEST_DIR, "role-constable.xml");
 	protected static final String ROLE_CONSTABLE_OID = "16ac2572-de66-11e6-bc86-23e62333976a";
-	
+
 	protected static final File ROLE_THIEF_FILE = new File(TEST_DIR, "role-thief.xml");
 	protected static final String ROLE_THIEF_OID = "5ad00bd6-c550-466f-b15e-4d5fb195b369";
 
@@ -138,17 +138,17 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
             ROLE_CORP_ENGINEER_FILE,
             ROLE_CORP_MANAGER_FILE
     };
-	
+
 	protected static final File ROLE_PERSONA_ADMIN_FILE = new File(TEST_DIR, "role-persona-admin.xml");
 	protected static final String ROLE_PERSONA_ADMIN_OID = "16813ae6-2c0a-11e7-91fc-8333c244329e";
 
     protected static final File ORG_BRETHREN_FILE = new File(TEST_DIR, "org-brethren.xml");
 	protected static final String ORG_BRETHREN_OID = "9c6bfc9a-ca01-11e3-a5aa-001e8c717e5b";
 	protected static final String ORG_BRETHREN_INDUCED_ORGANIZATION = "Pirate Brethren";
-	
+
 	@Autowired(required = true)
 	protected Projector projector;
-	
+
 	@Autowired(required = true)
 	protected TaskManager taskManager;
 

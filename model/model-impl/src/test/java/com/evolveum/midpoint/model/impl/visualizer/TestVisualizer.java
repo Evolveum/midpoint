@@ -73,7 +73,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-	
+
 	@Test
 	public void test100UserBasic() throws Exception {
 		final String TEST_NAME = "test100UserBasic";

@@ -90,10 +90,10 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 			// TODO: proper error handling (MID-3536)
 			throw new SystemException(e.getMessage(), e);
 		}
- 
+
 		return ((Long)count).intValue();
  	}
- 
+
 
 
 	private List<AuditEventRecordType> listRecords(String query, boolean orderBy){
@@ -115,7 +115,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
         List<AuditEventRecord> auditRecords;
 		try {
-			auditRecords = getAuditService().listRecords(parameterQuery, parameters, 
+			auditRecords = getAuditService().listRecords(parameterQuery, parameters,
 					new OperationResult("listRecords"));
 		} catch (SecurityViolationException | SchemaException e) {
 			// TODO: proper error handling (MID-3536)
@@ -152,12 +152,12 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 //			query += "INNER JOIN aer.changedItems as item on item.record_id = aer.id WHERE 1=1 and  "
 //					+ "(item.changedItemPath = :changedItem) and ";
 			query += "(item.changedItemPath = :changedItem) and ";
-			
+
 		} else {
             parameters.remove("changedItem");
 //            query += "where 1=1 and ";
 		}
-		
+
 		if (parameters.get("from") != null) {
 			query += "(aer.timestamp >= :from) and ";
 		} else {
@@ -187,7 +187,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 			query += "(aer.initiatorOid = :initiatorName) and ";
 		} else {
             parameters.remove("initiatorName");
-		}		
+		}
 		if (parameters.get("channel") != null) {
 			query += "(aer.channel = :channel) and ";
 		} else {

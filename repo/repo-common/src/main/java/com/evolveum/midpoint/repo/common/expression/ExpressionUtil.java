@@ -75,16 +75,16 @@ import org.jetbrains.annotations.Nullable;
 public class ExpressionUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ExpressionUtil.class);
-	
+
 	private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 
 	public static <V extends PrismValue> PrismValueDeltaSetTriple<V> toOutputTriple(
 			PrismValueDeltaSetTriple<V> resultTriple, ItemDefinition outputDefinition,
 			Function<Object, Object> additionalConvertor,
 			final ItemPath residualPath, final Protector protector, final PrismContext prismContext) {
-		
+
 		PrismValueDeltaSetTriple<V> clonedTriple = resultTriple.clone();
-		
+
 		final Class<?> resultTripleValueClass = resultTriple.getRealValueClass();
 		if (resultTripleValueClass == null) {
 			// triple is empty. type does not matter.
@@ -283,13 +283,13 @@ public class ExpressionUtil {
 					return container.getRealValue();
 				} else {
 					return container.getRealValues();
-					
+
 				}
 			} else {
 				return container.getValues();
 			}
 		}
-		
+
 		return originalValue;
 	}
 
@@ -624,18 +624,18 @@ public class ExpressionUtil {
 		if (queryInterpretationOfNoValue == null) {
 			queryInterpretationOfNoValue = QueryInterpretationOfNoValueType.FILTER_EQUAL_NULL;
 		}
-		
+
 		switch (queryInterpretationOfNoValue) {
-			
+
 			case FILTER_UNDEFINED:
 				return UndefinedFilter.createUndefined();
-			
+
 			case FILTER_NONE:
 				return NoneFilter.createNone();
-			
+
 			case FILTER_ALL:
 				return AllFilter.createAll();
-			
+
 			case FILTER_EQUAL_NULL:
 				if (filter instanceof ValueFilter) {
 					ValueFilter evaluatedFilter = (ValueFilter) filter.clone();
@@ -648,15 +648,15 @@ public class ExpressionUtil {
 				} else {
 					throw new IllegalArgumentException("Unknown filter to evaluate: " + filter);
 				}
-			
+
 			case ERROR:
 				throw new ExpressionEvaluationException("Expression "+valueExpression+" evaluated to no value");
-				
+
 			default:
 				throw new IllegalArgumentException("Unknown value "+queryInterpretationOfNoValue+" in queryInterpretationOfNoValue in "+valueExpression);
-				
+
 		}
-		
+
 	}
 
 	private static <V extends PrismValue> V evaluateExpression(ExpressionVariables variables,
@@ -751,7 +751,7 @@ public class ExpressionUtil {
 		return (PrismPropertyValue<Boolean>) evaluateExpression(variables, outputDefinition, expressionType,
 				expressionFactory, shortDesc, task, parentResult);
 	}
-	
+
 	public static boolean getBooleanConditionOutput(PrismPropertyValue<Boolean> conditionOutput) {
 		if (conditionOutput == null) {
 			return false;
@@ -943,10 +943,10 @@ public class ExpressionUtil {
 			return (V) new PrismPropertyValue<>(value);
 		}
 	}
-	
+
 	public static Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> createCondition(ExpressionType conditionExpressionType, ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		PrismPropertyDefinition<Boolean> conditionOutputDef = new PrismPropertyDefinitionImpl<Boolean>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
-		return expressionFactory.makeExpression(conditionExpressionType, conditionOutputDef, shortDesc, task, result);	
+		return expressionFactory.makeExpression(conditionExpressionType, conditionOutputDef, shortDesc, task, result);
 	}
 
 	public static Function<Object, Object> createRefConvertor(QName defaultType) {

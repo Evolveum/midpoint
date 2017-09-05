@@ -118,7 +118,7 @@ public class PageCreatedReports extends PageAdminReports {
 
     private static Map<ExportType, String> reportExportTypeMap = new HashMap<>();
     private Map<String, String> reportTypeMal = new HashMap<>();
-    
+
     static {
         reportExportTypeMap.put(ExportType.CSV, "text/csv; charset=UTF-8");
         reportExportTypeMap.put(ExportType.DOCX, "application/vnd.openxmlformats-officedocument.wordprocessingml.document; charset=UTF-8");
@@ -138,13 +138,13 @@ public class PageCreatedReports extends PageAdminReports {
 
     public PageCreatedReports(PageParameters pageParameters) {
         super(pageParameters);
- 
+
 
         initReportTypeMap();
         initLayout();
-        
+
     }
-    
+
     private void initReportTypeMap() {
     	OperationResult result = new OperationResult(OPERATION_LOAD_REPORTS);
         List<PrismObject<ReportType>> reports = WebModelServiceUtils.searchObjects(ReportType.class, null, result, this);
@@ -166,9 +166,9 @@ public class PageCreatedReports extends PageAdminReports {
     private void initLayout() {
         Form<?> mainForm = new Form<>(ID_MAIN_FORM);
         add(mainForm);
-        
-        
-        
+
+
+
         DropDownChoicePanel<String> reportTypeSelect = new DropDownChoicePanel(ID_REPORT_TYPE_SELECT,
               Model.of(reportTypeMal.get(getReportType())),
               Model.of(reportTypeMal.values()),
@@ -187,9 +187,9 @@ public class PageCreatedReports extends PageAdminReports {
 
 
         final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream() {
-        	
+
         	private static final long serialVersionUID = 1L;
-        	
+
             @Override
             protected InputStream initStream() {
                 return createReport(this);
@@ -203,15 +203,15 @@ public class PageCreatedReports extends PageAdminReports {
 
         mainForm.add(ajaxDownloadBehavior);
 
-        
+
         MainObjectListPanel<ReportOutputType> table = new MainObjectListPanel<ReportOutputType>(ID_CREATED_REPORTS_TABLE, ReportOutputType.class, UserProfileStorage.TableId.PAGE_CREATED_REPORTS_PANEL, null, this) {
-			
+
         	private static final long serialVersionUID = 1L;
 			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
 				return PageCreatedReports.this.initInlineMenu();
 			}
-			
+
 			@Override
 			protected List<IColumn<SelectableBean<ReportOutputType>, String>> createColumns() {
 				return PageCreatedReports.this.initColumns(ajaxDownloadBehavior);
@@ -225,28 +225,28 @@ public class PageCreatedReports extends PageAdminReports {
             @Override
 			protected void objectDetailsPerformed(AjaxRequestTarget target, ReportOutputType object) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			protected void newObjectPerformed(AjaxRequestTarget target) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			protected boolean isClickable(IModel<SelectableBean<ReportOutputType>> rowModel) {
 				return false;
 			}
-			
+
 			@Override
 			protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
 				return appendTypeFilter(query);
 			}
-			
+
 			@Override
 			protected List<ObjectOrdering> createCustomOrdering(SortParam<String> sortParam) {
-				
+
 				if (sortParam != null && sortParam.getProperty() != null) {
 					OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
 					if (sortParam.getProperty().equals("createTimestamp")) {
@@ -257,14 +257,14 @@ public class PageCreatedReports extends PageAdminReports {
 						return Collections.singletonList(
 								ObjectOrdering.createOrdering(
 										new ItemPath(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty())), order));
-					
-					
+
+
 				} else {
 					return Collections.emptyList();
 				}
 			}
-			
-		}; 
+
+		};
 
 
         table.setOutputMarkupId(true);
@@ -284,11 +284,11 @@ public class PageCreatedReports extends PageAdminReports {
 
          IColumn<SelectableBean<ReportOutputType>, String> column = new PropertyColumn<>(createStringResource("pageCreatedReports.table.description"), "value.description");
         columns.add(column);
-        
+
         column = new AbstractColumn<SelectableBean<ReportOutputType>, String>(
                 createStringResource("pageCreatedReports.table.time"),
                 "createTimestamp") {
-        	
+
         	private static final long serialVersionUID = 1L;
 
             @Override
@@ -359,7 +359,7 @@ public class PageCreatedReports extends PageAdminReports {
 
         headerMenuItems.add(new InlineMenuItem(createStringResource("pageCreatedReports.inlineMenu.deleteSelected"), true,
                 new HeaderMenuAction(this) {
-        	
+
         	private static final long serialVersionUID = 1L;
 
                     @Override
@@ -374,7 +374,7 @@ public class PageCreatedReports extends PageAdminReports {
 
     private IModel<String> createDeleteConfirmString() {
         return new AbstractReadOnlyModel<String>() {
-        	
+
         	private static final long serialVersionUID = 1L;
 
             @Override
@@ -413,7 +413,7 @@ public class PageCreatedReports extends PageAdminReports {
 
     private ConfirmationPanel getDeleteDialogPanel(){
         ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createDeleteConfirmString()){
-        	
+
         	private static final long serialVersionUID = 1L;
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
@@ -461,7 +461,7 @@ public class PageCreatedReports extends PageAdminReports {
         for (ReportOutputType output : objects) {
         	OperationResult subresult = result.createSubresult(OPERATION_DELETE);
         	subresult.addParam("Report", WebComponentUtil.getName(output));
-        	
+
         	try {
 				getReportManager().deleteReportOutput(output, subresult);
 				subresult.recordSuccess();
@@ -473,7 +473,7 @@ public class PageCreatedReports extends PageAdminReports {
             //WebModelServiceUtils.deleteObject(ReportOutputType.class, output.getOid(), result, this);
         }
         result.computeStatusIfUnknown();
-        
+
         getReportOutputTable().clearCache();
         getReportOutputTable().refreshTable(ReportOutputType.class, target);
 
@@ -491,7 +491,7 @@ public class PageCreatedReports extends PageAdminReports {
     	DropDownChoicePanel<String> typeSelect = (DropDownChoicePanel<String>) get(createComponentPath(ID_MAIN_FORM, ID_REPORT_TYPE_SELECT));
     	String typeRef = (String) typeSelect.getBaseFormComponent().getModelObject();
     	S_AtomicFilterEntry q = QueryBuilder.queryFor(ReportOutputType.class, getPrismContext());
-    	
+
     	S_AtomicFilterExit refF;
     	if (StringUtils.isNotBlank(typeRef)) {
     		Entry<String, String> typeRefFilter = reportTypeMal.entrySet().stream().filter(e -> e.getValue().equals(typeRef)).findFirst().get();
@@ -504,7 +504,7 @@ public class PageCreatedReports extends PageAdminReports {
     		}
     		}
     	}
-    	
+
     	return query;
     }
 
@@ -560,7 +560,7 @@ public class PageCreatedReports extends PageAdminReports {
     private String getReportFileName() {
     	return getReportFileName(currentReport);
     }
-    
+
     public static String getReportFileName(ReportOutputType currentReport){
         try {
             OperationResult result = new OperationResult(OPERATION_GET_REPORT_FILENAME);

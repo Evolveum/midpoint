@@ -27,13 +27,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *
  */
 public class MockLensDebugListener implements LensDebugListener {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(MockLensDebugListener.class);
 
 	private static final String SEPARATOR = "############################################################################";
 
 	private LensContext lastSyncContext;
-	
+
 	public <F extends ObjectType>  LensContext<F> getLastSyncContext() {
 		return lastSyncContext;
 	}
@@ -41,7 +41,7 @@ public class MockLensDebugListener implements LensDebugListener {
 	public <F extends ObjectType> void setLastSyncContext(LensContext<F> lastSyncContext) {
 		this.lastSyncContext = lastSyncContext;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.lens.LensDebugListener#beforeSync(com.evolveum.midpoint.model.lens.LensContext)
 	 */
@@ -62,20 +62,20 @@ public class MockLensDebugListener implements LensDebugListener {
 	@Override
 	public <F extends ObjectType> void beforeProjection(
 			LensContext<F> context) {
-		
+
 	}
 
 	@Override
 	public <F extends ObjectType> void afterProjection(
 			LensContext<F> context) {
-		
+
 	}
 
 	@Override
 	public <F extends ObjectType> void afterMappingEvaluation(
 			LensContext<F> context,
 			Mapping<?,?> evaluatedMapping) {
-		
+
 	}
 
 

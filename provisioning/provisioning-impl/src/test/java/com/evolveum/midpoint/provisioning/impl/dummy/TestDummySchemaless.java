@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
@@ -75,9 +75,9 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnecti
  * The test of Provisioning service on the API level. The test is using dummy
  * resource WITHOUT A SCHEMA. It checks if the system is still able to basically operate.
  * Even though the resource will not be usable until the schema is specified manually.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
@@ -88,11 +88,11 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	private static final File RESOURCE_DUMMY_NO_SCHEMA_FILE = new File(TEST_DIR, "resource-dummy-schemaless-no-schema.xml");
 	private static final String RESOURCE_DUMMY_NO_SCHEMA_OID = "ef2bc95b-76e0-59e2-86d6-9999dddd0000";
 	private static final String RESOURCE_DUMMY_NO_SCHEMA_INSTANCE_ID = "schemaless";
-	
+
 	private static final File RESOURCE_DUMMY_STATIC_SCHEMA_FILE = new File(TEST_DIR, "resource-dummy-schemaless-static-schema.xml");
 	private static final String RESOURCE_DUMMY_STATIC_SCHEMA_OID = "ef2bc95b-76e0-59e2-86d6-9999dddd0505";
 	private static final String RESOURCE_DUMMY_STATIC_SCHEMA_INSTANCE_ID = "staticSchema";
-	
+
 	private static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
 	private static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
 	private static final String ACCOUNT_WILL_ICF_UID = "will";
@@ -102,7 +102,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	private PrismObject<ResourceType> resourceSchemaless;
 	private ResourceType resourceTypeSchemaless;
 	private static DummyResource dummyResourceSchemaless;
-	
+
 	private PrismObject<ResourceType> resourceStaticSchema;
 	private ResourceType resourceTypeStaticSchema;
 	private static DummyResource dummyResourceStaticSchema;
@@ -117,14 +117,14 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem()
 	 */
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		provisioningService.postInit(initResult);
-		
+
 		InternalsConfig.encryptionChecks = false;
 
 		resourceSchemaless = addResourceFromFile(RESOURCE_DUMMY_NO_SCHEMA_FILE, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
@@ -133,7 +133,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		dummyResourceSchemalessCtl = DummyResourceContoller.create(RESOURCE_DUMMY_NO_SCHEMA_INSTANCE_ID);
 		dummyResourceSchemalessCtl.setResource(resourceSchemaless);
 		dummyResourceSchemaless = dummyResourceSchemalessCtl.getDummyResource();
-				
+
 		resourceStaticSchema = addResourceFromFile(RESOURCE_DUMMY_STATIC_SCHEMA_FILE, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
 		resourceTypeStaticSchema = resourceStaticSchema.asObjectable();
 
@@ -159,7 +159,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, result)
 				.asObjectable();
 		String connectorOid = resource.getConnectorRef().getOid();
-		
+
 		ConnectorType connector = repositoryService.getObject(ConnectorType.class, connectorOid, null, result).asObjectable();
 		assertNotNull(connector);
 		display("Dummy Connector", connector);
@@ -167,11 +167,11 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		// Check connector schema
 		IntegrationTestTools.assertConnectorSchemaSanity(connector, prismContext);
 	}
-	
+
 
 	/**
 	 * This should be the very first test that works with the resource.
-	 * 
+	 *
 	 * The original repository object does not have resource schema. The schema
 	 * should be generated from the resource on the first use. This is the test
 	 * that executes testResource and checks whether the schema was generated.
@@ -233,7 +233,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceTypeSchemaless, prismContext);
 
 		display("Parsed resource schema", returnedSchema);
-		
+
 		assertNull("Unexpected schema after parsing", returnedSchema);
 	}
 
@@ -248,12 +248,12 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		assertNotNull("Resource is null", resource);
 		ResourceType resourceType = resource.asObjectable();
 		assertNotNull("No connector ref", resourceType.getConnectorRef());
-		assertNotNull("No connector ref OID", resourceType.getConnectorRef().getOid());		
+		assertNotNull("No connector ref OID", resourceType.getConnectorRef().getOid());
 	}
 
 	/**
 	 * This should be the very first test that works with the resource.
-	 * 
+	 *
 	 * The original repository object does not have resource schema. The schema
 	 * should be generated from the resource on the first use. This is the test
 	 * that executes testResource and checks whether the schema was generated.
@@ -267,7 +267,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		OperationResult result = task.getResult();
 
 		// Check that there a schema before test (pre-condition)
-		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, 
+		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null,
 				result)
 				.asObjectable();
 		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
@@ -292,7 +292,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 				RESOURCE_DUMMY_NO_SCHEMA_OID, null, result);
 		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
 		display("Resource after test", resourceTypeRepoAfter);
-		
+
 		// TODO
 	}
 
@@ -315,7 +315,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 		display("Parsed resource schema", returnedSchema);
 		assertNotNull("Null resource schema", returnedSchema);
-		
+
 		dummyResourceSchemalessCtl.assertDummyResourceSchemaSanity(returnedSchema, resourceTypeStaticSchema, true);
 	}
 
@@ -331,15 +331,15 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		ResourceType resourceType = resource.asObjectable();
 		assertNotNull("No connector ref", resourceType.getConnectorRef());
 		assertNotNull("No connector ref OID", resourceType.getConnectorRef().getOid());
-		
+
 		ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 
 		display("Parsed resource schema", returnedSchema);
 		assertNotNull("Null resource schema", returnedSchema);
-		
+
 		dummyResourceSchemalessCtl.assertDummyResourceSchemaSanity(returnedSchema, resource.asObjectable(), true);
 	}
-	
+
 	@Test
 	public void test107Capabilities() throws Exception {
 		final String TEST_NAME = "test107Capabilities";
@@ -371,7 +371,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		assertNotNull("native script capability not present", capScript);
 		assertNotNull("No host in native script capability", capScript.getHost());
 		assertFalse("No host in native script capability", capScript.getHost().isEmpty());
-		
+
 		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				CredentialsCapabilityType.class);
 		assertNull("Unexpected native credentials capability", capCred);

@@ -20,7 +20,7 @@ package com.evolveum.midpoint.prism;
  *
  */
 public interface PrismContainerable<T extends Containerable> extends Itemable {
-	
+
 	@Override
 	public PrismContainerDefinition<T> getDefinition();
 

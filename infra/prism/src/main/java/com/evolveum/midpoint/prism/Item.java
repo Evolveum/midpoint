@@ -58,12 +58,12 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 
 	protected boolean immutable;
 	protected boolean incomplete;
-    
+
     protected transient PrismContext prismContext;          // beware, this one can easily be null
 
     /**
      * This is used for definition-less construction, e.g. in JAXB beans.
-     * 
+     *
      * The constructors should be used only occasionally (if used at all).
      * Use the factory methods in the ResourceObjectDefintion instead.
      */
@@ -89,7 +89,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
         this.definition = definition;
         this.prismContext = prismContext;
     }
-        
+
     /**
      * Returns applicable property definition.
      * <p>
@@ -101,7 +101,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     public D getDefinition() {
         return definition;
     }
-    
+
 	public boolean hasCompleteDefinition() {
 		return getDefinition() != null;
 	}
@@ -177,7 +177,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     public String getHelp() {
         return getDefinition() == null ? null : getDefinition().getHelp();
     }
-    
+
     /**
      * Flag that indicates incomplete item. If set to true then the
      * values in this item are not complete. If this flag is true
@@ -188,7 +188,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
      * account has a password, but the password value is not revealed.
      * This may indicate that a user has a photo, but the photo was not
      * requested and therefore is not returned. This may be used to indicate
-     * that only part of the attribute values were returned from the search. 
+     * that only part of the attribute values were returned from the search.
      * And so on.
      */
     public boolean isIncomplete() {
@@ -214,7 +214,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     public PrismContext getPrismContextLocal() {
 		return prismContext;
 	}
-    
+
     public void setPrismContext(PrismContext prismContext) {
 		this.prismContext = prismContext;
 	}
@@ -222,7 +222,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 	public PrismValue getParent() {
     	return parent;
     }
-    
+
     public void setParent(PrismValue parentValue) {
     	if (this.parent != null && parentValue != null && this.parent != parentValue) {
     		throw new IllegalStateException("Attempt to reset parent of item "+this+" from "+this.parent+" to "+parentValue);
@@ -231,14 +231,14 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 		// However, if existing parent itself is immutable, adding/removing its child item will cause the exception.
     	this.parent = parentValue;
     }
-    
+
     public ItemPath getPath() {
     	 if (parent == null) {
     		 return new ItemPath(getElementName());
     	 }
     	 return parent.getPath().subPath(getElementName());
     }
-        
+
     public Map<String, Object> getUserData() {
 		if (userData == null) {
 			userData = new HashMap<>();
@@ -249,12 +249,12 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 			return userData;
 		}
 	}
-    
+
     public Object getUserData(String key) {
 		// TODO make returned data immutable (?)
 		return getUserData().get(key);
 	}
-    
+
     public void setUserData(String key, Object value) {
 		checkMutability();
     	getUserData().put(key, value);
@@ -264,30 +264,30 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 	public List<V> getValues() {
 		return values;
 	}
-    
+
     public V getValue(int index) {
     	if (index < 0) {
     		index = values.size() + index;
     	}
 		return values.get(index);
 	}
-    
+
     public abstract <X> X getRealValue();
-    
+
     public abstract <X> Collection<X> getRealValues();
-    
+
     public boolean hasValue(PrismValue value, boolean ignoreMetadata) {
     	return (findValue(value, ignoreMetadata) != null);
     }
-    
+
     public boolean hasValue(PrismValue value) {
         return hasValue(value, false);
     }
-    
+
     public boolean hasRealValue(PrismValue value) {
     	return hasValue(value, true);
     }
-    
+
     public boolean isSingleValue() {
     	// TODO what about dynamic definitions? See MID-3922
 		if (getDefinition() != null) {
@@ -297,7 +297,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	}
 		return values.size() <= 1;
 	}
-    
+
     /**
      * Returns value that is equal or equivalent to the provided value.
      * The returned value is an instance stored in this item, while the
@@ -311,7 +311,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
         }
         return null;
     }
-    
+
     /**
      * Returns value that is previous to the specified value.
      * Note that the order is semantically insignificant and this is used only
@@ -355,15 +355,15 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	}
 		return clonedValues;
 	}
-    
+
     public boolean contains(V value) {
     	return contains(value, false);
     }
-    
+
     public boolean containsEquivalentValue(V value) {
     	return contains(value, true);
     }
-    
+
     public boolean contains(V value, boolean ignoreMetadata, Comparator<V> comparator) {
     	if (comparator == null){
     		return contains(value, ignoreMetadata);
@@ -375,10 +375,10 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
         	}
 
     	}
-    	
+
     	return false;
     }
-    
+
     public boolean contains(V value, boolean ignoreMetadata) {
     	for (V myValue: getValues()) {
     		if (myValue.equals(value, ignoreMetadata)) {
@@ -387,7 +387,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	}
     	return false;
     }
-        
+
     public boolean containsRealValue(V value) {
     	for (V myValue: getValues()) {
     		if (myValue.equalsRealValue(value)) {
@@ -396,15 +396,15 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	}
     	return false;
     }
-    
+
     public boolean valuesExactMatch(Collection<V> matchValues, Comparator<V> comparator) {
     	return MiscUtil.unorderedCollectionCompare(values, matchValues, comparator );
     }
-    
+
     public int size() {
     	return values.size();
     }
-    
+
     public boolean addAll(Collection<V> newValues) throws SchemaException {
 		checkMutability();			// TODO consider weaker condition, like testing if there's a real change
     	boolean changed = false;
@@ -415,11 +415,11 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	}
     	return changed;
     }
-    
+
     public boolean add(@NotNull V newValue) throws SchemaException {
     	return add(newValue, true);
     }
-    
+
     public boolean add(@NotNull V newValue, boolean checkUniqueness) throws SchemaException {
 		checkMutability();
 		if (newValue.getPrismContext() == null) {
@@ -434,7 +434,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	}
     	return values.add(newValue);
     }
-    
+
     public boolean removeAll(Collection<V> newValues) {
 		checkMutability();					// TODO consider if there is real change
     	boolean changed = false;
@@ -462,7 +462,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	}
     	return changed;
     }
-    
+
     public V remove(int index) {
 		checkMutability();					// TODO consider if there is real change
     	return values.remove(index);
@@ -480,19 +480,19 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
         newValue.setParent(this);
     	values.add(newValue);
     }
-    
+
     public void clear() {
 		checkMutability();					// TODO consider if there is real change
 		values.clear();
     }
-    
+
     public void normalize() {
 		checkMutability();					// TODO consider if there is real change
 		for (V value : values) {
 			value.normalize();
 		}
     }
-    
+
     /**
      * Merge all the values of other item to this item.
      */
@@ -505,14 +505,14 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     }
 
     public abstract Object find(ItemPath path);
-    
+
     public abstract <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
-    
+
     // We want this method to be consistent with property diff
     public ItemDelta<V,D> diff(Item<V,D> other) {
     	return diff(other, true, false);
     }
-        
+
     // We want this method to be consistent with property diff
     public ItemDelta<V,D> diff(Item<V,D> other, boolean ignoreMetadata, boolean isLiteral) {
     	List<? extends ItemDelta> itemDeltas = new ArrayList<>();
@@ -525,8 +525,8 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 		}
 		return itemDeltas.get(0);
     }
-        
-    protected void diffInternal(Item<V,D> other, Collection<? extends ItemDelta> deltas, 
+
+    protected void diffInternal(Item<V,D> other, Collection<? extends ItemDelta> deltas,
     		boolean ignoreMetadata, boolean isLiteral) {
     	ItemDelta delta = createDelta();
     	if (other == null) {
@@ -547,7 +547,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     				if (thisValue.representsSameValue(otherValue, true) || delta == null) {
     					found = true;
     					// Matching IDs, look inside to figure out internal deltas
-    					thisValue.diffMatchingRepresentation(otherValue, deltas, 
+    					thisValue.diffMatchingRepresentation(otherValue, deltas,
     							ignoreMetadata, isLiteral);
     					// No need to process this value again
     					iterator.remove();
@@ -580,7 +580,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     		((Collection)deltas).add(delta);
     	}
     }
-    
+
 	protected ItemDelta<V,D> fixupDelta(ItemDelta<V,D> delta, Item<V,D> other,
 			boolean ignoreMetadata) {
 		return delta;
@@ -591,7 +591,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
      * represents (e.g. PropertyDelta, ContainerDelta, ...)
      */
 	public abstract ItemDelta<V,D> createDelta();
-	
+
 	public abstract ItemDelta<V,D> createDelta(ItemPath path);
 
 	@Override
@@ -601,7 +601,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 			value.accept(visitor);
 		}
 	}
-	
+
 	@Override
 	public void accept(Visitor visitor, ItemPath path, boolean recursive) {
 		// This implementation is supposed to only work for non-hierarchical items, such as properties and references.
@@ -612,7 +612,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 			visitor.visit(this);
 		}
 	}
-	
+
 	public void filterValues(Function<V, Boolean> function) {
 		Iterator<V> iterator = values.iterator();
 		while (iterator.hasNext()) {
@@ -626,7 +626,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 	public void applyDefinition(D definition) throws SchemaException {
 		applyDefinition(definition, true);
 	}
-	
+
 	public void applyDefinition(D definition, boolean force) throws SchemaException {
 		checkMutability();					// TODO consider if there is real change
 		if (definition != null) {
@@ -640,7 +640,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 			pval.applyDefinition(definition, force);
 		}
 	}
-    
+
     public void revive(PrismContext prismContext) throws SchemaException {
         // it is necessary to do e.g. PolyString recomputation even if PrismContext is set
     	if (this.prismContext == null) {
@@ -667,11 +667,11 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
         clone.incomplete = this.incomplete;
 		// Also do not copy 'immutable' flag so the clone is free to be modified
     }
-    
+
     protected void propagateDeepCloneDefinition(boolean ultraDeep, D clonedDefinition) {
     	// nothing to do by default
     }
-    
+
 	public static <T extends Item> Collection<T> cloneCollection(Collection<T> items) {
     	Collection<T> clones = new ArrayList<T>(items.size());
     	for (T item: items) {
@@ -679,7 +679,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	}
     	return clones;
     }
-    
+
     /**
      * Sets all parents to null. This is good if the items are to be "transplanted" into a
      * different Containerable.
@@ -690,7 +690,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	}
     	return items;
 	}
-    
+
     public static <T extends Item> T createNewDefinitionlessItem(QName name, Class<T> type, PrismContext prismContext) {
     	T item = null;
 		try {
@@ -704,7 +704,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 		}
     	return item;
     }
-    
+
     public void checkConsistence(boolean requireDefinitions, ConsistencyCheckScope scope) {
     	checkConsistenceInternal(this, requireDefinitions, false, scope);
     }
@@ -716,7 +716,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     public void checkConsistence(boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope) {
     	checkConsistenceInternal(this, requireDefinitions, prohibitRaw, scope);
     }
-    
+
     public void checkConsistence() {
     	checkConsistenceInternal(this, false, false, ConsistencyCheckScope.THOROUGH);
     }
@@ -731,7 +731,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	if (elementName == null) {
     		throw new IllegalStateException("Item "+this+" has no name ("+path+" in "+rootItem+")");
     	}
-    	
+
     	if (definition != null) {
     		checkDefinition(definition);
     	} else if (requireDefinitions && !isRaw()) {
@@ -754,9 +754,9 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 			val.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw, scope);
 		}
 	}
-    
+
 	protected abstract void checkDefinition(D def);
-	
+
     public void assertDefinitions() throws SchemaException {
     	assertDefinitions("");
     }
@@ -764,7 +764,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 	public void assertDefinitions(String sourceDescription) throws SchemaException {
 		assertDefinitions(false, sourceDescription);
 	}
-	
+
 	public void assertDefinitions(boolean tolarateRawValues, String sourceDescription) throws SchemaException {
 		if (tolarateRawValues && isRaw()) {
 			return;
@@ -773,7 +773,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 			throw new SchemaException("No definition in "+this+" in "+sourceDescription);
 		}
 	}
-	
+
 	/**
 	 * Returns true is all the values are raw.
 	 */
@@ -785,7 +785,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Returns true is at least one of the values is raw.
 	 */
@@ -843,7 +843,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 	}
 
 	private boolean equalsRealValues(List<V> thisValue, List<?> otherValues) {
-		return MiscUtil.unorderedCollectionEquals(thisValue, otherValues, 
+		return MiscUtil.unorderedCollectionEquals(thisValue, otherValues,
 				(o1, o2) -> {
 					if (o1 instanceof PrismValue && o2 instanceof PrismValue) {
 						PrismValue v1 = (PrismValue)o1;
@@ -854,9 +854,9 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 					}
 				});
 	}
-	
+
 	private boolean match(List<V> thisValue, List<?> otherValues) {
-		return MiscUtil.unorderedCollectionEquals(thisValue, otherValues, 
+		return MiscUtil.unorderedCollectionEquals(thisValue, otherValues,
 				(o1, o2) -> {
 					if (o1 instanceof PrismValue && o2 instanceof PrismValue) {
 						PrismValue v1 = (PrismValue)o1;
@@ -898,7 +898,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 			return false;
 		return true;
 	}
-	
+
 	public boolean match(Object obj) {
 		if (this == obj)
 			return true;
@@ -928,7 +928,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 			return false;
 		return true;
 	}
-	
+
 	/**
 	 * Returns true if this item is metadata item that should be ignored
 	 * for metadata-insensitive comparisons and hashCode functions.
@@ -936,7 +936,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 	public boolean isMetadata() {
 		D def = getDefinition();
 		if (def != null) {
-			return def.isOperational(); 
+			return def.isOperational();
 		} else {
 			return false;
 		}
@@ -969,7 +969,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     		sb.append(" (incomplete)");
     	}
     }
-    
+
 	public boolean isImmutable() {
 		return immutable;
 	}

@@ -49,7 +49,7 @@ public class ResetPolicyDto implements Serializable {
 		if (securityPolicyType.getCredentialsReset() == null) {
 			return;
 		}
-		
+
 		MailResetPolicyType mailResetPolicy = securityPolicyType.getCredentialsReset().getMailReset();
 		if (mailResetPolicy != null) {
 			this.resetMethod = ResetMethod.MAIL;
@@ -138,7 +138,7 @@ public class ResetPolicyDto implements Serializable {
 	public void setNoncePolicy(NonceCredentialsPolicyType noncePolicy) {
 		this.noncePolicy = noncePolicy;
 	}
-	
+
 	public ObjectReferenceType getFormRef() {
 		return formRef;
 	}

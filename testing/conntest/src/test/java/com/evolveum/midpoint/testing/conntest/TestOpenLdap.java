@@ -112,7 +112,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 	protected int getSearchSizeLimit() {
 		return 500;
 	}
-	
+
 	@Override
 	protected String getPeopleLdapSuffix() {
 		return "ou=people,"+getLdapSuffix();
@@ -123,7 +123,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 		return "ou=groups,"+getLdapSuffix();
 	}
 
-	
+
 	@Override
 	protected String getLdapGroupObjectClass() {
 		return "groupOfNames";
@@ -138,12 +138,12 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 	protected String getSyncTaskOid() {
 		return "cd1e0ff2-0099-11e5-9e22-001e8c717e5b";
 	}
-	
+
 	@Override
 	protected boolean syncCanDetectDelete() {
 		return false;
 	}
-	
+
 	@Override
 	protected boolean needsGroupFakeMemeberEntry() {
 		return true;
@@ -152,12 +152,12 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 	@Override
 	protected void assertActivationCapability(ActivationCapabilityType activationCapabilityType) {
 		assertNotNull("No activation capability", activationCapabilityType);
-		
+
 		ActivationLockoutStatusCapabilityType lockoutCapability = CapabilityUtil.getEffectiveActivationLockoutStatus(activationCapabilityType);
 		assertNotNull("No lockout capability", lockoutCapability);
 		display("Lockout capability", lockoutCapability);
 	}
-	
+
 	@Override
 	protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
 			throws ObjectNotFoundException, SchemaException {
@@ -165,13 +165,13 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 		Task task = taskManager.getTask(syncTaskOid, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
-		
+
 		PrismProperty<String> syncTokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
 		assertNotNull("No sync token in "+task, syncTokenProperty);
 		String syncToken = syncTokenProperty.getRealValue();
 		assertNotNull("No sync token in "+task, syncToken);
 		IntegrationTestTools.display("Sync token", syncToken);
-		
+
 		GeneralizedTime syncTokenGt;
 		try {
 			syncTokenGt = new GeneralizedTime(syncToken);
@@ -179,9 +179,9 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 			throw new RuntimeException(e.getMessage(),e);
 		}
 		TestUtil.assertBetween("Wrong time in sync token: "+syncToken, roundTsDown(tsStart), roundTsUp(tsEnd), syncTokenGt.getCalendar().getTimeInMillis());
-		
+
 	}
-	
+
 	@Test
     public void test700CheckBarbossaLockoutStatus() throws Exception {
 		final String TEST_NAME = "test700CheckBarbossaLockoutStatus";
@@ -190,7 +190,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         PrismObject<ShadowType> shadow = getShadowModel(accountBarbossaOid);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         display("Shadow (model)", shadow);
@@ -204,12 +204,12 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_PASSWORD_2);
 	}
-	
+
 	@Test
     public void test702LockOutBarbossa() throws Exception {
 		final String TEST_NAME = "test702LockOutBarbossa";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        
+
         Entry entry = getLdapAccountByUid(USER_BARBOSSA_USERNAME);
         display("LDAP Entry before", entry);
 
@@ -225,13 +225,13 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         	}
         	assertNotReached();
         }
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        
+
         entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         display("LDAP Entry after", entry);
-        
+
         PrismObject<ShadowType> shadow = getShadowModel(accountBarbossaOid);
         display("Shadow (model)", shadow);
         ActivationType activation = shadow.asObjectable().getActivation();
@@ -239,7 +239,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         LockoutStatusType lockoutStatus = shadow.asObjectable().getActivation().getLockoutStatus();
         assertEquals("Wrong lockout status", LockoutStatusType.LOCKED, lockoutStatus);
 	}
-	
+
 
 	@Test
     public void test705UnlockBarbossaAccount() throws Exception {
@@ -249,22 +249,22 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
-        ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountBarbossaOid, null, 
+
+        ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountBarbossaOid, null,
         		SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, LockoutStatusType.NORMAL);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         executeChanges(accountDelta, null, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<ShadowType> shadow = getShadowModel(accountBarbossaOid);
         display("Shadow (model)", shadow);
-        
+
         ActivationType activation = shadow.asObjectable().getActivation();
         if (activation != null) {
 	        LockoutStatusType lockoutStatus = shadow.asObjectable().getActivation().getLockoutStatus();
@@ -272,11 +272,11 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 	        	AssertJUnit.fail("Barbossa is locked!");
 	        }
         }
-        
+
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         display("LDAP Entry", entry);
         assertNoAttribute(entry, "pwdAccountLockedTime");
-        
+
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_PASSWORD_2);
 	}
 

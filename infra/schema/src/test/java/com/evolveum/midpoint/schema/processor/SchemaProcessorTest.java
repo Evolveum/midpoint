@@ -53,47 +53,47 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public class SchemaProcessorTest {
 
 	private static final String SCHEMA_NS = "http://foo.com/xml/ns/schema";
-	
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-	
+
 	@Test
 	public void testAccessList() throws Exception {
 		String filename = "src/test/resources/processor/resource-schema-complex.xsd";
 		Document schemaDom = DOMUtil.parseFile(filename);
 		ResourceSchema schema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(schemaDom), filename, PrismTestUtil.getPrismContext());
-		
+
 		final String defaultNS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
 		final String icfNS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
 		ObjectClassComplexTypeDefinition objectDef = schema.findObjectClassDefinition(new QName(defaultNS, "AccountObjectClass"));
 		assertNotNull("AccountObjectClass definition not found", objectDef);
-		
+
 		ResourceAttributeDefinition attrDef = objectDef.findAttributeDefinition(new QName(icfNS, "uid"));
 		AssertJUnit.assertTrue("uid readability", attrDef.canRead());
 		AssertJUnit.assertFalse("uid updateability", attrDef.canModify());
 		AssertJUnit.assertFalse("uid createability", attrDef.canAdd());
-		
+
 		attrDef = objectDef.findAttributeDefinition(new QName(defaultNS, "title"));
 		AssertJUnit.assertTrue(attrDef.canRead());
 		AssertJUnit.assertTrue(attrDef.canModify());
 		AssertJUnit.assertTrue(attrDef.canAdd());
-		
+
 		attrDef = objectDef.findAttributeDefinition(new QName(defaultNS, "photo"));
 		AssertJUnit.assertFalse(attrDef.canRead());
 		AssertJUnit.assertTrue(attrDef.canModify());
 		AssertJUnit.assertTrue(attrDef.canAdd());
 	}
-	
+
 	@Test
 	public void testRoundTripGeneric() throws SchemaException {
 		// GIVEN
 		PrismSchemaImpl schema = new PrismSchemaImpl(SCHEMA_NS, PrismTestUtil.getPrismContext());
 		// Ordinary property
 		schema.createPropertyDefinition("number1", DOMUtil.XSD_INT);
-		
+
 		// Property container
 		PrismContainerDefinitionImpl containerDefinition = schema.createPropertyContainerDefinition("ContainerType");
 		// ... in it ordinary property
@@ -102,7 +102,7 @@ public class SchemaProcessorTest {
 		containerDefinition.createPropertyDefinition("password", ProtectedStringType.COMPLEX_TYPE);
 		// ... property reference
 		containerDefinition.createPropertyDefinition(SchemaConstants.C_CREDENTIALS, CredentialsType.COMPLEX_TYPE);
-		// ... read-only int property 
+		// ... read-only int property
 		PrismPropertyDefinition counterProperty = containerDefinition.createPropertyDefinition("counter", DOMUtil.XSD_INT);
 		((PrismPropertyDefinitionImpl) counterProperty).setReadOnly();
 
@@ -111,32 +111,32 @@ public class SchemaProcessorTest {
 		System.out.println();
 
 		// WHEN
-		
+
 		Document xsd = schema.serializeToXsd();
-		
+
 		String stringXmlSchema = DOMUtil.serializeDOMToString(xsd);
-		
+
 		System.out.println("Generic schema after serializing to XSD: ");
 		System.out.println(stringXmlSchema);
 		System.out.println();
-		
+
 		Document parsedXsd = DOMUtil.parseDocument(stringXmlSchema);
-		
+
 		PrismSchema newSchema = PrismSchemaImpl.parse(DOMUtil.getFirstChildElement(parsedXsd), true, "serialized schema", PrismTestUtil.getPrismContext());
 
 		System.out.println("Generic schema after parsing from XSD: ");
 		System.out.println(newSchema.debugDump());
 		System.out.println();
-		
+
 		// THEN
-	
+
 		PrismPropertyDefinition number1def = newSchema.findItemDefinitionByElementName(new QName(SCHEMA_NS,"number1"), PrismPropertyDefinition.class);
 		assertEquals(new QName(SCHEMA_NS,"number1"),number1def.getName());
 		assertEquals(DOMUtil.XSD_INT,number1def.getTypeName());
-		
+
 		PrismContainerDefinition newContainerDef = schema.findContainerDefinitionByType(new QName(SCHEMA_NS,"ContainerType"));
 		assertEquals(new QName(SCHEMA_NS,"ContainerType"),newContainerDef.getTypeName());
-		
+
 		PrismPropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"login"));
 		assertEquals(new QName(SCHEMA_NS,"login"), loginDef.getName());
 		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
@@ -160,12 +160,12 @@ public class SchemaProcessorTest {
 		assertFalse("Update flag is wrong",countDef.canModify());
 	}
 
-	
+
 	@Test
 	public void testRoundTripResource() throws SchemaException {
 		// GIVEN
 		ResourceSchemaImpl schema = new ResourceSchemaImpl(SCHEMA_NS, PrismTestUtil.getPrismContext());
-		
+
 		// Property container
 		ObjectClassComplexTypeDefinitionImpl containerDefinition = (ObjectClassComplexTypeDefinitionImpl) schema.createObjectClassDefinition("AccountObjectClass");
 		containerDefinition.setKind(ShadowKindType.ACCOUNT);
@@ -191,30 +191,30 @@ public class SchemaProcessorTest {
 		System.out.println();
 
 		// WHEN
-		
+
 		Document xsd = schema.serializeToXsd();
-		
+
 		String stringXmlSchema = DOMUtil.serializeDOMToString(xsd);
-		
+
 		System.out.println("Resource schema after serializing to XSD: ");
 		System.out.println(stringXmlSchema);
 		System.out.println();
-		
+
 		Document parsedXsd = DOMUtil.parseDocument(stringXmlSchema);
-		
+
 		ResourceSchema newSchema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(parsedXsd), "serialized schema", PrismTestUtil.getPrismContext());
 
 		System.out.println("Resource schema after parsing from XSD: ");
 		System.out.println(newSchema.debugDump());
 		System.out.println();
-		
+
 		// THEN
-			
+
 		ObjectClassComplexTypeDefinition newObjectClassDef = newSchema.findObjectClassDefinition(new QName(SCHEMA_NS,"AccountObjectClass"));
 		assertEquals(new QName(SCHEMA_NS,"AccountObjectClass"),newObjectClassDef.getTypeName());
 		assertEquals(ShadowKindType.ACCOUNT, newObjectClassDef.getKind());
 		assertTrue(newObjectClassDef.isDefaultInAKind());
-		
+
 		PrismPropertyDefinition loginDef = newObjectClassDef.findPropertyDefinition(new QName(SCHEMA_NS,"login"));
 		assertEquals(new QName(SCHEMA_NS,"login"), loginDef.getName());
 		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
@@ -229,12 +229,12 @@ public class SchemaProcessorTest {
 //		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
 //		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
 //		assertFalse(credDef.isIgnored());
-		
+
 		PrismPropertyDefinition sepDef = newObjectClassDef.findPropertyDefinition(new QName(SCHEMA_NS,"sep"));
 		assertEquals(new QName(SCHEMA_NS,"sep"), sepDef.getName());
 		assertEquals(DOMUtil.XSD_STRING, sepDef.getTypeName());
 		assertTrue(sepDef.isIgnored());
-		
+
 	}
 
 }

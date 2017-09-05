@@ -8,7 +8,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public abstract class AbstractScannerResultHandler<O extends ObjectType> extends
 		AbstractSearchIterativeResultHandler<O> {
-	
+
 	protected XMLGregorianCalendar lastScanTimestamp;
 	protected XMLGregorianCalendar thisScanTimestamp;
 
@@ -33,6 +33,6 @@ public abstract class AbstractScannerResultHandler<O extends ObjectType> extends
 		this.thisScanTimestamp = thisScanTimestamp;
 	}
 
-	
+
 
 }

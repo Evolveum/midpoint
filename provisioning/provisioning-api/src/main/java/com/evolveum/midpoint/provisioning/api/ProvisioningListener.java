@@ -21,7 +21,7 @@ package com.evolveum.midpoint.provisioning.api;
  */
 @FunctionalInterface
 public interface ProvisioningListener {
-	
+
 	/**
 	 * Returns a short name of the listener for debugging purposes.
 	 * E.g. "model synchronization service". This name is used in log and error messages.

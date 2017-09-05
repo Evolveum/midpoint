@@ -365,7 +365,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 		if (method == null) {
 			passwordResetNotSupported();
 		}
-		
+
 		switch (method) {
 			case MAIL:
 				return QueryBuilder.queryFor(UserType.class, getPrismContext()).item(UserType.F_EMAIL_ADDRESS)
@@ -382,7 +382,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 		}
 
 	}
-	
+
 	private void passwordResetNotSupported() {
 		getSession().error(getString("PageForgotPassword.unsupported.reset.type"));
 		throw new RestartResponseException(PageForgotPassword.this);

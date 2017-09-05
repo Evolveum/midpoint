@@ -35,7 +35,7 @@ import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
  *
  */
 public class ConnectorTypeUtil {
-	
+
 	public static String getConnectorHostTypeOid(ConnectorType connectorType) {
 		if (connectorType.getConnectorHostRef() != null) {
 			return connectorType.getConnectorHostRef().getOid();
@@ -45,7 +45,7 @@ public class ConnectorTypeUtil {
 			return null;
 		}
 	}
-	
+
 	public static Element getConnectorXsdSchema(ConnectorType connector) {
 		XmlSchemaType xmlSchemaType = connector.getSchema();
 		if (xmlSchemaType == null) {
@@ -53,7 +53,7 @@ public class ConnectorTypeUtil {
 		}
 		return ObjectTypeUtil.findXsdElement(xmlSchemaType);
 	}
-	
+
 	public static Element getConnectorXsdSchema(PrismObject<ConnectorType> connector) {
 		PrismContainer<XmlSchemaType> xmlSchema = connector.findContainer(ConnectorType.F_SCHEMA);
 		if (xmlSchema == null) {
@@ -61,12 +61,12 @@ public class ConnectorTypeUtil {
 		}
 		return ObjectTypeUtil.findXsdElement(xmlSchema);
 	}
-	
+
 	public static void setConnectorXsdSchema(ConnectorType connectorType, Element xsdElement) {
 		PrismObject<ConnectorType> connector = connectorType.asPrismObject();
 		setConnectorXsdSchema(connector, xsdElement);
 	}
-	
+
 	public static void setConnectorXsdSchema(PrismObject<ConnectorType> connector, Element xsdElement) {
 		PrismContainer<XmlSchemaType> schemaContainer;
 		try {
@@ -77,7 +77,7 @@ public class ConnectorTypeUtil {
 			// Should not happen
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
 		}
-		
+
 	}
 
 	/**
@@ -96,10 +96,10 @@ public class ConnectorTypeUtil {
 		((PrismContainerDefinitionImpl) configurationContainerDefintion).setCompileTimeClass(ConnectorConfigurationType.class);
 		return connectorSchema;
 	}
-	
+
 	public static PrismContainerDefinition<ConnectorConfigurationType> findConfigurationContainerDefinition(ConnectorType connectorType, PrismSchema connectorSchema) {
 		QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
 		return connectorSchema.findContainerDefinitionByElementName(configContainerQName);
 	}
-	
+
 }

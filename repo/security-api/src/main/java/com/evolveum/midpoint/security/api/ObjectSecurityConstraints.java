@@ -21,11 +21,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
 public interface ObjectSecurityConstraints extends DebugDumpable {
-	
+
 	AuthorizationDecisionType getActionDecision(String actionUrl, AuthorizationPhaseType phase);
-	
+
 	AuthorizationDecisionType findItemDecision(ItemPath itemPath, String actionUrl, AuthorizationPhaseType phase);
-	
+
 	boolean hasNoItemDecisions();
-	
+
 }

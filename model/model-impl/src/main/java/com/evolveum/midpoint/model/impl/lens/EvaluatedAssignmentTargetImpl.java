@@ -29,7 +29,7 @@ import java.util.Collection;
  *
  */
 public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget {
-	
+
 	final PrismObject<? extends FocusType> target;
 	private final boolean evaluateConstructions;
 	@NotNull private final AssignmentPathImpl assignmentPath;	 // TODO reconsider (maybe we should store only some lightweight information here)
@@ -99,12 +99,12 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 			FocusType focusType = target.asObjectable();
 			if (focusType instanceof AbstractRoleType) {
 				AbstractRoleType roleType = (AbstractRoleType)focusType;
-				
+
 				// legacy (very old)
 				for (ExclusionPolicyConstraintType exclusionType: roleType.getExclusion()) {
 					exclusions.add(exclusionType);
 				}
-				
+
 				// legacy
 				PolicyConstraintsType constraints = roleType.getPolicyConstraints();
 				if (constraints != null) {
@@ -114,7 +114,7 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 				}
 			}
 		}
-		return exclusions; 
+		return exclusions;
 	}
 
 	@Override

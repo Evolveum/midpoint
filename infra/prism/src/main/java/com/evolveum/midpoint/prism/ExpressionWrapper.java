@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
  */
 public class ExpressionWrapper implements Cloneable, Serializable {
 	private static final long serialVersionUID = 1L;
-	
+
 	private QName elementName;
     private Object expression;
 
@@ -45,7 +45,7 @@ public class ExpressionWrapper implements Cloneable, Serializable {
 	public Object getExpression() {
         return expression;
     }
-	
+
 	public ExpressionWrapper clone() {
 		Object expressionClone = CloneUtil.clone(expression);
 		return new ExpressionWrapper(elementName, expressionClone);
@@ -55,6 +55,6 @@ public class ExpressionWrapper implements Cloneable, Serializable {
 	public String toString() {
 		return "ExpressionWrapper(" + PrettyPrinter.prettyPrint(elementName) + ":" + PrettyPrinter.prettyPrint(expression);
 	}
-    
-    
+
+
 }

@@ -53,7 +53,7 @@ public class ListDataProvider2<W extends Serializable, T extends Serializable>
 
 	@Override
 	public Iterator<W> internalIterator(long first, long count) {
-		
+
 		getAvailableData().clear();
 
 		List<T> list = model.getObject();
@@ -97,7 +97,7 @@ public class ListDataProvider2<W extends Serializable, T extends Serializable>
 
 		return allSelected;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	protected <V extends Comparable<V>> void sort(List<T> list) {
 		Collections.sort(list, new Comparator<T>() {

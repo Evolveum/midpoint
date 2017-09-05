@@ -72,15 +72,15 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public class PageAccountActivation extends PageBase {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(PageAccountActivation.class);
-	
+
 	private IModel<UserType> userModel;
-	
+
 	private static final String DOT_CLASS = PageUser.class.getName() + ".";
 	private static final String LOAD_USER = DOT_CLASS + "loadUser";
 	private static final String OPERATION_ACTIVATE_SHADOWS = DOT_CLASS + "activateShadows";
-	
+
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_NAME = "username";
 	private static final String ID_PASSWORD = "password";
@@ -89,18 +89,18 @@ public class PageAccountActivation extends PageBase {
 	private static final String ID_CONFIRMATION_CONTAINER = "confirmationContainer";
 	private static final String ID_ACTIVATED_SHADOWS = "activatedShadows";
 	private static final String ID_LINK_TO_LOGIN = "linkToLogin";
-	
+
 	private boolean activated = false;
-	
+
 	@SpringBean(name = "passwordAuthenticationEvaluator")
 	private AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
-	
+
 	public PageAccountActivation(PageParameters params) {
-		
+
 		UserType user = loadUser(params);
-		
+
 		userModel = new LoadableModel<UserType>(false) {
-			
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -108,33 +108,33 @@ public class PageAccountActivation extends PageBase {
 				return user;
 			}
 		};
-		
+
 		initLayout();
-		
+
 	}
-	
+
 	private UserType loadUser(PageParameters params){
 		String userOid = getOidFromParameter(params);
 		if (userOid == null) {
 			getSession().error(getString("PageAccountActivation.user.not found"));
 			throw new RestartResponseException(PageLogin.class);
 		}
-		
+
 		Task task = createAnonymousTask(LOAD_USER);
 		OperationResult result = new OperationResult(LOAD_USER);
-		
+
 		return runPrivileged(new Producer<UserType>() {
-			
+
 			@Override
 			public UserType run() {
 				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(UserType.F_LINK_REF, GetOperationOptions.createResolve());
 				return WebModelServiceUtils.loadObject(UserType.class, userOid, options, PageAccountActivation.this, task, result).asObjectable();
 			}
 		});
-		
-		
+
+
 	}
-	
+
 	private void initLayout(){
 		WebMarkupContainer activationContainer= new WebMarkupContainer(ID_ACTIVATION_CONTAINER);
 		activationContainer.setOutputMarkupId(true);
@@ -145,35 +145,35 @@ public class PageAccountActivation extends PageBase {
 			public boolean isVisible() {
 				return !activated;
 			}
-			
+
 		});
-		
+
 		Form form = new Form<>(ID_MAIN_FORM);
 		activationContainer.add(form);
-			
+
 		Label usernamePanel = new Label(ID_NAME, createStringResource("PageAccountActivation.activate.accounts.label", new PropertyModel<>(userModel, "name.orig")));
 		usernamePanel.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public boolean isEnabled() {
 				return false;
 			}
 		});
 		form.add(usernamePanel);
-		
+
 		PasswordTextField passwordPanel = new PasswordTextField(ID_PASSWORD, Model.of(new String()));
 		form.add(passwordPanel);
-		
+
 		AjaxSubmitButton confirmPasswrod = new AjaxSubmitButton(ID_CONFIRM) {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			protected void onSubmit(AjaxRequestTarget target,
 					Form<?> form) {
 				propagatePassword(target, form);
 			}
-		
+
 		@Override
 		protected void onError(AjaxRequestTarget target,
 				Form<?> form) {
@@ -181,25 +181,25 @@ public class PageAccountActivation extends PageBase {
 			target.add(getFeedbackPanel());
 		}
 		};
-		
+
 		form.add(confirmPasswrod);
-		
+
 		WebMarkupContainer confirmationContainer = new WebMarkupContainer(ID_CONFIRMATION_CONTAINER);
 		confirmationContainer.setOutputMarkupId(true);
 		confirmationContainer.add(new VisibleEnableBehaviour() {
-			
+
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public boolean isVisible() {
 				return activated;
 			}
 		});
-		
+
 		add(confirmationContainer);
-		
+
 		AjaxLink<Void> linkToLogin = new AjaxLink<Void>(ID_LINK_TO_LOGIN) {
-		
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -208,11 +208,11 @@ public class PageAccountActivation extends PageBase {
 			}
 		};
 		confirmationContainer.add(linkToLogin);
-		
+
 		RepeatingView activatedShadows = new RepeatingView(ID_ACTIVATED_SHADOWS);
 		confirmationContainer.add(activatedShadows);
 		List<ShadowType> shadowsToActivate = getShadowsToActivate();
-		
+
 		if (shadowsToActivate.isEmpty()) {
 			LOGGER.error("No accounts to validate for user {}", userModel.getObject());
 			getSession().warn(getString("PageAccountActivation.nothing.to.activate"));
@@ -221,37 +221,37 @@ public class PageAccountActivation extends PageBase {
 		for (ShadowType shadow : shadowsToActivate) {
 			Label shadowDesc = new Label(activatedShadows.newChildId(), WebComponentUtil.getName(shadow) + " on resource " + WebComponentUtil.getName(shadow.getResourceRef()));
 			activatedShadows.add(shadowDesc);
-			
+
 		}
-		
-		
+
+
 	}
-	
+
 	private String getOidFromParameter(PageParameters params){
-		
+
 		if (params == null || params.isEmpty()) {
 			LOGGER.error("No page paraeters found for account activation. No user to activate his/her accounts");
 			return null;
 		}
-		
+
 		StringValue userValue = params.get(SchemaConstants.USER_ID);
 		if (userValue == null || userValue.isEmpty()) {
 			LOGGER.error("No user defined in the page parameter. Expected user=? attribute filled but didmn't find one.");
 			return null;
 		}
-		
+
 		return userValue.toString();
-		
+
 	}
-	
+
 	private void propagatePassword(AjaxRequestTarget target,
 			Form<?> form) {
-		
+
 		List<ShadowType> shadowsToActivate = getShadowsToActivate();
-		
+
 		PasswordTextField passwordPanel = (PasswordTextField) form.get(createComponentPath(ID_PASSWORD));
 		String value = passwordPanel.getModelObject();
-		
+
 		ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
 		UsernamePasswordAuthenticationToken token;
 		try {
@@ -268,16 +268,16 @@ public class PageAccountActivation extends PageBase {
 		}
 		ProtectedStringType passwordValue = new ProtectedStringType();
 		passwordValue.setClearValue(value);
-		
+
 		Collection<ObjectDelta<ShadowType>> passwordDeltas = new ArrayList<>(shadowsToActivate.size());
 		for (ShadowType shadow : shadowsToActivate) {
 			ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, shadow.getOid(), SchemaConstants.PATH_PASSWORD_VALUE, getPrismContext(), passwordValue);
 			shadowDelta.addModificationReplaceProperty(ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_PROPOSED);
 			passwordDeltas.add(shadowDelta);
 		}
-		
+
 		OperationResult result = runPrivileged(new Producer<OperationResult>() {
-			
+
 			@Override
 			public OperationResult run() {
 				OperationResult result = new OperationResult(OPERATION_ACTIVATE_SHADOWS);
@@ -286,9 +286,9 @@ public class PageAccountActivation extends PageBase {
 				return result;
 			}
 		});
-		
+
 		result.recomputeStatus();
-		
+
 		if (!result.isSuccess()) {
 			getSession().error(getString("PageAccountActivation.account.activation.failed"));
 			LOGGER.error("Failed to acitvate accounts, reason: {} ", result.getMessage());
@@ -298,12 +298,12 @@ public class PageAccountActivation extends PageBase {
 			target.add(getFeedbackPanel());
 			activated = true;
 		}
-		
+
 		target.add(PageAccountActivation.this);
-		
-		
+
+
 	}
-	
+
 	private List<ShadowType> getShadowsToActivate(){
 		UserType userType = userModel.getObject();
 		List<ShadowType> shadowsToActivate = userType.getLink();

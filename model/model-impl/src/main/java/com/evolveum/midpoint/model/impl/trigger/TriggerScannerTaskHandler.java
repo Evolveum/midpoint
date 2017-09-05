@@ -54,7 +54,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
 
 /**
- * 
+ *
  * @author Radovan Semancik
  *
  */
@@ -65,14 +65,14 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	// It is a spring bean and it is supposed to handle all search task instances
 	// Therefore it must not have task-specific fields. It can only contain fields specific to
 	// all tasks of a specified type
-	
+
 	public static final String HANDLER_URI = ModelPublicConstants.TRIGGER_SCANNER_TASK_HANDLER_URI;
-        	
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(TriggerScannerTaskHandler.class);
-	
+
 	@Autowired
 	private TriggerHandlerRegistry triggerHandlerRegistry;
-	
+
 	public TriggerScannerTaskHandler() {
         super(ObjectType.class, "Trigger scan", OperationConstants.TRIGGER_SCAN);
     }
@@ -140,7 +140,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 						.endBlock()
 					.buildFilter();
 		}
-		
+
 		query.setFilter(filter);
 		return query;
 	}
@@ -155,7 +155,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	@Override
 	protected AbstractScannerResultHandler<ObjectType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
 			OperationResult opResult) {
-		
+
 		AbstractScannerResultHandler<ObjectType> handler = new AbstractScannerResultHandler<ObjectType>(
 				coordinatorTask, TriggerScannerTaskHandler.class.getName(), "trigger", "trigger task", taskManager) {
 			@Override
@@ -170,7 +170,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 
 	private void fireTriggers(AbstractScannerResultHandler<ObjectType> handler, PrismObject<ObjectType> object, Task workerTask, Task coordinatorTask,
 			OperationResult result) throws SchemaException,
-			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
+			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 		PrismContainer<TriggerType> triggerContainer = object.findContainer(F_TRIGGER);
 		if (triggerContainer == null) {
@@ -207,7 +207,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	}
 
 	/**
-	 * Returns true if the timestamp is in the "range of interest" for this scan run. 
+	 * Returns true if the timestamp is in the "range of interest" for this scan run.
 	 */
 	private boolean isHot(AbstractScannerResultHandler<ObjectType> handler, XMLGregorianCalendar timestamp) {
 		if (handler.getThisScanTimestamp().compare(timestamp) == DatatypeConstants.LESSER) {

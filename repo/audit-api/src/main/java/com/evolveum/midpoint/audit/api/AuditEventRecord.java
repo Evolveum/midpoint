@@ -50,7 +50,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Audit event record describes a single event (usually data change) in a format suitable for audit.
- * 
+ *
  * @author Radovan Semancik
  *
  */
@@ -63,23 +63,23 @@ public class AuditEventRecord implements DebugDumpable {
 	 * Timestamp in millis.
 	 */
 	private Long timestamp;
-	
+
 	/**
 	 * Unique identification of the event.
 	 */
 	private String eventIdentifier;
-	
+
 	/**
 	 * Identitification of (interactive) session in which the event occured.
 	 */
 	private String sessionIdentifier;
-	
+
 	// channel???? (e.g. web gui, web service, ...)
-	
+
 	// task ID (not OID!)
 	private String taskIdentifier;
 	private String taskOID;
-	
+
 	private String hostIdentifier;		// local node name as obtained from the networking stack
 	private String nodeIdentifier;		// midPoint cluster node identifier (NodeType.nodeIdentifier)
 	private String remoteHostAddress;	// remote host address as obtained from the networking stack
@@ -96,23 +96,23 @@ public class AuditEventRecord implements DebugDumpable {
 	 *  OPTIONAL
 	 */
 	private PrismReferenceValue target;
-	
+
 	// user that the target "belongs to"????: store OID, name
 	private PrismObject<UserType> targetOwner;
-		
+
 	// event type
 	private AuditEventType eventType;
-	
+
 	// event stage (request, execution)
 	private AuditEventStage eventStage;
-	
+
 	// delta
 	private final Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = new ArrayList<>();
-	
+
 	// delta order (primary, secondary)
-	
+
 	private String channel;
-	
+
 	// outcome (success, failure)
 	private OperationResultStatus outcome;
 
@@ -131,7 +131,7 @@ public class AuditEventRecord implements DebugDumpable {
 
 	public AuditEventRecord() {
 	}
-	
+
 	public AuditEventRecord(AuditEventType eventType) {
 		this.eventType = eventType;
 	}
@@ -144,7 +144,7 @@ public class AuditEventRecord implements DebugDumpable {
 	public Long getTimestamp() {
 		return timestamp;
 	}
-	
+
 	public void clearTimestamp() {
 		timestamp = null;
 	}
@@ -224,7 +224,7 @@ public class AuditEventRecord implements DebugDumpable {
 	public void setTarget(PrismReferenceValue target) {
 		this.target = target;
 	}
-	
+
 	// Compatibility and convenience
 	public void setTarget(PrismObject<?> targetObject) {
 		if (targetObject != null) {
@@ -261,7 +261,7 @@ public class AuditEventRecord implements DebugDumpable {
 	public Collection<ObjectDeltaOperation<? extends ObjectType>> getDeltas() {
 		return deltas;
 	}
-	
+
 	public void addDelta(ObjectDeltaOperation<? extends ObjectType> delta) {
 		deltas.add(delta);
 	}
@@ -269,7 +269,7 @@ public class AuditEventRecord implements DebugDumpable {
 	public void addDeltas(Collection<ObjectDeltaOperation<? extends ObjectType>> deltasToAdd) {
 		deltas.addAll(deltasToAdd);
 	}
-	
+
 	public String getChannel() {
 		return channel;
 	}
@@ -289,7 +289,7 @@ public class AuditEventRecord implements DebugDumpable {
 	public void setOutcome(OperationResultStatus outcome) {
 		this.outcome = outcome;
 	}
-	
+
 	public void setResult(String result) {
         this.result = result;
 	}
@@ -313,12 +313,12 @@ public class AuditEventRecord implements DebugDumpable {
     public void setParameter(String parameter) {
         this.parameter = parameter;
     }
-    
+
     @Transient
     public Long getRepoId() {
 		return repoId;
 	}
-    
+
     public void setRepoId(Long repoId) {
 		this.repoId = repoId;
 	}
@@ -387,11 +387,11 @@ public class AuditEventRecord implements DebugDumpable {
 //            }
 //        }
 	}
-    
+
     public AuditEventRecordType createAuditEventRecordType(){
     	return createAuditEventRecordType(false);
 	}
-    
+
     public AuditEventRecordType createAuditEventRecordType(boolean tolerateInconsistencies) {
     	AuditEventRecordType auditRecordType = new AuditEventRecordType();
     	auditRecordType.setChannel(channel);
@@ -447,7 +447,7 @@ public class AuditEventRecord implements DebugDumpable {
 		}
 		return auditRecordType;
 	}
-    
+
     public static AuditEventRecord createAuditEventRecord(AuditEventRecordType auditEventRecordType) {
     	AuditEventRecord auditRecord = new AuditEventRecord();
     	auditRecord.setChannel(auditEventRecordType.getChannel());
@@ -476,7 +476,7 @@ public class AuditEventRecord implements DebugDumpable {
 		}
 		return auditRecord;
     }
-    
+
     private static PrismReferenceValue getReferenceValueFromObjectReferenceType(ObjectReferenceType refType) {
     	if (refType == null) {
     		return null;
@@ -491,11 +491,11 @@ public class AuditEventRecord implements DebugDumpable {
     	if (ref == null){
     		return null;
     	}
-    	
+
     	PrismReferenceValue prismRef = ref.asReferenceValue();
     	return prismRef.getObject();
     }
-	
+
 	public AuditEventRecord clone() {
 		AuditEventRecord clone = new AuditEventRecord();
 		clone.channel = this.channel;
@@ -557,14 +557,14 @@ public class AuditEventRecord implements DebugDumpable {
 		}
 		return TIMESTAMP_FORMAT.format(new java.util.Date(timestamp));
 	}
-	
+
 	private static String formatObject(PrismObject<? extends ObjectType> object) {
 		if (object == null) {
 			return "null";
 		}
 		return object.toString();
 	}
-	
+
     private String formatReference(PrismReferenceValue refVal) {
     	if (refVal == null) {
     		return "null";

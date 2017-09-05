@@ -46,9 +46,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class PrismObjectPanel<O extends ObjectType> extends Panel {
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final String STRIPED_CLASS = "striped";
-	
+
     private static final String ID_HEADER = "header";
     private static final String ID_CONTAINERS = "containers";
     private static final String ID_CONTAINER = "container";
@@ -67,7 +67,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
         this.pageBase = pageBase;
         initLayout(model, image, form);
     }
-    
+
     private void initLayout(final IModel<ObjectWrapper<O>> model, ResourceReference image, final Form<ObjectWrapper<O>> form) {
         Component headerComponent = createHeader(ID_HEADER, model, form);
         add(headerComponent);
@@ -89,7 +89,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
                 addOrReplaceContainers(model, form, true);
 				target.add(PrismObjectPanel.this);
 			}
-    		
+
 			@Override
 			public boolean isButtonsVisible() {
 				return true;

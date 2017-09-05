@@ -52,7 +52,7 @@ import java.util.List;
  */
 public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
     private static final String ID_HAS_PENDING_MODIFICATION = "hasPendingModification";
     private static final String ID_HELP = "help";
@@ -69,7 +69,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         this.pageBase = pageBase;
 
         LOGGER.trace("Creating property panel for {}", model.getObject());
-        
+
         setOutputMarkupId(true);
         add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
@@ -96,7 +96,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         labelContainer.setOutputMarkupId(true);
         labelContainer.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;
-        	
+
             @Override public boolean isVisible() {
                 return labelContainerVisible;
             }

@@ -86,7 +86,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     @Autowired(required = true)
     @Qualifier("cacheRepositoryService")
     RepositoryService repositoryService;
-    
+
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -124,7 +124,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 //        }
 //        Assert.fail("add must fail.");
 //    }
-    
+
 	@Test(expectedExceptions = FaultMessage.class)
     public void testGetNullOid() throws FaultMessage {
         try {
@@ -244,7 +244,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 
 //    @Test(expectedExceptions = FaultMessage.class)
     public void nullQueryType() throws FaultMessage, SchemaException, IOException, JAXBException {
-    	
+
         try {
         	final UserType expectedUser = (UserType) PrismTestUtil.parseObject(new File(
                     TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml")).asObjectable();
@@ -258,7 +258,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         } finally {
         	SecurityContextHolder.getContext().setAuthentication(null);
         }
-        
+
     }
 
 //    @Test(expectedExceptions = FaultMessage.class)
@@ -276,7 +276,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         } finally {
         	SecurityContextHolder.getContext().setAuthentication(null);
         }
-        
+
     }
 
     @Test(expectedExceptions = FaultMessage.class)
@@ -367,7 +367,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         }
         Assert.fail("Illegal argument exception must be thrown");
     }
-    
+
 	private void setSecurityContext(UserType user) {
 		SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
 				new MidPointPrincipal(user), null));

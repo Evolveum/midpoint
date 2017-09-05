@@ -39,7 +39,7 @@ import com.evolveum.midpoint.web.util.Base64Model;
 public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final String ID_PARAMETERS_TABLE = "parametersTable";
 	private static final String ID_FIELDS_TABLE = "fieldsTable";
 	private static final String ID_BUTTON_ADD_PARAMETER = "addParameter";
@@ -54,7 +54,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 		initLayout();
 	}
 
-	
+
 	protected void initLayout() {
 		AceEditorPanel queryPanel = new AceEditorPanel(ID_QUERY,
 				createStringResource("JasperReportConfigurationPanel.reportQuery"),
@@ -216,21 +216,21 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 				buildEditableLinkColumn("JasperReportConfigurationPanel.nestedClass", null, "nestedTypeAsString", true));
 
 		columns.add(new LinkColumn<JasperReportParameterDto>(createStringResource("JasperReportConfigurationPanel.properties")) {
-			
+
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onClick(AjaxRequestTarget target,
 					IModel<JasperReportParameterDto> rowModel) {
 				showPropertiesPopup(target, rowModel);
 			}
-			
+
 			@Override
 			protected IModel createLinkModel(IModel<JasperReportParameterDto> rowModel) {
 				return createStringResource("JasperReportConfigurationPanel.configure");
 			}
 
-		}); 
-		
+		});
+
 
 		CheckBoxColumn<JasperReportParameterDto> forPrompting = new CheckBoxColumn<JasperReportParameterDto>(
 				createStringResource("JasperReportConfigurationPanel.forPrompting"), "forPrompting") {
@@ -249,13 +249,13 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 
 		return columns;
 	}
-	
+
 	private void showPropertiesPopup(AjaxRequestTarget target,
 			IModel<JasperReportParameterDto> rowModel) {
-		
+
 		ParameterPropertiesPopupPanel propertiesPopup = new ParameterPropertiesPopupPanel(getPageBase().getMainPopupBodyId(), new PropertyModel<>(rowModel, "properties"));
 		getPageBase().showMainPopup(propertiesPopup, target);
-		
+
 	}
 	private EditableLinkColumn<JasperReportParameterDto> buildEditableLinkColumn(String resource, String resourceParam,
 			String property, final Boolean mandatory) {

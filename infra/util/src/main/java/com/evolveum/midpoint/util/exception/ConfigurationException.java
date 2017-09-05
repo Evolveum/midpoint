@@ -19,10 +19,10 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 
 /**
  * Configuration exception indicates that something is mis-configured.
- * 
+ *
  * The system or its part is misconfigured and therefore the intended operation
  * cannot be executed.
- * 
+ *
  * @author Radovan Semancik
  *
  */

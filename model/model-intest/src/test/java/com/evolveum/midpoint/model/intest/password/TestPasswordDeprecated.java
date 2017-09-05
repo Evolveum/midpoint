@@ -60,13 +60,13 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
  * Modified subset of AbstractPasswordTest. Just makes sure that the
  * password policy configured in a deprecated way is applied and that it
  * roughly works. It is not meant to be comprehensive.
- * 
+ *
  * @author semancik
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationTest {
-		
+
 	protected static final String USER_PASSWORD_0_CLEAR = "d3adM3nT3llN0Tal3s";
 	protected static final String USER_PASSWORD_JACK_CLEAR = "12jAcK34"; // contains username
 	protected static final String USER_PASSWORD_SPARROW_CLEAR = "saRRow123"; // contains familyName
@@ -79,19 +79,19 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
 
 	protected static final File PASSWORD_POLICY_DEPRECATED_FILE = new File(TEST_DIR, "password-policy-deprecated.xml");
 	protected static final String PASSWORD_POLICY_DEPRECATED_OID = "44bb6516-0d61-11e7-af71-73b639b25b04";
-	
+
 	protected String accountJackOid;
 	protected XMLGregorianCalendar lastPasswordChangeStart;
 	protected XMLGregorianCalendar lastPasswordChangeEnd;
-		
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		importObjectFromFile(PASSWORD_POLICY_DEPRECATED_FILE);
-		
+
 		setGlobalSecurityPolicy(null, initResult);
-		
+
 		login(USER_ADMINISTRATOR_USERNAME);
 	}
 
@@ -104,30 +104,30 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
         Task task = createTask(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        
+
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_0_CLEAR, task, result);
-		
+
 		// THEN
         TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        
+
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
-        
+
 		assertUserPassword(userJack, USER_PASSWORD_0_CLEAR);
 		assertPasswordMetadata(userJack, false, startCal, endCal);
 		// Password policy is not active yet. No history should be kept.
 		assertPasswordHistoryEntries(userJack);
 	}
-	
+
 	@Test
     public void test100ModifyUserJackAssignAccount() throws Exception {
 		final String TEST_NAME = "test100ModifyUserJackAssignAccount";
@@ -137,32 +137,32 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
         Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        
+
 		// WHEN
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
-		
+
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
         accountJackOid = getSingleLinkOid(userJack);
-        
+
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
-        
+
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
         assertDummyAccountShadowModel(accountModel, accountJackOid, "jack", "Jack Sparrow");
-        
+
         // Check account in dummy resource
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         assertDummyPassword(null, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_0_CLEAR);
 	}
-	
+
 	@Test
     public void test200ApplyPasswordPolicy() throws Exception {
 		final String TEST_NAME = "test200ApplyPasswordPolicy";
@@ -172,20 +172,20 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        
+
 		PrismReferenceValue passPolicyRef = new PrismReferenceValue(PASSWORD_POLICY_DEPRECATED_OID, ValuePolicyType.COMPLEX_TYPE);
-		
+
 		// WHEN
 		modifyObjectReplaceReference(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
 				new ItemPath(SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF),
         		task, result, passPolicyRef);
-		
+
 		// THEN
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 	}
-	
-	
+
+
 	/**
 	 * Change to password that complies with password policy.
 	 */
@@ -194,7 +194,7 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
 		doTestModifyUserJackPasswordSuccessWithHistory("test210ModifyUserJackPasswordGood",
 				USER_PASSWORD_VALID_1, USER_PASSWORD_0_CLEAR);
 	}
-	
+
 	/**
 	 * Reconcile user. Nothing should be changed.
 	 * MID-3567
@@ -207,17 +207,17 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         reconcileUser(USER_JACK_OID, task, result);
-		
+
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertJackPasswordsWithHistory(USER_PASSWORD_VALID_1, USER_PASSWORD_0_CLEAR);
 	}
-	
+
 	/**
 	 * Recompute user. Nothing should be changed.
 	 * MID-3567
@@ -230,17 +230,17 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         recomputeUser(USER_JACK_OID, task, result);
-		
+
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         assertJackPasswordsWithHistory(USER_PASSWORD_VALID_1, USER_PASSWORD_0_CLEAR);
 	}
-	
+
 	/**
 	 * Change to password that violates the password policy (but is still OK for yellow resource).
 	 */
@@ -249,7 +249,7 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
 		doTestModifyUserJackPasswordFailureWithHistory("test220ModifyUserJackPasswordBadA",
 				USER_PASSWORD_0_CLEAR, USER_PASSWORD_VALID_1, USER_PASSWORD_0_CLEAR);
 	}
-	
+
 	/**
 	 * Change to password that violates the password policy (contains username)
 	 * MID-1657
@@ -259,9 +259,9 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
 		doTestModifyUserJackPasswordFailureWithHistory("test224ModifyUserJackPasswordBadJack",
 				USER_PASSWORD_JACK_CLEAR, USER_PASSWORD_VALID_1, USER_PASSWORD_0_CLEAR);
 	}
-		
+
 	/**
-	 * Change to password that complies with password policy. Again. See that 
+	 * Change to password that complies with password policy. Again. See that
 	 * the change is applied correctly and that it is included in the history.
 	 */
 	@Test
@@ -269,7 +269,7 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
 		doTestModifyUserJackPasswordSuccessWithHistory("test230ModifyUserJackPasswordGoodAgain",
 				USER_PASSWORD_VALID_2, USER_PASSWORD_0_CLEAR, USER_PASSWORD_VALID_1);
 	}
-	
+
 	/**
 	 * Change to password that complies with password policy. Again.
 	 * This time there are enough passwords in the history. So the history should
@@ -280,7 +280,7 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
 		doTestModifyUserJackPasswordSuccessWithHistory("test240ModifyUserJackPasswordGoodAgainOverHistory",
 				USER_PASSWORD_VALID_3, USER_PASSWORD_VALID_1, USER_PASSWORD_VALID_2);
 	}
-	
+
 	/**
 	 * Change to password that complies with password policy. Again.
 	 * This time there are enough passwords in the history. So the history should
@@ -291,7 +291,7 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
 		doTestModifyUserJackPasswordSuccessWithHistory("test241ModifyUserJackPasswordGoodAgainOverHistoryAgain",
 				USER_PASSWORD_VALID_4, USER_PASSWORD_VALID_2, USER_PASSWORD_VALID_3);
 	}
-	
+
 	/**
 	 * Reuse old password. Now the password should be out of the history, so
 	 * the system should allow its reuse.
@@ -301,8 +301,8 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
 		doTestModifyUserJackPasswordSuccessWithHistory("test248ModifyUserJackPasswordGoodReuse",
 				USER_PASSWORD_VALID_1, USER_PASSWORD_VALID_3, USER_PASSWORD_VALID_4);
 	}
-	
-	private void doTestModifyUserJackPasswordSuccessWithHistory(final String TEST_NAME, 
+
+	private void doTestModifyUserJackPasswordSuccessWithHistory(final String TEST_NAME,
 			String newPassword, String... expectedPasswordHistory) throws Exception {
 		TestUtil.displayTestTitle(this, TEST_NAME);
 
@@ -310,22 +310,22 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        
+
         lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
-                        
+
 		// WHEN
         modifyUserChangePassword(USER_JACK_OID, newPassword, task, result);
-		
+
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
-        
+
         assertJackPasswordsWithHistory(newPassword, expectedPasswordHistory);
 	}
-	
-	private void doTestModifyUserJackPasswordFailureWithHistory(final String TEST_NAME, 
+
+	private void doTestModifyUserJackPasswordFailureWithHistory(final String TEST_NAME,
 			String newPassword, String oldPassword, String... expectedPasswordHistory) throws Exception {
 		TestUtil.displayTestTitle(this, TEST_NAME);
 
@@ -333,25 +333,25 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        
+
         try {
 			// WHEN
 	        modifyUserChangePassword(USER_JACK_OID, newPassword, task, result);
-	        
+
 	        AssertJUnit.fail("Unexpected success");
-	        
+
         } catch (PolicyViolationException e) {
         	// This is expected
         	display("Exected exception", e);
         }
-		
+
 		// THEN
 		result.computeStatus();
         TestUtil.assertFailure(result);
-        
+
         assertJackPasswordsWithHistory(oldPassword, expectedPasswordHistory);
 	}
-	
+
 	private void assertJackPasswordsWithHistory(String expectedCurrentPassword, String... expectedPasswordHistory) throws Exception {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -359,10 +359,10 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
 
         assertUserPassword(userJack, expectedCurrentPassword);
         assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
-        
+
         assertDummyPassword(null, ACCOUNT_JACK_DUMMY_USERNAME, expectedCurrentPassword);
-        		
+
 		assertPasswordHistoryEntries(userJack, expectedPasswordHistory);
 	}
-	
+
 }

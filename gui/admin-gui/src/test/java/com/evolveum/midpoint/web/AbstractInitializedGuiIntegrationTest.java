@@ -38,14 +38,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiIntegrationTest {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedGuiIntegrationTest.class);
-	
+
 	protected DummyResource dummyResource;
 	protected DummyResourceContoller dummyResourceCtl;
 	protected ResourceType resourceDummyType;
 	protected PrismObject<ResourceType> resourceDummy;
-	
+
 	protected PrismObject<UserType> userAdministrator;
 	protected String accountJackOid;
 
@@ -60,17 +60,17 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
 		modelService.postInit(initResult);
 		userAdministrator = repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, initResult);
 		login(userAdministrator);
-		
+
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
 		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
 		resourceDummyType = resourceDummy.asObjectable();
 		dummyResourceCtl.setResource(resourceDummy);
-				
+
 		repoAddObjectFromFile(USER_JACK_FILE, true, initResult);
 		repoAddObjectFromFile(USER_EMPTY_FILE, true, initResult);
-		
+
 		importObjectFromFile(ROLE_MAPMAKER_FILE);
 	}
 
@@ -82,24 +82,24 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
         // GIVEN
         Task task = taskManager.createTaskInstance(AbstractInitializedGuiIntegrationTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assertNotNull("No model service", modelService);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
-		
+
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		IntegrationTestTools.display(result);
 		TestUtil.assertSuccess(result);
-		
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
         accountJackOid = getSingleLinkOid(userJack);
-		
+
 	}
-	
+
 }

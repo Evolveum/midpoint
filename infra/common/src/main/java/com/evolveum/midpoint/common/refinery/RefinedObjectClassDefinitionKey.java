@@ -25,7 +25,7 @@ import javax.xml.namespace.QName;
 class RefinedObjectClassDefinitionKey {
 	private QName typeName;
 	private String intent;
-	
+
 	public RefinedObjectClassDefinitionKey(RefinedObjectClassDefinition rObjectClassDefinition) {
 		typeName = rObjectClassDefinition.getTypeName();
 		intent = rObjectClassDefinition.getIntent();

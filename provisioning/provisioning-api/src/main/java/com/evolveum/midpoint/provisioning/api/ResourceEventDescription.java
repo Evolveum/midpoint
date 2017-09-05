@@ -10,49 +10,49 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class ResourceEventDescription implements Serializable, DebugDumpable{
-	
+
 	private PrismObject<ShadowType> oldShadow;
 	private PrismObject<ShadowType> currentShadow;
 	private ObjectDelta delta;
 	private String sourceChannel;
 //	private PrismObject<ResourceType> resource;
-	
-	
+
+
 	public PrismObject<ShadowType> getCurrentShadow() {
 		return currentShadow;
 	}
-	
+
 	public PrismObject<ShadowType> getOldShadow() {
 		return oldShadow;
 	}
-	
+
 	public ObjectDelta getDelta() {
 		return delta;
 	}
-	
+
 	public String getSourceChannel() {
 		return sourceChannel;
 	}
 //	public PrismObject<ResourceType> getResource() {
 //		return resource;
 //	}
-	
+
 	public void setDelta(ObjectDelta delta) {
 		this.delta = delta;
 	}
-	
+
 	public void setOldShadow(PrismObject<ShadowType> oldShadow) {
 		this.oldShadow = oldShadow;
 	}
-	
+
 	public void setCurrentShadow(PrismObject<ShadowType> currentShadow) {
 		this.currentShadow = currentShadow;
 	}
-	
+
 	public void setSourceChannel(String sourceChannel) {
 		this.sourceChannel = sourceChannel;
 	}
-	
+
 	 public boolean isProtected() {
 	    	if ((currentShadow != null && ShadowUtil.isProtected(currentShadow))
 	    			|| (oldShadow != null && ShadowUtil.isProtected(oldShadow))) {
@@ -63,14 +63,14 @@ public class ResourceEventDescription implements Serializable, DebugDumpable{
 	    	}
 	    	return false;
 	    }
-	
+
 	 @Override
 		public String toString() {
 			return "ResourceEventDescription(delta=" + delta + ", currentShadow="
 					+ SchemaDebugUtil.prettyPrint(currentShadow) + ", oldShadow=" + SchemaDebugUtil.prettyPrint(oldShadow) + ", sourceChannel=" + sourceChannel
 					+ ")";
 		}
-	    
+
 		/* (non-Javadoc)
 		 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
 		 */
@@ -89,9 +89,9 @@ public class ResourceEventDescription implements Serializable, DebugDumpable{
 			sb.append("ResourceEventDescription(");
 			sb.append(sourceChannel);
 			sb.append(")\n");
-			
+
 			SchemaDebugUtil.indentDebugDump(sb, indent+1);
-			
+
 			sb.append("Delta:");
 			if (delta == null) {
 				sb.append(" null");
@@ -100,17 +100,17 @@ public class ResourceEventDescription implements Serializable, DebugDumpable{
 			}
 			sb.append("\n");
 			SchemaDebugUtil.indentDebugDump(sb, indent+1);
-			
+
 			sb.append("oldShadow:");
 			if (oldShadow == null) {
 				sb.append(" null");
 			} else {
 				sb.append(oldShadow.debugDump(indent+2));
 			}
-			
+
 			sb.append("\n");
 			SchemaDebugUtil.indentDebugDump(sb, indent+1);
-			
+
 			sb.append("currentShadow:");
 			if (currentShadow == null) {
 				sb.append(" null\n");
@@ -124,8 +124,8 @@ public class ResourceEventDescription implements Serializable, DebugDumpable{
 //	public void setResource(PrismObject<ResourceType> resource) {
 //		this.resource = resource;
 //	}
-//	
-//	
+//
+//
 
 	public PrismObject<ShadowType> getShadow() {
 		PrismObject<ShadowType> shadow;

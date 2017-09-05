@@ -70,7 +70,7 @@ public interface PrismPropertyDefinition<T> extends ItemDefinition<PrismProperty
 	@NotNull
 	@Override
 	PrismPropertyDefinition<T> clone();
-	
+
 	@Override
 	Class<T> getTypeClass();
 }

@@ -25,7 +25,7 @@ public class MidPointConstants {
 
 	public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public";
 	public static final String NS_MIDPOINT_TEST_PREFIX = "http://midpoint.evolveum.com/xml/ns/test";
-	
+
 	public static final String NS_RA = NS_MIDPOINT_PUBLIC_PREFIX+"/resource/annotation-3";
 	public static final String PREFIX_NS_RA = "ra";
 	public static final QName RA_RESOURCE_OBJECT = new QName(NS_RA, "resourceObject");
@@ -47,16 +47,16 @@ public class MidPointConstants {
 	public static final QName RA_ACCOUNT = new QName(NS_RA, "account");
 	@Deprecated
 	public static final QName RA_ACCOUNT_TYPE = new QName(NS_RA, "accountType");
-	
+
 	public static final String NS_RI = NS_MIDPOINT_PUBLIC_PREFIX+"/resource/instance-3";
 	public static final String PREFIX_NS_RI = "ri";
-	
+
 	public static final String FUNCTION_LIBRARY_BASIC_VARIABLE_NAME = "basic";
 	public static final String NS_FUNC_BASIC = NS_MIDPOINT_PUBLIC_PREFIX+"/function/basic-3";
-	
+
 	public static final String FUNCTION_LIBRARY_MIDPOINT_VARIABLE_NAME = "midpoint";
 	public static final String NS_FUNC_MIDPOINT = NS_MIDPOINT_PUBLIC_PREFIX+"/function/midpoint-3";
-	
+
 	public static final String FUNCTION_LIBRARY_LOG_VARIABLE_NAME = "log";
 	public static final String NS_FUNC_LOG = NS_MIDPOINT_PUBLIC_PREFIX+"/function/log-3";
 

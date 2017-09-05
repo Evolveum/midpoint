@@ -30,38 +30,34 @@
     <c:name>HR System</c:name>
 
     <description>
-        HR resource using CSVFile connector. This is the HR feed (source) resource.
+        HR resource using CSV connector. This is the HR feed (source) resource.
         This is a sample used in the "Practical Identity Management with MidPoint"
         book, chapter 5.
     </description>
 
-    <connectorRef type="ConnectorType">
-        <filter>
-            <q:equal>
-                <q:path>c:connectorType</q:path>
-                <q:value>com.evolveum.polygon.csvfile.CSVFileConnector</q:value>
-            </q:equal>
-        </filter>
-    </connectorRef>
+	<connectorRef type="ConnectorType">
+		<filter>
+			<q:equal>
+				<q:path>c:connectorType</q:path>
+				<q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
+			</q:equal>
+		</filter>
+	</connectorRef>
 
-    <c:connectorConfiguration>
+	<c:connectorConfiguration>
 
-        <!-- Configuration specific for the CSVfile connector -->
-        <icfc:configurationProperties
-                    xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csvfile/com.evolveum.polygon.csvfile.CSVFileConnector">
-            <icfccsvfile:filePath>/var/opt/midpoint-book/resources/hr.csv</icfccsvfile:filePath>
-            <icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
-            <icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>
-            <icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
-            <icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
-            <icfccsvfile:usingMultivalue>false</icfccsvfile:usingMultivalue>
-            <icfccsvfile:uniqueAttribute>id</icfccsvfile:uniqueAttribute>
-            <!--            <icfccsvfile:nameAttribute>id</icfccsvfile:nameAttribute> -->
-            <icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>
-        </icfc:configurationProperties>
+		<!-- Configuration specific for the CSVfile connector -->
+		<icfc:configurationProperties
+					xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+			<icfccsvfile:filePath>/var/opt/midpoint-book/resources/hr.csv</icfccsvfile:filePath>
+			<icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
+			<icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
+			<icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
+			<icfccsvfile:uniqueAttribute>empno</icfccsvfile:uniqueAttribute>
+			<icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>
+		</icfc:configurationProperties>
 
-
-    </c:connectorConfiguration>
+	</c:connectorConfiguration>
 
     <schemaHandling>
 
@@ -70,16 +66,7 @@
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
-                <ref>icfs:uid</ref>
-                <displayName>ID</displayName>
-                <limitations>
-                    <access>
-                        <read>true</read>
-                    </access>
-                </limitations>
-            </attribute>
-            <attribute>
-                <ref>icfs:name</ref>
+                <ref>ri:empno</ref>
                 <displayName>Name</displayName>
                 <limitations>
                     <minOccurs>0</minOccurs>
@@ -108,7 +95,6 @@
                         <path>$focus/givenName</path>
                     </target>
                 </inbound>
-
             </attribute>
             <attribute>
                 <ref>ri:lastname</ref>
@@ -149,9 +135,9 @@
             <enabled>true</enabled>
             <correlation>
                 <q:equal>
-                    <q:path>c:name</q:path>
+                    <q:path>employeeNumber</q:path>
                     <expression>
-                        <path>$shadow/attributes/icfs:name</path>
+                        <path>$shadow/attributes/empno</path>
                     </expression>
                 </q:equal>
             </correlation>

@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.provisioning.impl;
 
@@ -42,21 +42,21 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegrationTest {
 
 	public static final File COMMON_DIR = ProvisioningTestUtil.COMMON_TEST_DIR_FILE;
-	
+
 	protected static final String CSV_CONNECTOR_TYPE = "com.evolveum.polygon.connector.csv.CsvConnector";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractProvisioningIntegrationTest.class);
 
 	@Autowired(required=true)
 	protected ProvisioningService provisioningService;
-	
+
 	@Autowired(required = true)
 	protected SynchornizationServiceMock syncServiceMock;
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		InternalsConfig.encryptionChecks = false;
 		provisioningService.postInit(initResult);
 	}
-	
+
 }

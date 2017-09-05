@@ -24,13 +24,13 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 public class DropdownButtonDto implements Serializable, InlineMenuable{
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
 	private String info;
 	private String icon;
 	private String label;
-	
+
 	private List<InlineMenuItem> items;
 
 	public DropdownButtonDto(String info, String icon, String label, List<InlineMenuItem> items) {
@@ -63,7 +63,7 @@ public class DropdownButtonDto implements Serializable, InlineMenuable{
 	public void setLabel(String label) {
 		this.label = label;
 	}
-	
+
 
 	@Override
 	public List<InlineMenuItem> getMenuItems() {

@@ -127,7 +127,7 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
 		assertEquals("Wrong class in user", UserType.class, user.getCompileTimeClass());
 		UserType userType = user.asObjectable();
 		assertNotNull("asObjectable resulted in null", userType);
-		
+
 		assertPropertyValue(user, "name", PrismTestUtil.createPolyString("jack"));
 		assertPropertyDefinition(user, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 		assertPropertyValue(user, "fullName", new PolyString("Jack Sparrow", "jack sparrow"));
@@ -136,33 +136,33 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
 		assertPropertyDefinition(user, "givenName", PolyStringType.COMPLEX_TYPE, 0, 1);
 		assertPropertyValue(user, "familyName", new PolyString("Sparrow", "sparrow"));
 		assertPropertyDefinition(user, "familyName", PolyStringType.COMPLEX_TYPE, 0, 1);
-	
+
 		assertPropertyDefinition(user, "organizationalUnit", PolyStringType.COMPLEX_TYPE, 0, -1);
-		assertPropertyValues(user, "organizationalUnit", 
+		assertPropertyValues(user, "organizationalUnit",
 				new PolyString("Brethren of the Coast", "brethren of the coast"),
 				new PolyString("Davie Jones' Locker", "davie jones locker"));
-		
+
 //		PrismContainer extension = user.getExtension();
 //		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
 //		PrismContainerValue extensionValue = extension.getValue();
 //		assertTrue("Extension parent", extensionValue.getParent() == extension);
 //		assertNull("Extension ID", extensionValue.getId());
-		
+
 		ItemPath admStatusPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 		PrismProperty<ActivationStatusType> admStatusProperty1 = user.findProperty(admStatusPath);
 		PrismAsserts.assertDefinition(admStatusProperty1.getDefinition(), ActivationType.F_ADMINISTRATIVE_STATUS, SchemaConstants.C_ACTIVATION_STATUS_TYPE, 0, 1);
 		assertNotNull("Property "+admStatusPath+" not found", admStatusProperty1);
 		PrismAsserts.assertPropertyValue(admStatusProperty1, ActivationStatusType.ENABLED);
-		
+
 //		PrismProperty validFromProperty = user.findProperty(new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_VALID_FROM));
 //		assertNotNull("Property "+ActivationType.F_VALID_FROM+" not found", validFromProperty);
 //		PrismAsserts.assertPropertyValue(validFromProperty, USER_JACK_VALID_FROM);
-		
+
 		PrismContainer<AssignmentType> assignmentContainer = user.findContainer(UserType.F_ASSIGNMENT);
 		PrismAsserts.assertDefinition(assignmentContainer.getDefinition(), UserType.F_ASSIGNMENT, AssignmentType.COMPLEX_TYPE, 0, -1);
 		assertEquals("Wrong number of assignment values", 1, assignmentContainer.getValues().size());
 		PrismContainerValue<AssignmentType> firstAssignmentValue = assignmentContainer.getValues().iterator().next();
-		
+
 		PrismContainer<Containerable> assignmentExtensionContainer = firstAssignmentValue.findContainer(AssignmentType.F_EXTENSION);
 		PrismAsserts.assertDefinition(assignmentExtensionContainer.getDefinition(), AssignmentType.F_EXTENSION, ExtensionType.COMPLEX_TYPE, 0, 1);
 		List<Item<?,?>> assignmentExtensionItems = assignmentExtensionContainer.getValue().getItems();
@@ -188,13 +188,13 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
 		PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_1_OID);
 		PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_2_OID);
 		PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_3_OID);
-		
+
 		PrismReferenceValue accountRef1Val = accountRef.findValueByOid(USER_ACCOUNT_REF_1_OID);
 		assertNotNull("No object in ref1 (prism)", accountRef1Val.getObject());
 		assertNotNull("No object definition in ref1 (prism)", accountRef1Val.getObject().getDefinition());
 		assertEquals("Wrong ref1 oid (prism)", USER_ACCOUNT_REF_1_OID, accountRef1Val.getOid());
 		assertEquals("Wrong ref1 type (prism)", ShadowType.COMPLEX_TYPE, accountRef1Val.getTargetType());
-		
+
 		PrismReferenceValue accountRef3Val = accountRef.findValueByOid(USER_ACCOUNT_REF_3_OID);
 		assertEquals("Wrong ref3 oid (prism)",  USER_ACCOUNT_REF_3_OID, accountRef3Val.getOid());
 		assertEquals("Wrong ref3 type (prism)", ShadowType.COMPLEX_TYPE, accountRef3Val.getTargetType());
@@ -202,7 +202,7 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
 		SearchFilterType accountRef3ValFilterElement = accountRef3Val.getFilter();
 		assertFilter("ref3", accountRef3ValFilterElement);
 	}
-	
+
 	private void assertFilterElement(String message, Element filterElement) {
 		assertNotNull("No "+message+" filter", filterElement);
 		System.out.println("Filter element "+message);
@@ -229,11 +229,11 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
 		ActivationType activation = userType.getActivation();
 		assertNotNull("No activation", activation);
 		assertEquals("User not enabled", ActivationStatusType.ENABLED, activation.getAdministrativeStatus());
-		
+
 		List<ObjectReferenceType> accountRefs = userType.getLinkRef();
 		assertNotNull("No accountRef list", accountRefs);
 		assertEquals("Wrong number of list entries", 3, accountRefs.size());
-		
+
 		ObjectReferenceType ref1 = ObjectTypeUtil.findRef(USER_ACCOUNT_REF_1_OID, accountRefs);
 		assertEquals("Wrong ref1 oid (jaxb)", USER_ACCOUNT_REF_1_OID, ref1.getOid());
 		assertEquals("Wrong ref1 type (jaxb)", ShadowType.COMPLEX_TYPE, ref1.getType());
@@ -241,7 +241,7 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
 		ObjectReferenceType ref2 = ObjectTypeUtil.findRef(USER_ACCOUNT_REF_2_OID, accountRefs);
 		assertEquals("Wrong ref2 oid (jaxb)", USER_ACCOUNT_REF_2_OID, ref2.getOid());
 		assertEquals("Wrong ref2 type (jaxb)", ShadowType.COMPLEX_TYPE, ref2.getType());
-		
+
 		ObjectReferenceType ref3 = ObjectTypeUtil.findRef(USER_ACCOUNT_REF_3_OID, accountRefs);
 		assertEquals("Wrong ref3 oid (jaxb)", USER_ACCOUNT_REF_3_OID, ref3.getOid());
 		assertEquals("Wrong ref3 type (jaxb)", ShadowType.COMPLEX_TYPE, ref3.getType());

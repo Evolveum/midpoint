@@ -24,7 +24,7 @@ import java.io.Serializable;
  *
  */
 public class ObjectSelector implements Serializable {
-	
+
 	private ItemPath path;
 
 	public ObjectSelector(ItemPath path) {
@@ -40,5 +40,5 @@ public class ObjectSelector implements Serializable {
 	public String toString() {
 		return "ObjectSelector(" + path + ")";
 	}
-	
+
 }

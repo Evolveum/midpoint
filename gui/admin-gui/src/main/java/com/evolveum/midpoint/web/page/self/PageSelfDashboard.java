@@ -107,7 +107,7 @@ public class PageSelfDashboard extends PageSelf {
     private static final String ID_REQUESTS_PANEL = "requestPanel";
     private static final String ID_ACCOUNTS = "accounts";
     private static final String ID_ASSIGNMENTS = "assignments";
-    
+
     private static final String DOT_CLASS = PageSelfDashboard.class.getName() + ".";
     private static final String OPERATION_LOAD_WORK_ITEMS = DOT_CLASS + "loadWorkItems";
     private static final String OPERATION_LOAD_REQUESTS = DOT_CLASS + "loadRequests";
@@ -115,7 +115,7 @@ public class PageSelfDashboard extends PageSelf {
     private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
-    
+
     private static final int MAX_WORK_ITEMS = 1000;
     private static final int MAX_REQUESTS = 1000;
 
@@ -247,7 +247,7 @@ public class PageSelfDashboard extends PageSelf {
 
         myRequestsPanel.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;
-        	
+
             @Override
             public boolean isVisible() {
                 UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.MY_REQUESTS);
@@ -256,7 +256,7 @@ public class PageSelfDashboard extends PageSelf {
             }
         });
         add(myRequestsPanel);
-        
+
         initMyAccounts();
         initAssignments();
     }
@@ -361,7 +361,7 @@ public class PageSelfDashboard extends PageSelf {
             return ((PageBase)getPage()).loadAdminGuiConfiguration().getUserDashboardLink();
         }
     }
-    
+
     private void initMyAccounts() {
         AsyncDashboardPanel<Object, List<SimpleAccountDto>> accounts = new AsyncDashboardPanel<Object, List<SimpleAccountDto>>(ID_ACCOUNTS,
                         createStringResource("PageDashboard.accounts"),
@@ -427,7 +427,7 @@ public class PageSelfDashboard extends PageSelf {
         });
         add(accounts);
     }
-    
+
     private AccountCallableResult<List<SimpleAccountDto>> loadAccounts() throws Exception {
         LOGGER.debug("Loading accounts.");
 

@@ -59,7 +59,7 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
     private Component component;
     private IModel<String> rootOid;
     private SelectableBean<OrgType> root;
-    
+
     private List<SelectableBean<OrgType>> availableData;
 
     public OrgTreeProvider(Component component, IModel<String> rootOid) {
@@ -73,7 +73,7 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
 		}
     	return availableData;
 	}
-    
+
     private PageBase getPageBase() {
         return WebComponentUtil.getPageBase(component);
     }
@@ -157,7 +157,7 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
     protected List<InlineMenuItem> createInlineMenuItems(OrgType org){
     	return null;
     }
-    
+
     @Override
     public Iterator<SelectableBean<OrgType>> getRoots() {
         OperationResult result = null;
@@ -187,8 +187,8 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
             list.add(root);
             if (!getAvailableData().contains(root)){
             	getAvailableData().add(root);
-            } 
-            
+            }
+
         }
         return list.iterator();
     }
@@ -202,7 +202,7 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
     public IModel<SelectableBean<OrgType>> model(SelectableBean<OrgType> object) {
         return new Model<>(object);
     }
-    
+
     public List<OrgType> getSelectedObjects(){
     	List<OrgType> selectedOrgs = new ArrayList<>();
     	for (SelectableBean<OrgType> selected : getAvailableData()){
@@ -210,7 +210,7 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
     			selectedOrgs.add(selected.getValue());
     		}
     	}
-    	
+
     	return selectedOrgs;
     }
 }

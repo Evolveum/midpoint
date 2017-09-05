@@ -66,7 +66,7 @@ import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import org.apache.wicket.util.time.Duration;
 import org.jetbrains.annotations.NotNull;
 
-/** 
+/**
  * @author semancik
  */
 public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageAdmin
@@ -74,7 +74,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	private static final long serialVersionUID = 1L;
 
 	private static final String DOT_CLASS = PageAdminObjectDetails.class.getName() + ".";
-	
+
 	public static final String PARAM_RETURN_PAGE = "returnPage";
 
 	private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
@@ -91,13 +91,13 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 	private LoadableModel<ObjectWrapper<O>> objectModel;
 	private LoadableModel<List<FocusSubwrapperDto<OrgType>>> parentOrgModel;
-	
+
 	private ProgressReporter progressReporter;
-	
+
 	// used to determine whether to leave this page or stay on it (after
 	// operation finishing)
 	private ObjectDelta<O> delta;
-	
+
 	private AbstractObjectMainPanel<O> mainPanel;
 	private boolean saveOnConfigure;		// ugly hack - whether to invoke 'Save' when returning to this page
 
@@ -155,11 +155,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	protected AbstractObjectMainPanel<O> getMainPanel() {
 		return mainPanel;
 	}
-	
+
 	public ObjectWrapper<O> getObjectWrapper() {
 		return objectModel.getObject();
 	}
-	
+
 	public List<FocusSubwrapperDto<OrgType>> getParentOrgs() {
 		return parentOrgModel.getObject();
 	}
@@ -213,16 +213,16 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		// WRONG!! TODO: fix
 		return null;
 	}
-	
+
 	protected abstract O createNewObject();
-	
+
 	protected void initLayout() {
 		initLayoutSummaryPanel();
-		
+
 		mainPanel = createMainPanel(ID_MAIN_PANEL);
 		mainPanel.setOutputMarkupId(true);
 		add(mainPanel);
-		
+
 		progressReporter = createProgressReporter("progressPanel");
 		add(progressReporter.getProgressPanel());
 	}
@@ -232,7 +232,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	}
 
 	protected abstract FocusSummaryPanel<O> createSummaryPanel();
-	
+
 	protected void initLayoutSummaryPanel() {
 
 		FocusSummaryPanel<O> summaryPanel = createSummaryPanel();
@@ -309,7 +309,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		}
 
 		showResult(result, false);
-	
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Loaded object:\n{}", object.debugDump());
 		}
@@ -334,9 +334,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, status);
 		}
 		wrapper.setLoadOptions(loadOptions);
-		
+
 		showResult(wrapper.getResult(), false);
-	
+
 		loadParentOrgs(wrapper, task, result);
 
 		wrapper.setShowEmpty(!isEditingFocus());
@@ -347,7 +347,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 		return wrapper;
 	}
-	
+
 	private void loadParentOrgs(ObjectWrapper<O> wrapper, Task task, OperationResult result) {
 		OperationResult subResult = result.createMinorSubresult(OPERATION_LOAD_PARENT_ORGS);
 		PrismObject<O> focus = wrapper.getObject();
@@ -383,7 +383,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	}
 
 	protected abstract Class<? extends Page> getRestartResponsePage();
-	
+
 	public Object findParam(String param, String oid, OperationResult result) {
 
 		Object object = null;
@@ -427,7 +427,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 		ObjectWrapper<O> objectWrapper = getObjectWrapper();
 		LOGGER.debug("Saving object {}", objectWrapper);
-		
+
 		// todo: improve, delta variable is quickfix for MID-1006
 		// redirecting to user list page everytime user is created in repository
 		// during user add in gui,
@@ -436,7 +436,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		delta = null;
 
 		Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
-		
+
 		ModelExecuteOptions options = getExecuteChangesOptions();
 		if (previewOnly) {
 			options.getOrCreatePartialProcessing().setApprovals(PartialProcessingTypeType.PROCESS);
@@ -504,7 +504,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 						delta.revive(getPrismContext());
 						deltas.add(delta);
 					}
-					
+
 					List<ObjectDelta<? extends ObjectType>> additionalDeltas = getAdditionalModifyDeltas(result);
 					if (additionalDeltas != null) {
 						for (ObjectDelta additionalDelta : additionalDeltas) {
@@ -566,7 +566,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 //			LOGGER.trace("Result NOT in progress, calling finishProcessing");
 //			finishProcessing(target, result, false);
 //		}
-		
+
 		LOGGER.trace("returning from saveOrPreviewPerformed");
 	}
 
@@ -602,17 +602,17 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	}
 
 	protected void prepareObjectForAdd(PrismObject<O> object) throws SchemaException {
-		
+
 	}
-	
+
 	protected void prepareObjectDeltaForModify(ObjectDelta<O> objectDelta) throws SchemaException {
-		
+
 	}
-	
+
 	protected List<ObjectDelta<? extends ObjectType>> getAdditionalModifyDeltas(OperationResult result) {
 		return null;
 	}
-	
+
 	protected boolean executeForceDelete(ObjectWrapper userWrapper, Task task, ModelExecuteOptions options,
 			OperationResult parentResult) {
 		return isForce();
@@ -621,12 +621,12 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	protected boolean isForce() {
 		return getMainPanel().getExecuteChangeOptionsDto().isForce();
 	}
-	
+
 	protected boolean isKeepDisplayingResults() {
 		return getMainPanel().getExecuteChangeOptionsDto().isKeepDisplayingResults();
 	}
-	
-	
+
+
 	protected Collection<SimpleValidationError> performCustomValidation(PrismObject<O> object,
 			Collection<ObjectDelta<? extends ObjectType>> deltas) throws SchemaException {
 		Collection<SimpleValidationError> errors = null;
@@ -637,7 +637,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 				for (ObjectDelta delta : deltas) {
 					// because among deltas there can be also ShadowType deltas
-					if (UserType.class.isAssignableFrom(delta.getObjectTypeClass())) { 
+					if (UserType.class.isAssignableFrom(delta.getObjectTypeClass())) {
 						delta.applyTo(object);
 					}
 				}
@@ -658,12 +658,12 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 		return errors;
 	}
-	
+
 	protected void performAdditionalValidation(PrismObject<O> object,
 			Collection<ObjectDelta<? extends ObjectType>> deltas, Collection<SimpleValidationError> errors) throws SchemaException {
-		
+
 	}
-	
+
 	public List<ObjectFormType> getObjectFormTypes() {
 		Task task = createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION);
 		OperationResult result = task.getResult();

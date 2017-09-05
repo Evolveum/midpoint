@@ -21,11 +21,11 @@
  * do it at your own risk. It is likely that midPoint upgrades will fail
  * in a spectacular way and your customizations will not survive.
  * You have been warned.
- * 
+ *
  *  If there is any class or interface in this package that you think
  *  may be useful as reusable component please contact the midPoint team.
  *  We will consider moving it to the API.
- *  
+ *
  * @author Radovan Semancik
  */
 package com.evolveum.midpoint.gui.impl;

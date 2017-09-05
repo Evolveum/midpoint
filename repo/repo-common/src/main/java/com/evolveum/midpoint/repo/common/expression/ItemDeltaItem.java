@@ -42,13 +42,13 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 	Item<V,D> itemNew;
 	ItemPath resolvePath = ItemPath.EMPTY_PATH;
 	ItemPath residualPath = null;
-	
+
 	// The deltas in sub-items. E.g. if this object represents "ContainerDeltaContainer"
 	// this property contains property deltas that may exist inside the container.
 	Collection<? extends ItemDelta<?,?>> subItemDeltas;
-	
+
 	public ItemDeltaItem() { }
-	
+
 	public ItemDeltaItem(Item<V,D> itemOld, ItemDelta<V,D> delta, Item<V,D> itemNew) {
 		super();
 		this.itemOld = itemOld;
@@ -62,7 +62,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		this.itemNew = idi.getItemNew();
 		this.delta = idi.getDelta();
 	}
-	
+
 	public ItemDeltaItem(Item<V,D> item) {
 		super();
 		this.itemOld = item;
@@ -77,7 +77,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 	public void setItemOld(Item<V,D> itemOld) {
 		this.itemOld = itemOld;
 	}
-	
+
 	public ItemDelta<V,D> getDelta() {
 		return delta;
 	}
@@ -93,14 +93,14 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 	public void setItemNew(Item<V,D> itemNew) {
 		this.itemNew = itemNew;
 	}
-	
+
 	public Item<V,D> getAnyItem() {
 		if (itemOld != null) {
 			return itemOld;
 		}
 		return itemNew;
 	}
-	
+
 	public ItemPath getResidualPath() {
 		return residualPath;
 	}
@@ -128,7 +128,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 	public boolean isNull() {
 		return itemOld == null && itemNew == null && delta == null && subItemDeltas == null;
 	}
-	
+
 	public QName getElementName() {
 		Item<V,D> anyItem = getAnyItem();
 		if (anyItem != null) {
@@ -139,7 +139,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		}
 		return null;
 	}
-	
+
 	public ItemDefinition getDefinition() {
 		Item<V,D> anyItem = getAnyItem();
 		if (anyItem != null) {
@@ -150,7 +150,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		}
 		return null;
 	}
-	
+
 	public void recompute() throws SchemaException {
 		if (delta != null) {
 			itemNew = delta.getItemNewMatchingPath(itemOld);
@@ -198,14 +198,14 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 			} else {
 				CompareResult compareComplex = delta.getPath().compareComplex(newResolvePath);
 				if (compareComplex == CompareResult.EQUIVALENT || compareComplex == CompareResult.SUBPATH) {
-					subDelta = (ItemDelta<IV,ID>) delta;	
+					subDelta = (ItemDelta<IV,ID>) delta;
 				}
 			}
 		}
 		ItemDeltaItem<IV,ID> subIdi = new ItemDeltaItem<IV,ID>(subItemOld, subDelta, subItemNew);
 		subIdi.setResidualPath(subResidualPath);
 		subIdi.resolvePath = newResolvePath;
-		
+
 		if (subItemDeltas != null) {
 			Item<IV,ID> subAnyItem = subIdi.getAnyItem();
 			Collection<ItemDelta<?,?>> subSubItemDeltas = new ArrayList<>();
@@ -230,10 +230,10 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 				}
 			}
 		}
-		
+
 		return subIdi;
 	}
-	
+
 	public PrismValueDeltaSetTriple<V> toDeltaSetTriple() {
 		return ItemDelta.toDeltaSetTriple(itemOld, delta);
 	}
@@ -248,7 +248,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		}
 		return false;
 	}
-	
+
 	public boolean isProperty() {
 		Item<V,D> item = getAnyItem();
 		if (item != null) {
@@ -300,7 +300,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		}
 		return outputProperty;
 	}
-	
+
 	private <X> PropertyDelta<X> resolveStructuredPropertyDelta(PropertyDelta<Structured> sourceDelta, ItemPath resolvePath, PrismPropertyDefinition outputDefinition, ItemPath outputPath) {
 		if (sourceDelta == null) {
 			return null;
@@ -320,7 +320,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		}
 		return outputDelta;
 	}
-	
+
 	private <X> Collection<PrismPropertyValue<X>> resolveStructuredDeltaSet(Collection<PrismPropertyValue<Structured>> set, ItemPath resolvePath) {
 		if (set == null) {
 			return null;
@@ -333,7 +333,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		}
 		return outputSet;
 	}
-	
+
 	public void applyDefinition(D def, boolean force) throws SchemaException {
 		if (itemNew != null) {
 			itemNew.applyDefinition(def, force);
@@ -345,7 +345,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 			delta.applyDefinition(def, force);
 		}
 	}
-	
+
 	public ItemDeltaItem<V,D> clone() {
 		ItemDeltaItem<V,D> clone = new ItemDeltaItem<>();
 		copyValues(clone);

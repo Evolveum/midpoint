@@ -629,9 +629,9 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 		WebComponentUtil.addAjaxOnUpdateBehavior(body);
 	}
-	
+
 	private void updateAssignmentName(AjaxRequestTarget target, Boolean isManager){
-		
+
 		Label nameLabel = new Label(ID_NAME_LABEL, createAssignmentNameLabelModel(isManager));
 		nameLabel.setOutputMarkupId(true);
 		AjaxLink name = (AjaxLink) get(createComponentPath(ID_HEADER_ROW, ID_NAME));

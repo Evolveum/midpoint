@@ -72,22 +72,22 @@ import java.util.Map;
  */
 @Component("securityEnforcer")
 public class SecurityEnforcerImpl implements SecurityEnforcer {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
 
 	private static final boolean FILTER_TRACE_ENABLED = false;
-	
+
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
-	
+
 	@Autowired
 	private PrismContext prismContext;
 
 	private ThreadLocal<HttpConnectionInformation> connectionInformationThreadLocal = new ThreadLocal<>();
 
 	private UserProfileService userProfileService = null;
-	
+
 	@Override
 	public UserProfileService getUserProfileService() {
 		return userProfileService;
@@ -102,7 +102,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	public MidPointPrincipal getPrincipal() throws SecurityViolationException {
 		return SecurityUtil.getPrincipal();
 	}
-	
+
     @Override
 	public boolean isAuthenticated() {
 		return SecurityUtil.isAuthenticated();
@@ -131,7 +131,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	@Override
 	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver)
-			throws SchemaException {	
+			throws SchemaException {
 		MidPointPrincipal midPointPrincipal = getMidPointPrincipal();
 		if (phase == null) {
 			if (!isAuthorizedInternal(midPointPrincipal, operationUrl, AuthorizationPhaseType.REQUEST, object, delta, target, ownerResolver)) {
@@ -141,16 +141,16 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		} else {
 			return isAuthorizedInternal(midPointPrincipal, operationUrl, phase, object, delta, target, ownerResolver);
 		}
-	} 
-	
+	}
+
 	private <O extends ObjectType, T extends ObjectType> boolean isAuthorizedInternal(MidPointPrincipal midPointPrincipal, String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver)
-			throws SchemaException {	
-		
+			throws SchemaException {
+
 		if (AuthorizationConstants.AUTZ_NO_ACCESS_URL.equals(operationUrl)){
 			return false;
 		}
-		
+
 		if (phase == null) {
 			throw new IllegalArgumentException("No phase");
 		}
@@ -165,15 +165,15 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					Authorization autz = (Authorization)authority;
 					String autzHumanReadableDesc = autz.getHumanReadableDesc();
 					LOGGER.trace("Evaluating {}", autzHumanReadableDesc);
-					
+
 					// First check if the authorization is applicable.
-					
+
 					// action
 					if (!autz.getAction().contains(operationUrl) && !autz.getAction().contains(AuthorizationConstants.AUTZ_ALL_URL)) {
 						LOGGER.trace("  {} not applicable for operation {}", autzHumanReadableDesc, operationUrl);
 						continue;
 					}
-					
+
 					// phase
 					if (autz.getPhase() == null) {
 						LOGGER.trace("  {} is applicable for all phases (continuing evaluation)", autzHumanReadableDesc);
@@ -185,25 +185,25 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							LOGGER.trace("  {} is applicable for phases {} (continuing evaluation)", autzHumanReadableDesc, phase);
 						}
 					}
-					
+
 					// object
 					if (isApplicable(autz.getObject(), object, midPointPrincipal, ownerResolver, "object", autzHumanReadableDesc)) {
 						LOGGER.trace("  {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, object);
 					} else {
-						LOGGER.trace("  {} not applicable for object {}, none of the object specifications match (breaking evaluation)", 
+						LOGGER.trace("  {} not applicable for object {}, none of the object specifications match (breaking evaluation)",
 								autzHumanReadableDesc, object);
 						continue;
 					}
-					
+
 					// target
 					if (isApplicable(autz.getTarget(), target, midPointPrincipal, ownerResolver, "target", autzHumanReadableDesc)) {
 						LOGGER.trace("  {} applicable for target {} (continuing evaluation)", autzHumanReadableDesc, object);
 					} else {
-						LOGGER.trace("  {} not applicable for target {}, none of the target specifications match (breaking evaluation)", 
+						LOGGER.trace("  {} not applicable for target {}, none of the target specifications match (breaking evaluation)",
 								autzHumanReadableDesc, object);
 						continue;
 					}
-					
+
 					// authority is applicable to this situation. now we can process the decision.
 					AuthorizationDecisionType decision = autz.getDecision();
 					if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
@@ -232,16 +232,16 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						}
 						LOGGER.trace("  {}: DENY operation {}", autzHumanReadableDesc, operationUrl);
 						allow = false;
-						// Break right here. Deny cannot be overridden by allow. This decision cannot be changed. 
+						// Break right here. Deny cannot be overridden by allow. This decision cannot be changed.
 						break;
 					}
-					
+
 				} else {
 					LOGGER.warn("Unknown authority type {} in user {}", authority.getClass(), getUsername(midPointPrincipal));
 				}
 			}
 		}
-		
+
 		if (allow) {
 			// Still check allowedItems. We may still deny the operation.
 			if (allowedItems.isEmpty()) {
@@ -249,7 +249,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				LOGGER.trace("  Empty list of allowed items, operation allowed");
 			} else {
 				// all items in the object and delta must be allowed
-				
+
 				if (delta != null) {
 					allow = processAuthorizationDelta(delta, allowedItems);
 				} else if (object != null) {
@@ -263,11 +263,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		return allow;
 	}
-	
+
 	private <O extends ObjectType> boolean processAuthorizationObject(PrismContainer<O> object, final Collection<ItemPath> allowedItems) {
 		return isContainerAllowed(object.getValue(), allowedItems);
 	}
-	
+
 	private <C extends Containerable> boolean processAuthorizationContainerDelta(ContainerDelta<C> cdelta, final Collection<ItemPath> allowedItems) {
 		final MutableBoolean itemDecision = new MutableBoolean(true);
 		cdelta.foreach(cval -> {
@@ -277,11 +277,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		});
 		return itemDecision.booleanValue();
 	}
-		
+
 	private boolean isContainerAllowed(PrismContainerValue<?> cval, Collection<ItemPath> allowedItems) {
 		if (cval.isEmpty()) {
 			// TODO: problem with empty containers such as
-			// orderConstraint in assignment. Skip all 
+			// orderConstraint in assignment. Skip all
 			// empty items ... for now.
 			return true;
 		}
@@ -308,7 +308,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		return decision;
 	}
-	
+
 	private <O extends ObjectType> boolean processAuthorizationDelta(ObjectDelta<O> delta, final Collection<ItemPath> allowedItems) {
 		if (delta.isAdd()) {
 			return processAuthorizationObject(delta.getObjectToAdd(), allowedItems);
@@ -331,7 +331,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			return true;
 		}
 	}
-	
+
 	private boolean isInList(ItemPath itemPath, Collection<ItemPath> allowedItems) {
 		boolean itemAllowed = false;
 		for (ItemPath allowedPath: allowedItems) {
@@ -345,14 +345,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	@Override
 	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, 
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver,
 			OperationResult result) throws SecurityViolationException, SchemaException {
 		boolean allow = isAuthorized(operationUrl, phase, object, delta, target, ownerResolver);
 		if (!allow) {
 			failAuthorization(operationUrl, phase, object, delta, target, result);
 		}
 	}
-	
+
 	@Override
 	public <O extends ObjectType, T extends ObjectType> void failAuthorization(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OperationResult result) throws SecurityViolationException {
@@ -371,8 +371,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		result.recordFatalError(e.getMessage(), e);
 		throw e;
 	}
-	
-	private <O extends ObjectType> boolean isApplicable(List<OwnedObjectSelectorType> objectSpecTypes, PrismObject<O> object, 
+
+	private <O extends ObjectType> boolean isApplicable(List<OwnedObjectSelectorType> objectSpecTypes, PrismObject<O> object,
 			MidPointPrincipal midPointPrincipal, OwnerResolver ownerResolver, String desc, String autzHumanReadableDesc) throws SchemaException {
 		if (objectSpecTypes != null && !objectSpecTypes.isEmpty()) {
 			if (object == null) {
@@ -390,16 +390,16 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			return true;
 		}
 	}
-	
-	private <O extends ObjectType> boolean isApplicable(SubjectedObjectSelectorType objectSelector, PrismObject<O> object, 
+
+	private <O extends ObjectType> boolean isApplicable(SubjectedObjectSelectorType objectSelector, PrismObject<O> object,
 			MidPointPrincipal principal, OwnerResolver ownerResolver, String desc, String autzHumanReadableDesc) throws SchemaException {
 		if (!repositoryService.selectorMatches(objectSelector, object, LOGGER, "  " + autzHumanReadableDesc + " not applicable for " + desc + " because of ")) {
 			return false;
 		}
-		
+
 		OrgRelationObjectSpecificationType specOrgRelation = objectSelector.getOrgRelation();
 		RoleRelationObjectSpecificationType specRoleRelation = objectSelector.getRoleRelation();
-				
+
 		// Special
 		List<SpecialObjectSpecificationType> specSpecial = objectSelector.getSpecial();
 		if (specSpecial != null && !specSpecial.isEmpty()) {
@@ -429,7 +429,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		} else {
 			LOGGER.trace("  {}: specials empty: {}", autzHumanReadableDesc, specSpecial);
 		}
-		
+
 		// orgRelation
 		if (specOrgRelation != null) {
 			boolean match = false;
@@ -445,9 +445,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				LOGGER.trace("  org {} not applicable for {}, object OID {} because none of the subject orgs matches",
 						autzHumanReadableDesc, desc, object.getOid());
 				return false;
-			}			
+			}
 		}
-		
+
 		// roleRelation
 		if (specRoleRelation != null) {
 			boolean match = false;
@@ -463,9 +463,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				LOGGER.trace("  {} not applicable for {}, object OID {} because none of the subject roles matches",
 						autzHumanReadableDesc, desc, object.getOid());
 				return false;
-			}			
+			}
 		}
-		
+
 		if (objectSelector instanceof OwnedObjectSelectorType) {
 			// Owner
 			SubjectedObjectSelectorType ownerSpec = ((OwnedObjectSelectorType)objectSelector).getOwner();
@@ -489,9 +489,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					LOGGER.trace("  {}: owner object spec not applicable for {}, object OID {} because owner does not match (owner={})",
 							autzHumanReadableDesc, desc, object.getOid(), owner);
 					return false;
-				}			
+				}
 			}
-			
+
 			// Delegator
 			SubjectedObjectSelectorType delegatorSpec = ((OwnedObjectSelectorType)objectSelector).getDelegator();
 			if (delegatorSpec != null) {
@@ -521,7 +521,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		LOGGER.trace("  {} applicable for {} (filter)", autzHumanReadableDesc, desc);
 		return true;
 	}
-	
+
 	private boolean isSelf(SubjectedObjectSelectorType spec) throws SchemaException {
 		List<SpecialObjectSpecificationType> specSpecial = spec.getSpecial();
 		if (specSpecial != null && !specSpecial.isEmpty()) {
@@ -561,7 +561,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				throw new UnsupportedOperationException("Unknown orgRelation scope "+specOrgRelation.getScope());
 		}
 	}
-	
+
 	private <O extends ObjectType> boolean hasParentOrgRef(PrismObject<O> object, String oid) {
 		List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
 		for (ObjectReferenceType objParentOrgRef: objParentOrgRefs) {
@@ -571,7 +571,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		return false;
 	}
-	
+
 	private <O extends ObjectType> boolean matchesRoleRelation(PrismObject<O> object, ObjectReferenceType subjectRoleMembershipRef,
 			RoleRelationObjectSpecificationType specRoleRelation, String autzHumanReadableDesc, String desc) throws SchemaException {
 		if (!MiscSchemaUtil.compareRelation(specRoleRelation.getSubjectRelation(), subjectRoleMembershipRef.getRelation())) {
@@ -596,7 +596,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		return false;
 	}
-	
+
 	private <O extends ObjectType> boolean isApplicableItem(Authorization autz,
 			PrismObject<O> object, ObjectDelta<O> delta) throws SchemaException {
 		List<ItemPathType> itemPaths = autz.getItem();
@@ -625,7 +625,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		LOGGER.trace("  no applicable item");
 		return false;
 	}
-	
+
 	private Collection<ItemPath> getItems(Authorization autz) {
 		List<ItemPathType> itemPaths = autz.getItem();
 		Collection<ItemPath> items = new ArrayList<>(itemPaths.size());
@@ -635,7 +635,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		return items;
 	}
-	
+
 	/**
 	 * Spring security method. It is practically applicable only for simple cases.
 	 */
@@ -653,7 +653,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			SecurityUtil.logSecurityDeny(object, ": Unknown type of secure object");
 			throw new IllegalArgumentException("Unknown type of secure object");
 		}
-		
+
 		Object principalObject = authentication.getPrincipal();
 		if (!(principalObject instanceof MidPointPrincipal)) {
 			if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principalObject)){
@@ -665,7 +665,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 
 		Collection<String> configActions = SecurityUtil.getActions(configAttributes);
-		
+
 		for(String configAction: configActions) {
 			boolean isAuthorized;
 			try {
@@ -677,9 +677,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				return;
 			}
 		}
-		
+
 		SecurityUtil.logSecurityDeny(object, ": Not authorized", null, configActions);
-		
+
 		// Sparse exception method by purpose. We do not want to expose details to attacker.
 		// Better message is logged.
 		throw new AccessDeniedException("Not authorized");
@@ -717,7 +717,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		return username;
 	}
-	
+
 	private String getQuotedUsername(MidPointPrincipal principal) {
 		if (principal == null) {
 			return "(none)";
@@ -745,7 +745,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		return (MidPointPrincipal)principal;
 	}
-	
+
 	private Collection<Authorization> getAuthorities(MidPointPrincipal principal) {
 		if (principal == null) {
 			// Anonymous access, possibly with elevated privileges
@@ -763,7 +763,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			return principal.getAuthorities();
 		}
 	}
-	
+
 	@Override
 	public <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver) throws SchemaException {
 		MidPointPrincipal principal = getMidPointPrincipal();
@@ -777,20 +777,20 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			for (Authorization autz: authorities) {
 				String autzHumanReadableDesc = autz.getHumanReadableDesc();
 				LOGGER.trace("Evaluating {}", autzHumanReadableDesc);
-				
+
 				// skip action applicability evaluation. We are interested in all actions
-				
+
 				// object
 				if (isApplicable(autz.getObject(), object, principal, ownerResolver, "object", autzHumanReadableDesc)) {
 					LOGGER.trace("  {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, object);
 				} else {
-					LOGGER.trace("  {} not applicable for object {}, none of the object specifications match (breaking evaluation)", 
+					LOGGER.trace("  {} not applicable for object {}, none of the object specifications match (breaking evaluation)",
 							autzHumanReadableDesc, object);
 					continue;
 				}
-				
+
 				// skip target applicability evaluation. We do not have a target here
-				
+
 				List<String> actions = autz.getAction();
 				AuthorizationPhaseType phase = autz.getPhase();
 				AuthorizationDecisionType decision = autz.getDecision();
@@ -813,12 +813,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						}
 					}
 				}
-					
+
 			}
 		}
-		
+
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("AUTZ: evaluated security constraints principal={}, object={}:\n{}", 
+			LOGGER.trace("AUTZ: evaluated security constraints principal={}, object={}:\n{}",
 					principal, object, objectSecurityConstraints.debugDump());
 		}
 
@@ -846,7 +846,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}
 		}
 	}
-	
+
 	private void applyDecisionRequest(Map<String, PhaseDecisionImpl> actionDecisionMap,
 			String action, AuthorizationDecisionType decision) {
 		PhaseDecisionImpl phaseDecision = actionDecisionMap.get(action);
@@ -876,7 +876,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 
 	@Override
-	public <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase, 
+	public <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
 			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException {
 		MidPointPrincipal principal = getMidPointPrincipal();
 		LOGGER.trace("AUTZ: evaluating search pre-process principal={}, searchResultType={}, object={}: orig filter {}",
@@ -886,12 +886,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		ObjectFilter finalFilter;
 		if (phase != null) {
-			finalFilter = preProcessObjectFilterInternal(principal, operationUrl, phase, 
+			finalFilter = preProcessObjectFilterInternal(principal, operationUrl, phase,
 					true, searchResultType, object, true, origFilter, "search pre-process");
 		} else {
-			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrl, null, 
+			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrl, null,
 					false, searchResultType, object, true, origFilter, "search pre-process");
-			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.REQUEST, 
+			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.REQUEST,
 					false, searchResultType, object, true, origFilter, "search pre-process");
 			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.EXECUTION,
 					false, searchResultType, object, true, origFilter, "search pre-process");
@@ -904,7 +904,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		return finalFilter;
 	}
-	
+
 	@Override
 	public <T extends ObjectType, O extends ObjectType> boolean canSearch(String operationUrl,
 			AuthorizationPhaseType phase, Class<T> searchResultType, PrismObject<O> object, boolean includeSpecial, ObjectFilter filter)
@@ -917,12 +917,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		ObjectFilter finalFilter;
 		if (phase != null) {
-			finalFilter = preProcessObjectFilterInternal(principal, operationUrl, phase, 
+			finalFilter = preProcessObjectFilterInternal(principal, operationUrl, phase,
 					true, searchResultType, object, includeSpecial, filter, "search permission");
 		} else {
-			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrl, null, 
+			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrl, null,
 					false, searchResultType, object, includeSpecial, filter, "search permission");
-			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.REQUEST, 
+			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.REQUEST,
 					false, searchResultType, object, includeSpecial, filter, "search permission");
 			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.EXECUTION,
 					false, searchResultType, object, includeSpecial, filter, "search permission");
@@ -934,15 +934,15 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return decision;
 	}
 
-	private <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilterInternal(MidPointPrincipal principal, String operationUrl, 
-			AuthorizationPhaseType phase, boolean includeNullPhase, 
+	private <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilterInternal(MidPointPrincipal principal, String operationUrl,
+			AuthorizationPhaseType phase, boolean includeNullPhase,
 			Class<T> objectType, PrismObject<O> object, boolean includeSpecial, ObjectFilter origFilter, String desc) throws SchemaException {
-		
+
 		Collection<Authorization> authorities = getAuthorities(principal);
-		
+
 		ObjectFilter securityFilterAllow = null;
 		ObjectFilter securityFilterDeny = null;
-		
+
 		QueryItemsSpec queryItemsSpec = new QueryItemsSpec();
 		queryItemsSpec.addRequiredItems(origFilter); // MID-3916
 		if (LOGGER.isTraceEnabled()) {
@@ -956,13 +956,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					Authorization autz = (Authorization)authority;
 					String autzHumanReadableDesc = autz.getHumanReadableDesc();
 					LOGGER.trace("Evaluating {}", autzHumanReadableDesc);
-					
+
 					// action
 					if (!autz.getAction().contains(operationUrl) && !autz.getAction().contains(AuthorizationConstants.AUTZ_ALL_URL)) {
 						LOGGER.trace("  Authorization not applicable for operation {}", operationUrl);
 						continue;
 					}
-	
+
 					// phase
 					if (autz.getPhase() == phase || (includeNullPhase && autz.getPhase() == null)) {
 						LOGGER.trace("  Authorization is applicable for phases {} (continuing evaluation)", phase);
@@ -970,7 +970,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						LOGGER.trace("  Authorization is not applicable for phase {}", phase);
 						continue;
 					}
-	
+
 					// object or target
 					String objectTargetSpec;
 					ObjectFilter autzObjSecurityFilter = null;
@@ -983,7 +983,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						// object present. Therefore we are looking for target
 						objectSpecTypes = autz.getTarget();
 						objectTargetSpec = "target";
-						
+
 						// .. but we need to decide whether this authorization is applicable to the object
 						if (isApplicable(autz.getObject(), object, principal, null, "object", autzHumanReadableDesc)) {
 							LOGGER.trace("  Authorization is applicable for object {}", object);
@@ -998,9 +998,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 						LOGGER.trace("  No {} specification in authorization (authorization is universaly applicable)", objectTargetSpec);
 						autzObjSecurityFilter = AllFilter.createAll();
-						
+
 					} else {
-						
+
 						applicable = false;
 						for (OwnedObjectSelectorType objectSpecType: objectSpecTypes) {
 							ObjectFilter objSpecSecurityFilter = null;
@@ -1011,7 +1011,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							RoleRelationObjectSpecificationType specRoleRelation = objectSpecType.getRoleRelation();
 							QName specTypeQName = objectSpecType.getType();
 							PrismObjectDefinition<T> objectDefinition = null;
-							
+
 							// Type
 							if (specTypeQName != null) {
                                 specTypeQName = prismContext.getSchemaRegistry().qualifyTypeName(specTypeQName);
@@ -1034,7 +1034,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									objectDefinition = (PrismObjectDefinition<T>) specObjectDef;
 								}
 							}
-							
+
 							// Owner
 							if (objectSpecType.getOwner() != null) {
 								if (objectDefinition == null) {
@@ -1048,9 +1048,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								} else {
 									LOGGER.trace("  Authorization not applicable for object because it has owner specification (this is not applicable for search)");
 									continue;
-								}								
+								}
 							}
-							
+
 //							// Delegator
 //							if (objectSpecType.getDelegator() != null) {
 //								if (objectDefinition == null) {
@@ -1064,11 +1064,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 //								} else {
 //									LOGGER.trace("  Authorization not applicable for object because it has owner specification (this is not applicable for search)");
 //									continue;
-//								}								
+//								}
 //							}
-							
+
 							applicable = true;
-							
+
 							// Special
 							List<SpecialObjectSpecificationType> specSpecial = objectSpecType.getSpecial();
 							if (specSpecial != null && !specSpecial.isEmpty()) {
@@ -1093,7 +1093,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							} else {
 								LOGGER.trace("  specials empty: {}", specSpecial);
 							}
-							
+
 							// Filter
 							if (specFilterType != null) {
 								if (objectDefinition == null) {
@@ -1109,7 +1109,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							} else {
 								LOGGER.trace("  filter empty");
 							}
-							
+
 							// Org
 							if (specOrgRef != null) {
 								ObjectFilter orgFilter = QueryBuilder.queryFor(ObjectType.class, prismContext)
@@ -1119,7 +1119,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							} else {
 								LOGGER.trace("  org empty");
 							}
-							
+
 							// orgRelation
 							if (specOrgRelation != null) {
 								ObjectFilter objSpecOrgRelationFilter = null;
@@ -1151,7 +1151,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							} else {
 								LOGGER.trace("  orgRelation empty");
 							}
-							
+
 							// roleRelation
 							if (specRoleRelation != null) {
 								ObjectFilter objSpecRoleRelationFilter = processRoleRelationFilter(principal, autz, specRoleRelation, queryItemsSpec, origFilter);
@@ -1170,20 +1170,20 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							} else {
 								LOGGER.trace("  roleRelation empty");
 							}
-							
+
 							if (objSpecTypeFilter != null) {
 								objSpecTypeFilter.setFilter(objSpecSecurityFilter);
 								objSpecSecurityFilter = objSpecTypeFilter;
 							}
-							
+
 							traceFilter("objSpecSecurityFilter", objectSpecType, objSpecSecurityFilter);
 							autzObjSecurityFilter = ObjectQueryUtil.filterOr(autzObjSecurityFilter, objSpecSecurityFilter);
 						}
-						
+
 					}
-					
+
 					traceFilter("autzObjSecurityFilter", autz, autzObjSecurityFilter);
-					
+
 					if (applicable) {
 						autzObjSecurityFilter = ObjectQueryUtil.simplify(autzObjSecurityFilter);
 						// authority is applicable to this situation. now we can process the decision.
@@ -1218,31 +1218,31 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							}
 						}
 					}
-					
+
 					traceFilter("securityFilterAllow", autz, securityFilterAllow);
 					traceFilter("securityFilterDeny", autz, securityFilterDeny);
-					
+
 				} else {
 					LOGGER.warn("Unknown authority type {} in user {}", authority.getClass(), getUsername(principal));
 				}
 			}
 		}
-		
+
 		traceFilter("securityFilterAllow", null, securityFilterAllow);
 		traceFilter("securityFilterDeny", null, securityFilterDeny);
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(" Final items: {}", queryItemsSpec.shortDump());
 		}
 		List<ItemPath> unsatisfiedItems = queryItemsSpec.evaluateUnsatisfierItems();
 		if (!unsatisfiedItems.isEmpty()) {
-			LOGGER.trace("AUTZ {}: principal={}, operation={}: deny because items {} are not allowed",  
+			LOGGER.trace("AUTZ {}: principal={}, operation={}: deny because items {} are not allowed",
 					desc, getUsername(principal), operationUrl, unsatisfiedItems);
 			NoneFilter secFilter = NoneFilter.createNone();
 			traceFilter("secFilter", null, secFilter);
 			return secFilter;
 		}
-		
+
 		ObjectFilter origWithAllowFilter;
 		if (hasAllowAll) {
 			origWithAllowFilter = origFilter;
@@ -1273,7 +1273,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			return secFilter;
 		}
 	}
-	
+
 	/**
 	 * Very rudimentary and experimental implementation.
 	 */
@@ -1281,13 +1281,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			RoleRelationObjectSpecificationType specRoleRelation, QueryItemsSpec queryItemsSpec, ObjectFilter origFilter) {
 		ObjectFilter refRoleFilter = null;
 		if (BooleanUtils.isTrue(specRoleRelation.isIncludeReferenceRole())) {
-			// This could mean that we will need to add filters for all roles in 
+			// This could mean that we will need to add filters for all roles in
 			// subject's roleMembershipRef. There may be thousands of these.
 			if (!autz.maySkipOnSearch()) {
 				throw new UnsupportedOperationException("Inefficient roleRelation search (includeReferenceRole=true) is not supported yet");
 			}
 		}
-		
+
 		ObjectFilter membersFilter = null;
 		if (!BooleanUtils.isFalse(specRoleRelation.isIncludeMembers())) {
 			List<PrismReferenceValue> queryRoleRefs = getRoleOidsFromFilter(origFilter);
@@ -1320,7 +1320,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				}
 			}
 		}
-		
+
 		return ObjectQueryUtil.filterOr(refRoleFilter, membersFilter);
 	}
 
@@ -1365,7 +1365,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		if (FILTER_TRACE_ENABLED) {
 			LOGGER.trace("FILTER {} for {}:\n{}", message, forObj, filter==null?null:filter.debugDump(1));
 		}
-		
+
 	}
 
 	private Object getUsername(MidPointPrincipal principal) {
@@ -1373,47 +1373,47 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 
 	@Override
-	public <O extends ObjectType, R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(MidPointPrincipal midPointPrincipal, 
+	public <O extends ObjectType, R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(MidPointPrincipal midPointPrincipal,
 			String operationUrl, PrismObject<O> object, PrismObject<R> target, OwnerResolver ownerResolver) throws SchemaException {
-		
+
 		ItemSecurityDecisions decisions = new ItemSecurityDecisions();
-		
+
 		for(Authorization autz: getAuthorities(midPointPrincipal)) {
 			String autzHumanReadableDesc = autz.getHumanReadableDesc();
 			LOGGER.trace("Evaluating {}", autzHumanReadableDesc);
-			
+
 			// First check if the authorization is applicable.
-			
+
 			// action
 			if (!autz.getAction().contains(operationUrl) && !autz.getAction().contains(AuthorizationConstants.AUTZ_ALL_URL)) {
 				LOGGER.trace("  {} not applicable for operation {}", autzHumanReadableDesc, operationUrl);
 				continue;
 			}
-			
+
 			// phase
 			if (autz.getPhase() != null && autz.getPhase() != AuthorizationPhaseType.REQUEST) {
 				LOGGER.trace("  {} is not applicable for phase {} (breaking evaluation)", autzHumanReadableDesc, AuthorizationPhaseType.REQUEST);
 				continue;
 			}
-						
+
 			// object
 			if (isApplicable(autz.getObject(), object, midPointPrincipal, ownerResolver, "object", autzHumanReadableDesc)) {
 				LOGGER.trace("  {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, object);
 			} else {
-				LOGGER.trace("  {} not applicable for object {}, none of the object specifications match (breaking evaluation)", 
+				LOGGER.trace("  {} not applicable for object {}, none of the object specifications match (breaking evaluation)",
 						autzHumanReadableDesc, object);
 				continue;
 			}
-			
+
 			// target
 			if (isApplicable(autz.getTarget(), target, midPointPrincipal, ownerResolver, "target", autzHumanReadableDesc)) {
 				LOGGER.trace("  {} applicable for target {} (continuing evaluation)", autzHumanReadableDesc, object);
 			} else {
-				LOGGER.trace("  {} not applicable for target {}, none of the target specifications match (breaking evaluation)", 
+				LOGGER.trace("  {} not applicable for target {}, none of the target specifications match (breaking evaluation)",
 						autzHumanReadableDesc, object);
 				continue;
 			}
-			
+
 			// authority is applicable to this situation. now we can process the decision.
 			AuthorizationDecisionType decision = autz.getDecision();
 			if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
@@ -1448,7 +1448,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}
 
 		}
-		
+
 		return decisions;
 	}
 
@@ -1471,12 +1471,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		LOGGER.debug("Running {} as privileged", producer);
 		Authentication origAuthentication = SecurityContextHolder.getContext().getAuthentication();
 		LOGGER.trace("ORIG auth {}", origAuthentication);
-		
+
 		// Try to reuse the original identity as much as possible. All we need to is add AUTZ_ALL
 		// to the list of authorities
 		Authorization privilegedAuthorization = createPrivilegedAuthorization();
 		Object newPrincipal = null;
-		
+
 		if (origAuthentication != null) {
 			Object origPrincipal = origAuthentication.getPrincipal();
 			if (origAuthentication instanceof AnonymousAuthenticationToken) {
@@ -1491,19 +1491,19 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					}
 				}
 			}
-			
+
 			Collection<GrantedAuthority> newAuthorities = new ArrayList<>();
 			newAuthorities.addAll(origAuthentication.getAuthorities());
 			newAuthorities.add(privilegedAuthorization);
 			PreAuthenticatedAuthenticationToken newAuthorization = new PreAuthenticatedAuthenticationToken(newPrincipal, null, newAuthorities);
-			
+
 			LOGGER.trace("NEW auth {}", newAuthorization);
 			SecurityContextHolder.getContext().setAuthentication(newAuthorization);
 		} else {
 			LOGGER.debug("No original authentication, do NOT setting any privileged security context");
 		}
-		
-		
+
+
 		try {
 			return producer.run();
 		} finally {
@@ -1511,9 +1511,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			LOGGER.debug("Finished running {} as privileged", producer);
 			LOGGER.trace("Security context after privileged operation: {}", SecurityContextHolder.getContext());
 		}
-		
+
 	}
-	
+
 	private Authorization createPrivilegedAuthorization() {
 		AuthorizationType authorizationType = new AuthorizationType();
 		authorizationType.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
@@ -1529,5 +1529,5 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	public HttpConnectionInformation getStoredConnectionInformation() {
 		return connectionInformationThreadLocal.get();
 	}
-	
+
 }

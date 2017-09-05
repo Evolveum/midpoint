@@ -137,7 +137,7 @@ public class TaskEvent extends BaseEvent {
 	public long getProgress() {
 		return taskRunResult != null ? taskRunResult.getProgress() : task.getProgress();
 	}
-	
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);

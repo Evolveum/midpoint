@@ -33,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 public class UsersStorage implements PageStorage, DebugDumpable, OrgTreeStateStorage {
 
     /**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
 

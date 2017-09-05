@@ -94,7 +94,7 @@ public abstract class AccessCertificationEvent extends BaseEvent {
         }
         return CertCampaignTypeUtil.findStageDefinition(campaign, campaign.getStageNumber());
     }
-    
+
     @Override
     protected void debugDumpCommon(StringBuilder sb, int indent) {
     	super.debugDumpCommon(sb, indent);

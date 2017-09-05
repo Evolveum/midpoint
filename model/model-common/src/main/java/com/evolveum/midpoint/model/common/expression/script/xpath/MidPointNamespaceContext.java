@@ -24,9 +24,9 @@ import javax.xml.namespace.NamespaceContext;
 
 /**
  * Used to register namespaces for prefixes for JAXP
- * 
+ *
  * @see NamespaceContext
- * 
+ *
  * @author Igor Farinic
  */
 

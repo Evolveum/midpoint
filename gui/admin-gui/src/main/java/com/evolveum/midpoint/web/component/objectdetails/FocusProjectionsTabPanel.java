@@ -85,7 +85,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 	private static final String ID_SHADOW_CHECK_ALL = "shadowCheckAll";
 
 	private static final String MODAL_ID_RESOURCE = "resourcePopup";
-	
+
 	private static final String DOT_CLASS = FocusProjectionsTabPanel.class.getName() + ".";
 	private static final String OPERATION_ADD_ACCOUNT = DOT_CLASS + "addShadow";
 
@@ -321,7 +321,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 					new InlineMenuItemAction() {
 
 						/**
-						 * 
+						 *
 						 */
 						private static final long serialVersionUID = 1L;
 

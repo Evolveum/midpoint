@@ -85,7 +85,7 @@ public class XPathTest {
 
     public XPathTest() {
     }
-    
+
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -171,7 +171,7 @@ public class XPathTest {
     public void xPathFromDomNode1() throws ParserConfigurationException, SAXException, IOException {
 
         // Given
-        Element el1 = parseDataGetEl1();   
+        Element el1 = parseDataGetEl1();
         String xpathString = "/root/x:el1[100]";
         el1.setTextContent(xpathString);
 
@@ -217,7 +217,7 @@ public class XPathTest {
         NodeList nodes = ((Element) rootNode).getElementsByTagNameNS("http://xx.com/", "el1");
 
         Node el1 = nodes.item(0);
-        
+
         return (Element)el1;
 	}
 
@@ -316,7 +316,7 @@ public class XPathTest {
     	Map<String, String> namespaceMap = new HashMap<String, String>();
     	namespaceMap.put("foo", "http://foo");
     	namespaceMap.put("bar", "http://bar");
-    	
+
         String xpathStr = "foo:foo/bar:bar";
 
         ItemPathHolder xpath = new ItemPathHolder(xpathStr, namespaceMap);
@@ -357,21 +357,21 @@ public class XPathTest {
         System.out.println("Stragechars ROUND TRIP: "+xpath.getXPathWithDeclarations());
 
     }
-    
+
     @Test
     public void xpathFromQNameTest() {
     	// GIVEN
     	QName qname = new QName(NS_FOO, "foo");
     	ItemPathHolder xpath = new ItemPathHolder(qname);
     	QName elementQName = new QName(NS_BAR, "bar");
-    	
+
     	// WHEN
     	Element element = xpath.toElement(elementQName, DOMUtil.getDocument());
-    	
+
     	// THEN
     	System.out.println("XPath from Qname:");
     	System.out.println(DOMUtil.serializeDOMToString(element));
-    	
+
     	assertEquals("Wrong element name", "bar", element.getLocalName());
     	assertEquals("Wrong element namespace", NS_BAR, element.getNamespaceURI());
     	Map<String, String> nsdecls = DOMUtil.getNamespaceDeclarations(element);
@@ -430,7 +430,7 @@ public class XPathTest {
         try {
 	        // WHEN
 	        ItemPathHolder xpath = new ItemPathHolder(el1);
-	        
+
 	        AssertJUnit.fail("Unexpected success");
         } catch (IllegalArgumentException e) {
         	// This is expected

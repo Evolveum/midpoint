@@ -21,7 +21,7 @@ package com.evolveum.icf.dummy.resource;
  *
  */
 public class DummyPrivilege extends DummyObject {
-	
+
 	public DummyPrivilege() {
 		super();
 	}
@@ -29,7 +29,7 @@ public class DummyPrivilege extends DummyObject {
 	public DummyPrivilege(String username) {
 		super(username);
 	}
-		
+
 	@Override
 	protected DummyObjectClass getObjectClass() {
 		return resource.getPrivilegeObjectClass();
@@ -47,8 +47,8 @@ public class DummyPrivilege extends DummyObject {
 
 	@Override
 	public String toStringContent() {
-		return super.toStringContent(); 
+		return super.toStringContent();
 	}
 
-	
+
 }

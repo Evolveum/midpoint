@@ -24,7 +24,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
  *
  */
 public class FunctionLibraryUtil {
-	
+
 	public static FunctionLibrary createBasicFunctionLibrary(PrismContext prismContext, Protector protector) {
 		FunctionLibrary lib = new FunctionLibrary();
 		lib.setVariableName(MidPointConstants.FUNCTION_LIBRARY_BASIC_VARIABLE_NAME);

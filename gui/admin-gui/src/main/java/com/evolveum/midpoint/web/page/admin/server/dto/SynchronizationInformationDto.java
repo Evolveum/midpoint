@@ -32,7 +32,7 @@ public class SynchronizationInformationDto {
     public static final String F_COUNT_LINKED = "countLinked";
     public static final String F_COUNT_UNLINKED = "countUnlinked";
     public static final String F_COUNT_UNMATCHED = "countUnmatched";
-    
+
     private SynchronizationInformationType synchronizationInformationType;
 	private boolean useAfter;
 

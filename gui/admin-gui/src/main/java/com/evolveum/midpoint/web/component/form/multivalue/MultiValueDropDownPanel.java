@@ -239,7 +239,7 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
      * */
     protected IChoiceRenderer<T> createRenderer(){
         return new IChoiceRenderer<T>() {
-        	
+
         	@Override
         	public T getObject(String id, IModel<? extends List<? extends T>> choices) {
         		return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;

@@ -23,8 +23,8 @@ public enum XNodeProcessorEvaluationMode {
 	/**
 	 * Strict mode. Any inconsistency of data with the schema is considered to be an error.
 	 */
-	STRICT, 
-	
+	STRICT,
+
 	/**
 	 * Compatibility mode. The processing will go on as long as the data are roughly compatible
 	 * with the schema. E.g. illegal values and unknown elements are silently ignored.

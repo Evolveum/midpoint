@@ -389,14 +389,14 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         desc = shadowType.getSynchronizationSituationDescription().get(0);
         AssertJUnit.assertEquals("Times don't match", TIME, XMLGregorianCalendarType.asDate(desc.getTimestamp()));
     }
-    
+
     @Test
     public void addGetRoleWithResourceRefFilter() throws Exception{
     	PrismObject<RoleType> role = prismContext.parseObject(new File("src/test/resources/basic/role-resource-filter.xml"));
 
     	System.out.println("role: " + role.debugDump());
     	System.out.println("role: " + role.asObjectable().getInducement().get(0).getConstruction().getResourceRef().getFilter());
-    	
+
         OperationResult result = new OperationResult("sync desc test");
         String oid = repositoryService.addObject(role, null, result);
 

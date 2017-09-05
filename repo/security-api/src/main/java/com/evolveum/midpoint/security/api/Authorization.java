@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorT
  *
  */
 public class Authorization implements GrantedAuthority, DebugDumpable {
-	
+
 	private AuthorizationType authorizationType;
 	private String sourceDescription;
 
@@ -81,11 +81,11 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 	public AuthorizationPhaseType getPhase() {
 		return authorizationType.getPhase();
 	}
-	
+
 	public AuthorizationEnforcementStrategyType getEnforcementStrategy() {
 		return authorizationType.getEnforcementStrategy();
 	}
-	
+
 	public boolean maySkipOnSearch() {
 		return getEnforcementStrategy() == AuthorizationEnforcementStrategyType.MAY_SKIP_ON_SEARCH;
 	}
@@ -116,7 +116,7 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 		}
 		return sb.toString();
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
 	 */

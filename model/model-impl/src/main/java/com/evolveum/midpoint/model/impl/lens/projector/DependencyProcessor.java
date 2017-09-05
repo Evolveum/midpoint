@@ -45,34 +45,34 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 @Component
 public class DependencyProcessor {
-		
+
 	private static final Trace LOGGER = TraceManager.getTrace(DependencyProcessor.class);
-	
+
 	@Autowired
     private ProvisioningService provisioningService;
-	
+
 	public <F extends ObjectType> void resetWaves(LensContext<F> context) throws PolicyViolationException {
 	}
-	
+
 	public <F extends ObjectType> void sortProjectionsToWaves(LensContext<F> context) throws PolicyViolationException {
 		// Create a snapshot of the projection collection at the beginning of computation.
 		// The collection may be changed during computation (projections may be added). We do not want to process
 		// these added projections. They are already processed inside the computation.
 		// This also avoids ConcurrentModificationException
 		LensProjectionContext[] projectionArray = context.getProjectionContexts().toArray(new LensProjectionContext[0]);
-		
+
 		// Reset incomplete flag for those contexts that are not yet computed
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			if (projectionContext.getWave() < 0) {
 				projectionContext.setWaveIncomplete(true);
 			}
 		}
-		
+
 		for (LensProjectionContext projectionContext: projectionArray) {
 			determineProjectionWave(context, projectionContext, null, null);
 			projectionContext.setWaveIncomplete(false);
 		}
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			StringBuilder sb = new StringBuilder();
 			for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
@@ -85,7 +85,7 @@ public class DependencyProcessor {
 					context.getProjectionWave(), context.getExecutionWave(), sb.toString());
 		}
 	}
-	
+
 	public <F extends ObjectType> int computeMaxWaves(LensContext<F> context) {
 		if (context.getPartialProcessingOptions().getInbound() != PartialProcessingTypeType.SKIP) {
 			// Let's do one extra wave with no accounts in it. This time we expect to get the results of the execution to the user
@@ -96,7 +96,7 @@ public class DependencyProcessor {
 		}
 	}
 
-	private <F extends ObjectType> LensProjectionContext determineProjectionWave(LensContext<F> context, 
+	private <F extends ObjectType> LensProjectionContext determineProjectionWave(LensContext<F> context,
 			LensProjectionContext projectionContext, ResourceObjectTypeDependencyType inDependency, List<ResourceObjectTypeDependencyType> depPath) throws PolicyViolationException {
 		if (!projectionContext.isWaveIncomplete()) {
 			// This was already processed
@@ -111,8 +111,8 @@ public class DependencyProcessor {
 			return determineProjectionWaveProvision(context, projectionContext, inDependency, depPath);
 		}
 	}
-	
-	private <F extends ObjectType> LensProjectionContext determineProjectionWaveProvision(LensContext<F> context, 
+
+	private <F extends ObjectType> LensProjectionContext determineProjectionWaveProvision(LensContext<F> context,
 			LensProjectionContext projectionContext, ResourceObjectTypeDependencyType inDependency, List<ResourceObjectTypeDependencyType> depPath) throws PolicyViolationException {
 		if (depPath == null) {
 			depPath = new ArrayList<ResourceObjectTypeDependencyType>();
@@ -130,7 +130,7 @@ public class DependencyProcessor {
 			}
 			checkForCircular(depPath, outDependency);
 			depPath.add(outDependency);
-			ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(outDependency, 
+			ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(outDependency,
 					projectionContext.getResource().getOid(), projectionContext.getKind());
 			LensProjectionContext dependencyProjectionContext = findDependencyTargetContext(context, projectionContext, outDependency);
 //			if (LOGGER.isTraceEnabled()) {
@@ -165,7 +165,7 @@ public class DependencyProcessor {
 			}
 			depPath.remove(outDependency);
 		}
-		LensProjectionContext resultAccountContext = projectionContext; 
+		LensProjectionContext resultAccountContext = projectionContext;
 		if (projectionContext.getWave() >=0 && projectionContext.getWave() != determinedWave) {
 			// Wave for this context was set during the run of this method (it was not set when we
 			// started, we checked at the beginning). Therefore this context must have been visited again.
@@ -181,15 +181,15 @@ public class DependencyProcessor {
 		resultAccountContext.setWave(determinedWave);
 		return resultAccountContext;
 	}
-	
-	private <F extends ObjectType> LensProjectionContext determineProjectionWaveDeprovision(LensContext<F> context, 
+
+	private <F extends ObjectType> LensProjectionContext determineProjectionWaveDeprovision(LensContext<F> context,
 				LensProjectionContext projectionContext, ResourceObjectTypeDependencyType inDependency, List<ResourceObjectTypeDependencyType> depPath) throws PolicyViolationException {
 		if (depPath == null) {
 			depPath = new ArrayList<ResourceObjectTypeDependencyType>();
 		}
 		int determinedWave = 0;
 		int determinedOrder = 0;
-		
+
 		// This needs to go in the reverse. We need to figure out who depends on us.
 		for (DependencyAndSource ds: findReverseDependecies(context, projectionContext)) {
 			LensProjectionContext dependencySourceContext = ds.sourceProjectionContext;
@@ -204,7 +204,7 @@ public class DependencyProcessor {
 			}
 			checkForCircular(depPath, outDependency);
 			depPath.add(outDependency);
-			ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(outDependency, 
+			ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(outDependency,
 					projectionContext.getResource().getOid(), projectionContext.getKind());
 			dependencySourceContext = determineProjectionWave(context, dependencySourceContext, outDependency, depPath);
 			if (dependencySourceContext.getWave() + 1 > determinedWave) {
@@ -218,7 +218,7 @@ public class DependencyProcessor {
 			depPath.remove(outDependency);
 		}
 
-		LensProjectionContext resultAccountContext = projectionContext; 
+		LensProjectionContext resultAccountContext = projectionContext;
 		if (projectionContext.getWave() >=0 && projectionContext.getWave() != determinedWave) {
 			// Wave for this context was set during the run of this method (it was not set when we
 			// started, we checked at the beginning). Therefore this context must have been visited again.
@@ -231,8 +231,8 @@ public class DependencyProcessor {
 		resultAccountContext.setWave(determinedWave);
 		return resultAccountContext;
 	}
-	
-	private <F extends ObjectType> Collection<DependencyAndSource> findReverseDependecies(LensContext<F> context, 
+
+	private <F extends ObjectType> Collection<DependencyAndSource> findReverseDependecies(LensContext<F> context,
 			LensProjectionContext targetProjectionContext) throws PolicyViolationException {
 		Collection<DependencyAndSource> deps = new ArrayList<>();
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
@@ -248,7 +248,7 @@ public class DependencyProcessor {
 		return deps;
 	}
 
-	
+
 	private void checkForCircular(List<ResourceObjectTypeDependencyType> depPath,
 			ResourceObjectTypeDependencyType outDependency) throws PolicyViolationException {
 		for (ResourceObjectTypeDependencyType pathElement: depPath) {
@@ -290,7 +290,7 @@ public class DependencyProcessor {
 	 */
 	private <F extends ObjectType> LensProjectionContext findDependencyTargetContext(
 			LensContext<F> context, LensProjectionContext sourceProjContext, ResourceObjectTypeDependencyType dependency) {
-		ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(dependency, 
+		ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(dependency,
 				sourceProjContext.getResource().getOid(), sourceProjContext.getKind());
 		LensProjectionContext selected = null;
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
@@ -311,24 +311,24 @@ public class DependencyProcessor {
 		}
 		return selected;
 	}
-	
+
 //	private <F extends ObjectType> boolean isDependencyTargetContext(LensProjectionContext sourceProjContext, LensProjectionContext targetProjectionContext, ResourceObjectTypeDependencyType dependency) {
-//		ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(dependency, 
+//		ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(dependency,
 //				sourceProjContext.getResource().getOid(), sourceProjContext.getKind());
 //		return targetProjectionContext.compareResourceShadowDiscriminator(refDiscr, false);
 //	}
-	
+
 	private <F extends ObjectType> LensProjectionContext createAnotherContext(LensContext<F> context, LensProjectionContext origProjectionContext,
 			ResourceShadowDiscriminator discr) throws PolicyViolationException {
-		
-		
+
+
 		LensProjectionContext otherCtx = context.createProjectionContext(discr);
 		otherCtx.setResource(origProjectionContext.getResource());
 		// Force recon for the new context. This is a primitive way how to avoid phantom changes.
 		otherCtx.setDoReconciliation(true);
 		return otherCtx;
 	}
-	
+
 	private <F extends ObjectType> LensProjectionContext createAnotherContext(LensContext<F> context, LensProjectionContext origProjectionContext,
 			int determinedOrder) throws PolicyViolationException {
 		ResourceShadowDiscriminator origDiscr = origProjectionContext.getResourceShadowDiscriminator();
@@ -337,18 +337,18 @@ public class DependencyProcessor {
 		LensProjectionContext otherCtx = createAnotherContext(context, origProjectionContext, discr);
 		return otherCtx;
 	}
-	
+
 	/**
 	 * Check that the dependencies are still satisfied. Also check for high-ordes vs low-order operation consistency
-	 * and stuff like that. 
+	 * and stuff like that.
 	 */
-	public <F extends ObjectType> boolean checkDependencies(LensContext<F> context, 
+	public <F extends ObjectType> boolean checkDependencies(LensContext<F> context,
     		LensProjectionContext projContext, OperationResult result) throws PolicyViolationException {
 		if (projContext.isDelete()) {
 			// It is OK if we depend on something that is not there if we are being removed ... for now
 			return true;
 		}
-		
+
 		if (projContext.getOid() == null || projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
 			// Check for lower-order contexts
 			LensProjectionContext lowerOrderContext = null;
@@ -379,10 +379,10 @@ public class DependencyProcessor {
 					projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
 				}
 			}
-		}		
-		
+		}
+
 		for (ResourceObjectTypeDependencyType dependency: projContext.getDependencies()) {
-			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency, 
+			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency,
 					projContext.getResource().getOid(), projContext.getKind());
 			LOGGER.trace("LOOKING FOR {}", refRat);
 			LensProjectionContext dependencyAccountContext = context.findProjectionContext(refRat);
@@ -395,7 +395,7 @@ public class DependencyProcessor {
 							" dependent on " + refRat.toHumanReadableDescription() + ": No context in dependency check");
 				} else if (strictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
 					// independent object not in the context, just ignore it
-					LOGGER.trace("Unsatisfied lax dependency of account " + 
+					LOGGER.trace("Unsatisfied lax dependency of account " +
 							projContext.getResourceShadowDiscriminator().toHumanReadableDescription() +
 							" dependent on " + refRat.toHumanReadableDescription() + "; dependency skipped");
 				} else if (strictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
@@ -430,21 +430,21 @@ public class DependencyProcessor {
 		}
 		return true;
 	}
-	
+
 	public <F extends ObjectType> void preprocessDependencies(LensContext<F> context){
-		
+
 		//in the first wave we do not have enough information to preprocess contexts
 		if (context.getExecutionWave() == 0){
 			return;
 		}
-		
+
 		for (LensProjectionContext projContext : context.getProjectionContexts()){
 			if (!projContext.isCanProject()){
 				continue;
 			}
-		
+
 			for (ResourceObjectTypeDependencyType dependency: projContext.getDependencies()) {
-				ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency, 
+				ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency,
 						projContext.getResource().getOid(), projContext.getKind());
 				LOGGER.trace("LOOKING FOR {}", refRat);
 				LensProjectionContext dependencyAccountContext = context.findProjectionContext(refRat);
@@ -469,26 +469,26 @@ public class DependencyProcessor {
 		}
 
 	}
-	
+
 	/**
 	 * Finally checks for all the dependencies. Some dependencies cannot be checked during wave computations as
-	 * we might not have all activation decisions yet. 
+	 * we might not have all activation decisions yet.
 	 */
 	public <F extends ObjectType> void checkDependenciesFinal(LensContext<F> context, OperationResult result) throws PolicyViolationException {
-		
+
 		for (LensProjectionContext accountContext: context.getProjectionContexts()) {
 			checkDependencies(context, accountContext, result);
 		}
-		
+
 		for (LensProjectionContext accountContext: context.getProjectionContexts()) {
-			if (accountContext.isDelete() 
+			if (accountContext.isDelete()
 					|| accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK) {
 				// It is OK if we depend on something that is not there if we are being removed
 				// but we still need to check if others depends on me
 				for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 					if (projectionContext.isDelete()
 							|| projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK
-							|| projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN 
+							|| projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN
 							|| projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
 						// If someone who is being deleted depends on us then it does not really matter
 						continue;
@@ -508,33 +508,33 @@ public class DependencyProcessor {
 						}
 					}
 				}
-				
+
 			}
 		}
 	}
-	
+
 	private <F extends ObjectType> boolean wasProvisioned(LensProjectionContext accountContext, int executionWave) {
 		int accountWave = accountContext.getWave();
 		if (accountWave >= executionWave) {
 			// This had no chance to be provisioned yet, so we assume it will be provisioned
 			return true;
 		}
-		if (accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN 
+		if (accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN
 				|| accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
 			return false;
 		}
-		
-		
+
+
 		PrismObject<ShadowType> objectCurrent = accountContext.getObjectCurrent();
 		if (objectCurrent != null && objectCurrent.asObjectable().getFailedOperationType() != null) {
 			// There is unfinished operation in the shadow. We cannot continue.
 			return false;
-		}		
-		
+		}
+
 		if (accountContext.isExists()) {
 			return true;
 		}
-		
+
 		if (accountContext.isAdd()) {
 			List<LensObjectDeltaOperation<ShadowType>> executedDeltas = accountContext.getExecutedDeltas();
 			if (executedDeltas == null || executedDeltas.isEmpty()) {
@@ -548,17 +548,17 @@ public class DependencyProcessor {
 			}
 			return true;
 		}
-		
+
 		return false;
 	}
-	
+
 	private boolean wasExecuted(LensProjectionContext accountContext){
 		if (accountContext.isAdd()) {
-			
+
 			if (accountContext.getOid() == null){
 				return false;
 			}
-			
+
 			List<LensObjectDeltaOperation<ShadowType>> executedDeltas = accountContext.getExecutedDeltas();
 			if (executedDeltas == null || executedDeltas.isEmpty()) {
 				return false;
@@ -571,6 +571,6 @@ public class DependencyProcessor {
 		ResourceObjectTypeDependencyType dependency;
 		LensProjectionContext sourceProjectionContext;
 	}
-	
+
 
 }

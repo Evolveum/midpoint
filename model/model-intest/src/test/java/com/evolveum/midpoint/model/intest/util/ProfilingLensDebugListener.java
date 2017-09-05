@@ -32,7 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang3.ObjectUtils;
 
 public class ProfilingLensDebugListener implements LensDebugListener {
-	
+
 	protected static final Trace LOGGER = TraceManager.getTrace(ProfilingLensDebugListener.class);
 
 	private long projectorStartTime = 0;
@@ -41,7 +41,7 @@ public class ProfilingLensDebugListener implements LensDebugListener {
 	private long projectorMappingTotalMillis = 0;
 	private long projectorMappingTotalCount = 0;
 	private LensContext lastLensContext;
-	
+
 	@Override
 	public <F extends ObjectType> void beforeSync(LensContext<F> context) {
 		// TODO Auto-generated method stub
@@ -96,9 +96,9 @@ public class ProfilingLensDebugListener implements LensDebugListener {
 			changes = allDeltas.size();
 		}
 		long projectorEtime = projectorEndTime - projectorStartTime;
-		LOGGER.trace("Projector finished ({}), {} changes, etime: {} ms ({} mapping evaluated, {} ms total)", 
+		LOGGER.trace("Projector finished ({}), {} changes, etime: {} ms ({} mapping evaluated, {} ms total)",
 				new Object[]{desc, changes, projectorEtime, projectorMappingTotalCount, projectorMappingTotalMillis});
-		
+
 		lastLensContext = context;
 	}
 

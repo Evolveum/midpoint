@@ -29,7 +29,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
  * Page that displays just the operation result. Comes handy
  * for places where the operation result cannot be displayed
  * on the main page (e.g. object list warnings, projection list, etc.)
- * 
+ *
  * @author semancik
  */
 @PageDescriptor(url = "/result")
@@ -39,7 +39,7 @@ public class PageOperationResult extends PageBase {
     private static final String ID_BACK = "back";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageOperationResult.class);
-    
+
     private OperationResult result = null;
 
     public PageOperationResult() {

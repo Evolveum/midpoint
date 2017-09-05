@@ -28,7 +28,7 @@ import org.apache.wicket.model.IModel;
  * that loads the model content only when needed. This is supposed
  * to be used for objects that are expensive to load. So we can avoid
  * loading the at all when a component that uses them is not visible.
- * 
+ *
  * @author lazyman
  */
 public abstract class LoadableModel<T> implements IModel<T> {

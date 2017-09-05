@@ -230,7 +230,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			});
 
 			FocusSummaryPanel.addSummaryPanel(managerMarkup, manager, managerWrapper, ID_MANAGER_SUMMARY, serviceLocator);
-			
+
 			link.setOutputMarkupId(true);
 			managerMarkup.setOutputMarkupId(true);
 			managerMarkup.add(link);
@@ -268,7 +268,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			});
 			removeManager.setOutputMarkupId(true);
 			managerMarkup.add(removeManager);
-			
+
 			AjaxButton deleteManager = new AjaxButton(ID_DELETE_MANAGER) {
 
 				@Override
@@ -335,7 +335,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		target.add(getPageBase().getFeedbackPanel());
 
 	}
-	
+
 	private void deleteManagerConfirmPerformed(FocusType manager, AjaxRequestTarget target) {
 		getPageBase().hideMainPopup(target);
 		OperationResult parentResult = new OperationResult("Remove manager");
@@ -357,7 +357,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		target.add(getPageBase().getFeedbackPanel());
 
 	}
-	
+
 	private void deleteManagerPerformed(final FocusType manager, final Component summary, AjaxRequestTarget target) {
 		ConfirmationPanel confirmDelete = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createStringResource("TreeTablePanel.menu.deleteManager.confirm")) {
 			@Override
@@ -367,10 +367,10 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				target.add(OrgMemberPanel.this);
 			}
 		};
-		
+
 		getPageBase().showMainPopup(confirmDelete, target);
 	}
-	
+
 	@Override
 	protected boolean isAuthorizedToUnassignMembers(){
 		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ORG_MEMBER_ACTION_URI);
@@ -441,7 +441,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				OrgMemberPanel.this.deleteMemberConfirmPerformed(scope, relation, target);
 			}
 		};
-		
+
 		getPageBase().showMainPopup(confirmDelete, target);
 	}
 
@@ -453,9 +453,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			return;
 		}
 		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE, createQueryForMemberAction(scope, relation, true), delta, TaskCategory.EXECUTE_CHANGES, target);
-		
+
 	}
-	
+
 	private List<InlineMenuItem> createManagersHeaderInlineMenu() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
 
@@ -692,7 +692,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				query = ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
 				break;
 			case ALL_DIRECT:
-			case ALL: 
+			case ALL:
 				query = createQueryForAll(scope, isFocus, orgRelation);
 				break;
 			default:
@@ -720,7 +720,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				.isInScopeOf(org.getOid(), getScope(scope))
 				.build();
 	}
-	
+
 	private Scope getScope(QueryScope queryScope) {
 		return QueryScope.ALL == queryScope ? Scope.SUBTREE : Scope.ONE_LEVEL;
 	}

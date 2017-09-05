@@ -24,10 +24,10 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * TODO
- * 
+ *
  * This applies to all changes, therefore it will "hook" into addObject, modifyObject
  * and also deleteObject.
- * 
+ *
  * @author semancik
  *
  */

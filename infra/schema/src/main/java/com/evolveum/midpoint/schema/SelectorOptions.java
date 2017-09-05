@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class SelectorOptions<T> implements Serializable, DebugDumpable {
-	
+
 	private ObjectSelector selector;
 	private T options;
 
@@ -46,7 +46,7 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
 		this.selector = selector;
 		this.options = options;
 	}
-	
+
 	public SelectorOptions(T options) {
 		super();
 		this.selector = null;

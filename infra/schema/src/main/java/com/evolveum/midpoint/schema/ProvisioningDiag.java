@@ -21,11 +21,11 @@ import java.util.List;
 
 /**
  * DTO that contains provisioning run-time configuration and diagnostic information.
- * 
+ *
  * All information contained in this class are meant for information purposes only.
  * They are not meant to be used by a machine or algorithm, they are meant to be displayed
  * to a human user.
- * 
+ *
  * @author Radovan Semancik
  * @author mederly
  *
@@ -54,6 +54,6 @@ public class ProvisioningDiag implements Serializable {
 	public String toString() {
 		return "ProvisioningDiag(additionalDetails=" + additionalDetails + ")";
 	}
-	
-	
+
+
 }

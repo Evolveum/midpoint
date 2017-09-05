@@ -23,7 +23,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 
 /**
  * Wrapper for logging library. It is empty now. But as this is used through all the code
- * this may be a convenient place to add some future functionality quite easily. 
+ * this may be a convenient place to add some future functionality quite easily.
  */
 public class TraceImpl implements Trace {
 

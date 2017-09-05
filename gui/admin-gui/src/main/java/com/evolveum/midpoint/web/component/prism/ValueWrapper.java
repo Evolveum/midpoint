@@ -37,7 +37,7 @@ import java.io.Serializable;
  * @author lazyman
  */
 public class ValueWrapper<T> implements Serializable, DebugDumpable {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ValueWrapper.class);
 
     private ItemWrapper item;
@@ -62,7 +62,7 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 
         this.item = property;
         this.status = status;
-        
+
 		if (value != null) {
 			if (value instanceof PrismPropertyValue) {
 
@@ -85,7 +85,7 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 				this.value = value.clone();
 			}
 		}
-        
+
         if (oldValue == null && value instanceof PrismPropertyValue) {
             T val = ((PrismPropertyValue<T>) this.value).getValue();
             if (val instanceof PolyString) {
@@ -94,7 +94,7 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
             }
             oldValue = new PrismPropertyValue<T>(CloneUtil.clone(val), this.value.getOriginType(), this.value.getOriginObject());
         }
-        
+
         this.oldValue = oldValue;
     }
 
@@ -129,7 +129,7 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 				if (prismContext != null){
 					PrismUtil.recomputePrismPropertyValue(ppVal, prismContext);
 				}
-				
+
 			} else if (ppVal.getValue() instanceof DisplayableValue) {
 				DisplayableValue displayableValue = (DisplayableValue) ppVal.getValue();
 				ppVal.setValue((T) displayableValue.getValue());
@@ -144,7 +144,7 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
     public boolean isReadonly() {
         return item.isReadonly();
     }
-    
+
     public boolean isEmpty() {
     	if (value == null || value.isEmpty()) {
     		return true;

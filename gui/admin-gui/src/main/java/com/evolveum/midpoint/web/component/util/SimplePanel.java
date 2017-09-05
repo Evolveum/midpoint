@@ -47,17 +47,17 @@ public abstract class SimplePanel<T> extends BasePanel<T> {
     public PageBase getPageBase() {
         return WebComponentUtil.getPageBase(this);
     }
-    
+
     public void setModelObject(T obj){
     	setDefaultModelObject(obj);
     }
-    
+
     protected abstract void initLayout();
 
 //    public PrismContext getPrismContext(){
 //    	return getPageBase().getPrismContext();
 //    }
-    
+
 //    public WebMarkupContainer getFeedbackPanel(){
 //    	return getPageBase().getFeedbackPanel();
 //    }

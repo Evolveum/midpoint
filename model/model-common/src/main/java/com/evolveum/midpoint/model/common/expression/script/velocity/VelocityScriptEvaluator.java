@@ -46,7 +46,7 @@ import java.util.function.Function;
 
 /**
  * Expression evaluator that is using Apache Velocity engine.
- * 
+ *
  * @author mederly
  *
  */
@@ -64,7 +64,7 @@ public class VelocityScriptEvaluator implements ScriptEvaluator {
 //		properties.put("runtime.references.strict", "true");
 		Velocity.init(properties);
 	}
-	
+
 	@Override
 	public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluatorType expressionType,
 			ExpressionVariables variables, ItemDefinition outputDefinition,
@@ -73,9 +73,9 @@ public class VelocityScriptEvaluator implements ScriptEvaluator {
 			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
 			String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException {
-		
+
 		VelocityContext context = createVelocityContext(variables, objectResolver, functions, contextDescription, task, result);
-		
+
 		String codeString = expressionType.getCode();
 		if (codeString == null) {
 			throw new ExpressionEvaluationException("No script code in " + contextDescription);
@@ -85,7 +85,7 @@ public class VelocityScriptEvaluator implements ScriptEvaluator {
 		if (expressionType.isAllowEmptyValues() != null) {
 			allowEmptyValues = expressionType.isAllowEmptyValues();
 		}
-		
+
 		StringWriter resultWriter = new StringWriter();
 		try {
 			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
@@ -93,14 +93,14 @@ public class VelocityScriptEvaluator implements ScriptEvaluator {
 		} catch (RuntimeException e) {
 			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);
 		}
-		
+
 		if (outputDefinition == null) {
 			// No outputDefinition means "void" return type, we can return right now
 			return null;
 		}
-		
+
 		QName xsdReturnType = outputDefinition.getTypeName();
-		
+
 		Class<T> javaReturnType = XsdTypeMapper.toJavaType(xsdReturnType);
 		if (javaReturnType == null) {
 			javaReturnType = prismContext.getSchemaRegistry().getCompileTimeClass(xsdReturnType);
@@ -111,7 +111,7 @@ public class VelocityScriptEvaluator implements ScriptEvaluator {
 			// ...and enums (xsd:simpleType) are not parsed into ComplexTypeDefinitions
 			javaReturnType = (Class) String.class;
 		}
-        
+
 		T evalResult;
 		try {
 			evalResult = ExpressionUtil.convertValue(javaReturnType, additionalConvertor, resultWriter.toString(), protector, prismContext);

@@ -46,14 +46,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(LensOwnerResolver.class);
-	
+
 	private LensContext<F> context;
 	private ObjectResolver objectResolver;
 	private Task task;
 	private OperationResult result;
-	
+
 	public LensOwnerResolver(LensContext<F> context, ObjectResolver objectResolver, Task task,
 			OperationResult result) {
 		super();
@@ -86,7 +86,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 		} else if (object.canRepresent(UserType.class)) {
 			ObjectQuery query = QueryBuilder.queryFor(UserType.class, context.getPrismContext())
 					.item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
-			List<PrismObject<UserType>> owners = new ArrayList<>(); 
+			List<PrismObject<UserType>> owners = new ArrayList<>();
 			try {
 				objectResolver.searchIterative(UserType.class, query, null, (o,result) -> owners.add(o), owners, result);
 			} catch (ObjectNotFoundException | CommunicationException | ConfigurationException
@@ -99,7 +99,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 			}
 			if (owners.size() > 1) {
 				LOGGER.warn("More than one owner of {}: {}", object, owners);
-			} 				
+			}
 			return (PrismObject<FO>) owners.get(0);
 		} else if (object.canRepresent(AbstractRoleType.class)) {
 			ObjectReferenceType ownerRef = ((AbstractRoleType)(object.asObjectable())).getOwnerRef();

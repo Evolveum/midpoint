@@ -48,7 +48,7 @@ public class EventCategoryFilterType
 
     /**
      * Creates a new {@code EventCategoryFilterType} instance.
-     * 
+     *
      */
     public EventCategoryFilterType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -57,8 +57,8 @@ public class EventCategoryFilterType
 
     /**
      * Creates a new {@code EventCategoryFilterType} instance by deeply copying a given {@code EventCategoryFilterType} instance.
-     * 
-     * 
+     *
+     *
      * @param o
      *     The instance to copy.
      * @throws NullPointerException
@@ -78,25 +78,25 @@ public class EventCategoryFilterType
 
     /**
      * Gets the value of the category property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the category property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getCategory().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link String }
-     * 
-     * 
+     *
+     *
      */
     public List<String> getCategory() {
         if (category == null) {
@@ -108,7 +108,7 @@ public class EventCategoryFilterType
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     * 
+     *
      */
 
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
@@ -156,7 +156,7 @@ public class EventCategoryFilterType
 
     /**
      * Copies all values of property {@code Category} deeply.
-     * 
+     *
      * @param source
      *     The source to copy from.
      * @param target
@@ -183,8 +183,8 @@ public class EventCategoryFilterType
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

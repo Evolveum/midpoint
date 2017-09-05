@@ -44,8 +44,8 @@ import java.util.List;
 
 /**
  * Class that statically instantiates the prism contexts and provides convenient static version of the PrismContext
- * and processor classes. 
- * 
+ * and processor classes.
+ *
  * This is usable for tests. DO NOT use this in the main code. Although it is placed in "main" for convenience,
  * is should only be used in tests.
  *
@@ -56,7 +56,7 @@ public class PrismTestUtil {
     private static final Trace LOGGER = TraceManager.getTrace(PrismTestUtil.class);
 
     private static final QName DEFAULT_ELEMENT_NAME = new QName("http://midpoint.evolveum.com/xml/ns/test/whatever-1.xsd", "whatever");
-    
+
     private static PrismContext prismContext;
     private static PrismContextFactory prismContextFactory;
 
@@ -68,7 +68,7 @@ public class PrismTestUtil {
     	setFactory(newPrismContextFactory);
     	resetPrismContext();
     }
-    
+
 	public static void setFactory(PrismContextFactory newPrismContextFactory) {
 		PrismTestUtil.prismContextFactory = newPrismContextFactory;
 	}
@@ -90,30 +90,30 @@ public class PrismTestUtil {
     	newPrismContext.initialize();
         return newPrismContext;
     }
-    
+
     public static PrismContext getPrismContext() {
     	if (prismContext == null) {
     		throw new IllegalStateException("Prism context is not set in PrismTestUtil. Maybe a missing call to resetPrismContext(..) in test initialization?");
     	}
     	return prismContext;
     }
-    
+
     public static SchemaRegistry getSchemaRegistry() {
     	return prismContext.getSchemaRegistry();
     }
-    
+
     // ==========================
     // == parsing
     // ==========================
-    
+
     public static <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException, IOException {
     	return getPrismContext().parseObject(file);
     }
-    
+
     public static <T extends Objectable> PrismObject<T> parseObject(String xmlString) throws SchemaException {
     	return getPrismContext().parseObject(xmlString);
     }
-    
+
     @Deprecated
     public static <T extends Objectable> PrismObject<T> parseObject(Element element) throws SchemaException {
     	return getPrismContext().parserFor(element).parse();
@@ -127,7 +127,7 @@ public class PrismTestUtil {
     public static List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException, IOException {
     	return getPrismContext().parserFor(file).parseObjects();
     }
-    
+
     // ==========================
     // == Serializing
     // ==========================
@@ -200,18 +200,18 @@ public class PrismTestUtil {
 		System.out.println("\n\n===[ "+testName+" ]===\n");
 		LOGGER.info("===[ {} ]===",testName);
 	}
-	
+
 	public static SearchFilterType unmarshalFilter(File file) throws Exception {
 		return prismContext.parserFor(file).parseRealValue(SearchFilterType.class);
 	}
-	
+
 	public static ObjectFilter getFilterCondition(ObjectFilter filter, int index) {
 		if (!(filter instanceof NaryLogicalFilter)) {
 			throw new IllegalArgumentException("Filter not an instance of n-ary logical filter.");
 		}
 		return ((LogicalFilter) filter).getConditions().get(index);
 	}
-	
+
 	public static void displayQuery(ObjectQuery query) {
 		LOGGER.trace("object query: {}", query);
 		System.out.println("object query: " + query);

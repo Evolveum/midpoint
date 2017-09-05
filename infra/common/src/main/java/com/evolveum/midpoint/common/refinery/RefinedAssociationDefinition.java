@@ -31,7 +31,7 @@ import java.util.List;
 
 public class RefinedAssociationDefinition implements Serializable {
 	private static final long serialVersionUID = 1L;
-	
+
 	private ResourceObjectAssociationType resourceObjectAssociationType;
 	private RefinedObjectClassDefinition associationTarget;
 
@@ -55,15 +55,15 @@ public class RefinedAssociationDefinition implements Serializable {
 	public QName getName() {
 		return ItemPathUtil.getOnlySegmentQName(resourceObjectAssociationType.getRef());
 	}
-	
+
 	public ShadowKindType getKind() {
 		return resourceObjectAssociationType.getKind();
 	}
-	
+
     public Collection<String> getIntents() {
         return resourceObjectAssociationType.getIntent();
     }
-    
+
     public QName getAuxiliaryObjectClass() {
 		return resourceObjectAssociationType.getAuxiliaryObjectClass();
 	}
@@ -71,7 +71,7 @@ public class RefinedAssociationDefinition implements Serializable {
 	public MappingType getOutboundMappingType() {
 		return resourceObjectAssociationType.getOutbound();
 	}
-	
+
 	public boolean isExclusiveStrong() {
 		return BooleanUtils.isTrue(resourceObjectAssociationType.isExclusiveStrong());
 	}
@@ -101,11 +101,11 @@ public class RefinedAssociationDefinition implements Serializable {
 	public QName getMatchingRule() {
 		return getResourceObjectAssociationType().getMatchingRule();
 	}
-	
+
 	public String getDisplayName() {
 		return resourceObjectAssociationType.getDisplayName();
 	}
-	
+
 	public RefinedAssociationDefinition clone() {
 		RefinedAssociationDefinition clone = new RefinedAssociationDefinition(resourceObjectAssociationType);
 		copyValues(clone);

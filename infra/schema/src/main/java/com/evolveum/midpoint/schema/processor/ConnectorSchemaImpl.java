@@ -51,7 +51,7 @@ public class ConnectorSchemaImpl extends PrismSchemaImpl implements ConnectorSch
 	public ConnectorSchemaImpl(String namespace, PrismContext prismContext) {
 		super(namespace, prismContext);
 	}
-	
+
 	public static ConnectorSchemaImpl parse(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
 		// TODO: make sure correct parser plugins are used
 		return (ConnectorSchemaImpl) PrismSchemaImpl.parse(element, new ConnectorSchemaImpl(prismContext), true, shortDesc, prismContext);
@@ -101,7 +101,7 @@ public class ConnectorSchemaImpl extends PrismSchemaImpl implements ConnectorSch
 //		add(cTypeDef);
 //		return cTypeDef;
 //	}
-	
+
 
 	@Override
 	public ObjectClassComplexTypeDefinition findObjectClassDefinition(QName qName) {

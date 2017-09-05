@@ -34,17 +34,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
-		
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		dummyResourceGreen.setSyncStyle(DummySyncStyle.SMART);
 		getDummyResource().setSyncStyle(DummySyncStyle.DUMB);
 		getDummyResource(RESOURCE_DUMMY_BLUE_NAME).setSyncStyle(DummySyncStyle.SMART);
-		
+
 	}
-	
+
 	@Override
 	protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
 		if (resource == resourceDummyGreen) {

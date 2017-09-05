@@ -43,7 +43,7 @@ import java.util.function.Function;
  * @author Radovan Semancik
  */
 public class SecurityUtil {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(SecurityUtil.class);
 
 	@NotNull private static List<String> remoteHostAddressHeaders = Collections.emptyList();
@@ -69,12 +69,12 @@ public class SecurityUtil {
 		}
 		return (MidPointPrincipal) principalObject;
 	}
-	
+
 	public static boolean isAuthenticated() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		return (authentication != null);
 	}
-	
+
 	public static Collection<String> getActions(Collection<ConfigAttribute> configAttributes) {
 		Collection<String> actions = new ArrayList<String>(configAttributes.size());
 		for (ConfigAttribute attr: configAttributes) {
@@ -82,13 +82,13 @@ public class SecurityUtil {
 		}
 		return actions;
 	}
-	
+
 	public static void logSecurityDeny(Object object, String message) {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Denied access to {} by {} {}", object, getSubjectDescription(), message);
 		}
 	}
-	
+
 	public static void logSecurityDeny(Object object, String message, Throwable cause, Collection<String> requiredAuthorizations) {
 		if (LOGGER.isDebugEnabled()) {
 			String subjectDesc = getSubjectDescription();
@@ -120,7 +120,7 @@ public class SecurityUtil {
 		}
 		return ((MidPointPrincipal)principalObject).getUsername();
 	}
-	
+
 	public static <T> T getCredPolicyItem(CredentialPolicyType defaltCredPolicyType, CredentialPolicyType credPolicyType, Function<CredentialPolicyType, T> getter) {
 		if (credPolicyType != null) {
 			T val = getter.apply(credPolicyType);
@@ -136,7 +136,7 @@ public class SecurityUtil {
 		}
 		return null;
 	}
-	
+
 	public static PasswordCredentialsPolicyType getEffectivePasswordCredentialsPolicy(SecurityPolicyType securityPolicy) {
 		if (securityPolicy == null) {
 			return null;
@@ -157,7 +157,7 @@ public class SecurityUtil {
 		copyDefaults(creds.getDefault(), passPolicy);
 		return passPolicy;
 	}
-	
+
 	public static SecurityQuestionsCredentialsPolicyType getEffectiveSecurityQuestionsCredentialsPolicy(SecurityPolicyType securityPolicy) {
 		if (securityPolicy == null) {
 			return null;
@@ -178,8 +178,8 @@ public class SecurityUtil {
 		copyDefaults(creds.getDefault(), securityQuestionsPolicy);
 		return securityQuestionsPolicy;
 	}
-	
-	
+
+
 	public static List<NonceCredentialsPolicyType> getEffectiveNonceCredentialsPolicies(SecurityPolicyType securityPolicy) {
 		if (securityPolicy == null) {
 			return null;
@@ -200,7 +200,7 @@ public class SecurityUtil {
 		}
 		return newNoncePolicies;
 	}
-	
+
 	public static NonceCredentialsPolicyType getEffectiveNonceCredentialsPolicy(SecurityPolicyType securityPolicy) throws SchemaException {
 		List<NonceCredentialsPolicyType> noncePolies = getEffectiveNonceCredentialsPolicies(securityPolicy);
 		if (noncePolies.isEmpty()) {
@@ -249,7 +249,7 @@ public class SecurityUtil {
 			target.setWarningBeforeExpirationDuration(defaults.getWarningBeforeExpirationDuration());
 		}
 	}
-	
+
 	public static int getCredentialHistoryLength(CredentialPolicyType credentialPolicy) {
 		if (credentialPolicy == null) {
 			return 0;
@@ -267,7 +267,7 @@ public class SecurityUtil {
 		}
 		return storageMethod.getStorageType();
 	}
-	
+
 	/**
 	 * Not very systematic. Used mostly in hacks.
 	 */

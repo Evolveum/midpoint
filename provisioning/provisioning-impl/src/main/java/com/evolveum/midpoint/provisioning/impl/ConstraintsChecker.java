@@ -155,7 +155,7 @@ public class ConstraintsChecker {
 		constraintsCheckingResult.setMessages(messageBuilder.toString());
 		return constraintsCheckingResult;
 	}
-	
+
 	private boolean checkAttributeUniqueness(PrismProperty identifier, RefinedObjectClassDefinition accountDefinition,
 											 ResourceType resourceType, String oid, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 

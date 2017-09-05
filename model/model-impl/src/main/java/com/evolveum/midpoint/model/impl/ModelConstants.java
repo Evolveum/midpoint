@@ -25,9 +25,9 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
  *
  */
 public class ModelConstants {
-	
+
 	public static final String NS_MODEL_TRIGGER_PREFIX = SchemaConstants.NS_MODEL +"/trigger";
-	
+
 	public static final String NS_SYNCHRONIZATION_TASK_PREFIX = ModelPublicConstants.NS_SYNCHRONIZATION_TASK_PREFIX;
 
 	public static final String NS_IMPORT_OBJECTS_PREFIX = SchemaConstants.NS_MODEL +"/import-objects";

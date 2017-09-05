@@ -45,7 +45,7 @@ public class ObjectViewDto<T extends ObjectType> implements Serializable, Choice
         this.name = null;
         this.oid = null;
     }
-    
+
     public ObjectViewDto(T object) {
         this.name = WebComponentUtil.getName(object);
         this.oid = object.getOid();
@@ -71,11 +71,11 @@ public class ObjectViewDto<T extends ObjectType> implements Serializable, Choice
     public PrismObject<T> getObject() {
         return object;
     }
-    
+
     public void setObject(PrismObject<T> object) {
 		this.object = object;
 	}
-    
+
     public T getObjectType() {
     	if (object == null) {
     		return null;

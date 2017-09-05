@@ -22,11 +22,11 @@ import java.util.List;
  *
  */
 public interface TaskHandler {
-	
+
 	TaskRunResult run(Task task);
-	
+
 	Long heartbeat(Task task);
-	
+
 	// TODO: fix signature
 	void refreshStatus(Task task);
 

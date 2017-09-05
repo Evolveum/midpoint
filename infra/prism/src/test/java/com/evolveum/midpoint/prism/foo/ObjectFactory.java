@@ -26,18 +26,18 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 
 /**
- * This object contains factory methods for each 
- * Java content interface and Java element interface 
- * generated in the com.evolveum.midpoint.xml.ns.test.foo_1 package. 
- * <p>An ObjectFactory allows you to programatically 
- * construct new instances of the Java representation 
- * for XML content. The Java representation of XML 
- * content can consist of schema derived interfaces 
- * and classes representing the binding of schema 
- * type definitions, element declarations and model 
- * groups.  Factory methods for each of these are 
+ * This object contains factory methods for each
+ * Java content interface and Java element interface
+ * generated in the com.evolveum.midpoint.xml.ns.test.foo_1 package.
+ * <p>An ObjectFactory allows you to programatically
+ * construct new instances of the Java representation
+ * for XML content. The Java representation of XML
+ * content can consist of schema derived interfaces
+ * and classes representing the binding of schema
+ * type definitions, element declarations and model
+ * groups.  Factory methods for each of these are
  * provided in this class.
- * 
+ *
  */
 @XmlRegistry
 public class ObjectFactory {
@@ -58,14 +58,14 @@ public class ObjectFactory {
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.evolveum.midpoint.xml.ns.test.foo_1
-     * 
+     *
      */
     public ObjectFactory() {
     }
 
     /**
      * Create an instance of {@link ObjectReferenceType }
-     * 
+     *
      */
     public ObjectReferenceType createObjectReferenceType() {
         return new ObjectReferenceType();
@@ -73,7 +73,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Extension }
-     * 
+     *
      */
     public Extension createExtension() {
         return new Extension();
@@ -81,7 +81,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link ResourceType }
-     * 
+     *
      */
     public ResourceType createResourceType() {
         return new ResourceType();
@@ -89,7 +89,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link AccountType }
-     * 
+     *
      */
     public AccountType createAccountType() {
         return new AccountType();
@@ -97,7 +97,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link UserType }
-     * 
+     *
      */
     public UserType createUserType() {
         return new UserType();
@@ -105,7 +105,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link FooObjectClass }
-     * 
+     *
      */
     public FooObjectClass createFooObjectClass() {
         return new FooObjectClass();
@@ -113,7 +113,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link ActivationType }
-     * 
+     *
      */
     public ActivationType createActivationType() {
         return new ActivationType();
@@ -121,7 +121,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link AttributesType }
-     * 
+     *
      */
     public AttributesType createAttributesType() {
         return new AttributesType();
@@ -129,7 +129,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link AccountConstructionType }
-     * 
+     *
      */
     public AccountConstructionType createAccountConstructionType() {
         return new AccountConstructionType();
@@ -137,7 +137,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link DummyProtectedStringType }
-     * 
+     *
      */
     public DummyProtectedStringType createDummyProtectedStringType() {
         return new DummyProtectedStringType();
@@ -145,7 +145,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link AssignmentType }
-     * 
+     *
      */
     public AssignmentType createAssignmentType() {
         return new AssignmentType();
@@ -153,7 +153,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link ObjectReferenceType.Filter }
-     * 
+     *
      */
     public ObjectReferenceType.Filter createObjectReferenceTypeFilter() {
         return new ObjectReferenceType.Filter();
@@ -161,7 +161,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link ObjectReferenceType.Object }
-     * 
+     *
      */
     public ObjectReferenceType.Object createObjectReferenceTypeObject() {
         return new ObjectReferenceType.Object();
@@ -169,7 +169,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link ObjectType }{@code >}}
-     * 
+     *
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "object")
     public JAXBElement<ObjectType> createObject(ObjectType value) {
@@ -178,7 +178,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link PolyStringType }{@code >}}
-     * 
+     *
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "name")
     public JAXBElement<PolyStringType> createName(PolyStringType value) {
@@ -187,7 +187,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link ResourceType }{@code >}}
-     * 
+     *
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "resource")
     public JAXBElement<ResourceType> createResource(ResourceType value) {
@@ -196,7 +196,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link UserType }{@code >}}
-     * 
+     *
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "user")
     public JAXBElement<UserType> createUser(UserType value) {
@@ -205,7 +205,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     *
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "displayName")
     public JAXBElement<String> createDisplayName(String value) {
@@ -214,7 +214,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link AccountType }{@code >}}
-     * 
+     *
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "account")
     public JAXBElement<AccountType> createAccount(AccountType value) {

@@ -73,55 +73,55 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMachineIntelligence extends AbstractStoryTest {
-	
+
 	public static Trace LOGGER = TraceManager.getTrace(TestMachineIntelligence.class);
-	
+
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "machineintelligence");
-	
+
 	private static final File RESOURCE_HR_FILE = new File(TEST_DIR, "resource-csv-HR.xml");
 	private static final String RESOURCE_HR_OID = "10000000-0000-0000-0000-000000000001";
-	
+
 	private static final File RESOURCE_CSV_CONTENT_FILE = new File(TEST_DIR, "HR.csv");
 	private static String sourceFilePath;
-	
+
 	private static final File SHADOW_RUR_FILE = new File(TEST_DIR, "shadow-rur.xml");
 	private static final String SHADOW_RUR_OID = "shadow00-0000-0000-0000-111111111111";
-	
+
 	private static final File SHADOW_CHAPPIE_FILE = new File(TEST_DIR, "shadow-chappie.xml");
 	private static final String SHADOW_CHAPPIE_OID = "shadow00-0000-0000-0000-111111111112";
-	
+
 	private static final String NS_RESOURCE_CSV = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector";
-	
+
 	@Autowired
 	MidpointConfiguration midPointConfig;
-	
+
 	@Override
 	protected File getSystemConfigurationFile() {
 		return super.getSystemConfigurationFile();
 	}
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		String home = midPointConfig.getMidpointHome();
 		File resourceDir = new File(home, "machineintelligence");
 		resourceDir.mkdir();
-		
+
 		LOGGER.info("Start copying HR.csv from {} to {}", RESOURCE_CSV_CONTENT_FILE.getAbsolutePath(), resourceDir.getAbsolutePath());
 		File desticationFile = new File(resourceDir, "HR.csv");
 		ClassPathUtil.copyFile(new FileInputStream(RESOURCE_CSV_CONTENT_FILE), "HR.csv", desticationFile);
-		
+
 		if (!desticationFile.exists()){
 			throw new SystemException("Source file for HR resource was not created");
 		}
-		
+
 		sourceFilePath = desticationFile.getAbsolutePath();
-		
+
 		super.initSystem(initTask, initResult);
-		
+
 		importObjectFromFile(RESOURCE_HR_FILE);
-		
+
 	}
-	
+
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
@@ -129,25 +129,25 @@ public class TestMachineIntelligence extends AbstractStoryTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 		Object[] newRealValue = { sourceFilePath };
-        
+
         ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceProperty(ResourceType.class, RESOURCE_HR_OID, new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION,
 						SchemaConstants.ICF_CONFIGURATION_PROPERTIES, new QName(NS_RESOURCE_CSV, "filePath")), prismContext, newRealValue);
         repositoryService.modifyObject(ResourceType.class, objectDelta.getOid(), objectDelta.getModifications(), result);
-        
+
         OperationResult hrTestResult = modelService.testResource(RESOURCE_HR_OID, task);
         TestUtil.assertSuccess("HR resource test result", hrTestResult);
-        
+
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_HR_OID, task);
         TestUtil.assertSuccess("OpenDJ resource test result", testResultOpenDj);
-        
+
         SystemConfigurationType systemConfiguration = getSystemConfiguration();
         assertNotNull("No system configuration", systemConfiguration);
         display("System config", systemConfiguration);
-       
+
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * WHEN: Create account in the HR, import this acount to the midPoint
 	 * THEN: User is imported to midPoint, new Organization is created,
 	 * 		user is assigned to the organization, assignment is active/inactive
@@ -159,23 +159,23 @@ public class TestMachineIntelligence extends AbstractStoryTest {
         TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
         PrismObject<ShadowType> shadow = addObject(SHADOW_RUR_FILE, task, result);
         assertEquals(SHADOW_RUR_OID, shadow.getOid());
-       
-        //AND 
+
+        //AND
         modelService.importFromResource(SHADOW_RUR_OID, task, result);
-       
+
         //THEN
-        
+
         //assert created organization
 		SearchResultList<PrismObject<OrgType>> orgs = modelService.searchObjects(
 				OrgType.class, QueryBuilder.queryFor(OrgType.class, prismContext).item(OrgType.F_NAME)
 						.eq("Universe").matching(PolyStringNormMatchingRule.NAME).build(),
 				null, task, result);
         assertEquals("Found unexpected number of organizations, expected 1, found " + orgs.size(), 1, orgs.size());
-        
+
         //assert created owner of shadow
 		PrismObject<UserType> userRur = assertShadowOwner(SHADOW_RUR_OID, "R.U.R", "Rossum",
 				"Universal Robots", "Rossum's Universal Robots", task, result);
@@ -183,25 +183,25 @@ public class TestMachineIntelligence extends AbstractStoryTest {
         assertAssignedOrg(userRur, orgs.iterator().next());
         //assert assignment of or in more depth
         assertAssignment(userRur.asObjectable(), ActivationStatusType.ENABLED, null);
-        
+
 	}
-	
+
 	@Test
     public void test011importInactiveUserChappie() throws Exception {
 		final String TEST_NAME = "test020ResourceOpenDjGet";
         TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
         PrismObject<ShadowType> shadow = addObject(SHADOW_CHAPPIE_FILE, task, result);
         assertEquals(SHADOW_CHAPPIE_OID, shadow.getOid());
-       
-        //AND 
+
+        //AND
         modelService.importFromResource(SHADOW_CHAPPIE_OID, task, result);
-       
+
         //THEN
-        
+
         //assert created organization
 		SearchResultList<PrismObject<OrgType>> orgs = modelService
 				.searchObjects(
@@ -209,33 +209,33 @@ public class TestMachineIntelligence extends AbstractStoryTest {
 								.eq("Earth").matching(PolyStringNormMatchingRule.NAME).build(),
 						null, task, result);
         assertEquals("Found unexpected number of organizations, expected 1, found " + orgs.size(), 1, orgs.size());
-        
+
         //assert created owner of shadow
 		PrismObject<UserType> userRur = assertShadowOwner(SHADOW_CHAPPIE_OID, "chappie", "Chappie",
 				"von Tetravaal", "Chappie von Tetravaal", task, result);
         //assert assignment of org
         assertAssignedOrg(userRur, orgs.iterator().next());
         //assert assignment of or in more depth
-       
+
         XMLGregorianCalendar validTo = XmlTypeConverter
 				.createXMLGregorianCalendar(2016, 12, 31, 23, 59, 59);
         assertAssignment(userRur.asObjectable(), ActivationStatusType.DISABLED, validTo);
-        
+
 	}
-	
+
 	private PrismObject<UserType> assertShadowOwner(String shadowOid, String userName, String userGivenName, String userFamilyName, String userFullName, Task task, OperationResult result) throws Exception{
 		PrismObject<UserType> userRur = (PrismObject<UserType>) modelService.searchShadowOwner(shadowOid, null, task, result);
         assertNotNull("Owner must not be null", userRur);
-        
+
         UserType userType = userRur.asObjectable();
         assertEquals("Unexpected name in the user", PrismTestUtil.createPolyStringType(userName) , userType.getName());
         assertEquals("Unexpected givenName in the user", PrismTestUtil.createPolyStringType(userGivenName) , userType.getGivenName());
         assertEquals("Unexpected familyName in the user", PrismTestUtil.createPolyStringType(userFamilyName) , userType.getFamilyName());
         assertEquals("Unexpected fullName in the user", PrismTestUtil.createPolyStringType(userFullName) , userType.getFullName());
-        
+
         return userRur;
 	}
-	
+
 	private void assertAssignment(UserType userType, ActivationStatusType administrativeStatus, XMLGregorianCalendar validTo) {
 		List<AssignmentType> assignments = userType.getAssignment();
         assertEquals("Unexpected assignment in user, expected 1, found " + assignments.size(), 1, assignments.size());

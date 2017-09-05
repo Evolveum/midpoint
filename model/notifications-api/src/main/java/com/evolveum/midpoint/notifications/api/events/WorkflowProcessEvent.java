@@ -49,7 +49,7 @@ public class WorkflowProcessEvent extends WorkflowEvent {
                 '}';
 
     }
-	
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);

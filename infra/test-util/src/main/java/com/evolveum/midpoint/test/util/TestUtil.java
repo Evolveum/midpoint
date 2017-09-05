@@ -76,9 +76,9 @@ import static org.testng.AssertJUnit.fail;
  * @author Radovan Semancik
  */
 public class TestUtil {
-	
+
 	public static final int MAX_EXCEPTION_MESSAGE_LENGTH = 500;
-	
+
 	public static final String TEST_LOG_PREFIX = "=====[ ";
 	public static final String TEST_LOG_SUFFIX = " ]======================================";
 	public static final String TEST_OUT_PREFIX = "\n\n=====[ ";
@@ -87,13 +87,13 @@ public class TestUtil {
 	public static final String TEST_OUT_SECTION_SUFFIX = " --------------------------------------\n";
 	public static final String TEST_LOG_SECTION_PREFIX = "----- ";
 	public static final String TEST_LOG_SECTION_SUFFIX = " --------------------------------------";
-	
+
 	private static final Pattern JAVA_VERSION_PATTERN = Pattern.compile("1\\.(\\d+)\\.\\d+_\\d+");
-	
+
 	public static boolean checkResults = true;
-	
+
 	private static DatatypeFactory datatypeFactory = null;
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(TestUtil.class);
 
     public static <T> void assertPropertyValueSetEquals(Collection<PrismPropertyValue<T>> actual, T... expected) {
@@ -119,12 +119,12 @@ public class TestUtil {
             assertEquals(expectedSet, actualSet);
         }
     }
-    
+
     public static <T> void assertSetEquals(String message, T[] actual, T[] expected) {
-        assertTrue(message+"expected "+Arrays.toString(expected)+", was "+Arrays.toString(actual), 
+        assertTrue(message+"expected "+Arrays.toString(expected)+", was "+Arrays.toString(actual),
         		MiscUtil.unorderedArrayEquals(actual, expected));
     }
-    
+
     public static String getNodeOid(Node node) {
 		Node oidNode = null;
 		if ((null == node.getAttributes())
@@ -136,8 +136,8 @@ public class TestUtil {
 		String oid = oidNode.getNodeValue();
 		return oid;
 	}
-    
-    public static void setAttribute(PrismObject<ShadowType> account, QName attrName, QName typeName, 
+
+    public static void setAttribute(PrismObject<ShadowType> account, QName attrName, QName typeName,
 			PrismContext prismContext, String value) throws SchemaException {
 		PrismContainer<Containerable> attributesContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
 		ResourceAttributeDefinition attrDef = new ResourceAttributeDefinitionImpl(attrName, typeName, prismContext);
@@ -193,12 +193,12 @@ public class TestUtil {
 		System.out.println(TEST_OUT_SECTION_PREFIX + " THEN " + testName + TEST_OUT_SECTION_SUFFIX);
 		LOGGER.info(TEST_LOG_SECTION_PREFIX + " THEN " + testName + TEST_LOG_SECTION_SUFFIX);
 	}
-	
+
 	public static void displayCleanup(String testName) {
 		System.out.println(TEST_OUT_SECTION_PREFIX + " CLEANUP " + testName + TEST_OUT_SECTION_SUFFIX);
 		LOGGER.info(TEST_LOG_SECTION_PREFIX + " CLEANUP " + testName + TEST_LOG_SECTION_SUFFIX);
 	}
-	
+
 	public static void info(String message) {
 		System.out.println(TEST_OUT_SECTION_PREFIX + message + TEST_OUT_SECTION_SUFFIX);
 		LOGGER.info(TEST_LOG_SECTION_PREFIX + message + TEST_LOG_SECTION_SUFFIX);
@@ -215,7 +215,7 @@ public class TestUtil {
 			System.out.println(logmsg + "\n" + originalResult.debugDump());
 			fail(logmsg);
 		}
-		
+
 		if (result.isHandledError()) {
 			// There may be errors deeper in this result, even fatal errors. that's ok, we can ignore them.
 			return;
@@ -228,9 +228,9 @@ public class TestUtil {
 			LOGGER.error(logmsg);
 			LOGGER.trace(logmsg + "\n" + originalResult.debugDump());
 			System.out.println(logmsg + "\n" + originalResult.debugDump());
-			assert false : logmsg;	
+			assert false : logmsg;
 		}
-		
+
 		if (stopLevel == currentLevel) {
 			return;
 		}
@@ -245,7 +245,7 @@ public class TestUtil {
 	 * level=0 - check only the top-level
 	 * level=1 - check one level below top-level
 	 * ...
-	 * 
+	 *
 	 * @param message
 	 * @param result
 	 * @param level
@@ -261,7 +261,7 @@ public class TestUtil {
 	public static void assertSuccess(OperationResultType result) {
 		assertSuccess(result.getOperation(), result);
 	}
-	
+
 	public static void assertSuccess(String message, OperationResultType result) {
 		if (!checkResults) {
 			return;
@@ -299,17 +299,17 @@ public class TestUtil {
 	public static void assertSuccess(OperationResult result) {
 		assertSuccess("Operation "+result.getOperation()+" result", result);
 	}
-	
+
 	public static void assertSuccess(OperationResult result, int depth) {
 		assertSuccess("Operation "+result.getOperation()+" result", result, depth);
 	}
-	
+
 	public static void assertStatus(OperationResult result, OperationResultStatus expectedStatus) {
-		assertEquals("Operation "+result.getOperation()+" result", expectedStatus, result.getStatus());		
+		assertEquals("Operation "+result.getOperation()+" result", expectedStatus, result.getStatus());
 	}
 
 	public static void assertStatus(OperationResultType result, OperationResultStatusType expectedStatus) {
-		assertEquals("Operation "+result.getOperation()+" result", expectedStatus, result.getStatus());		
+		assertEquals("Operation "+result.getOperation()+" result", expectedStatus, result.getStatus());
 	}
 
 	public static boolean hasWarningAssertSuccess(String message, OperationResultType result) {
@@ -322,7 +322,7 @@ public class TestUtil {
 			} else {
 				if (result.getStatus() == null || result.getStatus() == OperationResultStatusType.UNKNOWN) {
 					fail(message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation());
-				} 
+				}
 				if (result.getStatus() != OperationResultStatusType.SUCCESS
 	                    && result.getStatus() != OperationResultStatusType.NOT_APPLICABLE
 	                    && result.getStatus() != OperationResultStatusType.HANDLED_ERROR) {
@@ -384,9 +384,9 @@ public class TestUtil {
 	}
 
 	public static void assertFailure(String message, OperationResultType result) {
-		assertTrue((message == null ? "" : message + ": ") + 
-				"Expected that operation "+result.getOperation()+" fails, but the result was "+result.getStatus(), 
-				OperationResultStatusType.FATAL_ERROR == result.getStatus() || 
+		assertTrue((message == null ? "" : message + ": ") +
+				"Expected that operation "+result.getOperation()+" fails, but the result was "+result.getStatus(),
+				OperationResultStatusType.FATAL_ERROR == result.getStatus() ||
 				OperationResultStatusType.PARTIAL_ERROR == result.getStatus()) ;
 		assertNoUnknown(result);
 	}
@@ -429,12 +429,12 @@ public class TestUtil {
 			System.out.println(logmsg + "\n" + originalResult.debugDump());
 			fail(logmsg);
 		}
-		
+
 		if (result.isWarning()) {
 			// Do not descent into warnings. There may be lions inside. Or errors.
 			return true;
 		}
-		
+
 		if (result.isSuccess() || result.isHandledError() || result.isNotApplicable()) {
 			// OK ... expected error is as good as success
 		} else {
@@ -442,9 +442,9 @@ public class TestUtil {
 			LOGGER.error(logmsg);
 			LOGGER.trace(logmsg + "\n" + originalResult.debugDump());
 			System.out.println(logmsg + "\n" + originalResult.debugDump());
-			assert false : logmsg;	
+			assert false : logmsg;
 		}
-		
+
 		if (stopLevel == currentLevel) {
 			return false;
 		}
@@ -503,7 +503,7 @@ public class TestUtil {
 			selectSubresultsInternal(retval, subresult, operationNames);
 		}
 	}
-	
+
 	public static String execSystemCommand(String command) throws IOException, InterruptedException {
 		return execSystemCommand(command, false);
 	}
@@ -535,15 +535,15 @@ public class TestUtil {
 			XMLGregorianCalendar actual) {
 		assertNotNull(message + " is null", actual);
 		if (start != null) {
-			assertTrue(message+": expected time to be after "+start+" but it was "+actual, 
+			assertTrue(message+": expected time to be after "+start+" but it was "+actual,
 				actual.compare(start) == DatatypeConstants.GREATER || actual.compare(start) == DatatypeConstants.EQUAL);
 		}
 		if (end != null) {
-			assertTrue(message+": expected time to be before "+end+" but it was "+actual, 
+			assertTrue(message+": expected time to be before "+end+" but it was "+actual,
 				actual.compare(end) == DatatypeConstants.LESSER || actual.compare(end) == DatatypeConstants.EQUAL);
 		}
 	}
-	
+
 	public static void assertBetween(String message, Long start, Long end,
 			Long actual) {
 		assertNotNull(message + " is null", actual);
@@ -571,7 +571,7 @@ public class TestUtil {
 			XMLGregorianCalendar end) {
 	    assertModifyTimestamp(object, start, end, null);
 	}
-	
+
 	public static void assertModifyTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
 			XMLGregorianCalendar end, String channel) {
 		MetadataType metadata = object.asObjectable().getMetadata();
@@ -588,7 +588,7 @@ public class TestUtil {
         gregorianCalendar.setTimeInMillis(System.currentTimeMillis());
         return getDatatypeFactory().newXMLGregorianCalendar(gregorianCalendar);
 	}
-	
+
 	private static DatatypeFactory getDatatypeFactory() {
         if (datatypeFactory == null) {
             try {
@@ -599,7 +599,7 @@ public class TestUtil {
         }
         return datatypeFactory;
     }
-	
+
 	public static int getJavaMajorVersion() {
 		String javaVersionString = System.getProperty("java.version");
 		Matcher matcher = JAVA_VERSION_PATTERN.matcher(javaVersionString);
@@ -608,14 +608,14 @@ public class TestUtil {
 		} else {
 			throw new IllegalStateException("Cannot match java version string '"+javaVersionString+"'");
 		}
-		
+
 	}
 
 	public static void assertMessageContains(String message, String expectedSubstring) {
 		assertTrue("Expected that message will contain substring '"+expectedSubstring+"', but it did not. Message: "+message,
 				message.contains(expectedSubstring));
 	}
-	
+
 	// WARNING! Only works on Linux
 	public static int getPid() throws NumberFormatException, IOException {
 		return Integer.parseInt(new File("/proc/self").getCanonicalFile().getName());

@@ -342,11 +342,11 @@ public interface RepositoryService {
 			OperationResult parentResult) throws SchemaException;
 
 	boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException;
-	
+
 	<O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) throws SchemaException;
-	
+
 	<O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) throws SchemaException;
-	
+
 	/**
 	 * <p>Modifies object using relative change description.</p>
 	 * Must fail if user with
@@ -506,12 +506,12 @@ public interface RepositoryService {
 	<T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException;
-	
+
 	/**
-	 * 
+	 *
 	 * This operation is guaranteed to be atomic. If two threads or even two nodes request a value from
 	 * the same sequence at the same time then different values will be returned.
-	 * 
+	 *
 	 * @param oid sequence OID
 	 * @param parentResult Operation result
 	 * @return next unallocated counter value
@@ -519,18 +519,18 @@ public interface RepositoryService {
 	 * @throws SchemaException the sequence cannot produce a value (e.g. maximum counter reached)
 	 */
 	long advanceSequence(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-	
+
 	/**
-	 * 
+	 *
 	 * The sequence may ignore the values, e.g. if value re-use is disabled or when the list of
 	 * unused values is full. In such a case the values will be ignored silently and no error is indicated.
-	 * 
+	 *
 	 * @param oid sequence OID
 	 * @param unusedValues values to return
 	 * @param parentResult Operation result
 	 */
 	void returnUnusedValuesToSequence(String oid, Collection<Long> unusedValues, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-	
+
     /**
 	 * Provide repository run-time configuration and diagnostic information.
 	 */

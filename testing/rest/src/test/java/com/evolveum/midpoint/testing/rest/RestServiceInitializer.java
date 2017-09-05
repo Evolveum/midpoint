@@ -64,9 +64,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public abstract class RestServiceInitializer {
 
 	private static final Trace LOGGER = TraceManager.getTrace(RestServiceInitializer.class);
-	
+
 	protected static final File BASE_REPO_DIR = new File("src/test/resources/repo/");
-	
+
 	public static final File USER_ADMINISTRATOR_FILE = new File(BASE_REPO_DIR, "user-administrator.xml");
 	public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 	public static final String USER_ADMINISTRATOR_PASSWORD = "5ecr3t";
@@ -82,25 +82,25 @@ public abstract class RestServiceInitializer {
 	public static final String USER_CYCLOPS_OID = "6020bb52-d48e-11e4-9eaf-001e8c717e5b";
 	public static final String USER_CYCLOPS_USERNAME = "cyclops";
 	public static final String USER_CYCLOPS_PASSWORD = "cyclopassword";
-	
+
 	// REST and reader authorization
 	public static final File USER_SOMEBODY_FILE = new File(BASE_REPO_DIR, "user-somebody.xml");
 	public static final String USER_SOMEBODY_OID = "a5f3e3c8-d48b-11e4-8d88-001e8c717e5b";
 	public static final String USER_SOMEBODY_USERNAME = "somebody";
 	public static final String USER_SOMEBODY_PASSWORD = "somepassword";
-	
+
 	public static final File ROLE_SUPERUSER_FILE = new File(BASE_REPO_DIR, "role-superuser.xml");
 	public static final File ROLE_ENDUSER_FILE = new File(BASE_REPO_DIR, "role-enduser.xml");
 	public static final File ROLE_REST_FILE = new File(BASE_REPO_DIR, "role-rest.xml");
 	public static final File ROLE_READER_FILE = new File(BASE_REPO_DIR, "role-reader.xml");
-	
+
 	public static final File SYSTEM_CONFIGURATION_FILE = new File(BASE_REPO_DIR, "system-configuration.xml");
 
 	public static final File VALUE_POLICY_GENERAL = new File(BASE_REPO_DIR, "value-policy-general.xml");
 	public static final File VALUE_POLICY_NUMERIC = new File(BASE_REPO_DIR, "value-policy-numeric.xml");
 	public static final File VALUE_POLICY_SIMPLE = new File(BASE_REPO_DIR, "value-policy-simple.xml");
 	public static final File SECURITY_POLICY = new File(BASE_REPO_DIR, "security-policy.xml");
-	
+
 	ApplicationContext applicationContext = null;
 
 	private PrismContext prismContext;
@@ -120,7 +120,7 @@ public abstract class RestServiceInitializer {
 	protected abstract String getAcceptHeader();
 	protected abstract String getContentType();
 	protected abstract MidpointAbstractProvider getProvider();
-	
+
 	protected final static String ENDPOINT_ADDRESS = "http://localhost:18080/rest";
 
 	@BeforeClass
@@ -154,10 +154,10 @@ public abstract class RestServiceInitializer {
 		InternalsConfig.encryptionChecks = false;
 
 		prismContext = (PrismContext) applicationContext.getBean("prismContext");
-		
+
 		Task initTask = getTaskManager().createTaskInstance(TestAbstractRestService.class.getName() + ".startServer");
 		OperationResult result = initTask.getResult();
-		
+
 		addObject(ROLE_SUPERUSER_FILE, result);
 		addObject(ROLE_ENDUSER_FILE, result);
 		addObject(ROLE_REST_FILE, result);
@@ -173,7 +173,7 @@ public abstract class RestServiceInitializer {
 		addObject(SYSTEM_CONFIGURATION_FILE, result);
 
 		dummyAuditService = getDummyAuditService().getInstance();
-		
+
 		InternalMonitor.reset();
 
 		getModelService().postInit(result);
@@ -182,7 +182,7 @@ public abstract class RestServiceInitializer {
 		TestUtil.assertSuccessOrWarning("startServer failed (result)", result, 1);
 
 	}
-	
+
 	protected <O extends ObjectType> PrismObject<O> addObject(File file, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException {
 		PrismObject<O> object = getPrismContext().parseObject(file);
 		String oid = getRepositoryService().addObject(object, null, result);

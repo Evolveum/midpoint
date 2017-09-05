@@ -38,7 +38,7 @@ import static org.testng.AssertJUnit.assertEquals;
  *
  */
 public class TestParseFilter {
-	
+
 	public static final File FILTER_FILE = new File(TestConstants.COMMON_DIR, "filter.xml");
 
 	@BeforeSuite
@@ -46,15 +46,15 @@ public class TestParseFilter {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-	
-	
+
+
 	@Test
 	public void testParseFilterFile() throws Exception {
 		System.out.println("===[ testParseFilterFile ]===");
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		// WHEN
 		SearchFilterType filter = prismContext.parserFor(FILTER_FILE).parseRealValue(SearchFilterType.class);
 

@@ -17,14 +17,14 @@ package com.evolveum.midpoint.prism.match;
 
 /**
  * Creates MatchingRuleRegistry populated with standard matching rules.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class MatchingRuleRegistryFactory {
-	
+
 	public static MatchingRuleRegistry createRegistry() {
-		
+
 		MatchingRuleRegistry registry = new MatchingRuleRegistry();
 		registry.registerMatchingRule(new StringIgnoreCaseMatchingRule());
 		registry.registerMatchingRule(new PolyStringStrictMatchingRule());

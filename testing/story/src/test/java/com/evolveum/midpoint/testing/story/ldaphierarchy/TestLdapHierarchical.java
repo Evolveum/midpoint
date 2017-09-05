@@ -56,27 +56,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * reflected to hierachical OUs (OUs inside OUs). Each OU contains groups. Users are members of
  * the groups to reflect their direct membership in orgstruct. Groups are members of parent OU
  * groups.
- *  
+ *
  * @author Radovan Semancik
  *
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapHierarchical extends AbstractLdapHierarchyTest {
-	
+
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap-hierarchical");
 	private static final String LDAP_OU_INTENT = "ou";
-		
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 	}
-	
+
 	@Override
 	protected File getTestDir() {
 		return TEST_DIR;
 	}
-	
+
 	@Override
 	protected PrismObject<UserType> getAndAssertUser(String username, String directOrgGroupname, String... indirectGroupNames) throws SchemaException, CommonException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
 		PrismObject<UserType> user = super.getAndAssertUser(username, directOrgGroupname, indirectGroupNames);
@@ -85,10 +85,10 @@ public class TestLdapHierarchical extends AbstractLdapHierarchyTest {
 		Entry groupEntry = openDJController.searchSingle("cn="+directOrgGroupname);
 		assertNotNull("No group LDAP entry for "+directOrgGroupname, groupEntry);
 		openDJController.assertUniqueMember(groupEntry, accountEntry.getDN().toString());
-		
+
 		return user;
 	}
-	
+
 	@Override
 	protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
 		PrismObject<OrgType> org = super.getAndAssertFunctionalOrg(orgName, directParentOrgOid);
@@ -100,22 +100,22 @@ public class TestLdapHierarchical extends AbstractLdapHierarchyTest {
 			display("parent group entry", openDJController.toHumanReadableLdifoid(parentGroupEntry));
 			openDJController.assertUniqueMember(parentGroupEntry, groupEntry.getDN().toString());
 		}
-		
+
 		String ouOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.GENERIC, LDAP_OU_INTENT);
 		PrismObject<ShadowType> ouShadow = getShadowModel(ouOid);
 		display("Org "+orgName+" ou shadow", ouShadow);
-		
+
 		Entry groupEntry = openDJController.searchSingle("ou="+orgName);
 		assertNotNull("No UO LDAP entry for "+orgName, groupEntry);
 		display("OU entry", openDJController.toHumanReadableLdifoid(groupEntry));
 		openDJController.assertObjectClass(groupEntry, "organizationalUnit");
-		
+
 		String expectedDn = getOuDn(org);
 		assertEquals("Wrong OU DN", expectedDn, groupEntry.getDN().toString().toLowerCase());
-		
+
 		return org;
 	}
-	
+
 	private String getOuDn(PrismObject<OrgType> org) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		StringBuilder sb = new StringBuilder();
 		while (true) {

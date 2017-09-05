@@ -49,7 +49,7 @@ public class SchemaDescription implements DebugDumpable {
 	private String usualPrefix;
 	private String namespace;
 	private String sourceDescription;
-	private InputStreamable streamable; 
+	private InputStreamable streamable;
 	private Node node;
 	private boolean isPrismSchema = false;
 	private boolean isDefault = false;
@@ -85,7 +85,7 @@ public class SchemaDescription implements DebugDumpable {
 	public void setUsualPrefix(String usualPrefix) {
 		this.usualPrefix = usualPrefix;
 	}
-	
+
 	public String getSourceDescription() {
 		return sourceDescription;
 	}
@@ -101,11 +101,11 @@ public class SchemaDescription implements DebugDumpable {
 	public boolean isPrismSchema() {
 		return isPrismSchema;
 	}
-	
+
 	public void setPrismSchema(boolean isMidPointSchema) {
 		this.isPrismSchema = isMidPointSchema;
 	}
-	
+
 	public boolean isDefault() {
 		return isDefault;
 	}
@@ -137,7 +137,7 @@ public class SchemaDescription implements DebugDumpable {
 	public void setCompileTimeClassesPackage(Package compileTimeClassesPackage) {
 		this.compileTimeClassesPackage = compileTimeClassesPackage;
 	}
-	
+
 	public Map<QName, Class<?>> getXsdTypeTocompileTimeClassMap() {
 		return xsdTypeTocompileTimeClassMap;
 	}
@@ -232,7 +232,7 @@ public class SchemaDescription implements DebugDumpable {
 		desc.parseFromInputStream();
 		return desc;
 	}
-	
+
 	private void parseFromInputStream() throws SchemaException {
 		InputStream inputStream = streamable.openInputStream();
 		try {
@@ -249,7 +249,7 @@ public class SchemaDescription implements DebugDumpable {
 		desc.fetchBasicInfoFromSchema();
 		return desc;
 	}
-	
+
 	private void fetchBasicInfoFromSchema() throws SchemaException {
 		Element rootElement = getDomElement();
 		if (DOMUtil.XSD_SCHEMA_ELEMENT.equals(DOMUtil.getQName(rootElement))) {
@@ -263,11 +263,11 @@ public class SchemaDescription implements DebugDumpable {
 			throw new SchemaException("Schema "+sourceDescription+" does not start with xsd:schema element");
 		}
 	}
-	
+
 	public boolean canInputStream() {
 		return (streamable != null);
 	}
-	
+
 	public InputStream openInputStream() {
 		if (!canInputStream()) {
 			throw new IllegalStateException("Schema "+sourceDescription+" cannot provide input stream");
@@ -288,14 +288,14 @@ public class SchemaDescription implements DebugDumpable {
 		source.setSystemId(path);
 		return source;
 	}
-	
+
 	public Element getDomElement() {
 		if (node instanceof Element) {
 			return (Element)node;
 		}
 		return DOMUtil.getFirstChildElement(node);
 	}
-	
+
 	@FunctionalInterface
     private interface InputStreamable {
 		InputStream openInputStream();
@@ -305,7 +305,7 @@ public class SchemaDescription implements DebugDumpable {
 	public String debugDump() {
 		return debugDump(0);
 	}
-	
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();

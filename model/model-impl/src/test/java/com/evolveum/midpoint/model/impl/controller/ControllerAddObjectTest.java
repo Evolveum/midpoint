@@ -76,9 +76,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-no-repo.xml"})
 public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
@@ -101,7 +101,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-	
+
 	@BeforeMethod
 	public void before() {
 		Mockito.reset(provisioning, repository);
@@ -141,10 +141,10 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 	@SuppressWarnings("unchecked")
 	public void addUserCorrect() throws Exception {
 		TestUtil.displayTestTitle("addUserCorrect");
-		
+
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
-		
+
 		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER_COMMON, "system-configuration.xml"));
 
 		final PrismObject<UserType> expectedUser = PrismTestUtil.parseObject(new File(TEST_FOLDER,
@@ -167,10 +167,10 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 		});
 
 		OperationResult result = new OperationResult("Test Operation");
-		
+
 		// WHEN
 		String userOid = controller.addObject(expectedUser, null, task, result);
-		
+
 		// THEN
 		display("addObject result",result.debugDump());
 
@@ -185,10 +185,10 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
             SchemaException, CommunicationException, ObjectNotFoundException, ExpressionEvaluationException,
             IOException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		TestUtil.displayTestTitle("addResourceCorrect");
-		
-		
+
+
 		Task task = taskManager.createTaskInstance();
-		
+
 		final PrismObject<ResourceType> expectedResource = PrismTestUtil.parseObject(new File(
 				TEST_FOLDER, "add-resource-correct.xml"));
 		final ResourceType expectedResourceType = expectedResource.asObjectable();

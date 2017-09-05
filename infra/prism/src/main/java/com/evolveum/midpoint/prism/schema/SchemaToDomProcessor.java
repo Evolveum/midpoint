@@ -46,13 +46,13 @@ import com.sun.xml.xsom.XSParticle;
 
 /**
  * Takes a midPoint Schema definition and produces a XSD schema (in a DOM form).
- * 
+ *
  * Great pains were taken to make sure that the output XML is "nice" and human readable.
  * E.g. the namespace prefixes are unified using the definitions in SchemaRegistry.
  * Please do not ruin this if you would update this class.
- * 
+ *
  * Single use class. Not thread safe. Create new instance for each run.
- * 
+ *
  * @author lazyman
  * @author Radovan Semancik
  */
@@ -71,7 +71,7 @@ public class SchemaToDomProcessor {
 	SchemaToDomProcessor() {
 		importNamespaces = new HashSet<String>();
 	}
-	
+
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}
@@ -91,22 +91,22 @@ public class SchemaToDomProcessor {
 	public void setNamespacePrefixMapper(DynamicNamespacePrefixMapper namespacePrefixMapper) {
 		this.namespacePrefixMapper = namespacePrefixMapper;
 	}
-	
+
 	private SchemaDefinitionFactory getDefinitionFactory() {
 		return ((PrismContextImpl) prismContext).getDefinitionFactory();
 	}
-	
+
 	private String getNamespace() {
 		return schema.getNamespace();
 	}
-	
+
 	private boolean isMyNamespace(QName qname) {
 		return getNamespace().equals(qname.getNamespaceURI());
 	}
 
 	/**
 	 * Main entry point.
-	 * 
+	 *
 	 * @param schema midPoint schema
 	 * @return XSD schema in DOM form
 	 * @throws SchemaException error parsing the midPoint schema or converting values
@@ -119,36 +119,36 @@ public class SchemaToDomProcessor {
 		this.schema = schema;
 
 		try {
-			
+
 			init();			// here the document is initialized
-			
-			// Process complex types first. 
+
+			// Process complex types first.
 			Collection<ComplexTypeDefinition> complexTypes = schema.getDefinitions(ComplexTypeDefinition.class);
 			for (ComplexTypeDefinition complexTypeDefinition: complexTypes) {
 				addComplexTypeDefinition(complexTypeDefinition, document.getDocumentElement());
 			}
-			
+
 			Collection<Definition> definitions = schema.getDefinitions();
 			for (Definition definition : definitions) {
-				
+
 				if (definition instanceof PrismContainerDefinition) {
 					// Add property container definition. This will add <complexType> and <element> definitions to XSD
 					addContainerDefinition((PrismContainerDefinition) definition,
 							document.getDocumentElement(), document.getDocumentElement());
-					
+
 				} else if (definition instanceof PrismPropertyDefinition) {
 					// Add top-level property definition. It will create <element> XSD definition
 					addPropertyDefinition((PrismPropertyDefinition) definition,
 							document.getDocumentElement());
-					
+
 				} else if (definition instanceof ComplexTypeDefinition){
 					// Skip this. Already processed above.
-					
+
 				} else {
 					throw new IllegalArgumentException("Encountered unsupported definition in schema: "
 							+ definition);
 				}
-				
+
 				// TODO: process unprocessed ComplexTypeDefinitions
 			}
 
@@ -166,15 +166,15 @@ public class SchemaToDomProcessor {
 	 * Adds XSD definitions from PropertyContainerDefinition. This is complexType and element.
 	 * If the property container is an ResourceObjectDefinition, it will add only annotated
 	 * complexType definition.
-	 * 
+	 *
 	 * @param definition PropertyContainerDefinition to process
 	 * @param parent element under which the XSD definition will be added
 	 */
 	private void addContainerDefinition(PrismContainerDefinition definition,
 			Element elementParent, Element complexTypeParent) {
-		
+
 		ComplexTypeDefinition complexTypeDefinition = definition.getComplexTypeDefinition();
-		
+
 		if (complexTypeDefinition != null &&
 				// Check if the complex type is a top-level complex type. If it is then it was already processed and we can skip it
 				schema.findComplexTypeDefinition(complexTypeDefinition.getTypeName()) == null &&
@@ -186,7 +186,7 @@ public class SchemaToDomProcessor {
 
 		Element elementElement = addElementDefinition(definition.getName(), definition.getTypeName(), definition.getMinOccurs(), definition.getMaxOccurs(),
 				elementParent);
-		
+
 		if (complexTypeDefinition == null || !complexTypeDefinition.isContainerMarker()) {
 			// Need to add a:container annotation to the element as the complex type does not have it
 			addAnnotationToDefinition(elementElement, A_PROPERTY_CONTAINER);
@@ -227,7 +227,7 @@ public class SchemaToDomProcessor {
 		annotation.appendChild(appinfo);
 
 		addCommonDefinitionAnnotations(definition, appinfo);
-		
+
 		if (!definition.canAdd() || !definition.canRead() || !definition.canModify()) {
 			// read-write-create attribute is the default. If any of this flags is missing, we must
 			// add appropriate annotations.
@@ -241,28 +241,28 @@ public class SchemaToDomProcessor {
 				addAnnotation(A_ACCESS, A_ACCESS_UPDATE, appinfo);
 			}
 		}
-		
+
 		if (definition.isIndexed() != null) {
 			addAnnotation(A_INDEXED, XmlTypeConverter.toXmlTextContent(definition.isIndexed(), A_INDEXED), appinfo);
 		}
-		
+
 		if (definition.getMatchingRuleQName() != null) {
 			addAnnotation(A_MATCHING_RULE, definition.getMatchingRuleQName(), appinfo);
 		}
-		
+
 		if (definition.getValueEnumerationRef() != null) {
 			addAnnotation(A_VALUE_ENUMERATION_REF, definition.getValueEnumerationRef(), appinfo);
 		}
-				
+
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 		definitionFactory.addExtraPropertyAnnotations(definition, appinfo, this);
-		
+
 		if (!appinfo.hasChildNodes()) {
 			// remove unneeded <annotation> element
 			property.removeChild(annotation);
 		}
 	}
-	
+
 	/**
 	 * Adds XSD element definition created from the PrismReferenceDefinition.
 	 * TODO: need to finish
@@ -296,11 +296,11 @@ public class SchemaToDomProcessor {
 		if (definition.getTargetTypeName() != null) {
 			addAnnotation(A_OBJECT_REFERENCE_TARGET_TYPE, definition.getTargetTypeName(), appinfo);
 		}
-		
+
 		if (definition.getCompositeObjectElementName() == null) {
 			return;
 		}
-		
+
 		property = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "element"));
 		// Add to document first, so following methods will be able to resolve namespaces
 		parent.appendChild(property);
@@ -327,12 +327,12 @@ public class SchemaToDomProcessor {
 		if (definition.isComposite()) {
 			addAnnotation(A_COMPOSITE, definition.isComposite(), appinfo);
 		}
-		
+
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 		definitionFactory.addExtraReferenceAnnotations(definition, appinfo, this);
 
 	}
-	
+
 	/**
 	 * Adds XSD element definition.
 	 * @param name element QName
@@ -342,10 +342,10 @@ public class SchemaToDomProcessor {
 	private Element addElementDefinition(QName name, QName typeName, int minOccurs, int maxOccurs, Element parent) {
 		Element elementDef = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "element"));
 		parent.appendChild(elementDef);
-		
+
 		if (isMyNamespace(name)) {
 			setAttribute(elementDef, "name", name.getLocalPart());
-		
+
 			if (typeName.equals(DOMUtil.XSD_ANY)) {
 				addSequenceXsdAnyDefinition(elementDef);
 			} else {
@@ -359,10 +359,10 @@ public class SchemaToDomProcessor {
 				addAnnotationToDefinition(elementDef, A_TYPE, typeName);
 			}
 		}
-		
+
 		setMultiplicityAttribute(elementDef, "minOccurs", minOccurs);
 		setMultiplicityAttribute(elementDef, "maxOccurs", maxOccurs);
-		
+
 		return elementDef;
 	}
 
@@ -373,7 +373,7 @@ public class SchemaToDomProcessor {
 		complexContextElement.appendChild(sequenceElement);
 		addXsdAnyDefinition(sequenceElement);
 	}
-	
+
 	private void addXsdAnyDefinition(Element elementDef) {
 		Element anyElement = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "any"));
 		elementDef.appendChild(anyElement);
@@ -406,7 +406,7 @@ public class SchemaToDomProcessor {
 		setAttribute(complexType, "name", definition.getTypeName().getLocalPart());
 		Element annotation = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "annotation"));
 		complexType.appendChild(annotation);
-		
+
 		Element containingElement = complexType;
 		if (definition.getSuperType() != null) {
 			Element complexContent = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "complexContent"));
@@ -427,20 +427,20 @@ public class SchemaToDomProcessor {
 			} else if (def instanceof PrismContainerDefinition) {
 				PrismContainerDefinition contDef = (PrismContainerDefinition)def;
 				addContainerDefinition(contDef, sequence, parent);
-			} else if (def instanceof PrismReferenceDefinition) { 
+			} else if (def instanceof PrismReferenceDefinition) {
 				addReferenceDefinition((PrismReferenceDefinition) def, sequence);
 			} else {
 				throw new IllegalArgumentException("Uknown definition "+def+"("+def.getClass().getName()+") in complex type definition "+def);
 			}
 		}
-		
+
 		if (definition.isXsdAnyMarker()) {
 			addXsdAnyDefinition(sequence);
 		}
-		
+
 		Element appinfo = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"));
 		annotation.appendChild(appinfo);
-		
+
 		if (definition.isObjectMarker()) {
 			// annotation: propertyContainer
 			addAnnotation(A_OBJECT, definition.getDisplayName(), appinfo);
@@ -448,46 +448,46 @@ public class SchemaToDomProcessor {
 			// annotation: propertyContainer
 			addAnnotation(A_PROPERTY_CONTAINER, definition.getDisplayName(), appinfo);
 		}
-		
+
 		addCommonDefinitionAnnotations(definition, appinfo);
-		
+
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 		definitionFactory.addExtraComplexTypeAnnotations(definition, appinfo, this);
-		
+
 		if (!appinfo.hasChildNodes()) {
 			// remove unneeded <annotation> element
 			complexType.removeChild(annotation);
 		}
-		
+
 		return complexType;
 	}
-	
+
 	private void addCommonDefinitionAnnotations(Definition definition, Element appinfoElement) {
 		if (definition.isIgnored()) {
 			addAnnotation(A_IGNORE, "true", appinfoElement);
 		}
-		
+
 		if ((definition instanceof ItemDefinition) && ((ItemDefinition)definition).isOperational()) {
 			addAnnotation(A_OPERATIONAL, "true", appinfoElement);
 		}
-		
+
 		if (definition.getDisplayName() != null) {
 			addAnnotation(A_DISPLAY_NAME, definition.getDisplayName(), appinfoElement);
 		}
-		
+
 		if (definition.getDisplayOrder() != null) {
 			addAnnotation(A_DISPLAY_ORDER, definition.getDisplayOrder().toString(), appinfoElement);
 		}
-		
+
 		if (definition.getHelp() != null) {
 			addAnnotation(A_HELP, definition.getHelp(), appinfoElement);
 		}
-		
+
 		if (definition.isEmphasized()) {
 			addAnnotation(A_EMPHASIZED, "true", appinfoElement);
 		}
 	}
-	
+
 	/**
 	 * Add generic annotation element.
 	 * @param qname QName of the element
@@ -503,20 +503,20 @@ public class SchemaToDomProcessor {
 		}
 		return annotation;
 	}
-	
+
 	public Element addAnnotation(QName qname, boolean value, Element parent) {
 		Element annotation = createElement(qname);
 		parent.appendChild(annotation);
 		annotation.setTextContent(Boolean.toString(value));
 		return annotation;
 	}
-	
+
 	public Element addAnnotation(QName qname, Element parent) {
 		Element annotation = createElement(qname);
 		parent.appendChild(annotation);
 		return annotation;
 	}
-	
+
 	public Element addAnnotation(QName qname, QName value, Element parent) {
 		Element annotation = createElement(qname);
 		parent.appendChild(annotation);
@@ -525,7 +525,7 @@ public class SchemaToDomProcessor {
 		}
 		return annotation;
 	}
-	
+
 	public Element addAnnotation(QName qname, PrismReferenceValue value, Element parent) {
 		Element annotation = createElement(qname);
 		parent.appendChild(annotation);
@@ -535,11 +535,11 @@ public class SchemaToDomProcessor {
 		}
 		return annotation;
 	}
-	
+
 	private void addAnnotationToDefinition(Element definitionElement, QName qname) {
 		addAnnotationToDefinition(definitionElement, qname, null);
 	}
-		
+
 	private void addAnnotationToDefinition(Element definitionElement, QName qname, QName value) {
 		Element annotationElement = getOrCreateElement(new QName(W3C_XML_SCHEMA_NS_URI, "annotation"), definitionElement);
 		Element appinfoElement = getOrCreateElement(new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"), annotationElement);
@@ -549,7 +549,7 @@ public class SchemaToDomProcessor {
 			addAnnotation(qname, value, appinfoElement);
 		}
 	}
-	
+
 	private Element getOrCreateElement(QName qName, Element parentElement) {
 		NodeList elements = parentElement.getElementsByTagNameNS(qName.getNamespaceURI(), qName.getLocalPart());
 		if (elements.getLength() == 0) {
@@ -586,15 +586,15 @@ public class SchemaToDomProcessor {
 			// TODO: clone?
 			namespacePrefixMapper = ((SchemaRegistryImpl) prismContext.getSchemaRegistry()).getNamespacePrefixMapper();
 		}
-		
+
 		// We don't want the "tns" prefix to be kept in the mapper
 		namespacePrefixMapper = namespacePrefixMapper.clone();
 		namespacePrefixMapper.registerPrefixLocal(getNamespace(), "tns");
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Using namespace prefix mapper to serialize schema:\n{}",DebugUtil.dump(namespacePrefixMapper));
 		}
-		
+
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		dbf.setNamespaceAware(true);
 		dbf.setValidating(false);
@@ -603,18 +603,18 @@ public class SchemaToDomProcessor {
 		document = db.newDocument();
 		Element root = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "schema"));
 		document.appendChild(root);
-		
+
 		rootXsdElement = document.getDocumentElement();
 		setAttribute(rootXsdElement, "targetNamespace", getNamespace());
 		setAttribute(rootXsdElement, "elementFormDefault", "qualified");
-		
+
 		DOMUtil.setNamespaceDeclaration(rootXsdElement, "tns", getNamespace());
-		
+
 		if (attributeQualified) {
 			setAttribute(rootXsdElement, "attributeFormDefault", "qualified");
 		}
 	}
-	
+
 	/**
 	 * Create DOM document with a root element.
 	 */
@@ -648,11 +648,11 @@ public class SchemaToDomProcessor {
 	private void setAttribute(Element element, String attrName, String attrValue) {
 		setAttribute(element, new QName(W3C_XML_SCHEMA_NS_URI, attrName), attrValue);
 	}
-	
+
 	private void setAttribute(Element element, String attrName, QName attrValue) {
 		setAttribute(element, new QName(W3C_XML_SCHEMA_NS_URI, attrName), attrValue);
 	}
-	
+
 	private void setMultiplicityAttribute(Element element, String attrName, int attrValue) {
 		if (attrValue == 1) {
 			return;
@@ -674,7 +674,7 @@ public class SchemaToDomProcessor {
 			element.setAttribute(attr.getLocalPart(), attrValue);
 		}
 	}
-	
+
 	private void setAttribute(Element element, QName attr, QName attrValue) {
 		if (attributeQualified) {
 			DOMUtil.setQNameAttribute(element, attr, attrValue, rootXsdElement);
@@ -683,11 +683,11 @@ public class SchemaToDomProcessor {
 			DOMUtil.setQNameAttribute(element, attr.getLocalPart(), attrValue, rootXsdElement);
 		}
 	}
-	
+
 	/**
 	 * Set attribute in the DOM element to a QName value. This will make sure that the
 	 * appropriate namespace definition for the QName exists.
-	 * 
+	 *
 	 * @param element element element element where to set attribute
 	 * @param attrName attribute name (String)
 	 * @param value attribute value (Qname)
@@ -697,7 +697,7 @@ public class SchemaToDomProcessor {
 		DOMUtil.setQNameAttribute(element, attrName, valueWithPrefix, rootXsdElement);
 		addToImport(value.getNamespaceURI());
 	}
-	
+
 	/**
 	 * Make sure that the namespace will be added to import definitions.
 	 * @param namespace namespace to import
@@ -723,11 +723,11 @@ public class SchemaToDomProcessor {
 				//we don't want to import target namespace
 				continue;
 			}
-			
+
 			rootXsdElement.insertBefore(createImport(namespace), rootXsdElement.getFirstChild());
 		}
 	}
-	
+
 	/**
 	 * Create single import XSD element.
 	 */

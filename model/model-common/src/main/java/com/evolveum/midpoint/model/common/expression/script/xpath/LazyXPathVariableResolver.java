@@ -60,16 +60,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class LazyXPathVariableResolver implements XPathVariableResolver {
 
 	private static final QName FAKE_VARIABLE_QNAME = new QName(SchemaConstants.NS_C, "fakeVar");
-	
+
     private ExpressionVariables variables;
     private ObjectResolver objectResolver;
     private String contextDescription;
     private OperationResult result;
     private PrismContext prismContext;
-    
+
     private static final Trace LOGGER = TraceManager.getTrace(LazyXPathVariableResolver.class);
 
-    public LazyXPathVariableResolver(ExpressionVariables variables, ObjectResolver objectResolver, 
+    public LazyXPathVariableResolver(ExpressionVariables variables, ObjectResolver objectResolver,
     		String contextDescription, PrismContext prismContext, OperationResult result) {
     	this.variables = variables;
     	this.objectResolver = objectResolver;
@@ -83,21 +83,21 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
     	if (variables == null) {
     		return null;
     	}
-    	
+
     	if (name != null && (name.getNamespaceURI() == null || name.getNamespaceURI().isEmpty())) {
     		LOGGER.warn("Using variable without a namespace ("+name+"), possible namespace problem (e.g. missing namespace prefix declaration) in "+contextDescription);
     	}
-    	
+
     	// Note: null is a legal variable name here. It corresponds to the root node
         Object variableValue = variables.get(name);
-        
+
         if (variableValue == null) {
         	// TODO: warning ???
         	return null;
         }
-        
+
         QName type = null;
-        
+
         // Attempt to resolve object reference
         if (objectResolver != null && variableValue instanceof ObjectReferenceType) {
         	ObjectReferenceType ref = (ObjectReferenceType)variableValue;
@@ -107,9 +107,9 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
         	} else {
         		type = ref.getType();
 		    	try {
-		    		
+		
 					variableValue = objectResolver.resolve(ref, ObjectType.class, null, contextDescription, null, result);		// TODO task
-					
+
 				} catch (ObjectNotFoundException e) {
 					ObjectNotFoundException newEx = new ObjectNotFoundException("Object not found during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(),e, ref.getOid());
 					// We have no other practical way how to handle the error
@@ -120,22 +120,22 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 				}
         	}
         }
-     
+
         try {
         	return convertToXml(variableValue, name, prismContext, contextDescription);
         } catch (SchemaException e) {
 			throw new TunnelException(e);
 		}
     }
-        
+
     // May return primitive types or DOM Node
     public static Object convertToXml(Object variableValue, QName variableName, final PrismContext prismContext, String contextDescription) throws SchemaException {
-    	
+
     	try {
 	        if (variableValue instanceof Objectable) {
 	        	variableValue = ((Objectable)variableValue).asPrismObject();
 	        }
-	        
+
 	        if (variableValue instanceof PrismObject) {
 	        	PrismObject<?> prismObject = (PrismObject<?>)variableValue;
 	        	variableValue = prismObject.getPrismContext().domSerializer().serialize(prismObject);
@@ -149,7 +149,7 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 	        	}
 	        	NodeList nodeList = new AdHocNodeList(elementList);
 				variableValue = nodeList;
-				
+
 	        } else if (variableValue instanceof PrismValue) {
 	        	PrismValue pval = (PrismValue)variableValue;
 	        	if (pval.getParent() == null) {
@@ -158,12 +158,12 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 	        	}
 	        	variableValue = prismContext.domSerializer().serialize(pval, variableName);
 	        }
-	        
-	        if (!((variableValue instanceof Node)||variableValue instanceof NodeList) 
+
+	        if (!((variableValue instanceof Node)||variableValue instanceof NodeList)
 	        		&& !(variableValue.getClass().getPackage().getName().startsWith("java."))) {
 	        	throw new SchemaException("Unable to convert value of variable "+variableName+" to XML, still got "+variableValue.getClass().getName()+":"+variableValue+" value at the end");
 	        }
-	        
+
 	        // DEBUG hack
 //	        if (LOGGER.isDebugEnabled()) {
 //		        LOGGER.trace("VAR "+variableName+" - "+variableValue.getClass().getName()+":");
@@ -173,9 +173,9 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 //		        	LOGGER.trace(PrettyPrinter.prettyPrint(variableValue));
 //		        }
 //	        }
-	        
+
 	        return variableValue;
-	        
+
     	} catch (SchemaException e) {
     		if (variableValue != null && variableValue instanceof DebugDumpable) {
     			LOGGER.trace("Value of variable {}:\n{}", variableName, ((DebugDumpable)variableValue).debugDump());

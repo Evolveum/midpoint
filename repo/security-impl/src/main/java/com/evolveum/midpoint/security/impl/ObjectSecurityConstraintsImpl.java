@@ -26,10 +26,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
 public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints {
-	
+
 	private Map<ItemPath, ItemSecurityConstraintsImpl> itemConstraintMap = new HashMap<>();
 	private Map<String, PhaseDecisionImpl> actionDecisionMap = new HashMap<>();
-		
+
 	public Map<ItemPath, ItemSecurityConstraintsImpl> getItemConstraintMap() {
 		return itemConstraintMap;
 	}
@@ -40,7 +40,7 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
 	public Map<String, PhaseDecisionImpl> getActionDecisionMap() {
 		return actionDecisionMap;
 	}
-	
+
 	@Override
 	public AuthorizationDecisionType getActionDecision(String actionUrl, AuthorizationPhaseType phase) {
 		AuthorizationDecisionType actionDecision = getSimpleActionDecision(actionDecisionMap, actionUrl, phase);
@@ -56,7 +56,7 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
 		}
 		return allDecision;
 	}
-	
+
 	private AuthorizationDecisionType getSimpleActionDecision(Map<String, PhaseDecisionImpl> actionDecisionMap, String actionUrl, AuthorizationPhaseType phase) {
 		PhaseDecisionImpl phaseDecision = actionDecisionMap.get(actionUrl);
 		if (phaseDecision == null) {
@@ -70,7 +70,7 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
 			if (phaseDecision.getRequestDecision() == null && phaseDecision.getExecDecision() == null) {
 				return null;
 			}
-			if (phaseDecision.getRequestDecision() == AuthorizationDecisionType.DENY || 
+			if (phaseDecision.getRequestDecision() == AuthorizationDecisionType.DENY ||
 					phaseDecision.getExecDecision() == AuthorizationDecisionType.DENY) {
 				return AuthorizationDecisionType.DENY;
 			}
@@ -137,5 +137,5 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
 		DebugUtil.debugDumpWithLabel(sb, "actionDecisionMap", actionDecisionMap, indent+1);
 		return sb.toString();
 	}
-	
+
 }

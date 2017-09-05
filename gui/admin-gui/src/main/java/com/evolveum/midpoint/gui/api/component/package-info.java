@@ -15,9 +15,9 @@
  */
 /**
  * Package for reusable and stable GUI Wicket Components.
- * 
+ *
  * It is expected that each component will be placed in its own sub-package.
- * 
+ *
  * @author Radovan Semancik
  */
 package com.evolveum.midpoint.gui.api.component;

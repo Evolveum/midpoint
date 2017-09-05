@@ -332,12 +332,12 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		DynamicFormPanel<UserType> dynamicForm = runPrivileged(
 				() -> {
 					final ObjectReferenceType ort = getSelfRegistrationConfiguration().getFormRef();
-	
+
 					if (ort == null) {
 						return null;
 					}
 					Task task = createAnonymousTask(OPERATION_LOAD_DYNAMIC_FORM);
-	
+
 					return new DynamicFormPanel<UserType>(ID_DYNAMIC_FORM_PANEL,
 							userModel, ort.getOid(), mainForm, task, PageSelfRegistration.this, true);
 				});
@@ -573,7 +573,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			} else {
 				delta = getDynamicFormPanel().getObjectDelta();
 			}
-			
+
 			delta.addModificationReplaceContainer(SchemaConstants.PATH_NONCE,
 					createNonce(getSelfRegistrationConfiguration().getNoncePolicy(), task, result)
 							.asPrismContainerValue());
@@ -677,7 +677,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		return password;
 	}
 
-	private <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy, 
+	private <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy,
 			PrismObject<O> user, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
 		ValuePolicyType policy = null;
 
@@ -687,7 +687,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			policy = valuePolicy.asObjectable();
 		}
 
-		return getModelInteractionService().generateValue(policy != null ? policy.getStringPolicy() : null, 
+		return getModelInteractionService().generateValue(policy != null ? policy.getStringPolicy() : null,
 				24, false, user, "nonce generation (registration)", task, result);
 	}
 

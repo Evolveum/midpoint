@@ -40,7 +40,7 @@ public class QueryBasedHandlerPanel<D extends QueryBasedHandlerDto> extends Base
 		initLayout();
 		setOutputMarkupId(true);
 	}
-	
+
 	private void initLayout() {
 		WebMarkupContainer objectTypeContainer = new WebMarkupContainer(ID_OBJECT_TYPE_CONTAINER);
 		Label objectType = new Label(ID_OBJECT_TYPE, new AbstractReadOnlyModel<String>() {

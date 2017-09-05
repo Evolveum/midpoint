@@ -111,13 +111,13 @@ public class ColumnUtils {
 //			throw new UnsupportedOperationException("Will be implemented eventually");
 		}
 	}
-	
+
 	public static <O extends ObjectType> IColumn<SelectableBean<O>, String> createIconColumn(Class<? extends O> type){
-		
+
 		if (type.equals(ObjectType.class)){
 			return getDefaultIcons();
 		}
-		
+
 		if (type.equals(UserType.class)) {
 			return getUserIconColumn();
 		} else if (RoleType.class.equals(type)) {
@@ -139,7 +139,7 @@ public class ColumnUtils {
 //			throw new UnsupportedOperationException("Will be implemented eventually");
 		}
 	}
-	
+
 	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getEmptyIconColumn(){
 		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
 			private static final long serialVersionUID = 1L;
@@ -157,7 +157,7 @@ public class ColumnUtils {
 			}
 		};
 	}
-	
+
 	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getDefaultIcons(){
 		return new IconColumn<SelectableBean<T>>(createStringResource("userBrowserDialog.type")) {
 
@@ -176,7 +176,7 @@ public class ColumnUtils {
 			}
 		};
 	}
-	
+
 	private static IModel<String> createIconColumnHeaderModel() {
 		return new Model<String>() {
 			@Override
@@ -185,7 +185,7 @@ public class ColumnUtils {
 			}
 		};
 	}
-	
+
 	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getUserIconColumn(){
 		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
 			private static final long serialVersionUID = 1L;
@@ -227,7 +227,7 @@ public class ColumnUtils {
 
         };
 	}
-	
+
 	public static <T extends ObjectType> IColumn<SelectableBean<T>, String> getShadowIconColumn(){
 		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
 			private static final long serialVersionUID = 1L;
@@ -271,7 +271,7 @@ public class ColumnUtils {
 			}
 		};
 	}
-	
+
 	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getRoleIconColumn(){
 		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
 			private static final long serialVersionUID = 1L;
@@ -502,16 +502,16 @@ public class ColumnUtils {
 
 	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultRoleColumns() {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
-		
+
 
 		columns.addAll((Collection)getDefaultAbstractRoleColumns(RoleType.COMPLEX_TYPE));
 
 		return columns;
 	}
-	
+
 	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultServiceColumns() {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
-	
+
 		columns.addAll((Collection)getDefaultAbstractRoleColumns(ServiceType.COMPLEX_TYPE));
 
 		return columns;

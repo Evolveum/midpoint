@@ -68,41 +68,41 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestDependencies extends AbstractInternalModelIntegrationTest {
-		
+
 	public static final File TEST_DIR = new File("src/test/resources/lens/dependencies");
 	private static final File ACCOUNT_ELAINE_TEMPLATE_FILE = new File(TEST_DIR, "account-elaine-template.xml");
-	
+
 	@Autowired(required = true)
 	private Projector projector;
-	
+
 	@Autowired(required = true)
 	private DependencyProcessor dependencyProcessor;
-	
+
 	@Autowired(required = true)
 	private TaskManager taskManager;
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		initDummy("a", initTask, initResult);
 		initDummy("b", initTask, initResult); // depends on A
 		initDummy("c", initTask, initResult); // depends on B
 		initDummy("d", initTask, initResult); // depends on B
-		
+
 		initDummy("p", initTask, initResult); // depends on R (order 5)
 		initDummy("r", initTask, initResult); // depends on P (order 0)
-		
+
 		initDummy("x", initTask, initResult); // depends on Y (circular)
 		initDummy("y", initTask, initResult); // depends on Z (circular)
 		initDummy("z", initTask, initResult); // depends on X (circular)
 	}
-	
+
 	private void initDummy(String name, Task initTask, OperationResult initResult) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ConnectException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
 		String resourceOid = getDummyOid(name);
 		DummyResourceContoller resourceCtl = DummyResourceContoller.create(name.toUpperCase());
 		resourceCtl.extendSchemaPirate();
-		PrismObject<ResourceType> resource = importAndGetObjectFromFile(ResourceType.class, 
+		PrismObject<ResourceType> resource = importAndGetObjectFromFile(ResourceType.class,
 				getDummFile(name), resourceOid, initTask, initResult);
 		resourceCtl.setResource(resource);
 	}
@@ -114,7 +114,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	private String getDummyOid(String name) {
 		return "14440000-0000-0000-000"+name+"-000000000000";
 	}
-	
+
 	private String getDummuAccountOid(String dummyName, String accountName) {
 		return "14440000-0000-0000-000"+dummyName+"-10000000000"+accountName;
 	}
@@ -128,22 +128,22 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
+
         LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
         LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, task, result);
         fillContextWithDummyElaineAccount(context, "a", task, result);
-        
+
         context.recompute();
-        display("Context before", context);        
+        display("Context before", context);
         context.checkConsistence();
-        
+
         // WHEN
         dependencyProcessor.sortProjectionsToWaves(context);
-        
+
         // THEN
         display("Context after", context);
-        
+
         assertWave(context, RESOURCE_DUMMY_OID, 0, 0);
         assertWave(context, getDummyOid("a"), 0, 0);
 	}
@@ -157,28 +157,28 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
+
         LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
         LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, task, result);
         fillContextWithDummyElaineAccount(context, "a", task, result);
         fillContextWithDummyElaineAccount(context, "b", task, result);
-        
+
         context.recompute();
-        display("Context before", context);        
+        display("Context before", context);
         context.checkConsistence();
-        
+
         // WHEN
         dependencyProcessor.sortProjectionsToWaves(context);
-        
+
         // THEN
         display("Context after", context);
-        
+
         assertWave(context, RESOURCE_DUMMY_OID, 0, 0);
         assertWave(context, getDummyOid("a"), 0, 0);
         assertWave(context, getDummyOid("b"), 0, 1);
 	}
-	
+
 	@Test
     public void test102SortToWavesABCD() throws Exception {
 		final String TEST_NAME = "test102SortToWavesABCD";
@@ -188,7 +188,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
+
         LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
         LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, task, result);
@@ -196,24 +196,24 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         fillContextWithDummyElaineAccount(context, "b", task, result);
         fillContextWithDummyElaineAccount(context, "c", task, result);
         fillContextWithDummyElaineAccount(context, "d", task, result);
-        
+
         context.recompute();
-        display("Context before", context);        
+        display("Context before", context);
         context.checkConsistence();
-        
+
         // WHEN
         dependencyProcessor.sortProjectionsToWaves(context);
-        
+
         // THEN
         display("Context after", context);
-        
+
         assertWave(context, RESOURCE_DUMMY_OID, 0, 0);
         assertWave(context, getDummyOid("a"), 0, 0);
         assertWave(context, getDummyOid("b"), 0, 1);
         assertWave(context, getDummyOid("c"), 0, 2);
         assertWave(context, getDummyOid("d"), 0, 2);
 	}
-	
+
 	@Test
     public void test120SortToWavesBCUnsatisfied() throws Exception {
 		final String TEST_NAME = "test120SortToWavesBCUnsatisfied";
@@ -223,16 +223,16 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
+
         LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
         fillContextWithDummyElaineAccount(context, "b", task, result);
         fillContextWithDummyElaineAccount(context, "c", task, result);
-        
+
         context.recompute();
-        display("Context before", context);        
+        display("Context before", context);
         context.checkConsistence();
-        
+
         try {
 	        // WHEN
         	dependencyProcessor.sortProjectionsToWaves(context);
@@ -241,10 +241,10 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
         	// this is expected
-        }        
+        }
 	}
 
-	
+
 	@Test
     public void test151SortToWavesPR() throws Exception {
 		final String TEST_NAME = "test151SortToWavesPR";
@@ -254,22 +254,22 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
+
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_ELAINE_OID, result);
         fillContextWithDummyElaineAccount(context, "p", task, result);
         fillContextWithDummyElaineAccount(context, "r", task, result);
-        
+
         context.recompute();
-        display("Context before", context);        
+        display("Context before", context);
         context.checkConsistence();
-        
+
         // WHEN
         dependencyProcessor.sortProjectionsToWaves(context);
-        
+
         // THEN
         display("Context after", context);
-        
+
         assertWave(context, getDummyOid("p"), 0, 0);
         assertWave(context, getDummyOid("r"), 0, 1);
         assertWave(context, getDummyOid("p"), 5, 2);
@@ -288,27 +288,27 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
+
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_ELAINE_OID, result);
         fillContextWithDummyElaineAccount(context, "r", task, result);
         fillContextWithDummyElaineAccount(context, "p", task, result);
-        
+
         context.recompute();
-        display("Context before", context);        
+        display("Context before", context);
         context.checkConsistence();
-        
+
         // WHEN
         dependencyProcessor.sortProjectionsToWaves(context);
-        
+
         // THEN
         display("Context after", context);
-        
+
         assertWave(context, getDummyOid("p"), 0, 0);
         assertWave(context, getDummyOid("r"), 0, 1);
         assertWave(context, getDummyOid("p"), 5, 2);
 	}
-	
+
 	@Test
     public void test200SortToWavesIdependentDeprovision() throws Exception {
 		final String TEST_NAME = "test200SortToWavesIdependentDeprovision";
@@ -318,27 +318,27 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
+
         LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
         LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, task, result);
         setDelete(accountContext);
         setDelete(fillContextWithDummyElaineAccount(context, "a", task, result));
-        
+
         context.recompute();
-        display("Context before", context);        
+        display("Context before", context);
         context.checkConsistence();
-        
+
         // WHEN
         dependencyProcessor.sortProjectionsToWaves(context);
-        
+
         // THEN
         display("Context after", context);
-        
+
         assertWave(context, RESOURCE_DUMMY_OID, 0, 0);
         assertWave(context, getDummyOid("a"), 0, 0);
 	}
-	
+
 	@Test
     public void test201SortToWavesABDeprovision() throws Exception {
 		final String TEST_NAME = "test201SortToWavesABDeprovision";
@@ -348,29 +348,29 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
+
         LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
         LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, task, result);
         setDelete(accountContext);
         setDelete(fillContextWithDummyElaineAccount(context, "a", task, result));
         setDelete(fillContextWithDummyElaineAccount(context, "b", task, result));
-        
+
         context.recompute();
-        display("Context before", context);        
+        display("Context before", context);
         context.checkConsistence();
-        
+
         // WHEN
         dependencyProcessor.sortProjectionsToWaves(context);
-        
+
         // THEN
         display("Context after", context);
-        
+
         assertWave(context, RESOURCE_DUMMY_OID, 0, 0);
         assertWave(context, getDummyOid("a"), 0, 1);
         assertWave(context, getDummyOid("b"), 0, 0);
 	}
-	
+
 	@Test
     public void test202SortToWavesABCDDeprovision() throws Exception {
 		final String TEST_NAME = "test202SortToWavesABCDDeprovision";
@@ -380,7 +380,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
+
         LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
         LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, task, result);
@@ -389,24 +389,24 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         setDelete(fillContextWithDummyElaineAccount(context, "b", task, result));
         setDelete(fillContextWithDummyElaineAccount(context, "c", task, result));
         setDelete(fillContextWithDummyElaineAccount(context, "d", task, result));
-        
+
         context.recompute();
-        display("Context before", context);        
+        display("Context before", context);
         context.checkConsistence();
-        
+
         // WHEN
         dependencyProcessor.sortProjectionsToWaves(context);
-        
+
         // THEN
         display("Context after", context);
-        
+
         assertWave(context, RESOURCE_DUMMY_OID, 0, 0);
         assertWave(context, getDummyOid("a"), 0, 2);
         assertWave(context, getDummyOid("b"), 0, 1);
         assertWave(context, getDummyOid("c"), 0, 0);
         assertWave(context, getDummyOid("d"), 0, 0);
 	}
-	
+
 	private void setDelete(LensProjectionContext accountContext) {
 		accountContext.setPrimaryDelta(ObjectDelta.createDeleteDelta(ShadowType.class, accountContext.getOid(), prismContext));
 	}
@@ -420,29 +420,29 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
+
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_ELAINE_OID, result);
         fillContextWithDummyElaineAccount(context, "x", task, result);
         fillContextWithDummyElaineAccount(context, "y", task, result);
         fillContextWithDummyElaineAccount(context, "z", task, result);
-        
+
         context.recompute();
-        display("Context before", context);        
+        display("Context before", context);
         context.checkConsistence();
-        
+
         try {
 	        // WHEN
         	dependencyProcessor.sortProjectionsToWaves(context);
-	        
+
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
         	// This is expected
         	display("Expected exception", e);
         }
-        
+
 	}
-	
+
 	private LensProjectionContext fillContextWithDummyElaineAccount(
 			LensContext<UserType> context, String dummyName, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, IOException, ExpressionEvaluationException {
 		String resourceOid = getDummyOid(dummyName);
@@ -454,7 +454,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         provisioningService.applyDefinition(account, task, result);
         return fillContextWithAccount(context, account, task, result);
 	}
-	
+
 	private void assertWave(LensContext<UserType> context,
 			String resourceOid, int order, int expectedWave) {
 		LensProjectionContext ctxAccDummy = findAccountContext(context, resourceOid, order);
@@ -472,5 +472,5 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 		discr.setOrder(order);
 		return context.findProjectionContext(discr);
 	}
-	
+
 }

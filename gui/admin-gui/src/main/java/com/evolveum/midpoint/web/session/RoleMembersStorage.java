@@ -24,7 +24,7 @@ public class RoleMembersStorage implements PageStorage{
 	private static final long serialVersionUID = 1L;
 
 	private RoleMemberSearchDto roleMemberSearch;
-	
+
 	private Search search;
 
     /**
@@ -49,17 +49,17 @@ public class RoleMembersStorage implements PageStorage{
     public void setPaging(ObjectPaging rolesPaging) {
         this.rolesPaging = rolesPaging;
     }
-    
+
     @Override
     public Search getSearch() {
 		return search;
 	}
-    
+
     @Override
     public void setSearch(Search search) {
     	this.search = search;
     }
-    
+
     @Override
 	public String debugDump() {
 		return debugDump(0);

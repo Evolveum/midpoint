@@ -21,7 +21,7 @@ package com.evolveum.midpoint.util;
  */
 @FunctionalInterface
 public interface Foreachable<T> {
-	
+
 	/**
 	 * Will call processor for every element in the instance.
 	 * This is NOT recursive. E.g. in case of collection of collections

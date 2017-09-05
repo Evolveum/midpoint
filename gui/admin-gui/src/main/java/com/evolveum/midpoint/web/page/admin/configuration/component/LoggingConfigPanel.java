@@ -190,7 +190,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         add(auditAppender);
     }
 
-   
+
 
     private void addStandardLoggerPerformed(AjaxRequestTarget target){
         LoggingDto dto = getModel().getObject();
@@ -595,7 +595,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         target.add(getLoggersTable());
     }
 
-   
+
 
     private static class FileAppenderColumn<T extends Editable> extends EditablePropertyColumn<T> {
 

@@ -38,7 +38,7 @@ This file is an example of Resource definition. It defines CSV resource.
 		<filter>
 			<q:equal>
 				<q:path>c:connectorType</q:path>
-				<q:value>com.evolveum.polygon.csvfile.CSVFileConnector</q:value>
+				<q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
 			</q:equal>
 		</filter>
 	</connectorRef>
@@ -47,15 +47,12 @@ This file is an example of Resource definition. It defines CSV resource.
 
 		<!-- Configuration specific for the CSVfile connector -->
 		<icfc:configurationProperties
-					xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csvfile/com.evolveum.polygon.csvfile.CSVFileConnector">
+					xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
 			<icfccsvfile:filePath>/var/opt/midpoint-book/resources/hr.csv</icfccsvfile:filePath>
 			<icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
-			<icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>
 			<icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
 			<icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
-			<icfccsvfile:usingMultivalue>false</icfccsvfile:usingMultivalue>
-			<icfccsvfile:uniqueAttribute>id</icfccsvfile:uniqueAttribute>
-			<!--			<icfccsvfile:nameAttribute>id</icfccsvfile:nameAttribute> -->
+			<icfccsvfile:uniqueAttribute>empno</icfccsvfile:uniqueAttribute>
 			<icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>
 		</icfc:configurationProperties>
 

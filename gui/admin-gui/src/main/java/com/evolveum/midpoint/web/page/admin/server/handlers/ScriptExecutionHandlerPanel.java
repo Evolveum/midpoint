@@ -36,7 +36,7 @@ public class ScriptExecutionHandlerPanel extends BasePanel<ScriptExecutionHandle
 		initLayout();
 		setOutputMarkupId(true);
 	}
-	
+
 	private void initLayout() {
 		WebMarkupContainer scriptContainer = new WebMarkupContainer(ID_SCRIPT_CONTAINER);
 		TextArea script = new TextArea<>(ID_SCRIPT, new PropertyModel<>(getModel(), ScriptExecutionHandlerDto.F_SCRIPT));

@@ -26,7 +26,7 @@ public class PageSelfCredentials extends PageAbstractSelfCredentials{
 		return (getModelObject().getPasswordChangeSecurity() == null) || (getModelObject().getPasswordChangeSecurity() != null &&
 				getModelObject().getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD));
 	}
-	
+
 	@Override
 	protected void finishChangePassword(OperationResult result, AjaxRequestTarget target) {
 		if (!WebComponentUtil.isSuccessOrHandledError(result)) {

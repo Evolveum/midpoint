@@ -22,19 +22,19 @@ public class RolePolicyPanel extends SimplePanel<RoleType>{
 	    private IModel<List<MultiplicityPolicyConstraintType>> maxAssignmentsModel;
 
 	    private PrismObject<RoleType> role;
-	    
+
 	    private static final String ID_MIN_ASSIGNMENTS = "minAssignmentsConfig";
 	    private static final String ID_MAX_ASSIGNMENTS = "maxAssignmentsConfig";
-	    
+
 	    private static final String ID_LABEL_SIZE = "col-md-4";
 	    private static final String ID_INPUT_SIZE = "col-md-6";
 
-	
+
 	public RolePolicyPanel(String id, PrismObject<RoleType> role) {
 		super(id);
 		this.role = role;
 	}
-	
+
 	@Override
 	protected void initLayout() {
 		minAssignmentModel = new LoadableModel<List<MultiplicityPolicyConstraintType>>(false) {
@@ -64,7 +64,7 @@ public class RolePolicyPanel extends SimplePanel<RoleType>{
                 return roleType.getPolicyConstraints().getMaxAssignees();
             }
         };
-        
+
         GenericMultiValueLabelEditPanel minAssignments = new GenericMultiValueLabelEditPanel<MultiplicityPolicyConstraintType>(ID_MIN_ASSIGNMENTS,
                 minAssignmentModel, createStringResource("PageRoleEditor.label.minAssignments"), ID_LABEL_SIZE, ID_INPUT_SIZE, true){
 
@@ -123,7 +123,7 @@ public class RolePolicyPanel extends SimplePanel<RoleType>{
         add(maxAssignments);
 
 	}
-	
+
 	  private WebMarkupContainer getMinAssignmentsContainer(){
 	        return (WebMarkupContainer) get(ID_MIN_ASSIGNMENTS);
 	    }
@@ -136,7 +136,7 @@ public class RolePolicyPanel extends SimplePanel<RoleType>{
 	        return new AbstractReadOnlyModel<String>() {
 
 	            @Override
-	            public String getObject() { 
+	            public String getObject() {
 	                StringBuilder sb = new StringBuilder();
 
 	                if(model == null || model.getObject() == null || model.getObject().getMultiplicity() == null
@@ -158,7 +158,7 @@ public class RolePolicyPanel extends SimplePanel<RoleType>{
 	           }
 	        };
 	    }
-	  
-	    
+
+
 
 }

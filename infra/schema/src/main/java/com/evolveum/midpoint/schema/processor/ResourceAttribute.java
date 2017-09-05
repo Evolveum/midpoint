@@ -80,7 +80,7 @@ public class ResourceAttribute<T> extends PrismProperty<T> {
         return getDefinition() == null ? null : getDefinition()
                 .getNativeAttributeName();
     }
-    
+
     @Override
 	public ResourceAttribute<T> clone() {
     	ResourceAttribute<T> clone = new ResourceAttribute<T>(getElementName(), getDefinition(), getPrismContext());

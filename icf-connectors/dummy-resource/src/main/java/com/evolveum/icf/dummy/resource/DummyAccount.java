@@ -25,13 +25,13 @@ import com.evolveum.midpoint.util.DebugUtil;
  *
  */
 public class DummyAccount extends DummyObject {
-	
+
 	public static final String ATTR_FULLNAME_NAME = "fullname";
 	public static final String ATTR_DESCRIPTION_NAME = "description";
 	public static final String ATTR_INTERESTS_NAME = "interests";
 	public static final String ATTR_PRIVILEGES_NAME = "privileges";
 	public static final String ATTR_INTERNAL_ID = "internalId";
-	
+
 	private String password = null;
 	private Boolean lockout = null;
 
@@ -42,7 +42,7 @@ public class DummyAccount extends DummyObject {
 	public DummyAccount(String username) {
 		super(username);
 	}
-		
+
 	public String getPassword() {
 		return password;
 	}
@@ -51,7 +51,7 @@ public class DummyAccount extends DummyObject {
 		checkModifyBreak();
 		this.password = password;
 	}
-	
+
 	public Boolean isLockout() {
 		return lockout;
 	}
@@ -78,7 +78,7 @@ public class DummyAccount extends DummyObject {
 
 	@Override
 	public String toStringContent() {
-		return super.toStringContent() + ", password=" + password; 
+		return super.toStringContent() + ", password=" + password;
 	}
 
 	@Override
@@ -92,5 +92,5 @@ public class DummyAccount extends DummyObject {
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Password", password, indent + 1);
 		DebugUtil.debugDumpWithLabelToString(sb, "Lockout", lockout, indent + 1);
 	}
-	
+
 }

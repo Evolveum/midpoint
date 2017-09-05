@@ -95,7 +95,7 @@ public class ExpressionVariables implements DebugDumpable {
             variables.put(entry.getKey(), value);
         }
     }
-    
+
     public void addVariableDefinitionsOld(ExpressionVariables extraVariables) {
     	addVariableDefinitionsOld(extraVariables.getMap());
     }
@@ -118,11 +118,11 @@ public class ExpressionVariables implements DebugDumpable {
             variables.put(entry.getKey(), value);
         }
     }
-    
+
     public void addVariableDefinitionsNew(ExpressionVariables extraVariables) {
     	addVariableDefinitionsNew(extraVariables.getMap());
     }
-    
+
     public void setRootNode(ObjectReferenceType objectRef) {
         addVariableDefinition(null, objectRef);
     }
@@ -134,7 +134,7 @@ public class ExpressionVariables implements DebugDumpable {
         }
         replaceVariableDefinition(name, value);
     }
-    
+
     public void replaceVariableDefinition(QName name, Object value) {
         variables.put(name, value);
     }
@@ -142,7 +142,7 @@ public class ExpressionVariables implements DebugDumpable {
     public boolean hasVariableDefinition(QName name) {
     	return variables.containsKey(name);
     }
-    
+
     public Object get(QName name) {
     	if (name != null && StringUtils.isBlank(name.getNamespaceURI())){
     		QName fullQName = QNameUtil.resolveNs(name, variables.keySet());
@@ -152,7 +152,7 @@ public class ExpressionVariables implements DebugDumpable {
     	}
     	return variables.get(name);
     }
-    
+
     @SuppressWarnings("unchecked")
 	public <T> T get(QName name, Class<T> type) throws SchemaException {
     	Object object = get(name);
@@ -164,7 +164,7 @@ public class ExpressionVariables implements DebugDumpable {
     	}
     	throw new SchemaException("Expected type "+type.getSimpleName()+" in variable "+name+", but found type "+object.getClass());
     }
-    
+
     public <O extends ObjectType> PrismObject<O> getObjectNew(QName name) throws SchemaException {
     	Object object = get(name);
     	if (object == null) {
@@ -179,7 +179,7 @@ public class ExpressionVariables implements DebugDumpable {
     	}
     	throw new SchemaException("Expected object in variable "+name+", but found type "+object.getClass());
     }
-    
+
     public Set<Entry<QName,Object>> entrySet() {
     	return variables.entrySet();
     }
@@ -200,7 +200,7 @@ public class ExpressionVariables implements DebugDumpable {
 		}
 		return variables.containsKey(key);
 	}
-	
+
 	public boolean containsValue(Object value) {
 		return variables.containsValue(value);
 	}
@@ -235,10 +235,10 @@ public class ExpressionVariables implements DebugDumpable {
 
     /**
      * Expects QName-value pairs.
-     * 
+     *
      * E.g.
      * create(var1qname, var1value, var2qname, var2value, ...)
-     * 
+     *
      * Mostly for testing. Use at your own risk.
      */
     public static ExpressionVariables create(Object... parameters) {
@@ -252,7 +252,7 @@ public class ExpressionVariables implements DebugDumpable {
     public Map<QName, Object> getMap() {
     	return variables;
     }
-    
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -294,5 +294,5 @@ public class ExpressionVariables implements DebugDumpable {
 		DebugUtil.debugDumpMapMultiLine(sb, variables, 1);
 		return sb.toString();
 	}
-    
+
 }

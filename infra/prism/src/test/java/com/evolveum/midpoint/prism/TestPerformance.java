@@ -31,10 +31,10 @@ import com.evolveum.midpoint.util.PrettyPrinter;
  *
  */
 public class TestPerformance {
-	
+
 	private static final int ITERATIONS = 10000;
-	
-	
+
+
 	@BeforeSuite
 	public void setupDebug() {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
@@ -48,7 +48,7 @@ public class TestPerformance {
 	public void testPerfContainerNewValue() throws Exception {
 		final String TEST_NAME = "testPerfContainerNewValue";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-		
+
 		// GIVEN
 		PrismContext ctx = constructInitializedPrismContext();
 		PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
@@ -57,30 +57,30 @@ public class TestPerformance {
 		PerfRecorder recorderCreateNewValue = new PerfRecorder("createNewValue");
 		PerfRecorder recorderFindOrCreateProperty = new PerfRecorder("findOrCreateProperty");
 		PerfRecorder recorderSetRealValue = new PerfRecorder("setRealValue");
-		
+
 		// WHEN
 		for (int i=0; i < ITERATIONS; i++) {
 			long tsStart = System.nanoTime();
-			
+
 			PrismContainerValue<AssignmentType> newValue = assignmentContainer.createNewValue();
-			
+
 			long ts1 = System.nanoTime();
-			
+
 			PrismProperty<String> descriptionProperty = newValue.findOrCreateProperty(AssignmentType.F_DESCRIPTION);
-			
+
 			long ts2 = System.nanoTime();
-			
+
 			descriptionProperty.setRealValue("ass "+i);
-			
+
 			long tsEnd = System.nanoTime();
-			
+
 			recorderCreateNewValue.record(i, ((double)(ts1 - tsStart))/1000000);
 			recorderFindOrCreateProperty.record(i, ((double)(ts2 - ts1))/1000000);
 			recorderSetRealValue.record(i, ((double)(tsEnd - ts2))/1000000);
-			
+
 			System.out.println("Run "+i+": total "+(((double)(tsEnd - tsStart))/1000000)+"ms");
 		}
-		
+
 		// THEN
 		System.out.println(recorderCreateNewValue.dump());
 		System.out.println(recorderFindOrCreateProperty.dump());
@@ -93,9 +93,9 @@ public class TestPerformance {
 		recorderFindOrCreateProperty.assertAverageBelow(0.1D);
 
 		recorderCreateNewValue.assertAverageBelow(0.05D);
-		
+
 		System.out.println("User:");
 		System.out.println(user.debugDump());
-	}	
+	}
 
 }

@@ -70,7 +70,7 @@ public interface ReportManager {
 	InputStream getReportOutputData(String reportOutputOid, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
 			ConfigurationException, ExpressionEvaluationException, IOException;
-    
-   
+
+
     void deleteReportOutput(ReportOutputType reportOutput, OperationResult parentResult) throws Exception;
 }

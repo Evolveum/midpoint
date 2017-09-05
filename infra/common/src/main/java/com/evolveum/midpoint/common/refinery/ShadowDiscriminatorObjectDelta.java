@@ -30,11 +30,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 public class ShadowDiscriminatorObjectDelta<T extends Objectable> extends ObjectDelta<T> {
 
 	private ResourceShadowDiscriminator discriminator;
-	
+
 	public ShadowDiscriminatorObjectDelta(Class<T> objectTypeClass, ChangeType changeType, PrismContext prismContext) {
 		super(objectTypeClass, changeType, prismContext);
 	}
-	
+
 	public ResourceShadowDiscriminator getDiscriminator() {
 		return discriminator;
 	}
@@ -52,9 +52,9 @@ public class ShadowDiscriminatorObjectDelta<T extends Objectable> extends Object
 
 	/**
      * Convenience method for quick creation of object deltas that replace a single object property. This is used quite often
-     * to justify a separate method. 
+     * to justify a separate method.
      */
-    public static <O extends Objectable, X> ShadowDiscriminatorObjectDelta<O> createModificationReplaceProperty(Class<O> type, 
+    public static <O extends Objectable, X> ShadowDiscriminatorObjectDelta<O> createModificationReplaceProperty(Class<O> type,
     		String resourceOid, ShadowKindType kind, String intent, ItemPath propertyPath, PrismContext prismContext, X... propertyValues) {
     	ShadowDiscriminatorObjectDelta<O> objectDelta = new ShadowDiscriminatorObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
     	objectDelta.setDiscriminator(new ResourceShadowDiscriminator(resourceOid, kind, intent));
@@ -71,5 +71,5 @@ public class ShadowDiscriminatorObjectDelta<T extends Objectable> extends Object
 	protected String debugIdentifiers() {
 		return discriminator == null ? "null" : discriminator.toString();
 	}
-	
+
 }

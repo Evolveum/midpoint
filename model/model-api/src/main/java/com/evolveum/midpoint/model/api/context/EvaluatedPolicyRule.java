@@ -39,7 +39,7 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 	Collection<EvaluatedPolicyRuleTrigger<?>> getAllTriggers();
 
 	String getName();
-	
+
 	PolicyRuleType getPolicyRule();
 
 	AssignmentPath getAssignmentPath();
@@ -52,11 +52,11 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 	ObjectType getDirectOwner();
 
 	PolicyConstraintsType getPolicyConstraints();
-	
+
 	String getPolicySituation();
-	
+
 	PolicyActionsType getActions();
-	
+
 	Collection<PolicyExceptionType> getPolicyExceptions();
 
 	EvaluatedPolicyRuleType toEvaluatedPolicyRuleType();

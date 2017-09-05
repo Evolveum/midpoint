@@ -61,24 +61,24 @@ import static org.testng.AssertJUnit.assertNotNull;
  * @author Radovan Semancik
  */
 public class TestDeltaConverter extends AbstractSchemaTest {
-	
+
 	private static final File TEST_DIR = new File("src/test/resources/deltaconverter");
-	
-	private static final ItemPath CREDENTIALS_PASSWORD_VALUE_PATH = 
+
+	private static final ItemPath CREDENTIALS_PASSWORD_VALUE_PATH =
 		new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 
     @Test
     public void testRefWithObject() throws SchemaException, IOException, JAXBException {
     	System.out.println("===[ testRefWithObject ]====");
-    	
+
     	ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, "user-modify-add-account.xml"),
                 ObjectModificationType.COMPLEX_TYPE);
-    	
-    	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, 
+
+    	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
     			getPrismContext());
-    	
+
     	System.out.println("delta: " + objectDelta.debugDump());
-  
+
     	assertNotNull("No object delta", objectDelta);
     	objectDelta.checkConsistence();
     	assertEquals("Wrong OID", "c0c010c0-d34d-b33f-f00d-111111111111", objectDelta.getOid());
@@ -88,21 +88,21 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	assertEquals("Wrong number of values to add", 1, valuesToAdd.size());
     	PrismReferenceValue accountRefVal = valuesToAdd.iterator().next();
     	assertNotNull("No object in accountRef value", accountRefVal.getObject());
-    	
+
     	objectDelta.assertDefinitions();
     }
-    
+
     @Test
     public void testPasswordChange() throws Exception {
     	System.out.println("===[ testPasswordChange ]====");
-    	
+
     	ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, "user-modify-password.xml"),
                 ObjectModificationType.COMPLEX_TYPE);
-    	
+
     	// WHEN
-    	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, 
+    	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
     			getPrismContext());
-    	
+
     	// THEN
     	assertNotNull("No object delta", objectDelta);
     	objectDelta.checkConsistence();
@@ -113,29 +113,29 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	assertEquals("Wrong number of values to replace", 1, valuesToReplace.size());
     	PrismPropertyValue<ProtectedStringType> protectedStringVal = valuesToReplace.iterator().next();
     	assertNotNull("Null value in protectedStringDelta", protectedStringVal);
-    	
+
     	PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
     	// apply to user
     	objectDelta.applyTo(user);
-    	
+
     	PrismProperty<ProtectedStringType> protectedStringProperty = user.findProperty(CREDENTIALS_PASSWORD_VALUE_PATH);
     	PrismPropertyValue<ProtectedStringType> protectedStringPropertyValue = protectedStringProperty.getValue();
     	assertTrue("protectedString not equivalent", protectedStringPropertyValue.equalsRealValue(protectedStringVal));
-    	
+
     	objectDelta.assertDefinitions();
     }
-    
+
     @Test
     public void testModifyGivenName() throws Exception {
     	System.out.println("===[ testModifyGivenName ]====");
-    	
+
     	ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, "user-modify-givenname.xml"),
                 ObjectModificationType.COMPLEX_TYPE);
-    	
+
     	// WHEN
-    	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, 
+    	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
     			getPrismContext());
-    	
+
     	// THEN
     	assertNotNull("No object delta", objectDelta);
     	objectDelta.checkConsistence();
@@ -144,32 +144,32 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	assertNotNull("No givenName delta", givenNameDelta);
     	Collection<PrismPropertyValue<String>> valuesToReplace = givenNameDelta.getValuesToReplace();
     	assertEquals("Wrong number of values to replace", 0, valuesToReplace.size());
-    	
+
     	PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
     	// apply to user
     	objectDelta.applyTo(user);
-    	
+
     	PrismProperty<String> protectedStringProperty = user.findProperty(UserType.F_GIVEN_NAME);
     	assertNull("givenName porperty sneaked in after delta was applied", protectedStringProperty);
-    	
+
     	objectDelta.assertDefinitions();
     }
-    
-    
+
+
     @Test
     public void testAddAssignment() throws Exception {
     	System.out.println("===[ testAddAssignment ]====");
-    	
+
     	ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, "user-modify-add-role-pirate.xml"),
                 ObjectModificationType.COMPLEX_TYPE);
-    	
+
     	// WHEN
-    	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, 
+    	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
     			getPrismContext());
-    	
+
     	System.out.println("Delta:");
     	System.out.println(objectDelta.debugDump());
-    	
+
     	// THEN
     	assertNotNull("No object delta", objectDelta);
     	objectDelta.checkConsistence();
@@ -180,32 +180,32 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	assertEquals("Wrong number of values to add", 1, valuesToAdd.size());
     	PrismContainerValue<AssignmentType> assignmentVal = valuesToAdd.iterator().next();
     	assertNotNull("Null value in protectedStringDelta", assignmentVal);
-    	
+
     	PrismReference targetRef = assignmentVal.findReference(AssignmentType.F_TARGET_REF);
     	assertNotNull("No targetRef in assignment", targetRef);
     	PrismReferenceValue targetRefVal = targetRef.getValue();
     	assertNotNull("No targetRef value in assignment", targetRefVal);
     	assertEquals("Wrong OID in targetRef value", "12345678-d34d-b33f-f00d-987987987988", targetRefVal.getOid());
     	assertEquals("Wrong type in targetRef value", RoleType.COMPLEX_TYPE, targetRefVal.getTargetType());
-    	
+
     	PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
-    	
+
     	objectDelta.assertDefinitions("delta before test");
     	user.assertDefinitions("user before test");
-    	
+
     	// apply to user
     	objectDelta.applyTo(user);
-    	
+
     	objectDelta.assertDefinitions("delta after test");
     	user.assertDefinitions("user after test");
 
     	// TODO
     }
-    
+
     @Test
     public void testAccountRefDelta() throws Exception {
     	System.out.println("===[ testAccountRefDelta ]====");
-    	
+
     	// GIVEN
     	ObjectModificationType objectChange = new ObjectModificationType();
         objectChange.setOid("12345");
@@ -219,18 +219,18 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         objectChange.getItemDelta().add(modificationDeleteAccountRef);
         ItemPathType itemPathType = new ItemPathType(new ItemPath(UserType.F_LINK_REF));
         modificationDeleteAccountRef.setPath(itemPathType);
-        
+
         PrismObjectDefinition<UserType> objDef = PrismTestUtil.getObjectDefinition(UserType.class);
-        
+
 		// WHEN
         Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(objectChange, objDef);
-        
+
         // THEN
         assertNotNull("Null modifications", modifications);
         assertFalse("Empty modifications", modifications.isEmpty());
         // TODO: more asserts
     }
-    
+
     @Test
     public void testProtectedStringObjectDelta() throws Exception {
     	System.out.println("===[ testProtectedStringObjectDelta ]====");
@@ -251,7 +251,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	// THEN
     	System.out.println("ObjectDeltaType (XML)");
     	System.out.println(PrismTestUtil.serializeAnyDataWrapped(objectDeltaType));
-    	
+
     	assertEquals("Wrong changetype", ChangeTypeType.MODIFY, objectDeltaType.getChangeType());
     	assertEquals("Wrong OID", "12345", objectDeltaType.getOid());
     	List<ItemDeltaType> modifications = objectDeltaType.getItemDelta();
@@ -277,7 +277,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 ////    	assertEquals("Wrong element name", PasswordType.F_VALUE, valueElement.getName());
 //    	assertEquals("Wrong element value", protectedString, valueElement.getValue());
     }
-    
+
     @Test
     public void testObjectDeltaRoundtrip() throws Exception {
     	System.out.println("===[ testObjectDeltaRoundtrip ]====");
@@ -297,7 +297,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	// THEN
     	System.out.println("ObjectDeltaType (XML)");
 //    	System.out.println(PrismTestUtil.marshalWrap(objectDeltaType));
-    	
+
     	assertEquals("Wrong changetype", ChangeTypeType.MODIFY, objectDeltaType.getChangeType());
     	assertEquals("Wrong OID", OID, objectDeltaType.getOid());
     	List<ItemDeltaType> modifications = objectDeltaType.getItemDelta();
@@ -320,16 +320,16 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 //    	String valueElement = (String) values.iterator().next();
 //    	assertEquals("Wrong element name", ItemDeltaType.F_VALUE, DOMUtil.getQName(valueElement));
 //    	assertEquals("Wrong element value", VALUE, valueElement);
-    	
+
     	// WHEN
     	ObjectDelta<Objectable> objectDeltaRoundtrip = DeltaConvertor.createObjectDelta(objectDeltaType, getPrismContext());
-    	
+
     	// THEN
     	System.out.println("ObjectDelta (roundtrip)");
     	System.out.println(objectDelta.debugDump());
-    	
+
     	assertTrue("Roundtrip not equals", objectDelta.equals(objectDeltaRoundtrip));
-    	
+
     	// TODO: more checks
     }
 
@@ -360,7 +360,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
                 Object.class, xmlDelta));
         assertNotNull(result);
     }
-    
+
     @Test
     public void testItemDeltaReplace() throws Exception {
     	System.out.println("===[ testItemDeltaReplace ]====");
@@ -369,23 +369,23 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	PrismObjectDefinition<UserType> userDef = getUserDefinition();
     	PropertyDelta<String> deltaBefore = PropertyDelta.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
     	deltaBefore.setValueToReplace(new PrismPropertyValue<String>("foo"));
-    	
+
 		// WHEN
     	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toItemDeltaTypes(deltaBefore);
-    	
+
     	// THEN
     	System.out.println("Serialized");
     	System.out.println(itemDeltaTypes);
-    	
+
     	// WHEN
     	ItemDelta<?,?> deltaAfter = DeltaConvertor.createItemDelta(itemDeltaTypes.iterator().next(), userDef);
-    	
+
     	// THEN
     	System.out.println("Parsed");
     	System.out.println(deltaAfter.debugDump());
 
     	assertEquals("Deltas do not match", deltaBefore, deltaAfter);
-    	
+
     	assertNull(deltaAfter.getEstimatedOldValues());
     }
 
@@ -398,17 +398,17 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	PropertyDelta<String> deltaBefore = PropertyDelta.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
     	deltaBefore.setValueToReplace(new PrismPropertyValue<String>("foo"));
     	deltaBefore.addEstimatedOldValue(new PrismPropertyValue<String>("BAR"));
-    	
+
 		// WHEN
     	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toItemDeltaTypes(deltaBefore);
-    	
+
     	// THEN
     	System.out.println("Serialized");
     	System.out.println(itemDeltaTypes);
-    	
+
     	// WHEN
     	ItemDelta<?,?> deltaAfter = DeltaConvertor.createItemDelta(itemDeltaTypes.iterator().next(), userDef);
-    	
+
     	// THEN
     	System.out.println("Parsed");
     	System.out.println(deltaAfter.debugDump());
@@ -427,21 +427,21 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	PrismObjectDefinition<UserType> userDef = getUserDefinition();
     	PropertyDelta<String> deltaBefore = PropertyDelta.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
 //    	deltaBefore.setValueToReplace(new PrismPropertyValue<String>(""));
-    	
+
 		// WHEN
     	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toItemDeltaTypes(deltaBefore);
-    	
+
     	// THEN
     	System.out.println("Serialized");
     	System.out.println(itemDeltaTypes);
-    	
+
     	// WHEN
     	ItemDelta<?,?> deltaAfter = DeltaConvertor.createItemDelta(itemDeltaTypes.iterator().next(), userDef);
 
     	// THEN
     	System.out.println("Parsed");
     	System.out.println(deltaAfter.debugDump());
-    	
+
     	assertEquals("Deltas do not match", deltaBefore, deltaAfter);
     }
 
@@ -453,24 +453,24 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	PrismObjectDefinition<UserType> userDef = getUserDefinition();
     	PropertyDelta<String> deltaBefore = PropertyDelta.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
     	// The delta remains empty
-    	
+
 		// WHEN
     	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toItemDeltaTypes(deltaBefore);
-    	
+
     	// THEN
     	System.out.println("Serialized");
     	System.out.println(itemDeltaTypes);
     	ItemDeltaType itemDeltaType = itemDeltaTypes.iterator().next();
     	String xml = PrismTestUtil.serializeAtomicValue(itemDeltaType, new QName("wherever","whatever"));
     	System.out.println(xml);
-    	
+
     	// WHEN
     	ItemDelta<?,?> deltaAfter = DeltaConvertor.createItemDelta(itemDeltaType, userDef);
-    	
+
     	// THEN
     	System.out.println("Parsed");
     	System.out.println(deltaAfter.debugDump());
-    	
+
     	assertEquals("Deltas do not match", deltaBefore, deltaAfter);
     }
 

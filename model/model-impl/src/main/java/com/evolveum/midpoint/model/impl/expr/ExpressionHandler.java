@@ -44,9 +44,9 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 @Component
 public class ExpressionHandler {
@@ -54,18 +54,18 @@ public class ExpressionHandler {
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
-	
+
 	@Autowired(required = true)
 	private ExpressionFactory expressionFactory;
-	
+
 	@Autowired(required = true)
 	private ModelObjectResolver modelObjectResolver;
 
     @Autowired(required = true)
     private PrismContext prismContext;
-	
+
 	private XPathScriptEvaluator xpathEvaluator = null;
-	
+
 	public String evaluateExpression(ShadowType shadow, ExpressionType expressionType,
 			String shortDesc, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		Validate.notNull(shadow, "Resource object shadow must not be null.");
@@ -73,9 +73,9 @@ public class ExpressionHandler {
 		Validate.notNull(result, "Operation result must not be null.");
 
 		ResourceType resource = resolveResource(shadow, result);
-		
+
 		ExpressionVariables variables = getDefaultXPathVariables(null, shadow, resource);
-		
+
 		PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME,
 				DOMUtil.XSD_STRING, prismContext);
 		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType,
@@ -97,7 +97,7 @@ public class ExpressionHandler {
 	}
 
 	public boolean evaluateConfirmationExpression(UserType user, ShadowType shadow,
-			ExpressionType expressionType, Task task, OperationResult result) 
+			ExpressionType expressionType, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(shadow, "Resource object shadow must not be null.");
@@ -107,10 +107,10 @@ public class ExpressionHandler {
 		ResourceType resource = resolveResource(shadow, result);
 		ExpressionVariables variables = getDefaultXPathVariables(user, shadow, resource);
 		String shortDesc = "confirmation expression for "+resource.asPrismObject();
-		
+
 		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME,
 				DOMUtil.XSD_BOOLEAN, prismContext);
-		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, 
+		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType,
 				outputDefinition, shortDesc, task, result);
 
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, result);
@@ -153,7 +153,7 @@ public class ExpressionHandler {
 
 	public static ExpressionVariables getDefaultXPathVariables(UserType user,
 			ShadowType shadow, ResourceType resource) {
-		
+
 		ExpressionVariables variables = new ExpressionVariables();
 		if (user != null) {
 			variables.addVariableDefinition(ExpressionConstants.VAR_USER, user.asPrismObject());
@@ -173,15 +173,15 @@ public class ExpressionHandler {
 	// Called from the ObjectResolver.resolve
 	public ObjectType resolveRef(ObjectReferenceType ref, String contextDescription, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
-		
+
 		Class<? extends ObjectType> type = ObjectType.class;
 		if (ref.getType() != null) {
 			ObjectTypes objectTypeType = ObjectTypes.getObjectTypeFromTypeQName(ref.getType());
 			type = objectTypeType.getClassDefinition();
 		}
-		
+
 		return repositoryService.getObject(type, ref.getOid(), null, result).asObjectable();
 
 	}
-		
+
 }

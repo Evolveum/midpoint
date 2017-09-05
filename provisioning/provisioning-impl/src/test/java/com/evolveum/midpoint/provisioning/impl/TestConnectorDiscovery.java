@@ -42,7 +42,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 
-/** 
+/**
  * @author Radovan Semancik
  * @author Katka Valalikova
  */
@@ -59,50 +59,50 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		provisioningService.postInit(initResult);
 	}
-		
-	
+
+
 	/**
 	 * Check whether the connectors were discovered correctly and were added to the repository.
 	 * @throws SchemaException
-	 * 
+	 *
 	 */
 	@Test
 	public void test001Connectors() throws Exception {
 		final String TEST_NAME = "test001Connectors";
 		TestUtil.displayTestTitle(TEST_NAME);
-		
+
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName() + "." + TEST_NAME);
-		
+
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, null, null, result);
-		
+
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		assertFalse("No connector found",connectors.isEmpty());
 		display("Found "+connectors.size()+" discovered connector");
-		
+
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
-		
+
 		for (PrismObject<ConnectorType> connector : connectors) {
 			ConnectorType conn = connector.asObjectable();
 			display("Found connector " +conn, conn);
 			IntegrationTestTools.assertConnectorSchemaSanity(conn, prismContext);
 		}
-		
+
 		assertEquals("Unexpected number of connectors found", 7, connectors.size());
 	}
-		
+
 	@Test
 	public void testListConnectors() throws Exception{
 		TestUtil.displayTestTitle("testListConnectors");
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ ".listConnectorsTest");
-		
+
 		List<PrismObject<ConnectorType>> connectors = provisioningService.searchObjects(ConnectorType.class, null, null, null, result);
 		assertNotNull(connectors);
-		
+
 		for (PrismObject<ConnectorType> connector : connectors){
 			ConnectorType conn = connector.asObjectable();
 			System.out.println(conn.toString());
@@ -110,22 +110,22 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 			System.out.println("connector type: "+ conn.getConnectorType());
 			System.out.println("-----\n");
 		}
-		
+
 		assertEquals("Unexpected number of connectors found", 7, connectors.size());
 	}
-	
+
 	@Test
 	public void testSearchConnectorSimple() throws SchemaException{
 		final String TEST_NAME = "testSearchConnectorSimple";
 		TestUtil.displayTestTitle(TEST_NAME);
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ "." + TEST_NAME);
-		
+
 		PrismObject<ConnectorType> ldapConnector = findConnectorByType(IntegrationTestTools.LDAP_CONNECTOR_TYPE, result);
 		assertEquals("Type does not match", IntegrationTestTools.LDAP_CONNECTOR_TYPE, ldapConnector.asObjectable().getConnectorType());
 	}
-	
-	
+
+
 	@Test
 	public void testSearchConnectorAnd() throws SchemaException{
 		TestUtil.displayTestTitle("testSearchConnectorAnd");
@@ -140,7 +140,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 		System.out.println("Query:\n"+query.debugDump());
 
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
-		
+
 		assertEquals("Unexpected number of results", 1, connectors.size());
 		PrismObject<ConnectorType> ldapConnector = connectors.get(0);
 		assertEquals("Type does not match", IntegrationTestTools.LDAP_CONNECTOR_TYPE, ldapConnector.asObjectable().getConnectorType());

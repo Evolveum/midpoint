@@ -23,7 +23,7 @@ import java.net.ConnectException;
  *
  */
 public class DummyOrg extends DummyObject {
-	
+
 	public DummyOrg() {
 		super();
 	}
@@ -31,7 +31,7 @@ public class DummyOrg extends DummyObject {
 	public DummyOrg(String username) {
 		super(username);
 	}
-		
+
 	@Override
 	protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException {
 		return resource.getPrivilegeObjectClass();
@@ -46,5 +46,5 @@ public class DummyOrg extends DummyObject {
 	public String getShortTypeName() {
 		return "org";
 	}
-	
+
 }

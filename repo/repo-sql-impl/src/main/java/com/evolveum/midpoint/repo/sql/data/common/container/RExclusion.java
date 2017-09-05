@@ -42,9 +42,9 @@ import javax.persistence.*;
 
 /**
  * @author lazyman
- * 
+ *
  * DEPRECATED. This does not need to be stored in the database any more.
- * 
+ *
  */
 @JaxbType(type = ExclusionPolicyConstraintType.class)
 @Entity

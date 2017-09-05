@@ -44,7 +44,7 @@ public class InactivateFocusAction extends BaseAction {
 	public <F extends FocusType> void handle(LensContext<F> context, SynchronizationSituation<F> situation,
 			Map<QName, Object> parameters, Task task, OperationResult parentResult) {
 		ActivationStatusType desiredStatus = ActivationStatusType.DISABLED;
-		
+
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext != null) {
 			PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
@@ -58,7 +58,7 @@ public class InactivateFocusAction extends BaseAction {
 				}
 			}
 			ObjectDelta<F> activationDelta = ObjectDelta.createModificationReplaceProperty(focusContext.getObjectTypeClass(),
-					focusContext.getOid(), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getPrismContext(), 
+					focusContext.getOid(), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getPrismContext(),
 					desiredStatus);
 			focusContext.setPrimaryDelta(activationDelta);
 		}

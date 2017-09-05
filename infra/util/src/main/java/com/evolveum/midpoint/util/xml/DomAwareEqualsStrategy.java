@@ -25,12 +25,12 @@ import com.evolveum.midpoint.util.DOMUtil;
 /**
  * Strategy for equals() methods used in JAXB generated code. The strategy is using our DOMUtil to
  * compare DOM elements. The comparison is quite liberal when it comes to namespaces.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class DomAwareEqualsStrategy extends JAXBEqualsStrategy {
-	
+
 	public static EqualsStrategy INSTANCE = new DomAwareEqualsStrategy();
 
 	@Override
@@ -49,5 +49,5 @@ public class DomAwareEqualsStrategy extends JAXBEqualsStrategy {
 			return super.equalsInternal(leftLocator, rightLocator, lhs, rhs);
 		}
 	}
-	
+
 }

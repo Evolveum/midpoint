@@ -14,10 +14,10 @@ import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 @Component
 public class MidpointRestPasswordAuthenticator extends MidpointRestAuthenticator<PasswordAuthenticationContext>{
 
-	
+
 	@Autowired(required = true)
 	private AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
-	
+
 	@Override
 	protected AuthenticationEvaluator<PasswordAuthenticationContext> getAuthenticationEvaluator() {
 		return passwordAuthenticationEvaluator;

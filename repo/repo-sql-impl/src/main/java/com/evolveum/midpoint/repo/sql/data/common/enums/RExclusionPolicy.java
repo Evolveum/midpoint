@@ -21,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyType;
 
 /**
  * @author lazyman
- * 
+ *
  * DEPRECATED. This does not need to be stored in the database any more.
  */
 @JaxbType(type = ExclusionPolicyType.class)

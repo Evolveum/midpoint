@@ -24,29 +24,29 @@ import java.util.Map;
 /**
  * Maps namespaces to preferred prefixes. Should be used through the code to
  * avoid generation of prefixes.
- * 
+ *
  * @see <a href="https://jira.evolveum.com/browse/MID-349">MID-349</a>
- * 
+ *
  * @author Igor Farinic
  * @author Radovan Semancik
  */
 public interface DynamicNamespacePrefixMapper extends DebugDumpable {
 
     void registerPrefix(String namespace, String prefix, boolean defaultNamespace);
-	
+
 	void registerPrefixLocal(String namespace, String prefix);
-	
+
 	String getPrefix(String namespace);
-	
+
 	QName setQNamePrefix(QName qname);
-	
+
 	/**
 	 * Makes sure that there is explicit prefix and not a default namespace prefix.
 	 */
 	QName setQNamePrefixExplicit(QName qname);
-	
+
 	DynamicNamespacePrefixMapper clone();
-	
+
 	// Follwing two methods are kind of a hack to force JAXB to always use prefixes.
 	// This works around the JAXB bug with default namespaces
 	boolean isAlwaysExplicit();

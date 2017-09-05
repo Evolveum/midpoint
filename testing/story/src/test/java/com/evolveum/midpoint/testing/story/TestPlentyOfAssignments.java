@@ -77,33 +77,33 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * MID-3938
- * 
+ *
  * @author Radovan Semancik
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPlentyOfAssignments extends AbstractStoryTest {
-	
+
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "plenty-of-assignments");
-	
+
 	protected static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 	protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 	private static final String RESOURCE_DUMMY_NS = MidPointConstants.NS_RI;
 	private static final QName RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME = new QName(RESOURCE_DUMMY_NS, "group");
-	
+
 	public static final File USER_CHEESE_FILE = new File(TEST_DIR, "user-cheese.xml");
 	public static final String USER_CHEESE_OID = "9e796c76-45e0-11e7-9dfd-1792e56081d0";
-	
+
 	protected static final File USER_ALICE_FILE = new File(TEST_DIR, "user-alice.xml");
 	protected static final String USER_ALICE_OID = "5e8fdb32-4c4c-11e7-86a8-9706c2f85f86";
 	protected static final String USER_ALICE_USERNAME = "alice";
 	protected static final String USER_ALICE_FULLNAME = "Alice";
-	
+
 	protected static final File USER_BOB_FILE = new File(TEST_DIR, "user-bob.xml");
 	protected static final String USER_BOB_OID = "f5ffef5e-4b96-11e7-8e4c-1b0bc353a751";
 	protected static final String USER_BOB_USERNAME = "bob";
 	protected static final String USER_BOB_FULLNAME = "Bob";
-	
+
 	public static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
 	public static final String ROLE_BASIC_OID = "6909ff20-45e4-11e7-b0a3-0fe76ff4380e";
 
@@ -114,30 +114,30 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 	private static final String GENERATED_DUMMY_ROLE_OID_FORMAT = "00000000-0000-ffff-2000-d0000000%04d";
 	private static final int NUMBER_OF_GENERATED_DUMMY_GROUPS = 100;
 	private static final String GENERATED_DUMMY_GROUP_ROLE_OID_FORMAT = "00000000-0000-ffff-2000-g0000000%04d";
-	
+
 	private static final int NUMBER_OF_CHEESE_ASSIGNMENTS_APPROVER = 600;
 	private static final int NUMBER_OF_CHEESE_ASSIGNMENTS_OWNER = 400;
 	private static final int NUMBER_OF_CHEESE_ASSIGNMENTS_ORDINARY = 1;
 	private static final int NUMBER_OF_CHEESE_ASSIGNMENTS = NUMBER_OF_CHEESE_ASSIGNMENTS_APPROVER + NUMBER_OF_CHEESE_ASSIGNMENTS_OWNER + NUMBER_OF_CHEESE_ASSIGNMENTS_ORDINARY;
 
 	private static final int NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS = NUMBER_OF_GENERATED_DUMMY_ROLES;
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(TestPlentyOfAssignments.class);
 
-	
+
 	private CountingInspector inspector;
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		initDummyResourcePirate(null, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
-		
+
 		importObjectFromFile(ROLE_BASIC_FILE, initResult);
-		
+
 		ObjectFactory objectFactory = new ObjectFactory();
 		generateRoles(NUMBER_OF_GENERATED_EMPTY_ROLES, "Empty Role %04d", GENERATED_EMPTY_ROLE_OID_FORMAT, null, initResult);
-		generateRoles(NUMBER_OF_GENERATED_DUMMY_ROLES, "Dummy Role %04d", GENERATED_DUMMY_ROLE_OID_FORMAT, 
+		generateRoles(NUMBER_OF_GENERATED_DUMMY_ROLES, "Dummy Role %04d", GENERATED_DUMMY_ROLE_OID_FORMAT,
 				(role,i) -> {
 					ItemPathType attrPath = new ItemPathType(
 							new ItemPath(new QName(RESOURCE_DUMMY_NS, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME)));
@@ -158,7 +158,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 //						throw new SystemException(e);
 //					}
 				}, initResult);
-		
+
 		inspector = new CountingInspector();
 		InternalMonitor.setInspector(inspector);
 	}
@@ -166,26 +166,26 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 	private String generateRoleOid(String format, int num) {
 		return String.format(format, num);
 	}
-	
+
 	private String formatRum(int num) {
 		return String.format("bottle of rum #%04d", num);
 	}
-	
+
 	private String formatGroupName(int num) {
 		return String.format("G#%04d", num);
 	}
-	
+
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
 
         assertObjects(RoleType.class, NUMBER_OF_GENERATED_EMPTY_ROLES + NUMBER_OF_GENERATED_DUMMY_ROLES + NUMBER_OF_ORDINARY_ROLES);
-        
+
         display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 	}
-	
+
 	@Test
     public void test100AddCheese() throws Exception {
 		final String TEST_NAME = "test100AddCheese";
@@ -193,43 +193,43 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> cheeseBefore = prepareCheese();
         display("Cheese before", assignmentSummary(cheeseBefore));
-        
+
         inspector.reset();
         rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
-        
+
         addObject(cheeseBefore, task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
-        
+
         display("Added cheese in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_CHEESE_ASSIGNMENTS)+"ms per assignment)");
-        
+
         PrismObject<UserType> cheeseAfter = getUser(USER_CHEESE_OID);
         display("Cheese after", assignmentSummary(cheeseAfter));
         assertCheeseRoleMembershipRef(cheeseAfter);
-        
+
         display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
         display("Inspector", inspector);
-        
+
 //        inspector.assertRead(RoleType.class, NUMBER_OF_CHEESE_ASSIGNMENTS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
-        
+
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 	}
-	
-	
+
+
 	@Test
     public void test110RecomputeCheese() throws Exception {
 		final String TEST_NAME = "test110RecomputeCheese";
@@ -237,41 +237,41 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> cheeseBefore = prepareCheese();
         display("Cheese before", assignmentSummary(cheeseBefore));
-        
+
         inspector.reset();
         rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
-        
+
         recomputeUser(USER_CHEESE_OID, task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
-        
+
         display("Recomputed cheese in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_CHEESE_ASSIGNMENTS)+"ms per assignment)");
-        
+
         PrismObject<UserType> cheeseAfter = getUser(USER_CHEESE_OID);
         display("Cheese after", assignmentSummary(cheeseAfter));
         assertCheeseRoleMembershipRef(cheeseAfter);
-        
+
         display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
-        
+
         display("Inspector", inspector);
 
         inspector.assertRead(RoleType.class, 1);
 //        assertRepositoryReadCount(4); // may be influenced by tasks
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 	}
-	
+
 	@Test
     public void test120CheesePreviewChanges() throws Exception {
 		final String TEST_NAME = "test120CheesePreviewChanges";
@@ -279,37 +279,37 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> cheeseBefore = prepareCheese();
         display("Cheese before", assignmentSummary(cheeseBefore));
-        
+
         ObjectDelta<UserType> delta = cheeseBefore.createModifyDelta();
         delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "123");
-        
+
         inspector.reset();
         rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
-        
+
 		ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
-        
+
         display("Preview cheese in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_CHEESE_ASSIGNMENTS)+"ms per assignment)");
-        
+
         PrismObject<UserType> cheeseAfter = getUser(USER_CHEESE_OID);
         display("Cheese after", assignmentSummary(cheeseAfter));
         assertCheeseRoleMembershipRef(cheeseAfter);
-        
+
         display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
-        
+
         display("Inspector", inspector);
 
         inspector.assertRead(RoleType.class, 1);
@@ -323,22 +323,22 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 		addAssignments(cheese, GENERATED_EMPTY_ROLE_OID_FORMAT, SchemaConstants.ORG_OWNER, NUMBER_OF_CHEESE_ASSIGNMENTS_APPROVER, NUMBER_OF_CHEESE_ASSIGNMENTS_OWNER);
 		return cheese;
 	}
-	
+
 	private void assertCheeseRoleMembershipRef(PrismObject<UserType> cheese) {
-		
+
 		assertRoleMembershipRefs(cheese, GENERATED_EMPTY_ROLE_OID_FORMAT, SchemaConstants.ORG_APPROVER, 0, NUMBER_OF_CHEESE_ASSIGNMENTS_APPROVER);
 		assertRoleMembershipRefs(cheese, GENERATED_EMPTY_ROLE_OID_FORMAT, SchemaConstants.ORG_OWNER, NUMBER_OF_CHEESE_ASSIGNMENTS_APPROVER, NUMBER_OF_CHEESE_ASSIGNMENTS_OWNER);
-		
+
 		assertRoleMembershipRef(cheese, ROLE_BASIC_OID, SchemaConstants.ORG_DEFAULT);
-		
+
 		assertRoleMembershipRefs(cheese, NUMBER_OF_CHEESE_ASSIGNMENTS);
 	}
-	
-	
+
+
 	/**
 	 * Create dummy groups that can be used for associationTargetSearch later on.
 	 * Create them from midPoint so they have shadows.
-	 * 
+	 *
 	 * MID-3938 #8
 	 */
 	@Test
@@ -348,7 +348,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
 
@@ -356,7 +356,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         PrismObjectDefinition<RoleType> roleDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
         RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(getDummyResourceObject());
         ObjectClassComplexTypeDefinition rOcDef = rSchema.findObjectClassDefinition(getDummyResourceController().getGroupObjectClass());
-        
+
         ObjectFactory objectFactory = new ObjectFactory();
         ItemPath nameAttributePath = new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME);
         for (int i=0; i<NUMBER_OF_GENERATED_DUMMY_GROUPS; i++) {
@@ -371,13 +371,13 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         	nameAttribute.setRealValue(groupName);
         	display("Group shadow "+i, shadow);
         	addObject(shadow, task, result);
-        	
+
         	PrismObject<RoleType> role = roleDef.instantiate();
         	RoleType roleType = role.asObjectable();
         	ItemPathType assPath = new ItemPathType(new ItemPath(RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME));
 			SearchObjectExpressionEvaluatorType associationTargetSearchType = new SearchObjectExpressionEvaluatorType();
 			EqualFilter<String> filter = EqualFilter.createEqual(nameAttributePath, null, null, prismContext, groupName);
-			
+
 			SearchFilterType filterType = QueryJaxbConvertor.createSearchFilterType(filter, prismContext);
 			associationTargetSearchType.setFilter(filterType);
 			associationTargetSearchType.setSearchStrategy(ObjectSearchStrategyType.IN_REPOSITORY);
@@ -401,18 +401,18 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 			}
 			addObject(role, task, result);
         }
-                
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         Collection<DummyGroup> dummyGroups = getDummyResource().listGroups();
         assertEquals("Wrong number of dummy groups", NUMBER_OF_GENERATED_DUMMY_GROUPS, dummyGroups.size());
         assertShadows(NUMBER_OF_GENERATED_DUMMY_GROUPS);
-        
+
         assertObjects(RoleType.class, NUMBER_OF_GENERATED_EMPTY_ROLES + NUMBER_OF_GENERATED_DUMMY_ROLES + NUMBER_OF_ORDINARY_ROLES + NUMBER_OF_GENERATED_DUMMY_GROUPS);
 	}
-	
+
 	/**
 	 * MID-3938 #8
 	 */
@@ -423,46 +423,46 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_BOB_FILE);
         addAssignments(userBefore, GENERATED_DUMMY_ROLE_OID_FORMAT, null, 0, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
         display("User before", assignmentSummary(userBefore));
-        
+
         inspector.reset();
         rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
-        
+
         addObject(userBefore, task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
-        
+
         display("Added bob in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS)+"ms per assignment)");
-        
+
         PrismObject<UserType> userAfter = getUser(USER_BOB_OID);
         display("User after", assignmentSummary(userAfter));
         assertBobRoleMembershipRef(userAfter);
-        
+
         display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
         display("Inspector", inspector);
-        
+
         // TODO: why *3 ???
         inspector.assertRead(RoleType.class, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS * 3);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
-        
+
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-        
+
         assertBobDummy(NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
 	}
-	
+
 	/**
 	 * MID-3938 #8
 	 */
@@ -473,41 +473,41 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-                
+
         inspector.reset();
         rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
-        
+
         recomputeUser(USER_BOB_OID, task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
-        
+
         display("Recomputed bob in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS)+"ms per assignment)");
-        
+
         PrismObject<UserType> userAfter = getUser(USER_BOB_OID);
         display("User after", assignmentSummary(userAfter));
         assertBobRoleMembershipRef(userAfter);
-        
+
         display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
         display("Inspector", inspector);
-        
+
         inspector.assertRead(RoleType.class, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
-        
+
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-        
+
         assertBobDummy(NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
 	}
-	
+
 	/**
 	 * MID-3938 #8
 	 */
@@ -518,47 +518,47 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-                
+
         inspector.reset();
         rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
-        
+
         reconcileUser(USER_BOB_OID, task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
-        
+
         display("Reconciled bob in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS)+"ms per assignment)");
-        
+
         PrismObject<UserType> userAfter = getUser(USER_BOB_OID);
         display("User after", assignmentSummary(userAfter));
         assertBobRoleMembershipRef(userAfter);
-        
+
         display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
         display("Inspector", inspector);
-        
+
         inspector.assertRead(RoleType.class, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
-        
+
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-        
+
         assertBobDummy(NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
 	}
 
 	private void assertBobRoleMembershipRef(PrismObject<UserType> user) {
-		
+
 		assertRoleMembershipRefs(user, GENERATED_DUMMY_ROLE_OID_FORMAT, null, 0, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
 		assertRoleMembershipRefs(user, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
 	}
-	
+
 	private void assertBobDummy(int expectedBottlesOfRum) throws Exception {
         DummyAccount dummyAccount = assertDummyAccount(null, USER_BOB_USERNAME, USER_BOB_FULLNAME, true);
         display("Dummy account", dummyAccount);
@@ -567,10 +567,10 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         	expectedDrinks.add(formatRum(i));
         }
         expectedDrinks.add("barrel of rum");
-		assertDummyAccountAttribute(null, USER_BOB_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+		assertDummyAccountAttribute(null, USER_BOB_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		expectedDrinks.toArray());
 	}
-	
+
 	/**
 	 * MID-3938 #8
 	 */
@@ -581,46 +581,46 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_ALICE_FILE);
         addAssignments(userBefore, GENERATED_DUMMY_GROUP_ROLE_OID_FORMAT, null, 0, NUMBER_OF_GENERATED_DUMMY_GROUPS);
         display("User before", assignmentSummary(userBefore));
-        
+
         inspector.reset();
         rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
-        
+
         addObject(userBefore, task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
-        
+
         display("Added alice in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_GENERATED_DUMMY_GROUPS)+"ms per assignment)");
-        
+
         PrismObject<UserType> userAfter = getUser(USER_ALICE_OID);
         display("User after", assignmentSummary(userAfter));
         assertAliceRoleMembershipRef(userAfter);
-        
+
         display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
         display("Inspector", inspector);
-        
+
         // TODO: why *3 ???
         inspector.assertRead(RoleType.class, NUMBER_OF_GENERATED_DUMMY_GROUPS * 3);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
-        
+
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-        
+
         assertAliceDummy(NUMBER_OF_GENERATED_DUMMY_GROUPS);
 	}
-	
+
 	/**
 	 * MID-3938 #8
 	 */
@@ -631,41 +631,41 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         inspector.reset();
         rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
-        
+
         recomputeUser(USER_ALICE_OID, task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
-        
+
         display("Recomputed alice in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_GENERATED_DUMMY_GROUPS)+"ms per assignment)");
-        
+
         PrismObject<UserType> userAfter = getUser(USER_ALICE_OID);
         display("User after", assignmentSummary(userAfter));
         assertAliceRoleMembershipRef(userAfter);
-        
+
         display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
         display("Inspector", inspector);
-        
+
         inspector.assertRead(RoleType.class, NUMBER_OF_GENERATED_DUMMY_GROUPS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
-        
+
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-        
+
         assertAliceDummy(NUMBER_OF_GENERATED_DUMMY_GROUPS);
 	}
-	
+
 	/**
 	 * MID-3938 #8
 	 */
@@ -676,47 +676,47 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         inspector.reset();
         rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
-        
+
         reconcileUser(USER_ALICE_OID, task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
-        
+
         display("Reconciled alice in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_GENERATED_DUMMY_GROUPS)+"ms per assignment)");
-        
+
         PrismObject<UserType> userAfter = getUser(USER_ALICE_OID);
         display("User after", assignmentSummary(userAfter));
         assertAliceRoleMembershipRef(userAfter);
-        
+
         display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
-        
+
         display("Inspector", inspector);
-        
+
         inspector.assertRead(RoleType.class, NUMBER_OF_GENERATED_DUMMY_GROUPS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
-        
+
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-        
+
         assertAliceDummy(NUMBER_OF_GENERATED_DUMMY_GROUPS);
 	}
-	
+
 	private void assertAliceRoleMembershipRef(PrismObject<UserType> user) {
-		
+
 		assertRoleMembershipRefs(user, GENERATED_DUMMY_GROUP_ROLE_OID_FORMAT, null, 0, NUMBER_OF_GENERATED_DUMMY_GROUPS);
 		assertRoleMembershipRefs(user, NUMBER_OF_GENERATED_DUMMY_GROUPS);
 	}
-	
+
 	private void assertAliceDummy(int expectedGroups) throws Exception {
         DummyAccount dummyAccount = assertDummyAccount(null, USER_ALICE_USERNAME, USER_ALICE_FULLNAME, true);
         display("Dummy account", dummyAccount);
@@ -724,7 +724,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         	assertDummyGroupMember(null, formatGroupName(i), USER_ALICE_USERNAME);
         }
 	}
-	
+
 	private void addAssignments(PrismObject<UserType> user, String roleOidFormat, QName relation, int offset, int num) {
 		UserType userType = user.asObjectable();
 		for (int i = 0; i < num; i++) {
@@ -744,7 +744,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 	private void assertRoleMembershipRef(PrismObject<UserType> user, String roleOidFormat, QName relation, int num) {
 		assertRoleMembershipRef(user, generateRoleOid(roleOidFormat, num), relation);
 	}
-	
+
 	private void assertRoleMembershipRef(PrismObject<UserType> user, String roleOid, QName relation) {
 		List<ObjectReferenceType> roleMembershipRefs = user.asObjectable().getRoleMembershipRef();
 		for (ObjectReferenceType roleMembershipRef: roleMembershipRefs) {

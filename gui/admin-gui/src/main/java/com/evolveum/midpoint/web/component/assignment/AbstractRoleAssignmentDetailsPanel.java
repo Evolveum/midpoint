@@ -32,25 +32,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 public class AbstractRoleAssignmentDetailsPanel extends AbstractAssignmentDetailsPanel {
-	
+
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_RELATION = "relation";
-	
+
 	private static final String ID_TENANT_CONTAINER = "tenantContainer";
 	private static final String ID_TENANT = "tenant";
 	private static final String ID_PROJECT_CONTAINER = "projectContainer";
 	private static final String ID_PROJECT = "project";
 	private static final String ID_POLICY_SITUATIONS = "policySituations";
 	private static final String ID_POLICY_SITUATION = "policySituation";
-	
+
 	private static List hiddenItems = new ArrayList<>();
-	
+
 	static  {
 			hiddenItems.add(AssignmentType.F_POLICY_RULE);
 	};
-	
+
 	public AbstractRoleAssignmentDetailsPanel(String id, Form<?> form, IModel<AssignmentDto> assignmentModel, PageBase pageBase) {
 		super(id, form, assignmentModel, pageBase);
 	}
@@ -59,7 +59,7 @@ public class AbstractRoleAssignmentDetailsPanel extends AbstractAssignmentDetail
 	protected List getHiddenItems() {
 		return hiddenItems;
 	}
-	
+
 	@Override
 	protected void initPropertiesPanel(WebMarkupContainer propertiesPanel) {
 		WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
@@ -76,16 +76,16 @@ public class AbstractRoleAssignmentDetailsPanel extends AbstractAssignmentDetail
         relationContainer.add(relation);
         propertiesPanel.add(relationContainer);
         relationContainer.setOutputMarkupId(true);
-        
+
         AssignmentType assignmentType = getModel().getObject().getAssignment();
-        
+
         WebMarkupContainer tenantContainer = new WebMarkupContainer(ID_TENANT_CONTAINER);
         ChooseTypePanel<OrgType> tenantChooser = createParameterChooserPanel(ID_TENANT, assignmentType.getTenantRef(), true);
         tenantContainer.add(tenantChooser);
         propertiesPanel.add(tenantContainer);
         tenantContainer.setOutputMarkupId(true);
         tenantContainer.add(new VisibleEnableBehaviour() {
-        	
+
         	private static final long serialVersionUID = 1L;
 
 			@Override
@@ -93,24 +93,24 @@ public class AbstractRoleAssignmentDetailsPanel extends AbstractAssignmentDetail
         		return AbstractRoleAssignmentDetailsPanel.this.isVisible(AssignmentType.F_TENANT_REF);
         	}
         });
-        
+
         WebMarkupContainer projectContainer = new WebMarkupContainer(ID_PROJECT_CONTAINER);
         ChooseTypePanel<OrgType> projectChooser = createParameterChooserPanel(ID_PROJECT, assignmentType.getOrgRef(), false);
         projectContainer.add(projectChooser);
         propertiesPanel.add(projectContainer);
         projectContainer.setOutputMarkupId(true);
         projectContainer.add(new VisibleEnableBehaviour() {
-        	
+
         	private static final long serialVersionUID = 1L;
-        	
+
         	@Override
         	public boolean isVisible() {
         		return AbstractRoleAssignmentDetailsPanel.this.isVisible(AssignmentType.F_ORG_REF);
         	}
         });
-        
+
         ListView<String> policySituations = new ListView<String>(ID_POLICY_SITUATIONS, new PropertyModel<List<String>>(getModel(), AssignmentDto.F_VALUE + "." + AssignmentType.F_POLICY_SITUATION.getLocalPart())) {
-			
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -118,7 +118,7 @@ public class AbstractRoleAssignmentDetailsPanel extends AbstractAssignmentDetail
 				TextPanel<String> textPanel = new TextPanel<String>(ID_POLICY_SITUATION, item.getModel());
 				textPanel.setOutputMarkupId(true);
 				item.add(textPanel);
-				
+
 			}
 		};
         policySituations.setOutputMarkupId(true);
@@ -127,7 +127,7 @@ public class AbstractRoleAssignmentDetailsPanel extends AbstractAssignmentDetail
 
 	 private ChooseTypePanel<OrgType> createParameterChooserPanel(String id, ObjectReferenceType ref, boolean isTenant){
 	    	ChooseTypePanel<OrgType> orgSelector = new ChooseTypePanel<OrgType>(id, ref) {
-	    		
+	
 	    		private static final long serialVersionUID = 1L;
 
 	    		@Override
@@ -139,7 +139,7 @@ public class AbstractRoleAssignmentDetailsPanel extends AbstractAssignmentDetail
 	    			}
 	    			target.add(AbstractRoleAssignmentDetailsPanel.this);
 	    		}
-	    		
+	
 	    		@Override
 	    		protected void executeCustomRemoveAction(AjaxRequestTarget target) {
 	    			if (isTenant) {
@@ -149,33 +149,33 @@ public class AbstractRoleAssignmentDetailsPanel extends AbstractAssignmentDetail
 	    			}
 	    			target.add(AbstractRoleAssignmentDetailsPanel.this);
 	    		}
-	    		
+	
 	    		@Override
 	    		protected ObjectQuery getChooseQuery() {
 	    			ObjectFilter tenantFilter = QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext()).item(OrgType.F_TENANT).eq(true).buildFilter();
-	    			
+	
 	    			if (isTenant) {
 	    				return ObjectQuery.createObjectQuery(tenantFilter);
-	    			} 
+	    			}
 	    			return ObjectQuery.createObjectQuery(NotFilter.createNot(tenantFilter));
-	    			
+	
 	    		}
-	    		
+	
 	    		@Override
 	    		protected boolean isSearchEnabled() {
 	    			return true;
 	    		}
-	    		
+	
 	    		@Override
 	    		public Class<OrgType> getObjectTypeClass() {
 	    			return OrgType.class;
 	    		}
-	    		
+	
 	    	};
 	    	orgSelector.setOutputMarkupId(true);
 	    	return orgSelector;
-	    		
+	
 	    	}
-        
+
 
 }

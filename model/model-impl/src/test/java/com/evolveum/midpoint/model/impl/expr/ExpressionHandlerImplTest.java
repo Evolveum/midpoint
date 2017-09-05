@@ -61,9 +61,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import javax.xml.namespace.QName;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-no-repo.xml" })
 public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests {
@@ -92,7 +92,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	public void testConfirmUser() throws Exception {
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(
 				TEST_FOLDER, "account-xpath-evaluation.xml"));
-		
+
 		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_FOLDER, "user-new.xml"));
 
 		//TODO:  "$c:user/c:givenName/t:orig replaced with "$c:user/c:givenName

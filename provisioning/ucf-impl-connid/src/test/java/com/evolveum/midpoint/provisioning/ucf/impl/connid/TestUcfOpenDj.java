@@ -82,7 +82,7 @@ import static org.testng.AssertJUnit.*;
  * <p/>
  * This test is using embedded OpenDJ as a resource and ICF LDAP connector. The
  * test is executed by direct calls to the UCF interface.
- * 
+ *
  * @author Radovan Semancik
  * @author Katka Valalikova
  *         <p/>
@@ -122,7 +122,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-	
+
 	@BeforeClass
 	public static void startLdap() throws Exception {
 		LOGGER.info("------------------------------------------------------------------------------");
@@ -154,15 +154,15 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		// Connector
 		PrismObject<ConnectorType> connector = PrismTestUtil.parseObject(CONNECTOR_LDAP_FILE);
 		connectorType = connector.asObjectable();
-		
+
 		factory = connectorFactoryIcfImpl;
 
 		connectorSchema = factory.generateConnectorConfigurationSchema(connectorType);
 		AssertJUnit.assertNotNull("Cannot generate connector schema", connectorSchema);
 		display("Connector schema", connectorSchema);
-		
+
 		cc = factory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType), "ldap connector");
-		
+
 		OperationResult result = new OperationResult("initUcf");
 		cc.configure(resourceType.getConnectorConfiguration().asPrismContainerValue(), result);
 		cc.initialize(null, null, false, result);
@@ -178,18 +178,18 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	@AfterMethod
 	public void shutdownUcf() throws Exception {
 	}
-	
-	
+
+
 	@Test
 	public void test010ConnectorSchemaSanity() throws Exception {
 		final String TEST_NAME = "test010ConnectorSchemaSanity";
 		TestUtil.displayTestTitle(TEST_NAME);
-	
+
 		IntegrationTestTools.assertConnectorSchemaSanity(connectorSchema, "LDAP connector", true);
-		
-		PrismContainerDefinition configurationDefinition = 
-				connectorSchema.findItemDefinition(ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(), PrismContainerDefinition.class);		
-		PrismContainerDefinition configurationPropertiesDefinition = 
+
+		PrismContainerDefinition configurationDefinition =
+				connectorSchema.findItemDefinition(ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(), PrismContainerDefinition.class);
+		PrismContainerDefinition configurationPropertiesDefinition =
 			configurationDefinition.findContainerDefinition(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
 
 		PrismPropertyDefinition<String> propHost = configurationPropertiesDefinition.findPropertyDefinition(new QName(UcfTestUtil.CONNECTOR_LDAP_NS,"host"));
@@ -198,7 +198,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		assertEquals("Wrong property 'host' display name", "Host", propHost.getDisplayName());
 		assertEquals("Wrong property 'host' help", "The name or IP address of the LDAP server host.", propHost.getHelp());
 		assertEquals("Wrong property 'host' display order", (Integer)1, propHost.getDisplayOrder()); // MID-2642
-		
+
 		PrismPropertyDefinition<String> propPort = configurationPropertiesDefinition.findPropertyDefinition(new QName(UcfTestUtil.CONNECTOR_LDAP_NS,"port"));
 		assertNotNull("No definition for configuration property 'port' in connector schema", propPort);
 		PrismAsserts.assertDefinition(propPort, new QName(UcfTestUtil.CONNECTOR_LDAP_NS,"port"), DOMUtil.XSD_INT, 0, 1);
@@ -207,12 +207,12 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		assertEquals("Wrong property 'port' display order", (Integer)2, propPort.getDisplayOrder()); // MID-2642
 	}
 
-	
+
 	@Test
 	public void test020ResourceSchemaSanity() throws Exception {
 		final String TEST_NAME = "test020ResourceSchemaSanity";
 		TestUtil.displayTestTitle(TEST_NAME);
-		
+
 		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
 		assertNotNull("No object class definition " + objectClassQname, accountDefinition);
@@ -220,19 +220,19 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 //		assertTrue("Object class " + objectClassQname + " is not default account", accountDefinition.isDefaultInAKind());
 		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isEmpty());
 		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isIgnored());
-		
+
 		Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getPrimaryIdentifiers();
 		assertNotNull("Null identifiers for " + objectClassQname, identifiers);
 		assertFalse("Empty identifiers for " + objectClassQname, identifiers.isEmpty());
 
 		ResourceAttributeDefinition<String> idPrimaryDef = accountDefinition.findAttributeDefinition(
-				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME)); 
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME));
 		assertNotNull("No definition for attribute "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME, idPrimaryDef);
 		assertTrue("Attribute "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" in not an identifier",idPrimaryDef.isIdentifier(accountDefinition));
 		assertTrue("Attribute "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" in not in identifiers list",identifiers.contains(idPrimaryDef));
 		assertEquals("Attribute "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" has wrong native name", OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME, idPrimaryDef.getNativeAttributeName());
 		assertEquals("Attribute "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" has wrong framework name", Uid.NAME, idPrimaryDef.getFrameworkAttributeName());
-		
+
 		ResourceAttributeDefinition<String> idSecondaryDef = accountDefinition.findAttributeDefinition(
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME));
 		assertNotNull("No definition for attribute "+SchemaConstants.ICFS_NAME, idSecondaryDef);
@@ -314,11 +314,11 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 				assertNotNull(uid);
 			}
 		}
-	
+
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
 
 		cc.deleteObject(accountDefinition, null, identifiers, null, result);
-		
+
 		ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
 				accountDefinition, identifiers);
 		PrismObject<ShadowType> resObj = null;
@@ -389,13 +389,13 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		System.out.println("Property:");
 		System.out.println(SchemaDebugUtil.prettyPrint(lastToken));
 		System.out.println("token " + lastToken.toString());
-		
+
 		assertNotNull("No last token", lastToken);
 		assertNotNull("No last token value", lastToken.getRealValue());
 
 		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
 		display("Changes", changes);
-		
+
 		// Just one pseudo-change that updates the token
 		AssertJUnit.assertEquals(1, changes.size());
 		Change change = changes.get(0);
@@ -417,7 +417,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private PropertyModificationOperation createReplaceAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES, 
+		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES,
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition(), prismContext);
 		delta.setValueToReplace(new PrismPropertyValue(propertyValue));
@@ -427,7 +427,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private PropertyModificationOperation createAddAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES, 
+		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES,
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition(), prismContext);
 		delta.addValueToAdd(new PrismPropertyValue(propertyValue));
@@ -437,7 +437,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private PropertyModificationOperation createDeleteAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES, 
+		ItemPath propertyPath = new ItemPath(ShadowType.F_ATTRIBUTES,
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition(), prismContext);
 		delta.addValueToDelete(new PrismPropertyValue(propertyValue));
@@ -456,7 +456,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	/**
 	 * Simple call to connector test() method.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -483,7 +483,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	/**
 	 * Simple call to connector test() method.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -517,7 +517,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	/**
 	 * Test fetching and translating resource schema.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -589,7 +589,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(capabilities,
 				CredentialsCapabilityType.class);
 		assertNotNull("password capability not present", capCred.getPassword());
-		
+
 		PagedSearchCapabilityType capPage = CapabilityUtil.getCapability(capabilities, PagedSearchCapabilityType.class);
 		assertNotNull("paged search capability not present", capPage);
 	}
@@ -665,7 +665,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		Set<Operation> additionalOperations = new HashSet<Operation>();
 		ProtectedStringType ps = protector.encryptString("t4k30v3rTh3W0rld");
-		
+
 //		PasswordChangeOperation passOp = new PasswordChangeOperation(ps);
 //		additionalOperations.add(passOp);
 
@@ -678,7 +678,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		pass.setValue(ps);
 		credentials.setPassword(pass);
 		shadow.asObjectable().setCredentials(credentials);
-		
+
 		// WHEN
 		cc.addObject(shadow, additionalOperations, null, addResult);
 
@@ -706,7 +706,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		PrismObject<ShadowType> shadow = wrapInShadow(ShadowType.class, resourceObject);
 
 		OperationResult addResult = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
-		
+
 		// Add a testing object
 		cc.addObject(shadow, null, null, addResult);
 
@@ -729,7 +729,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		Set<Operation> changes = new HashSet<Operation>();
 		ProtectedStringType passPs = protector.encryptString("salalala");
-		
+
 		ItemDeltaType propMod = new ItemDeltaType();
 		//create modification path
 		Document doc = DOMUtil.getDocument();
@@ -741,14 +741,14 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
         MapXNode passPsXnode = ((PrismContextImpl) prismContext).getBeanMarshaller().marshalProtectedDataType(passPs, null);
 		RawType value = new RawType(passPsXnode, prismContext);
 		propMod.getValue().add(value);
-		
+
 		//set the modificaion type
 		propMod.setModificationType(ModificationTypeType.REPLACE);
-		
+
 		PropertyDelta passDelta = (PropertyDelta)DeltaConvertor.createItemDelta(propMod, shadow.getDefinition());
 		PropertyModificationOperation passwordModification = new PropertyModificationOperation(passDelta);
 		changes.add(passwordModification);
-		
+
 //		PasswordChangeOperation passwordChange = new PasswordChangeOperation(passPs);
 //		changes.add(passwordChange);
 		cc.modifyObject(accountDefinition, identifiers, changes, null, result);
@@ -763,7 +763,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		System.out.println("Account password: " + passwordAfter);
 	}
-	
+
 	private ResourceAttributeContainer createResourceObject(String dn, String sn, String cn) throws SchemaException {
 		// Account type is hardcoded now
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema
@@ -790,7 +790,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		return resourceObject;
 	}
-	
+
 	private <T extends ShadowType> PrismObject<T> wrapInShadow(Class<T> type, ResourceAttributeContainer resourceObject) throws SchemaException {
 		PrismObjectDefinition<T> shadowDefinition = getShadowDefinition(type);
 		PrismObject<T> shadow = shadowDefinition.instantiate();
@@ -798,8 +798,8 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		shadow.getValue().add(resourceObject);
 		return shadow;
 	}
-	
-	private <T extends ShadowType> PrismObjectDefinition<T> getShadowDefinition(Class<T> type) { 
+
+	private <T extends ShadowType> PrismObjectDefinition<T> getShadowDefinition(Class<T> type) {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
 	}
 }

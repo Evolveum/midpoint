@@ -37,9 +37,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 public class ModelUtils {
 
@@ -57,7 +57,7 @@ public class ModelUtils {
 			throw new IllegalArgumentException("Paging offset index must be more than 0.");
 		}
 	}
-	
+
 	public static void recordFatalError(OperationResult result, Throwable e) {
 		recordFatalError(result, e.getMessage(), e);
 	}
@@ -70,7 +70,7 @@ public class ModelUtils {
 		result.recordFatalError(message, e);
 		result.cleanupResult(e);
 	}
-	
+
 	public static void recordPartialError(OperationResult result, Throwable e) {
 		recordPartialError(result, e.getMessage(), e);
 	}
@@ -83,7 +83,7 @@ public class ModelUtils {
 		result.recordPartialError(message, e);
 		result.cleanupResult(e);
 	}
-	
+
 	public static <O extends ObjectType> String getOperationUrlFromDelta(ObjectDelta<O> delta) {
 		if (delta == null) {
 			return null;
@@ -109,7 +109,7 @@ public class ModelUtils {
         }
 		return determineObjectPolicyConfiguration(object.getCompileTimeClass(), subTypes, systemConfigurationType);
 	}
-	
+
 	public static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(Class<O> objectClass, List<String> objectSubtypes, SystemConfigurationType systemConfigurationType) throws ConfigurationException {
 		ObjectPolicyConfigurationType applicablePolicyConfigurationType = null;
 		for (ObjectPolicyConfigurationType aPolicyConfigurationType: systemConfigurationType.getDefaultObjectPolicyConfiguration()) {
@@ -150,7 +150,7 @@ public class ModelUtils {
 				return aPolicyConfigurationType;
 			}
 		}
-		
+
 		// Deprecated method to specify user template. For compatibility only
 		if (objectClass == UserType.class) {
 			ObjectReferenceType templateRef = systemConfigurationType.getDefaultUserTemplateRef();
@@ -161,7 +161,7 @@ public class ModelUtils {
 			policy.setObjectTemplateRef(templateRef.clone());
 			return policy;
 		}
-		
+
 		return null;
 	}
 

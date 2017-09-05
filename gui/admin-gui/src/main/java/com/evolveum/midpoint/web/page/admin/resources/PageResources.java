@@ -159,7 +159,7 @@ public class PageResources extends PageAdminResources {
 
 		Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.resolveItemsNamed(ResourceType.F_CONNECTOR);
 		options.add(SelectorOptions.create(GetOperationOptions.createNoFetch()));
-		
+
 
 		MainObjectListPanel<ResourceType> resourceListPanel = new MainObjectListPanel<ResourceType>(ID_TABLE,
 				ResourceType.class, TableId.TABLE_RESOURCES, options, this) {
@@ -194,9 +194,9 @@ public class PageResources extends PageAdminResources {
 			@Override
 			protected void newObjectPerformed(AjaxRequestTarget target) {
 				navigateToNext(PageResourceWizard.class);
-				
+
 			}
-			
+
 		};
 		resourceListPanel.setOutputMarkupId(true);
 		resourceListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES);
@@ -378,7 +378,7 @@ public class PageResources extends PageAdminResources {
 					} else {
 						selected = getResourceTable().getSelectedObjects();
 					}
-				
+
 				switch (selected.size()) {
 					case 1:
 						Object first = selected.get(0);

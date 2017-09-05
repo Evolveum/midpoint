@@ -20,11 +20,11 @@ import java.io.Serializable;
 import com.evolveum.midpoint.util.DisplayableValue;
 
 public class DisplayableValueImpl<T> implements DisplayableValue<T>, Serializable{
-	
+
 	private T value;
 	private String label;
 	private String description;
-	
+
 	public DisplayableValueImpl(T value, String label, String description) {
 		this.label = label;
 		this.value = value;

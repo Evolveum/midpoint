@@ -40,7 +40,7 @@ import org.apache.wicket.model.Model;
                 label = "PageSelfProfile.auth.profile.label",
                 description = "PageSelfProfile.auth.profile.description")})
 public class PageSelfProfile extends PageUser {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(PageSelfProfile.class);
 
 	@Override

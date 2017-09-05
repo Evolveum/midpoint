@@ -38,7 +38,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 /**
  * Test for provisioning service implementation using embedded OpenDj instance.
  * This is the same test as TestOpenDj, but the configuration allows password reading.
- * 
+ *
  * @author Radovan Semancik
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
@@ -46,20 +46,20 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public class TestOpenDjReadablePassword extends TestOpenDj {
 
 	protected static final File RESOURCE_OPENDJ_READABLE_PASSWORD_FILE = new File(TEST_DIR, "resource-opendj-readable-password.xml");
-	
+
 	private static Trace LOGGER = TraceManager.getTrace(TestOpenDjReadablePassword.class);
-		
+
 	@Override
 	protected File getResourceOpenDjFile() {
 		return RESOURCE_OPENDJ_READABLE_PASSWORD_FILE;
 	}
-	
+
 	@Override
 	protected void assertPasswordCapability(PasswordCapabilityType capPassword) {
-		assertTrue("Wrong password capability readable flag: "+capPassword.isReadable(), 
+		assertTrue("Wrong password capability readable flag: "+capPassword.isReadable(),
 				capPassword.isReadable() == Boolean.TRUE);
 	}
-	
+
 	@Override
 	protected void assertShadowPassword(ShadowType provisioningShadow) throws Exception {
 		CredentialsType credentials = provisioningShadow.getCredentials();
@@ -75,7 +75,7 @@ public class TestOpenDjReadablePassword extends TestOpenDj {
 		assertFalse("Empty password value in "+provisioningShadow, passwordValue.isEmpty());
 		String clearPassword = protector.decryptString(passwordValue);
 		display("Clear password of "+provisioningShadow+": "+clearPassword);
-		
+
 		PrismContainerValue<PasswordType> passwordContainer = passwordType.asPrismContainerValue();
 		PrismProperty<ProtectedStringType> valueProp = passwordContainer.findProperty(PasswordType.F_VALUE);
 		assertFalse("Incomplete password value in "+provisioningShadow, valueProp.isIncomplete());
