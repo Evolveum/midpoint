@@ -8,21 +8,21 @@ public class NotNullValidator<T> implements INullAcceptingValidator<T>{
 
 	private static final long serialVersionUID = 1L;
 	private String key;
-	
+
 	public NotNullValidator(String errorMessageKey) {
 		this.key = errorMessageKey;
 	}
-	
+
 	@Override
 	public void validate(IValidatable<T> validatable) {
 		if (validatable.getValue() == null) {
 			ValidationError err = new ValidationError();
 			err.addKey(key);
 			validatable.error(err);
-			
+
 		}
-		
+
 	}
 
-	
+
 }

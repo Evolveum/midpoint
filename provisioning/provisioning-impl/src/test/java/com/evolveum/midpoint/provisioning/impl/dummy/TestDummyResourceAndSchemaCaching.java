@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
@@ -63,19 +63,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * The test of Provisioning service on the API level. It checks proper caching of resource and schemas. 
- * 
+ * The test of Provisioning service on the API level. It checks proper caching of resource and schemas.
+ *
  * The test is using dummy resource for speed and flexibility.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummyResourceAndSchemaCaching.class);
-	
+
 	@Test
 	public void test010GetResource() throws Exception {
 		final String TEST_NAME = "test010GetResource";
@@ -83,7 +83,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
 				+ "." + TEST_NAME);
-		
+
 		// Some connector initialization and other things might happen in previous tests.
 		// The monitor is static, not part of spring context, it will not be cleared
 		rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
@@ -92,13 +92,13 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
 		rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
 		rememberResourceCacheStats();
-		
+
 		// Check that there is no schema before test (pre-condition)
 		PrismObject<ResourceType> resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 		ResourceType resourceTypeBefore = resourceBefore.asObjectable();
 		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceTypeBefore);
 		AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
-		
+
 		assertVersion(resourceBefore, "0");
 
 		// WHEN
@@ -111,34 +111,34 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
 		assertHasSchema(resourceProvisioning, "provisioning resource");
 		rememberSchemaMetadata(resourceProvisioning);
-		
+
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 1);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 1);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 1);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
-		
+
 		rememberConnectorInstance(resourceProvisioning);
-				
+
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
 				RESOURCE_DUMMY_OID, null, result);
 		assertHasSchema(resourceRepoAfter, "repo resource after");
 
 		assertSchemaMetadataUnchanged(resourceRepoAfter);
-		
+
 		display("Resource cache", InternalMonitor.getResourceCacheStats());
 		assertResourceCacheHitsIncrement(0);
 		assertResourceCacheMissesIncrement(1);
-		
+
 		rememberResourceSchema(RefinedResourceSchemaImpl.getResourceSchema(resourceProvisioning, prismContext));
 		rememberRefinedResourceSchema(RefinedResourceSchemaImpl.getRefinedSchema(resourceProvisioning));
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
-		
+
 		// Just refresh the resource used by other tests. This one has a complete schema.
 		resourceType = resourceProvisioning.asObjectable();
 		rememberResourceVersion(resourceType.getVersion());
 	}
-	
+
 	@Test
 	public void test011GetResourceAgain() throws Exception {
 		final String TEST_NAME = "test011GetResourceAgain";
@@ -146,7 +146,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
 				+ "." + TEST_NAME);
-		
+
 		// WHEN
 		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
 
@@ -157,25 +157,25 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
 		assertHasSchema(resourceProvisioning, "provisioning resource(1)");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
-		
+
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
-		
+
 		assertResourceVersionIncrement(resourceProvisioning, 0);
-		
+
 		display("Resource cache (1)", InternalMonitor.getResourceCacheStats());
 		assertResourceCacheHitsIncrement(1);
 		assertResourceCacheMissesIncrement(0);
-		
+
 		assertResourceSchemaUnchanged(RefinedResourceSchemaImpl.getResourceSchema(resourceProvisioning, prismContext));
 		assertRefinedResourceSchemaUnchanged(RefinedResourceSchemaImpl.getRefinedSchema(resourceProvisioning));
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
-		
+
 		assertConnectorInstanceUnchanged(resourceProvisioning);
-		
+
 		// WHEN
 		resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
 
@@ -186,25 +186,25 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
 		assertHasSchema(resourceProvisioning, "provisioning resource(2)");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
-		
+
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
-		
+
 		assertResourceVersionIncrement(resourceProvisioning, 0);
-		
+
 		display("Resource cache (1)", InternalMonitor.getResourceCacheStats());
 		assertResourceCacheHitsIncrement(1);
 		assertResourceCacheMissesIncrement(0);
-		
+
 		assertResourceSchemaUnchanged(RefinedResourceSchemaImpl.getResourceSchema(resourceProvisioning, prismContext));
 		assertRefinedResourceSchemaUnchanged(RefinedResourceSchemaImpl.getRefinedSchema(resourceProvisioning));
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
-		
+
 		assertConnectorInstanceUnchanged(resourceProvisioning);
 	}
-	
+
 	/**
 	 * Add new account. This is connector operation. Check that the initialized connector is
 	 * reused and that it is not initialized again. Check that resource is still cached.
@@ -216,15 +216,15 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
 				+ "." + TEST_NAME);
-		
+
 		// WHEN
 		addAccount(ACCOUNT_WILL_FILE);
-		
+
 		// THEN
 		display("Resource cache (1)", InternalMonitor.getResourceCacheStats());
 		assertResourceCacheHitsIncrement(1);
 		assertResourceCacheMissesIncrement(0);
-		
+
 		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
 		display("Resource(2)", resource);
 		result.computeStatus();
@@ -232,27 +232,27 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
 		assertHasSchema(resourceProvisioning, "provisioning resource(2)");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
-		
+
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
-		
+
 		assertResourceVersionIncrement(resourceProvisioning, 0);
-		
+
 		display("Resource cache (2)", InternalMonitor.getResourceCacheStats());
 		assertResourceCacheHitsIncrement(1);
 		assertResourceCacheMissesIncrement(0);
-		
+
 		assertResourceSchemaUnchanged(RefinedResourceSchemaImpl.getResourceSchema(resourceProvisioning, prismContext));
 		assertRefinedResourceSchemaUnchanged(RefinedResourceSchemaImpl.getRefinedSchema(resourceProvisioning));
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
-		
+
 		assertConnectorInstanceUnchanged(resourceProvisioning);
 	}
-	
-	
+
+
 	/**
 	 * Change something that is not important. The cached resource should be refreshed, the schema re-parsed
 	 * but the connector should still be cached.
@@ -265,17 +265,17 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
-		
+
 		// Change something that's not that important
 		ProjectionPolicyType accountSynchronizationSettingsType = new ProjectionPolicyType();
 		accountSynchronizationSettingsType.setLegalize(true);
-		
-		ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceProperty(ResourceType.class, RESOURCE_DUMMY_OID, 
+
+		ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceProperty(ResourceType.class, RESOURCE_DUMMY_OID,
 				ResourceType.F_PROJECTION, prismContext, accountSynchronizationSettingsType);
-		
+
 		// WHEN
 		provisioningService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, objectDelta.getModifications(), null, null, task, result);
-		
+
 		// THEN
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
@@ -293,27 +293,27 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
 		assertHasSchema(resourceProvisioning, "provisioning resource");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
-		
+
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
-		
+
 		assertResourceVersionIncrement(resourceProvisioning, 0);
-		
+
 		display("Resource cache", InternalMonitor.getResourceCacheStats());
 		assertResourceCacheHitsIncrement(0);
 		assertResourceCacheMissesIncrement(1);
-		
+
 		// There are expected to be re-parsed
 		rememberResourceSchema(RefinedResourceSchemaImpl.getResourceSchema(resourceProvisioning, prismContext));
 		rememberRefinedResourceSchema(RefinedResourceSchemaImpl.getRefinedSchema(resourceProvisioning));
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
-		
+
 		assertConnectorInstanceUnchanged(resourceProvisioning);
 	}
-	
+
 	/**
 	 * Get the account. This is connector operation. Check that the initialized connector is
 	 * reused and that it is not initialized again. Check that resource is still cached.
@@ -325,15 +325,15 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
 				+ "." + TEST_NAME);
-		
+
 		// WHEN
 		getAccount(ACCOUNT_WILL_OID);
-		
+
 		// THEN
 		display("Resource cache (1)", InternalMonitor.getResourceCacheStats());
 		assertResourceCacheHitsIncrement(1);
 		assertResourceCacheMissesIncrement(0);
-		
+
 		PrismObject<ResourceType> resourceProvisioning = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
 		display("Resource(2)", resource);
 		result.computeStatus();
@@ -341,30 +341,30 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
 		assertHasSchema(resourceProvisioning, "provisioning resource(2)");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
-		
+
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
-		
+
 		assertResourceVersionIncrement(resourceProvisioning, 0);
-		
+
 		display("Resource cache (2)", InternalMonitor.getResourceCacheStats());
 		assertResourceCacheHitsIncrement(1);
 		assertResourceCacheMissesIncrement(0);
-		
+
 		assertResourceSchemaUnchanged(RefinedResourceSchemaImpl.getResourceSchema(resourceProvisioning, prismContext));
 		assertRefinedResourceSchemaUnchanged(RefinedResourceSchemaImpl.getRefinedSchema(resourceProvisioning));
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
-		
+
 		assertConnectorInstanceUnchanged(resourceProvisioning);
 	}
-	
+
 	/**
 	 * Change resource directly in repo. This simulates the change done by other node. The connector cache should
 	 * be refreshed.
-	 * 
+	 *
 	 * Change something that is not important. The cached resource should be refreshed, the schema re-parsed
 	 * but the connector should still be cached.
 	 */
@@ -376,17 +376,17 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
-		
+
 		// Change something that's not that important
 		ProjectionPolicyType accountSynchronizationSettingsType = new ProjectionPolicyType();
 		accountSynchronizationSettingsType.setLegalize(true);
-		
-		ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceProperty(ResourceType.class, RESOURCE_DUMMY_OID, 
+
+		ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceProperty(ResourceType.class, RESOURCE_DUMMY_OID,
 				ResourceType.F_PROJECTION, prismContext, accountSynchronizationSettingsType);
-		
+
 		// WHEN
 		repositoryService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, objectDelta.getModifications(), result);
-		
+
 		// THEN
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
@@ -404,27 +404,27 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
 		assertHasSchema(resourceProvisioning, "provisioning resource");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
-		
+
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
-		
+
 		assertResourceVersionIncrement(resourceProvisioning, 0);
-		
+
 		display("Resource cache", InternalMonitor.getResourceCacheStats());
 		assertResourceCacheHitsIncrement(0);
 		assertResourceCacheMissesIncrement(1);
-		
+
 		// There are expected to be re-parsed
 		rememberResourceSchema(RefinedResourceSchemaImpl.getResourceSchema(resourceProvisioning, prismContext));
 		rememberRefinedResourceSchema(RefinedResourceSchemaImpl.getRefinedSchema(resourceProvisioning));
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
-		
+
 		assertConnectorInstanceUnchanged(resourceProvisioning);
 	}
-	
+
 	/**
 	 * Change part of connector configuration. The cached resource should be refreshed, the schema re-parsed.
 	 * The connector also needs to re-initialized.
@@ -437,27 +437,27 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
-		
+
 		// Change part of connector configuration. We change quite a useless part. But midPoint does not know that
 		// it is useless and need to re-initialize the connector
 		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
 		PropertyDelta<String> uselessStringDelta = createUselessStringDelta("patlama chamalalija paprtala");
 		((Collection)modifications).add(uselessStringDelta);
-		
+
 		// WHEN
 		provisioningService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, modifications, null, null, task, result);
-		
+
 		// THEN
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
-		
+
 		assertConnectorConfigChanged();
 	}
-	
+
 	/**
 	 * Change part of connector configuration. Change it directly in repo to simulate change
-	 * from another midPoint node. 
-	 * 
+	 * from another midPoint node.
+	 *
 	 * The cached resource should be refreshed, the schema re-parsed.
 	 * The connector also needs to re-initialized.
 	 */
@@ -469,23 +469,23 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
-		
+
 		// Change part of connector configuration. We change quite a useless part. But midPoint does not know that
 		// it is useless and need to re-initialize the connector
 		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
 		PropertyDelta<String> uselessStringDelta = createUselessStringDelta("Rudolfovo Tajemstvi");
 		((Collection)modifications).add(uselessStringDelta);
-		
+
 		// WHEN
 		repositoryService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, modifications, result);
-		
+
 		// THEN
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
-		
+
 		assertConnectorConfigChanged();
 	}
-	
+
 	@Test
 	public void test900DeleteResource() throws Exception {
 		final String TEST_NAME = "test900DeleteResource";
@@ -494,40 +494,40 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
-				
+
 		// WHEN
 		provisioningService.deleteObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, task, result);
-		
+
 		// THEN
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
-		
+
 		try {
 			repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 			AssertJUnit.fail("Resource not gone from repo");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
 		}
-		
+
 		try {
 			provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 			AssertJUnit.fail("Resource not gone from provisioning");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
 		}
-		
+
 	}
-	
+
 	private PropertyDelta<String> createUselessStringDelta(String newVal) {
 		PropertyDelta<String> uselessStringDelta = PropertyDelta.createModificationReplaceProperty(
-				new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, 
+				new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION,
 							 SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
 							 DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME),
 							 new PrismPropertyDefinitionImpl(DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME, DOMUtil.XSD_STRING, prismContext),
 							 newVal);
 		return uselessStringDelta;
 	}
-		
+
 	private void assertConnectorConfigChanged() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
 				+ ".assertConnectorConfigChanged");
@@ -546,41 +546,41 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
 		assertHasSchema(resourceProvisioning, "provisioning resource");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
-		
+
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
-		
+
 		assertResourceVersionIncrement(resourceProvisioning, 0);
-		
+
 		display("Resource cache", InternalMonitor.getResourceCacheStats());
 		assertResourceCacheHitsIncrement(0);
 		assertResourceCacheMissesIncrement(1);
-		
+
 		// There are expected to be re-parsed
 		rememberResourceSchema(RefinedResourceSchemaImpl.getResourceSchema(resourceProvisioning, prismContext));
 		rememberRefinedResourceSchema(RefinedResourceSchemaImpl.getRefinedSchema(resourceProvisioning));
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
-		
+
 		// WHEN
 		getAccount(ACCOUNT_WILL_OID);
-		
+
 		// THEN
 		display("Resource cache (2)", InternalMonitor.getResourceCacheStats());
 		assertResourceCacheHitsIncrement(1);
 		assertResourceCacheMissesIncrement(0);
-		
+
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
-		
+
 		assertConnectorInstanceChanged(resourceProvisioning);
 	}
-	
+
 	private String addAccount(File file) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
 				+ ".addAccount");
@@ -591,7 +591,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		TestUtil.assertSuccess(result);
 		return oid;
 	}
-	
+
 	private PrismObject<ShadowType> getAccount(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
 				+ ".getAccount");

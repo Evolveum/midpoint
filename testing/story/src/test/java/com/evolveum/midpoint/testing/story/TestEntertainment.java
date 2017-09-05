@@ -82,15 +82,15 @@ public class TestEntertainment extends AbstractStoryTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 
 		super.initSystem(initTask, initResult);
-		
+
 		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE,
 				RESOURCE_OPENDJ_OID, initTask, initResult);
 		resourceOpenDjType = resourceOpenDj.asObjectable();
 		openDJController.setResource(resourceOpenDj);
-		
+
 		importObjectFromFile(ROLE_META_CREATE_ORG_GROUPS_FILE);
 
-		
+
 
 	}
 
@@ -147,7 +147,7 @@ public class TestEntertainment extends AbstractStoryTest {
 		assertIntents(shadowType1, shadowType2);
 
 	}
-	
+
 	@Test
 	public void test002AddChildOrg() throws Exception {
 		final String TEST_NAME = "test002AddChildOrg";
@@ -162,9 +162,9 @@ public class TestEntertainment extends AbstractStoryTest {
 		Collection<String> uniqueMembers = openDJController.getGroupUniqueMembers("cn=Games,ou=groups,dc=example,dc=com");
 		assertNotNull("null unique members", uniqueMembers);
 		assertEquals("Expected exactly one member", 1, uniqueMembers.size());
-		
+
 		openDJController.assertUniqueMember("cn=Games,ou=groups,dc=example,dc=com", "cn=Poker,ou=groups,dc=example,dc=com");
-		
+
 		PrismObject<OrgType> orgGames = modelService.getObject(OrgType.class, ORG_POKER_OID, null, task,
 				result);
 		assertNotNull("No top org for games found", orgGames);
@@ -185,7 +185,7 @@ public class TestEntertainment extends AbstractStoryTest {
 		assertIntents(shadowType1, shadowType2);
 
 	}
-	
+
 	private ShadowType getAndAssertShadowSuccess(ObjectReferenceType ort, Task task, OperationResult result) throws Exception {
 		assertNotNull("Unexpected (null) reference to shadow", ort);
 		PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, ort.getOid(),
@@ -198,7 +198,7 @@ public class TestEntertainment extends AbstractStoryTest {
 		assertNull("Unexpected error in shadow: result", shadowType.getResult());
 		return shadowType;
 	}
-	
+
 	private void assertIntents(ShadowType shadowType1, ShadowType shadowType2) {
 		String intentShadow1 = shadowType1.getIntent();
 		String intentShadow2 = shadowType2.getIntent();

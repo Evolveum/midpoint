@@ -21,13 +21,13 @@ package com.evolveum.midpoint.provisioning.ucf.api;
  */
 @FunctionalInterface
 public interface Token {
-	
+
 	/**
 	 * May not be human readable. Must be deserializable.
 	 * @return
 	 */
 	public String serialize();
-	
+
 	/**
 	 * Must be human readable. May not be deserializable.
 	 * @return

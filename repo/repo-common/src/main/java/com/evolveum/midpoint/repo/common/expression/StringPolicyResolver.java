@@ -20,9 +20,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 
 /**
- * 
+ *
  * Built for lazy resolving.
- * 
+ *
  * @author semancik
  *
  */
@@ -31,7 +31,7 @@ public interface StringPolicyResolver {
 	void setOutputDefinition(ItemDefinition outputDefinition);
 
 	void setOutputPath(ItemPath outputPath);
-	
+
 	StringPolicyType resolve();
-	
+
 }

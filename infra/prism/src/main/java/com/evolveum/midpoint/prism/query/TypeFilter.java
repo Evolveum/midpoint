@@ -101,7 +101,7 @@ public class TypeFilter extends ObjectFilter {
             return filter.match(value, matchingRuleRegistry);
         }
     }
-    
+
     @Override
 	public void checkConsistence(boolean requireDefinitions) {
 		if (type == null) {

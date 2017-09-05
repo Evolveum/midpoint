@@ -45,7 +45,7 @@ public class ConvertingMultiValueChoosePanel<U, T extends ObjectType> extends Mu
 		super.removePerformedHook(target, value);
 		targetModel.getObject().remove(transform(value));
 	}
-	
+
 	protected U transform(T value) {
 		return transformFunction.apply(value);
 	}

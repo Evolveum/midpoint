@@ -80,16 +80,16 @@ public class PageInternals extends PageAdminConfiguration {
     private static final String ID_READ_ENCRYPTION_CHECKS = "readEncryptionChecks";
     private static final String ID_TOLERATE_UNDECLARED_PREFIXES = "tolerateUndeclaredPrefixes";
     private static final String ID_DETAILED_DEBUG_DUMP = "detailedDebugDump";
-    
+
     private static final String ID_TRACES_FORM = "tracesForm";
     private static final String ID_TRACES_TABLE = "tracesTable";
     private static final String ID_TRACE_TOGGLE = "traceToggle";
     private static final String ID_UPDATE_TRACES = "updateTraces";
-    
+
     private static final String ID_COUNTERS_TABLE = "countersTable";
     private static final String ID_COUNTER_LABEL = "counterLabel";
     private static final String ID_COUNTER_VALUE = "counterValue";
-    
+
     private static final String LABEL_SIZE = "col-md-4";
     private static final String INPUT_SIZE = "col-md-8";
 
@@ -194,12 +194,12 @@ public class PageInternals extends PageAdminConfiguration {
         Form form = new Form(ID_INTERNALS_CONFIG_FORM);
         form.setOutputMarkupId(true);
         add(form);
-        
+
         form.add(createCheckbox(ID_CONSISTENCY_CHECKS, InternalsConfigDto.F_CONSISTENCY_CHECKS));
         form.add(createCheckbox(ID_ENCRYPTION_CHECKS, InternalsConfigDto.F_ENCRYPTION_CHECKS));
         form.add(createCheckbox(ID_READ_ENCRYPTION_CHECKS, InternalsConfigDto.F_READ_ENCRYPTION_CHECKS));
         form.add(createCheckbox(ID_TOLERATE_UNDECLARED_PREFIXES, InternalsConfigDto.F_TOLERATE_UNDECLARED_PREFIXES));
-        
+
         AjaxSubmitButton update = new AjaxSubmitButton(ID_UPDATE_INTERNALS_CONFIG,
                 createStringResource("PageBase.button.update")) {
 			private static final long serialVersionUID = 1L;
@@ -216,12 +216,12 @@ public class PageInternals extends PageAdminConfiguration {
         };
         form.add(update);
     }
-    
+
     private void initTraces() {
         Form form = new Form(ID_TRACES_FORM);
         form.setOutputMarkupId(true);
         add(form);
-        
+
         ListView<InternalOperationClasses> tracesTable = new ListView<InternalOperationClasses>(ID_TRACES_TABLE, Arrays.asList(InternalOperationClasses.values())) {
 			private static final long serialVersionUID = 1L;
 
@@ -233,10 +233,10 @@ public class PageInternals extends PageAdminConfiguration {
 		                createStringResource("InternalOperationClasses."+operationClass.getKey()), LABEL_SIZE, INPUT_SIZE);
 				item.add(checkFormGroup);
 			}
-        
+
         };
         form.add(tracesTable);
-        
+
         AjaxSubmitButton update = new AjaxSubmitButton(ID_UPDATE_TRACES,
                 createStringResource("PageBase.button.update")) {
 			private static final long serialVersionUID = 1L;
@@ -253,7 +253,7 @@ public class PageInternals extends PageAdminConfiguration {
         };
         form.add(update);
     }
-    
+
     private void updateTraces(AjaxRequestTarget target){
         for (Entry<InternalOperationClasses, Boolean> entry: tracesMap.entrySet()) {
         	InternalMonitor.setTrace(entry.getKey(), entry.getValue());
@@ -263,15 +263,15 @@ public class PageInternals extends PageAdminConfiguration {
         success(getString("PageInternals.message.tracesUpdate"));
         target.add(getFeedbackPanel(), getInternalsConfigForm());
     }
-    
+
     private CheckFormGroup createCheckbox(String id, String propName) {
     	return new CheckFormGroup(id,
                 new PropertyModel<Boolean>(internalsModel, propName),
                 createStringResource("PageInternals."+propName), LABEL_SIZE, INPUT_SIZE);
     }
-    
+
     private void initCounters() {
-    	
+
     	ListView<InternalCounters> countersTable = new ListView<InternalCounters>(ID_COUNTERS_TABLE, Arrays.asList(InternalCounters.values())) {
 			private static final long serialVersionUID = 1L;
 
@@ -280,7 +280,7 @@ public class PageInternals extends PageAdminConfiguration {
 				InternalCounters counter = item.getModelObject();
 				Label label = new Label(ID_COUNTER_LABEL, createStringResource("InternalCounters."+counter.getKey()));
 				item.add(label);
-		    	
+		
 		    	Label valueLabel = new Label(ID_COUNTER_VALUE, new AbstractReadOnlyModel<String>() {
 					private static final long serialVersionUID = 1L;
 
@@ -292,7 +292,7 @@ public class PageInternals extends PageAdminConfiguration {
 				});
 		    	item.add(valueLabel);
 			}
-    		
+
     	};
     	add(countersTable);
 	}

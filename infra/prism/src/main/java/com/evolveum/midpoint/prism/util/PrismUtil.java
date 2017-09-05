@@ -64,14 +64,14 @@ public class PrismUtil {
 			polyStringVal.recompute(prismContext.getDefaultPolyStringNormalizer());
 		}
 	}
-	
+
 	public static <T> void recomputePrismPropertyValue(PrismPropertyValue<T> pValue, PrismContext prismContext) {
 		if (pValue == null) {
 			return;
 		}
 		recomputeRealValue(pValue.getValue(), prismContext);
 	}
-	
+
 	/**
 	 * Super-mega-giga-ultra hack. This is used to "fortify" XML namespace declaration in a non-standard way.
 	 * It is useful in case that someone will try some stupid kind of schema-less XML normalization that removes
@@ -100,7 +100,7 @@ public class PrismUtil {
 			}
 		}
 	}
-	
+
 	public static void unfortifyNamespaceDeclarations(Element definitionElement) {
 		Map<String,String> namespaces = new HashMap<String,String>();
 		for(Element childElement: DOMUtil.listChildElements(definitionElement)) {
@@ -112,7 +112,7 @@ public class PrismUtil {
 			} else {
 				unfortifyNamespaceDeclarations(definitionElement, childElement, namespaces);
 				namespaces = new HashMap<String,String>();
-			}	
+			}
 		}
 	}
 
@@ -175,7 +175,7 @@ public class PrismUtil {
 			return targetProp;
 		}
 	}
-	
+
 	public static <O extends Objectable> void setDeltaOldValue(PrismObject<O> oldObject, ItemDelta<?,?> itemDelta) {
 		if (oldObject == null) {
 			return;
@@ -185,13 +185,13 @@ public class PrismUtil {
 			itemDelta.setEstimatedOldValues((Collection) PrismValue.cloneCollection(itemOld.getValues()));
 		}
 	}
-	
+
 	public static <O extends Objectable> void setDeltaOldValue(PrismObject<O> oldObject, Collection<? extends ItemDelta> itemDeltas) {
 		for(ItemDelta itemDelta: itemDeltas) {
 			setDeltaOldValue(oldObject, itemDelta);
 		}
 	}
-	
+
 	public static <T> boolean equals(T a, T b, MatchingRule<T> matchingRule) throws SchemaException {
 		if (a == null && b == null) {
 			return true;
@@ -248,7 +248,7 @@ public class PrismUtil {
 			}
 		};
 	}
-	
+
 	public static ExpressionWrapper parseExpression(XNode node, PrismContext prismContext) throws SchemaException {
 		if (!(node instanceof MapXNode)) {
 			return null;
@@ -263,7 +263,7 @@ public class PrismUtil {
 		}
 		return null;
 	}
-	
+
 	public static ExpressionWrapper parseExpression(Entry<QName, XNode> expressionEntry, PrismContext prismContext) throws SchemaException {
 		if (expressionEntry == null) {
 			return null;
@@ -273,7 +273,7 @@ public class PrismUtil {
 		ExpressionWrapper expressionWrapper = new ExpressionWrapper(expressionEntry.getKey(), expressionPropertyValue.getValue());
 		return expressionWrapper;
 	}
-	
+
 	@NotNull
 	public static MapXNode serializeExpression(@NotNull ExpressionWrapper expressionWrapper, BeanMarshaller beanMarshaller) throws SchemaException {
 		MapXNode xmap = new MapXNode();
@@ -288,7 +288,7 @@ public class PrismUtil {
 		xmap.put(expressionWrapper.getElementName(), expressionXnode);
 		return xmap;
 	}
-	
+
 	// TODO: Unify the two serializeExpression() methods
 	public static MapXNode serializeExpression(ExpressionWrapper expressionWrapper, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException {
 		MapXNode xmap = new MapXNode();

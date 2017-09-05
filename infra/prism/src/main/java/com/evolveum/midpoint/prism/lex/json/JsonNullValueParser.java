@@ -31,7 +31,7 @@ public class JsonNullValueParser<T> implements ValueParser<T> {
 
 	public JsonNullValueParser() {
 	}
-	
+
 	@Override
 	public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
 		Class clazz = XsdTypeMapper.toJavaType(typeName);
@@ -40,7 +40,7 @@ public class JsonNullValueParser<T> implements ValueParser<T> {
 		}
 		return (T) JavaTypeConverter.convert(clazz, "");
 	}
-	
+
 	@Override
 	public boolean isEmpty() {
 		return true;

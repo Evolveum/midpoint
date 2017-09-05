@@ -66,7 +66,7 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 	public boolean canRead(@NotNull String dataString) {
 		return dataString.startsWith("---");
 	}
-	
+
 	public YAMLGenerator createJacksonGenerator(StringWriter out) throws SchemaException{
 		try {
 			MidpointYAMLFactory factory = new MidpointYAMLFactory();
@@ -78,7 +78,7 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 			throw new SchemaException("Schema error during serializing to JSON.", ex);
 		}
 	}
-	
+
 	private ObjectMapper configureMapperForSerialization(){
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
@@ -93,12 +93,12 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 //		mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.EXISTING_PROPERTY);
 //		//mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.EXTERNAL_PROPERTY);
 //		mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.PROPERTY);
-		
+
 		return mapper;
 	}
-	
+
 	private Module createSerializerModule(){
-		SimpleModule module = new SimpleModule("MidpointModule", new Version(0, 0, 0, "aa")); 
+		SimpleModule module = new SimpleModule("MidpointModule", new Version(0, 0, 0, "aa"));
 		module.addSerializer(QName.class, new QNameSerializer());
 		module.addSerializer(PolyString.class, new PolyStringSerializer());
 		module.addSerializer(ItemPath.class, new ItemPathSerializer());
@@ -108,7 +108,7 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 		module.addSerializer(Element.class, new DomElementSerializer());
 		return module;
 	}
-	
+
     @Override
     protected MidpointYAMLParser createJacksonParser(InputStream stream) throws SchemaException, IOException {
         MidpointYAMLFactory factory = new MidpointYAMLFactory();

@@ -44,14 +44,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Almost the same as TestDummy but this is using a caseIgnore resource version.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestDummyCaseIgnore extends TestDummy {
-	
+
 	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-case-ignore");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 	private MatchingRule<String> uidMatchingRule;
@@ -66,12 +66,12 @@ public class TestDummyCaseIgnore extends TestDummy {
 	protected File getResourceDummyFilename() {
 		return RESOURCE_DUMMY_FILE;
 	}
-	
+
 	@Override
 	protected String getWillRepoIcfName() {
 		return "will";
 	}
-	
+
 	@Override
 	protected String getMurrayRepoIcfName() {
 		return StringUtils.lowerCase(super.getMurrayRepoIcfName());
@@ -101,20 +101,20 @@ public class TestDummyCaseIgnore extends TestDummy {
 	public void test175SearchUidCase() throws Exception {
 		final String TEST_NAME = "test175SearchUidCase";
 		TestUtil.displayTestTitle(TEST_NAME);
-		testSeachIterativeSingleAttrFilter(TEST_NAME, 
+		testSeachIterativeSingleAttrFilter(TEST_NAME,
 				SchemaConstants.ICFS_UID, "wIlL", null, true,
 				transformNameFromResource("Will"));
 	}
-	
+
 	@Test
 	public void test176SearchUidCaseNoFetch() throws Exception {
 		final String TEST_NAME = "test176SearchUidCaseNoFetch";
 		TestUtil.displayTestTitle(TEST_NAME);
-		testSeachIterativeSingleAttrFilter(TEST_NAME, 
+		testSeachIterativeSingleAttrFilter(TEST_NAME,
 				SchemaConstants.ICFS_UID, "wIlL", GetOperationOptions.createNoFetch(), false,
 				transformNameFromResource("Will"));
 	}
-	
+
 	/**
 	 * Add will to the group pirates. But he is already there.
 	 */
@@ -125,13 +125,13 @@ public class TestDummyCaseIgnore extends TestDummy {
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
-		
+
 		DummyGroup groupPirates = getDummyGroup(GROUP_PIRATES_NAME, piratesIcfUid);
 		groupPirates.addMember(getWillRepoIcfName());
-		
+
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID, 
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
 				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
 				GROUP_PIRATES_OID, prismContext);
 		display("ObjectDelta", delta);
@@ -145,17 +145,17 @@ public class TestDummyCaseIgnore extends TestDummy {
 		result.computeStatus();
 		display("modifyObject result", result);
 		TestUtil.assertSuccess(result);
-		
+
 		delta.checkConsistence();
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertMember(group, getWillRepoIcfName());
-		
+
 		syncServiceMock.assertNotifySuccessOnly();
-		
+
 		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 		display("Shadow after", shadow);
 		assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
-		
+
 		assertSteadyResource();
 	}
 
@@ -167,7 +167,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
-		
+
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
@@ -184,15 +184,15 @@ public class TestDummyCaseIgnore extends TestDummy {
 		result.computeStatus();
 		display("modifyObject result", result);
 		TestUtil.assertSuccess(result);
-		
+
 		delta.checkConsistence();
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertNoMember(group, getWillRepoIcfName());
-		
+
 		// Make sure that account is still there and it has the privilege
 		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertNotNull("Account will is gone!", dummyAccount);
-		
+
 		syncServiceMock.assertNotifySuccessOnly();
 		assertSteadyResource();
 	}
@@ -207,13 +207,13 @@ public class TestDummyCaseIgnore extends TestDummy {
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
-		
+
 		DummyGroup groupPirates = getDummyGroup(GROUP_PIRATES_NAME, piratesIcfUid);
 		groupPirates.addMember(getWillRepoIcfName().toUpperCase());
-		
+
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID, 
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
 				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
 				GROUP_PIRATES_OID, prismContext);
 		display("ObjectDelta", delta);
@@ -227,17 +227,17 @@ public class TestDummyCaseIgnore extends TestDummy {
 		result.computeStatus();
 		display("modifyObject result", result);
 		TestUtil.assertSuccess(result);
-		
+
 		delta.checkConsistence();
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		IntegrationTestTools.assertGroupMember(group, getWillRepoIcfName(),true);
-		
+
 		syncServiceMock.assertNotifySuccessOnly();
-		
+
 		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 		display("Shadow after", shadow);
 		assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
-		
+
 		assertSteadyResource();
 	}
 
@@ -249,7 +249,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
-		
+
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
@@ -266,21 +266,21 @@ public class TestDummyCaseIgnore extends TestDummy {
 		result.computeStatus();
 		display("modifyObject result", result);
 		TestUtil.assertSuccess(result);
-		
+
 		delta.checkConsistence();
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertNoMember(group, getWillRepoIcfName());
 		assertNoMember(group, getWillRepoIcfName().toUpperCase());
 		assertNoMember(group, getWillRepoIcfName().toLowerCase());
-		
+
 		// Make sure that account is still there and it has the privilege
 		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertNotNull("Account will is gone!", dummyAccount);
-		
+
 		syncServiceMock.assertNotifySuccessOnly();
 		assertSteadyResource();
 	}
-	
+
 	@Test
 	public void test511AddProtectedAccountCaseIgnore() throws Exception {
 		final String TEST_NAME = "test511AddProtectedAccountCaseIgnore";

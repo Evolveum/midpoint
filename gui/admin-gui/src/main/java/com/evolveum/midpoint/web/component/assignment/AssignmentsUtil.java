@@ -73,24 +73,24 @@ public class AssignmentsUtil {
             }
         };
     }
-    
+
     public static IModel<String> createActivationTitleModelExperimental(IModel<AssignmentDto> model, BasePanel basePanel) {
     	return createActivationTitleModelExperimental(model.getObject(), basePanel);
     }
-    
+
     public static IModel<String> createActivationTitleModelExperimental(AssignmentDto model, BasePanel basePanel) {
-        
+
 //    	AssignmentDto assignmentDto = model.getObject();
     	ActivationType activation = model.getAssignment().getActivation();
     	if (activation == null) {
     		return basePanel.createStringResource("lower.ActivationStatusType.null");
     	}
-    	
+
 		TimeIntervalStatusType timeIntervalStatus = activation.getValidityStatus();
 		if (timeIntervalStatus != null) {
 			return createTimeIntervalStatusMessage(timeIntervalStatus, activation, basePanel);
 		}
-		
+
 		ActivationStatusType status = activation.getEffectiveStatus();
 
                 if (activation.getValidFrom() != null && activation.getValidTo() != null) {
@@ -105,9 +105,9 @@ public class AssignmentsUtil {
                 }
 
                 return basePanel.createStringResource(status);
-        
+
     }
-    
+
     private static IModel<String> createTimeIntervalStatusMessage(TimeIntervalStatusType timeIntervalStatus, ActivationType activation, BasePanel basePanel) {
     	switch (timeIntervalStatus) {
 			case AFTER:
@@ -145,20 +145,7 @@ public class AssignmentsUtil {
         };
     }
 
-    public static void addAjaxOnUpdateBehavior(WebMarkupContainer container) {
-        container.visitChildren(new IVisitor<Component, Object>() {
-            @Override
-            public void component(Component component, IVisit<Object> objectIVisit) {
-                if (component instanceof InputPanel) {
-                    addAjaxOnBlurUpdateBehaviorToComponent(((InputPanel) component).getBaseFormComponent());
-                } else if (component instanceof FormComponent) {
-                    addAjaxOnBlurUpdateBehaviorToComponent(component);
-                }
-            }
-        });
-    }
-
-//    public static IModel<String> createAssignmentStatusClassModel(final IModel<AssignmentEditorDto> model) {
+    //    public static IModel<String> createAssignmentStatusClassModel(final IModel<AssignmentEditorDto> model) {
 //        return new AbstractReadOnlyModel<String>() {
 //            private static final long serialVersionUID = 1L;
 //
@@ -169,7 +156,7 @@ public class AssignmentsUtil {
 //            }
 //        };
 //    }
-    
+
     public static IModel<String> createAssignmentStatusClassModel(final IModel<AssignmentDto> model) {
         return new AbstractReadOnlyModel<String>() {
             private static final long serialVersionUID = 1L;
@@ -181,7 +168,7 @@ public class AssignmentsUtil {
             }
         };
     }
-    
+
     public static IModel<String> createAssignmentStatusClassModel(final UserDtoStatus model) {
         return new AbstractReadOnlyModel<String>() {
             private static final long serialVersionUID = 1L;
@@ -191,16 +178,6 @@ public class AssignmentsUtil {
                 return model.name().toLowerCase();
             }
         };
-    }
-
-    private static void addAjaxOnBlurUpdateBehaviorToComponent(final Component component) {
-        component.setOutputMarkupId(true);
-        component.add(new AjaxFormComponentUpdatingBehavior("blur") {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-            }
-        });
     }
 
     public static VisibleEnableBehaviour getEnableBehavior(IModel<AssignmentEditorDto> dtoModel){
@@ -243,7 +220,7 @@ public class AssignmentsUtil {
             }
         };
     }
-    
+
     public static String getName(AssignmentType assignment, PageBase pageBase) {
 		if (assignment == null) {
 			return null;
@@ -271,27 +248,27 @@ public class AssignmentsUtil {
 			sb.append(WebComponentUtil.getEffectiveName(assignment.getTarget(), OrgType.F_DISPLAY_NAME));
 		} else if (assignment.getTargetRef() != null) {
 			sb.append(WebComponentUtil.getEffectiveName(assignment.getTargetRef(), OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName"));
-		} 
+		}
 		appendTenantAndOrgName(assignment, sb, pageBase);
 
 		appendRelation(assignment, sb);
 
 		return sb.toString();
 	}
-    
+
     private static void appendTenantAndOrgName(AssignmentType assignmentType, StringBuilder sb, PageBase pageBase) {
     	ObjectReferenceType tenantRef = assignmentType.getTenantRef();
 		if (tenantRef != null) {
 			WebComponentUtil.getEffectiveName(tenantRef, OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName");
 		}
-		
+
 		ObjectReferenceType orgRef = assignmentType.getOrgRef();
 		if (orgRef != null) {
 			WebComponentUtil.getEffectiveName(orgRef, OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName");
 		}
 
 	}
-    
+
     private static void appendRelation(AssignmentType assignment, StringBuilder sb) {
     	if (assignment.getTargetRef() == null) {
     		return;
@@ -299,7 +276,7 @@ public class AssignmentsUtil {
     	sb.append(" - "  + RelationTypes.getRelationType(assignment.getTargetRef().getRelation()).getHeaderLabel());
 
     }
-    
+
     public static AssignmentEditorDtoType getType(AssignmentType assignment) {
 		if (assignment.getTarget() != null) {
 			// object assignment
@@ -310,7 +287,7 @@ public class AssignmentsUtil {
 		if (assignment.getPolicyRule() != null){
 			return AssignmentEditorDtoType.POLICY_RULE;
 		}
-		
+
 		if (assignment.getPersonaConstruction() != null) {
 			return AssignmentEditorDtoType.PERSONA_CONSTRUCTION;
 		}

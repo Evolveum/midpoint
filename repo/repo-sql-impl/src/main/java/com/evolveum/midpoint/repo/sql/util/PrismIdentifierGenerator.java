@@ -123,11 +123,11 @@ public class PrismIdentifierGenerator {
         if (ShadowType.class.isAssignableFrom(parent.getCompileTimeClass())) {
             CollectionUtils.addIgnoreNull(containers, parent.findContainer(ShadowType.F_PENDING_OPERATION));
         }
-        
+
         if (ResourceType.class.isAssignableFrom(parent.getCompileTimeClass())) {
             CollectionUtils.addIgnoreNull(containers, parent.findContainer(ResourceType.F_ADDITIONAL_CONNECTOR));
         }
-        
+
         if (UserType.class.isAssignableFrom(parent.getCompileTimeClass())) {
         	CollectionUtils.addIgnoreNull(containers, parent.findContainer(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS, SecurityQuestionsCredentialsType.F_QUESTION_ANSWER)));
         }

@@ -64,17 +64,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
  * Created by honchar.
  */
 public class AbstractRoleAssignmentPanel extends AssignmentPanel {
-    
+
 	private static final long serialVersionUID = 1L;
-	
+
     private static final String ID_RELATION = "relation";
     private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
 
-    
+
     public AbstractRoleAssignmentPanel(String id, IModel<List<AssignmentDto>> assignmentsModel, PageBase pageBase){
     	super(id, assignmentsModel, pageBase);
     }
-    
+
     protected void initCustomLayout(WebMarkupContainer assignmentsContainer){
 
     	DropDownChoicePanel<RelationTypes> relation = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
@@ -90,20 +90,20 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         relation.setOutputMarkupId(true);
         relation.setOutputMarkupPlaceholderTag(true);
         relation.add(new VisibleEnableBehaviour() {
-        
+
         	private static final long serialVersionUID = 1L;
 
 			@Override
         	public boolean isVisible() {
         		return AbstractRoleAssignmentPanel.this.isRelationVisible();
         	}
-        	
+
         });
         assignmentsContainer.addOrReplace(relation);
 
         AjaxButton showAllAssignmentsButton = new AjaxButton(ID_SHOW_ALL_ASSIGNMENTS_BUTTON,
                 createStringResource("AssignmentTablePanel.menu.showAllAssignments")) {
-           	
+
         	private static final long serialVersionUID = 1L;
 
 			@Override
@@ -115,12 +115,12 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         showAllAssignmentsButton.setOutputMarkupId(true);
 
     }
-    
+
     private DropDownChoicePanel<RelationTypes> getRelationPanel() {
     	return (DropDownChoicePanel<RelationTypes>) getAssignmentContainer().get(ID_RELATION);
     }
-    
-      
+
+
        protected void showAllAssignments(AjaxRequestTarget target) {
        }
 
@@ -128,7 +128,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
     	   TypedAssignablePanel<RoleType> panel = new TypedAssignablePanel<RoleType>(
                    getPageBase().getMainPopupBodyId(), RoleType.class, true, getPageBase()) {
-               
+
     		   private static final long serialVersionUID = 1L;
 
                @Override
@@ -152,7 +152,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                AssignmentDto dto = new AssignmentDto(assignment, UserDtoStatus.ADD);
                getModelObject().add(0, dto);
            }
-           
+
            refreshTable(target);
 
        }
@@ -161,7 +161,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         List<IColumn<AssignmentDto, String>> columns = new ArrayList<>();
 
         columns.add(new PropertyColumn<AssignmentDto, String>(createStringResource("ObjectReferenceType.relation"), AssignmentDto.F_RELATION_TYPE));
-        
+
         //commented since these columns are not used
 //        columns.add(new DirectlyEditablePropertyColumn<AssignmentEditorDto>(createStringResource("AssignmentDataTablePanel.descriptionColumnName"), AssignmentEditorDto.F_DESCRIPTION){
 //            private static final long serialVersionUID = 1L;
@@ -236,7 +236,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 //            }
 //        });
 //        columns.add(new AbstractColumn<AssignmentDto, String>(createStringResource("AssignmentDataTablePanel.activationColumnName")) {
-//           
+//
 //        	private static final long serialVersionUID = 1L;
 //
 //			@Override
@@ -248,7 +248,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 //            }
 //        });
 
-       
+
         return columns;
     }
 
@@ -262,7 +262,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
             }
         };
     }
- 
+
     protected void initPaging(){
         getAssignmentsStorage().setPaging(ObjectPaging.createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
     }
@@ -276,28 +276,28 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	protected int getItemsPerPage() {
 		return (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE);
 	}
-	
+
 	protected ObjectQuery createObjectQuery() {
 		return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext()).item(new ItemPath(AssignmentType.F_TARGET_REF))
 				.ref(getRelation())
 				.build();
 	};
-	
+
 	private QName getRelation() {
 		DropDownChoicePanel<RelationTypes> relationPanel = getRelationPanel();
 		if (relationPanel == null) {
 		 return PrismConstants.Q_ANY;
 		}
-		
+
 		if (relationPanel.getModel() == null) {
-			return PrismConstants.Q_ANY; 
+			return PrismConstants.Q_ANY;
 		}
-		
+
 		if (relationPanel.getModel().getObject() == null) {
 			return PrismConstants.Q_ANY;
 		}
-		
-		return relationPanel.getModel().getObject().getRelation(); 
+
+		return relationPanel.getModel().getObject().getRelation();
 	}
 
 	@Override
@@ -305,9 +305,9 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 			PageBase parentPage) {
 		return new AbstractRoleAssignmentDetailsPanel(ID_ASSIGNMENT_DETAILS, form, model, getParentPage());
 	}
-	
+
 	protected boolean isRelationVisible() {
 		return true;
 	}
-	
+
 }

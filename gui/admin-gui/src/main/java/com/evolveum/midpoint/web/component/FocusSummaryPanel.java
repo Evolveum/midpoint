@@ -53,7 +53,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 	private static final String ID_ACTIVATION_TAG = "activationTag";
 
 	private IModel<ObjectWrapper<O>> wrapperModel;
-	
+
 	public FocusSummaryPanel(String id, Class<O> type, final IModel<ObjectWrapper<O>> model, ModelServiceLocator serviceLocator) {
 		super(id, type, new ReadOnlyPrismObjectFromObjectWrapperModel<O>(model), serviceLocator);
 
@@ -73,17 +73,17 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 				if (activation == null) {
 					setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
 					setLabel(getString("ActivationStatusType.ENABLED"));
-					
+
 				} else if (activation.getEffectiveStatus() == ActivationStatusType.DISABLED) {
 					setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_INACTIVE);
 					setLabel(getString("ActivationStatusType.DISABLED"));
 					setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_DISABLED);
-					
+
 				} else if (activation.getEffectiveStatus() == ActivationStatusType.ARCHIVED) {
 					setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_INACTIVE);
 					setLabel(getString("ActivationStatusType.ARCHIVED"));
 					setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_ARCHIVED);
-					
+
 				} else {
 					setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
 					setLabel(getString("ActivationStatusType.ENABLED"));
@@ -125,7 +125,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 			}
 		};
 	}
-	
+
 	@Override
 	protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
 		Collection<PrismObject<OrgType>> parentOrgs = wrapperModel.getObject().getParentOrgs();
@@ -137,7 +137,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 	protected IModel<AbstractResource> getPhotoModel() {
 		return new AbstractReadOnlyModel<AbstractResource>() {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public AbstractResource getObject() {
 				byte[] jpegPhoto = null;
@@ -157,7 +157,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 	protected boolean isActivationVisible() {
 		return true;
 	}
-	
+
 	public static void addSummaryPanel(MarkupContainer parentComponent, PrismObject<FocusType> focus, ObjectWrapper<FocusType> focusWrapper, String id, ModelServiceLocator serviceLocator) {
 		if (focus.getCompileTimeClass().equals(UserType.class)) {
 			parentComponent.add(new UserSummaryPanel(id,

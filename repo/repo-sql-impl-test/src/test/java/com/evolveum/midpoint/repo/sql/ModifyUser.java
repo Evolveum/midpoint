@@ -79,9 +79,9 @@ public class ModifyUser extends BaseSQLRepoTest {
     public void test020ModifyUser() throws Exception {
     	final String TEST_NAME = "test020ModifyUser";
     	TestUtil.displayTestTitle(TEST_NAME);
-    	
+
     	OperationResult result = new OperationResult(TEST_NAME);
-    	
+
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t002.xml"), ObjectModificationType.COMPLEX_TYPE);
 
@@ -91,24 +91,24 @@ public class ModifyUser extends BaseSQLRepoTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, userOid, null, result);
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_FULLNAME));
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_EMPLOYEE_NUMBER, "en1234");
     }
-    
+
     @Test
     public void test021ModifyUserNoEmpNum() throws Exception {
     	final String TEST_NAME = "test021ModifyUserNoEmpNum";
     	TestUtil.displayTestTitle(TEST_NAME);
-    	
+
     	OperationResult result = new OperationResult(TEST_NAME);
-    	
+
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t002a.xml"), ObjectModificationType.COMPLEX_TYPE);
 
@@ -118,24 +118,24 @@ public class ModifyUser extends BaseSQLRepoTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, userOid, null, result);
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_FULLNAME));
         PrismAsserts.assertNoItem(userAfter, UserType.F_EMPLOYEE_NUMBER);
     }
-    
+
     @Test
     public void test022ModifyUserEmptyEmpNum() throws Exception {
     	final String TEST_NAME = "test022ModifyUserEmptyEmpNum";
     	TestUtil.displayTestTitle(TEST_NAME);
-    	
+
     	OperationResult result = new OperationResult(TEST_NAME);
-    	
+
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t002b.xml"), ObjectModificationType.COMPLEX_TYPE);
 
@@ -145,12 +145,12 @@ public class ModifyUser extends BaseSQLRepoTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, userOid, null, result);
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_FULLNAME));
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_EMPLOYEE_NUMBER, "");

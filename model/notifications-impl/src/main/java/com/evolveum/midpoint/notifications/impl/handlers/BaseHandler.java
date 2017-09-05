@@ -87,10 +87,10 @@ public abstract class BaseHandler implements EventHandler {
             		getHumanReadableHandlerDescription(eventHandlerType) + "\n  parameters: " +
             		(additionalData != null ? ("\n  parameters: " + additionalData) :
                         ("\n  configuration: " + eventHandlerType)));
-                    
+
         }
     }
-    
+
     protected void logNotApplicable(Event event, String reason) {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(
@@ -124,7 +124,7 @@ public abstract class BaseHandler implements EventHandler {
     // expressions
 
     // shortDesc = what is to be evaluated e.g. "event filter expression"
-    protected boolean evaluateBooleanExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables, 
+    protected boolean evaluateBooleanExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
     		String shortDesc, Task task, OperationResult result) {
 
         Throwable failReason;
@@ -143,7 +143,7 @@ public abstract class BaseHandler implements EventHandler {
         throw new SystemException(failReason);
     }
 
-    protected boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, String shortDesc, 
+    protected boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, String shortDesc,
     		Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
@@ -181,7 +181,7 @@ public abstract class BaseHandler implements EventHandler {
         throw new SystemException(failReason);
     }
 
-    private List<String> evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, 
+    private List<String> evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
     		String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");

@@ -31,7 +31,7 @@ import java.util.List;
  *
  */
 public class MockCycleTaskHandler implements TaskHandler {
-	
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(MockCycleTaskHandler.class);
     private final boolean finishTheHandler;
 
@@ -44,19 +44,19 @@ public class MockCycleTaskHandler implements TaskHandler {
       */
 	@Override
 	public TaskRunResult run(Task task) {
-		
+
 		LOGGER.info("MockCycle.run starting");
-		
+
 		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(MockCycleTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
-		
+
 		// TODO
 		progress++;
-		
+
 		opResult.recordSuccess();
-		
+
 		// This "run" is finished. But the task goes on ... (if finishTheHandler == false)
 		runResult.setRunResultStatus(finishTheHandler ? TaskRunResultStatus.FINISHED_HANDLER : TaskRunResultStatus.FINISHED);
 

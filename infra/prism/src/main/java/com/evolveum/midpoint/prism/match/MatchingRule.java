@@ -23,7 +23,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * Interface for generic matching rules. The responsibility of a matching rule is to decide if
  * two objects of the same type match. This may seem a simple thing to do but the details may get
  * quite complex. E.g. comparing string in case sensitive or insensitive manner, comparing PolyStrings, etc.
- * 
+ *
  * @author Radovan Semancik
  *
  */
@@ -34,22 +34,22 @@ public interface MatchingRule<T> {
 	 * it is an matching rule identifier.
 	 */
 	QName getName();
-	
+
 	/**
 	 * Returns true if the rule can be applied to the specified XSD type.
 	 */
 	boolean isSupported(QName xsdType);
-	
+
 	/**
-	 * Matches two objects. 
+	 * Matches two objects.
 	 */
 	boolean match(T a, T b) throws SchemaException;
-	
+
 	/**
-	 * Matches value against given regex. 
+	 * Matches value against given regex.
 	 */
 	boolean matchRegex(T a, String regex) throws SchemaException;
-	
+
 	/**
 	 * Returns a normalized version of the value.
 	 * For normalized version the following holds:

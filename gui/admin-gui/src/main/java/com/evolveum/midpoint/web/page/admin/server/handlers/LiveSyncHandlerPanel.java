@@ -39,11 +39,11 @@ public class LiveSyncHandlerPanel extends ResourceRelatedHandlerPanel<LiveSyncHa
 	private static final String ID_TOKEN_CONTAINER = "tokenContainer";
 	private static final String ID_TOKEN = "token";
 	private static final String ID_DELETE_TOKEN = "deleteToken";
-        
+
         private static final String ID_TOKEN_RETRY_CONTAINER = "retryUnhandledErrContainer";
 	private static final String ID_TOKEN_RETRY_CHECKBOX_CONTAINER = "retryUnhandledErrCheckboxContainer";
 	private static final String ID_TOKEN_RETRY_CHECKBOX = "retryUnhandledErrCheckbox";
-        
+
 	public LiveSyncHandlerPanel(String id, IModel<LiveSyncHandlerDto> handlerDtoModel, PageTaskEdit parentPage) {
 		super(id, handlerDtoModel, parentPage);
 		initLayout(parentPage);
@@ -74,7 +74,7 @@ public class LiveSyncHandlerPanel extends ResourceRelatedHandlerPanel<LiveSyncHa
 		deleteTokenPanel.setRenderBodyOnly(true);
 		tokenContainer.add(deleteTokenPanel);
 		add(tokenContainer);
-                                
+
                 WebMarkupContainer retryContainer = new WebMarkupContainer(ID_TOKEN_RETRY_CONTAINER);
 		add(retryContainer);
 		WebMarkupContainer retryCheckboxContainer = new WebMarkupContainer(ID_TOKEN_RETRY_CHECKBOX_CONTAINER);

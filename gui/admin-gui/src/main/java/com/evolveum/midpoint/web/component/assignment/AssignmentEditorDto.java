@@ -55,7 +55,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 
 /**
  * TODO: unify with AssignmentItemDto
- * 
+ *
  * @author lazyman
  */
 public class AssignmentEditorDto extends SelectableBean implements Comparable<AssignmentEditorDto>, Serializable {
@@ -385,7 +385,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 					dto = new ObjectViewDto(ObjectViewDto.BAD_OID);
 					dto.setType(OrgType.class);
 				}
-				
+
 				return dto;
 			}
 		}
@@ -629,7 +629,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	public void setFocusType(QName focusType) {
 		newAssignment.setFocusType(focusType);
 	}
-	
+
 	public Boolean isOrgUnitManager() {
 		return isOrgUnitManager;
 	}

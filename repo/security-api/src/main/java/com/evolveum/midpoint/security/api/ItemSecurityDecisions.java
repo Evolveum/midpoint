@@ -29,18 +29,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisio
  *
  */
 public class ItemSecurityDecisions implements DebugDumpable, Serializable {
-	
+
 	private AuthorizationDecisionType defaultDecision = null;
 	private Map<ItemPath,AuthorizationDecisionType> itemDecisionMap = new HashMap<>();
-	
+
 	public AuthorizationDecisionType getDefaultDecision() {
 		return defaultDecision;
 	}
-	
+
 	public void setDefaultDecision(AuthorizationDecisionType defaultDecision) {
 		this.defaultDecision = defaultDecision;
 	}
-	
+
 	public Map<ItemPath, AuthorizationDecisionType> getItemDecisionMap() {
 		return itemDecisionMap;
 	}
@@ -60,5 +60,5 @@ public class ItemSecurityDecisions implements DebugDumpable, Serializable {
 		return "ItemSecurityDecisions(defaultDecision=" + defaultDecision + ", itemDecisionMap=" + itemDecisionMap
 				+ ")";
 	}
-	
+
 }

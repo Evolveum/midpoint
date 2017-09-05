@@ -232,7 +232,6 @@ public interface PrismContext {
 	 * will be thrown as run-time exception.
 	 * @param clazz Static type of the object to be created.
 	 * @return New PrismObject's objectable content.
-	 * @throws SchemaException If a definition for the given class couldn't be found.
 	 */
 	@NotNull
 	<O extends Objectable> O createKnownObjectable(@NotNull Class<O> clazz);

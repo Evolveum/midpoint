@@ -44,7 +44,7 @@ public enum ROperationResultStatus implements SchemaEnum<OperationResultStatusTy
     public OperationResultStatus getStatus(){
     	return OperationResultStatus.parseStatusType(status);
     }
-    
+
     @Override
     public OperationResultStatusType getSchemaValue() {
         return status;

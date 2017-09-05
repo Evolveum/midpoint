@@ -26,7 +26,7 @@ import com.evolveum.midpoint.util.DebugUtil;
  *
  */
 public class DummyGroup extends DummyObject {
-	
+
 	public static final String ATTR_MEMBERS_NAME = "members";
 
 	public DummyGroup() {
@@ -36,11 +36,11 @@ public class DummyGroup extends DummyObject {
 	public DummyGroup(String username) {
 		super(username);
 	}
-	
+
 	public Collection<String> getMembers() {
 		return getAttributeValues(ATTR_MEMBERS_NAME, String.class);
 	}
-	
+
 	public void addMember(String newMember) throws SchemaViolationException, ConnectException, FileNotFoundException, ConflictException {
 		addAttributeValue(ATTR_MEMBERS_NAME, newMember);
 	}
@@ -56,7 +56,7 @@ public class DummyGroup extends DummyObject {
 	public void removeMember(String newMember) throws SchemaViolationException, ConnectException, FileNotFoundException, ConflictException {
 		removeAttributeValue(ATTR_MEMBERS_NAME, newMember);
 	}
-	
+
 	@Override
 	protected DummyObjectClass getObjectClass() {
 		return resource.getGroupObjectClass();
@@ -74,7 +74,7 @@ public class DummyGroup extends DummyObject {
 
 	@Override
 	public String toStringContent() {
-		return super.toStringContent() + ", members=" + getMembers(); 
+		return super.toStringContent() + ", members=" + getMembers();
 	}
 
 	@Override
@@ -87,5 +87,5 @@ public class DummyGroup extends DummyObject {
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Members", getMembers(), indent + 1);
 	}
-	
+
 }

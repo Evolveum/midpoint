@@ -38,16 +38,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * A DTO class defining old object state (before change), delta (change) and new object state (after change).
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<PrismContainerValue<O>,PrismObjectDefinition<O>> implements DebugDumpable {
-	
+
 	private PrismObject<O> oldObject;
 	private ObjectDelta<O> delta;
 	private PrismObject<O> newObject;
-	
+
 	public ObjectDeltaObject(PrismObject<O> oldObject, ObjectDelta<O> delta, PrismObject<O> newObject) {
 		super();
 		this.oldObject = oldObject;
@@ -58,7 +58,7 @@ public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<Prism
 	public PrismObject<O> getOldObject() {
 		return oldObject;
 	}
-		
+
 	public ObjectDelta<O> getObjectDelta() {
 		return delta;
 	}
@@ -83,7 +83,7 @@ public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<Prism
 		}
 		return oldObject;
 	}
-	
+
 	@Override
 	public ItemDelta<PrismContainerValue<O>,PrismObjectDefinition<O>> getDelta() {
 		throw new UnsupportedOperationException("You probably wanted to call getObjectDelta()");
@@ -204,13 +204,13 @@ public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<Prism
 		newObject = oldObject.clone();
 		delta.applyTo(newObject);
 	}
-	
+
 	public static <T extends ObjectType> ObjectDeltaObject<T> create(PrismObject<T> oldObject, ObjectDelta<T> delta) throws SchemaException {
 		PrismObject<T> newObject = oldObject.clone();
 		delta.applyTo(newObject);
 		return new ObjectDeltaObject<T>(oldObject, delta, newObject);
 	}
-	
+
 	public static <T extends ObjectType> ObjectDeltaObject<T> create(PrismObject<T> oldObject, ItemDelta<?,?>... itemDeltas) throws SchemaException {
 		ObjectDelta<T> objectDelta = oldObject.createDelta(ChangeType.MODIFY);
 		objectDelta.addModifications(itemDeltas);

@@ -31,7 +31,7 @@ import com.evolveum.midpoint.util.Transformer;
  *
  */
 public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Serializable {
-	
+
 	public static final QName KEY_OID = new QName(null, "oid");
 	public static final QName KEY_VERSION = new QName(null, "version");
 	public static final QName KEY_CONTAINER_ID = new QName(null, "id");
@@ -48,7 +48,7 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 
 	// Common fields
 	protected XNode parent;
-	
+
 	/**
 	 * If set to true that the element came from the explicit type definition
 	 * (e.g. xsi:type in XML) on the parsing side; or that it the explicit type
@@ -61,7 +61,7 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 	private File originFile;
 	private String originDescription;
 	private int lineNumber;
-	
+
 	// These may be detected in parsed file and are also used for serialization
 	protected QName typeQName;
 	protected QName elementName;							// Filled if and only if this is a member of heterogeneous list.
@@ -133,7 +133,7 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 	public void setMaxOccurs(Integer maxOccurs) {
 		this.maxOccurs = maxOccurs;
 	}
-	
+
 	public abstract boolean isEmpty();
 
 	public boolean isExplicitTypeDeclaration() {
@@ -143,7 +143,7 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 	public void setExplicitTypeDeclaration(boolean explicitTypeDeclaration) {
 		this.explicitTypeDeclaration = explicitTypeDeclaration;
 	}
-	
+
 	public abstract void accept(Visitor visitor);
 
     public XNode clone() {
@@ -201,7 +201,7 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 	}
 
 	public abstract String getDesc();
-	
+
 	protected String dumpSuffix() {
 		StringBuilder sb = new StringBuilder();
 		if (elementName != null) {

@@ -26,9 +26,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 @FunctionalInterface
 public interface PrismContextFactory {
-	
+
 	/**
-	 * Returns UNINITIALIZED prism context. 
+	 * Returns UNINITIALIZED prism context.
 	 */
 	public PrismContext createPrismContext() throws SchemaException, FileNotFoundException;
 

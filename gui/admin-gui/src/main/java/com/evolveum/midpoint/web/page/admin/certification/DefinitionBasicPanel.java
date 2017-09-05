@@ -70,7 +70,7 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
 	}
 
 	private void initBasicInfoLayout() {
-		
+
 		final TextField nameField = new TextField(ID_NAME, new PropertyModel<>(getModel(), CertDefinitionDto.F_NAME));
 		nameField.add(new VisibleEnableBehaviour() {
 			@Override

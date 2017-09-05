@@ -74,7 +74,7 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeTask
 
     @Autowired
     private SynchronizationService synchronizationService;
-    
+
     @Autowired
 	private SystemObjectCache systemObjectCache;
 
@@ -97,7 +97,7 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeTask
 				"check shadow integrity", "check shadow integrity", taskManager, prismContext, provisioningService,
                 matchingRuleRegistry, repositoryService, synchronizationService, systemObjectCache, opResult);
 	}
-	
+
 	@Override
 	protected boolean initializeRun(ShadowIntegrityCheckResultHandler handler,
 			TaskRunResult runResult, Task task, OperationResult opResult) {

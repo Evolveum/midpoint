@@ -28,7 +28,7 @@ public class TestPasswordAuthenticationEvaluator extends TestAbstractAuthenticat
 
 	@Autowired(required=true)
 	private AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
-	
+
 	@Override
 	public AuthenticationEvaluator<PasswordAuthenticationContext> getAuthenticationEvaluator() {
 		return passwordAuthenticationEvaluator;
@@ -68,7 +68,7 @@ public class TestPasswordAuthenticationEvaluator extends TestAbstractAuthenticat
 	public AbstractCredentialType getCredentialUsedForAuthentication(UserType user) {
 		return user.getCredentials().getPassword();
 	}
-	
+
 	private ProtectedStringType getGuybrushPassword() {
 		ProtectedStringType protectedString = new ProtectedStringType();
 		protectedString.setClearValue(USER_GUYBRUSH_PASSWORD);

@@ -29,7 +29,7 @@ public abstract class ReadOnlyWrapperModel<T,O extends ObjectType> extends Abstr
     public ReadOnlyWrapperModel(IModel<ObjectWrapper<O>> wrapperModel) {
     	super(wrapperModel);
     }
-    
+
     @Override
 	public void setObject(Object object) {
     	throw new UnsupportedOperationException("Model " + getClass() +

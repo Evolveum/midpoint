@@ -46,7 +46,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrationTest {
-	
+
 	public static final File TEST_DIR = new File("src/test/resources/object-template-ranges");
 
 	public static final QName MANAGER_ID_QNAME = new QName("http://sample.evolveum.com/xml/ns/sample-idm/extension", "managerId");
@@ -67,7 +67,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
 		repoAddObjectsFromFile(ORG_MONKEY_ISLAND_LOCAL_FILE, OrgType.class, initResult);
-        
+
         repoAddObjectFromFile(USER_TEMPLATE_RANGES_FILE, initResult);
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_RANGES_OID, initResult);
 
@@ -92,7 +92,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
 		PrismObject<UserType> userElaine = getUser(USER_ELAINE_OID);
 		display("elaine after recompute", userElaine);
 		assertAssignedOrg(userElaine, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER);

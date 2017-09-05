@@ -53,7 +53,7 @@ import javax.xml.namespace.QName;
 /**
  * Model that returns string value for a flexible label. The label value defaults to
  * the value of a fixed property. But if an expression is specified then the value
- * is determined by the expression. 
+ * is determined by the expression.
  * This implementation works on containerable models (not wrappers).
  *
  * @author semancik
@@ -83,7 +83,7 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
     }
 
     @Override
-    public String getObject() {        
+    public String getObject() {
         if (configuration == null) {
         	return getDefaultValue();
         } else {
@@ -102,7 +102,7 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
 					if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
 						throw new SystemException(e.getMessage(), e);
 					} else {
-						return "[Expression error]"; 
+						return "[Expression error]";
 					}
 				}
         	}
@@ -121,13 +121,13 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
         }
 
         return getStringRealValue(property != null ? property.getRealValue() : null);
-    } 
-	
+    }
+
     private String getExpressionValue(ExpressionType expressionType, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		
+
     	C object = model.getObject();
     	ExpressionFactory expressionFactory = serviceLocator.getExpressionFactory();
-    	PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME, 
+    	PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME,
     			DOMUtil.XSD_STRING, object.asPrismContainerValue().getPrismContext());
 		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, outputDefinition, contextDesc, task, result);
 		ExpressionVariables variables = new ExpressionVariables();

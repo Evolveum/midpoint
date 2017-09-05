@@ -60,7 +60,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     // We can't do anything smarter, as we don't have definition nor prism context. So we store the raw
     // elements here and process them later (e.g. during applyDefinition or getting a value with explicit type).
     private XNode rawElement;
-    
+
     @Nullable private ExpressionWrapper expression;
 
     public PrismPropertyValue(T value) {
@@ -181,7 +181,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	public void setExpression(@Nullable ExpressionWrapper expression) {
 		this.expression = expression;
 	}
-	
+
 	@Override
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
 		PrismPropertyDefinition propertyDefinition = (PrismPropertyDefinition) definition;
@@ -280,7 +280,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         if (value instanceof RawType) {
 			return;
 		}
-		
+
 		throw new IllegalArgumentException("Unsupported value "+value+" ("+valueClass+") in "+this);
 	}
 
@@ -402,8 +402,8 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 					" values in a raw parsing state (raw elements) with parsed value that has no definition");
 		}
 	}
-	
-	private T parseRawElementToNewRealValue(PrismPropertyValue<T> prismPropertyValue, PrismPropertyDefinition<T> definition) 
+
+	private T parseRawElementToNewRealValue(PrismPropertyValue<T> prismPropertyValue, PrismPropertyDefinition<T> definition)
 				throws SchemaException {
 		PrismContext prismContext = definition.getPrismContext();
 		//noinspection UnnecessaryLocalVariable
@@ -464,19 +464,19 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 				return thisRealValue.equals(otherRealValue);
 			}
         } else {
-        
+
 			if (thisRealValue instanceof Element &&
 					otherRealValue instanceof Element) {
 				return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
 			}
-			
+
 			if (thisRealValue instanceof SchemaDefinitionType &&
 					otherRealValue instanceof SchemaDefinitionType) {
 				SchemaDefinitionType thisSchema = (SchemaDefinitionType) thisRealValue;
 				return thisSchema.equals(otherRealValue, isLiteral);
 	//			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
 			}
-	
+
 	        if (thisRealValue instanceof byte[] && otherRealValue instanceof byte[]) {
 	            return Arrays.equals((byte[]) thisRealValue, (byte[]) otherRealValue);
 	        }
@@ -589,12 +589,12 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         return toString();
     }
 
-	
+
 	@Override
     public String debugDump(int indent) {
 		return debugDump(indent, false);
 	}
-    
+
 	public String debugDump(int indent, boolean detailedDump) {
 		detailedDump = detailedDump || DebugUtil.isDetailedDebugDump();
         StringBuilder sb = new StringBuilder();

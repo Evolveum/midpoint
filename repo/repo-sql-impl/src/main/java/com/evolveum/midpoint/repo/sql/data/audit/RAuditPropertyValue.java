@@ -66,7 +66,7 @@ public class RAuditPropertyValue {
         }
         return recordId;
     }
-   
+
     public void setRecord(RAuditEventRecord record) {
 		if (record.getId() != 0) {
 			this.recordId = record.getId();

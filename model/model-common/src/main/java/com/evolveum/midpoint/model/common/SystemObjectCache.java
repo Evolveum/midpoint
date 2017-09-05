@@ -38,35 +38,35 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
  * independent of the request. It will store the system configuration in memory.
  * It will check for system configuration updates in regular interval using the
  * getVersion() method.
- * 
+ *
  * This supplements the RepositoryCache. RepositoryCache works on per-request
  * (per-operation) basis. The  SystemObjectCache is global. Its goal is to reduce
  * the number of getObject(SystemConfiguration) and the getVersion(SystemConfiguration)
  * calls.
- * 
+ *
  * In the future: May be used for more objects that are often used and seldom
  * changed, e.g. object templates.
- * 
+ *
  * TODO: use real repo instead of repo cache
- * 
+ *
  * @author semancik
  */
 @Component
 public class SystemObjectCache {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(SystemObjectCache.class);
-	
+
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 
 	private PrismObject<SystemConfigurationType> systemConfiguration;
 	private Long systemConfigurationCheckTimestamp;
-	
+
 	private long getSystemConfigurationExpirationMillis() {
 		return 1000;
 	}
-	
+
 	public synchronized PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) throws SchemaException {
 		try {
 			if (!hasValidSystemConfiguration(result)) {
@@ -84,7 +84,7 @@ public class SystemObjectCache {
 		}
 		return systemConfiguration;
 	}
-	
+
 	private boolean hasValidSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (systemConfiguration == null) {
 			return false;
@@ -106,17 +106,17 @@ public class SystemObjectCache {
 		}
 		return false;
 	}
-	
+
 	private void loadSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
-		systemConfiguration = cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), 
+		systemConfiguration = cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
 				options, result);
 		systemConfigurationCheckTimestamp = System.currentTimeMillis();
 		if (systemConfiguration != null && systemConfiguration.getVersion() == null) {
 			LOGGER.warn("Retrieved system configuration with null version");
 		}
 	}
-	
+
 	public synchronized void invalidateCaches() {
 		systemConfiguration = null;
 	}

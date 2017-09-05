@@ -27,14 +27,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Almost the same as TestDummyCaseIgnore but the resource is changing all names to upper case.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestDummyCaseIgnoreUpcaseName extends TestDummyCaseIgnore {
-	
+
 	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-case-ignore-upcase-name");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
@@ -57,5 +57,5 @@ public class TestDummyCaseIgnoreUpcaseName extends TestDummyCaseIgnore {
 	protected void assertShadowName(PrismObject<ShadowType> shadow, String expectedName) {
 		assertEquals("Shadow name is wrong in "+shadow, expectedName.toLowerCase(), shadow.asObjectable().getName().getOrig().toLowerCase());
 	}
-	
+
 }

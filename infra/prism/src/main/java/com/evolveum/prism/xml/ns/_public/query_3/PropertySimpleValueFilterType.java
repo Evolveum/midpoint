@@ -55,26 +55,26 @@ import org.w3c.dom.Element;
 
 /**
  * <p>Java class for PropertySimpleValueFilterType complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
- * &lt;complexType name="PropertySimpleValueFilterType">
- *   &lt;complexContent>
- *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/query-2}FilterType">
- *       &lt;sequence>
- *         &lt;element name="property" type="{http://prism.evolveum.com/xml/ns/public/types-3}XPathType"/>
- *         &lt;choice>
- *           &lt;element name="value" type="{http://www.w3.org/2001/XMLSchema}anyType"/>
- *           &lt;any namespace='##other'/>
- *         &lt;/choice>
- *       &lt;/sequence>
- *     &lt;/extension>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="PropertySimpleValueFilterType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/query-2}FilterType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="property" type="{http://prism.evolveum.com/xml/ns/public/types-3}XPathType"/&gt;
+ *         &lt;choice&gt;
+ *           &lt;element name="value" type="{http://www.w3.org/2001/XMLSchema}anyType"/&gt;
+ *           &lt;any namespace='##other'/&gt;
+ *         &lt;/choice&gt;
+ *       &lt;/sequence&gt;
+ *     &lt;/extension&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "PropertySimpleValueFilterType", propOrder = {
@@ -99,7 +99,7 @@ public class PropertySimpleValueFilterType
 
     /**
      * Creates a new {@code PropertySimpleValueFilterType} instance.
-     * 
+     *
      */
     public PropertySimpleValueFilterType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -108,8 +108,8 @@ public class PropertySimpleValueFilterType
 
     /**
      * Creates a new {@code PropertySimpleValueFilterType} instance by deeply copying a given {@code PropertySimpleValueFilterType} instance.
-     * 
-     * 
+     *
+     *
      * @param o
      *     The instance to copy.
      * @throws NullPointerException
@@ -131,11 +131,11 @@ public class PropertySimpleValueFilterType
 
     /**
      * Gets the value of the property property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link Element }
-     *     
+     *
      */
     public Element getProperty() {
         return property;
@@ -143,11 +143,11 @@ public class PropertySimpleValueFilterType
 
     /**
      * Sets the value of the property property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link Element }
-     *     
+     *
      */
     public void setProperty(Element value) {
         this.property = value;
@@ -155,11 +155,11 @@ public class PropertySimpleValueFilterType
 
     /**
      * Gets the value of the value property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link Object }
-     *     
+     *
      */
     public Object getValue() {
         return value;
@@ -167,11 +167,11 @@ public class PropertySimpleValueFilterType
 
     /**
      * Sets the value of the value property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link Object }
-     *     
+     *
      */
     public void setValue(Object value) {
         this.value = value;
@@ -179,11 +179,11 @@ public class PropertySimpleValueFilterType
 
     /**
      * Gets the value of the any property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link Object }
-     *     
+     *
      */
     public Object getAny() {
         return any;
@@ -191,11 +191,11 @@ public class PropertySimpleValueFilterType
 
     /**
      * Sets the value of the any property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link Object }
-     *     
+     *
      */
     public void setAny(Object value) {
         this.any = value;
@@ -204,7 +204,7 @@ public class PropertySimpleValueFilterType
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     * 
+     *
      */
     @Override
     public String toString() {
@@ -284,7 +284,7 @@ public class PropertySimpleValueFilterType
 
     /**
      * Creates and returns a deep copy of a given object.
-     * 
+     *
      * @param o
      *     The instance to copy or {@code null}.
      * @return
@@ -422,7 +422,7 @@ public class PropertySimpleValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -467,7 +467,7 @@ public class PropertySimpleValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -485,7 +485,7 @@ public class PropertySimpleValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -503,7 +503,7 @@ public class PropertySimpleValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -521,7 +521,7 @@ public class PropertySimpleValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -539,7 +539,7 @@ public class PropertySimpleValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -557,7 +557,7 @@ public class PropertySimpleValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -575,7 +575,7 @@ public class PropertySimpleValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -593,7 +593,7 @@ public class PropertySimpleValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -611,7 +611,7 @@ public class PropertySimpleValueFilterType
 
     /**
      * Creates and returns a deep copy of a given {@code JAXBElement} instance.
-     * 
+     *
      * @param element
      *     The instance to copy or {@code null}.
      * @return
@@ -631,7 +631,7 @@ public class PropertySimpleValueFilterType
 
     /**
      * Creates and returns a deep copy of a given {@code Serializable}.
-     * 
+     *
      * @param serializable
      *     The instance to copy or {@code null}.
      * @return
@@ -671,8 +671,8 @@ public class PropertySimpleValueFilterType
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

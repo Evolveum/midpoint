@@ -69,7 +69,7 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
     public AsyncDashboardPanel(String id, IModel<String> title, String icon, IModel<V> callableParameterModel,
                                Duration durationSecs, String boxCssClasses, boolean noPadding) {
         super(id, callableParameterModel, durationSecs);
-        
+
         initLayout(noPadding);
 
         WebMarkupContainer dashboardTitle = (WebMarkupContainer) get(

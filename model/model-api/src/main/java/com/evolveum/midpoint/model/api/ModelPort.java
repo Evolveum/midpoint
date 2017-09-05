@@ -21,9 +21,9 @@ import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import javax.xml.namespace.QName;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 public interface ModelPort {
 

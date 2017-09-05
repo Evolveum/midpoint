@@ -121,7 +121,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * Implementation classes : ResourceContentResourcePanel,
  * ResourceContentRepositoryPanel
- * 
+ *
  * @author katkav
  * @author semancik
  */
@@ -247,7 +247,7 @@ public abstract class ResourceContentPanel extends Panel {
 	}
 
 	private void initLayout() {
-		
+
 		WebMarkupContainer totals = new WebMarkupContainer(ID_TOTALS);
         totals.setOutputMarkupId(true);
         add(totals);
@@ -390,7 +390,7 @@ public abstract class ResourceContentPanel extends Panel {
 	}
 
 	protected abstract void initShadowStatistics(WebMarkupContainer totals);
-	
+
 	private void initButton(String id, String label, String icon, final String category,
 			final List<TaskType> tasks) {
 
@@ -533,10 +533,10 @@ public abstract class ResourceContentPanel extends Panel {
 		if (addAdditionalOptions() != null) {
 			opts.add(addAdditionalOptions());
 		}
-	
+
 		provider.setUseObjectCounting(isUseObjectCounting());
 		provider.setOptions(opts);
-		
+
 	}
 
 	private StringResourceModel createStringResource(String key) {

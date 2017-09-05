@@ -26,40 +26,40 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
  *
  */
 public class PropertyLimitations implements DebugDumpable, Serializable {
-	
+
 	private boolean ignore;
 	private int minOccurs;
 	private int maxOccurs;
 	private PropertyAccessType access = new PropertyAccessType();
-	
+
 	public boolean isIgnore() {
 		return ignore;
 	}
-	
+
 	public void setIgnore(boolean ignore) {
 		this.ignore = ignore;
 	}
-	
+
 	public int getMinOccurs() {
 		return minOccurs;
 	}
-	
+
 	public void setMinOccurs(int minOccurs) {
 		this.minOccurs = minOccurs;
 	}
-	
+
 	public int getMaxOccurs() {
 		return maxOccurs;
 	}
-	
+
 	public void setMaxOccurs(int maxOccurs) {
 		this.maxOccurs = maxOccurs;
 	}
-	
+
 	public PropertyAccessType getAccess() {
 		return access;
 	}
-	
+
 	public void setAccess(PropertyAccessType access) {
 		this.access = access;
 	}
@@ -76,7 +76,7 @@ public class PropertyLimitations implements DebugDumpable, Serializable {
 		sb.append(toString());
 		return sb.toString();
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

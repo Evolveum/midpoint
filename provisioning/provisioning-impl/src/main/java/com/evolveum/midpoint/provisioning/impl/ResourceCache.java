@@ -29,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * Class for caching ResourceType instances with a parsed schemas.
- * 
+ *
  * @author Radovan Semancik
  *
  */
@@ -41,18 +41,18 @@ public class ResourceCache {
     ResourceCache() {
         cache = new HashMap<>();
     }
-	
+
 	public synchronized void put(PrismObject<ResourceType> resource) throws SchemaException {
 		String oid = resource.getOid();
 		if (oid == null) {
 			throw new SchemaException("Attempt to cache "+resource+" without an OID");
 		}
-		
+
 		String version = resource.getVersion();
 		if (version == null) {
 			throw new SchemaException("Attempt to cache "+resource+" without version");
 		}
-		
+
 		PrismObject<ResourceType> cachedResource = cache.get(oid);
 		if (cachedResource == null) {
 			cache.put(oid, resource.createImmutableClone());
@@ -78,12 +78,12 @@ public class ResourceCache {
 	public synchronized PrismObject<ResourceType> get(PrismObject<ResourceType> resource, GetOperationOptions options) throws SchemaException {
 		return get(resource.getOid(), resource.getVersion(), options);
 	}
-	
+
 	public synchronized PrismObject<ResourceType> get(String oid, String version, GetOperationOptions options) throws SchemaException {
 		if (oid == null) {
 			return null;
 		}
-		
+
 		PrismObject<ResourceType> cachedResource = cache.get(oid);
 		if (cachedResource == null) {
 			return null;
@@ -92,7 +92,7 @@ public class ResourceCache {
 		if (!compareVersion(version, cachedResource.getVersion())) {
 			return null;
 		}
-		
+
 		if (GetOperationOptions.isReadOnly(options)) {
 			cachedResource.checkImmutability();
 			return cachedResource;
@@ -100,9 +100,9 @@ public class ResourceCache {
 			return cachedResource.clone();
 		}
 	}
-	
+
 	/**
-	 * Returns currently cached version. FOR DIAGNOSTICS ONLY. 
+	 * Returns currently cached version. FOR DIAGNOSTICS ONLY.
 	 */
 	public synchronized String getVersion(String oid) {
 		if (oid == null) {

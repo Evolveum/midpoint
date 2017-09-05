@@ -16,7 +16,7 @@ public class MidpointYAMLParser extends YAMLParser {
 		super(ctxt, br, parserFeatures, csvFeatures, codec, reader);
 		// TODO Auto-generated constructor stub
 	}
-	
+
 //	  @Override
 //	    public String getTypeId() throws IOException, JsonGenerationException
 //	    {

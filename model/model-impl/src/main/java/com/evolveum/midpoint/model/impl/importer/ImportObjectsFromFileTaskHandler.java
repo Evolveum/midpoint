@@ -65,10 +65,10 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 
     @Autowired(required = true)
     private ChangeNotificationDispatcher changeNotificationDispatcher;
-    
+
     @Autowired(required = true)
     private PrismContext prismContext;
-    
+
     //private Map<Task,ImportAccountsFromResourceResultHandler> handlers;
     private PrismPropertyDefinition filenamePropertyDefinition;
 
@@ -117,7 +117,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 //        		new PropertyPath(TaskType.F_EXTENSION, filenamePropertyDefinition.getName()),
 //        		filenamePropertyDefinition);
 //        objectClassDelta.setValueToReplace(new PrismPropertyValue<Object>(input.getAbsolutePath()));
-//        ((Collection)modifications).add(objectClassDelta);        
+//        ((Collection)modifications).add(objectClassDelta);
         try {
         	PrismProperty filenameProp = filenamePropertyDefinition.instantiate();
         	filenameProp.setRealValue(input.getAbsolutePath());

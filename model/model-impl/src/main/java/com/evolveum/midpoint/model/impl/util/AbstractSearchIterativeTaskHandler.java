@@ -62,7 +62,7 @@ import java.util.*;
  *
  */
 public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H extends AbstractSearchIterativeResultHandler<O>> implements TaskHandler {
-	
+
 	// WARNING! This task handler is efficiently singleton!
 	// It is a spring bean and it is supposed to handle all search task instances
 	// Therefore it must not have task-specific fields. It can only contain fields specific to
@@ -77,16 +77,16 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     private boolean enableActionsExecutedStatistics = true;
 
 	// If you need to store fields specific to task instance or task run the ResultHandler is a good place to do that.
-	
+
 	// This is not ideal, TODO: refactor
 	// Note: The key is task OID. Originally here was the whole task, which caused occasional ConcurrentModificationException
 	// when computing hashCode of TaskQuartzImpl objects (not sure why). Anyway, OIDs are better; assuming we are dealing with
 	// persistent tasks only - which is obviously true.
 	private Map<String, H> handlers = Collections.synchronizedMap(new HashMap<String, H>());
-	
+
 	@Autowired
 	protected TaskManager taskManager;
-	
+
 	@Autowired
 	protected ModelObjectResolver modelObjectResolver;
 
@@ -107,7 +107,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	protected SystemObjectCache systemObjectCache;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeTaskHandler.class);
-	
+
 	protected AbstractSearchIterativeTaskHandler(String taskName, String taskOperationPrefix) {
 		super();
 		this.taskName = taskName;
@@ -195,12 +195,12 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         resultHandler.setEnableIterationStatistics(isEnableIterationStatistics());
         resultHandler.setEnableSynchronizationStatistics(isEnableSynchronizationStatistics());
         resultHandler.setEnableActionsExecutedStatistics(isEnableActionsExecutedStatistics());
-		
+
 		boolean cont = initializeRun(resultHandler, runResult, coordinatorTask, opResult);
 		if (!cont) {
 			return runResult;
 		}
-		
+
 		// TODO: error checking - already running
 		if (coordinatorTask.getOid() == null) {
 			throw new IllegalArgumentException("Transient tasks cannot be run by " + AbstractSearchIterativeTaskHandler.class + ": " + coordinatorTask);
@@ -351,7 +351,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
 			LOGGER.info("{}", finishMessage + statistics);
         }
-        
+
         try {
         	finish(resultHandler, runResult, coordinatorTask, opResult);
         } catch (SchemaException e) {
@@ -359,7 +359,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
-        
+
         LOGGER.trace("{} run finished (task {}, run result {})", taskName, coordinatorTask, runResult);
 		return runResult;
 	}
@@ -455,17 +455,17 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
         }
-        
+
         return objectType;
     }
-    
+
     @Override
     public void refreshStatus(Task task) {
         // Local task. No refresh needed. The Task instance has always fresh data.
     }
 
     /**
-     * Handler parameter may be used to pass task instance state between the calls. 
+     * Handler parameter may be used to pass task instance state between the calls.
      */
 	protected abstract ObjectQuery createQuery(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException;
 
@@ -484,10 +484,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
     protected abstract  H createHandler(TaskRunResult runResult, Task coordinatorTask,
 			OperationResult opResult) throws SchemaException, SecurityViolationException;
-	
+
 	/**
 	 * Used to properly initialize the "run", which is kind of task instance. The result handler is already created at this stage.
-	 * Therefore this method may be used to "enrich" the result handler with some instance-specific data. 
+	 * Therefore this method may be used to "enrich" the result handler with some instance-specific data.
 	 */
 	protected boolean initializeRun(H handler, TaskRunResult runResult, Task task, OperationResult opResult) {
 		// Nothing to do by default

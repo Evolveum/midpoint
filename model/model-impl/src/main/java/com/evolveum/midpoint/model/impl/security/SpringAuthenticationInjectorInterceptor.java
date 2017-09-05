@@ -57,7 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseTy
 public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor<SoapMessage> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SpringAuthenticationInjectorInterceptor.class);
-	
+
     private String phase;
     private Set<String> before = new HashSet<String>();
     private Set<String> after = new HashSet<String>();
@@ -120,13 +120,13 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
         try {
             username = securityHelper.getUsernameFromMessage(saajSoapMessage);
             LOGGER.trace("Attempt to authenticate user '{}'", username);
-        	
+
             if (StringUtils.isBlank(username)) {
             	message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
             	securityHelper.auditLoginFailure(username, null, connEnv, "Empty username");
             	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
             }
-            
+
             MidPointPrincipal principal;
             try {
             	principal = userDetailsService.getPrincipal(username);
@@ -143,13 +143,13 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
         		securityHelper.auditLoginFailure(username, null, connEnv, "No user");
             	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
         	}
-        	
+
         	// Account validity and credentials and all this stuff should be already checked
         	// in the password callback
-        	
+
             Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            
+
             String operationName;
 			try {
 				operationName = DOMUtil.getFirstChildElement(saajSoapMessage.getSOAPBody()).getLocalName();
@@ -160,9 +160,9 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 				securityHelper.auditLoginFailure(username, principal.getUser(), connEnv, "SOAP error: "+e.getMessage());
 				throw new Fault(e);
 			}
-			
+
 			// AUTHORIZATION
-			
+
 			boolean isAuthorized;
 			try {
 				isAuthorized = securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_WS_ALL_URL, AuthorizationPhaseType.REQUEST, null, null, null, null);
@@ -193,7 +193,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
             	securityHelper.auditLoginFailure(username, principal.getUser(), connEnv, "Not authorized");
             	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
             }
-            
+
         } catch (WSSecurityException e) {
         	LOGGER.debug("Access to web service denied for user '{}': security exception: {}",
 					username, e.getMessage(), e);
@@ -210,7 +210,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 
         // Avoid auditing login attempt again if the operation fails on internal authorization
         message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-        
+
         LOGGER.debug("Access to web service allowed for user '{}'", username);
     }
 
@@ -222,5 +222,5 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
     public void handleFault(SoapMessage message) {
     	// Nothing to do
     }
-    
+
 }

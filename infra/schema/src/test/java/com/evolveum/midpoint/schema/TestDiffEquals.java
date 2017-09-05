@@ -51,9 +51,9 @@ public class TestDiffEquals {
 
 	public static final File TEST_DIR = new File("src/test/resources/diff");
 	private static final File ROLE_COMPARE_FILE = new File(TEST_DIR, "role-compare.xml");
-	
+
     private static final String NS_TEST_RI = "http://midpoint.evolveum.com/xml/ns/test/ri-1";
-    
+
     private static final Trace LOGGER = TraceManager.getTrace(TestDiffEquals.class);
 
 	@BeforeSuite
@@ -108,7 +108,7 @@ public class TestDiffEquals {
     public void testAssignmentEquals1() throws Exception {
     	System.out.println("\n\n===[ testAssignmentEquals1 ]===\n");
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
-    	
+
         AssignmentType a1a = new AssignmentType();
         prismContext.adopt(a1a);
         a1a.setDescription("descr1");
@@ -120,21 +120,21 @@ public class TestDiffEquals {
         AssignmentType a1b = new AssignmentType();
         prismContext.adopt(a1b);
         a1b.setDescription("descr1");
-        
+
         AssignmentType a1m = new AssignmentType();
         prismContext.adopt(a1m);
         a1m.setDescription("descr1");
         MetadataType metadata1m = new MetadataType();
         metadata1m.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
 		a1m.setMetadata(metadata1m);
-		
+
 		AssignmentType a1e = new AssignmentType();
         prismContext.adopt(a1e);
         a1e.setDescription("descr1");
         ActivationType activation1e = new ActivationType();
         activation1e.setEffectiveStatus(ActivationStatusType.ENABLED);
         a1e.setActivation(activation1e);
-        
+
         // WHEN
         assertFalse(a1a.equals(a2));
         assertFalse(a1b.equals(a2));
@@ -144,13 +144,13 @@ public class TestDiffEquals {
         assertFalse(a2.equals(a1b));
         assertFalse(a2.equals(a1m));
         assertFalse(a2.equals(a1e));
-        
+
         assertTrue(a1a.equals(a1a));
         assertTrue(a1b.equals(a1b));
         assertTrue(a1m.equals(a1m));
         assertTrue(a1e.equals(a1e));
         assertTrue(a2.equals(a2));
-        
+
         assertTrue(a1a.equals(a1b));
         assertTrue(a1b.equals(a1a));
         assertTrue(a1a.equals(a1m));
@@ -164,29 +164,29 @@ public class TestDiffEquals {
         assertTrue(a1e.equals(a1b));
         assertTrue(a1e.equals(a1m));
     }
-    
+
     @Test(enabled=false) // MID-3966
     public void testAssignmentEquals2() throws Exception {
     	System.out.println("\n\n===[ testAssignmentEquals2 ]===\n");
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
-    	
+
     	PrismObject<RoleType> roleCompare = prismContext.parseObject(ROLE_COMPARE_FILE);
     	PrismContainer<AssignmentType> inducementContainer = roleCompare.findContainer(RoleType.F_INDUCEMENT);
     	AssignmentType a1 = inducementContainer.findValue(1L).asContainerable();
     	AssignmentType a2 = inducementContainer.findValue(2L).asContainerable();
-    	AssignmentType a3 = inducementContainer.findValue(3L).asContainerable();   	
-        
+    	AssignmentType a3 = inducementContainer.findValue(3L).asContainerable();
+
         // WHEN
         assertFalse(a1.equals(a3));
         assertFalse(a2.equals(a3));
-        
+
         assertTrue(a1.equals(a1));
         assertTrue(a1.equals(a2));
         assertTrue(a2.equals(a1));
         assertTrue(a2.equals(a2));
         assertTrue(a3.equals(a3));
     }
-    
+
     @Test
     public void testAssignmentEquivalent() throws Exception {
     	System.out.println("\n\n===[ testAssignmentEquivalent ]===\n");
@@ -279,13 +279,13 @@ public class TestDiffEquals {
         ObjectDelta delta2 = userWithContext.asPrismObject().createDelta(ChangeType.DELETE);
         assertNotNull(delta2.getPrismContext());
     }
-    
+
     @Test
     public void testAssignmentHashcode() throws Exception {
     	LOGGER.info("\n\n===[ testAssignmentHashcode ]===\n");
     	System.out.println("\n\n===[ testAssignmentHashcode ]===\n");
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
-    	
+
         AssignmentType a1a = new AssignmentType();
         prismContext.adopt(a1a);
         a1a.setDescription("descr1");
@@ -297,23 +297,23 @@ public class TestDiffEquals {
         AssignmentType a1b = new AssignmentType();
         prismContext.adopt(a1b);
         a1b.setDescription("descr1");
-        
+
         AssignmentType a1m = new AssignmentType();
         prismContext.adopt(a1m);
         a1m.setDescription("descr1");
         MetadataType metadata1m = new MetadataType();
         metadata1m.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
 		a1m.setMetadata(metadata1m);
-		
+
 		AssignmentType a1e = new AssignmentType();
         prismContext.adopt(a1e);
         a1e.setDescription("descr1");
         ActivationType activation1e = new ActivationType();
         activation1e.setEffectiveStatus(ActivationStatusType.ENABLED);
         a1e.setActivation(activation1e);
-        
+
         // WHEN
-        assertFalse(a1a.hashCode() == a2.hashCode());        
+        assertFalse(a1a.hashCode() == a2.hashCode());
         assertFalse(a1b.hashCode() == a2.hashCode());
         assertFalse(a1m.hashCode() == a2.hashCode());
         assertFalse(a1e.hashCode() == a2.hashCode());
@@ -321,13 +321,13 @@ public class TestDiffEquals {
         assertFalse(a2.hashCode() == a1b.hashCode());
         assertFalse(a2.hashCode() == a1m.hashCode());
         assertFalse(a2.hashCode() == a1e.hashCode());
-        
+
         assertTrue(a1a.hashCode() == a1a.hashCode());
         assertTrue(a1b.hashCode() == a1b.hashCode());
         assertTrue(a1m.hashCode() == a1m.hashCode());
         assertTrue(a1e.hashCode() == a1e.hashCode());
         assertTrue(a2.hashCode() == a2.hashCode());
-        
+
         assertTrue(a1a.hashCode() == a1b.hashCode());
         assertTrue(a1b.hashCode() == a1a.hashCode());
         assertTrue(a1a.hashCode() == a1m.hashCode());
@@ -354,7 +354,7 @@ public class TestDiffEquals {
     	shadow1Type.setFailedOperationType(FailedOperationTypeType.ADD);
     	shadow1Type.getAuxiliaryObjectClass().add(new QName(NS_TEST_RI, "foo"));
     	PrismContainer<Containerable> shadow1Attrs = shadow1.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
-    	
+
     	ShadowType shadow2Type = new ShadowType();
     	PrismObject<ShadowType> shadow2 = shadow2Type.asPrismObject();
     	prismContext.adopt(shadow2Type);
@@ -362,26 +362,26 @@ public class TestDiffEquals {
     	shadow2Type.getAuxiliaryObjectClass().add(new QName(NS_TEST_RI, "foo"));
     	shadow2Type.getAuxiliaryObjectClass().add(new QName(NS_TEST_RI, "bar"));
     	PrismContainer<Containerable> shadow2Attrs = shadow2.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
-    	
+
     	PrismProperty<String> attrEntryUuid = new PrismProperty<>(new QName(NS_TEST_RI, "entryUuid"), prismContext);
     	PrismPropertyDefinition<String> attrEntryUuidDef = new PrismPropertyDefinitionImpl<>(new QName(NS_TEST_RI, "entryUuid"),
     			DOMUtil.XSD_STRING, prismContext);
     	attrEntryUuid.setDefinition(attrEntryUuidDef);
 		shadow2Attrs.add(attrEntryUuid);
 		attrEntryUuid.addRealValue("1234-5678-8765-4321");
-		
+
 		PrismProperty<String> attrDn = new PrismProperty<>(new QName(NS_TEST_RI, "dn"), prismContext);
 		PrismPropertyDefinition<String> attrDnDef = new PrismPropertyDefinitionImpl<>(new QName(NS_TEST_RI, "dn"),
     			DOMUtil.XSD_STRING, prismContext);
 		attrDn.setDefinition(attrDnDef);
 		shadow2Attrs.add(attrDn);
 		attrDn.addRealValue("uid=foo,o=bar");
-		
+
 		System.out.println("Shadow 1");
     	System.out.println(shadow1.debugDump(1));
     	System.out.println("Shadow 2");
     	System.out.println(shadow2.debugDump(1));
-    	
+
     	// WHEN
     	ObjectDelta<ShadowType> delta = shadow1.diff(shadow2);
 
@@ -389,7 +389,7 @@ public class TestDiffEquals {
     	assertNotNull("No delta", delta);
     	System.out.println("Delta");
     	System.out.println(delta.debugDump(1));
-    	
+
     	PrismAsserts.assertIsModify(delta);
     	PrismAsserts.assertPropertyDelete(delta, ShadowType.F_FAILED_OPERATION_TYPE, FailedOperationTypeType.ADD);
     	PrismAsserts.assertPropertyAdd(delta, ShadowType.F_AUXILIARY_OBJECT_CLASS, new QName(NS_TEST_RI, "bar"));

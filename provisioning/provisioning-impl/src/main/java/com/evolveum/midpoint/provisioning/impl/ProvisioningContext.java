@@ -51,34 +51,34 @@ import java.util.Map;
 public class ProvisioningContext extends StateReporter {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningContext.class);
-	
+
 	private ResourceManager resourceManager;
 	private OperationResult parentResult;
 	private Collection<SelectorOptions<GetOperationOptions>> getOperationOptions;
-	
+
 	private PrismObject<ShadowType> originalShadow;
 	private ResourceShadowDiscriminator shadowCoordinates;
 	private Collection<QName> additionalAuxiliaryObjectClassQNames;
 	private boolean useRefinedDefinition = true;
-	
+
 	private RefinedObjectClassDefinition objectClassDefinition;
 
 	private ResourceType resource;
 	private Map<Class<? extends CapabilityType>,ConnectorInstance> connectorMap;
 	private RefinedResourceSchema refinedSchema;
-	
+
 	public ProvisioningContext(ResourceManager resourceManager, OperationResult parentResult) {
 		this.resourceManager = resourceManager;
 		this.parentResult = parentResult;
 	}
-	
+
 	public void setResourceOid(String resourceOid) {
 		super.setResourceOid(resourceOid);
 		this.resource = null;
 		this.connectorMap = null;
 		this.refinedSchema = null;
 	}
-	
+
 	public Collection<SelectorOptions<GetOperationOptions>> getGetOperationOptions() {
 		return getOperationOptions;
 	}
@@ -90,7 +90,7 @@ public class ProvisioningContext extends StateReporter {
 	public ResourceShadowDiscriminator getShadowCoordinates() {
 		return shadowCoordinates;
 	}
-	
+
 	public void setShadowCoordinates(ResourceShadowDiscriminator shadowCoordinates) {
 		this.shadowCoordinates = shadowCoordinates;
 	}
@@ -102,7 +102,7 @@ public class ProvisioningContext extends StateReporter {
 	public void setOriginalShadow(PrismObject<ShadowType> originalShadow) {
 		this.originalShadow = originalShadow;
 	}
-	
+
 	public Collection<QName> getAdditionalAuxiliaryObjectClassQNames() {
 		return additionalAuxiliaryObjectClassQNames;
 	}
@@ -151,7 +151,7 @@ public class ProvisioningContext extends StateReporter {
 		}
 		return refinedSchema;
 	}
-	
+
 	public RefinedObjectClassDefinition getObjectClassDefinition() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		if (objectClassDefinition == null) {
 			if (useRefinedDefinition) {
@@ -202,7 +202,7 @@ public class ProvisioningContext extends StateReporter {
 	public String getChannel() {
 		return getTask()==null?null:getTask().getChannel();
 	}
-	
+
 	public <T extends CapabilityType> ConnectorInstance getConnector(Class<T> operationCapabilityClass, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (connectorMap == null) {
 			connectorMap = new HashMap<>();
@@ -214,11 +214,11 @@ public class ProvisioningContext extends StateReporter {
 		}
 		return connector;
 	}
-	
+
 	public boolean isWildcard() {
 		return (shadowCoordinates == null && originalShadow == null) || (shadowCoordinates != null && shadowCoordinates.isWildcard());
 	}
-	
+
 	/**
 	 * Creates a context for a different object class on the same resource.
 	 */
@@ -227,7 +227,7 @@ public class ProvisioningContext extends StateReporter {
 		ctx.shadowCoordinates = new ResourceShadowDiscriminator(getResourceOid(), kind, intent);
 		return ctx;
 	}
-		
+
 	/**
 	 * Creates a context for a different object class on the same resource.
 	 */
@@ -237,7 +237,7 @@ public class ProvisioningContext extends StateReporter {
 		ctx.shadowCoordinates.setObjectClass(objectClassQName);
 		return ctx;
 	}
-	
+
 	/**
 	 * Creates a context for a different object class on the same resource.
 	 */
@@ -246,7 +246,7 @@ public class ProvisioningContext extends StateReporter {
 		ctx.setOriginalShadow(shadow);
 		return ctx;
 	}
-		
+
 //	/**
 //	 * Creates a context for a different object class on the same resource.
 //	 */
@@ -255,7 +255,7 @@ public class ProvisioningContext extends StateReporter {
 //		ctx.setObjectClassDefinition(objectClassDefinition);
 //		return ctx;
 //	}
-	
+
 	private ProvisioningContext spawnSameResource() {
 		ProvisioningContext ctx = new ProvisioningContext(resourceManager, parentResult);
 		ctx.setTask(this.getTask());
@@ -272,11 +272,11 @@ public class ProvisioningContext extends StateReporter {
 			throw new SchemaException(message + " " + getDesc());
 		}
 	}
-	
+
 	public void assertDefinition() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		assertDefinition("Cannot locate object class definition");
 	}
-		
+
 	public String getDesc() {
 		if (originalShadow != null) {
 			return "for " + originalShadow + " in " + (resource==null?("resource "+getResourceOid()):resource);
@@ -306,11 +306,11 @@ public class ProvisioningContext extends StateReporter {
 			throw e;
 		}
 	}
-	
+
 	public <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass) {
 		return resourceManager.getConnectorCapabilities(resource.asPrismObject(), operationCapabilityClass);
 	}
-	
+
 	@Override
 	public String toString() {
 		return "ProvisioningContext("+getDesc()+")";

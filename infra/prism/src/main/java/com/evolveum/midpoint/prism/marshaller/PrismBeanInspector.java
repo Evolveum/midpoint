@@ -153,7 +153,7 @@ public class PrismBeanInspector {
             }
         });
     }
-    
+
     private Map<String,Class> _getObjectFactoryClassNamespace = Collections.synchronizedMap(new HashMap());
     Class getObjectFactoryClass(String namespaceUri) {
         return find1(_getObjectFactoryClassNamespace, namespaceUri, new Getter1<Class,String>() {
@@ -396,7 +396,7 @@ public class PrismBeanInspector {
             throw new IllegalArgumentException("Cannot find object factory class in package "+pkg.getName()+": "+e.getMessage(), e);
         }
     }
-    
+
     private Class getObjectFactoryClassUncached(String namespaceUri) {
     	SchemaDescription schemaDescription = prismContext.getSchemaRegistry().findSchemaDescriptionByNamespace(namespaceUri);
     	if (schemaDescription == null) {
@@ -446,7 +446,7 @@ public class PrismBeanInspector {
         }
         return findField(superclass, selector);
     }
-    
+
     private Method findMethod(Class classType, Handler<Method> selector) {
         for (Method field: classType.getDeclaredMethods()) {
             if (selector.handle(field)) {
@@ -587,11 +587,11 @@ public class PrismBeanInspector {
         return new QName(realNamespace, realLocalName);
     }
     //endregion
-    
+
     public <T> Field findAnyField(Class<T> beanClass) {
     	return findField(beanClass, field -> field.getAnnotation(XmlAnyElement.class) != null);
     }
-    
+
     public <T> Method findAnyMethod(Class<T> beanClass) {
     	return findMethod(beanClass, method -> method.getAnnotation(XmlAnyElement.class) != null);
     }

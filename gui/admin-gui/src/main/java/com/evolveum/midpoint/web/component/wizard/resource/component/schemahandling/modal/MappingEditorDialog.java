@@ -256,7 +256,7 @@ public class MappingEditorDialog extends ModalWindow {
 			@Override
 			protected IChoiceRenderer<String> createRenderer() {
 				return new StringChoiceRenderer("Channel.", "#");
-			
+
 			}
 		};
 		form.add(channel);

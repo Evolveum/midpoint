@@ -52,8 +52,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEquals101() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-1.xml", 
-				"testExpressionPolyStringEquals101", 
+				"expression-polystring-equals-1.xml",
+				"testExpressionPolyStringEquals101",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), "FOO",
 						new QName(NS_Y, "bar"), "BAR"
@@ -64,8 +64,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEquals102() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-1.xml", 
-				"testExpressionPolyStringEquals102", 
+				"expression-polystring-equals-1.xml",
+				"testExpressionPolyStringEquals102",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), "FOOBAR",
 						new QName(NS_Y, "bar"), "BAR"
@@ -76,8 +76,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEquals111() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-1.xml", 
-				"testExpressionPolyStringEquals111", 
+				"expression-polystring-equals-1.xml",
+				"testExpressionPolyStringEquals111",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), PrismTestUtil.createPolyString("FOO"),
 						new QName(NS_Y, "bar"), "BAR"
@@ -88,20 +88,20 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEquals112() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-1.xml", 
-				"testExpressionPolyStringEquals112", 
+				"expression-polystring-equals-1.xml",
+				"testExpressionPolyStringEquals112",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), PrismTestUtil.createPolyString("FOOBAR"),
 						new QName(NS_Y, "bar"), "BAR"
 				),
 				Boolean.FALSE);
     }
-	
+
 	@Test
     public void testExpressionPolyStringEquals121() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-1.xml", 
-				"testExpressionPolyStringEquals121", 
+				"expression-polystring-equals-1.xml",
+				"testExpressionPolyStringEquals121",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), PrismTestUtil.createPolyStringType("FOO"),
 						new QName(NS_Y, "bar"), "BAR"
@@ -112,20 +112,20 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEquals122() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-1.xml", 
-				"testExpressionPolyStringEquals122", 
+				"expression-polystring-equals-1.xml",
+				"testExpressionPolyStringEquals122",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), PrismTestUtil.createPolyStringType("FOOBAR"),
 						new QName(NS_Y, "bar"), "BAR"
 				),
 				Boolean.FALSE);
     }
-	
+
 	@Test
     public void testExpressionPolyStringEquals201() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-2.xml", 
-				"testExpressionPolyStringEquals201", 
+				"expression-polystring-equals-2.xml",
+				"testExpressionPolyStringEquals201",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), "FOO",
 						new QName(NS_Y, "bar"), "BAR"
@@ -136,8 +136,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEquals202() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-2.xml", 
-				"testExpressionPolyStringEquals202", 
+				"expression-polystring-equals-2.xml",
+				"testExpressionPolyStringEquals202",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), "FOOBAR",
 						new QName(NS_Y, "bar"), "BAR"
@@ -148,8 +148,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEquals211() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-2.xml", 
-				"testExpressionPolyStringEquals211", 
+				"expression-polystring-equals-2.xml",
+				"testExpressionPolyStringEquals211",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), PrismTestUtil.createPolyString("FOO"),
 						new QName(NS_Y, "bar"), "BAR"
@@ -160,8 +160,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEquals212() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-2.xml", 
-				"testExpressionPolyStringEquals212", 
+				"expression-polystring-equals-2.xml",
+				"testExpressionPolyStringEquals212",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), PrismTestUtil.createPolyString("FOOBAR"),
 						new QName(NS_Y, "bar"), "BAR"
@@ -172,8 +172,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEquals221() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-2.xml", 
-				"testExpressionPolyStringEquals221", 
+				"expression-polystring-equals-2.xml",
+				"testExpressionPolyStringEquals221",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), PrismTestUtil.createPolyStringType("FOO"),
 						new QName(NS_Y, "bar"), "BAR"
@@ -184,20 +184,20 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEquals222() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-2.xml", 
-				"testExpressionPolyStringEquals222", 
+				"expression-polystring-equals-2.xml",
+				"testExpressionPolyStringEquals222",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), PrismTestUtil.createPolyStringType("FOOBAR"),
 						new QName(NS_Y, "bar"), "BAR"
 				),
 				Boolean.FALSE);
     }
-	
+
 	@Test
     public void testExpressionPolyStringEqualsStringify101() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-stringify-1.xml", 
-				"testExpressionPolyStringEqualsStringify101", 
+				"expression-polystring-equals-stringify-1.xml",
+				"testExpressionPolyStringEqualsStringify101",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), "FOO",
 						new QName(NS_Y, "bar"), "BAR"
@@ -208,8 +208,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEqualsStringify102() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-stringify-1.xml", 
-				"testExpressionPolyStringEqualsStringify102", 
+				"expression-polystring-equals-stringify-1.xml",
+				"testExpressionPolyStringEqualsStringify102",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), "FOOBAR",
 						new QName(NS_Y, "bar"), "BAR"
@@ -220,8 +220,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEqualsStringify111() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-stringify-1.xml", 
-				"testExpressionPolyStringEqualsStringify111", 
+				"expression-polystring-equals-stringify-1.xml",
+				"testExpressionPolyStringEqualsStringify111",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), PrismTestUtil.createPolyString("FOO"),
 						new QName(NS_Y, "bar"), "BAR"
@@ -232,8 +232,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEqualsStringify112() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-stringify-1.xml", 
-				"testExpressionPolyStringEqualsStringify112", 
+				"expression-polystring-equals-stringify-1.xml",
+				"testExpressionPolyStringEqualsStringify112",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), PrismTestUtil.createPolyString("FOOBAR"),
 						new QName(NS_Y, "bar"), "BAR"
@@ -244,8 +244,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEqualsStringify121() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-stringify-1.xml", 
-				"testExpressionPolyStringEqualsStringify121", 
+				"expression-polystring-equals-stringify-1.xml",
+				"testExpressionPolyStringEqualsStringify121",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), PrismTestUtil.createPolyStringType("FOO"),
 						new QName(NS_Y, "bar"), "BAR"
@@ -256,8 +256,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEqualsStringify122() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-stringify-1.xml", 
-				"testExpressionPolyStringEqualsStringify122", 
+				"expression-polystring-equals-stringify-1.xml",
+				"testExpressionPolyStringEqualsStringify122",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), PrismTestUtil.createPolyStringType("FOOBAR"),
 						new QName(NS_Y, "bar"), "BAR"
@@ -268,8 +268,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEqualsStringify201() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-stringify-2.xml", 
-				"testExpressionPolyStringEqualsStringify201", 
+				"expression-polystring-equals-stringify-2.xml",
+				"testExpressionPolyStringEqualsStringify201",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), "FOO",
 						new QName(NS_Y, "bar"), "BAR"
@@ -280,8 +280,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEqualsStringify202() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-stringify-2.xml", 
-				"testExpressionPolyStringEqualsStringify202", 
+				"expression-polystring-equals-stringify-2.xml",
+				"testExpressionPolyStringEqualsStringify202",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), "FOOBAR",
 						new QName(NS_Y, "bar"), "BAR"
@@ -292,8 +292,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEqualsStringify211() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-stringify-2.xml", 
-				"testExpressionPolyStringEqualsStringify211", 
+				"expression-polystring-equals-stringify-2.xml",
+				"testExpressionPolyStringEqualsStringify211",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), PrismTestUtil.createPolyString("FOO"),
 						new QName(NS_Y, "bar"), "BAR"
@@ -304,8 +304,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEqualsStringify212() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-stringify-2.xml", 
-				"testExpressionPolyStringEqualsStringify212", 
+				"expression-polystring-equals-stringify-2.xml",
+				"testExpressionPolyStringEqualsStringify212",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), PrismTestUtil.createPolyString("FOOBAR"),
 						new QName(NS_Y, "bar"), "BAR"
@@ -316,8 +316,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEqualsStringify221() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-stringify-2.xml", 
-				"testExpressionPolyStringEqualsStringify221", 
+				"expression-polystring-equals-stringify-2.xml",
+				"testExpressionPolyStringEqualsStringify221",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), PrismTestUtil.createPolyStringType("FOO"),
 						new QName(NS_Y, "bar"), "BAR"
@@ -328,8 +328,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 	@Test
     public void testExpressionPolyStringEqualsStringify222() throws Exception {
 		evaluateAndAssertBooleanScalarExpresssion(
-				"expression-polystring-equals-stringify-2.xml", 
-				"testExpressionPolyStringEqualsStringify222", 
+				"expression-polystring-equals-stringify-2.xml",
+				"testExpressionPolyStringEqualsStringify222",
 				ExpressionVariables.create(
 						new QName(NS_X, "foo"), PrismTestUtil.createPolyStringType("FOOBAR"),
 						new QName(NS_Y, "bar"), "BAR"

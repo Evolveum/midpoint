@@ -43,7 +43,7 @@ public class RefinedConnectorSchemaImpl extends ConnectorSchemaImpl implements R
 		PrismObject<ConnectorType> connector = connectorType.asPrismObject();
 		return getConnectorSchema(connector, prismContext);
 	}
-	
+
 	public static ConnectorSchema getConnectorSchema(PrismObject<ConnectorType> connector, PrismContext prismContext) throws SchemaException {
 		Element connectorXsdSchema = ConnectorTypeUtil.getConnectorXsdSchema(connector);
 		if (connectorXsdSchema == null) {
@@ -68,7 +68,7 @@ public class RefinedConnectorSchemaImpl extends ConnectorSchemaImpl implements R
 			return parsedSchema;
 		}
 	}
-	
+
 	public static void setParsedConnectorSchemaConditional(ConnectorType connectorType, ConnectorSchema parsedSchema) {
 		if (hasParsedSchema(connectorType)) {
 			return;

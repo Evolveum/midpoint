@@ -25,11 +25,11 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 
 /**
- * 
+ *
  * Test of spring application context initialization
- * 
+ *
  * @author Igor Farinic
- * 
+ *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests  {

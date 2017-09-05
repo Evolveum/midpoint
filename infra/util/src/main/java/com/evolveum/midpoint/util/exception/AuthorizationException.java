@@ -19,7 +19,7 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 
 /**
  * Exception indicating violation of authorization policies.
- * 
+ *
  * @author Radovan Semancik
  *
  */
@@ -32,7 +32,7 @@ public class AuthorizationException extends SecurityViolationException {
 	public AuthorizationException(String message) {
 		super(message);
 	}
-	
+
 	public AuthorizationException(LocalizableMessage userFriendlyMessage) {
 		super(userFriendlyMessage);
 	}
@@ -44,7 +44,7 @@ public class AuthorizationException extends SecurityViolationException {
 	public AuthorizationException(String message, Throwable cause) {
 		super(message, cause);
 	}
-	
+
 	public AuthorizationException(LocalizableMessage userFriendlyMessage, Throwable cause) {
 		super(userFriendlyMessage, cause);
 	}

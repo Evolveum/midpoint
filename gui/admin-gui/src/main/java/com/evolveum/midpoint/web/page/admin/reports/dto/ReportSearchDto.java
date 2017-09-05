@@ -25,7 +25,7 @@ import com.evolveum.midpoint.util.DebugUtil;
  * */
 public class ReportSearchDto implements Serializable, DebugDumpable {
 	private static final long serialVersionUID = 1L;
-	
+
 	public static final String F_SEARCH_TEXT = "text";
     public static final String F_PARENT = "parent";
 
@@ -47,7 +47,7 @@ public class ReportSearchDto implements Serializable, DebugDumpable {
     public void setParent(Boolean parent) {
         this.parent = parent;
     }
-    
+
     @Override
 	public String debugDump() {
 		return debugDump(0);

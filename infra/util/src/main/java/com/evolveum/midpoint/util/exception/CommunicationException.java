@@ -19,12 +19,12 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 
 /**
  * Generic communication exception.
- * 
+ *
  * May happen in case of various network communication errors, including
  * (but not limited to) connection refused and timeouts.
- * 
+ *
  * TODO
- * 
+ *
  * @author Radovan Semancik
  *
  */

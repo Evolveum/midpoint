@@ -32,12 +32,12 @@ import com.sun.xml.xsom.XSType;
 
 /**
  * Class to be used by schema processor but also by SchemaDefinitionFactory subclasses.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class SchemaProcessorUtil {
-	
+
 	public static final String MULTIPLICITY_UNBOUNDED = "unbounded";
 
 	public static boolean hasAnnotation(XSType xsType, QName annotationElementName) {
@@ -53,7 +53,7 @@ public class SchemaProcessorUtil {
 		}
 		return false;
 	}
-	
+
 	public static Element getAnnotationElement(XSAnnotation annotation, QName qname) {
 		if (annotation == null) {
 			return null;
@@ -90,9 +90,9 @@ public class SchemaProcessorUtil {
 		}
 		return DOMUtil.getQNameValue(element);
 	}
-	
+
 	/**
-	 * Parses "marker" boolean annotation. This means: 
+	 * Parses "marker" boolean annotation. This means:
 	 * no element: false
 	 * empty element: true
 	 * non-empty element: parse element content as boolean
@@ -130,5 +130,5 @@ public class SchemaProcessorUtil {
 		}
 		return Integer.parseInt(stringMultiplicity);
 	}
-	
+
 }

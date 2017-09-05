@@ -96,7 +96,7 @@ public class RepositoryObjectDataProvider
         }
 
             getPage().showResult(result, false);
-      
+
         LOGGER.trace("end::iterator()");
         return getAvailableData().iterator();
     }

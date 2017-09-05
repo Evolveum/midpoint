@@ -233,7 +233,7 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
         }
         return mergeTypeNamesList;
     }
-    
+
     private PrismObject<F> getMergeObjectsResult() {
         OperationResult result = new OperationResult(OPERATION_GET_MERGE_OBJECT_PREVIEW);
         PrismObject<F> mergeResultObject = null;

@@ -23,7 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  */
 @FunctionalInterface
 public interface Structured {
-	
+
 	Object resolve(ItemPath subpath);
 
 }

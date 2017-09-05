@@ -60,7 +60,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
     @Autowired protected PrismContext prismContext;
     @Autowired protected ExpressionFactory expressionFactory;
-    
+
     @Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -89,15 +89,15 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> END TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
         LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> END {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName(), method.getName()});
     }
-    
+
 	protected ModelServiceLocator getServiceLocator(final Task pageTask) {
 		return new ModelServiceLocator() {
-			
+
 			@Override
 			public ModelService getModelService() {
 				return modelService;
 			}
-			
+
 			@Override
 			public ModelInteractionService getModelInteractionService() {
 				return modelInteractionService;
@@ -140,23 +140,23 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 		};
 	}
 
-    
+
     protected void assertUserJack(PrismObject<UserType> user) {
 		assertUserJack(user, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
 	}
-	
+
 	protected void assertUserJack(PrismObject<UserType> user, String fullName) {
 		assertUserJack(user, fullName, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
 	}
-	
+
 	protected void assertUserJack(PrismObject<UserType> user, String fullName, String givenName, String familyName) {
 		assertUserJack(user, fullName, givenName, familyName, "Caribbean");
 	}
-	
+
 	protected void assertUserJack(PrismObject<UserType> user, String fullName, String givenName, String familyName, String locality) {
 		assertUserJack(user, USER_JACK_USERNAME, fullName, givenName, familyName, locality);
 	}
-	
+
 	protected void assertUserJack(PrismObject<UserType> user, String name, String fullName, String givenName, String familyName, String locality) {
 		assertUser(user, USER_JACK_OID, name, fullName, givenName, familyName, locality);
 		UserType userType = user.asObjectable();
@@ -169,5 +169,5 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 			PrismAsserts.assertEqualsPolyString("Wrong jack locality", locality, userType.getLocality());
 		}
 	}
-	
+
 }

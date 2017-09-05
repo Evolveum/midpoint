@@ -20,5 +20,5 @@ package com.evolveum.midpoint.prism.query;
 public interface Visitor {
 
 	void visit(ObjectFilter filter);
-	
+
 }

@@ -57,7 +57,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	private static final long serialVersionUID = -778283437426659540L;
 	private static final String DOT_CLASS = LensContext.class.getName() + ".";
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(LensContext.class);
 
 	private ModelState state = ModelState.INITIAL;
@@ -123,12 +123,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 * True if we want to reconcile all accounts in this context.
 	 */
 	private boolean doReconciliationForAllProjections = false;
-	
+
 	/**
 	 * If set to true then all operations are considered to be
 	 * in execution phase - for the purpose of authorizations and auditing.
 	 * This is used in case that the whole operation (context) is a
-	 * secondary change, e.g. in case that persona is provisioned. 
+	 * secondary change, e.g. in case that persona is provisioned.
 	 */
 	private boolean executionPhaseOnly = false;
 
@@ -418,7 +418,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	public void setChannel(QName channelQName) {
 		this.channel = QNameUtil.qNameToUri(channelQName);
 	}
-	
+
 	public boolean isDoReconciliationForAllProjections() {
 		return doReconciliationForAllProjections;
 	}
@@ -426,7 +426,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	public void setDoReconciliationForAllProjections(boolean doReconciliationForAllProjections) {
 		this.doReconciliationForAllProjections = doReconciliationForAllProjections;
 	}
-	
+
 	public boolean isReconcileFocus() {
 		return doReconciliationForAllProjections ||  ModelExecuteOptions.isReconcileFocus(options);
 	}

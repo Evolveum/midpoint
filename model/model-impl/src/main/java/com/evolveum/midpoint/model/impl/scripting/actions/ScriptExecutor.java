@@ -171,9 +171,9 @@ public class ScriptExecutor extends BaseActionExecutor {
 		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, prismValue);
 		variables.addVariableDefinition(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
 		ExpressionUtil.addActorVariable(variables, securityEnforcer);
-		
+
 		List<?> rv = Utils.evaluateScript(scriptExpression, null, variables, true, "in '"+NAME+"' action", context.getTask(), result);
-		
+
 		if (rv == null || rv.size() == 0) {
 			return null;
 		} else if (rv.size() == 1) {

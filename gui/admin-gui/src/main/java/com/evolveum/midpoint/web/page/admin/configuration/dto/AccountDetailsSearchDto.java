@@ -83,12 +83,12 @@ public class AccountDetailsSearchDto implements Serializable, DebugDumpable {
     public void setObjectClass(String objectClass) {
         this.objectClass = objectClass;
     }
-    
-    
+
+
     public FailedOperationTypeType getFailedOperationType() {
 		return failedOperationType;
 	}
-    
+
     public void setFailedOperationType(FailedOperationTypeType failedOperationType) {
 		this.failedOperationType = failedOperationType;
 	}

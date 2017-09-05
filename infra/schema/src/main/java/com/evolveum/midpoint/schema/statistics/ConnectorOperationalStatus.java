@@ -37,10 +37,10 @@ public class ConnectorOperationalStatus implements DebugDumpable, Serializable {
 	public static final String F_POOL_CONFIG_MIN_EVICTABLE_IDLE_TIME = "poolConfigMinEvictableIdleTime";
 	public static final String F_POOL_STATUS_NUM_IDLE = "poolStatusNumIdle";
 	public static final String F_POOL_STATUS_NUM_ACTIVE = "poolStatusNumActive";
-	
+
 	private String connectorName;
 	private String connectorClassName;
-	
+
 	// pool configuration
 	private Integer poolConfigMinSize;
 	private Integer poolConfigMaxSize;
@@ -48,11 +48,11 @@ public class ConnectorOperationalStatus implements DebugDumpable, Serializable {
 	private Integer poolConfigMaxIdle;
 	private Long poolConfigWaitTimeout;
 	private Long poolConfigMinEvictableIdleTime;
-	
+
 	// pool status
 	private Integer poolStatusNumIdle;
 	private Integer poolStatusNumActive;
-	
+
 	public String getConnectorName() {
 		return connectorName;
 	}
@@ -64,19 +64,19 @@ public class ConnectorOperationalStatus implements DebugDumpable, Serializable {
 	public String getConnectorClassName() {
 		return connectorClassName;
 	}
-	
+
 	public void setConnectorClassName(String connectorClassName) {
 		this.connectorClassName = connectorClassName;
 	}
-	
+
 	public Integer getPoolConfigMaxSize() {
 		return poolConfigMaxSize;
 	}
-	
+
 	public void setPoolConfigMaxSize(Integer poolConfigMaxSize) {
 		this.poolConfigMaxSize = poolConfigMaxSize;
 	}
-	
+
 	public Integer getPoolConfigMinSize() {
 		return poolConfigMinSize;
 	}
@@ -120,15 +120,15 @@ public class ConnectorOperationalStatus implements DebugDumpable, Serializable {
 	public Integer getPoolStatusNumIdle() {
 		return poolStatusNumIdle;
 	}
-	
+
 	public void setPoolStatusNumIdle(Integer poolStatusNumIdle) {
 		this.poolStatusNumIdle = poolStatusNumIdle;
 	}
-	
+
 	public Integer getPoolStatusNumActive() {
 		return poolStatusNumActive;
 	}
-	
+
 	public void setPoolStatusNumActive(Integer poolStatusNumActive) {
 		this.poolStatusNumActive = poolStatusNumActive;
 	}
@@ -254,10 +254,10 @@ public class ConnectorOperationalStatus implements DebugDumpable, Serializable {
 		DebugUtil.debugDumpWithLabelLn(sb, "poolStatusNumIdle", poolStatusNumIdle, indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "poolStatusNumActive", poolStatusNumActive, indent + 1);
 		return sb.toString();
-		
+
 	}
 
-	
-	
-	
+
+
+
 }

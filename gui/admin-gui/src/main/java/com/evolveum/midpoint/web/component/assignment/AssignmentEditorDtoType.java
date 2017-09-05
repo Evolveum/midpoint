@@ -29,7 +29,7 @@ public enum AssignmentEditorDtoType {
     ORG_UNIT(OrgType.class, OrgType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_ORG_ICON),
 
     ROLE(RoleType.class, RoleType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_ROLE_ICON),
-    
+
     SERVICE(ServiceType.class, ServiceType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON),
 
     USER(UserType.class, UserType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_USER_ICON),
@@ -37,7 +37,7 @@ public enum AssignmentEditorDtoType {
     CONSTRUCTION(null, ConstructionType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON),
 
     POLICY_RULE(null, PolicyRuleType.COMPLEX_TYPE, GuiStyleConstants.CLASS_FILE_TEXT),
-	
+
 	PERSONA_CONSTRUCTION(null, PersonaConstructionType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_USER_ICON);
 
     private Class<? extends ObjectType> type;
@@ -71,7 +71,7 @@ public enum AssignmentEditorDtoType {
 
         throw new IllegalArgumentException("Unknown assignment type '" + type.getName() + "'.");
     }
-    
+
     public static AssignmentEditorDtoType getType(QName type) {
         if (type == null) {
             return CONSTRUCTION;

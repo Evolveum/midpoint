@@ -18,7 +18,7 @@ package com.evolveum.midpoint.schema.result;
 /**
  * This may seems too simple and maybe pointless now. But we expect
  * that it may later evolve to something like future/promise.
- * 
+ *
  * @author semancik
  *
  */
@@ -33,12 +33,12 @@ public class AsynchronousOperationReturnValue<T> extends AsynchronousOperationRe
 	public void setReturnValue(T returnValue) {
 		this.returnValue = returnValue;
 	}
-	
+
 	public static <T> AsynchronousOperationReturnValue<T> wrap(T returnValue, OperationResult result) {
 		AsynchronousOperationReturnValue<T> ret = new AsynchronousOperationReturnValue<>();
 		ret.setOperationResult(result);
 		ret.setReturnValue(returnValue);
 		return ret;
 	}
-	
+
 }

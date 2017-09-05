@@ -68,29 +68,29 @@ public class WfProcessInstanceShadowTaskHandler implements TaskHandler {
 
     /*
      * There are two kinds of wf process-watching tasks: passive and active.
-     * 
+     *
      * *Passive tasks* are used when wf processes are sophisticated enough to send events
      * about their state changes (using e.g. listeners or custom java tasks). In that case
      * we simply use midpoint tasks as holders of information coming within these events.
-     * 
+     *
      * In the future, we will implement the original idea that when the workflow process
-     * instance finishes, the task status will be changed to RUNNABLE, and then this task 
+     * instance finishes, the task status will be changed to RUNNABLE, and then this task
      * will be picked up by TaskManager to be run. This handler will be then called.
      * However, as for now, all processing (including post-processing after wf process
      * finish) is done within WorkflowHook.activiti2midpoint method.
-     * 
+     *
      * As for *active tasks*, these are used to monitor simple wf processes, which do
      * not send any information to midpoint by themselves. These tasks are recurrent,
      * so their run() method is periodically executed. This method simply asks the
      * WfMS for the information about the particular process id. The response is asynchronous,
      * and is processed within WorkflowHook.activiti2midpoint method.
-     *  
+     *
      */
 	@Override
 	public TaskRunResult run(Task task) {
 
         if (wfConfiguration.isEnabled()) {
-		
+
 		    // is this task already closed? (this flag is set by activiti2midpoint when it gets information about wf process termination)
             // todo: fixme this is a bit weird
 		    if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {

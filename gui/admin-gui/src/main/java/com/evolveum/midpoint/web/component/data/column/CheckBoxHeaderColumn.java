@@ -46,7 +46,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
     public CheckBoxHeaderColumn() {
         super(null);
     }
-    
+
     private boolean visible = true;
 
     @Override
@@ -64,27 +64,27 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         };
         panel.setOutputMarkupId(true);
         panel.add(new VisibleEnableBehaviour() {
-        	
+
         	@Override
         	public boolean isVisible() {
         		return CheckBoxHeaderColumn.this.isCheckboxVisible();
         	}
-        	
+
         });
 
         return panel;
     }
-    
+
 
     @Override
     public String getCssClass() {
         return "icon";
     }
-    
+
     protected boolean isCheckboxVisible(){
     	return visible;
     }
-    
+
     public void setCheckboxVisible(boolean visible){
     	this.visible = visible;
     }

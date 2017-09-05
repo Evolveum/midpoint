@@ -39,41 +39,41 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 public class TestUnitObjectWrapperFactory extends AbstractGuiUnitTest {
-	
+
 	@Test
     public void testCreateWrapperUser() throws Exception {
 		final String TEST_NAME = "testCreateWrapperUser";
 		TestUtil.displayTestTitle(TEST_NAME);
-		
+
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_REPO_FILE);
 		PrismObjectDefinition<UserType> objDef = user.getDefinition();
-		
+
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		
+
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator());
-		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user, 
+		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user,
 				objDef, null, ContainerStatus.MODIFYING);
-		
+
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
-		
+
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
-		
+
 		WrapperTestUtil.assertWrapper(objectWrapper, "user display name", "user description", user, ContainerStatus.MODIFYING);
 		assertEquals("wrong number of containers in "+objectWrapper, 11, objectWrapper.getContainers().size());
-		
+
 		ContainerWrapper mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		WrapperTestUtil.assertWrapper(mainContainerWrapper, "prismContainer.mainPanelDisplayName", (ItemPath)null, user, ContainerStatus.MODIFYING);
 		WrapperTestUtil.assertPropertyWrapper(mainContainerWrapper, UserType.F_NAME, PrismTestUtil.createPolyString("jack"));
 		WrapperTestUtil.assertPropertyWrapper(mainContainerWrapper, UserType.F_TIMEZONE, null);
-		
+
 		ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(UserType.F_ACTIVATION));
 		WrapperTestUtil.assertWrapper(activationContainerWrapper, "ActivationType.activation", UserType.F_ACTIVATION, user, ContainerStatus.MODIFYING);
 		WrapperTestUtil.assertPropertyWrapper(activationContainerWrapper, ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
 		WrapperTestUtil.assertPropertyWrapper(activationContainerWrapper, ActivationType.F_LOCKOUT_STATUS, null);
 	}
-	
+
 	// We cannot unit test shadow wrapper. It requires initialized resource, resource schema, capabilities, working model service, etc.
 
 

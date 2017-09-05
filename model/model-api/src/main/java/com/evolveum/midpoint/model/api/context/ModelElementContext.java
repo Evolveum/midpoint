@@ -37,25 +37,25 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
     PrismObject<O> getObjectOld();
 
 	void setObjectOld(PrismObject<O> objectOld);
-	
+
 	PrismObject<O> getObjectNew();
-	
+
 	void setObjectNew(PrismObject<O> objectNew);
-	
+
 	ObjectDelta<O> getPrimaryDelta();
-	
+
 	void setPrimaryDelta(ObjectDelta<O> primaryDelta);
 
 	void addPrimaryDelta(ObjectDelta<O> value) throws SchemaException;
-	
+
 	ObjectDelta<O> getSecondaryDelta();
-	
+
 	void setSecondaryDelta(ObjectDelta<O> secondaryDelta);
 
     List<? extends ObjectDeltaOperation> getExecutedDeltas();
 
     String getOid();
-    
+
     /**
 	 * Returns all policy rules that apply to this object - even those that were not triggered.
 	 * The policy rules are compiled from all the applicable sources (target, meta-roles, etc.)

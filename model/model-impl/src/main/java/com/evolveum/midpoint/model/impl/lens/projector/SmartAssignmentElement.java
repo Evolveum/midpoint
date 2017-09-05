@@ -21,7 +21,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 /**
- * 
+ *
  * @author semancik
  */
 public class SmartAssignmentElement implements DebugDumpable {
@@ -30,11 +30,11 @@ public class SmartAssignmentElement implements DebugDumpable {
 	private boolean isCurrent = false;
 	private boolean isOld = false;
 	private boolean isChanged = false;
-	
+
 	public SmartAssignmentElement(PrismContainerValue<AssignmentType> assignmentCVal) {
 		this.assignmentCVal = assignmentCVal;
 	}
-	
+
 	public boolean isCurrent() {
 		return isCurrent;
 	}
@@ -62,7 +62,7 @@ public class SmartAssignmentElement implements DebugDumpable {
 	public PrismContainerValue<AssignmentType> getAssignmentCVal() {
 		return assignmentCVal;
 	}
-	
+
 	public SmartAssignmentKey getKey() {
 		return new SmartAssignmentKey(assignmentCVal);
 	}
@@ -97,8 +97,8 @@ public class SmartAssignmentElement implements DebugDumpable {
 			sb.append(label).append(",");
 		}
 	}
-	
+
 	// TODO: equals, hashCode
-	
-	
+
+
 }

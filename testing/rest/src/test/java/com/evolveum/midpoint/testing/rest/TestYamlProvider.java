@@ -39,9 +39,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 
 public class TestYamlProvider<T> extends MidpointYamlProvider<T> {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(TestYamlProvider.class);
-	
+
 	@Override
 	public void writeTo(T object, Class<?> type, Type genericType, Annotation[] annotations,
 			MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
@@ -50,22 +50,22 @@ public class TestYamlProvider<T> extends MidpointYamlProvider<T> {
 		LOGGER.trace("Object to write: {},\ntype: {},\ngenericType: {},\nhttpHeaders: {}", new Object[]{object, type, genericType, httpHeaders});
 		super.writeTo(object, type, genericType, annotations, mediaType, httpHeaders, entityStream);
 	}
-	
+
 	@Override
 	public T readFrom(Class<T> type, Type genericType, Annotation[] annotations, MediaType mediaType,
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 					throws IOException, WebApplicationException {
-		
+
 		if (String.class.isAssignableFrom(type.getClass())) {
 			return (T) IOUtils.toString(entityStream);
 		}
-		
+
 		T result = super.readFrom(type, genericType, annotations, mediaType, httpHeaders, entityStream);
 		if (result instanceof PrismObject) {
 			return (T) ((PrismObject) result).asObjectable();
 		}
-		
+
 		return result;
 	}
-	
+
 }

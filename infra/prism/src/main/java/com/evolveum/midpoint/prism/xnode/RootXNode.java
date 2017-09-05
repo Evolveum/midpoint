@@ -27,7 +27,7 @@ public class RootXNode extends XNode {
 
 	@NotNull private QName rootElementName;
 	private XNode subnode;
-	
+
 	public RootXNode(@NotNull QName rootElementName) {
 		this.rootElementName = rootElementName;
 	}
@@ -93,7 +93,7 @@ public class RootXNode extends XNode {
 			subnode.accept(visitor);
 		}
 	}
-	
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
@@ -111,12 +111,12 @@ public class RootXNode extends XNode {
 		}
 		return sb.toString();
 	}
-	
+
 	@Override
 	public String getDesc() {
 		return "root";
 	}
-	
+
 	@Override
 	public String toString() {
 		return "XNode(root:"+subnode+")";

@@ -70,12 +70,12 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
         }
         return (Collection) MiscUtil.union(valuesToAdd, valuesToDelete);
     }
-    
+
     @Override
 	public PrismContainerDefinition<V> getDefinition() {
 		return (PrismContainerDefinition<V>) super.getDefinition();
 	}
-    
+
     @Override
 	public void setDefinition(PrismContainerDefinition<V> definition) {
     	if (!(definition instanceof PrismContainerDefinition)) {
@@ -95,7 +95,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		}
 		super.applyDefinition(definition);
 	}
-	
+
 	@Override
 	public boolean hasCompleteDefinition() {
 		if (!super.hasCompleteDefinition()) {
@@ -132,7 +132,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		}
 		return null;
 	}
-	
+
 	@Override
 	protected boolean isApplicableToType(Item item) {
 		return item instanceof PrismContainer;
@@ -162,7 +162,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		}
 		return itemDelta;
 	}
-	
+
 	private Collection findItemValues(Long id, ItemPath path, Collection<PrismContainerValue<V>> cvalues) {
 		if (cvalues == null) {
 			return null;
@@ -178,7 +178,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		}
 		return subValues;
 	}
-	
+
 	/**
 	 * Post processing of delta to expand missing values from the object. E.g. a delete deltas may
 	 * be "id-only" so they contain only id of the value to delete. In such case locate the full value
@@ -215,7 +215,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 			}
 		}
 	}
-	
+
     @Override
 	protected boolean isValueEquivalent(PrismContainerValue<V> a, PrismContainerValue<V> b) {
 		if (!super.isValueEquivalent(a, b)) {
@@ -257,7 +257,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		copyValues(clone);
 		return clone;
 	}
-	
+
 	protected void copyValues(ContainerDelta<V> clone) {
 		super.copyValues(clone);
 	}
@@ -266,18 +266,18 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 			Class<O> type, PrismContext prismContext) {
     	return createDelta(new ItemPath(containerName), type, prismContext);
     }
-	
+
 	public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createDelta(ItemPath containerPath,
 			Class<O> type, PrismContext prismContext) {
     	PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
     	return createDelta(containerPath, objectDefinition);
     }
-    
+
 	public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createDelta(QName containerName,
     		PrismObjectDefinition<O> objectDefinition) {
 		return createDelta(new ItemPath(containerName), objectDefinition);
 	}
-	
+
     public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createDelta(ItemPath containerPath,
     		PrismObjectDefinition<O> objectDefinition) {
 		PrismContainerDefinition<T> containerDefinition = objectDefinition.findContainerDefinition(containerPath);
@@ -298,18 +298,18 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
     		Class<O> type, PrismContext prismContext, T containerable) throws SchemaException {
     	return createModificationAdd(new ItemPath(containerName), type, prismContext, containerable);
     }
-        
-    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationAdd(ItemPath containerPath, 
+
+    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationAdd(ItemPath containerPath,
     		Class<O> type, PrismContext prismContext, T containerable) throws SchemaException {
     	return createModificationAdd(containerPath, type, prismContext, containerable.asPrismContainerValue());
     }
-    
-    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationAdd(QName containerName, 
+
+    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationAdd(QName containerName,
     		Class<O> type, PrismContext prismContext, PrismContainerValue<T> cValue) throws SchemaException {
     	return createModificationAdd(new ItemPath(containerName), type, prismContext, cValue);
     }
-    
-    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationAdd(ItemPath containerPath, 
+
+    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationAdd(ItemPath containerPath,
     		Class<O> type, PrismContext prismContext, PrismContainerValue<T> cValue) throws SchemaException {
     	ContainerDelta<T> delta = createDelta(containerPath, type, prismContext);
     	prismContext.adopt(cValue, type, containerPath);
@@ -317,22 +317,22 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
     	return delta;
     }
 
-    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationDelete(QName containerName, 
+    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationDelete(QName containerName,
     		Class<O> type, PrismContext prismContext, T containerable) throws SchemaException {
     	return createModificationDelete(new ItemPath(containerName), type, prismContext, containerable);
     }
-    
-    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationDelete(ItemPath containerPath, 
+
+    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationDelete(ItemPath containerPath,
     		Class<O> type, PrismContext prismContext, T containerable) throws SchemaException {
     	return createModificationDelete(containerPath, type, prismContext, containerable.asPrismContainerValue());
     }
-    
-    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationDelete(QName containerName, 
+
+    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationDelete(QName containerName,
     		Class<O> type, PrismContext prismContext, PrismContainerValue<T> cValue) throws SchemaException {
     	return createModificationDelete(new ItemPath(containerName), type, prismContext, cValue);
     }
-    
-    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationDelete(ItemPath containerPath, 
+
+    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationDelete(ItemPath containerPath,
     		Class<O> type, PrismContext prismContext, PrismContainerValue<T> cValue) throws SchemaException {
     	ContainerDelta<T> delta = createDelta(containerPath, type, prismContext);
     	prismContext.adopt(cValue, type, containerPath);
@@ -340,7 +340,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
     	return delta;
     }
 
-    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(QName containerName, 
+    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(QName containerName,
     		Class<O> type, PrismContext prismContext, T containerable) throws SchemaException {
     	return createModificationReplace(new ItemPath(containerName), type, prismContext, containerable);
     }
@@ -349,8 +349,8 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 																											 Class<O> type, PrismContext prismContext, Collection<T> containerables) throws SchemaException {
 		return createModificationReplace(new ItemPath(containerName), type, prismContext, containerables);
 	}
-    
-    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(ItemPath containerPath, 
+
+    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(ItemPath containerPath,
     		Class<O> type, PrismContext prismContext, T containerable) throws SchemaException {
     	return createModificationReplace(containerPath, type, prismContext, containerable.asPrismContainerValue());
     }
@@ -365,13 +365,13 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		delta.setValuesToReplace(pcvs);
 		return delta;
 	}
-    
-    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(QName containerName, 
+
+    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(QName containerName,
     		Class<O> type, PrismContext prismContext, PrismContainerValue<T> cValue) throws SchemaException {
     	return createModificationReplace(new ItemPath(containerName), type, prismContext, cValue);
     }
-    
-    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(ItemPath containerPath, 
+
+    public static <T extends Containerable,O extends Objectable> ContainerDelta<T> createModificationReplace(ItemPath containerPath,
     		Class<O> type, PrismContext prismContext, PrismContainerValue<T> cValue) throws SchemaException {
     	ContainerDelta<T> delta = createDelta(containerPath, type, prismContext);
     	prismContext.adopt(cValue, type, containerPath);
@@ -417,5 +417,5 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
         	}
         }
     }
-	
+
 }

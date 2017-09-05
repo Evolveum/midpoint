@@ -57,7 +57,7 @@ public class TestModelServiceContractCaching extends TestModelServiceContract {
 	protected File getResourceDummyGreenFile() {
 		return RESOURCE_DUMMY_GREEN_CACHING_FILE;
 	}
-	
+
 	@Override
 	protected void assertShadowRepo(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
             QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
@@ -65,7 +65,7 @@ public class TestModelServiceContractCaching extends TestModelServiceContract {
 		CachingMetadataType cachingMetadata = shadow.asObjectable().getCachingMetadata();
 		assertNotNull("Missing caching metadata in repo shadow"+shadow, cachingMetadata);
 	}
-	
+
 	@Override
 	protected void assertRepoShadowAttributes(List<Item<?,?>> attributes, int expectedNumberOfIdentifiers) {
 		// We can only assert that there are at least the identifiers. But we do not know how many attributes should be there

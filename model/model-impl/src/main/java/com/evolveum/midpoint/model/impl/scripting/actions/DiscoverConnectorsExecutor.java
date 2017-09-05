@@ -167,7 +167,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
             		connectorType.setConnectorHostRef(ObjectTypeUtil.createObjectRef(connectorType.getConnectorHost().getOid(), ObjectTypes.CONNECTOR_HOST));
                 	connectorType.setConnectorHost(null);
             	}
-            	
+
             }
             if (connectorType.getConnectorHostRef().equals(foundConnectorType.getConnectorHostRef()) &&
                     foundConnectorType.getConnectorVersion() != null &&

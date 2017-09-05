@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * This class does nothing. It just takes place when no real Lens Context is available.
  * @see ModelExpressionThreadLocalHolder
- * 
+ *
  * @author semancik
  *
  */
@@ -52,6 +52,6 @@ public class LensContextPlaceholder<F extends ObjectType> extends LensContext<F>
         sb.append("LensContextPlaceholder");
         return sb.toString();
 	}
-	
-	
+
+
 }

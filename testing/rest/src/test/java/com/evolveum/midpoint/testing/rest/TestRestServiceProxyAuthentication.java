@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(TestRestServiceProxyAuthentication.class);
 
 	// REST and end user authorization
@@ -56,27 +56,27 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 	public static final String USER_HEAD_PASSWORD = "headPassw0rd";
 
 	public static final File ROLE_PROXY_FILE = new File(BASE_REPO_DIR, "role-proxy.xml");
-	
+
 	// REST and end user authorization
 		public static final File USER_PROXY_FILE = new File(BASE_REPO_DIR, "user-proxy.xml");
 		public static final String USER_PROXY_OID = "d8f3e3c8-d48b-11e4-8d88-001e8c717e5b";
 		public static final String USER_PROXY_USERNAME = "proxy";
 		public static final String USER_PROXY_PASSWORD = "proxyPassword";
-	
+
 	@Override
 	public void startServer() throws Exception {
 		// TODO Auto-generated method stub
 		super.startServer();
-		
+
 		OperationResult result = new OperationResult("Init config");
 		addObject(ROLE_PROXY_FILE, result);
 		addObject(USER_EGOIST_FILE, result);
 		addObject(USER_HEAD_FILE, result);
 		addObject(USER_PROXY_FILE, result);
-		
+
 		InternalMonitor.reset();
 	}
-				
+
 	@Test
 	public void test001getUserSelfBySomebody() {
 		final String TEST_NAME = "test001getUserSelfBySomebody";
@@ -84,23 +84,23 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 
 		WebClient client = prepareClient(USER_SOMEBODY_OID);
 		client.path("/self/");
-		
+
 		getDummyAuditService().clear();
 
 		TestUtil.displayWhen(TEST_NAME);
 		Response response = client.get();
-		
+
 		TestUtil.displayThen(TEST_NAME);
 		assertStatus(response, 200);
 		UserType userType = response.readEntity(UserType.class);
 		assertNotNull("Returned entity in body must not be null.", userType);
 		LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
-		
+
 		IntegrationTestTools.display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(2);
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 	}
-	
+
 	@Test
 	public void test002getUserSelfByEgoist() {
 		final String TEST_NAME = "test002getUserSelfByEgoist";
@@ -108,25 +108,25 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 
 		WebClient client = prepareClient(USER_EGOIST_OID);
 		client.path("/self/");
-		
+
 		getDummyAuditService().clear();
 
 		TestUtil.displayWhen(TEST_NAME);
 		Response response = client.get();
-		
+
 		TestUtil.displayThen(TEST_NAME);
 		assertStatus(response, 200);
 		UserType userType = response.readEntity(UserType.class);
 		assertNotNull("Returned entity in body must not be null.", userType);
 		LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
-		
+
 		IntegrationTestTools.display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(2);
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 	}
-	
+
 	/**
-	 * egoist doesn't have authorization to read other object. ot has only end user role, 
+	 * egoist doesn't have authorization to read other object. ot has only end user role,
 	 * so he is allowed to performed defined actions on his own.
 	 */
 	@Test
@@ -136,20 +136,20 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 
 		WebClient client = prepareClient(USER_EGOIST_OID);
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
-		
+
 		getDummyAuditService().clear();
 
 		TestUtil.displayWhen(TEST_NAME);
 		Response response = client.get();
-		
+
 		TestUtil.displayThen(TEST_NAME);
 		assertStatus(response, 403);
-		
+
 		IntegrationTestTools.display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(2);
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 	}
-	
+
 	/**
 	 * user head is a super user and has also rest authorization so he can perform any action
 	 */
@@ -160,23 +160,23 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 
 		WebClient client = prepareClient(null);
 		client.path("/self");
-		
+
 		getDummyAuditService().clear();
 
 		TestUtil.displayWhen(TEST_NAME);
 		Response response = client.get();
-		
+
 		TestUtil.displayThen(TEST_NAME);
 		assertStatus(response, 200);
 		UserType userType = response.readEntity(UserType.class);
 		assertNotNull("Returned entity in body must not be null.", userType);
 		LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
-		
+
 		IntegrationTestTools.display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(2);
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 	}
-	
+
 	/**
 	 * even though head is a superuser, it is not allowed for service application to switch to this user,
 	 * therefore head is not allowed to read user administrator using inpersonation
@@ -188,15 +188,15 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 
 		WebClient client = prepareClient(USER_HEAD_OID);
 		client.path("/self");
-		
+
 		getDummyAuditService().clear();
 
 		TestUtil.displayWhen(TEST_NAME);
 		Response response = client.get();
-		
+
 		TestUtil.displayThen(TEST_NAME);
 		assertStatus(response, 403);
-		
+
 		IntegrationTestTools.display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(2);
 		getDummyAuditService().assertFailedProxyLogin(SchemaConstants.CHANNEL_REST_URI);
@@ -216,7 +216,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 	protected MidpointAbstractProvider getProvider() {
 		return xmlProvider;
 	}
-	
+
 	private WebClient prepareClient(String proxyUserOid) {
 		WebClient client = prepareClient("proxy", "proxyPassword");
 		if (StringUtils.isNotBlank(proxyUserOid)){
@@ -224,6 +224,6 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 		}
 		return client;
 	}
-	
-	
+
+
 }

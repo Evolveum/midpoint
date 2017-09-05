@@ -57,7 +57,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<String> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractJsonLexicalProcessor.class);
-	
+
 	private static final String PROP_NAMESPACE = "@ns";
 	private static final String PROP_TYPE = "@type";
 	private static final String PROP_ELEMENT = "@element";
@@ -883,11 +883,11 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 			if (!subNodeNs.equals(globalNamespace)){
 				globalNamespace = subNodeNs;
 				generator.writeStringField(PROP_NAMESPACE, globalNamespace);
-				
+
 			}
 		}
 		return globalNamespace;
 	}
 	//endregion
-	
+
 }

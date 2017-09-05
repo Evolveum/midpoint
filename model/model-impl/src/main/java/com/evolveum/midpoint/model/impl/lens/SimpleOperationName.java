@@ -20,11 +20,11 @@ package com.evolveum.midpoint.model.impl.lens;
  *
  */
 public enum SimpleOperationName {
-	
+
 	ADD("add"),
 	MODIFY("modify"),
 	DELETE("delete");
-	
+
 	private final String value;
 
 	private SimpleOperationName(String value) {

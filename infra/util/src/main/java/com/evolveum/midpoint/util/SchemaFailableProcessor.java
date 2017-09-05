@@ -25,5 +25,5 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public interface SchemaFailableProcessor<T> {
 
 	void process(T object) throws SchemaException;
-	
+
 }

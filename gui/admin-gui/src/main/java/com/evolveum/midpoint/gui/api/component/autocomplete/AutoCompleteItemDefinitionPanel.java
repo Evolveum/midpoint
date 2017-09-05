@@ -23,15 +23,15 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 
 public class AutoCompleteItemDefinitionPanel extends AbstractAutoCompletePanel {
 
-	
+
 	private static final long serialVersionUID = 1L;
 	private static final String ID_INPUT = "input";
-	
+
 	 public AutoCompleteItemDefinitionPanel(String id, final IModel<ItemDefinition<?>> model) {
 	    	super(id);
 	    	initLayout(model);
 	    }
-	
+
 	private void initLayout(final IModel<ItemDefinition<?>> model) {
 		final Model<String> itemDefinitionAsStringModel = new Model<String>(null);
 		AutoCompleteTextField<String> input = new AutoCompleteTextField<String>(
@@ -46,17 +46,17 @@ public class AutoCompleteItemDefinitionPanel extends AbstractAutoCompletePanel {
 					defsAsString.add(def.getName().getLocalPart());
 				}
 				return defsAsString.iterator();
-				
+
 			}
-			
+
 			@Override
 					protected void onConfigure() {
 						itemDefinitionAsStringModel.setObject(null);
 					}
-			
-			
+
+
 		};
-	
+
 		 input.add(new OnChangeAjaxBehavior() {
 				private static final long serialVersionUID = 1L;
 
@@ -71,14 +71,14 @@ public class AutoCompleteItemDefinitionPanel extends AbstractAutoCompletePanel {
 					}
 				}
 			});
-		
+
 		add(input);
 	}
-	
+
 	protected Map<String, ItemDefinition<?>> listChoices(String input){
 		return new HashMap<String, ItemDefinition<?>>();
 	}
-	
+
 	@Override
 	public FormComponent<?> getBaseFormComponent() {
 		return (FormComponent<?>) get(ID_INPUT);

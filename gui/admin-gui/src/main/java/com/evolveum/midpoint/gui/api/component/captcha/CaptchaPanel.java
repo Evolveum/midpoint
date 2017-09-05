@@ -79,14 +79,14 @@ public class CaptchaPanel extends BasePanel<Void> {
 				getChallengeIdModel().setObject(randomText);
 				return super.render();
 			}
-			
+
 		};
 	}
-	
+
 	public void invalidateCaptcha() {
 		captchaImageResource.invalidate();
 	}
-	
+
 	static int randomInt(int min, int max)
     {
 		return (int)(Math.random() * (max - min) + min);
@@ -94,24 +94,24 @@ public class CaptchaPanel extends BasePanel<Void> {
 
     static String randomString()
     {
-    	return new Integer(randomInt(1000, 9999)).toString(); 
+    	return new Integer(randomInt(1000, 9999)).toString();
 //    	for (int i = 0; i< length; i++){
-//    		
+//
 //    	}
-//    	
+//
 //        int num = randomInt(min, max);
 //        byte b[] = new byte[num];
 //        for (int i = 0; i < num; i++)
 //            b[i] = (byte)randomInt('a', 'z');
 //        return new String(b);
     }
-    
+
     public String getCaptchaText() {
 		return captchaText;
 	}
-    
+
     public String getRandomText() {
 		return captchaImageResource.getChallengeId();
 	}
-    
+
 }

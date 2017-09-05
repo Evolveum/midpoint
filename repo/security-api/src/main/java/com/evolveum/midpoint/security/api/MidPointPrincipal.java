@@ -38,7 +38,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  */
 public class MidPointPrincipal implements UserDetails,  DebugDumpable {
-	
+
 	private static final long serialVersionUID = 8299738301872077768L;
     @NotNull private final UserType user;
     private Collection<Authorization> authorizations = new ArrayList<>();

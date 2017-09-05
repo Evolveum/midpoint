@@ -27,11 +27,11 @@ import com.evolveum.midpoint.prism.PrismContext;
 public class CustomWrappedOutInterceptor extends BareOutInterceptor{
 
 	private PrismContext prismContext;
-	
+
 	public CustomWrappedOutInterceptor(PrismContext prismContext) {
 		this.prismContext = prismContext;
 	}
-	
+
 	@Override
 	public void handleMessage(Message message) {
 		super.handleMessage(message);
@@ -44,10 +44,10 @@ public class CustomWrappedOutInterceptor extends BareOutInterceptor{
 		}
     	message.getInterceptorChain().remove(defaultInterceptor);
 	}
-	
+
 	@Override
-	protected void writeParts(Message message, Exchange exchange, 
-            BindingOperationInfo operation, MessageContentsList objs, 
+	protected void writeParts(Message message, Exchange exchange,
+            BindingOperationInfo operation, MessageContentsList objs,
             List<MessagePartInfo> parts) {
 		// TODO Auto-generated method stub
 		OutputStream out = message.getContent(OutputStream.class);
@@ -55,7 +55,7 @@ public class CustomWrappedOutInterceptor extends BareOutInterceptor{
         Service service = exchange.getService();
         XMLStreamWriter xmlWriter = origXmlWriter;
         CachingXmlEventWriter cache = null;
-        
+
         Object en = message.getContextualProperty(OUT_BUFFERING);
         boolean allowBuffer = true;
         boolean buffer = false;
@@ -74,8 +74,8 @@ public class CustomWrappedOutInterceptor extends BareOutInterceptor{
             xmlWriter = cache;
             out = null;
         }
-        
-        if (out != null 
+
+        if (out != null
             && writeToOutputStream(message, operation.getBinding(), service)
             && !MessageUtils.isTrue(message.getContextualProperty(DISABLE_OUTPUTSTREAM_OPTIMIZATION))) {
             if (xmlWriter != null) {
@@ -86,18 +86,18 @@ public class CustomWrappedOutInterceptor extends BareOutInterceptor{
                     throw new Fault(e);
                 }
             }
-            
+
             DataWriter<OutputStream> osWriter = getDataWriter(message, service, OutputStream.class);
 
             for (MessagePartInfo part : parts) {
                 if (objs.hasValue(part)) {
                     Object o = objs.get(part);
-                    osWriter.write(o, part, out);                  
+                    osWriter.write(o, part, out);
                 }
             }
         } else {
             DataWriter<XMLStreamWriter> dataWriter = new CustomDataWriter(prismContext);
-            
+
             for (MessagePartInfo part : parts) {
                 if (objs.hasValue(part)) {
                     Object o = objs.get(part);
@@ -115,6 +115,6 @@ public class CustomWrappedOutInterceptor extends BareOutInterceptor{
             }
         }
 	}
-	
-	
+
+
 }

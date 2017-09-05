@@ -25,33 +25,31 @@ import org.w3c.dom.Element;
 
 
 /**
- * 
+ *
  *                 Parameters limiting the number of returned
  *                 entries, offset, etc.
  *                 Used in the web service operations
  *                 such as list or search
- *             
- * 
+ *
+ *
  * <p>Java class for PagingType complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
- * &lt;complexType name="PagingType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="orderBy" type="{http://prism.evolveum.com/xml/ns/public/types-3}XPathType" minOccurs="0"/>
- *         &lt;element name="orderDirection" type="{http://prism.evolveum.com/xml/ns/public/query-2}OrderDirectionType" minOccurs="0"/>
- *         &lt;element name="offset" type="{http://www.w3.org/2001/XMLSchema}int" minOccurs="0"/>
- *         &lt;element name="maxSize" type="{http://www.w3.org/2001/XMLSchema}int" minOccurs="0"/>
- *       &lt;/sequence>
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="PagingType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="orderBy" type="{http://prism.evolveum.com/xml/ns/public/types-3}XPathType" minOccurs="0"/&gt;
+ *         &lt;element name="orderDirection" type="{http://prism.evolveum.com/xml/ns/public/query-2}OrderDirectionType" minOccurs="0"/&gt;
+ *         &lt;element name="offset" type="{http://www.w3.org/2001/XMLSchema}int" minOccurs="0"/&gt;
+ *         &lt;element name="maxSize" type="{http://www.w3.org/2001/XMLSchema}int" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "PagingType", propOrder = {
@@ -78,7 +76,7 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
 
     /**
      * Creates a new {@code PagingType} instance.
-     * 
+     *
      */
     public PagingType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -87,8 +85,8 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
 
     /**
      * Creates a new {@code PagingType} instance by deeply copying a given {@code PagingType} instance.
-     * 
-     * 
+     *
+     *
      * @param o
      *     The instance to copy.
      * @throws NullPointerException
@@ -111,11 +109,11 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
 
     /**
      * Gets the value of the orderBy property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link Element }
-     *     
+     *
      */
     public ItemPathType getOrderBy() {
         return orderBy;
@@ -123,11 +121,11 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
 
     /**
      * Sets the value of the orderBy property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link Element }
-     *     
+     *
      */
     public void setOrderBy(ItemPathType value) {
         this.orderBy = value;
@@ -135,11 +133,11 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
 
     /**
      * Gets the value of the orderDirection property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link OrderDirectionType }
-     *     
+     *
      */
     public OrderDirectionType getOrderDirection() {
         return orderDirection;
@@ -147,11 +145,11 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
 
     /**
      * Sets the value of the orderDirection property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link OrderDirectionType }
-     *     
+     *
      */
     public void setOrderDirection(OrderDirectionType value) {
         this.orderDirection = value;
@@ -159,11 +157,11 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
 
     /**
      * Gets the value of the offset property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link Integer }
-     *     
+     *
      */
     public Integer getOffset() {
         return offset;
@@ -171,11 +169,11 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
 
     /**
      * Sets the value of the offset property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link Integer }
-     *     
+     *
      */
     public void setOffset(Integer value) {
         this.offset = value;
@@ -183,11 +181,11 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
 
     /**
      * Gets the value of the maxSize property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link Integer }
-     *     
+     *
      */
     public Integer getMaxSize() {
         return maxSize;
@@ -195,11 +193,11 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
 
     /**
      * Sets the value of the maxSize property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link Integer }
-     *     
+     *
      */
     public void setMaxSize(Integer value) {
         this.maxSize = value;
@@ -208,7 +206,7 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     * 
+     *
      */
     @Override
     public String toString() {
@@ -299,8 +297,8 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

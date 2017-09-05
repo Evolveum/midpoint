@@ -60,9 +60,9 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
     private SearchFilterType filter = null;
     private EvaluationTimeType resolutionTime;
     private PolyString targetName = null;
-    
+
     private Referencable referencable;
-    
+
     public PrismReferenceValue() {
         this(null,null,null);
     }
@@ -70,7 +70,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
     public PrismReferenceValue(String oid) {
         this(oid, null, null);
     }
-    
+
     public PrismReferenceValue(String oid, QName targetType) {
         this(oid, null, null);
         this.targetType = targetType;
@@ -83,10 +83,10 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 
 	/**
 	 * OID of the object that this reference refers to (reference target).
-	 * 
+	 *
 	 * May return null, but the reference is in that case incomplete and
 	 * unusable.
-	 * 
+	 *
 	 * @return the target oid
 	 */
     public String getOid() {
@@ -103,15 +103,15 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		checkMutability();
 		this.oid = oid;
 	}
-	
+
 	/**
 	 * Returns object that this reference points to. The object is supposed to be used
 	 * for caching and optimizations. Only oid and type of the object really matters for
 	 * the reference.
-	 * 
+	 *
 	 * The object is transient. It will NOT be serialized. Therefore the client must
 	 * expect that the object can disappear when serialization boundary is crossed.
-	 * The client must expect that the object is null. 
+	 * The client must expect that the object is null.
 	 */
 	public PrismObject getObject() {
 		return object;
@@ -125,9 +125,9 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	/**
 	 * Returns XSD type of the object that this reference refers to. It may be
 	 * used in XPath expressions and similar filters.
-	 * 
+	 *
 	 * May return null if the type name is not set.
-	 * 
+	 *
 	 * @return the target type name
 	 */
 	public QName getTargetType() {
@@ -177,7 +177,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		}
 		return null;
 	}
-	
+
 	public void setTargetName(PolyString name) {
 		checkMutability();
 		this.targetName = name;
@@ -207,7 +207,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 			return objDef != null ? objDef.getCompileTimeClass() : null;
         }
     }
-	
+
     public QName getRelation() {
 		return relation;
 	}
@@ -253,7 +253,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	public PrismReferenceDefinition getDefinition() {
 		return (PrismReferenceDefinition) super.getDefinition();
 	}
-	
+
 	@Override
 	public boolean isRaw() {
 		// Reference value cannot be raw
@@ -376,7 +376,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	public boolean isEmpty() {
 		return oid == null && object == null && filter == null && relation == null && targetType == null;
 	}
-	
+
 	/**
 	 * Returns a version of this value that is canonical, that means it has the minimal form.
 	 * E.g. it will have only OID and no object.
@@ -467,7 +467,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		PrismReferenceValue other = (PrismReferenceValue) obj;
 		return equalsComplex(other, false, false);
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -483,7 +483,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		}
 		return result;
 	}
-		
+
 	@Override
 	public boolean representsSameValue(PrismValue other, boolean lax) {
 		if (other instanceof PrismReferenceValue) {
@@ -492,14 +492,14 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 			return false;
 		}
 	}
-	
+
 	public boolean representsSameValue(PrismReferenceValue other) {
 		if (this.getOid() != null && other.getOid() != null) {
 			return this.getOid().equals(other.getOid()) && relationsEquivalent(this.getRelation(), other.getRelation(), false);
 		}
 		return false;
 	}
-	
+
 	public static PrismReferenceValue createFromTarget(PrismObject<?> refTarget) {
 		PrismReferenceValue refVal = new PrismReferenceValue(refTarget.getOid());
 		refVal.setObject(refTarget);
@@ -508,7 +508,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		}
 		return refVal;
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -614,7 +614,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	public static List<PrismReferenceValue> asReferenceValues(@NotNull Collection<? extends Referencable> referencables) {
 		return referencables.stream().map(ref -> ref.asReferenceValue()).collect(Collectors.toList());
 	}
-	
+
 	@Override
     public String debugDump() {
         return toString();
@@ -624,7 +624,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
     public String debugDump(int indent) {
         return debugDump(indent, false);
     }
-    
+
     public String debugDump(int indent, boolean expandObject) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);

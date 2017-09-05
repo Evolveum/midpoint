@@ -34,10 +34,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *
  */
 public interface ModelAuditService {
-	
-	<O extends ObjectType> PrismObject<O> reconstructObject(Class<O> type, String oid, String eventIdentifier, 
+
+	<O extends ObjectType> PrismObject<O> reconstructObject(Class<O> type, String oid, String eventIdentifier,
 			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException;
-	
+
 	void audit(AuditEventRecord record, Task task, OperationResult result)
 			throws SecurityViolationException, SchemaException;
 
@@ -54,13 +54,13 @@ public interface ModelAuditService {
      */
     List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult parentResult)
     		throws SecurityViolationException, SchemaException;
-    
+
     /**
      * @throws UnsupportedOperationException if object retrieval is not supported
      */
     long countObjects(String query, Map<String, Object> params, OperationResult parentResult)
     		throws SecurityViolationException, SchemaException;
-    
+
     /**
      * Returns true if retrieval of objects from the audit trail is supported.
      * This applies to listRecords, countObjects, reconstructObject and similar

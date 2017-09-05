@@ -48,15 +48,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 public abstract class MidpointAbstractProvider<T> extends AbstractConfigurableProvider implements MessageBodyReader<T>, MessageBodyWriter<T>{
 
 	private static transient Trace LOGGER = TraceManager.getTrace(MidpointAbstractProvider.class);
-	
+
 	@Autowired
 	protected PrismContext prismContext;
-	
+
 //	@Override
     public void init(List<ClassResourceInfo> cris) {
         setEnableStreaming(true);
     }
-	
+
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
@@ -83,10 +83,10 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 		// TODO implement in the standard serializer; also change root name
 		QName fakeQName = new QName(PrismConstants.NS_TYPES, "object");
 		String xml;
-		
+
 		PrismSerializer<String> serializer = getSerializer()
 				.options(SerializationOptions.createSerializeReferenceNames());
-		
+
 		try {
 			if (object instanceof PrismObject) {
 				xml = serializer.serialize((PrismObject<?>) object);
@@ -101,7 +101,7 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 			LoggingUtils.logException(LOGGER, "Couldn't marshal element to string: {}", e, object);
 		}
 	}
-	
+
 	protected abstract PrismSerializer<String> getSerializer();
 	protected abstract PrismParser getParser(InputStream entityStream);
 
@@ -119,13 +119,13 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 			Annotation[] annotations, MediaType mediaType,
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {
-		
+
 		if (entityStream == null) {
 			return null;
 		}
-		
+
 		PrismParser parser = getParser(entityStream);
-				
+
 		T object;
 		try {
 			LOGGER.info("type of request: {}", type);

@@ -215,9 +215,9 @@ public class PageReports extends PageAdminReports {
     }
 
     protected void runReportPerformed(AjaxRequestTarget target, ReportType report) {
-    	
+
     	RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(getMainPopupBodyId(), report) {
-    		
+
     		private static final long serialVersionUID = 1L;
 
 			protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
@@ -236,11 +236,11 @@ public class PageReports extends PageAdminReports {
     	        showResult(result);
     	        target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM)));
     	        hideMainPopup(target);
-    	        
+
     		};
     	};
     	showMainPopup(runReportPopupPanel, target);
-        
+
     }
 
     private void configurePerformed(AjaxRequestTarget target, ReportType report) {

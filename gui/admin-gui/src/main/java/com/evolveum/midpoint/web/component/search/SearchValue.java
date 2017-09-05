@@ -64,7 +64,7 @@ public class SearchValue<T extends Serializable> implements DisplayableValue<T>,
         	if (displayName != null) {
         		return displayName;
         	} else if (value != null){
-        
+
             return value.toString();
         	}
         }
@@ -85,11 +85,11 @@ public class SearchValue<T extends Serializable> implements DisplayableValue<T>,
             setLabel(dv.getLabel());
         }
     }
-    
+
     public String getDisplayName() {
 		return displayName;
 	}
-    
+
     public void setDisplayName(String displayName) {
 		this.displayName = displayName;
 	}

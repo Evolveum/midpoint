@@ -59,39 +59,39 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 	private static final String DOT_CLASS = ResourceTasksPanel.class.getName() + ".";
 
 	private static final String OPERATION_LOAD_TASKS = DOT_CLASS + "loadTasks";
-	
+
 	private static final String ID_TASKS_TABLE = "taskTable";
-	
+
 	private static final String ID_RUN_NOW = "runNow";
 	private static final String ID_RESUME = "resume";
 	private static final String ID_SUSPEND = "suspend";
-	
-	
+
+
 	private PageBase pageBase;
-	
+
 	private boolean editable;
-	
+
 //	private ListModel<TaskType> model;
-	
-	
+
+
 	public ResourceTasksPanel(String id, boolean editable, ListModel<TaskType> tasks, PageBase pageBase) {
 		super(id);
 		this.pageBase = pageBase;
 		this.editable = editable;
-		
-		
+
+
 		initLayout(tasks);
 	}
-	
+
 	public ResourceTasksPanel(String id, boolean editable, final IModel<PrismObject<ResourceType>> resourceModel, PageBase pageBase) {
 		super(id);
 		this.pageBase = pageBase;
 		this.editable = editable;
-		
+
 		ListModel<TaskType> model = createTaskModel(resourceModel.getObject());
 		initLayout(model);
 	}
-	
+
 	private ListModel<TaskType> createTaskModel(PrismObject<ResourceType> object) {
 		OperationResult result = new OperationResult(OPERATION_LOAD_TASKS);
 		List<PrismObject<TaskType>> tasks = WebModelServiceUtils
@@ -105,18 +105,18 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 			tasksType.add(task.asObjectable());
 		}
 		return new ListModel<>(tasksType);
-		
+
 	}
-	
+
 	private void initLayout(final ListModel<TaskType> tasks){
 		final MainObjectListPanel<TaskType> tasksPanel = new MainObjectListPanel<TaskType>(ID_TASKS_TABLE, TaskType.class, TableId.PAGE_RESOURCE_TASKS_PANEL, null, pageBase) {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			protected BaseSortableDataProvider<SelectableBean<TaskType>> initProvider() {
 				return new ListDataProvider2(pageBase, tasks);
 			}
-			
+
 			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
 				// TODO Auto-generated method stub
@@ -140,7 +140,7 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 			@Override
 			protected void newObjectPerformed(AjaxRequestTarget target) {
 				getPageBase().navigateToNext(PageTaskAdd.class);
-				
+
 			}
 
 			@Override
@@ -149,17 +149,17 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 			}
 		};
 //		final ObjectListPanel<TaskType> tasksPanel = new ObjectListPanel<TaskType>(ID_TASKS_TABLE, TaskType.class, pageBase){
-//			
+//
 //			@Override
 //			protected BaseSortableDataProvider<SelectableBean<TaskType>> getProvider() {
 //				return new ListDataProvider2(pageBase, tasks);
 //			}
-//			
+//
 //			@Override
 //			public boolean isEditable() {
 //				return ResourceTasksPanel.this.editable;
 //			}
-//			
+//
 //			@Override
 //			public void objectDetailsPerformed(AjaxRequestTarget target, TaskType task) {
 //				// TODO Auto-generated method stub
@@ -172,10 +172,10 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 //		tasksPanel.setEditable(false);
 		tasksPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_TASK_BOX_CSS_CLASSES);
 		add(tasksPanel);
-		
+
 		AjaxButton runNow = new AjaxButton(ID_RUN_NOW, pageBase.createStringResource("pageTaskEdit.button.runNow")) {
 			private static final long serialVersionUID = 1L;
-		
+
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				List<String> oids = createOidList(getTaskListPanel().getSelectedObjects());
@@ -189,10 +189,10 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 			}
 		};
 		add(runNow);
-		
+
 		AjaxButton resume = new AjaxButton(ID_RESUME, pageBase.createStringResource("pageTaskEdit.button.resume")) {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				List<String> oids = createOidList(getTaskListPanel().getSelectedObjects());
@@ -206,10 +206,10 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 			}
 		};
 		add(resume);
-		
+
 		AjaxButton suspend = new AjaxButton(ID_SUSPEND, pageBase.createStringResource("pageTaskEdit.button.suspend")) {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				List<String> oids = createOidList(getTaskListPanel().getSelectedObjects());
@@ -232,7 +232,7 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 	private ObjectListPanel<TaskType> getTaskListPanel(){
 		return (ObjectListPanel<TaskType>) get(ID_TASKS_TABLE);
 	}
-	
+
 	private List<String> createOidList(List<TaskType> tasks){
 		List<String> oids = new ArrayList<>();
 		for (TaskType task : tasks){

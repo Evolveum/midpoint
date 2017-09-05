@@ -36,11 +36,11 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition> implements DebugDumpable {
-	
+
 	private V itemValue;
 	private PrismValueDeltaSetTripleProducer<V, D> mapping;
 	private Construction construction;
-	
+
 	public ItemValueWithOrigin(V propertyValue,
 			PrismValueDeltaSetTripleProducer<V, D> mapping, Construction accountConstruction) {
 		super();
@@ -58,11 +58,11 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
     public void setItemValue(V value) {
         this.itemValue = value;
     }
-	
+
 	public PrismValueDeltaSetTripleProducer<V, D> getMapping() {
 		return mapping;
 	}
-	
+
 	public Construction getConstruction() {
 		return construction;
 	}
@@ -74,7 +74,7 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 	public boolean isValid() {
 		return construction == null || construction.isValid();
 	}
-	
+
 	public <T> boolean equalsRealValue(V pvalue, ValueMatcher<T> valueMatcher) throws SchemaException {
 		if (itemValue == null) {
 			return false;
@@ -83,11 +83,11 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 			return itemValue.equalsRealValue(pvalue);
 		} else {
 			// this must be a property, otherwise there would be no matcher
-			return valueMatcher.match(((PrismPropertyValue<T>)itemValue).getValue(), 
+			return valueMatcher.match(((PrismPropertyValue<T>)itemValue).getValue(),
 					((PrismPropertyValue<T>)pvalue).getValue());
 		}
 	}
-	
+
 	public ItemValueWithOrigin<V,D> clone() {
 		ItemValueWithOrigin<V,D> clone = new ItemValueWithOrigin<>(itemValue, mapping, construction);
 		copyValues(clone);
@@ -103,7 +103,7 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 		}
 		clone.construction = this.construction;
 	}
-	
+
 	public static <V extends PrismValue, D extends ItemDefinition> DeltaSetTriple<ItemValueWithOrigin<V,D>> createOutputTriple(PrismValueDeltaSetTripleProducer<V, D> mapping) {
 		PrismValueDeltaSetTriple<V> outputTriple = mapping.getOutputTriple();
 		if (outputTriple == null) {

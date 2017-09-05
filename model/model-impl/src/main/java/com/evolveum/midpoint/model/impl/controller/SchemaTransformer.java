@@ -51,21 +51,21 @@ import java.util.*;
 /**
  * Transforms the schema and objects by applying security constraints,
  * object template schema refinements, etc.
- * 
+ *
  * @author semancik
  */
 @Component
 public class SchemaTransformer {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaTransformer.class);
-	
+
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
-	
+
 	@Autowired(required = true)
 	private SecurityEnforcer securityEnforcer;
-	
+
 	@Autowired(required = true)
 	private SystemObjectCache systemObjectCache;
 
@@ -84,7 +84,7 @@ public class SchemaTransformer {
 			applySchemasAndSecurity(object, rootOptions, options, phase, task, result);
 		}
 	}
-	
+
 	public <T extends ObjectType> void applySchemasAndSecurityToObjects(List<PrismObject<T>> objects,
 			GetOperationOptions rootOptions, Collection<SelectorOptions<GetOperationOptions>> options,
 			AuthorizationPhaseType phase, Task task, OperationResult result)
@@ -161,18 +161,18 @@ public class SchemaTransformer {
 	/**
 	 * Validate the objects, apply security to the object definition, remove any non-visible properties (security),
 	 * apply object template definitions and so on. This method is called for
-	 * any object that is returned from the Model Service.  
+	 * any object that is returned from the Model Service.
 	 */
 	public <O extends ObjectType> void applySchemasAndSecurity(PrismObject<O> object, GetOperationOptions rootOptions,
 			Collection<SelectorOptions<GetOperationOptions>> options,
-			AuthorizationPhaseType phase, Task task, OperationResult parentResult) 
+			AuthorizationPhaseType phase, Task task, OperationResult parentResult)
 					throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 		LOGGER.trace("applySchemasAndSecurity starting");
     	OperationResult result = parentResult.createMinorSubresult(SchemaTransformer.class.getName()+".applySchemasAndSecurity");
     	validateObject(object, rootOptions, result);
-    	
+
     	PrismObjectDefinition<O> objectDefinition = object.deepCloneDefinition(true);
-    	
+
     	ObjectSecurityConstraints securityConstraints;
     	try {
 	    	securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
@@ -194,7 +194,7 @@ public class SchemaTransformer {
     	} else {
     		applySchemasAndSecurityPhase(object, securityConstraints, objectDefinition, rootOptions, phase, task, result);
     	}
-		
+
 		ObjectTemplateType objectTemplateType;
 		try {
 			objectTemplateType = determineObjectTemplate(object, AuthorizationPhaseType.REQUEST, result);
@@ -218,14 +218,14 @@ public class SchemaTransformer {
 				object.trimDefinitionTree(full);
 			}
 		}
-		
+
 		result.computeStatus();
 		result.recordSuccessIfUnknown();
 		LOGGER.trace("applySchemasAndSecurity finishing");			// to allow folding in log viewer
     }
-	
-	private <O extends ObjectType> void applySchemasAndSecurityPhase(PrismObject<O> object, ObjectSecurityConstraints securityConstraints, PrismObjectDefinition<O> objectDefinition, 
-			GetOperationOptions rootOptions, AuthorizationPhaseType phase, Task task, OperationResult result) 
+
+	private <O extends ObjectType> void applySchemasAndSecurityPhase(PrismObject<O> object, ObjectSecurityConstraints securityConstraints, PrismObjectDefinition<O> objectDefinition,
+			GetOperationOptions rootOptions, AuthorizationPhaseType phase, Task task, OperationResult result)
 					throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 		Validate.notNull(phase);
 		try {
@@ -235,7 +235,7 @@ public class SchemaTransformer {
 				SecurityUtil.logSecurityDeny(object, "because the authorization denies access");
 				throw new AuthorizationException("Access denied");
 			}
-			
+
 			AuthorizationDecisionType globalAddDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
 			AuthorizationDecisionType globalModifyDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
 			applySecurityConstraints(object.getValue().getItems(), securityConstraints, globalReadDecision,
@@ -245,17 +245,17 @@ public class SchemaTransformer {
 				SecurityUtil.logSecurityDeny(object, "because the subject has not access to any item");
 				throw new AuthorizationException("Access denied");
 			}
-			
+
 			applySecurityConstraintsItemDef(objectDefinition, ItemPath.EMPTY_PATH, securityConstraints, globalReadDecision, globalAddDecision, globalModifyDecision, phase);
-			
+
 		} catch (SecurityViolationException | RuntimeException e) {
 			result.recordFatalError(e);
 			throw e;
 		}
 	}
-	
-	public void applySecurityConstraints(List<Item<?,?>> items, ObjectSecurityConstraints securityConstraints, 
-			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision, 
+
+	public void applySecurityConstraints(List<Item<?,?>> items, ObjectSecurityConstraints securityConstraints,
+			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision,
 			AuthorizationPhaseType phase) {
 		LOGGER.trace("applySecurityConstraints(items): items={}, phase={}, defaults R={}, A={}, M={}",
 				items, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
@@ -318,7 +318,7 @@ public class SchemaTransformer {
 			}
 		}
 	}
-	
+
 	public <D extends ItemDefinition> void applySecurityConstraints(D itemDefinition, ObjectSecurityConstraints securityConstraints,
             AuthorizationPhaseType phase) {
 		if (phase == null) {
@@ -328,7 +328,7 @@ public class SchemaTransformer {
 			applySecurityConstraintsPhase(itemDefinition, securityConstraints, phase);
 		}
 	}
-	
+
 	private <D extends ItemDefinition> void applySecurityConstraintsPhase(D itemDefinition, ObjectSecurityConstraints securityConstraints,
             AuthorizationPhaseType phase) {
 		Validate.notNull(phase);
@@ -339,16 +339,16 @@ public class SchemaTransformer {
 				itemDefinition, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
 		applySecurityConstraintsItemDef(itemDefinition, ItemPath.EMPTY_PATH, securityConstraints,
 				defaultReadDecision, defaultAddDecision, defaultModifyDecision, phase);
-				
+
 	}
-	
+
 	private <D extends ItemDefinition> void applySecurityConstraintsItemDef(D itemDefinition, ItemPath itemPath, ObjectSecurityConstraints securityConstraints,
 			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision,
             AuthorizationPhaseType phase) {
 		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecision, phase);
 		AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultAddDecision, phase);
 		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultModifyDecision, phase);
-		
+
 		boolean anySubElementRead = false;
 		boolean anySubElementAdd = false;
 		boolean anySubElementModify = false;
@@ -371,10 +371,10 @@ public class SchemaTransformer {
 				}
 			}
 		}
-		
+
 		LOGGER.trace("applySecurityConstraints(itemDef): {}: decisions R={}, A={}, M={}; subelements R={}, A={}, M={}",
 				itemPath, readDecision, addDecision, modifyDecision, anySubElementRead, anySubElementAdd, anySubElementModify);
-		
+
 		if (readDecision != AuthorizationDecisionType.ALLOW) {
 			((ItemDefinitionImpl) itemDefinition).setCanRead(false);
 		}
@@ -384,7 +384,7 @@ public class SchemaTransformer {
 		if (modifyDecision != AuthorizationDecisionType.ALLOW) {
 			((ItemDefinitionImpl) itemDefinition).setCanModify(false);
 		}
-		
+
 		if (anySubElementRead) {
 			((ItemDefinitionImpl) itemDefinition).setCanRead(true);
 		}
@@ -395,7 +395,7 @@ public class SchemaTransformer {
 			((ItemDefinitionImpl) itemDefinition).setCanModify(true);
 		}
 	}
-		
+
     public AuthorizationDecisionType computeItemDecision(ObjectSecurityConstraints securityConstraints, ItemPath itemPath, String actionUrl,
 			AuthorizationDecisionType defaultDecision, AuthorizationPhaseType phase) {
     	AuthorizationDecisionType explicitDecision = securityConstraints.findItemDecision(itemPath, actionUrl, phase);
@@ -406,7 +406,7 @@ public class SchemaTransformer {
     		return defaultDecision;
     	}
 	}
-    
+
     public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
     	PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
     	if (systemConfiguration == null) {
@@ -423,7 +423,7 @@ public class SchemaTransformer {
     	PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, objectTemplateRef.getOid(), null, result);
     	return template.asObjectable();
     }
-    
+
     public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(Class<O> objectClass, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
     	PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
     	if (systemConfiguration == null) {
@@ -440,7 +440,7 @@ public class SchemaTransformer {
     	PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, objectTemplateRef.getOid(), null, result);
     	return template.asObjectable();
     }
-    
+
     public <O extends ObjectType> void applyObjectTemplateToDefinition(PrismObjectDefinition<O> objectDefinition, ObjectTemplateType objectTemplateType, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (objectTemplateType == null) {
 			return;
@@ -465,7 +465,7 @@ public class SchemaTransformer {
                 }
 		}
 	}
-	
+
 	private <O extends ObjectType> void applyObjectTemplateToObject(PrismObject<O> object, ObjectTemplateType objectTemplateType, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (objectTemplateType == null) {
 			return;
@@ -498,31 +498,31 @@ public class SchemaTransformer {
 							+ " as specified in item definition in "+objectTemplateType);
 				}
 			}
-			
+
 		}
 	}
-	
+
 	private <IV extends PrismValue,ID extends ItemDefinition> void applyObjectTemplateItem(ID itemDef,
 			ObjectTemplateItemDefinitionType templateItemDefType, String desc) throws SchemaException {
 		if (itemDef == null) {
 			throw new SchemaException("No definition for "+desc);
 		}
-		
+
 		String displayName = templateItemDefType.getDisplayName();
 		if (displayName != null) {
 			((ItemDefinitionImpl) itemDef).setDisplayName(displayName);
 		}
-		
+
 		Integer displayOrder = templateItemDefType.getDisplayOrder();
 		if (displayOrder != null) {
 			((ItemDefinitionImpl) itemDef).setDisplayOrder(displayOrder);
 		}
-		
+
 		Boolean emphasized = templateItemDefType.isEmphasized();
 		if (emphasized != null) {
 			((ItemDefinitionImpl) itemDef).setEmphasized(emphasized);
 		}
-		
+
 		List<PropertyLimitationsType> limitations = templateItemDefType.getLimitations();
 		if (limitations != null) {
 			PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsType(limitations, LayerType.PRESENTATION);
@@ -550,15 +550,15 @@ public class SchemaTransformer {
 				}
 			}
 		}
-		
+
 		ObjectReferenceType valueEnumerationRef = templateItemDefType.getValueEnumerationRef();
 		if (valueEnumerationRef != null) {
 			PrismReferenceValue valueEnumerationRVal = MiscSchemaUtil.objectReferenceTypeToReferenceValue(valueEnumerationRef);
 			((ItemDefinitionImpl) itemDef).setValueEnumerationRef(valueEnumerationRVal);
-		}			
+		}
 	}
-	
-	
+
+
 	private <T extends ObjectType> void validateObject(PrismObject<T> object, GetOperationOptions options, OperationResult result) {
 		try {
 			if (InternalsConfig.readEncryptionChecks) {
@@ -587,13 +587,13 @@ public class SchemaTransformer {
 			throw e;
 		}
 	}
-	
+
 	private <T extends ObjectType> boolean hasError(PrismObject<T> object, OperationResult result) {
 		if (result != null && result.isError()) {		// actually, result is pretty tiny here - does not include object fetch/get operation
 			return true;
 		}
 		OperationResultType fetchResult = object.asObjectable().getFetchResult();
-		if (fetchResult != null && 
+		if (fetchResult != null &&
 				(fetchResult.getStatus() == OperationResultStatusType.FATAL_ERROR ||
 				fetchResult.getStatus() == OperationResultStatusType.PARTIAL_ERROR)) {
 			return true;

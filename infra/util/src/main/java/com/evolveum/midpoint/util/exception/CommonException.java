@@ -19,12 +19,12 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 
 /**
  * Superclass for all common midPoint exceptions.
- * 
- * 
+ *
+ *
  * @author Radovan Semancik
  */
 public abstract class CommonException extends Exception {
-	
+
 	LocalizableMessage userFriendlyMessage;
 
 	public CommonException() {
@@ -33,7 +33,7 @@ public abstract class CommonException extends Exception {
 	public CommonException(String message) {
 		super(message);
 	}
-	
+
 	public CommonException(LocalizableMessage userFriendlyMessage) {
 		super(userFriendlyMessage.getFallbackMessage());
 		this.userFriendlyMessage = userFriendlyMessage;
@@ -46,23 +46,23 @@ public abstract class CommonException extends Exception {
 	public CommonException(String message, Throwable cause) {
 		super(message, cause);
 	}
-	
+
 	public CommonException(LocalizableMessage userFriendlyMessage, Throwable cause) {
 		super(userFriendlyMessage.getFallbackMessage(), cause);
 		this.userFriendlyMessage = userFriendlyMessage;
 	}
-	
+
 	public CommonException(String message, Throwable cause, LocalizableMessage userFriendlyMessage) {
 		super(message, cause);
 		this.userFriendlyMessage = userFriendlyMessage;
 	}
-	
+
 	/**
 	 * Returns a human-readable message that describes the type or class of errors
 	 * that the exception represents. E.g. "Communication error", "Policy violation", etc.
-	 * 
+	 *
 	 * TOTO: switch return value to a localized message
-	 * 
+	 *
 	 * @return
 	 */
 	public abstract String getErrorTypeMessage();
@@ -88,7 +88,7 @@ public abstract class CommonException extends Exception {
 			return super.toString() + " [" + userFriendlyMessage.shortDump() + "]";
 		}
 	}
-	
-	
-	
+
+
+
 }

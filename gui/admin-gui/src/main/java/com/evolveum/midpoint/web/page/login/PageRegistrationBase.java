@@ -22,7 +22,7 @@ public class PageRegistrationBase extends PageBase {
 	private static final long serialVersionUID = 1L;
 	private static final String DOT_CLASS = PageRegistrationBase.class.getName() + ".";
 	private static final String OPERATION_GET_SECURITY_POLICY = DOT_CLASS + "getSecurityPolicy";
-	
+
 	protected static final String OPERATION_LOAD_DYNAMIC_FORM = DOT_CLASS + "loadDynamicForm";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationBase.class);
@@ -39,9 +39,9 @@ public class PageRegistrationBase extends PageBase {
 	}
 
 	private void initSelfRegistrationConfiguration() {
-		
+
 		SecurityPolicyType securityPolicy = resolveSecurityPolicy();
-		
+
 		this.selfRegistrationDto = new SelfRegistrationDto();
 		try {
 			this.selfRegistrationDto.initSelfRegistrationDto(securityPolicy);
@@ -72,7 +72,7 @@ public class PageRegistrationBase extends PageBase {
 		}
 
 	}
-	
+
 	private SecurityPolicyType resolveSecurityPolicy() {
 		SecurityPolicyType securityPolicy = runPrivileged(new Producer<SecurityPolicyType>() {
 
@@ -89,7 +89,7 @@ public class PageRegistrationBase extends PageBase {
 					LOGGER.error("Could not retrieve security policy");
 					return null;
 				}
-		
+
 			}
 
 		});
@@ -100,7 +100,7 @@ public class PageRegistrationBase extends PageBase {
 					.error(createStringResource("PageSelfRegistration.securityPolicy.notFound").getString());
 			throw new RestartResponseException(PageLogin.class);
 		}
-		
+
 		return securityPolicy;
 
 	}
@@ -114,7 +114,7 @@ public class PageRegistrationBase extends PageBase {
 		return selfRegistrationDto;
 
 	}
-	
+
 	public ResetPolicyDto getResetPasswordPolicy() {
 		if (resetPasswordPolicy == null) {
 			initResetCredentialsConfiguration();

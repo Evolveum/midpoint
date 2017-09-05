@@ -45,14 +45,14 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
 
 /**
- * 
+ *
  * @author katkav
  *
  */
 public class NotificationConfigPanel extends SimplePanel<NotificationConfigurationDto> {
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
 	private static final String ID_DEFAULT_FROM = "defaultFrom";

@@ -71,7 +71,7 @@ public class MidPointProfilingServletFilter implements Filter {
         		LOGGER.error("Encountered exception: {}: {}", e.getClass().getName(), e.getMessage(), e);
         		throw e;
         	}
-            	
+
             long elapsedTime = System.nanoTime() - startTime;
 
             if(request instanceof HttpServletRequest){

@@ -186,7 +186,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                                 return WebModelServiceUtils.createObjectReferenceList(ResourceType.class, getPageBase(), resourceMap);
                             }
                         }, new ObjectReferenceChoiceRenderer(resourceMap));
-                        
+
                 resource.add(prepareAjaxOnComponentTagUpdateBehavior());
 				parentPage.addEditingEnabledBehavior(resource);
                 dependencyBody.add(resource);

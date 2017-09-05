@@ -529,7 +529,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		} else {
 			assertEquals("Wrong # of enforcement exception message", 0, enforcementMessages.size());
 		}
-		
+
 		// shortcuts
 		final String l1 = userLead21Oid, l2 = userLead22Oid, l3 = userLead23Oid, l4 = userLead24Oid;
 
@@ -555,13 +555,13 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 				new ExpectedStagePreview(8, set(l1, l2, l3, l4), set(), REJECT, AUTO_COMPLETION_CONDITION),
 				new ExpectedStagePreview(9, set(l1, l2, l3, l4), set(l1, l2, l3, l4), true),
 				new ExpectedStagePreview(10, set(), set(), REJECT, NO_ASSIGNEES_FOUND));
-				
+
 	}
 
 	private Set<String> set(String... values) {
 		return new HashSet<>(Arrays.asList(values));
 	}
-	
+
 	private void assertApprovalInfo(List<ApprovalSchemaExecutionInformationType> infos, String targetOid,
 			ExpectedStagePreview... expectedStagePreviews) {
 		ApprovalSchemaExecutionInformationType found = null;
@@ -765,7 +765,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		private final ApprovalLevelOutcomeType outcome;
 		private final AutomatedCompletionReasonType reason;
 		private final boolean hasError;
-		
+
 		ExpectedStagePreview(int number, Set<String> definitionApproverOids, Set<String> expectedApproverOids) {
 			this(number, definitionApproverOids, expectedApproverOids, null, null, false);
 		}

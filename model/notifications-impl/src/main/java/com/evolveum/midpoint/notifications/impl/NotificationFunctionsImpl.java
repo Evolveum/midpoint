@@ -119,11 +119,11 @@ public class NotificationFunctionsImpl implements NotificationFunctions {
             return null;
         }
     }
-    
+
     public SystemConfigurationType getSystemConfiguration(OperationResult result) {
     	return getSystemConfiguration(cacheRepositoryService, result);
     }
-    
+
     public static SecurityPolicyType getSecurityPolicyConfiguration(ObjectReferenceType securityPolicyRef, RepositoryService repositoryService, OperationResult result) {
         try {
         	if (securityPolicyRef == null) {

@@ -49,7 +49,7 @@ public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObje
     private static final long serialVersionUID = 1L;
 
     private LoadableModel<List<AssignmentDto>> policyRulesModel;
-    
+
     private static final String ID_POLICY_RULES_CONTAINER = "policyRulesContainer";
     private static final String ID_POLICY_RULES_PANEL = "policyRulesPanel";
     private static final String DOT_CLASS = FocusAssignmentsTabPanel.class.getName() + ".";
@@ -67,11 +67,11 @@ public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObje
         WebMarkupContainer policyRules = new WebMarkupContainer(ID_POLICY_RULES_CONTAINER);
         policyRules.setOutputMarkupId(true);
         add(policyRules);
-        
+
         PolicyRulesPanel policyRulesPanel = new PolicyRulesPanel(ID_POLICY_RULES_PANEL, policyRulesModel, pageBase);
         policyRules.add(policyRulesPanel);
     }
 
-    	
-      
+
+
 }

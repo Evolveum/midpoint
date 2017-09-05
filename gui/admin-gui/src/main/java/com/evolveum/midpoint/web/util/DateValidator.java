@@ -30,7 +30,7 @@ import java.util.Date;
 public class DateValidator extends AbstractFormValidator {
 
    private static final long serialVersionUID = 1L;
-	
+
    private ItemPath identifier;
     private DateTimeField dateFrom;
     private DateTimeField dateTo;

@@ -38,28 +38,28 @@ import java.util.*;
 /**
  * TODO: this whole class would benefit from more refactoring.
  * TODO: especially the parsing part.
- * 
+ *
  * @author semancik
  * @author mederly
  */
 public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
-	
+
 	private static final String USER_DATA_KEY_PARSED_RESOURCE_SCHEMA = RefinedResourceSchema.class.getName()+".parsedResourceSchema";
 	private static final String USER_DATA_KEY_REFINED_SCHEMA = RefinedResourceSchema.class.getName()+".refinedSchema";
 
-	// Original resource schema is there to make parsing easier. 
+	// Original resource schema is there to make parsing easier.
 	// But it is also useful in some cases, e.g. we do not need to pass both refined schema and
 	// original schema as a method parameter.
 	private ResourceSchema originalResourceSchema;
-	
+
 	// This object contains the real data of the refined schema
 	private ResourceSchema resourceSchema;
-	
+
 	private RefinedResourceSchemaImpl(@NotNull ResourceSchema originalResourceSchema) {
 		this.originalResourceSchema = originalResourceSchema;
 		this.resourceSchema = new ResourceSchemaImpl(originalResourceSchema.getNamespace(), originalResourceSchema.getPrismContext());
 	}
-	
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public Collection<ObjectClassComplexTypeDefinition> getObjectClassDefinitions() {
@@ -70,7 +70,7 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 	public List<? extends RefinedObjectClassDefinition> getRefinedDefinitions() {
 		return resourceSchema.getDefinitions(RefinedObjectClassDefinition.class);
 	}
-	
+
 	@Override
 	public List<? extends RefinedObjectClassDefinition> getRefinedDefinitions(ShadowKindType kind) {
 		List<RefinedObjectClassDefinition> rv = new ArrayList<>();
@@ -81,12 +81,12 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 		}
 		return rv;
 	}
-	
+
 	@Override
 	public ResourceSchema getOriginalResourceSchema() {
 		return originalResourceSchema;
 	}
-	
+
 	@Override
 	public RefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, String intent) {
 		for (RefinedObjectClassDefinition acctDef: getRefinedDefinitions(kind)) {
@@ -102,7 +102,7 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(ResourceShadowDiscriminator discriminator) {
 		if (discriminator.getKind() == null && discriminator.getObjectClass() == null) {
@@ -120,26 +120,26 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 		Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions = structuralObjectClassDefinition.getAuxiliaryObjectClassDefinitions();
 		return new CompositeRefinedObjectClassDefinitionImpl(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
 	}
-	
+
 	@Override
 	public CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(PrismObject<ShadowType> shadow) throws SchemaException {
 		return determineCompositeObjectClassDefinition(shadow, null);
 	}
-	
+
 	@Override
 	public CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(PrismObject<ShadowType> shadow,
 			Collection<QName> additionalAuxiliaryObjectClassQNames) throws SchemaException {
 		ShadowType shadowType = shadow.asObjectable();
-		
+
 		RefinedObjectClassDefinition structuralObjectClassDefinition = null;
 		ShadowKindType kind = shadowType.getKind();
 		String intent = shadowType.getIntent();
 		QName structuralObjectClassQName = shadowType.getObjectClass();
-		
+
 		if (kind != null) {
 			structuralObjectClassDefinition = getRefinedDefinition(kind, intent);
 		}
-		
+
 		if (structuralObjectClassDefinition == null) {
 			// Fallback to objectclass only
 			if (structuralObjectClassQName == null) {
@@ -147,9 +147,9 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 			}
 			structuralObjectClassDefinition = getRefinedDefinition(structuralObjectClassQName);
 		}
-		
+
 		if (structuralObjectClassDefinition == null) {
-			return null;			
+			return null;
 		}
 		List<QName> auxiliaryObjectClassQNames = shadowType.getAuxiliaryObjectClass();
 		if (additionalAuxiliaryObjectClassQNames != null) {
@@ -163,10 +163,10 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 			}
 			auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
 		}
-				
+
 		return new CompositeRefinedObjectClassDefinitionImpl(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
 	}
-	
+
 	@Override
 	public CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(QName structuralObjectClassQName,
 			ShadowKindType kind, String intent) {
@@ -174,7 +174,7 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 		Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
 		if (kind != null) {
 			structuralObjectClassDefinition = getRefinedDefinition(kind, intent);
-		} 
+		}
 		if (structuralObjectClassDefinition == null) {
 			// Fallback to objectclass only
 			if (structuralObjectClassQName == null) {
@@ -182,13 +182,13 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 			}
 			structuralObjectClassDefinition = getRefinedDefinition(structuralObjectClassQName);
 		}
-		
+
 		if (structuralObjectClassDefinition == null) {
 			return null;
-		}		
+		}
 
 		auxiliaryObjectClassDefinitions = structuralObjectClassDefinition.getAuxiliaryObjectClassDefinitions();
-		
+
 		return new CompositeRefinedObjectClassDefinitionImpl(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
 	}
 
@@ -236,7 +236,7 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public RefinedObjectClassDefinition findRefinedDefinitionByObjectClassQName(ShadowKindType kind, QName objectClass) {
 		if (objectClass == null) {
@@ -257,13 +257,13 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 		}
 		return null;
 	}
-	
+
 
 	@Override
 	public LayerRefinedResourceSchema forLayer(LayerType layer) {
 		return new LayerRefinedResourceSchemaImpl(this, layer);
 	}
-	
+
 	@Override
 	public String toString() {
 		return "rSchema(ns=" + getNamespace() + ")";
@@ -587,9 +587,9 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 	//endregion
 
 	public static void validateRefinedSchema(RefinedResourceSchema refinedSchema, PrismObject<ResourceType> resource) throws SchemaException {
-		
+
 		Set<RefinedObjectClassDefinitionKey> discrs = new HashSet<>();
-		
+
 		for (RefinedObjectClassDefinition rObjectClassDefinition: refinedSchema.getRefinedDefinitions()) {
 			QName typeName = rObjectClassDefinition.getTypeName();
 			RefinedObjectClassDefinitionKey key = new RefinedObjectClassDefinitionKey(rObjectClassDefinition);
@@ -597,10 +597,10 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 				throw new SchemaException("Duplicate definition of object class "+key+" in resource schema of "+resource);
 			}
 			discrs.add(key);
-			
+
 			ResourceTypeUtil.validateObjectClassDefinition(rObjectClassDefinition, resource);
 		}
 	}
-	
-	
+
+
 }

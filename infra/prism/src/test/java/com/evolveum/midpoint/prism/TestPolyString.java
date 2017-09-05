@@ -40,13 +40,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  */
 public class TestPolyString {
-	
+
 	@BeforeSuite
 	public void setupDebug() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
 	}
-	
+
 	@Test
 	public void testSimpleNormalization() {
 		testNormalization("testSimpleNormalization",
@@ -60,7 +60,7 @@ public class TestPolyString {
 				"\u0421\u043E\u044E\u0301\u0437 \u0421\u043E\u0432\u0435\u0301\u0442\u0441\u043A\u0438\u0445 \u0421\u043E\u0446\u0438\u0430\u043B\u0438\u0441\u0442\u0438\u0301\u0447\u0435\u0441\u043A\u0438\u0445 \u0420\u0435\u0441\u043F\u0443\u0301\u0431\u043B\u0438\u043A",
 				"");
 	}
-	
+
 	@Test
 	public void testNormalizationNonLatinSome() {
 		testNormalization("testSimpleNormalization",
@@ -71,22 +71,22 @@ public class TestPolyString {
 	private void testNormalization(final String TEST_NAME, String orig, String expectedNorm) {
 		System.out.println("===[ "+TEST_NAME+" ]===");
 		PolyString polyString = new PolyString(orig);
-		
+
 		PolyStringNormalizer normalizer = new PrismDefaultPolyStringNormalizer();
-		
+
 		// WHEN
 		polyString.recompute(normalizer);
-		
+
 		// THEN
 		assertEquals("orig have changed", orig, polyString.getOrig());
 		assertEquals("wrong norm", expectedNorm, polyString.getNorm());
 		assertEquals("wrong toString", orig, polyString.toString());
 	}
-	
+
 	@Test
 	public void testRecompute() throws Exception {
 		System.out.println("===[ testRecompute ]===");
-		
+
 		// GIVEN
 		PrismContext ctx = constructInitializedPrismContext();
 		PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
@@ -94,26 +94,26 @@ public class TestPolyString {
 
 		String orig = "Ľala ho papľuha";
 		PolyString polyName = new PolyString(orig);
-		
+
 		PrismProperty<Object> polyNameProperty = user.findOrCreateProperty(USER_POLYNAME_QNAME);
-		
+
 		// WHEN
 		polyNameProperty.setRealValue(polyName);
-		
+
 		// THEN
 		assertEquals("Changed orig", orig, polyName.getOrig());
 		assertEquals("Wrong norm", "lala ho papluha", polyName.getNorm());
-		
+
 	}
-	
+
 	@Test
 	public void testCompareTo() throws Exception {
 		System.out.println("===[ testCompareTo ]===");
-		
+
 		// GIVEN
 		String orig = "Ľala ho papľuha";
 		PolyString polyName = new PolyString(orig);
-		
+
 		// WHEN, THEN
 		assertTrue(polyName.compareTo("Ľala ho papľuha") == 0);
 		assertTrue(polyName.compareTo(new PolyString("Ľala ho papľuha")) == 0);
@@ -121,7 +121,7 @@ public class TestPolyString {
 		assertTrue(polyName.compareTo(new PolyString("something different")) != 0);
 		assertTrue(polyName.compareTo("") != 0);
 		assertTrue(polyName.compareTo(null) != 0);
-		
+
 	}
-	
+
 }

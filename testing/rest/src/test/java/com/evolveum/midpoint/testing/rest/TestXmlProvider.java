@@ -35,23 +35,23 @@ import com.evolveum.midpoint.model.impl.rest.MidpointXmlProvider;
 import com.evolveum.midpoint.prism.PrismObject;
 
 public class TestXmlProvider<T> extends MidpointXmlProvider<T> {
-	
-	
+
+
 	@Override
 	public T readFrom(Class<T> type, Type genericType, Annotation[] annotations, MediaType mediaType,
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 					throws IOException, WebApplicationException {
-		
+
 		if (String.class.isAssignableFrom(type.getClass())) {
 			return (T) IOUtils.toString(entityStream);
 		}
-		
+
 		T result = super.readFrom(type, genericType, annotations, mediaType, httpHeaders, entityStream);
 		if (result instanceof PrismObject) {
 			return (T) ((PrismObject) result).asObjectable();
 		}
-		
+
 		return result;
 	}
-	
+
 }

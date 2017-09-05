@@ -12,28 +12,28 @@ public class DisplayableValueChoiceRenderer<T> implements IChoiceRenderer<T> {
 
 	private static final long serialVersionUID = 1L;
 	private List<DisplayableValue> choices;
-	
-	
+
+
 	public DisplayableValueChoiceRenderer(List<DisplayableValue> choices) {
 		this.choices = choices;
 	}
-	
+
 	@Override
 	public String getDisplayValue(T object) {
 		if (object == null) {
 			return null;
 		}
-		
+
 		if (object instanceof DisplayableValue) {
 			return ((DisplayableValue) object).getLabel();
 		}
-		
+
 		return object.toString();
 	}
 
 	@Override
 	public String getIdValue(T object, int index) {
-		
+
 		if (object instanceof String && choices != null) {
 			for (DisplayableValue v : choices) {
 				if (object.equals(v.getValue())) {
@@ -42,7 +42,7 @@ public class DisplayableValueChoiceRenderer<T> implements IChoiceRenderer<T> {
 
 			}
 		}
-		
+
 		return Integer.toString(index);
 	}
 
@@ -51,7 +51,7 @@ public class DisplayableValueChoiceRenderer<T> implements IChoiceRenderer<T> {
 		if (StringUtils.isBlank(id)){
 			return null;
 		}
-		
+
 		return choices.getObject().get(Integer.parseInt(id));
 	}
 

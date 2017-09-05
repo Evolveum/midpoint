@@ -39,13 +39,13 @@ import org.w3c.dom.Text;
  *
  */
 public class PrettyPrinter {
-	
+
 	private static final int BYTE_ARRAY_MAX_LEN = 64;
 
 	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyy-mm-dd hh:mm:ss");
-	
+
 	private static String defaultNamespacePrefix = null;
-	
+
 	private static List<Class<?>> prettyPrinters = new ArrayList<>();
 
 	public static void setDefaultNamespacePrefix(String prefix) {
@@ -210,24 +210,24 @@ public class PrettyPrinter {
 			}
 			child = child.getNextSibling();
 		}
-	
+
 		sb.append(content);
-	
+
 		return sb.toString();
 	}
 
-	
+
 	public static String prettyPrint(Date date) {
 		if (date == null) {
 			return "null";
 		}
 		return dateFormat.format(date);
 	}
-	
+
 	public static String prettyPrint(Object[] value) {
 		return prettyPrint(Arrays.asList(value));
 	}
-	
+
 	public static String prettyPrint(byte[] value) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("byte[");
@@ -265,7 +265,7 @@ public class PrettyPrinter {
 		}
 		return out;
 	}
-	
+
 	private static String tryPrettyPrint(Object value) {
 		if (value instanceof Class) {
 			Class<?> c = (Class<?>)value;
@@ -302,7 +302,7 @@ public class PrettyPrinter {
 		// Fallback to this class
 		return tryPrettyPrint(value, PrettyPrinter.class);
 	}
-	
+
 	private static String tryPrettyPrint(Object value, Class<?> prettyPrinterClass) {
 		for (Method method : prettyPrinterClass.getMethods()) {
 			if (method.getName().equals("prettyPrint")) {
@@ -324,7 +324,7 @@ public class PrettyPrinter {
 		}
 		return null;
 	}
-	
+
 	public static void registerPrettyPrinter(Class<?> printerClass) {
 		prettyPrinters.add(printerClass);
 	}

@@ -20,12 +20,12 @@ import java.io.Serializable;
 /**
  * Almost the same as java.util.function.Supplier, but this one is Serializable.
  * That is very useful especially in use in Wicket models.
- * 
+ *
  * @author Radovan Semancik
  */
 @FunctionalInterface
 public interface FailableProducer<T> extends Serializable {
 
 	T run() throws Exception;
-	
+
 }

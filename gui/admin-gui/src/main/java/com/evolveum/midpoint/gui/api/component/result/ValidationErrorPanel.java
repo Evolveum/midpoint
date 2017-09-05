@@ -79,13 +79,13 @@ public class ValidationErrorPanel extends BasePanel<FeedbackMessage> {
 		iconType.add(new AttributeAppender("class", new AbstractReadOnlyModel() {
 			@Override
 			public Object getObject() {
-				
+
 				FeedbackMessage result = getModelObject();
 
 				if (result == null) {
 					return " fa-info";
 				}
-				
+
 				switch (result.getLevel()) {
 					case FeedbackMessage.INFO:
 					case FeedbackMessage.DEBUG:
@@ -122,9 +122,9 @@ public class ValidationErrorPanel extends BasePanel<FeedbackMessage> {
 
 		box.add(close);
 
-	
+
 	}
-	
+
 	public void close(AjaxRequestTarget target){
 		this.setVisible(false);
 		target.add(this);

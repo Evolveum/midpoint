@@ -583,6 +583,10 @@ public abstract class ShadowCache {
 					isDoDiscovery(resource, options), true, parentResult);
 			return null;
 		}
+		if (!(attributesContainer instanceof ResourceAttributeContainer)) {
+			applyAttributesDefinition(ctx, shadow);
+			attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		}
 		
 		preAddChecks(ctx, shadow, task, parentResult);
 		
@@ -614,7 +618,7 @@ public abstract class ShadowCache {
 		}
 
 		// REPO OPERATION: add
-		// This is where the repo shadow is created (if needed)
+		// This is where the repo shadow is created or updated (if needed)
 		String oid = afterAddOnResource(ctx, shadowOid, asyncReturnValue, parentResult);
 		addedShadow.setOid(oid);
 
@@ -713,6 +717,12 @@ public abstract class ShadowCache {
 
 		ProvisioningContext ctx = ctxFactory.create(repoShadow, additionalAuxiliaryObjectClassQNames, task,
 				parentResult);
+		
+		PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingModifyOperationBeforeExecution(ctx, repoShadow, modifications, task, parentResult);
+		if (duplicateOperation != null) {
+			parentResult.recordInProgress();
+			return repoShadow.getOid();
+		}
 
 		AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncReturnValue;
 		try {
@@ -804,6 +814,12 @@ public abstract class ShadowCache {
 
 		applyAttributesDefinition(ctx, shadow);
 
+		PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, shadow, task, parentResult);
+		if (duplicateOperation != null) {
+			parentResult.recordInProgress();
+			return;
+		}
+		
 		LOGGER.trace("Deleting object {} from the resource {}.", shadow, ctx.getResource());
 
 		AsynchronousOperationResult asyncReturnValue = null;
@@ -1017,7 +1033,7 @@ public abstract class ShadowCache {
 			XMLGregorianCalendar completionTimestamp = pendingOperation.getCompletionTimestamp();
 						
 			if (isCompleted(statusType) && isOverGrace(now, gracePeriod, completionTimestamp)) {
-				LOGGER.trace("Deleting pending operation because it is completed '{}' (and over grace): {}", statusType.value(), pendingOperation);
+				LOGGER.trace("Deleting pending operation because it is completed '{}' (and over grace): {}", statusType==null?null:statusType.value(), pendingOperation);
 				shadowDelta.addModificationDeleteContainer(new ItemPath(ShadowType.F_PENDING_OPERATION), pendingOperation.clone());
 			} else {
 				atLeastOneOperationRemains = true;

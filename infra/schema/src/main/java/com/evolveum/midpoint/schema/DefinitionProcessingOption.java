@@ -22,13 +22,13 @@ package com.evolveum.midpoint.schema;
  */
 
 public enum DefinitionProcessingOption {
-	
+
 	/**
 	 * Full definition processing for the specified item(s) is to be done.
 	 * This applies recursively also to sub-items.
 	 */
 	FULL,
-	
+
 	/**
 	 * Full definition processing for the specified item(s) is to be done, but only if the item(s) exist.
 	 * This applies recursively also to sub-items.
@@ -36,7 +36,7 @@ public enum DefinitionProcessingOption {
 	 * Currently supported on root level only.
 	 */
 	ONLY_IF_EXISTS,
-	
+
 	/**
 	 * Definition for the specified item(s) is to be excluded from the resulting object, even if the item(s) do exist.
 	 *

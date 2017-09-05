@@ -41,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
  *
  */
 public class ConstExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
-	
+
 	private Protector protector;
 	private ConstantsManager constantsManager;
 	private PrismContext prismContext;
@@ -67,20 +67,20 @@ public class ConstExpressionEvaluatorFactory implements ExpressionEvaluatorFacto
 					throws SchemaException, ObjectNotFoundException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for 'generate' expression evaluator");
-		
+
         Validate.notNull(outputDefinition, "output definition must be specified for path expression evaluator");
-		
+
 		if (evaluatorElements.size() > 1) {
 			throw new SchemaException("More than one evaluator specified in "+contextDescription);
 		}
 		JAXBElement<?> evaluatorElement = evaluatorElements.iterator().next();
-		
+
 		Object evaluatorElementObject = evaluatorElement.getValue();
 		 if (!(evaluatorElementObject instanceof ConstExpressionEvaluatorType)) {
-		        throw new IllegalArgumentException("Const expression cannot handle elements of type " 
+		        throw new IllegalArgumentException("Const expression cannot handle elements of type "
 		        		+ evaluatorElementObject.getClass().getName()+" in "+contextDescription);
 		}
-        
+
 		return new ConstExpressionEvaluator<V,D>((ConstExpressionEvaluatorType)evaluatorElementObject, outputDefinition, protector, constantsManager, prismContext);
 	}
 

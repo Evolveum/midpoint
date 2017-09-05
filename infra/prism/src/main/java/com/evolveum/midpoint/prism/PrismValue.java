@@ -41,7 +41,7 @@ import java.util.Set;
  *
  */
 public abstract class PrismValue implements IPrismValue {
-	
+
 	private OriginType originType;
     private Objectable originObject;
     private Itemable parent;
@@ -56,7 +56,7 @@ public abstract class PrismValue implements IPrismValue {
 	PrismValue(PrismContext prismContext) {
 		this.prismContext = prismContext;
 	}
-    
+
     PrismValue(OriginType type, Objectable source) {
 		this(null, type, source);
 	}
@@ -66,7 +66,7 @@ public abstract class PrismValue implements IPrismValue {
 		this.originType = type;
 		this.originObject = source;
 	}
-    
+
     PrismValue(PrismContext prismContext, OriginType type, Objectable source, Itemable parent) {
 		this.prismContext = prismContext;
 		this.originType = type;
@@ -85,7 +85,7 @@ public abstract class PrismValue implements IPrismValue {
     public void setOriginType(OriginType type) {
         this.originType = type;
     }
-    
+
     @Override
 	public OriginType getOriginType() {
         return originType;
@@ -122,17 +122,17 @@ public abstract class PrismValue implements IPrismValue {
 		}
 		this.parent = parent;
 	}
-	
+
 	@NotNull
 	@Override
 	public ItemPath getPath() {
 		Itemable parent = getParent();
 		if (parent == null) {
-			throw new IllegalStateException("No parent, cannot create value path for "+this); 
+			throw new IllegalStateException("No parent, cannot create value path for "+this);
 		}
 		return parent.getPath();
 	}
-	
+
 	/**
 	 * Used when we are removing the value from the previous parent.
 	 * Or when we know that the previous parent will be discarded and we
@@ -142,7 +142,7 @@ public abstract class PrismValue implements IPrismValue {
 	public void clearParent() {
 		parent = null;
 	}
-	
+
 	public static <T> void clearParent(List<PrismPropertyValue<T>> values) {
 		if (values == null) {
 			return;
@@ -151,7 +151,7 @@ public abstract class PrismValue implements IPrismValue {
 			val.clearParent();
 		}
 	}
-	
+
 	@Override
 	public PrismContext getPrismContext() {
 		if (prismContext != null) {
@@ -163,7 +163,7 @@ public abstract class PrismValue implements IPrismValue {
 		}
 		return null;
 	}
-	
+
 	protected ItemDefinition getDefinition() {
 		Itemable parent = getParent();
     	if (parent == null) {
@@ -171,19 +171,19 @@ public abstract class PrismValue implements IPrismValue {
     	}
     	return parent.getDefinition();
     }
-	
+
 	@Override
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
 		checkMutability();		// TODO reconsider
 		applyDefinition(definition, true);
 	}
-	
+
 	@Override
 	public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
 		checkMutability();		// TODO reconsider
 		// Do nothing by default
 	}
-	
+
 	public void revive(PrismContext prismContext) throws SchemaException {
 		if (this.prismContext == null) {
 			this.prismContext = prismContext;
@@ -192,7 +192,7 @@ public abstract class PrismValue implements IPrismValue {
 			recompute(prismContext);
 		}
 	}
-	
+
 	/**
 	 * Recompute the value or otherwise "initialize" it before adding it to a prism tree.
 	 * This may as well do nothing if no recomputing or initialization is needed.
@@ -206,7 +206,7 @@ public abstract class PrismValue implements IPrismValue {
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
 	}
-	
+
 	@Override
 	public void accept(Visitor visitor, ItemPath path, boolean recursive) {
 		// This implementation is supposed to only work for non-hierarchical values, such as properties and references.
@@ -217,9 +217,9 @@ public abstract class PrismValue implements IPrismValue {
 			visitor.visit(this);
 		}
 	}
-	
+
     public abstract void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope);
-		
+
 	/**
 	 * Returns true if this and other value represent the same value.
 	 * E.g. if they have the same IDs, OIDs or it is otherwise know
@@ -234,7 +234,7 @@ public abstract class PrismValue implements IPrismValue {
 	public boolean representsSameValue(PrismValue other, boolean lax) {
 		return false;
 	}
-	
+
 	public static <V extends PrismValue> boolean containsRealValue(Collection<V> collection, V value) {
 		if (collection == null) {
 			return false;
@@ -246,11 +246,11 @@ public abstract class PrismValue implements IPrismValue {
 		}
 		return false;
 	}
-	
+
 	public static <V extends PrismValue> boolean equalsRealValues(Collection<V> collection1, Collection<V> collection2) {
 		return MiscUtil.unorderedCollectionEquals(collection1, collection2, (v1, v2) -> v1.equalsRealValue(v2));
 	}
-	
+
 	public static <V extends PrismValue> boolean containsAll(Collection<V> thisSet, Collection<V> otherSet, boolean ignoreMetadata, boolean isLiteral) {
 		if (thisSet == null && otherSet == null) {
 			return true;
@@ -268,7 +268,7 @@ public abstract class PrismValue implements IPrismValue {
 		}
 		return true;
 	}
-	
+
 	public static <V extends PrismValue> boolean contains(Collection<V> thisSet, V otherValue, boolean ignoreMetadata, boolean isLiteral) {
 		for (V thisValue: thisSet) {
 			if (thisValue.equalsComplex(otherValue, ignoreMetadata, isLiteral)) {
@@ -292,7 +292,7 @@ public abstract class PrismValue implements IPrismValue {
 	}
 
 	public abstract PrismValue clone();
-	
+
 	protected void copyValues(PrismValue clone) {
 		clone.originType = this.originType;
 		clone.originObject = this.originObject;
@@ -315,7 +315,7 @@ public abstract class PrismValue implements IPrismValue {
 		}
 		return clones;
 	}
-	
+
 	/**
      * Sets all parents to null. This is good if the items are to be "transplanted" into a
      * different Containerable.
@@ -332,7 +332,7 @@ public abstract class PrismValue implements IPrismValue {
 		int result = 0;
 		return result;
 	}
-	
+
 	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {
 		// parent is not considered at all. it is not relevant.
 		// neither the immutable flag
@@ -347,12 +347,12 @@ public abstract class PrismValue implements IPrismValue {
 		}
 		return true;
 	}
-	
+
 	@Override
 	public boolean equals(PrismValue otherValue, boolean ignoreMetadata) {
 		return equalsComplex(otherValue, ignoreMetadata, false);
 	}
-	
+
 	public boolean equals(PrismValue thisValue, PrismValue otherValue) {
 		if (thisValue == null && otherValue == null) {
 			return true;
@@ -362,11 +362,11 @@ public abstract class PrismValue implements IPrismValue {
 		}
 		return thisValue.equalsComplex(otherValue, false, false);
 	}
-	
+
 	public boolean equalsRealValue(PrismValue otherValue) {
 		return equalsComplex(otherValue, true, false);
 	}
-	
+
 	public boolean equalsRealValue(PrismValue thisValue, PrismValue otherValue) {
 		if (thisValue == null && otherValue == null) {
 			return true;
@@ -376,7 +376,7 @@ public abstract class PrismValue implements IPrismValue {
 		}
 		return thisValue.equalsComplex(otherValue, true, false);
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -388,19 +388,19 @@ public abstract class PrismValue implements IPrismValue {
 		PrismValue other = (PrismValue) obj;
 		return equalsComplex(other, false, false);
 	}
-	
+
 	/**
 	 * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
-	 * E.g. the container with the same ID. 
+	 * E.g. the container with the same ID.
 	 */
 	@Override
 	public Collection<? extends ItemDelta> diff(PrismValue otherValue) {
 		return diff(otherValue, true, false);
 	}
-	
+
 	/**
 	 * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
-	 * E.g. the container with the same ID. 
+	 * E.g. the container with the same ID.
 	 */
 	@Override
 	public Collection<? extends ItemDelta> diff(PrismValue otherValue, boolean ignoreMetadata, boolean isLiteral) {
@@ -408,7 +408,7 @@ public abstract class PrismValue implements IPrismValue {
 		diffMatchingRepresentation(otherValue, itemDeltas, ignoreMetadata, isLiteral);
 		return itemDeltas;
 	}
-	
+
 	void diffMatchingRepresentation(PrismValue otherValue,
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
 		// Nothing to do by default

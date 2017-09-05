@@ -92,7 +92,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 		this.parentPage = parentPage;
 		initLayout();
 	}
-	
+
 	private void initLayout() {
 
 		final VisibleEnableBehaviour visibleIfEdit = new VisibleEnableBehaviour() {

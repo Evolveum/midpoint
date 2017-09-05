@@ -88,7 +88,7 @@ public class RelationalValueSearchQuery implements Serializable {
 		}
 		return clone;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

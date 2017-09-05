@@ -30,7 +30,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 
     private String instanceId;
     private String fakeName;
-    
+
     @ConfigurationProperty(displayMessageKey = "UI_INSTANCE_ID",
     		helpMessageKey = "UI_INSTANCE_ID_HELP")
     public String getInstanceId() {
@@ -50,7 +50,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     public void setFakeName(String config) {
         this.fakeName = config;
     }
-    	
+
 	/**
      * {@inheritDoc}
      */
@@ -63,6 +63,6 @@ public class DummyConfiguration extends AbstractConfiguration {
         log.info("end");
     }
 
-	
+
 }
- 
+

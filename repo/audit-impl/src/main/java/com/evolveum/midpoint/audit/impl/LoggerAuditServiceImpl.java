@@ -45,15 +45,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *
  */
 public class LoggerAuditServiceImpl implements AuditService {
-	
+
 	private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 	private static Logger AUDIT_LOGGER = org.slf4j.LoggerFactory.getLogger(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(LoggerAuditServiceImpl.class);
 
 	@Autowired
 	private LightweightIdentifierGenerator lightweightIdentifierGenerator;
-	
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.common.audit.AuditService#audit(com.evolveum.midpoint.common.audit.AuditEventRecord)
 	 */
@@ -81,28 +81,28 @@ public class LoggerAuditServiceImpl implements AuditService {
 		return formatTimestamp(record.getTimestamp()) +
 				" eid=" + record.getEventIdentifier() +
 				", et=" + record.getEventType() +
-				", es=" + record.getEventStage() + 
-				", sid=" + record.getSessionIdentifier() + 
+				", es=" + record.getEventStage() +
+				", sid=" + record.getSessionIdentifier() +
 				", tid=" + record.getTaskIdentifier() +
-				", toid=" + record.getTaskOID() + 
+				", toid=" + record.getTaskOID() +
 				", hid=" + record.getHostIdentifier() +
 				", nid=" + record.getNodeIdentifier() +
 				", raddr=" + record.getRemoteHostAddress() +
 				", I=" + formatObject(record.getInitiator()) +
-				", T=" + formatReference(record.getTarget()) + 
-				", TO=" + formatObject(record.getTargetOwner()) + 
-				", D=" + formatDeltaSummary(record.getDeltas()) + 
+				", T=" + formatReference(record.getTarget()) +
+				", TO=" + formatObject(record.getTargetOwner()) +
+				", D=" + formatDeltaSummary(record.getDeltas()) +
 				", ch=" + record.getChannel() +
                 ", o=" + record.getOutcome() +
                 ", p=" + record.getParameter() +
                 ", m=" + record.getMessage();
 	}
-	
+
 
 	private String toDetails(AuditEventRecord record) {
 		StringBuilder sb = new StringBuilder("Details of event ");
 		sb.append(record.getEventIdentifier()).append(" stage ").append(record.getEventStage()).append("\n");
-		
+
 		sb.append("Deltas:");
 		for (ObjectDeltaOperation<?> delta: record.getDeltas()) {
 			sb.append("\n");
@@ -112,19 +112,19 @@ public class LoggerAuditServiceImpl implements AuditService {
 				sb.append(delta.debugDump(1));
 			}
 		}
-		
+
 		// TODO: target?
 		return sb.toString();
 	}
 
-	
+
 	private static String formatTimestamp(Long timestamp) {
 		if (timestamp == null) {
 			return "null";
 		}
 		return TIMESTAMP_FORMAT.format(new java.util.Date(timestamp));
 	}
-	
+
 	private static String formatObject(PrismObject<? extends ObjectType> object) {
 		if (object == null) {
 			return "null";
@@ -147,7 +147,7 @@ public class LoggerAuditServiceImpl implements AuditService {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder("[");
-		
+
 		Iterator<ObjectDeltaOperation<? extends ObjectType>> iterator = collection.iterator();
 		while (iterator.hasNext()) {
 			ObjectDeltaOperation<?> delta = iterator.next();
@@ -174,7 +174,7 @@ public class LoggerAuditServiceImpl implements AuditService {
 	public boolean supportsRetrieval() {
 		return false;
 	}
-	
+
 	// This method is never used. It is here only for maven dependency plugin to properly detect common component usage.
 	@SuppressWarnings("unused")
 	private void fakeMethod() {
@@ -185,12 +185,12 @@ public class LoggerAuditServiceImpl implements AuditService {
 	public void listRecordsIterative(String query, Map<String, Object> params,
 			AuditResultHandler auditResultHandler) {
 		throw new UnsupportedOperationException("Object retrieval not supported");
-		
+
 	}
 
 	@Override
 	public void reindexEntry(AuditEventRecord record) {
 		throw new UnsupportedOperationException("Reindex entry not supported");
-		
+
 	}
 }

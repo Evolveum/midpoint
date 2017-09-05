@@ -39,36 +39,36 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author Radovan Semancik
  */
 public class TestMappingComplex {
-	
+
 	private static final String MAPPING_COMPLEX_FILENAME = "mapping-complex-captain.xml";
-	
+
 	private MappingTestEvaluator evaluator;
-	    
+
     @BeforeClass
     public void setupFactory() throws SAXException, IOException, SchemaException {
     	evaluator = new MappingTestEvaluator();
     	evaluator.init();
     }
-    
+
     @Test
     public void testModifyObjectSetAdditionalName() throws Exception {
     	final String TEST_NAME = "testModifyObjectSetAdditionalName";
     	System.out.println("===[ "+TEST_NAME+"]===");
-    	
+
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
     			UserType.F_ADDITIONAL_NAME, evaluator.getPrismContext(), "Jackie");
     	delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "321");
-    	
+
 		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-				MAPPING_COMPLEX_FILENAME, 
+				MAPPING_COMPLEX_FILENAME,
     			TEST_NAME, "title", delta);
-		    	        
+		
     	OperationResult opResult = new OperationResult(TEST_NAME);
-    	    	
+    	
     	// WHEN
 		mapping.evaluate(null, opResult);
-    	
+
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
 		outputTriple.checkConsistence();
@@ -76,34 +76,34 @@ public class TestMappingComplex {
 	  	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Pirate Jackie (#321)"));
 	  	PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Pirate null (#null)"));
     }
-    
+
     @Test
     public void testModifyObjectSetAdditionalNameFalse() throws Exception {
     	final String TEST_NAME = "testModifyObjectSetAdditionalNameFalse";
     	System.out.println("===[ "+TEST_NAME+"]===");
-    	
+
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
     			UserType.F_ADDITIONAL_NAME, evaluator.getPrismContext(), "Jackie");
     	delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "321");
-    	
+
 		PrismObject<UserType> userOld = evaluator.getUserOld();
 		userOld.asObjectable().getEmployeeType().clear();
 		userOld.asObjectable().getEmployeeType().add("WHATEVER");
 		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-				MAPPING_COMPLEX_FILENAME, 
+				MAPPING_COMPLEX_FILENAME,
     			TEST_NAME, "title", delta, userOld);
-		    	        
+		
     	OperationResult opResult = new OperationResult(TEST_NAME);
-    	    	
+    	
     	// WHEN
 		mapping.evaluate(null, opResult);
-    	
+
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
 		assertNull("Unexpected value in outputTriple: "+outputTriple, outputTriple);
     }
-    
+
     /**
      * Change property that is not a source in this mapping
      */
@@ -111,20 +111,20 @@ public class TestMappingComplex {
     public void testModifyObjectUnrelated() throws Exception {
     	final String TEST_NAME = "testModifyObjectUnrelated";
     	System.out.println("===[ "+TEST_NAME+"]===");
-    	
+
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
     			evaluator.toPath("costCenter"), evaluator.getPrismContext(), "X606");
-    	
+
 		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-				MAPPING_COMPLEX_FILENAME, 
+				MAPPING_COMPLEX_FILENAME,
     			TEST_NAME, "title", delta);
-		    	        
+		
     	OperationResult opResult = new OperationResult(TEST_NAME);
-    	    	
+    	
     	// WHEN
 		mapping.evaluate(null, opResult);
-    	
+
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
 		outputTriple.checkConsistence();
@@ -132,80 +132,80 @@ public class TestMappingComplex {
 	  	PrismAsserts.assertTripleNoPlus(outputTriple);
 	  	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
-    
+
     @Test
     public void testModifyObjectUnrelatedFalse() throws Exception {
     	final String TEST_NAME = "testModifyObjectUnrelatedFalse";
     	System.out.println("===[ "+TEST_NAME+"]===");
-    	
+
     	// GIVEN
-    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
+    	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
     			evaluator.toPath("costCenter"), evaluator.getPrismContext(), "X606");
-    	
+
     	PrismObject<UserType> userOld = evaluator.getUserOld();
 		userOld.asObjectable().getEmployeeType().clear();
 		userOld.asObjectable().getEmployeeType().add("WHATEVER");
 		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-				MAPPING_COMPLEX_FILENAME, 
+				MAPPING_COMPLEX_FILENAME,
     			TEST_NAME, "title", delta, userOld);
-		    	        
+		
     	OperationResult opResult = new OperationResult(TEST_NAME);
-    	    	
+    	
     	// WHEN
 		mapping.evaluate(null, opResult);
-    	
+
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
 		assertNull("Unexpected value in outputTriple: "+outputTriple, outputTriple);
     }
-    
+
     @Test
     public void testAddObjectUnrelatedFalse() throws Exception {
     	final String TEST_NAME = "testAddObjectUnrelatedFalse";
     	System.out.println("===[ "+TEST_NAME+"]===");
-    	
+
     	// GIVEN
     	PrismObject<UserType> user = evaluator.getUserOld();
 		user.asObjectable().getEmployeeType().clear();
 		user.asObjectable().getEmployeeType().add("WHATEVER");
 		ObjectDelta<UserType> delta = user.createAddDelta();
-		
+
 		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-				MAPPING_COMPLEX_FILENAME, 
+				MAPPING_COMPLEX_FILENAME,
     			TEST_NAME, "title", delta);
-		    	        
+		
     	OperationResult opResult = new OperationResult(TEST_NAME);
-    	    	
+    	
     	// WHEN
 		mapping.evaluate(null, opResult);
-    	
+
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
 		assertNull("Unexpected value in outputTriple: "+outputTriple, outputTriple);
     }
-    
+
     @Test
     public void testAddObjectUnrelatedEmptyFalse() throws Exception {
     	final String TEST_NAME = "testAddObjectUnrelatedEmptyFalse";
     	System.out.println("===[ "+TEST_NAME+"]===");
-    	
+
     	// GIVEN
     	PrismObject<UserType> user = evaluator.getUserOld();
 		user.asObjectable().getEmployeeType().clear();
 		ObjectDelta<UserType> delta = user.createAddDelta();
-		
+
 		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-				MAPPING_COMPLEX_FILENAME, 
+				MAPPING_COMPLEX_FILENAME,
     			TEST_NAME, "title", delta);
-		    	        
+		
     	OperationResult opResult = new OperationResult(TEST_NAME);
-    	    	
+    	
     	// WHEN
 		mapping.evaluate(null, opResult);
-    	
+
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
 		assertNull("Unexpected value in outputTriple: "+outputTriple, outputTriple);
     }
-            
+
 }

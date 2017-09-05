@@ -56,7 +56,7 @@ import org.jetbrains.annotations.NotNull;
 public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 
     private static final long serialVersionUID = 7321429132391159949L;
-    
+
     private static final String PROPERTY_NAME_LOCALPART = "name";
 
 	public PrismObject(QName name, Class<O> compileTimeClass) {
@@ -153,7 +153,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	public O asObjectable() {
 		return getValue().asObjectable();
 	}
-	
+
 	public PolyString getName() {
 		PrismProperty<PolyString> nameProperty = getValue().findProperty(getNamePropertyElementName());
 		if (nameProperty == null) {
@@ -165,11 +165,11 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	private QName getNamePropertyElementName() {
 		return new QName(getElementName().getNamespaceURI(), PrismConstants.NAME_LOCAL_NAME);
 	}
-	
+
 	public PrismContainer<?> getExtension() {
 		return (PrismContainer<?>) getValue().findItem(getExtensionContainerElementName(), PrismContainer.class);
 	}
-	
+
 	public <I extends Item> I findExtensionItem(QName elementName) {
 		PrismContainer<?> extension = getExtension();
 		if (extension == null) {
@@ -177,7 +177,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		}
 		return (I) extension.findItem(elementName);
 	}
-	
+
 	public <I extends Item> void addExtensionItem(I item) throws SchemaException {
 		PrismContainer<?> extension = getExtension();
 		if (extension == null) {
@@ -222,21 +222,21 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		if (prismContext != null && prismContext.getMonitor() != null) {
 			prismContext.getMonitor().beforeObjectClone(this);
 		}
-		
+
 		PrismObject<O> clone = new PrismObject<O>(getElementName(), getDefinition(), prismContext);
 		copyValues(clone);
-		
+
 		if (prismContext != null && prismContext.getMonitor() != null) {
 			prismContext.getMonitor().afterObjectClone(this, clone);
 		}
-		
+
 		return clone;
 	}
 
 	protected void copyValues(PrismObject<O> clone) {
 		super.copyValues(clone);
 	}
-	
+
 	public PrismObjectDefinition<O> deepCloneDefinition(boolean ultraDeep) {
 		return (PrismObjectDefinition<O>) super.deepCloneDefinition(ultraDeep);
 	}
@@ -269,14 +269,14 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		delta.setOid(getOid());
 		return delta;
 	}
-	
+
 	public ObjectDelta<O> createAddDelta() {
 		ObjectDelta<O> delta = createDelta(ChangeType.ADD);
 		// TODO: clone?
 		delta.setObjectToAdd(this);
 		return delta;
 	}
-	
+
 	public ObjectDelta<O> createModifyDelta() {
 		ObjectDelta<O> delta = createDelta(ChangeType.MODIFY);
 		delta.setOid(this.getOid());
@@ -303,7 +303,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	public ItemPath getPath() {
 		return ItemPath.EMPTY_PATH;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (prismContext != null && prismContext.getMonitor() != null) {
@@ -311,7 +311,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		}
 		return super.equals(obj);
 	}
-	
+
 	/**
 	 * this method ignores some part of the object during comparison (e.g. source demarcation in values)
 	 * These methods compare the "meaningful" parts of the objects.
@@ -328,12 +328,12 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		ObjectDelta<O> delta = diff(other, true, false);
 		return delta.isEmpty();
 	}
-	
+
 	@Override
 	public String toString() {
 		return toDebugName();
 	}
-	
+
 	/**
 	 * Returns short string representing identity of this object.
 	 * It should container object type, OID and name. It should be presented
@@ -343,13 +343,13 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	public String toDebugName() {
 		return toDebugType()+":"+getOid()+"("+getNamePropertyStringValue()+")";
 	}
-	
+
 	private PrismProperty<PolyString> getNameProperty() {
 		QName elementName = getElementName();
 		String myNamespace = elementName.getNamespaceURI();
 		return findProperty(new QName(myNamespace, PrismConstants.NAME_LOCAL_NAME));
 	}
-	
+
 	private String getNamePropertyStringValue() {
 		PrismProperty<PolyString> nameProperty = getNameProperty();
 		if (nameProperty == null) {
@@ -361,7 +361,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		}
 		return realValue.getOrig();
 	}
-	
+
 	/**
 	 * Returns short string identification of object type. It should be in a form
 	 * suitable for log messages. There is no requirement for the type name to be unique,
@@ -397,10 +397,10 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		}
 		sb.append(")");
 	}
-        
+
     /**
 	 * Return display name intended for business users of midPoint
-	 */        
+	 */
     public String getBusinessDisplayName() {
         return getNamePropertyStringValue();
     }

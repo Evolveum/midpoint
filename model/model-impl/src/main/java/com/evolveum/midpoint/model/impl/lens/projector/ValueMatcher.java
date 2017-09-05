@@ -32,9 +32,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  */
 public class ValueMatcher<T> {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ValueMatcher.class);
-	
+
 	MatchingRule<T> matchingRule;
 
 	public ValueMatcher(MatchingRule<T> matchingRule) {
@@ -51,20 +51,20 @@ public class ValueMatcher<T> {
 		}
 		return new ValueMatcher<T>(matchingRule);
 	}
-	
+
 	public static <T> ValueMatcher<T> createDefaultMatcher(QName type, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		MatchingRule<Object> matchingRule = matchingRuleRegistry.getMatchingRule(null, type);
 		return new ValueMatcher<T>((MatchingRule<T>) matchingRule);
 	}
-	
+
 	public boolean match(T realA, T realB) throws SchemaException {
 		return matchingRule.match(realA, realB);
 	}
-	
+
 	public boolean matches(T realValue, String regex) throws SchemaException{
 		return matchingRule.matchRegex(realValue, regex);
 	}
-	
+
 	public boolean hasRealValue(PrismProperty<T> property, PrismPropertyValue<T> pValue) {
 		for (T existingRealValue: property.getRealValues()) {
 			try {
@@ -86,7 +86,7 @@ public class ValueMatcher<T> {
 		}
 		return false;
 	}
-	
+
 	public boolean isRealValueToAdd(PropertyDelta<T> delta, PrismPropertyValue<T> pValue) {
 		if (delta.getValuesToAdd() == null){
 			return false;
@@ -116,5 +116,5 @@ public class ValueMatcher<T> {
 	public String toString() {
 		return "ValueMatcher(" + matchingRule + ")";
 	}
-	
+
 }

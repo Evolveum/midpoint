@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
  *
  */
 public class ScriptExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
-	
+
 	private ScriptExpressionFactory scriptExpressionFactory;
     private SecurityEnforcer securityEnforcer;
 
@@ -56,22 +56,22 @@ public class ScriptExpressionEvaluatorFactory implements ExpressionEvaluatorFact
 	@Override
 	public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
 			D outputDefinition, String contextDescription, Task task, OperationResult result) throws SchemaException {
-		
+
 		if (evaluatorElements.size() > 1) {
 			throw new SchemaException("More than one evaluator specified in "+contextDescription);
 		}
 		JAXBElement<?> evaluatorElement = evaluatorElements.iterator().next();
-		
+
 		Object evaluatorElementObject = evaluatorElement.getValue();
         if (!(evaluatorElementObject instanceof ScriptExpressionEvaluatorType)) {
             throw new IllegalArgumentException("Script expression cannot handle elements of type " + evaluatorElementObject.getClass().getName());
         }
         ScriptExpressionEvaluatorType scriptType = (ScriptExpressionEvaluatorType) evaluatorElementObject;
-        
+
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, contextDescription);
-        
+
         return new ScriptExpressionEvaluator<>(scriptType, scriptExpression, securityEnforcer);
-        
+
 	}
 
 }

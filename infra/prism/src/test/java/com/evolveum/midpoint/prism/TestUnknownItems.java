@@ -44,14 +44,14 @@ public class TestUnknownItems {
 	public void setupDebug() {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 	}
-	
+
 	@Test(expectedExceptions = SchemaException.class)
 	public void test010ParseWrongItemStrict() throws Exception {
 		final String TEST_NAME = "testParseWrongItemStrict";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
-		
+
 		// WHEN+THEN
 		try {
 			prismContext.parseObject(WRONG_ITEM_FILE);
@@ -60,7 +60,7 @@ public class TestUnknownItems {
 			throw e;
 		}
 	}
-	
+
 	@Test
 	public void test020ParseWrongItemCompat() throws Exception {
 		final String TEST_NAME = "testParseWrongItemCompat";

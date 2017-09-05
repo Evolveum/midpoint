@@ -19,13 +19,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusT
 
 /**
  * Task execution status.
- * 
+ *
  * Execution status provides information about the task overall high-level
  * execution state. It tells whether the task is running/runnable, waits for
  * something or is done.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 public enum TaskExecutionStatus {
 	/**
@@ -46,15 +46,15 @@ public enum TaskExecutionStatus {
 	 * the task.
 	 */
 	WAITING,
-	
+
 	/**
 	 * The task has been suspended. It waits until an instruction to resume it arrives.
 	 * After that, it will (usually) go to the RUNNABLE state again. Or, it can be closed
 	 * in the suspended state as well.
-	 * 
+	 *
 	 * If a task that is currently executing (i.e. claimed) is suspended, it will first
 	 * be in SUSPENDED/CLAIMED state, until its handler finishes the execution. After that,
-	 * it will go into SUSPENDED/RELEASED state, where it will remain until resumed. 
+	 * it will go into SUSPENDED/RELEASED state, where it will remain until resumed.
 	 */
 	SUSPENDED,
 

@@ -31,21 +31,21 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 public class ConfigurationLoadTest {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ConfigurationLoadTest.class);
 
     @Test
     public void dummyTest() {}
-    
+
 	@Test(enabled = false)
 	public void t01simpleConfigTest() {
 		LOGGER.info("---------------- simpleConfigTest -----------------");
-		
+
 		System.clearProperty("midpoint.home");
 		LOGGER.info("midpoint.home => " + System.getProperty("midpoint.home"));
-		
+
 		assertNull(System.getProperty("midpoint.home"), "midpoint.home");
-		
+
 		StartupConfiguration sc = new StartupConfiguration();
 		assertNotNull(sc);
 		sc.init();
@@ -53,25 +53,25 @@ public class ConfigurationLoadTest {
 		assertEquals(c.getString("repositoryServiceFactoryClass"),
 				"com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory");
 		LOGGER.info(sc.toString());
-		
+
 		@SuppressWarnings("unchecked")
 		Iterator<String> i = c.getKeys();
-		
+
 		while ( i.hasNext()) {
 			String key = i.next();
 			LOGGER.info("  " + key + " = " + c.getString(key));
 		}
-		
+
 		assertEquals(c.getInt("port"),1984);
 		assertEquals(c.getString("serverPath"), "" );
-		
+
 	}
 
-	
+
 	@Test
 	public void t02directoryAndExtractionTest() {
 		LOGGER.info("---------------- directoryAndExtractionTest -----------------");
-		
+
 		File f = new File("target/midPointHome");
 		System.setProperty("midpoint.home", "target/midPointHome/");
 		StartupConfiguration sc = new StartupConfiguration();
@@ -81,11 +81,11 @@ public class ConfigurationLoadTest {
 		assertNotNull(f);
 		assertTrue(f.exists(),  "existence");
 		assertTrue(f.isDirectory(),  "type directory");
-		
+
 		f = new File("target/midPointHome/config.xml");
 		assertTrue(f.exists(),  "existence");
 		assertTrue(f.isFile(),  "type file");
-		
+
 		//cleanup
 		System.clearProperty("midpoint.home");
 
@@ -101,18 +101,18 @@ public class ConfigurationLoadTest {
 		Configuration c = sc.getConfiguration("midpoint");
 		assertEquals(c.getString("repository.repositoryServiceFactoryClass"),
 				"com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory");
-		
+
 		@SuppressWarnings("unchecked")
 		Iterator<String> i = c.getKeys();
-		
+
 		while ( i.hasNext()) {
 			String key = i.next();
 			LOGGER.info("  " + key + " = " + c.getString(key));
 		}
-		
+
 		assertEquals(c.getString("repository.serverPath"), "target/midPointHome/" );
-		
+
 		//cleanup
-		System.clearProperty("midpoint.home");		
+		System.clearProperty("midpoint.home");
 	}
 }

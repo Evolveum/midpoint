@@ -19,10 +19,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
  * Single-purpose class to return task run results.
- * 
+ *
  * More than one value is returned, therefore it is
  * bundled into a class.
- * 
+ *
  * @author Radovan Semancik
  *
  */
@@ -54,10 +54,10 @@ public final class TaskRunResult {
          * re-trying the run. Usual case of this error is task misconfiguration.
          */
 		PERMANENT_ERROR,
-		
+
 		/**
 		 * Temporary failure during the run.
-		 * 
+		 *
 		 * The error is temporary. The situation may change later when the conditions will be more "favorable".
          * It makes sense to retry the run. Usual cases of this error are network timeouts.
          *
@@ -83,11 +83,11 @@ public final class TaskRunResult {
         RESTART_REQUESTED
 
     }
-	
+
 	private long progress;
 	private TaskRunResultStatus runResultStatus;
 	private OperationResult operationResult;
-	
+
 	/**
 	 * @return the progress
 	 */
@@ -112,15 +112,15 @@ public final class TaskRunResult {
 	public void setRunResultStatus(TaskRunResultStatus status) {
 		this.runResultStatus = status;
 	}
-	
+
 	public OperationResult getOperationResult() {
 		return operationResult;
 	}
-	
+
 	public void setOperationResult(OperationResult operationResult) {
 		this.operationResult = operationResult;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -132,7 +132,7 @@ public final class TaskRunResult {
 				+ ((runResultStatus == null) ? 0 : runResultStatus.hashCode());
 		return result;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -153,12 +153,12 @@ public final class TaskRunResult {
 			return false;
 		return true;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "TaskRunResult(progress=" + progress + ", status="
 				+ runResultStatus + ", result=" + operationResult
 				+ ")";
 	}
-	
+
 }

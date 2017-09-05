@@ -77,35 +77,35 @@ import static org.testng.AssertJUnit.*;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
-	
+
 	private static final File TEST_DIR = new File("src/test/resources/strange");
-	
+
 	private static final File USER_DEGHOULASH_FILE = new File(TEST_DIR, "user-deghoulash.xml");
 	private static final String USER_DEGHOULASH_OID = "c0c010c0-d34d-b33f-f00d-1d11dd11dd11";
 	private static final String USER_DEGHOULASH_NAME = "deghoulash";
 
 	protected static final File USER_TEMPLATE_STRANGE_FILE = new File(TEST_DIR, "user-template-strange.xml");
 	protected static final String USER_TEMPLATE_STRANGE_OID = "830060c0-87f4-11e7-9a48-57789b5d92c7";
-	
+
 	private static final String RESOURCE_DUMMY_CIRCUS_NAME = "circus";
 	private static final File RESOURCE_DUMMY_CIRCUS_FILE = new File(TEST_DIR, "resource-dummy-circus.xml");
 	private static final String RESOURCE_DUMMY_CIRCUS_OID = "65d73d14-bafb-11e6-9de3-ff46daf6e769";
-	
+
 	private static final File ROLE_IDIOT_FILE = new File(TEST_DIR, "role-idiot.xml");
 	private static final String ROLE_IDIOT_OID = "12345678-d34d-b33f-f00d-555555550001";
-	
+
 	private static final File ROLE_IDIOT_ASSIGNMENT_FILE = new File(TEST_DIR, "role-idiot-assignment.xml");
 	private static final String ROLE_IDIOT_ASSIGNMENT_OID = "12345678-d34d-b33f-f00d-5a5555550001";
 
 	private static final File ROLE_STUPID_FILE = new File(TEST_DIR, "role-stupid.xml");
 	private static final String ROLE_STUPID_OID = "12345678-d34d-b33f-f00d-555555550002";
-	
+
 	private static final File ROLE_STUPID_ASSIGNMENT_FILE = new File(TEST_DIR, "role-stupid-assignment.xml");
 	private static final String ROLE_STUPID_ASSIGNMENT_OID = "12345678-d34d-b33f-f00d-5a5555550002";
-	
+
 	private static final File ROLE_BAD_CONSTRUCTION_RESOURCE_REF_FILE = new File(TEST_DIR, "role-bad-construction-resource-ref.xml");
 	private static final String ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID = "54084f2c-eba0-11e5-8278-03ea5d7058d9";
-	
+
 	private static final File ROLE_META_BAD_CONSTRUCTION_RESOURCE_REF_FILE = new File(TEST_DIR, "role-meta-bad-construction-resource-ref.xml");
 	private static final String ROLE_META_BAD_CONSTRUCTION_RESOURCE_REF_OID = "90b931ae-eba8-11e5-977a-b73ba58cf18b";
 
@@ -114,52 +114,52 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
 	private static final File ROLE_RECURSION_FILE = new File(TEST_DIR, "role-recursion.xml");
 	private static final String ROLE_RECURSION_OID = "12345678-d34d-b33f-f00d-555555550003";
-	
+
 	private static final File ROLE_RECURSION_ASSIGNMENT_FILE = new File(TEST_DIR, "role-recursion-assignment.xml");
 	private static final String ROLE_RECURSION_ASSIGNMENT_OID = "12345678-d34d-b33f-f00d-5a5555550003";
 
 	private static final String NON_EXISTENT_ACCOUNT_OID = "f000f000-f000-f000-f000-f000f000f000";
-	
+
 	private static final String RESOURCE_NONEXISTENT_OID = "00000000-f000-f000-f000-f000f000f000";;
 
-	private static final XMLGregorianCalendar USER_DEGHOULASH_FUNERAL_TIMESTAMP = 
+	private static final XMLGregorianCalendar USER_DEGHOULASH_FUNERAL_TIMESTAMP =
 								XmlTypeConverter.createXMLGregorianCalendar(1771, 1, 2, 11, 22, 33);
-	
+
 	private static final File TREASURE_ISLAND_FILE = new File(TEST_DIR, "treasure-island.txt");
 
 	private static String treasureIsland;
-	
+
 	private String accountGuybrushOid;
 	private String accountJackOid;
 
 	private String accountJackRedOid;
-	
+
 	public TestStrangeCases() throws JAXBException {
 		super();
 	}
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		initDummyResource(RESOURCE_DUMMY_CIRCUS_NAME, RESOURCE_DUMMY_CIRCUS_FILE, RESOURCE_DUMMY_CIRCUS_OID, initTask, initResult);
-		
+
 		getDummyResourceController(RESOURCE_DUMMY_RED_NAME).addAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Monkey Island");
-		
+
 		repoAddObjectFromFile(ACCOUNT_GUYBRUSH_DUMMY_RED_FILE, initResult);
-		
+
 		treasureIsland = IOUtils.toString(new FileInputStream(TREASURE_ISLAND_FILE)).replace("\r\n", "\n");     // for Windows compatibility
-		
+
 		addObject(ROLE_IDIOT_FILE, initTask, initResult);
 		addObject(ROLE_STUPID_FILE, initTask, initResult);
 		addObject(ROLE_IDIOT_ASSIGNMENT_FILE, initTask, initResult);
 		addObject(ROLE_RECURSION_FILE, initTask, initResult);
 		addObject(ROLE_BAD_CONSTRUCTION_RESOURCE_REF_FILE, initTask, initResult);
 		addObject(ROLE_META_BAD_CONSTRUCTION_RESOURCE_REF_FILE, initTask, initResult);
-		
+
 		repoAddObjectFromFile(USER_TEMPLATE_STRANGE_FILE, initResult);
-		
+
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_STRANGE_OID, initResult);
 
 //		DebugUtil.setDetailedDebugDump(true);
@@ -179,29 +179,29 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
-                                
+
         try {
 			// WHEN
         	addObject(ROLE_RECURSION_ASSIGNMENT_FILE, task, result);
-	        
+
 	        assertNotReached();
         } catch (PolicyViolationException e) {
         	// This is expected
         	display("Expected exception", e);
         }
-		
+
 		// THEN
 		assertFailure(result);
-        
+
 		assertNoObject(RoleType.class, ROLE_RECURSION_ASSIGNMENT_OID);
 	}
-	
+
 	/**
      * Stupid: see Idiot
      * Idiot: see Stupid
-     * 
+     *
      * In this case the assignment loop is broken after few attempts.
-     * 
+     *
      * MID-3652
      */
 	@Test
@@ -214,17 +214,17 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
-                                
+
 		// WHEN
     	addObject(ROLE_STUPID_ASSIGNMENT_FILE, task, result);
-	        
+
 		// THEN
 		assertSuccess(result);
-        
+
 		PrismObject<RoleType> role = getObject(RoleType.class, ROLE_STUPID_ASSIGNMENT_OID);
 		assertObject(role);
 	}
-	
+
 	@Test
     public void test100ModifyUserGuybrushAddAccountDummyRedNoAttributesConflict() throws Exception {
 		final String TEST_NAME = "test100ModifyUserGuybrushAddAccountDummyRedNoAttributesConflict";
@@ -234,31 +234,31 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-        
+
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_GUYBRUSH_DUMMY_RED_FILE);
         // Remove the attributes. This will allow outbound mapping to take place instead.
         account.removeContainer(ShadowType.F_ATTRIBUTES);
-        
+
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
-		
+
 		dummyAuditService.clear();
-        
+
 		try {
-			
+
 			// WHEN
 			modelService.executeChanges(deltas, null, task, getCheckingProgressListenerCollection(), result);
-			
+
 			AssertJUnit.fail("Unexpected executeChanges success");
 		} catch (ObjectAlreadyExistsException e) {
 			// This is expected
 			display("Expected exception", e);
 		}
-				
+
 		// Check accountRef
 		PrismObject<UserType> userGuybrush = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
         UserType userGuybrushType = userGuybrush.asObjectable();
@@ -269,22 +269,22 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
         assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
         assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
-        
+
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        
+
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertDummyAccountShadowModel(accountModel, accountOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood");
-        
+
         // Check account in dummy resource
         assertDefaultDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
-        
+
         result.computeStatus();
         display("executeChanges result", result);
         TestUtil.assertFailure("executeChanges result", result);
-        
+
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -293,7 +293,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Collection<ObjectDeltaOperation<? extends ObjectType>> auditExecution0Deltas = dummyAuditService.getExecutionDeltas(0);
         assertEquals("Wrong number of execution deltas", 0, auditExecution0Deltas.size());
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
-        
+
 	}
 
 	@Test
@@ -306,38 +306,38 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
-        
+
         PrismObject<UserType> userOtis = createUser("otis", "Otis");
         fillinUserAssignmentAccountConstruction(userOtis, RESOURCE_DUMMY_OID);
-		
+
 		display("Half-assigned user", userOtis);
-		
+
 		// Remember the assignment so we know what to remove
 		AssignmentType assignmentType = userOtis.asObjectable().getAssignment().iterator().next();
-		
+
 		// Add to repo to avoid processing of the assignment
 		String userOtisOid = repositoryService.addObject(userOtis, null, result);
-        
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteContainer(UserType.class, 
+
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteContainer(UserType.class,
         		userOtisOid, UserType.F_ASSIGNMENT, prismContext, assignmentType.asPrismContainerValue().clone());
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-                
+
 		// WHEN
         displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, getCheckingProgressListenerCollection(), result);
-		
+
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        
+
 		PrismObject<UserType> userOtisAfter = getUser(userOtisOid);
 		assertNotNull("Otis is gone!", userOtisAfter);
 		// Check accountRef
         assertUserNoAccountRefs(userOtisAfter);
-        
+
         // Check if dummy resource account is gone
         assertNoDummyAccount("otis");
-        
+
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -347,7 +347,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
+
 	@Test
     public void test190DeleteHalfAssignedUser() throws Exception {
 		String TEST_NAME = "test190DeleteHalfAssignedUser";
@@ -358,37 +358,37 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
-        
+
         PrismObject<UserType> userNavigator = createUser("navigator", "Head of the Navigator");
         fillinUserAssignmentAccountConstruction(userNavigator, RESOURCE_DUMMY_OID);
-		
+
 		display("Half-assigned user", userNavigator);
-		
+
 		// Add to repo to avoid processing of the assignment
 		String userNavigatorOid = repositoryService.addObject(userNavigator, null, result);
-        
+
         ObjectDelta<UserType> userDelta = ObjectDelta.createDeleteDelta(UserType.class, userNavigatorOid, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-                
+
 		// WHEN
         displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, getCheckingProgressListenerCollection(), result);
-		
+
 		// THEN
 		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        
+
 		try {
 			getUser(userNavigatorOid);
 			AssertJUnit.fail("navigator is still alive!");
 		} catch (ObjectNotFoundException ex) {
 			// This is OK
 		}
-        
+
         // Check if dummy resource account is gone
         assertNoDummyAccount("navigator");
-        
+
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -398,7 +398,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.DELETE, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
+
 	/**
 	 * User with linkRef that points nowhere.
 	 * MID-2134
@@ -413,26 +413,26 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
-        
+
         addBrokenAccountRef(USER_JACK_OID);
         // Make sure that the polystring does not have correct norm value
         PolyString fullNamePolyString = new PolyString("Magnificent Captain Jack Sparrow", null);
-                        
+
 		// WHEN
         displayWhen(TEST_NAME);
-        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, 
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
         		fullNamePolyString);
-		
+
 		// THEN
         displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result, 2);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Magnificent Captain Jack Sparrow");
         assertAccounts(USER_JACK_OID, 0);
-                
+
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -442,7 +442,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.HANDLED_ERROR);
 	}
-	
+
 	/**
 	 * Not much to see here. Just making sure that add account goes smoothly
 	 * after previous test. Also preparing setup for following tests.
@@ -458,24 +458,24 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
 		// Check accountRef
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         accountJackOid = getSingleLinkOid(userJack);
-        
+
         // Check account in dummy resource
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 	}
-	
+
 	/**
 	 * Not much to see here. Just preparing setup for following tests.
 	 * The account is simply added, not assigned. This makes it quite fragile.
@@ -490,26 +490,26 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_RED_FILE, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
 		// Check accountRef
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		assertLinks(userJack, 2);
 		accountJackRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
 		assertNotNull(accountJackRedOid);
-        
+
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Magnificent Captain Jack Sparrow", true);
 	}
-	
+
 	/**
 	 * Cause schema violation on the account during a provisioning operation. This should fail
 	 * the operation, but other operations should proceed and the account should definitelly NOT
@@ -525,31 +525,31 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         getDummyResource().setModifyBreakMode(BreakMode.SCHEMA);
-                        
+
 		// WHEN
         displayWhen(TEST_NAME);
-        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, 
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
         		new PolyString("Cpt. Jack Sparrow", null));
-		
+
 		// THEN
         displayThen(TEST_NAME);
 		result.computeStatus();
 		display("Result", result);
 		TestUtil.assertPartialError(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Cpt. Jack Sparrow");
-        
+
 		assertLinks(userJack, 2);
 		String accountJackRedOidAfter = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
 		assertNotNull(accountJackRedOidAfter);
-        
+
 		// The change was not propagated here because of schema violation error
 		assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
-		
+
 		// The change should be propagated here normally
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Cpt. Jack Sparrow", true);
 	}
@@ -569,35 +569,35 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         getDummyResource().setModifyBreakMode(BreakMode.SCHEMA);
-                        
+
 		// WHEN
         displayWhen(TEST_NAME);
         modifyUserChangePassword(USER_JACK_OID, "whereStheRUM", task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
 		result.computeStatus();
 		display("Result", result);
 		TestUtil.assertPartialError(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Cpt. Jack Sparrow");
 		assertEncryptedUserPassword(userJack, "whereStheRUM");
-        
+
 		assertLinks(userJack, 2);
 		String accountJackRedOidAfter = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
 		assertNotNull(accountJackRedOidAfter);
-        
+
 		// The change was not propagated here because of schema violation error
 		assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
-		
+
 		// The change should be propagated here normally
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Cpt. Jack Sparrow", true);
 	}
-	
+
 	/**
 	 * Cause modification that will be mapped to the account and that will cause
 	 * conflict (AlreadyExistsException). Make sure that midpoint does not end up
@@ -613,40 +613,40 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         getDummyResource().setModifyBreakMode(BreakMode.CONFLICT);
-                        
+
 		// WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, createPolyString("High seas"));
-		
+
 		// THEN
         displayThen(TEST_NAME);
 		result.computeStatus();
 		display("Result", result);
 		TestUtil.assertPartialError(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_LOCALITY, createPolyString("High seas"));
-        
+
 		assertLinks(userJack, 2);
 		String accountJackRedOidAfter = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
 		assertNotNull(accountJackRedOidAfter);
-        
+
 		// The change was not propagated here because of schema violation error
 		assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
-		assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, 
+		assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Caribbean");
-		
+
 		// The change should be propagated here normally
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Cpt. Jack Sparrow", true);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "High seas");
-        
+
         getDummyResource().setModifyBreakMode(BreakMode.NONE);
 	}
-	
+
 	/**
 	 * User modification triggers PolicyViolationException being thrown from the
 	 * user template mapping. Make sure that there is a user friendly message.
@@ -662,25 +662,25 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         getDummyResource().setModifyBreakMode(BreakMode.NONE);
         dummyAuditService.clear();
-               
+
         try {
 			// WHEN
 	        displayWhen(TEST_NAME);
 	        modifyUserReplace(USER_JACK_OID, UserType.F_COST_CENTER, task, result, "broke");
-	        
+
 	        assertNotReached();
-	        
+
         } catch (ExpressionEvaluationException e) {
     		// THEN
             displayThen(TEST_NAME);
-            
+
             display("Exception (expected)", e);
             assertExceptionUserFriendly(e, "We do not serve your kind here");
-            
+
     		display("Result", result);
     		assertFailure(result);
         }
-		        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 
@@ -688,12 +688,12 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
 	// Lets test various extension magic and border cases now. This is maybe quite hight in the architecture for
 	// this test, but we want to make sure that none of the underlying components will screw the things up.
-	
+
 	@Test
     public void test300ExtensionSanity() throws Exception {
 		final String TEST_NAME = "test300ExtensionSanity";
         displayTestTitle(TEST_NAME);
-        
+
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismContainerDefinition<Containerable> extensionContainerDef = userDef.findContainerDefinition(UserType.F_EXTENSION);
         PrismAsserts.assertPropertyDefinition(extensionContainerDef, PIRACY_SHIP, DOMUtil.XSD_STRING, 1, 1);
@@ -709,7 +709,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyDefinition(extensionContainerDef, PIRACY_FUNERAL_TIMESTAMP, DOMUtil.XSD_DATETIME, 0, 1);
         PrismAsserts.assertIndexed(extensionContainerDef, PIRACY_FUNERAL_TIMESTAMP, true);
 	}
-	
+
 	@Test
     public void test301AddUserDeGhoulash() throws Exception {
 		final String TEST_NAME = "test301AddUserDeGhoulash";
@@ -720,23 +720,23 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
-        
+
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_DEGHOULASH_FILE);
         ObjectDelta<UserType> userAddDelta = ObjectDelta.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userAddDelta);
-                        
+
 		// WHEN
         modelService.executeChanges(deltas, null, task, getCheckingProgressListenerCollection(), result);
-		
+
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        
+
 		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
         assertAccounts(USER_DEGHOULASH_OID, 0);
-                
+
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -745,10 +745,10 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.ADD, UserType.class);
         dummyAuditService.assertExecutionSuccess();
-        
+
         assertBasicDeGhoulashExtension(userDeGhoulash);
 	}
-	
+
 	@Test
     public void test310SearchDeGhoulashByShip() throws Exception {
 		final String TEST_NAME = "test310SearchDeGhoulashByShip";
@@ -788,14 +788,14 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test316SearchDeGhoulashByBadLuck28561";
         searchDeGhoulash(TEST_NAME, PIRACY_BAD_LUCK, 28561L);
 	}
-	
+
 	@Test
     public void test317SearchDeGhoulashByFuneralTimestamp() throws Exception {
 		final String TEST_NAME = "test317SearchDeGhoulashByFuneralTimestamp";
         searchDeGhoulash(TEST_NAME, PIRACY_FUNERAL_TIMESTAMP, USER_DEGHOULASH_FUNERAL_TIMESTAMP);
 	}
 
-	
+
     private <T> void searchDeGhoulash(String testName, QName propName, T propValue) throws Exception {
         TestUtil.displayTestTitle(this, testName);
 
@@ -803,14 +803,14 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + testName);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-                     
+
         // Simple query
         ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_EXTENSION, propName).eq(propValue)
                 .build();
 		// WHEN, THEN
 		searchDeGhoulash(testName, query, task, result);
-		
+
 		// Complex query, combine with a name. This results in join down in the database
         query = QueryBuilder.queryFor(UserType.class, prismContext)
                 .item(UserType.F_NAME).eq(USER_DEGHOULASH_NAME)
@@ -819,11 +819,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		// WHEN, THEN
 		searchDeGhoulash(testName, query, task, result);
 	}
-    
+
     private <T> void searchDeGhoulash(String testName, ObjectQuery query, Task task, OperationResult result) throws Exception {
 		// WHEN
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query, null, task, result);
-		
+
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
@@ -832,10 +832,10 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userDeGhoulash = users.iterator().next();
 		display("Found user", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
-                        
+
 		assertBasicDeGhoulashExtension(userDeGhoulash);
 	}
-    
+
     private void assertBasicDeGhoulashExtension(PrismObject<UserType> userDeGhoulash) {
     	assertExtension(userDeGhoulash, PIRACY_SHIP, "The Undead Pot");
         assertExtension(userDeGhoulash, PIRACY_TALES, treasureIsland);
@@ -844,7 +844,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertExtension(userDeGhoulash, PIRACY_BAD_LUCK, 13L, 169L, 2197L, 28561L, 371293L, 131313131313131313L);
         assertExtension(userDeGhoulash, PIRACY_FUNERAL_TIMESTAMP, USER_DEGHOULASH_FUNERAL_TIMESTAMP);
     }
-    
+
     /**
      * Idiot and Stupid are cyclic roles. However, the assignment should proceed because now that's allowed.
      */
@@ -865,7 +865,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
 		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
@@ -886,32 +886,32 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
-                                
+
         try {
 			// WHEN
 	        assignRole(USER_DEGHOULASH_OID, ROLE_RECURSION_OID, task, result);
-	        
+
 	        assertNotReached();
         } catch (PolicyViolationException e) {
         	// This is expected
         	display("Expected exception", e);
         }
-		
+
 		// THEN
         assertFailure(result);
-        
+
 		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
 		assertAssignedRoles(userDeGhoulash, ROLE_IDIOT_OID);
 	}
-	
+
 	/**
      * Stupid: see Idiot
      * Idiot: see Stupid
-     * 
+     *
      * In this case the assignment loop is broken after few attempts.
-     * 
+     *
      * MID-3652
      */
 	@Test
@@ -924,25 +924,25 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
-                                
+
 		// WHEN
         assignRole(USER_DEGHOULASH_OID, ROLE_STUPID_ASSIGNMENT_OID, task, result);
-	        
+
 		// THEN
 		assertSuccess(result);
-        
+
 		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
 		assertAssignedRoles(userDeGhoulash, ROLE_IDIOT_OID, ROLE_STUPID_ASSIGNMENT_OID);
 	}
-	
+
 	/**
      * Stupid: see Idiot
      * Idiot: see Stupid
-     * 
+     *
      * In this case the assignment loop is broken after few attempts.
-     * 
+     *
      * MID-3652
      */
 	@Test
@@ -955,19 +955,19 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
-                                
+
 		// WHEN
         unassignRole(USER_DEGHOULASH_OID, ROLE_STUPID_ASSIGNMENT_OID, task, result);
-	        
+
 		// THEN
 		assertSuccess(result);
-        
+
 		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
 		assertAssignedRoles(userDeGhoulash, ROLE_IDIOT_OID);
 	}
-	
+
 	@Test
     public void test340AssignDeGhoulashConstructionNonExistentResource() throws Exception {
 		final String TEST_NAME = "test340AssignDeGhoulashConstructionNonExistentResource";
@@ -978,23 +978,23 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
-            
+
         // WHEN
         // We have loose referential consistency. Even if the target resource is not present
         // the assignment should be added. The error is indicated in the result.
     	assignAccount(USER_DEGHOULASH_OID, RESOURCE_NONEXISTENT_OID, null, task, result);
-		
+
 		// THEN
 		result.computeStatus();
 		display("Result", result);
         TestUtil.assertFailure(result);
-        
+
 		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
 		assertAssignments(userDeGhoulash, 2);
 	}
-	
+
 	@Test
     public void test349UnAssignDeGhoulashConstructionNonExistentResource() throws Exception {
 		final String TEST_NAME = "test349UnAssignDeGhoulashConstructionNonExistentResource";
@@ -1005,22 +1005,22 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
-            
+
         // WHEN
     	unassignAccount(USER_DEGHOULASH_OID, RESOURCE_NONEXISTENT_OID, null, task, result);
-		
+
 		// THEN
 		result.computeStatus();
 		display("Result", result);
         TestUtil.assertFailure(result);
-        
+
 		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
 		assertAssignments(userDeGhoulash, 1);
 		assertAssignedRoles(userDeGhoulash, ROLE_IDIOT_OID);
 	}
-	
+
 	@Test
     public void test350AssignDeGhoulashRoleBadConstructionResourceRef() throws Exception {
 		final String TEST_NAME = "test350AssignDeGhoulashRoleBadConstructionResourceRef";
@@ -1031,10 +1031,10 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
-                                
+
 		// WHEN
         assignRole(USER_DEGHOULASH_OID, ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID, task, result);
-	        		
+	
 		// THEN
 		result.computeStatus();
 		display("result", result);
@@ -1043,13 +1043,13 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertMessageContains(message, "role:"+ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID);
         TestUtil.assertMessageContains(message, "Bad resourceRef in construction");
         TestUtil.assertMessageContains(message, "this-oid-does-not-exist");
-        
+
 		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
 		assertAssignedRoles(userDeGhoulash, ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID, ROLE_IDIOT_OID);
 	}
-	
+
 	@Test
     public void test351UnAssignDeGhoulashRoleBadConstructionResourceRef() throws Exception {
 		final String TEST_NAME = "test351UnAssignDeGhoulashRoleBadConstructionResourceRef";
@@ -1060,10 +1060,10 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
-                                
+
 		// WHEN
         unassignRole(USER_DEGHOULASH_OID, ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID, task, result);
-	        		
+	
 		// THEN
 		result.computeStatus();
 		display("result", result);
@@ -1072,7 +1072,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertMessageContains(message, "role:"+ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID);
         TestUtil.assertMessageContains(message, "Bad resourceRef in construction");
         TestUtil.assertMessageContains(message, "this-oid-does-not-exist");
-        
+
 		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
@@ -1092,7 +1092,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
     	addObject(ROLE_TARGET_BAD_CONSTRUCTION_RESOURCE_REF_FILE, task, result);
-	        		
+	
 		// THEN
 		result.computeStatus();
 		display("result", result);
@@ -1100,7 +1100,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         String message = result.getMessage();
         TestUtil.assertMessageContains(message, "role:"+ROLE_META_BAD_CONSTRUCTION_RESOURCE_REF_OID);
         TestUtil.assertMessageContains(message, "Bad resourceRef in construction metarole");
-        TestUtil.assertMessageContains(message, "this-oid-does-not-exist");     
+        TestUtil.assertMessageContains(message, "this-oid-does-not-exist");
 	}
 
     @Test
@@ -1113,19 +1113,19 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         importObjectFromFile(TASK_MOCK_JACK_FILE);
-        
+
         // THEN
         displayThen(TEST_NAME);
         result.computeStatus();
         assertSuccess(result);
-        
+
         waitForTaskFinish(TASK_MOCK_JACK_OID, false);
     }
-    
+
     @Test
     public void test401ListTasks() throws Exception {
 		final String TEST_NAME = "test401ListTasks";
@@ -1136,15 +1136,15 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         List<PrismObject<TaskType>> objects = modelService.searchObjects(TaskType.class, null, null, task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         display("Tasks", objects);
         assertEquals("Unexpected number of tasks", 1, objects.size());
         boolean found = false;
@@ -1154,7 +1154,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         	}
         }
         assertTrue("Mock task not found (model)", found);
-        
+
 //        ClusterStatusInformation clusterStatusInformation = taskManager.getRunningTasksClusterwide(result);
 //        display("Cluster status", clusterStatusInformation);
 //        TaskInfo jackTaskInfo = null;
@@ -1165,12 +1165,12 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 //        	}
 //        }
 //        assertNotNull("Mock task not found (taskManager)", jackTaskInfo);
-        
+
         // Make sure that the tasks still runs
         waitForTaskFinish(TASK_MOCK_JACK_OID, false);
-        
+
     }
-    
+
     /**
      * Delete user jack. See that Jack's tasks are still there (although they may be broken)
      */
@@ -1184,18 +1184,18 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         deleteObject(UserType.class, USER_JACK_OID, task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         // Make sure the user is gone
         assertNoObject(UserType.class, USER_JACK_OID, task, result);
-        
+
         List<PrismObject<TaskType>> objects = modelService.searchObjects(TaskType.class, null, null, task, result);
         display("Tasks", objects);
         assertEquals("Unexpected number of tastsk", 1, objects.size());
@@ -1207,7 +1207,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         }
         assertNotNull("Mock task not found (model)", jackTask);
         display("Jack's task (model)", jackTask);
-        
+
 //        ClusterStatusInformation clusterStatusInformation = taskManager.getRunningTasksClusterwide(result);
 //        display("Cluster status", clusterStatusInformation);
 //        TaskInfo jackTaskInfo = null;
@@ -1219,11 +1219,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 //        }
 //        assertNotNull("Mock task not found (taskManager)", jackTaskInfo);
 //        display("Jack's task (taskManager)", jackTaskInfo);
-        
+
         // TODO: check task status
-        
+
     }
-    
+
     @Test
     public void test500EnumerationExtension() throws Exception {
 		final String TEST_NAME = "test500EnumerationExtension";
@@ -1231,45 +1231,45 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
-        
+
         // WHEN
-        TestUtil.assertSetEquals("Wrong allowedValues in mark", MiscUtil.getValuesFromDisplayableValues(markDef.getAllowedValues()), 
+        TestUtil.assertSetEquals("Wrong allowedValues in mark", MiscUtil.getValuesFromDisplayableValues(markDef.getAllowedValues()),
         		"pegLeg","noEye","hook","tatoo","scar","bravery");
-        
+
         for (DisplayableValue<String> disp: markDef.getAllowedValues()) {
         	if (disp.getValue().equals("pegLeg")) {
         		assertEquals("Wrong pegLeg label", "Peg Leg", disp.getLabel());
         	}
         }
     }
-    
+
     @Test
     public void test502EnumerationStoreGood() throws Exception {
 		final String TEST_NAME = "test502EnumerationStoreGood";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        
+
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
-        
+
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         // WHEN
-        modifyObjectReplaceProperty(UserType.class, USER_GUYBRUSH_OID, new ItemPath(UserType.F_EXTENSION, PIRACY_MARK), 
+        modifyObjectReplaceProperty(UserType.class, USER_GUYBRUSH_OID, new ItemPath(UserType.F_EXTENSION, PIRACY_MARK),
         		task, result, "bravery");
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
         PrismProperty<String> markProp = user.findProperty(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
         assertEquals("Bad mark", "bravery", markProp.getRealValue());
     }
-    
+
     /**
      * Guybrush has stored mark "bravery". Change schema so this value becomes illegal.
      * They try to read it.
@@ -1295,20 +1295,20 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         // WHEN
         PrismObject<UserType> user = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         PrismProperty<String> markProp = user.findProperty(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
         assertEquals("Bad mark", null, markProp.getRealValue());
 
 		((Collection) markDef.getAllowedValues()).add(braveryValue);		// because of the following test
     }
-    
+
     /**
      * Store value in extension/ship. Then remove extension/ship definition from the schema.
      * The next read should NOT fail, because of the 'tolerate raw data' mode.
@@ -1319,20 +1319,20 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        
+
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
-        modifyObjectReplaceProperty(UserType.class, USER_GUYBRUSH_OID, new ItemPath(UserType.F_EXTENSION, PIRACY_SHIP), 
+
+        modifyObjectReplaceProperty(UserType.class, USER_GUYBRUSH_OID, new ItemPath(UserType.F_EXTENSION, PIRACY_SHIP),
         		task, result, "The Pink Lady");
         assertSuccess(result);
 
 		changeDefinition(PIRACY_SHIP, PIRACY_SHIP_BROKEN);
-        
+
         // WHEN
         modelService.getObject(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(createTolerateRawData()), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
@@ -1422,14 +1422,14 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        
+
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         try {
 	        // WHEN
 	        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_CIRCUS_OID, null, task, result);
-	        
+
 	        assertNotReached();
         } catch (PolicyViolationException e) {
         	// THEN
@@ -1437,9 +1437,9 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
             result.computeStatus();
             TestUtil.assertFailure(result);
         }
-        
+
     }
-    
+
     @Test
     public void test600AddUserGuybrushAssignAccount() throws Exception {
 		final String TEST_NAME="test600AddUserGuybrushAssignAccount";
@@ -1448,38 +1448,38 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
 		display("User before", userBefore);
-        
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, getCheckingProgressListenerCollection(), result);
-		
+
 		// THEN
 		displayThen(TEST_NAME);
 		assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after change execution", userAfter);
         accountGuybrushOid = getSingleLinkOid(userAfter);
-        
+
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountGuybrushOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountGuybrushOid, USER_GUYBRUSH_USERNAME);
-        
+
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountGuybrushOid, null, task, result);
         assertDummyAccountShadowModel(accountModel, accountGuybrushOid, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
-        
+
         // Check account in dummy resource
         assertDefaultDummyAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
     }
-    
+
     /**
      * Set attribute that is not in the schema directly into dummy resource.
      * Get that account. Make sure that the operations does not die.
@@ -1492,27 +1492,27 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         getDummyResource().setEnforceSchema(false);
     	DummyAccount dummyAccount = getDummyAccount(null, USER_GUYBRUSH_USERNAME);
     	dummyAccount.addAttributeValues("rogue", "habakuk");
     	getDummyResource().setEnforceSchema(true);
-    	
+
     	// WHEN
     	displayWhen(TEST_NAME);
 		PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountGuybrushOid, null, task, result);
-		
+
 		// THEN
 		displayThen(TEST_NAME);
 		assertSuccess(result);
-		
+
         display("Shadow after", shadow);
         assertDummyAccountShadowModel(shadow, accountGuybrushOid, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
-        
+
         assertDummyAccountAttribute(null, USER_GUYBRUSH_USERNAME, "rogue", "habakuk");
     }
 
-    
+
 	private <O extends ObjectType, T> void assertExtension(PrismObject<O> object, QName propName, T... expectedValues) {
 		PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
 		assertNotNull("No extension container in "+object, extensionContainer);
@@ -1521,16 +1521,16 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		PrismAsserts.assertPropertyValues("Values of extension property "+propName, extensionProperty.getValues(), expectedValues);
 	}
 
-	/** 
-	 * Break the user in the repo by inserting accountRef that points nowhere. 
+	/**
+	 * Break the user in the repo by inserting accountRef that points nowhere.
 	 */
 	private void addBrokenAccountRef(String userOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		OperationResult result = new OperationResult(TestStrangeCases.class.getName() + ".addBrokenAccountRef");
-		
-		Collection<? extends ItemDelta> modifications = ReferenceDelta.createModificationAddCollection(UserType.class, 
+
+		Collection<? extends ItemDelta> modifications = ReferenceDelta.createModificationAddCollection(UserType.class,
 				UserType.F_LINK_REF, prismContext, NON_EXISTENT_ACCOUNT_OID);
 		repositoryService.modifyObject(UserType.class, userOid, modifications , result);
-		
+
 		assertSuccess(result);
 	}
 

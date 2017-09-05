@@ -44,7 +44,7 @@ import org.apache.commons.lang.Validate;
  *
  */
 public class AssociationTargetSearchExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
-	
+
 	private PrismContext prismContext;
 	private Protector protector;
 	private ObjectResolver objectResolver;
@@ -79,7 +79,7 @@ public class AssociationTargetSearchExpressionEvaluatorFactory implements Expres
 																									D outputDefinition, String contextDescription, Task task, OperationResult result) throws SchemaException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for associationTargetSearch expression evaluator");
-		
+
 		JAXBElement<?> evaluatorElement = null;
 		if (evaluatorElements != null) {
 			if (evaluatorElements.size() > 1) {
@@ -87,7 +87,7 @@ public class AssociationTargetSearchExpressionEvaluatorFactory implements Expres
 			}
 			evaluatorElement = evaluatorElements.iterator().next();
 		}
-		
+
 		Object evaluatorTypeObject = null;
         if (evaluatorElement != null) {
         	evaluatorTypeObject = evaluatorElement.getValue();
@@ -95,7 +95,7 @@ public class AssociationTargetSearchExpressionEvaluatorFactory implements Expres
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof SearchObjectExpressionEvaluatorType)) {
             throw new SchemaException("Association expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        AssociationTargetSearchExpressionEvaluator evaluator = new AssociationTargetSearchExpressionEvaluator((SearchObjectExpressionEvaluatorType)evaluatorTypeObject, 
+        AssociationTargetSearchExpressionEvaluator evaluator = new AssociationTargetSearchExpressionEvaluator((SearchObjectExpressionEvaluatorType)evaluatorTypeObject,
         		(PrismContainerDefinition<ShadowAssociationType>) outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer);
         return (ExpressionEvaluator<V,D>) evaluator;
 	}

@@ -103,10 +103,10 @@ public class ModelRestService {
 	public static final String OPERATION_GET_LOG_FILE_SIZE = CLASS_DOT + "getLogFileSize";
 	public static final String OPERATION_VALIDATE_VALUE = CLASS_DOT +  "validateValue";
 	public static final String OPERATION_GENERATE_VALUE = CLASS_DOT +  "generateValue";
-	
+
 	private static final String CURRENT = "current";
 	private static final String VALIDATE = "validate";
-	
+
 	@Autowired private ModelCrudService model;
 	@Autowired private ScriptingService scriptingService;
 	@Autowired private ModelService modelService;
@@ -126,7 +126,7 @@ public class ModelRestService {
 	public ModelRestService() {
 		// nothing to do
 	}
-	
+
 	@POST
 	@Path("/{type}/{oid}/generate")
 	@Consumes({"application/xml", "application/json", "application/yaml"})
@@ -153,10 +153,10 @@ public class ModelRestService {
 				} else {
 					response = RestServiceUtil.createResponse(Response.Status.BAD_REQUEST, parentResult, parentResult);
 				}
-				
+
 //				ResponseBuilder responseBuilder = Response.ok(policyItemsDefinition);
 //				response = responseBuilder.build();
-				
+
 			} catch (Exception ex) {
 				parentResult.computeStatus();
 				response = RestServiceUtil.handleException(parentResult, ex);
@@ -177,7 +177,7 @@ public class ModelRestService {
 	@Consumes({"application/xml", "application/json", "application/yaml"})
 	@Produces({"application/xml", "application/json", "application/yaml"})
 	public <O extends ObjectType> Response validateValue(@PathParam("type") String type, @PathParam("oid") String oid, PolicyItemsDefinitionType policyItemsDefinition, @Context MessageContext mc) {
-		
+
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_VALIDATE_VALUE);
 
@@ -198,7 +198,7 @@ public class ModelRestService {
 					responseBuilder = Response.status(Status.CONFLICT).entity(parentResult);
 					response = responseBuilder.build();
 				}
-				
+
 			} catch (Exception ex) {
 				parentResult.computeStatus();
 				response = RestServiceUtil.handleException(parentResult, ex);
@@ -219,7 +219,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			
+
 			Collection<SelectorOptions<GetOperationOptions>> options =
 					SelectorOptions.createCollection(GetOperationOptions.createRaw());
 			PrismObject<UserType> user = model.getObject(UserType.class, oid, options, task, parentResult);
@@ -318,7 +318,7 @@ public class ModelRestService {
 		finishRequest(task);
 		return response;
 	}
-	
+
 
 	@POST
 	@Path("/{type}")
@@ -372,7 +372,7 @@ public class ModelRestService {
 		finishRequest(task);
 		return response;
 	}
-	
+
 	@GET
 	@Path("/{type}")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
@@ -384,7 +384,7 @@ public class ModelRestService {
 		Class<T> clazz = ObjectTypes.getClassFromRestType(type);
 		Response response;
 		try {
-			
+
 			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, null, null);
 			List<PrismObject<T>> objects = model.searchObjects(clazz, null, searchOptions, task, parentResult);
 
@@ -393,7 +393,7 @@ public class ModelRestService {
 				List<ObjectType> list = objects.stream().map(o -> convert(clazz, o, parentResult.createOperationResultType())).collect(Collectors.toList());
 				listType.getObject().addAll(list);
 			}
-			
+
 			response = RestServiceUtil.createResponse(Response.Status.OK, listType, parentResult, true);
 //			response = Response.ok().entity(listType).build();
 		} catch (Exception ex) {
@@ -404,7 +404,7 @@ public class ModelRestService {
 		finishRequest(task);
 		return response;
 	}
-	
+
 	private ObjectType convert(Class clazz, PrismObject<? extends ObjectType> o, OperationResultType result) {
 		ObjectType objType = null;
 		try {
@@ -416,8 +416,8 @@ public class ModelRestService {
 			// TODO Auto-generated catch block
 			return objType;
 		}
-		
-		
+
+
 	}
 
 	// currently unused; but potentially useful in future
@@ -945,7 +945,7 @@ public class ModelRestService {
 			builder.header("CurrentLogFileSize", content.getLogFileSize());
 
 			response = builder.build();
-			
+
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Cannot get log file content: fromPosition={}, maxSize={}", ex, fromPosition, maxSize);
 			response = RestServiceUtil.handleException(result, ex);

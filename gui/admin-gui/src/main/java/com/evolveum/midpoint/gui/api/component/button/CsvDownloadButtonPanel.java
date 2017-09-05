@@ -32,7 +32,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
 	private static final String OPERATION_GET_EXPORT_SIZE_LIMIT = DOT_CLASS + "getDefaultExportSizeLimit";
 
 	private static final String ID_EXPORT_DATA = "exportData";
-	
+
    public CsvDownloadButtonPanel(String id) {
 	   super(id);
 	   initLayout();
@@ -43,7 +43,7 @@ private static final long serialVersionUID = 1L;
 	private void initLayout() {
     	CSVDataExporter csvDataExporter = new CSVDataExporter() {
     		private static final long serialVersionUID = 1L;
-    		
+
     		@Override
     		public <T> void exportData(IDataProvider<T> dataProvider, List<IExportableColumn<T, ?>> columns,
     				OutputStream outputStream) throws IOException {
@@ -63,19 +63,19 @@ private static final long serialVersionUID = 1L;
     	};
         final AbstractAjaxDownloadBehavior ajaxDownloadBehavior = new AbstractAjaxDownloadBehavior() {
         	private static final long serialVersionUID = 1L;
-    		
+
     		@Override
     		public IResourceStream getResourceStream() {
     			return new ExportToolbar.DataExportResourceStreamWriter(csvDataExporter, getDataTable());
     		}
-    		
+
     		public String getFileName() {
     			return CsvDownloadButtonPanel.this.getFilename();
     		}
-    	}; 
-    	
+    	};
+
         add(ajaxDownloadBehavior);
-        
+
         AjaxIconButton exportDataLink = new AjaxIconButton(ID_EXPORT_DATA, new Model<>("fa fa-download"),
                 createStringResource("CsvDownloadButtonPanel.export")) {
 
@@ -113,9 +113,9 @@ private static final long serialVersionUID = 1L;
         };
         add(exportDataLink);
     }
-	
+
 	protected abstract DataTable<?,?> getDataTable();
-	
+
 	protected abstract String getFilename();
 
 }

@@ -51,11 +51,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 @Component
 public class AccessChecker {
-	
+
 	public static final String OPERATION_NAME = AccessChecker.class.getName()+".accessCheck";
 	private static final Trace LOGGER = TraceManager.getTrace(AccessChecker.class);
 
-	public void checkAdd(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationResult parentResult) 
+	public void checkAdd(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationResult parentResult)
 			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createMinorSubresult(OPERATION_NAME);
 		ResourceAttributeContainer attributeCont = ShadowUtil.getAttributesContainer(shadow);
@@ -99,7 +99,7 @@ public class AccessChecker {
 	public void checkModify(ResourceType resource, PrismObject<ShadowType> shadow,
 			Collection<? extends ItemDelta> modifications, RefinedObjectClassDefinition objectClassDefinition,
 			OperationResult parentResult) throws SecurityViolationException, SchemaException {
-		
+
 		OperationResult result = parentResult.createMinorSubresult(OPERATION_NAME);
 		for (ItemDelta modification: modifications) {
 			if (!(modification instanceof PropertyDelta<?>)) {
@@ -140,13 +140,13 @@ public class AccessChecker {
 			}
 		}
 		result.recordSuccess();
-		
+
 	}
 
 	public void filterGetAttributes(ResourceAttributeContainer attributeContainer, RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException {
 		OperationResult result = parentResult.createMinorSubresult(OPERATION_NAME);
-		
-		
+
+
 		for (ResourceAttribute<?> attribute: attributeContainer.getAttributes()) {
 			QName attrName = attribute.getElementName();
 			RefinedAttributeDefinition attrDef = objectClassDefinition.findAttributeDefinition(attrName);
@@ -156,7 +156,7 @@ public class AccessChecker {
 				throw new SchemaException(message);
 			}
 			// Need to check model layer, not schema. Model means IDM logic which can be overridden in schemaHandling,
-			// schema layer is the original one. 
+			// schema layer is the original one.
 			PropertyLimitations limitations = attrDef.getLimitations(LayerType.MODEL);
 			if (limitations == null) {
 				continue;
@@ -181,7 +181,7 @@ public class AccessChecker {
 		}
 		result.recordSuccess();
 	}
-	
-	
+
+
 
 }

@@ -16,9 +16,9 @@
 package com.evolveum.midpoint.provisioning.api;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 public interface SynchronizationProcessManager {
 

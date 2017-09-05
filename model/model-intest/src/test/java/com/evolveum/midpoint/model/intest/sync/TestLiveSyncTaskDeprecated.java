@@ -33,7 +33,7 @@ public class TestLiveSyncTaskDeprecated extends TestLiveSyncTask {
 	protected File getResourceDummyFile() {
 		return RESOURCE_DUMMY_DEPRECATED_FILE;
 	}
-	
+
 	@Override
 	protected File getResourceDummyGreenFile() {
 		return RESOURCE_DUMMY_GREEN_DEPRECATED_FILE;

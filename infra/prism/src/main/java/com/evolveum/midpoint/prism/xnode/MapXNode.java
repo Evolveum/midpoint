@@ -37,7 +37,7 @@ import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
-	
+
 	// We want to maintain ordering, hence the List
 	private List<Entry> subnodes = new ArrayList<Entry>();
 
@@ -123,19 +123,19 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		}
 		return values;
 	}
-	
+
 	public java.util.Map.Entry<QName, XNode> getSingleSubEntry(String errorContext) throws SchemaException {
 		if (isEmpty()) {
 			return null;
 		}
-		
+
 		if (size() > 1) {
 			throw new SchemaException("More than one element in " + errorContext +" : "+dumpKeyNames());
 		}
-		
+
 		return subnodes.get(0);
 	}
-	
+
 	public Entry getSingleEntryThatDoesNotMatch(QName... excludedKeys) throws SchemaException {
 		Entry found = null;
 		OUTER: for (Entry subentry: subnodes) {
@@ -224,7 +224,7 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		};
 		return entries;
 	}
-	
+
 	public <T> T getParsedPrimitiveValue(QName key, QName typeName) throws SchemaException {
 		XNode xnode = get(key);
 		if (xnode == null) {
@@ -236,7 +236,7 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		PrimitiveXNode<T> xprim = (PrimitiveXNode<T>)xnode;
 		return xprim.getParsedValue(typeName, null);			// TODO expected class
 	}
-	
+
 	public void merge(MapXNode other) {
 		for (java.util.Map.Entry<QName, XNode> otherEntry: other.entrySet()) {
 			QName otherKey = otherEntry.getKey();
@@ -277,7 +277,7 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 			}
 		}
 	}
-	
+
 	public boolean equals(Object o) {
 		if (!(o instanceof MapXNode)){
 			return false;
@@ -307,7 +307,7 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 	public String getDesc() {
 		return "map";
 	}
-	
+
 	@Override
 	public String toString() {
 		return "XNode(map:"+subnodes.size()+" entries)";
@@ -342,7 +342,7 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		}
 		return null;
 	}
-	
+
 	public String dumpKeyNames() {
 		StringBuilder sb = new StringBuilder();
 		Iterator<Entry> iterator = subnodes.iterator();
@@ -393,7 +393,7 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 
 		private QName key;
 		private XNode value;
-		
+
 		public Entry(QName key) {
 			super();
 			this.key = key;

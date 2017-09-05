@@ -76,7 +76,7 @@ public class LoggingDto implements Serializable {
 	private boolean advanced;
 
 	private Boolean debug;
-	
+
 
 	public LoggingDto() {
 		this(null);

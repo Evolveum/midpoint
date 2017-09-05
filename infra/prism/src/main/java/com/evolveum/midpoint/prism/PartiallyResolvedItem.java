@@ -22,10 +22,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  *
  */
 public class PartiallyResolvedItem<V extends PrismValue,D extends ItemDefinition> {
-	
+
 	private Item<V,D> item;
 	private ItemPath residualPath;
-	
+
 	public PartiallyResolvedItem(Item<V,D> item, ItemPath residualPath) {
 		super();
 		this.item = item;

@@ -29,24 +29,24 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
  */
 @Component
 public class ConstantsManager {
-	
+
 	public static final String SYSTEM_CONFIGURATION_SECTION = "midpoint.constants";
-	
+
 	@Autowired
 	private MidpointConfiguration midpointConfiguration;
-	
+
 	private Configuration constConfig;
-	
+
 	public ConstantsManager() {
 	}
-	
+
 	/**
 	 * For testing.
 	 */
 	public ConstantsManager(Configuration config) {
 		this.constConfig = config;
 	}
-	
+
 	private Configuration getConstConfig() {
 		if (constConfig == null) {
 			constConfig = midpointConfiguration.getConfiguration(SYSTEM_CONFIGURATION_SECTION);

@@ -47,8 +47,8 @@ import java.util.List;
  */
 public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 	private static final long serialVersionUID = 1L;
-	
-	public RoleMainPanel(String id, LoadableModel<ObjectWrapper<RoleType>> objectModel, 
+
+	public RoleMainPanel(String id, LoadableModel<ObjectWrapper<RoleType>> objectModel,
 			CountableLoadableModel<AssignmentDto> assignmentsModel,
 			CountableLoadableModel<AssignmentDto> policyRulesModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
@@ -111,7 +111,7 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 
 		return tabs;
 	}
-	
+
 	@Override
 	public AbstractRoleMemberPanel<RoleType> createMemberPanel(String panelId) {
 		return new RoleMemberPanel(panelId, new Model<RoleType>(getObject().asObjectable()), getDetailsPage());
@@ -127,6 +127,6 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 				relationsList, getDetailsPage());
 	}
 
-	
-	
+
+
 }

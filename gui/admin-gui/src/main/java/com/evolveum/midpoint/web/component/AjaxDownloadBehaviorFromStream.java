@@ -37,14 +37,14 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxDownloa
 	private String contentType = "text";
 	private String fileName = null;
 
-	
+
 	public AjaxDownloadBehaviorFromStream() {
 		super();
 	}
-	
+
 	public AjaxDownloadBehaviorFromStream(boolean addAntiCache) {
 		super(addAntiCache);
-		
+
 	}
 
 
@@ -55,7 +55,7 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxDownloa
 		if (byteStream == null) {
 			return null;
 		}
-		
+
 		IResourceStream resourceStream = new AbstractResourceStream(){
 
 			private static final long serialVersionUID = 1L;
@@ -73,11 +73,11 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxDownloa
 			public void close() throws IOException {
 				byteStream.close();
 			}
-			
+
 		};
 		return resourceStream;
 	}
-	
+
     protected abstract InputStream initStream();
 
     public String getFileName() {

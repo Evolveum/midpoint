@@ -55,7 +55,7 @@ public class StageDefinitionDto implements Serializable {
     private List<AccessCertificationResponseType> stopReviewOnRaw;
     private List<AccessCertificationResponseType> advanceToNextStageOnRaw;
     private List<WorkItemTimedActionsType> timedActionsTypes;
-	
+
 	public StageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj, PrismContext prismContext) throws SchemaException {
 		if (stageDefObj != null) {
 			setNumber(stageDefObj.getNumber());

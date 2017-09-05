@@ -19,7 +19,7 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 
 /**
  * Object already exists.
- * 
+ *
  * @author Radovan Semancik
  *
  */
@@ -32,7 +32,7 @@ public class ObjectAlreadyExistsException extends CommonException {
 	public ObjectAlreadyExistsException(String message) {
 		super(message);
 	}
-	
+
 	public ObjectAlreadyExistsException(LocalizableMessage userFriendlyMessage) {
 		super(userFriendlyMessage);
 	}
@@ -44,7 +44,7 @@ public class ObjectAlreadyExistsException extends CommonException {
 	public ObjectAlreadyExistsException(String message, Throwable cause) {
 		super(message, cause);
 	}
-	
+
 	public ObjectAlreadyExistsException(LocalizableMessage userFriendlyMessage, Throwable cause) {
 		super(userFriendlyMessage, cause);
 	}

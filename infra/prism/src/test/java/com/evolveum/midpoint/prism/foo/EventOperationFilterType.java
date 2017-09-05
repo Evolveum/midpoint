@@ -37,9 +37,9 @@ import java.util.List;
 
 /**
  * <p>Java class for EventOperationFilterType complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="EventOperationFilterType">
  *   &lt;complexContent>
@@ -51,8 +51,8 @@ import java.util.List;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "EventOperationFilterType", propOrder = {
@@ -68,7 +68,7 @@ public class EventOperationFilterType
 
     /**
      * Creates a new {@code EventOperationFilterType} instance.
-     * 
+     *
      */
     public EventOperationFilterType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -77,8 +77,8 @@ public class EventOperationFilterType
 
     /**
      * Creates a new {@code EventOperationFilterType} instance by deeply copying a given {@code EventOperationFilterType} instance.
-     * 
-     * 
+     *
+     *
      * @param o
      *     The instance to copy.
      * @throws NullPointerException
@@ -98,25 +98,25 @@ public class EventOperationFilterType
 
     /**
      * Gets the value of the operation property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the operation property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getOperation().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link EventOperationType }
-     * 
-     * 
+     *
+     *
      */
     public List<String> getOperation() {
         if (operation == null) {
@@ -128,7 +128,7 @@ public class EventOperationFilterType
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     * 
+     *
      */
 
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
@@ -176,7 +176,7 @@ public class EventOperationFilterType
 
     /**
      * Copies all values of property {@code Operation} deeply.
-     * 
+     *
      * @param source
      *     The source to copy from.
      * @param target
@@ -203,8 +203,8 @@ public class EventOperationFilterType
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

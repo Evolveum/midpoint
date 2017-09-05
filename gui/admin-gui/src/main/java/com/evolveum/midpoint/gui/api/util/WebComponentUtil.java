@@ -37,6 +37,7 @@ import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -52,6 +53,7 @@ import org.apache.wicket.Page;
 import org.apache.wicket.PageReference;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
@@ -63,10 +65,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -173,7 +172,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 /**
  * Utility class containing miscellaneous methods used mostly in Wicket
  * components.
- * 
+ *
  * @author lazyman
  */
 public final class WebComponentUtil {
@@ -215,7 +214,7 @@ public final class WebComponentUtil {
 		storageKeyMap.put(PageRoles.class, SessionStorage.KEY_ROLES);
 		storageKeyMap.put(PageServices.class, SessionStorage.KEY_SERVICES);
 	}
-	
+
 	private static Map<TableId, String> storageTableIdMap;
 
 	static {
@@ -227,7 +226,7 @@ public final class WebComponentUtil {
 		storageTableIdMap.put(TableId.PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE, SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
 		storageTableIdMap.put(TableId.PAGE_RESOURCE_GENERIC_PANEL_RESOURCE_MODE, SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
 		storageTableIdMap.put(TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL, SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT);
-		
+
 	}
 
 	public static String nl2br(String text) {
@@ -262,6 +261,29 @@ public final class WebComponentUtil {
 				.collect(Collectors.joining(", "));
 	}
 
+	public static void addAjaxOnUpdateBehavior(WebMarkupContainer container) {
+        container.visitChildren(new IVisitor<Component, Object>() {
+            @Override
+            public void component(Component component, IVisit<Object> objectIVisit) {
+                if (component instanceof InputPanel) {
+                    addAjaxOnBlurUpdateBehaviorToComponent(((InputPanel) component).getBaseFormComponent());
+                } else if (component instanceof FormComponent) {
+                    addAjaxOnBlurUpdateBehaviorToComponent(component);
+                }
+            }
+        });
+    }
+
+	private static void addAjaxOnBlurUpdateBehaviorToComponent(final Component component) {
+        component.setOutputMarkupId(true);
+        component.add(new AjaxFormComponentUpdatingBehavior("blur") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
+    }
+
 	public enum Channel {
 		// TODO: move this to schema component
 		LIVE_SYNC(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI),
@@ -274,7 +296,7 @@ public final class WebComponentUtil {
 		USER(SchemaConstants.CHANNEL_GUI_USER_URI),
 		SELF_REGISTRATION(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI),
 		RESET_PASSWORD(SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
-		
+
 		private String channel;
 
 		Channel(String channel) {
@@ -293,7 +315,7 @@ public final class WebComponentUtil {
 			throw new IllegalStateException("Exception while obtaining Datatype Factory instance", dce);
 		}
 	}
-	
+
 	public static DateValidator getRangeValidator(Form<?> form, ItemPath path) {
         DateValidator validator = null;
         List<DateValidator> validators = form.getBehaviors(DateValidator.class);
@@ -318,15 +340,15 @@ public final class WebComponentUtil {
 	public static Class<?> qnameToClass(PrismContext prismContext, QName type) {
 		return prismContext.getSchemaRegistry().determineCompileTimeClass(type);
 	}
-	
+
 	public static <T extends ObjectType> Class<T> qnameToClass(PrismContext prismContext, QName type, Class<T> returnType) {
 		return returnType = prismContext.getSchemaRegistry().determineCompileTimeClass(type);
 	}
-	
+
 	public static <T extends ObjectType> QName classToQName(PrismContext prismContext, Class<T> clazz) {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz).getTypeName();
 	}
-	
+
 	public static TaskType createSingleRecurrenceTask(String taskName, QName applicableType, ObjectQuery query,
 			ObjectDelta delta, ModelExecuteOptions options, String category, PageBase pageBase) throws SchemaException {
 
@@ -411,24 +433,24 @@ public final class WebComponentUtil {
 
 		return (int) l.longValue();
 	}
-	
+
 	// TODO: move to schema component
 	public static List<QName> createObjectTypeList() {
-		
+
 		List<QName> types = new ArrayList<>(ObjectTypes.values().length);
 		for (ObjectTypes t : ObjectTypes.values()) {
 			types.add(t.getTypeQName());
 		}
-		
+
 		return types.stream().sorted((type1, type2) -> {
 				Validate.notNull(type1);
 				Validate.notNull(type2);
 
 				return String.CASE_INSENSITIVE_ORDER.compare(QNameUtil.qNameToUri(type1), QNameUtil.qNameToUri(type2));
 
-			
+
 		}).collect(Collectors.toList());
-		
+
 	}
 
 	// TODO: move to schema component
@@ -442,7 +464,7 @@ public final class WebComponentUtil {
 
 		return focusTypeList;
 	}
-	
+
 	// TODO: move to schema component
 	public static List<QName> createAbstractRoleTypeList() {
 		List<QName> focusTypeList = new ArrayList<>();
@@ -466,12 +488,12 @@ public final class WebComponentUtil {
 
 		return focusTypeList;
 	}
-	
+
 	/**
 	 * Takes a collection of object types (classes) that may contain abstract types. Returns a collection
 	 * that only contain concrete types.
 	 * @param <O> common supertype for all the types in the collections
-	 * 
+	 *
 	 * TODO: move to schema component
 	 */
 	public static <O extends ObjectType> List<QName> resolveObjectTypesToQNames(Collection<Class<? extends O>> types, PrismContext prismContext) {
@@ -593,7 +615,7 @@ public final class WebComponentUtil {
 
 	public static <E extends Enum> DropDownChoicePanel<E> createEnumPanel(Class<E> clazz, String id,
 			IModel<List<E>> choicesList, final IModel<E> model, final Component component, boolean allowNull) {
-		return new DropDownChoicePanel<E>(id, model, choicesList, 
+		return new DropDownChoicePanel<E>(id, model, choicesList,
 				new IChoiceRenderer<E>() {
 
 					private static final long serialVersionUID = 1L;
@@ -624,7 +646,7 @@ public final class WebComponentUtil {
 		final Object o = model.getObject();
 
 		final IModel<List<DisplayableValue>> enumModelValues = new AbstractReadOnlyModel<List<DisplayableValue>>() {
-		
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -635,8 +657,8 @@ public final class WebComponentUtil {
 		};
 
 		return new DropDownChoicePanel(id, model, enumModelValues, new DisplayableValueChoiceRenderer(getDisplayableValues(def)), true);
-		
-		
+
+
 //		@Override
 //		public Object getObject(String id, IModel choices) {
 //			if (StringUtils.isBlank(id)) {
@@ -673,7 +695,7 @@ public final class WebComponentUtil {
 //		}
 	}
 
-	
+
 
 	private static List<DisplayableValue> getDisplayableValues(PrismPropertyDefinition def) {
 		List<DisplayableValue> values = null;
@@ -752,17 +774,17 @@ public final class WebComponentUtil {
 		}
 		return name;
 	}
-	
+
 	public static <O extends ObjectType> String getEffectiveName(ObjectReferenceType ref, QName propertyName, PageBase pageBase, String operation) {
 		PrismObject<O> object = WebModelServiceUtils.loadObject(ref, pageBase,
 				pageBase.createSimpleTask(operation), new OperationResult(operation));
-		
+
 		if (object == null) {
 			return "Not Found";
 		}
-		
+
 		return getEffectiveName(object, propertyName);
-		
+
 	}
 
 	public static String getName(ObjectReferenceType ref) {
@@ -1098,7 +1120,7 @@ public final class WebComponentUtil {
 
 		return result.isSuccess() || result.isHandledError();
 	}
-	
+
 	public static boolean isSuccessOrHandledError(OperationResultType resultType) {
 		if (resultType == null) {
 			return false;
@@ -1125,7 +1147,7 @@ public final class WebComponentUtil {
 	public static <T extends ObjectType> String createDefaultIcon(T object) {
 		return createDefaultIcon(object.asPrismObject());
 	}
-	
+
 	public static <T extends ObjectType> String createDefaultIcon(PrismObject<T> object) {
 		Class<T> type = object.getCompileTimeClass();
 		if (type.equals(UserType.class)) {
@@ -1339,7 +1361,7 @@ public final class WebComponentUtil {
 				return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " "
 						+ GuiStyleConstants.CLASS_ICON_STYLE_DOWN;
 			}
-			
+
 			if (lastAvailabilityStatus == AvailabilityStatusType.BROKEN) {
 				return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " "
 						+ GuiStyleConstants.CLASS_ICON_STYLE_BROKEN;
@@ -1756,7 +1778,7 @@ public final class WebComponentUtil {
 	public static String getStorageKeyForPage(Class<?> pageClass) {
 		return storageKeyMap.get(pageClass);
 	}
-	
+
 	public static String getStorageKeyForTableId(TableId tableId) {
 		return storageTableIdMap.get(tableId);
 	}
@@ -1874,7 +1896,7 @@ public final class WebComponentUtil {
 	public static Behavior enabledIfFalse(final NonEmptyModel<Boolean> model) {
 		return new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public boolean isEnabled() {
 				return !model.getObject();
@@ -1978,7 +2000,7 @@ public final class WebComponentUtil {
 		}
 		return true;
 	}
-	
+
 	public static <AR extends AbstractRoleType> IModel<String> createAbstractRoleConfirmationMessage(String actionName, ColumnMenuAction action, MainObjectListPanel<AR> abstractRoleTable, PageBase pageBase) {
 		List<AR> selectedRoles =  new ArrayList<>();
 		if (action.getRowModel() == null) {

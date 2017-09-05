@@ -98,22 +98,22 @@ public class SchemaProcessor implements Processor {
     public static final QName A_PRISM_CONTAINER = new QName(PrefixMapper.A.getNamespace(), "container");
     public static final QName A_PRISM_OBJECT = new QName(PrefixMapper.A.getNamespace(), "object");
     public static final QName A_RAW_TYPE = new QName(PrefixMapper.A.getNamespace(), "rawType");
-    
+
     //Public fields
     private static final String COMPLEX_TYPE_FIELD_NAME = "COMPLEX_TYPE";
-    
+
     // Public generated methods
     // The "as" prefix is chosen to avoid clash with usual "get" for the fields and also to indicate that
     //   the it returns the same object in a different representation and not a composed/aggregated object
     public static final String METHOD_AS_PRISM_OBJECT = "asPrismObject";
     public static final String METHOD_AS_PRISM_CONTAINER_VALUE = "asPrismContainerValue";
     private static final String METHOD_AS_PRISM_CONTAINER = "asPrismContainer";
-    // The "setup" prefix is chosen avoid collision with regular setters for generated fields 
+    // The "setup" prefix is chosen avoid collision with regular setters for generated fields
     public static final String METHOD_SETUP_CONTAINER_VALUE = "setupContainerValue";
     public static final String METHOD_SETUP_CONTAINER = "setupContainer";
     public static final String METHOD_AS_REFERENCE_VALUE = "asReferenceValue";
     public static final String METHOD_SETUP_REFERENCE_VALUE = "setupReferenceValue";
-    
+
     // Internal fields and methods. Although some of these fields needs to be public (so they can be used by
     // prism classes), they are not really intended for public usage. We also want to avoid conflicts with code
     // generated for regular fields. Hence the underscore.
@@ -122,7 +122,7 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_GET_CONTAINER_NAME = "_getContainerName";
     private static final String METHOD_GET_CONTAINER_TYPE = "_getContainerType";
     private static final String REFERENCE_VALUE_FIELD_NAME = "_referenceValue";
-    
+
     //methods in PrismForJAXBUtil
     private static final String METHOD_PRISM_UTIL_GET_FIELD_SINGLE_CONTAINERABLE = "getFieldSingleContainerable";
     private static final String METHOD_PRISM_UTIL_GET_PROPERTY_VALUE = "getPropertyValue";
@@ -144,14 +144,14 @@ public class SchemaProcessor implements Processor {
 
     // ???
     private static final String METHOD_PRISM_GET_ANY = "getAny";
-    
+
 	private static final String METHOD_CONTAINER_GET_VALUE = "getValue";
-	
+
 	private static final String CONTAINER_VALUE_LOCAL_VAR_NAME = "containerValue";
 	private static final String FIELD_CONTAINER_VALUE_LOCAL_VAR_NAME = "fieldContainerValue";
 	private static final String OBJECT_LOCAL_FIELD_NAME = "object";
 	private static final String REFERENCE_LOCAL_VARIABLE_NAME = "reference";
-    
+
 	//equals, toString, hashCode methods
     private static final String METHOD_TO_STRING = "toString";
     private static final String METHOD_DEBUG_DUMP = "debugDump";
@@ -169,7 +169,7 @@ public class SchemaProcessor implements Processor {
             return clazz;
         }
     };
-	
+
 
     @Override
     public boolean run(Outline outline, Options options, ErrorHandler errorHandler) throws SAXException {
@@ -270,13 +270,13 @@ public class SchemaProcessor implements Processor {
         body._return(JExpr.invoke(JExpr.invoke(getReference), "getTargetType"));
 
         definedClass.removeField(typeField);
-        
+
         JMethod setType = recreateMethod(findMethod(definedClass, "setType"), definedClass);
         body = setType.body();
         JInvocation invocation = body.invoke(JExpr.invoke(getReference), "setTargetType");
         invocation.arg(setType.listParams()[0]);
         invocation.arg(JExpr.lit(true));
-        
+
         JFieldVar targetNameField = definedClass.fields().get("targetName");
         JMethod getTargetName = recreateMethod(findMethod(definedClass, "getTargetName"), definedClass);
         copyAnnotations(getTargetName, targetNameField);
@@ -286,12 +286,12 @@ public class SchemaProcessor implements Processor {
         getTargetNamebody._return(getTargetNameInvocation);
 
         definedClass.removeField(targetNameField);
-        
+
         JMethod setTargetName = recreateMethod(findMethod(definedClass, "setTargetName"), definedClass);
         JBlock setTargetNamebody = setTargetName.body();
         JInvocation setTagetNameInvocation = setTargetNamebody.staticInvoke(CLASS_MAP.get(PrismForJAXBUtil.class), METHOD_PRISM_UTIL_SET_REFERENCE_TARGET_NAME);
         setTagetNameInvocation.arg(JExpr.invoke(getReference));
-        setTagetNameInvocation.arg(setTargetName.listParams()[0]);        
+        setTagetNameInvocation.arg(setTargetName.listParams()[0]);
     }
 
     private void updateObjectReferenceRelation(JDefinedClass definedClass, JMethod getReference) {
@@ -321,7 +321,7 @@ public class SchemaProcessor implements Processor {
         JInvocation invocation = body.invoke(JExpr.invoke(getReference), setOid.name());
         invocation.arg(setOid.listParams()[0]);
     }
-    
+
     private void updateObjectReferenceDescription(JDefinedClass definedClass, JMethod getReference) {
         JFieldVar descriptionField = definedClass.fields().get("description");
         JMethod getDescription = recreateMethod(findMethod(definedClass, "getDescription"), definedClass);
@@ -335,10 +335,10 @@ public class SchemaProcessor implements Processor {
         JInvocation invocation = body.invoke(JExpr.invoke(getReference), setDescription.name());
         invocation.arg(setDescription.listParams()[0]);
     }
-    
+
     private void updateObjectReferenceFilter(JDefinedClass definedClass, JMethod asReferenceValue) {
         JFieldVar filterField = definedClass.fields().get("filter");
-        
+
         JMethod getFilter = recreateMethod(findMethod(definedClass, "getFilter"), definedClass);
         copyAnnotations(getFilter, filterField);
         definedClass.removeField(filterField);
@@ -358,7 +358,7 @@ public class SchemaProcessor implements Processor {
         invocation.arg(setFilter.listParams()[0]);
         body.add(invocation);
     }
-    
+
     private void updateObjectReferenceResolutionTime(JDefinedClass definedClass, JMethod getReference) {
         JFieldVar typeField = definedClass.fields().get("resolutionTime");
         JMethod getType = recreateMethod(findMethod(definedClass, "getResolutionTime"), definedClass);
@@ -482,7 +482,7 @@ public class SchemaProcessor implements Processor {
         JBlock body = getContainer.body();
         body._return(JExpr.invoke(METHOD_AS_PRISM_CONTAINER).invoke(METHOD_CONTAINER_GET_VALUE));
     }
-    
+
     private void createAsPrismContainerValue(JDefinedClass definedClass, JVar containerValueVar) {
         JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismContainerValue.class),
         		METHOD_AS_PRISM_CONTAINER_VALUE);
@@ -670,7 +670,7 @@ public class SchemaProcessor implements Processor {
             throw new RuntimeException(ex.getMessage(), ex);
         }
     }
-    
+
     private String extractString(JAnnotationValue jAnnValue) {
     	StringWriter writer = new StringWriter();
 		JFormatter formatter = new JFormatter(writer);
@@ -872,7 +872,7 @@ public class SchemaProcessor implements Processor {
         body.assign(JExpr._this().ref(container), methodContainer);
         return setContainer;
     }
-    
+
     private void createSetContainerValueMethodInObject(JDefinedClass definedClass, JVar container) {
     	JMethod setContainerValue = definedClass.method(JMod.PUBLIC, void.class, METHOD_SETUP_CONTAINER_VALUE);
     	setContainerValue.annotate(CLASS_MAP.get(Override.class));
@@ -1070,7 +1070,7 @@ public class SchemaProcessor implements Processor {
             if (fields == null) {
                 continue;
             }
-            
+
             boolean isObject = hasAnnotation(classOutline, A_PRISM_OBJECT);
 
             List<FieldBox<QName>> boxes = new ArrayList<FieldBox<QName>>();
@@ -1301,7 +1301,7 @@ public class SchemaProcessor implements Processor {
         JMethod getValueFrom = anonymous.method(JMod.PROTECTED, CLASS_MAP.get(PrismReferenceValue.class), "getValueFrom");
         getValueFrom.annotate(CLASS_MAP.get(Override.class));
         getValueFrom.param(type, "value");
-        
+
         JMethod willClear = anonymous.method(JMod.PROTECTED, boolean.class, "willClear");
         willClear.annotate(CLASS_MAP.get(Override.class));
         willClear.param(CLASS_MAP.get(PrismReferenceValue.class), "value");
@@ -1351,13 +1351,13 @@ public class SchemaProcessor implements Processor {
         JBlock body = method.body();
         body._return(JExpr.invoke(method.listParams()[0], METHOD_AS_REFERENCE_VALUE));
     }
-    
+
     private void createFieldReferenceWillClear(JFieldVar field, JMethod method) {
         JBlock body = method.body();
         JInvocation getObject = JExpr.invoke(method.listParams()[0], "getObject");
         body._return(getObject.eq(JExpr._null()));
     }
-    
+
     private void createFieldReferenceUseWillClear(JFieldVar field, JMethod method) {
         JBlock body = method.body();
         JInvocation getObject = JExpr.invoke(method.listParams()[0], "getObject");
@@ -1373,7 +1373,7 @@ public class SchemaProcessor implements Processor {
 			JVar pcv = body.decl(CLASS_MAP.get(PrismContainerValue.class), "pcv", JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE));
 
 			// PrismReference reference = PrismForJAXBUtil.getReference(pcv, F_LINK_REF);
-            JInvocation invoke = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_REFERENCE); 
+            JInvocation invoke = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_REFERENCE);
             invoke.arg(pcv);
             invoke.arg(qnameRef);
             JVar reference = body.decl(CLASS_MAP.get(PrismReference.class), REFERENCE_LOCAL_VARIABLE_NAME, invoke);
@@ -1460,12 +1460,12 @@ public class SchemaProcessor implements Processor {
 
     private void createFieldReferenceUseGetValueFrom(JFieldVar field, JMethod method) {
         JBlock body = method.body();
-        
+
         JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_OBJECTABLE_AS_REFERENCE_VALUE);
         invocation.arg(method.listParams()[0]);
         invocation.arg(JExpr.invoke("getReference"));
         body._return(invocation);
-        
+
 //        JVar object = body.decl(CLASS_MAP.get(PrismObject.class), "object",
 //                JExpr.invoke(method.listParams()[0], METHOD_AS_PRISM_OBJECT));
 //        JVar reference = body.decl(CLASS_MAP.get(PrismReference.class), "reference",
@@ -1937,12 +1937,12 @@ public class SchemaProcessor implements Processor {
 				} catch (IllegalArgumentException | IllegalAccessException e) {
 					throw new RuntimeException(e.getMessage(), e);
 				}
-                mfield.setAccessible(false);	
+                mfield.setAccessible(false);
                 map.remove("name");
                 annotation.param("name", normalizeFieldName(field.name()));
             }
         }
-        
+
         if (isList(field.type())) {
             //JClass list = (JClass) field.type();
             //JClass listType = list.getTypeParameters().get(0);
@@ -1969,7 +1969,7 @@ public class SchemaProcessor implements Processor {
 
             return;
         }
-        
+
         JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_FIELD_SINGLE_CONTAINERABLE);
         invocation.arg(JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE));
         invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));

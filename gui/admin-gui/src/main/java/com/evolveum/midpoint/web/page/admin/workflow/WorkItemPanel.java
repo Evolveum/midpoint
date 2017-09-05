@@ -235,14 +235,14 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		WebMarkupContainer additionalAttributes = new WebMarkupContainer(ID_ADDITIONAL_ATTRIBUTES);
 		add(additionalAttributes);
 		additionalAttributes.add(new VisibleEnableBehaviour() {
-		
+
 			private static final long serialVersionUID = 1L;
 
 			public boolean isVisible() {
 				return (level != null && level.getFormRef() != null && level.getFormRef().getOid() != null);
 			};
 		});
-		
+
 		if (level != null && level.getFormRef() != null && level.getFormRef().getOid() != null) {
 			String formOid = level.getFormRef().getOid();
 			ObjectType focus = dto.getFocus(pageBase);

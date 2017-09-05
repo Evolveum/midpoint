@@ -19,33 +19,33 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationPolic
 
 /**
  * Describes what the policy "decides" about a specific account.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public enum SynchronizationPolicyDecision {
-	
+
 	/**
 	 * New account that is going to be added (and linked)
 	 */
 	ADD,
-	
+
 	/**
 	 * Existing account that is going to be deleted (and unlinked)
 	 */
 	DELETE,
-	
+
 	/**
 	 * Existing account that is kept as it is (remains linked).
 	 * Note: there still may be attribute or entitlement changes.
 	 */
 	KEEP,
-	
+
 	/**
 	 * Existing account that is going to be unlinked (but NOT deleted)
 	 */
 	UNLINK,
-	
+
 	/**
 	 * The projection is broken. I.e. there is some (fixable) state that
 	 * prevents proper operations with the projection. This may be schema violation
@@ -61,7 +61,7 @@ public enum SynchronizationPolicyDecision {
 	 * this is used only for evaluation assigment and the assigment policies
 	 */
 	IGNORE;
-	
+
     public SynchronizationPolicyDecisionType toSynchronizationPolicyDecisionType() {
         switch (this) {
             case ADD: return SynchronizationPolicyDecisionType.ADD;

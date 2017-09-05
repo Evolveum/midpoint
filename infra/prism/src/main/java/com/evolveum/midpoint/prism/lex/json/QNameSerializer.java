@@ -22,5 +22,5 @@ public class QNameSerializer extends JsonSerializer<QName> {
 			TypeSerializer typeSer) throws IOException {
 		serialize(value, jgen, provider);
 	}
-	
+
 }

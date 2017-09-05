@@ -22,5 +22,5 @@ package com.evolveum.midpoint.schema.internals;
 public enum TestingPaths {
 
 	REVERSED, RANDOMIZED;
-	
+
 }

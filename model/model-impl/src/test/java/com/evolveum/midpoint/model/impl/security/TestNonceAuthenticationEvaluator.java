@@ -30,10 +30,10 @@ public class TestNonceAuthenticationEvaluator extends TestAbstractAuthentication
 
 	private static final String USER_JACK_NONCE = "asdfghjkl123456";
 	private static final String USER_GUYBRUSH_NONCE = "asdfghjkl654321";
-	
+
 	@Autowired(required=true)
 	private AuthenticationEvaluator<NonceAuthenticationContext> nonceAuthenticationEvaluator;
-	
+
 	@Override
 	public AuthenticationEvaluator<NonceAuthenticationContext> getAuthenticationEvaluator() {
 		return nonceAuthenticationEvaluator;
@@ -85,12 +85,12 @@ public class TestNonceAuthenticationEvaluator extends TestAbstractAuthentication
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		modifyUserReplace(USER_GUYBRUSH_OID, SchemaConstants.PATH_NONCE_VALUE, task, result, getGuybrushNonce());
-		
+
 	}
-	
+
 	@Override
 	public QName getCredentialType() {
 		return CredentialsType.F_NONCE;
 	}
- 
+
 }

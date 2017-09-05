@@ -64,11 +64,11 @@ public class ModelObjectResolver implements ObjectResolver {
 
 	@Autowired(required = true)
 	private transient ProvisioningService provisioning;
-	
+
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
-	
+
 	@Autowired(required = true)
 	private transient PrismContext prismContext;
 
@@ -80,9 +80,9 @@ public class ModelObjectResolver implements ObjectResolver {
 
     @Autowired(required = false)
     private transient HookRegistry hookRegistry;
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ModelObjectResolver.class);
-	
+
 	@Override
 	public <O extends ObjectType> O resolve(ObjectReferenceType ref, Class<O> expectedType, Collection<SelectorOptions<GetOperationOptions>> options,
 			String contextDescription, Object task, OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -109,7 +109,7 @@ public class ModelObjectResolver implements ObjectResolver {
 			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
 		}
 	}
-	
+
 	public <O extends ObjectType> PrismObject<O> resolve(PrismReferenceValue refVal, String string, Task task, OperationResult result) throws ObjectNotFoundException {
 		return resolve(refVal, string, null, task, result);
 	}
@@ -128,8 +128,8 @@ public class ModelObjectResolver implements ObjectResolver {
 		}
 		return (PrismObject<O>) (getObjectSimple((Class<O>)typeClass, oid, options, task, result)).asPrismObject();
 	}
-	
-	public <T extends ObjectType> T getObjectSimple(Class<T> clazz, String oid, GetOperationOptions options, Task task, 
+
+	public <T extends ObjectType> T getObjectSimple(Class<T> clazz, String oid, GetOperationOptions options, Task task,
 			OperationResult result) throws ObjectNotFoundException {
 		try {
 			return getObject(clazz, oid, SelectorOptions.createCollection(options), task, result);
@@ -145,7 +145,7 @@ public class ModelObjectResolver implements ObjectResolver {
 			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
 		}
 	}
-	
+
 	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, Collection<SelectorOptions<GetOperationOptions>> options, Task task,
 			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		T objectType = null;
@@ -203,7 +203,7 @@ public class ModelObjectResolver implements ObjectResolver {
 
 		return objectType;
 	}
-	
+
 	@Override
 	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Object task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -213,7 +213,7 @@ public class ModelObjectResolver implements ObjectResolver {
 			cacheRepositoryService.searchObjectsIterative(type, query, handler, options, false, parentResult);		// TODO pull up into resolver interface
 		}
 	}
-	
+
 	public <O extends ObjectType> Integer countObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (ObjectTypes.isClassManagedByProvisioning(type)) {
 			return provisioning.countObjects(type, query, options, task, parentResult);
@@ -221,7 +221,7 @@ public class ModelObjectResolver implements ObjectResolver {
 			return cacheRepositoryService.countObjects(type, query, parentResult);
 		}
 	}
-	
+
 	public PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
         PrismObject<SystemConfigurationType> config = cacheRepositoryService.getObject(SystemConfigurationType.class,
                 SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
@@ -235,7 +235,7 @@ public class ModelObjectResolver implements ObjectResolver {
         }
         return config;
     }
-	
+
 	public <O extends ObjectType, R extends ObjectType> PrismObject<R> searchOrgTreeWidthFirstReference(PrismObject<O> object,
 			Function<PrismObject<OrgType>, ObjectReferenceType> function, String shortDesc, Task task, OperationResult result) throws SchemaException {
 		if (object == null) {
@@ -267,7 +267,7 @@ public class ModelObjectResolver implements ObjectResolver {
 							// and that may mean the misconfiguration could not be easily fixed.
 							LOGGER.warn("Cannot find object {} referenced in {} while resolving {}", orgRefValue.getOid(), object, shortDesc);
 							continue;
-						}			
+						}
 						if (resolvedObject != null) {
 							if (resultObject == null) {
 								resultObject = resolvedObject;
@@ -277,7 +277,7 @@ public class ModelObjectResolver implements ObjectResolver {
 							}
 						}
 					}
-					
+
 				} catch (ObjectNotFoundException ex) {
 					// Just log the error, but do not fail on that. Failing would prohibit login
 					// and that may mean the misconfiguration could not be easily fixed.
@@ -286,11 +286,11 @@ public class ModelObjectResolver implements ObjectResolver {
 				}
 			}
 		}
-		
+
 		if (resultObject != null) {
 			return resultObject;
 		}
-		
+
 		// go deeper
 		for (PrismObject<OrgType> org : orgs) {
 			PrismObject<R> val = searchOrgTreeWidthFirstReference((PrismObject<O>) org, function, shortDesc, task, result);
@@ -298,10 +298,10 @@ public class ModelObjectResolver implements ObjectResolver {
 				return val;
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	public <R,O extends ObjectType> R searchOrgTreeWidthFirst(PrismObject<O> object,
 			Function<PrismObject<OrgType>, R> function, Task task, OperationResult result) {
 		PrismReference orgRef = object.findReference(ObjectType.F_PARENT_ORG_REF);
@@ -329,7 +329,7 @@ public class ModelObjectResolver implements ObjectResolver {
 				}
 			}
 		}
-		
+
 		// go deeper
 		for (PrismObject<OrgType> orgType : orgs) {
 			R val = searchOrgTreeWidthFirst((PrismObject<O>) orgType, function, task, result);
@@ -337,7 +337,7 @@ public class ModelObjectResolver implements ObjectResolver {
 				return val;
 			}
 		}
-		
+
 		return null;
 	}
 

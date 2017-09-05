@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public interface EvaluatedAssignmentTarget extends DebugDumpable {
-	
+
 	PrismObject<? extends FocusType> getTarget();
 
 	boolean isDirectlyAssigned();

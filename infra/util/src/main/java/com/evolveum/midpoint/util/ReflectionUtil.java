@@ -70,7 +70,7 @@ public class ReflectionUtil {
 		String getterName = getterName(propertyName);
 		return findMethod(object, getterName, 0);
 	}
-	
+
 	private static String getterName(String propertyName) {
 		return "get" + StringUtils.capitalize(propertyName);
 	}
@@ -99,7 +99,7 @@ public class ReflectionUtil {
 		method = findVarArgsMethod(object, methodName);
 		return method;
 	}
-	
+
 	private static Method findMethodDirect(Object object, String methodName, List<?> argList) throws SecurityException {
 		Class<?>[] parameterTypes = new Class[argList.size()];
 		for (int i=0; i < argList.size(); i++) {
@@ -111,7 +111,7 @@ public class ReflectionUtil {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Rough lookup of a compatible method. It takes first method with matching name, number of parameters and compatible
 	 *  parameter values. It is not perfect, e.g. it cannot select foo(String) instead of foo(Object). But it is better than
@@ -140,10 +140,10 @@ public class ReflectionUtil {
 					}
 				}
 			}
-		}		
+		}
 		return null;
 	}
-	
+
 	public static Method findVarArgsMethod(Object object, String methodName) {
 		for (Method method: object.getClass().getMethods()) {
 			if (method.getName().equals(methodName) && method.isVarArgs()) {
@@ -152,7 +152,7 @@ public class ReflectionUtil {
 		}
 		return null;
 	}
-	
+
 	public static Object invokeMethod(Object object, String methodName, List<?> argList) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 		Method method = findMethod(object, methodName, argList);
 		if (method == null) {

@@ -60,7 +60,7 @@ public class ObjectWrapperFactory {
     private static final List<QName> INHERITED_OBJECT_SUBCONTAINERS = Arrays.asList(
             ObjectType.F_METADATA,
             ObjectType.F_EXTENSION);
-    
+
     private static final List<QName> CONTAINERS_TO_IGNORE = Arrays.asList(
     		 SubjectedObjectSelectorType.COMPLEX_TYPE,
     		    TriggerType.COMPLEX_TYPE,
@@ -109,7 +109,7 @@ public class ObjectWrapperFactory {
                 objectClassDefinitionForEditing = modelServiceLocator.getModelInteractionService().getEditObjectClassDefinition(
                         (PrismObject<ShadowType>) object, resource, authorizationPhase);
             }
-         
+
             return createObjectWrapper(displayName, description, object, objectDefinitionForEditing,
                     objectClassDefinitionForEditing, status, result);
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {
@@ -149,11 +149,11 @@ public class ObjectWrapperFactory {
         if (LOGGER.isTraceEnabled()) {
         	LOGGER.trace("Created object wrapper:\n{}", objectWrapper.debugDump());
         }
-        
+
         return objectWrapper;
     }
 
-    private <O extends ObjectType> List<ContainerWrapper<? extends Containerable>> createContainerWrappers(ObjectWrapper<O> oWrapper, 
+    private <O extends ObjectType> List<ContainerWrapper<? extends Containerable>> createContainerWrappers(ObjectWrapper<O> oWrapper,
 			PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing, ContainerStatus cStatus, OperationResult pResult) {
         OperationResult result = pResult.createSubresult(CREATE_CONTAINERS);
 
@@ -190,7 +190,7 @@ public class ObjectWrapperFactory {
         return containerWrappers;
     }
 
-    private <O extends ObjectType> PrismObjectDefinition<O> getDefinition(PrismObject<O> object, 
+    private <O extends ObjectType> PrismObjectDefinition<O> getDefinition(PrismObject<O> object,
     		PrismObjectDefinition<O> objectDefinitionForEditing) {
         if (objectDefinitionForEditing != null) {
             return objectDefinitionForEditing;
@@ -240,7 +240,7 @@ public class ObjectWrapperFactory {
             if (isIgnoreContainer(def.getTypeName())) {
             	continue;
             }
-       
+
             LOGGER.trace("ObjectWrapper.createContainerWrapper processing definition: {}", def);
 
             PrismContainerDefinition<?> containerDef = (PrismContainerDefinition) def;
@@ -293,15 +293,15 @@ public class ObjectWrapperFactory {
             }
         }
     }
-   
-    
+
+
     private boolean isIgnoreContainer(QName containerDefinitionName) {
     	 for (QName container : CONTAINERS_TO_IGNORE) {
     		 if (container.equals(containerDefinitionName)){
     			 return true;
     		 }
     	 }
-    	 
+
     	 return false;
     }
 
@@ -347,7 +347,7 @@ public class ObjectWrapperFactory {
     		ObjectWrapper<O> oWrapper, PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing,
 			ContainerWrapperFactory cwf, ContainerStatus cStatus,
             OperationResult result) throws SchemaException {
-    	
+
     	PrismContainer attributesContainer = object.findContainer(ShadowType.F_ATTRIBUTES);
         ContainerStatus status = attributesContainer != null ? cStatus : ContainerStatus.ADDING;
         if (attributesContainer == null) {
@@ -381,7 +381,7 @@ public class ObjectWrapperFactory {
         result.addSubresult(cwf.getResult());
         containers.add(attributesContainerWrapper);
 }
-    
+
     private <O extends ObjectType> void addResourceContainers(
     														List<ContainerWrapper<? extends Containerable>> containers,
     														ObjectWrapper<O> oWrapper, PrismObject<O> object,

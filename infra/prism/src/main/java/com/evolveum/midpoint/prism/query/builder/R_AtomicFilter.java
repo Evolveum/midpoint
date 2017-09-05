@@ -218,7 +218,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 	public S_MatchingRuleEntry containsPoly(String orig) {
 		return contains(new PolyString(orig));
 	}
-	
+
 	@Override
     public S_AtomicFilterExit ref(QName relation) {
 		PrismReferenceValue ref = new PrismReferenceValue();

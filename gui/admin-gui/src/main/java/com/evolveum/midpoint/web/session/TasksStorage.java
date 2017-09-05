@@ -35,7 +35,7 @@ public class TasksStorage implements PageStorage{
      *  Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.server.PageTasks}
      * */
     private ObjectPaging tasksPaging;
-    
+
     private Search search;
 
     public TasksSearchDto getTasksSearch() {
@@ -55,16 +55,16 @@ public class TasksStorage implements PageStorage{
     public void setPaging(ObjectPaging tasksPaging) {
         this.tasksPaging = tasksPaging;
     }
-    
+
     @Override
     public Search getSearch() {
 		return search;
 	}
-    
+
     @Override
     public void setSearch(Search search) {
     	this.search = search;
-    	
+
     }
 
     @Override

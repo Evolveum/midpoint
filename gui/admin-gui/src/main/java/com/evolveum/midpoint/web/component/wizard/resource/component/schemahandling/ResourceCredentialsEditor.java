@@ -187,7 +187,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
                     @Override
                     public List<ObjectReferenceType> getObject() {
                     	return WebModelServiceUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), passPolicyMap);
-                       
+
                     }
                 }, new ObjectReferenceChoiceRenderer(passPolicyMap));
 		parentPage.addEditingEnabledBehavior(passwordPolicy);

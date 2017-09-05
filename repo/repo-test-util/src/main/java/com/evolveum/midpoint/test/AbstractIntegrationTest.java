@@ -87,10 +87,13 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.test.util.MultithreadRunner;
+import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.FailableProcessor;
+import com.evolveum.midpoint.util.FailableRunnable;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -142,6 +145,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -152,28 +156,30 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author Radovan Semancik
- * 
+ *
  */
 public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContextTests {
-	
+
 	public static final String COMMON_DIR_NAME = "common";
 	@Deprecated
 	public static final String COMMON_DIR_PATH = MidPointTestConstants.TEST_RESOURCES_PATH + "/" + COMMON_DIR_NAME;
 	public static final File COMMON_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, COMMON_DIR_NAME);
-	
+
 	protected static final String DEFAULT_INTENT = "default";
-	
+
 	protected static final String OPENDJ_PEOPLE_SUFFIX = "ou=people,dc=example,dc=com";
 	protected static final String OPENDJ_GROUPS_SUFFIX = "ou=groups,dc=example,dc=com";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractIntegrationTest.class);
-	
+
+	protected static final Random RND = new Random();
+
 	// Values used to check if something is unchanged or changed properly
-	
+
 	protected LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder();
-	
+
 	private Map<InternalCounters,Long> lastCountMap = new HashMap<>();
-	
+
 	private CachingStatistics lastResourceCacheStats;
 
 	@Autowired(required = true)
@@ -181,22 +187,23 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected RepositoryService repositoryService;
 	protected static Set<Class> initializedClasses = new HashSet<Class>();
 	private long lastDummyResourceGroupMembersReadCount;
+	private long lastDummyResourceWriteOperationCount;
 
 	@Autowired(required = true)
 	protected TaskManager taskManager;
-	
+
 	@Autowired(required = true)
 	protected Protector protector;
-	
+
 	@Autowired(required = true)
 	protected Clock clock;
-	
+
 	@Autowired(required = true)
 	protected PrismContext prismContext;
-	
+
 	@Autowired(required = true)
 	protected MatchingRuleRegistry matchingRuleRegistry;
-	
+
 
 	// Controllers for embedded OpenDJ and Derby. The abstract test will configure it, but
 	// it will not start
@@ -223,19 +230,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			Task initTask = taskManager.createTaskInstance(this.getClass().getName() + ".initSystem");
 			initTask.setChannel(SchemaConstants.CHANNEL_GUI_INIT_URI);
 			OperationResult result = initTask.getResult();
-			
+
 			InternalMonitor.reset();
 			InternalsConfig.setPrismMonitoring(true);
 			prismContext.setMonitor(new InternalMonitor());
-			
+
 			initSystem(initTask, result);
-			
+
 			postInitSystem(initTask, result);
-			
+
 			result.computeStatus();
 			IntegrationTestTools.display("initSystem result", result);
 			TestUtil.assertSuccessOrWarning("initSystem failed (result)", result, 1);
-			
+
 			setSystemInitialized();
 		}
 	}
@@ -243,7 +250,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected boolean isSystemInitialized() {
 		return initializedClasses.contains(this.getClass());
 	}
-	
+
 	private void setSystemInitialized() {
 		initializedClasses.add(this.getClass());
 	}
@@ -261,12 +268,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void postInitSystem(Task initTask, OperationResult initResult) throws Exception {
 		// Nothing to do by default
 	};
-	
+
 	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(String filePath,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 		return repoAddObjectFromFile(new File(filePath), parentResult);
 	}
-	
+
 	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(File file,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 		return repoAddObjectFromFile(file, false, parentResult);
@@ -290,26 +297,26 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		result.addParam("file", file.getPath());
 		LOGGER.debug("addObjectFromFile: {}", file);
 		PrismObject<T> object = prismContext.parseObject(file);
-		
+
 		if (metadata) {
 			addBasicMetadata(object);
 		}
-		
+
 		LOGGER.trace("Adding object:\n{}", object.debugDump());
 		repoAddObject(object, "from file "+file, result);
 		result.recordSuccess();
 		return object;
 	}
-	
-	protected PrismObject<ShadowType> repoAddShadowFromFile(File file, OperationResult parentResult) 
+
+	protected PrismObject<ShadowType> repoAddShadowFromFile(File file, OperationResult parentResult)
 			throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
-			
+
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".repoAddShadowFromFile");
 		result.addParam("file", file.getPath());
 		LOGGER.debug("addShadowFromFile: {}", file);
 		PrismObject<ShadowType> object = prismContext.parseObject(file);
-		
+
 		PrismContainer<Containerable> attrCont = object.findContainer(ShadowType.F_ATTRIBUTES);
 		for (PrismProperty<?> attr: attrCont.getValue().getProperties()) {
 			if (attr.getDefinition() == null) {
@@ -318,27 +325,27 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				attr.setDefinition((PrismPropertyDefinition) attrDef);
 			}
 		}
-		
+
 		addBasicMetadata(object);
-		
+
 		LOGGER.trace("Adding object:\n{}", object.debugDump());
 		repoAddObject(object, "from file "+file, result);
 		result.recordSuccess();
 		return object;
 	}
-	
+
 	protected <T extends ObjectType> void addBasicMetadata(PrismObject<T> object) {
 		// Add at least the very basic meta-data
 		MetadataType metaData = new MetadataType();
 		metaData.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
 		object.asObjectable().setMetadata(metaData);
 	}
-	
+
 	protected <T extends ObjectType> void repoAddObject(PrismObject<T> object,
 			OperationResult result) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
 		repoAddObject(object, null, result);
 	}
-		
+
 	protected <T extends ObjectType> void repoAddObject(PrismObject<T> object, String contextDesc,
 			OperationResult result) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
 		if (object.canRepresent(TaskType.class)) {
@@ -370,12 +377,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			}
 		}
 	}
-	
+
 	protected <T extends ObjectType> List<PrismObject<T>> repoAddObjectsFromFile(String filePath, Class<T> type,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, IOException {
 		return repoAddObjectsFromFile(new File(filePath), type, parentResult);
 	}
-	
+
 	protected <T extends ObjectType> List<PrismObject<T>> repoAddObjectsFromFile(File file, Class<T> type,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, IOException {
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
@@ -423,17 +430,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected <T extends ObjectType> T parseObjectTypeFromFile(String fileName, Class<T> clazz) throws SchemaException, IOException {
 		return parseObjectType(new File(fileName), clazz);
 	}
-	
+
 	protected <T extends ObjectType> T parseObjectType(File file) throws SchemaException, IOException {
 		PrismObject<T> prismObject = prismContext.parseObject(file);
 		return prismObject.asObjectable();
 	}
-	
+
 	protected <T extends ObjectType> T parseObjectType(File file, Class<T> clazz) throws SchemaException, IOException {
 		PrismObject<T> prismObject = prismContext.parseObject(file);
 		return prismObject.asObjectable();
 	}
-	
+
 	protected static <T> T unmarshallValueFromFile(File file, Class<T> clazz)
             throws IOException, JAXBException, SchemaException {
         return PrismTestUtil.parseAnyValue(file);
@@ -453,7 +460,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 		return addResourceFromFile(file, connectorType, false, result);
 	}
-	
+
 	protected PrismObject<ResourceType> addResourceFromFile(File file, String connectorType, boolean overwrite, OperationResult result)
 			throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 		LOGGER.trace("addObjectFromFile: {}, connector type {}", file, connectorType);
@@ -481,7 +488,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		return connectors.get(0);
 	}
-	
+
 	protected PrismObject<ConnectorType> findConnectorByTypeAndVersion(String connectorType, String connectorVersion, OperationResult result)
 			throws SchemaException {
 		ObjectQuery query = QueryBuilder.queryFor(ConnectorType.class, prismContext)
@@ -496,7 +503,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return connectors.get(0);
 	}
 
-	
+
 	protected void fillInConnectorRef(PrismObject<ResourceType> resource, String connectorType, OperationResult result)
 			throws SchemaException {
 		ResourceType resourceType = resource.asObjectable();
@@ -507,7 +514,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		resourceType.getConnectorRef().setOid(connector.getOid());
 		resourceType.getConnectorRef().setType(ObjectTypes.CONNECTOR.getTypeQName());
 	}
-	
+
 	protected void fillInAdditionalConnectorRef(PrismObject<ResourceType> resource, String connectorName, String connectorType, OperationResult result)
 			throws SchemaException {
 		ResourceType resourceType = resource.asObjectable();
@@ -519,11 +526,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			}
 		}
 	}
-	
+
 	protected SystemConfigurationType getSystemConfiguration() throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".getSystemConfiguration");
 		try {
-			PrismObject<SystemConfigurationType> sysConf = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);				
+			PrismObject<SystemConfigurationType> sysConf = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
 			result.computeStatus();
 			TestUtil.assertSuccess("getObject(systemConfig) not success", result);
 			return sysConf.asObjectable();
@@ -532,7 +539,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			return null;
 		}
 	}
-	
+
 	protected void assumeAssignmentPolicy(AssignmentPolicyEnforcementType policy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		SystemConfigurationType systemConfiguration = getSystemConfiguration();
 		AssignmentPolicyEnforcementType currentPolicy = getAssignmentPolicyEnforcementType(systemConfiguration);
@@ -577,7 +584,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         syncSettings.setLegalize(Boolean.valueOf(legalize));
 		applySyncSettings(ResourceType.class, resourceOid, ResourceType.F_PROJECTION, syncSettings);
 	}
-	
+
 	protected void deleteResourceAssigmentPolicy(String oid, AssignmentPolicyEnforcementType policy, boolean legalize) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException{
 		PrismObjectDefinition<ResourceType> objectDefinition = prismContext.getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(ResourceType.class);
@@ -591,7 +598,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
 		modifications.add(deleteAssigmentEnforcement);
-		
+
 		OperationResult result = new OperationResult("Aplying sync settings");
 
 		repositoryService.modifyObject(ResourceType.class, oid, modifications, result);
@@ -599,7 +606,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		result.computeStatus();
 		TestUtil.assertSuccess("Aplying sync settings failed (result)", result);
 	}
-	
+
 	protected AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType(SystemConfigurationType systemConfiguration) {
 		ProjectionPolicyType globalAccountSynchronizationSettings = systemConfiguration.getGlobalAccountSynchronizationSettings();
 		if (globalAccountSynchronizationSettings == null) {
@@ -607,7 +614,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		return globalAccountSynchronizationSettings.getAssignmentPolicyEnforcement();
 	}
-	
+
 	protected void applySyncSettings(Class clazz, String oid, QName path, ProjectionPolicyType syncSettings)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
@@ -627,7 +634,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		result.computeStatus();
 		TestUtil.assertSuccess("Aplying sync settings failed (result)", result);
 	}
-	
+
 	protected void invalidateSystemObjectsCache() {
 		// Nothing to do here. For subclasses in model-common and higher components.
 	}
@@ -635,44 +642,44 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void assertNoChanges(ObjectDelta<?> delta) {
         assertNull("Unexpected changes: "+ delta, delta);
 	}
-	
+
 	protected void assertNoChanges(String desc, ObjectDelta<?> delta) {
         assertNull("Unexpected changes in "+desc+": "+ delta, delta);
 	}
-	
+
 	protected <F extends FocusType> void  assertEffectiveActivation(PrismObject<F> focus, ActivationStatusType expected) {
 		ActivationType activationType = focus.asObjectable().getActivation();
 		assertNotNull("No activation in "+focus, activationType);
 		assertEquals("Wrong effectiveStatus in activation in "+focus, expected, activationType.getEffectiveStatus());
 	}
-	
+
 	protected <F extends FocusType> void  assertEffectiveActivation(AssignmentType assignmentType, ActivationStatusType expected) {
 		ActivationType activationType = assignmentType.getActivation();
 		assertNotNull("No activation in "+assignmentType, activationType);
 		assertEquals("Wrong effectiveStatus in activation in "+assignmentType, expected, activationType.getEffectiveStatus());
 	}
-	
+
 	protected <F extends FocusType> void  assertValidityStatus(PrismObject<F> focus, TimeIntervalStatusType expected) {
 		ActivationType activationType = focus.asObjectable().getActivation();
 		assertNotNull("No activation in "+focus, activationType);
 		assertEquals("Wrong validityStatus in activation in "+focus, expected, activationType.getValidityStatus());
 	}
-	
+
 	protected void assertShadow(PrismObject<? extends ShadowType> shadow) {
 		assertObject(shadow);
 	}
-	
+
 	protected void assertObject(PrismObject<? extends ObjectType> object) {
 		object.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
 		assertTrue("Incomplete definition in "+object, object.hasCompleteDefinition());
 		assertFalse("No OID", StringUtils.isEmpty(object.getOid()));
 		assertNotNull("Null name in "+object, object.asObjectable().getName());
 	}
-	
+
 	protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName) {
     	assertUser(user, oid, name, fullName, givenName, familyName, null);
     }
-		
+
 	protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName, String location) {
 		assertObject(user);
 		UserType userType = user.asObjectable();
@@ -684,17 +691,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismAsserts.assertEqualsPolyString("Wrong "+user+" fullName", fullName, userType.getFullName());
 		PrismAsserts.assertEqualsPolyString("Wrong "+user+" givenName", givenName, userType.getGivenName());
 		PrismAsserts.assertEqualsPolyString("Wrong "+user+" familyName", familyName, userType.getFamilyName());
-		
+
 		if (location != null) {
 			PrismAsserts.assertEqualsPolyString("Wrong " + user + " location", location,
 					userType.getLocality());
 		}
 	}
-	
+
 	protected <O extends ObjectType> void assertSubtype(PrismObject<O> object, String subtype) {
 		assertTrue("Object "+object+" does not have subtype "+subtype, FocusTypeUtil.hasSubtype(object, subtype));
 	}
-	
+
 	protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, QName objectClass) throws SchemaException {
 		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, null, false);
 	}
@@ -720,7 +727,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
             QName objectClass, MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers) throws SchemaException {
     	assertShadowCommon(shadow, oid, username, resourceType, objectClass, nameMatchingRule, requireNormalizedIdentfiers, false);
     }
-    
+
     protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
                                       QName objectClass, final MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers, boolean useMatchingRuleForShadowName) throws SchemaException {
 		assertShadow(shadow);
@@ -736,7 +743,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
 		assertNotNull("Null attributes in shadow for "+username, attributesContainer);
 		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
-		
+
 		if (useMatchingRuleForShadowName) {
 			MatchingRule<PolyString> polyMatchingRule = new MatchingRule<PolyString>() {
 
@@ -764,13 +771,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				public PolyString normalize(PolyString original) throws SchemaException {
 					return new PolyString(nameMatchingRule.normalize(original.getOrig()));
 				}
-				
+
 			};
 			PrismAsserts.assertPropertyValueMatch(shadow, ShadowType.F_NAME, polyMatchingRule, PrismTestUtil.createPolyString(username));
 		} else {
 			PrismAsserts.assertPropertyValue(shadow, ShadowType.F_NAME, PrismTestUtil.createPolyString(username));
 		}
-		
+
 		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
 		ObjectClassComplexTypeDefinition ocDef = rSchema.findObjectClassDefinition(objectClass);
 		if (ocDef.getSecondaryIdentifiers().isEmpty()) {
@@ -819,7 +826,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			}
 		}
 	}
-    
+
     protected void assertShadowSecondaryIdentifier(PrismObject<ShadowType> shadow, String expectedIdentifier, ResourceType resourceType, MatchingRule<String> nameMatchingRule) throws SchemaException {
     	RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
     	ObjectClassComplexTypeDefinition ocDef = rSchema.findObjectClassDefinition(shadow.asObjectable().getObjectClass());
@@ -832,9 +839,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		} else {
 			PrismAsserts.assertEquals("Unexpected secondary identifier in shadow for "+expectedIdentifier, nameMatchingRule, expectedIdentifier, idProp.getRealValue());
 		}
-    	
+
     }
-    
+
 	protected void assertShadowName(PrismObject<ShadowType> shadow, String expectedName) {
 		PrismAsserts.assertEqualsPolyString("Shadow name is wrong in "+shadow, expectedName, shadow.asObjectable().getName());
 	}
@@ -842,7 +849,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void assertShadowName(ShadowType shadowType, String expectedName) {
 		assertShadowName(shadowType.asPrismObject(), expectedName);
 	}
-	
+
 	protected void assertShadowRepo(String oid, String username, ResourceType resourceType, QName objectClass) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertShadowRepo");
 		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, oid, null, result);
@@ -854,7 +861,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     protected void assertAccountShadowRepo(String oid, String username, ResourceType resourceType) throws ObjectNotFoundException, SchemaException {
         assertShadowRepo(oid,username,resourceType,getAccountObjectClass(resourceType));
     }
-	
+
 	protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
                                     QName objectClass) throws SchemaException {
 		assertShadowRepo(accountShadow, oid, username, resourceType, objectClass, null);
@@ -863,11 +870,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     protected void assertAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) throws SchemaException {
         assertShadowRepo(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), null);
     }
-	
+
     protected void assertAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> matchingRule) throws SchemaException {
         assertShadowRepo(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), matchingRule);
     }
-    
+
 	protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
                                     QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
 		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, true);
@@ -895,7 +902,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void assertRepoShadowAttributes(List<Item<?,?>> attributes, int expectedNumberOfIdentifiers) {
 		assertEquals("Unexpected number of attributes in repo shadow", expectedNumberOfIdentifiers, attributes.size());
 	}
-	
+
 	protected String getIcfUid(PrismObject<ShadowType> shadow) {
 		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
 		assertNotNull("Null attributes in "+shadow, attributesContainer);
@@ -905,11 +912,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return icfUidProp.getRealValue();
 	}
 
-	
+
 	protected void rememberCounter(InternalCounters counter) {
 		lastCountMap.put(counter, InternalMonitor.getCount(counter));
 	}
-	
+
 	protected long getLastCount(InternalCounters counter) {
 		Long lastCount = lastCountMap.get(counter);
 		if (lastCount == null) {
@@ -918,39 +925,39 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			return lastCount;
 		}
 	}
-	
+
 	protected long getCounterIncrement(InternalCounters counter) {
 		return InternalMonitor.getCount(counter) - getLastCount(counter);
 	}
-	
+
 	protected void assertCounterIncrement(InternalCounters counter, int expectedIncrement) {
 		long currentCount = InternalMonitor.getCount(counter);
 		long actualIncrement = currentCount - getLastCount(counter);
 		assertEquals("Unexpected increment in "+counter.getLabel(), (long)expectedIncrement, actualIncrement);
 		lastCountMap.put(counter, currentCount);
 	}
-	
+
 	protected void assertCounterIncrement(InternalCounters counter, int expectedIncrementMin, int expectedIncrementMax) {
 		long currentCount = InternalMonitor.getCount(counter);
 		long actualIncrement = currentCount - getLastCount(counter);
 		assertTrue("Unexpected increment in "+counter.getLabel()+". Expected "
-		+expectedIncrementMin+"-"+expectedIncrementMax+" but was "+actualIncrement, 
+		+expectedIncrementMin+"-"+expectedIncrementMax+" but was "+actualIncrement,
 		actualIncrement >= expectedIncrementMin && actualIncrement <= expectedIncrementMax);
 		lastCountMap.put(counter, currentCount);
 	}
-	
+
 	protected void rememberResourceCacheStats() {
 		lastResourceCacheStats  = InternalMonitor.getResourceCacheStats().clone();
 	}
-	
+
 	protected void assertResourceCacheHitsIncrement(int expectedIncrement) {
 		assertCacheHits(lastResourceCacheStats, InternalMonitor.getResourceCacheStats(), "resouce cache", expectedIncrement);
 	}
-	
+
 	protected void assertResourceCacheMissesIncrement(int expectedIncrement) {
 		assertCacheMisses(lastResourceCacheStats, InternalMonitor.getResourceCacheStats(), "resouce cache", expectedIncrement);
 	}
-	
+
 	protected void assertCacheHits(CachingStatistics lastStats, CachingStatistics currentStats, String desc, int expectedIncrement) {
 		long actualIncrement = currentStats.getHits() - lastStats.getHits();
 		assertEquals("Unexpected increment in "+desc+" hit count", (long)expectedIncrement, actualIncrement);
@@ -970,7 +977,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 	}
-	
+
 	protected void rememberSteadyResources() {
 		rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
 		rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
@@ -978,7 +985,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
 	}
-		
+
 	protected void rememberDummyResourceGroupMembersReadCount(String instanceName) {
 		lastDummyResourceGroupMembersReadCount  = DummyResource.getInstance(instanceName).getGroupMembersReadCount();
 	}
@@ -986,18 +993,29 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void assertDummyResourceGroupMembersReadCountIncrement(String instanceName, int expectedIncrement) {
 		long currentDummyResourceGroupMembersReadCount = DummyResource.getInstance(instanceName).getGroupMembersReadCount();
 		long actualIncrement = currentDummyResourceGroupMembersReadCount - lastDummyResourceGroupMembersReadCount;
-		assertEquals("Unexpected increment in group members read count count in dummy resource '"+instanceName+"'", (long)expectedIncrement, actualIncrement);
+		assertEquals("Unexpected increment in group members read count in dummy resource '"+instanceName+"'", (long)expectedIncrement, actualIncrement);
 		lastDummyResourceGroupMembersReadCount = currentDummyResourceGroupMembersReadCount;
 	}
-	
+
+	protected void rememberDummyResourceWriteOperationCount(String instanceName) {
+		lastDummyResourceWriteOperationCount  = DummyResource.getInstance(instanceName).getWriteOperationCount();
+	}
+
+	protected void assertDummyResourceWriteOperationCountIncrement(String instanceName, int expectedIncrement) {
+		long currentCount = DummyResource.getInstance(instanceName).getWriteOperationCount();
+		long actualIncrement = currentCount - lastDummyResourceWriteOperationCount;
+		assertEquals("Unexpected increment in write operation count in dummy resource '"+instanceName+"'", (long)expectedIncrement, actualIncrement);
+		lastDummyResourceWriteOperationCount = currentCount;
+	}
+
 	protected PrismObject<ShadowType> createShadow(PrismObject<ResourceType> resource, String id) throws SchemaException {
 		return createShadow(resource, id, id);
 	}
-	
+
 	protected PrismObject<ShadowType> createShadowNameOnly(PrismObject<ResourceType> resource, String name) throws SchemaException {
 		return createShadow(resource, null, name);
 	}
-	
+
 	protected PrismObject<ShadowType> createShadow(PrismObject<ResourceType> resource, String uid, String name) throws SchemaException {
 		PrismObject<ShadowType> shadow = getShadowDefinition().instantiate();
 		ShadowType shadowType = shadow.asObjectable();
@@ -1026,7 +1044,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		return shadow;
 	}
-	
+
 	protected PrismObject<ShadowType> findAccountShadowByUsername(String username, PrismObject<ResourceType> resource, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
         ObjectQuery query = createAccountShadowQuerySecondaryIdentifier(username, resource);
 		List<PrismObject<ShadowType>> accounts = repositoryService.searchObjects(ShadowType.class, query, null, result);
@@ -1036,7 +1054,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assert accounts.size() == 1 : "Too many accounts found for username "+username+" on "+resource+": "+accounts;
 		return accounts.iterator().next();
 	}
-	
+
 	protected PrismObject<ShadowType> findShadowByName(ShadowKindType kind, String intent, String name, PrismObject<ResourceType> resource, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
         RefinedObjectClassDefinition rOcDef = rSchema.getRefinedDefinition(kind,intent);
@@ -1048,7 +1066,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assert shadows.size() == 1 : "Too many shadows found for name "+name+" on "+resource+": "+shadows;
 		return shadows.iterator().next();
 	}
-	
+
 	protected PrismObject<ShadowType> findShadowByName(QName objectClass, String name, PrismObject<ResourceType> resource, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
         RefinedObjectClassDefinition rOcDef = rSchema.getRefinedDefinition(objectClass);
@@ -1060,7 +1078,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assert shadows.size() == 1 : "Too many shadows found for name "+name+" on "+resource+": "+shadows;
 		return shadows.iterator().next();
 	}
-	
+
 	protected ObjectQuery createAccountShadowQuery(String identifier, PrismObject<ResourceType> resource) throws SchemaException {
 		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
         RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
@@ -1074,13 +1092,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
 				.build();
 	}
-	
+
 	protected ObjectQuery createAccountShadowQuerySecondaryIdentifier(String identifier, PrismObject<ResourceType> resource) throws SchemaException {
 		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
         RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         return createShadowQuerySecondaryIdentifier(rAccount, identifier, resource);
 	}
-	
+
 	protected ObjectQuery createShadowQuerySecondaryIdentifier(ObjectClassComplexTypeDefinition rAccount, String identifier, PrismObject<ResourceType> resource) throws SchemaException {
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getSecondaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
@@ -1092,13 +1110,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
 				.build();
 	}
-	
+
 	protected ObjectQuery createAccountShadowQueryByAttribute(String attributeName, String attributeValue, PrismObject<ResourceType> resource) throws SchemaException {
 		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
         RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         return createShadowQueryByAttribute(rAccount, attributeName, attributeValue, resource);
 	}
-	
+
 	protected ObjectQuery createShadowQueryByAttribute(ObjectClassComplexTypeDefinition rAccount, String attributeName, String attributeValue, PrismObject<ResourceType> resource) throws SchemaException {
         ResourceAttributeDefinition<Object> attrDef = rAccount.findAttributeDefinition(attributeName);
 		return QueryBuilder.queryFor(ShadowType.class, prismContext)
@@ -1107,19 +1125,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
 				.build();
 	}
-	
+
 	protected <O extends ObjectType> PrismObjectDefinition<O> getObjectDefinition(Class<O> type) {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
 	}
-	
+
 	protected PrismObjectDefinition<UserType> getUserDefinition() {
 		return getObjectDefinition(UserType.class);
 	}
-	
+
 	protected PrismObjectDefinition<RoleType> getRoleDefinition() {
 		return getObjectDefinition(RoleType.class);
 	}
-	
+
 	protected PrismObjectDefinition<ShadowType> getShadowDefinition() {
 		return getObjectDefinition(ShadowType.class);
 	}
@@ -1134,7 +1152,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				refinedResourceSchema.findRefinedDefinitionByObjectClassQName(kind, objectClassName);
 		return refinedObjectClassDefinition.findAttributeDefinition(attributeLocalName);
 	}
-	
+
 	protected void assertPassword(ShadowType shadow, String expectedPassword) throws SchemaException, EncryptionException {
 		CredentialsType credentials = shadow.getCredentials();
 		assertNotNull("No credentials in "+shadow, credentials);
@@ -1145,13 +1163,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		protector.decrypt(passwordValue);
 		assertEquals("Wrong password in "+shadow, expectedPassword, passwordValue.getClearValue());
 	}
-	
+
 	protected void assertPasswordDelta(ObjectDelta<ShadowType> shadowDelta) {
 		ItemDelta<PrismValue, ItemDefinition> passwordDelta = shadowDelta.findItemDelta(SchemaConstants.PATH_PASSWORD_VALUE);
 		assertNotNull("No password delta in "+shadowDelta, passwordDelta);
-		
+
 	}
-	
+
 	protected void assertFilter(ObjectFilter filter, Class<? extends ObjectFilter> expectedClass) {
 		if (expectedClass == null) {
 			assertNull("Expected that filter is null, but it was "+filter, filter);
@@ -1162,7 +1180,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			}
 		}
 	}
-	
+
 	protected void assertSyncToken(String syncTaskOid, Object expectedValue) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertSyncToken");
 		Task task = taskManager.getTask(syncTaskOid, result);
@@ -1170,12 +1188,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 	}
-	
+
 	protected void assertSyncToken(String syncTaskOid, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		Task task = taskManager.getTask(syncTaskOid, result);
 		assertSyncToken(task, expectedValue, result);
 	}
-		
+
 	protected void assertSyncToken(Task task, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismProperty<Object> syncTokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
 		if (expectedValue == null && syncTokenProperty == null) {
@@ -1194,7 +1212,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 	}
-	
+
 	protected void assertShadows(int expected, OperationResult result) throws SchemaException {
 		int actual = repositoryService.countObjects(ShadowType.class, null, result);
 		if (expected != actual) {
@@ -1212,15 +1230,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			AssertJUnit.fail("Unexpected number of (repository) shadows. Expected " + expected + " but was " + actual);
 		}
 	}
-	
+
 	protected void assertShadowDead(PrismObject<ShadowType> shadow) {
 		assertEquals("Shadow not dead: "+shadow, Boolean.TRUE, shadow.asObjectable().isDead());
 	}
-	
+
 	protected void assertShadowNotDead(PrismObject<ShadowType> shadow) {
 		assertTrue("Shadow not dead, but should not be: "+shadow, shadow.asObjectable().isDead() == null || Boolean.FALSE.equals(shadow.asObjectable().isDead()));
 	}
-	
+
 	protected void assertShadowExists(PrismObject<ShadowType> shadow, Boolean expectedValue) {
 		assertEquals("Wrong shadow 'exists': "+shadow, expectedValue, shadow.asObjectable().isExists());
 	}
@@ -1237,7 +1255,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			assertEquals("Wrong activation administrative status of "+shadow, expectedStatus, activationType.getAdministrativeStatus());
 		}
 	}
-	
+
 	protected void assertShadowLockout(PrismObject<ShadowType> shadow, LockoutStatusType expectedStatus) {
 		ActivationType activationType = shadow.asObjectable().getActivation();
 		if (activationType == null) {
@@ -1250,7 +1268,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			assertEquals("Wrong lockout status of "+shadow, expectedStatus, activationType.getLockoutStatus());
 		}
 	}
-	
+
 	protected void assertUserLockout(PrismObject<UserType> user, LockoutStatusType expectedStatus) {
 		ActivationType activationType = user.asObjectable().getActivation();
 		if (activationType == null) {
@@ -1263,15 +1281,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			assertEquals("Wrong lockout status of "+user, expectedStatus, activationType.getLockoutStatus());
 		}
 	}
-	
+
 	protected PolyString createPolyString(String string) {
 		return PrismTestUtil.createPolyString(string);
 	}
-	
+
 	protected PolyStringType createPolyStringType(String string) {
 		return PrismTestUtil.createPolyStringType(string);
 	}
-	
+
 	protected ItemPath getExtensionPath(QName propName) {
 		return new ItemPath(ObjectType.F_EXTENSION, propName);
 	}
@@ -1286,19 +1304,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			assertEquals("Unexpected number of attributes in repo shadow "+shadow, (int)expectedNumberOfAttributes, attributes.size());
 		}
 	}
-	
+
 	protected ObjectReferenceType createRoleReference(String oid) {
 		return createObjectReference(oid, RoleType.COMPLEX_TYPE, null);
 	}
-	
+
 	protected ObjectReferenceType createOrgReference(String oid) {
 		return createObjectReference(oid, OrgType.COMPLEX_TYPE, null);
 	}
-	
+
 	protected ObjectReferenceType createOrgReference(String oid, QName relation) {
 		return createObjectReference(oid, OrgType.COMPLEX_TYPE, relation);
 	}
-	
+
 	protected ObjectReferenceType createObjectReference(String oid, QName type, QName relation) {
 		ObjectReferenceType ref = new ObjectReferenceType();
 		ref.setOid(oid);
@@ -1306,19 +1324,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		ref.setRelation(relation);
 		return ref;
 	}
-	
+
 	protected void assertNotReached() {
 		AssertJUnit.fail("Unexpected success");
 	}
-	
+
 	protected CredentialsStorageTypeType getPasswordStorageType() {
 		return CredentialsStorageTypeType.ENCRYPTION;
 	}
-	
+
 	protected CredentialsStorageTypeType getPasswordHistoryStorageType() {
 		return CredentialsStorageTypeType.HASHING;
 	}
-	
+
 	protected void assertEncryptedUserPassword(String userOid, String expectedClearPassword) throws EncryptionException, ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertEncryptedUserPassword");
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
@@ -1326,11 +1344,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		TestUtil.assertSuccess(result);
 		assertEncryptedUserPassword(user, expectedClearPassword);
 	}
-	
+
 	protected void assertEncryptedUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException, SchemaException {
 		assertUserPassword(user, expectedClearPassword, CredentialsStorageTypeType.ENCRYPTION);
 	}
-	
+
 	protected void assertUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException, SchemaException {
 		assertUserPassword(user, expectedClearPassword, getPasswordStorageType());
 	}
@@ -1344,10 +1362,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		ProtectedStringType protectedActualPassword = password.getValue();
 		assertProtectedString("Password for "+user, expectedClearPassword, protectedActualPassword, storageType);
 	}
-	
+
 	protected void assertProtectedString(String message, String expectedClearValue, ProtectedStringType actualValue, CredentialsStorageTypeType storageType) throws EncryptionException, SchemaException {
 		switch (storageType) {
-			
+
 			case NONE:
 				assertNull(message+": unexpected value: "+actualValue, actualValue);
 				break;
@@ -1358,25 +1376,25 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				String actualClearPassword = protector.decryptString(actualValue);
 				assertEquals(message+": wrong value", expectedClearValue, actualClearPassword);
 				break;
-				
+
 			case HASHING:
 				assertNotNull(message+": no value", actualValue);
 				assertTrue(message+": value not hashed: "+actualValue, actualValue.isHashed());
 				ProtectedStringType expectedPs = new ProtectedStringType();
 				expectedPs.setClearValue(expectedClearValue);
-				assertTrue(message+": hash does not match, expected "+expectedClearValue+", but was "+actualValue, 
+				assertTrue(message+": hash does not match, expected "+expectedClearValue+", but was "+actualValue,
 						protector.compare(actualValue, expectedPs));
 				break;
-				
+
 			default:
 				throw new IllegalArgumentException("Unknown storage "+storageType);
 		}
-		
+
 	}
-	
+
 	protected boolean compareProtectedString(String expectedClearValue, ProtectedStringType actualValue, CredentialsStorageTypeType storageType) throws EncryptionException, SchemaException {
 		switch (storageType) {
-			
+
 			case NONE:
 				return actualValue == null;
 
@@ -1389,7 +1407,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				}
 				String actualClearPassword = protector.decryptString(actualValue);
 				return expectedClearValue.equals(actualClearPassword);
-				
+
 			case HASHING:
 				if (actualValue == null) {
 					return false;
@@ -1400,13 +1418,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				ProtectedStringType expectedPs = new ProtectedStringType();
 				expectedPs.setClearValue(expectedClearValue);
 				return protector.compare(actualValue, expectedPs);
-				
+
 			default:
 				throw new IllegalArgumentException("Unknown storage "+storageType);
 		}
-		
+
 	}
-	
+
 	protected void assertPasswordHistoryEntries(PrismObject<UserType> user, String... changedPasswords) {
 		CredentialsType credentials = user.asObjectable().getCredentials();
 		assertNotNull("Null credentials in "+user, credentials);
@@ -1414,16 +1432,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertNotNull("Null passwordType in "+user, passwordType);
 		assertPasswordHistoryEntries(user.toString(), passwordType.getHistoryEntry(), getPasswordHistoryStorageType(), changedPasswords);
 	}
-	
+
 	protected void assertPasswordHistoryEntries(PasswordType passwordType, String... changedPasswords) {
 		assertPasswordHistoryEntries(passwordType.getHistoryEntry(), changedPasswords);
 	}
-	
+
 	protected void assertPasswordHistoryEntries(List<PasswordHistoryEntryType> historyEntriesType,
 			String... changedPasswords) {
 		assertPasswordHistoryEntries(null, historyEntriesType, getPasswordHistoryStorageType(), changedPasswords);
 	}
-	
+
 	protected void assertPasswordHistoryEntries(String message, List<PasswordHistoryEntryType> historyEntriesType,
 			CredentialsStorageTypeType storageType, String... changedPasswords) {
 		if (message == null) {
@@ -1439,7 +1457,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertEquals(message + "Unexpected number of history entries", changedPasswords.length, historyEntriesType.size());
 		for (PasswordHistoryEntryType historyEntry : historyEntriesType) {
 			boolean found = false;
-			try {				
+			try {
 				for (String changedPassword : changedPasswords) {
 					if (compareProtectedString(changedPassword, historyEntry.getValue(), storageType)) {
 						found = true;
@@ -1448,7 +1466,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				}
 
 				if (!found) {
-					AssertJUnit.fail(message + "Unexpected value saved in between password hisotry entries: " 
+					AssertJUnit.fail(message + "Unexpected value saved in between password hisotry entries: "
 							+ getHumanReadablePassword(historyEntry.getValue())
 							+ ". Expected "+ Arrays.toString(changedPasswords)+"("+changedPasswords.length+"), was "
 							+ getPasswordHistoryHumanReadable(historyEntriesType) + "("+historyEntriesType.size()+"); expected storage type: "+storageType);
@@ -1459,7 +1477,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 		}
 	}
-	
+
 	protected String getPasswordHistoryHumanReadable(List<PasswordHistoryEntryType> historyEntriesType) {
 		return historyEntriesType.stream()
 			.map(historyEntry -> {
@@ -1471,7 +1489,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			})
 			.collect(Collectors.joining(", "));
 	}
-	
+
 	protected String getHumanReadablePassword(ProtectedStringType ps) throws EncryptionException {
 		if (ps == null) {
 			return null;
@@ -1484,7 +1502,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		return ps.getClearValue();
 	}
-	
+
 	protected void logTrustManagers() throws NoSuchAlgorithmException, KeyStoreException {
 		TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 		trustManagerFactory.init((KeyStore)null);
@@ -1503,7 +1521,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		    }
 		}
 	}
-	
+
 	protected void setPassword(PrismObject<UserType> user, String password) {
 		UserType userType = user.asObjectable();
 		CredentialsType creds = userType.getCredentials();
@@ -1520,23 +1538,23 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		ps.setClearValue(password);
 		passwordType.setValue(ps);
 	}
-	
+
 	protected void assertIncompleteShadowPassword(PrismObject<ShadowType> shadow) {
 		PrismProperty<PolyStringType> passValProp = shadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
 		assertNotNull("No password value property in "+shadow, passValProp);
 		assertTrue("Password value property does not have 'incomplete' flag in "+shadow, passValProp.isIncomplete());
 	}
-	
+
 	protected void assertNoShadowPassword(PrismObject<ShadowType> shadow) {
 		PrismProperty<PolyStringType> passValProp = shadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
 		assertNull("Unexpected password value property in "+shadow+": "+passValProp, passValProp);
 	}
-	
+
 	protected <O extends ObjectType> PrismObject<O> instantiateObject(Class<O> type) throws SchemaException {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type).instantiate();
 	}
-	
-	protected void assertMetadata(String message, MetadataType metadataType, boolean create, boolean assertRequest, 
+
+	protected void assertMetadata(String message, MetadataType metadataType, boolean create, boolean assertRequest,
 			XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
 		assertNotNull("No metadata in " + message, metadataType);
 		if (create) {
@@ -1563,7 +1581,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			assertEquals("Wrong modification channel in " + message, channel, metadataType.getModifyChannel());
 		}
 	}
-	
+
 	protected void assertShadowPasswordMetadata(PrismObject<ShadowType> shadow, boolean passwordCreated,
 			XMLGregorianCalendar startCal, XMLGregorianCalendar endCal, String actorOid, String channel) {
 		CredentialsType creds = shadow.asObjectable().getCredentials();
@@ -1574,33 +1592,33 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertNotNull("No metadata in shadow "+shadow, metadata);
 		assertMetadata("Password metadata in "+shadow, metadata, passwordCreated, false, startCal, endCal, actorOid, channel);
 	}
-	
+
 	// Convenience
-	
+
 	protected <O extends ObjectType> PrismObject<O> parseObject(File file) throws SchemaException, IOException {
 		return prismContext.parseObject(file);
 	}
-	
+
 	protected void displayTestTitle(String testName) {
 		TestUtil.displayTestTitle(this, testName);
 	}
-	
+
 	protected void displayWhen(String testName) {
 		TestUtil.displayWhen(testName);
 	}
-	
+
 	protected void displayThen(String testName) {
 		TestUtil.displayThen(testName);
 	}
-	
+
 	protected void displayCleanup(String testName) {
 		TestUtil.displayCleanup(testName);
 	}
-	
+
 	protected void display(String str) {
 		IntegrationTestTools.display(str);
 	}
-	
+
 	public static void display(String message, SearchResultEntry response) {
 		IntegrationTestTools.display(message, response);
 	}
@@ -1620,7 +1638,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	public static void display(String message, Collection collection) {
 		IntegrationTestTools.display(message, collection);
 	}
-	
+
 	public static void display(String title, Entry entry) {
 		IntegrationTestTools.display(title, entry);
 	}
@@ -1628,15 +1646,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	public static void display(String message, PrismContainer<?> propertyContainer) {
 		IntegrationTestTools.display(message, propertyContainer);
 	}
-	
+
 	public static void display(OperationResult result) {
 		IntegrationTestTools.display(result);
 	}
-	
+
 	public static void display(String title, OperationResult result) {
 		IntegrationTestTools.display(title, result);
 	}
-	
+
 	public static void display(String title, OperationResultType result) throws SchemaException {
 		IntegrationTestTools.display(title, result);
 	}
@@ -1644,11 +1662,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	public static void display(String title, List<Element> elements) {
 		IntegrationTestTools.display(title, elements);
 	}
-	
+
 	public static void display(String title, DebugDumpable dumpable) {
 		IntegrationTestTools.display(title, dumpable);
 	}
-	
+
 	public static void display(String title, String value) {
 		IntegrationTestTools.display(title, value);
 	}
@@ -1660,7 +1678,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	public static void display(String title, Containerable value) {
 		IntegrationTestTools.display(title, value);
 	}
-	
+
 	public static void display(String title, Throwable e) {
 		IntegrationTestTools.display(title, e);
 	}
@@ -1681,7 +1699,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		IntegrationTestTools.displayObjectTypeCollection(message, collection);
 	}
 
-	
+
 	protected Task createTask(String operationName) {
 		if (!operationName.contains(".")) {
 			operationName = this.getClass().getName() + "." + operationName;
@@ -1689,21 +1707,21 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		Task task = taskManager.createTaskInstance(operationName);
 		return task;
 	}
-	
+
 	protected void assertSuccess(OperationResult result) {
 		if (result.isUnknown()) {
 			result.computeStatus();
 		}
 		TestUtil.assertSuccess(result);
 	}
-	
+
 	protected void assertSuccess(String message, OperationResult result) {
 		if (result.isUnknown()) {
 			result.computeStatus();
 		}
 		TestUtil.assertSuccess(message, result);
 	}
-	
+
 	protected String assertInProgress(OperationResult result) {
 		if (result.isUnknown()) {
 			result.computeStatus();
@@ -1711,29 +1729,29 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		TestUtil.assertStatus(result, OperationResultStatus.IN_PROGRESS);
 		return result.getAsynchronousOperationReference();
 	}
-	
+
 	protected void assertFailure(OperationResult result) {
 		if (result.isUnknown()) {
 			result.computeStatus();
 		}
 		TestUtil.assertFailure(result);
 	}
-	
+
 	protected void assertPartialError(OperationResult result) {
 		if (result.isUnknown()) {
 			result.computeStatus();
 		}
 		TestUtil.assertPartialError(result);
 	}
-	
+
 	protected void fail(String message) {
 		AssertJUnit.fail(message);
 	}
-	
+
 	protected OperationResult assertSingleConnectorTestResult(OperationResult testResult) {
 		return IntegrationTestTools.assertSingleConnectorTestResult(testResult);
 	}
-	
+
 	protected void assertTestResourceSuccess(OperationResult testResult, ConnectorTestOperation operation) {
 		IntegrationTestTools.assertTestResourceSuccess(testResult, operation);
 	}
@@ -1741,39 +1759,39 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void assertTestResourceFailure(OperationResult testResult, ConnectorTestOperation operation) {
 		IntegrationTestTools.assertTestResourceFailure(testResult, operation);
 	}
-	
+
 	protected void assertTestResourceNotApplicable(OperationResult testResult, ConnectorTestOperation operation) {
 		IntegrationTestTools.assertTestResourceNotApplicable(testResult, operation);
 	}
-	
-	protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname, 
+
+	protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname,
 			T... expectedValues) {
 		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
 		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
 	}
-	
-	protected <T> void assertAttribute(ResourceType resourceType, ShadowType shadowType, String attrName, 
+
+	protected <T> void assertAttribute(ResourceType resourceType, ShadowType shadowType, String attrName,
 			T... expectedValues) {
 		assertAttribute(resourceType.asPrismObject(), shadowType, attrName, expectedValues);
 	}
-	
-	protected <T> void assertAttribute(ResourceType resourceType, ShadowType shadowType, QName attrName, 
+
+	protected <T> void assertAttribute(ResourceType resourceType, ShadowType shadowType, QName attrName,
 			T... expectedValues) {
 		assertAttribute(resourceType.asPrismObject(), shadowType, attrName, expectedValues);
 	}
-	
-	protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName, 
+
+	protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName,
 			T... expectedValues) {
 		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
 		assertAttribute(resource, shadow, attrQname, expectedValues);
 	}
-	
-	protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, MatchingRule<T> matchingRule, 
+
+	protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, MatchingRule<T> matchingRule,
 			QName attrQname, T... expectedValues) throws SchemaException {
 		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
 		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, matchingRule, actualValues, expectedValues);
 	}
-	
+
 	protected void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname) {
 		PrismContainer<?> attributesContainer = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null || attributesContainer.isEmpty()) {
@@ -1782,17 +1800,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismProperty attribute = attributesContainer.findProperty(attrQname);
 		assertNull("Unexpected attribute "+attrQname+" in "+shadow+": "+attribute, attribute);
 	}
-	
+
 	protected void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName) {
 		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
 		assertNoAttribute(resource, shadow, attrQname);
 	}
-	
+
 	protected void assertNoPendingOperation(PrismObject<ShadowType> shadow) {
 		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
 		assertEquals("Wroung number of pending operations in "+shadow, 0, pendingOperations.size());
 	}
-	
+
 	protected void assertCase(String oid, String expectedState) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("assertCase");
 		PrismObject<CaseType> acase = repositoryService.getObject(CaseType.class, oid, null, result);
@@ -1800,27 +1818,27 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		CaseType caseType = acase.asObjectable();
 		assertEquals("Wrong state of "+acase, expectedState ,caseType.getState());
 	}
-	
+
 	protected void closeCase(String caseOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		OperationResult result = new OperationResult("closeCase");
 		Collection modifications = new ArrayList<>(1);
-		
+
 		PrismPropertyDefinition<String> statePropertyDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(CaseType.class).findPropertyDefinition(CaseType.F_STATE);
 		PropertyDelta<String> statusDelta = statePropertyDef.createEmptyDelta(new ItemPath(CaseType.F_STATE));
 		statusDelta.addValueToReplace(new PrismPropertyValue<>(SchemaConstants.CASE_STATE_CLOSED));
 		modifications.add(statusDelta);
-		
+
 		PrismPropertyDefinition<String> outcomePropertyDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(CaseType.class).findPropertyDefinition(CaseType.F_OUTCOME);
 		PropertyDelta<String> outcomeDelta = outcomePropertyDef.createEmptyDelta(new ItemPath(CaseType.F_OUTCOME));
 		outcomeDelta.addValueToReplace(new PrismPropertyValue<>(OperationResultStatusType.SUCCESS.value()));
 		modifications.add(outcomeDelta);
-		
+
 		repositoryService.modifyObject(CaseType.class, caseOid, modifications, null, result);
-		
+
 		PrismObject<CaseType> caseClosed = repositoryService.getObject(CaseType.class, caseOid, null, result);
 		display("Case closed", caseClosed);
 	}
-	
+
 	protected <F extends FocusType> void assertLinks(PrismObject<F> focus, int expectedNumLinks) throws ObjectNotFoundException, SchemaException {
 		PrismReference linkRef = focus.findReference(FocusType.F_LINK_REF);
 		if (linkRef == null) {
@@ -1829,25 +1847,25 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		assertEquals("Wrong number of links in " + focus, expectedNumLinks, linkRef.size());
 	}
-	
+
 	protected void assertLinked(String userOid, String accountOid) throws ObjectNotFoundException, SchemaException {
 		assertLinked(UserType.class, userOid, accountOid);
 	}
-	
+
 	protected <F extends FocusType> void assertLinked(Class<F> type, String focusOid, String projectionOid) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("assertLinked");
 		PrismObject<F> user = repositoryService.getObject(type, focusOid, null, result);
 		assertLinked(user, projectionOid);
 	}
-	
+
 	protected <F extends FocusType> void assertLinked(PrismObject<F> focus, PrismObject<ShadowType> projection) throws ObjectNotFoundException, SchemaException {
 		assertLinked(focus, projection.getOid());
 	}
-	
+
 	protected <F extends FocusType> void assertLinked(PrismObject<F> focus, String projectionOid) throws ObjectNotFoundException, SchemaException {
 		PrismReference linkRef = focus.findReference(FocusType.F_LINK_REF);
 		assertNotNull("No linkRefs in "+focus, linkRef);
-		boolean found = false; 
+		boolean found = false;
 		for (PrismReferenceValue val: linkRef.getValues()) {
 			if (val.getOid().equals(projectionOid)) {
 				found = true;
@@ -1855,23 +1873,23 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		assertTrue("Focus " + focus + " is not linked to shadow " + projectionOid, found);
 	}
-	
+
 	protected void assertNotLinked(String userOid, String accountOid) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("assertLinked");
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertNotLinked(user, accountOid);
 	}
-	
+
 	protected void assertNotLinked(PrismObject<UserType> user, PrismObject<ShadowType> account) throws ObjectNotFoundException, SchemaException {
 		assertNotLinked(user, account.getOid());
 	}
-	
+
 	protected void assertNotLinked(PrismObject<UserType> user, String accountOid) throws ObjectNotFoundException, SchemaException {
 		PrismReference linkRef = user.findReference(UserType.F_LINK_REF);
 		if (linkRef == null) {
 			return;
 		}
-		boolean found = false; 
+		boolean found = false;
 		for (PrismReferenceValue val: linkRef.getValues()) {
 			if (val.getOid().equals(accountOid)) {
 				found = true;
@@ -1879,7 +1897,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		assertFalse("User " + user + " IS linked to account " + accountOid + " but not expecting it", found);
 	}
-	
+
 	protected void assertNoLinkedAccount(PrismObject<UserType> user) {
 		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
 		if (accountRef == null) {
@@ -1888,7 +1906,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assert accountRef.isEmpty() : "Expected that "+user+" has no linked account but it has "+accountRef.size()+" linked accounts: "
 			+ accountRef.getValues();
 	}
-	
+
 	protected <F extends FocusType> void assertPersonaLinks(PrismObject<F> focus, int expectedNumLinks) throws ObjectNotFoundException, SchemaException {
 		PrismReference linkRef = focus.findReference(FocusType.F_PERSONA_REF);
 		if (linkRef == null) {
@@ -1897,12 +1915,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		assertEquals("Wrong number of persona links in " + focus, expectedNumLinks, linkRef.size());
 	}
-	
+
     protected <O extends ObjectType> void assertObjectOids(String message, Collection<PrismObject<O>> objects, String... oids) {
     	List<String> objectOids = objects.stream().map( o -> o.getOid()).collect(Collectors.toList());
     	PrismAsserts.assertEqualsCollectionUnordered(message, objectOids, oids);
     }
-    
+
     protected <T> void assertExpression(PrismProperty<T> prop, String evaluatorName) {
 		PrismPropertyValue<T> pval = prop.getValue();
 		ExpressionWrapper expressionWrapper = pval.getExpression();
@@ -1914,7 +1932,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		JAXBElement<?> evaluatorElement = expressionType.getExpressionEvaluator().iterator().next();
 		assertEquals("Wrong expression evaluator name", evaluatorName, evaluatorElement.getName().getLocalPart());
 	}
-    
+
     protected <O extends ObjectType> void assertNoRepoObject(Class<O> type, String oid) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		Task task = createTask(AbstractIntegrationTest.class.getName() + ".assertNoRepoObject");
 		assertNoRepoObject(type, oid, task, task.getResult());
@@ -1923,22 +1941,22 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected <O extends ObjectType> void assertNoRepoObject(Class<O> type, String oid, Task task, OperationResult result) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		try {
 			PrismObject<O> object = repositoryService.getObject(type, oid, null, result);
-			
+
 			AssertJUnit.fail("Expected that "+object+" does not exist, in repo but it does");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
 			return;
 		}
 	}
-	
+
 	protected void assertAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
 		IntegrationTestTools.assertAssociation(shadow, associationName, entitlementOid);
 	}
-	
+
 	protected void assertNoAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
 		IntegrationTestTools.assertNoAssociation(shadow, associationName, entitlementOid);
 	}
-	
+
 	protected <F extends FocusType> void assertRoleMembershipRef(PrismObject<F> focus, String... roleOids) {
 		List<String> refOids = new ArrayList<String>();
 		for (ObjectReferenceType ref: focus.asObjectable().getRoleMembershipRef()) {
@@ -1949,7 +1967,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		PrismAsserts.assertSets("Wrong values in roleMembershipRef in "+focus, refOids, roleOids);
 	}
-	
+
 	protected <F extends FocusType> void assertRoleMembershipRef(PrismObject<F> focus, QName relation, String... roleOids) {
 		if (!MiscUtil.unorderedCollectionEquals(Arrays.asList(roleOids), focus.asObjectable().getRoleMembershipRef(),
 				(expectedOid, hasRef) -> {
@@ -1966,24 +1984,24 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 					+", but was "+focus.asObjectable().getRoleMembershipRef());
 		}
 	}
-	
+
 	protected <F extends FocusType> void assertRoleMembershipRefs(PrismObject<F> focus, int expectedNumber) {
 		List<ObjectReferenceType> roleMembershipRefs = focus.asObjectable().getRoleMembershipRef();
 		assertEquals("Wrong number of roleMembershipRefs in "+focus, expectedNumber, roleMembershipRefs.size());
 	}
-	
+
 	protected <F extends FocusType> void assertNoRoleMembershipRef(PrismObject<F> focus) {
 		PrismReference memRef = focus.findReference(FocusType.F_ROLE_MEMBERSHIP_REF);
 		assertNull("No roleMembershipRef expected in "+focus+", but found: "+memRef, memRef);
 	}
-	
+
 	protected void generateRoles(int numberOfRoles, String nameFormat, String oidFormat, BiConsumer<RoleType,Integer> mutator, OperationResult result) throws Exception {
 		generateRoles(numberOfRoles, nameFormat, oidFormat, mutator, role -> repositoryService.addObject(role, null, result), result);
 	}
-	
+
 	protected void generateRoles(int numberOfRoles, String nameFormat, String oidFormat, BiConsumer<RoleType,Integer> mutator, FailableProcessor<PrismObject<RoleType>> adder, OperationResult result) throws Exception {
 		long startMillis = System.currentTimeMillis();
-		
+
 		PrismObjectDefinition<RoleType> roleDefinition = getRoleDefinition();
 		for(int i=0; i < numberOfRoles; i++) {
 			PrismObject<RoleType> role = roleDefinition.instantiate();
@@ -1998,12 +2016,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			LOGGER.info("Adding {}:\n{}", role, role.debugDump(1));
 			adder.process(role);
 		}
-		
+
 		long endMillis = System.currentTimeMillis();
 		long duration = (endMillis - startMillis);
 		display("Roles import", "import of "+numberOfRoles+" roles took "+(duration/1000)+" seconds ("+(duration/numberOfRoles)+"ms per role)");
 	}
-	
+
 	protected String assignmentSummary(PrismObject<UserType> user) {
 		Map<String,Integer> assignmentRelations = new HashMap<>();
 		for (AssignmentType assignment: user.asObjectable().getAssignment()) {
@@ -2041,7 +2059,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected S_FilterEntryOrEmpty queryFor(Class<? extends Containerable> queryClass) {
 		return QueryBuilder.queryFor(queryClass, prismContext);
 	}
-	
+
 	protected void displayCounters(InternalCounters... counters) {
 		StringBuilder sb = new StringBuilder();
 		for (InternalCounters counter: counters) {
@@ -2054,15 +2072,44 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		display("Counters", sb.toString());
 	}
-	
+
 	protected void assertMessageContains(String message, String string) {
 		assert message.contains(string) : "Expected message to contain '"+string+"' but it does not; message: " + message;
 	}
-	
+
 	protected void assertExceptionUserFriendly(CommonException e, String expectedMessage) {
 		LocalizableMessage userFriendlyMessage = e.getUserFriendlyMessage();
 		assertNotNull("No user friendly exception message", userFriendlyMessage);
 		assertEquals("Unexpected user friendly exception fallback message", expectedMessage, userFriendlyMessage.getFallbackMessage());
 	}
-	
+
+	protected ParallelTestThread[] multithread(final String TEST_NAME, MultithreadRunner lambda, int numberOfThreads, Integer randomStartDelayRange) {
+		ParallelTestThread[] threads = new ParallelTestThread[numberOfThreads];
+		for (int i = 0; i < numberOfThreads; i++) {
+			threads[i] = new ParallelTestThread(i,
+					(ii) -> {
+						if (randomStartDelayRange != null) {
+							Thread.sleep(RND.nextInt(randomStartDelayRange)); // Random start delay
+						}
+						LOGGER.info("{} starting", Thread.currentThread().getName());
+						lambda.run(ii);
+					});
+			threads[i].setName("Thread " + (i+1) + " of " + numberOfThreads);
+			threads[i].start();
+		}
+		return threads;
+	}
+
+	protected void waitForThreads(ParallelTestThread[] threads, long timeout) throws InterruptedException {
+		for (int i = 0; i < threads.length; i++) {
+			if (threads[i].isAlive()) {
+				System.out.println("Waiting for " + threads[i]);
+				threads[i].join(timeout);
+				Throwable threadException = threads[i].getException();
+				if (threadException != null) {
+					throw new AssertionError("Test thread "+i+" failed: "+threadException.getMessage(), threadException);
+				}
+			}
+		}
+	}
 }

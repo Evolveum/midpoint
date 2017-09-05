@@ -36,7 +36,7 @@ import org.springframework.security.core.Authentication;
  *
  */
 public interface SecurityEnforcer extends AccessDecisionManager {
-	
+
 	UserProfileService getUserProfileService();
 
 	void setUserProfileService(UserProfileService userProfileService);
@@ -44,9 +44,9 @@ public interface SecurityEnforcer extends AccessDecisionManager {
     void setupPreAuthenticatedSecurityContext(Authentication authentication);
 
 	void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) throws SchemaException;
-	
+
 	boolean isAuthenticated();
-	
+
 	/**
 	 * Returns principal representing the currently logged-in user.
 	 * Assumes that the user is logged-in. Otherwise an exception is thrown.
@@ -59,7 +59,7 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	<O extends ObjectType, T extends ObjectType> void failAuthorization(String operationUrl, AuthorizationPhaseType phase, PrismObject<O> object,
 			ObjectDelta<O> delta, PrismObject<T> target, OperationResult result)
 			throws SecurityViolationException;
-	
+
 	/**
 	 * Returns true if the currently logged-in user is authorized for specified action, returns false otherwise.
 	 * Does not throw SecurityViolationException.
@@ -67,7 +67,7 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	 */
 	<O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException;
-	
+
 	/**
 	 * Evaluates authorization: simply returns if the currently logged it user is authorized for a
 	 * specified action. If it is not authorized then a  SecurityViolationException is thrown and the
@@ -75,32 +75,32 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	 * @param phase check authorization for a specific phase. If null then all phases are checked.
 	 */
 	<O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, 
-			OperationResult result) throws SecurityViolationException, SchemaException;	
-	
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver,
+			OperationResult result) throws SecurityViolationException, SchemaException;
+
 	<O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver) throws SchemaException;
-	
+
 	/**
 	 * TODO
 	 * If it returns NoneFilter then no search should be done. The principal is not authorized for this operation at all.
 	 * It may return null in case that the original filter was also null.
-	 * 
+	 *
 	 * If object is null then the method will return a filter that is applicable to look for object.
 	 * If object is present then the method will return a filter that is applicable to look for a target.
-	 * 
+	 *
 	 * The objectType parameter defines the class of the object for which should be the returned filter applicable.
 	 */
 	<T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
 			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException;
-	
+
 	/**
 	 * @param includeSpecial include special authorizations such as "self"
 	 */
 	<T extends ObjectType, O extends ObjectType> boolean canSearch(String operationUrl, AuthorizationPhaseType phase,
 			Class<T> searchResultType, PrismObject<O> object, boolean includeSpecial, ObjectFilter filter) throws SchemaException;
-	
+
 	<T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException ;
-	
+
 	<T> T runPrivileged(Producer<T> producer);
 
 	/**

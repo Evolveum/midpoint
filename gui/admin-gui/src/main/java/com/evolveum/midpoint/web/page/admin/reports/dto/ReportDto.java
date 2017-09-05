@@ -35,7 +35,7 @@ public class ReportDto implements Serializable {
     public static final String F_EXPORT_TYPE = "exportType";
     public static final String F_VIRTUALIZER = "virtualizer";
     public static final String F_VIRTUALIZER_KICKON = "virtualizerKickOn";
-    public static final String F_MAXPAGES = "maxPages"; 
+    public static final String F_MAXPAGES = "maxPages";
     public static final String F_TIMEOUT = "timeout";
 
     private boolean parent;
@@ -116,7 +116,7 @@ public class ReportDto implements Serializable {
         reportType.setTemplateStyle(templateStyle);
         reportType.setDescription(description);
         reportType.setVirtualizer(virtualizer);
-        reportType.setVirtualizerKickOn(virtualizerKickOn);        
+        reportType.setVirtualizerKickOn(virtualizerKickOn);
         reportType.setMaxPages(maxPages);
         reportType.setTimeout(timeout);
 

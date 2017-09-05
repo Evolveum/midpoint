@@ -647,7 +647,7 @@ public class SimpleTaskAdapter implements Task {
     public Collection<ItemDelta<?,?>> getPendingModifications() {
         throw new UnsupportedOperationException("not implemented yet.");
     }
-    
+
     @Override
     public PolicyRuleType getPolicyRule() {
     	throw new UnsupportedOperationException("not implemented yet.");

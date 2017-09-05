@@ -60,11 +60,11 @@ import static org.testng.AssertJUnit.assertNotNull;
 public class TestConsistencySimple extends AbstractInitializedModelIntegrationTest {
 
 	private static final boolean ASSERT_SUCCESS = true;
-		
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		login(USER_ADMINISTRATOR_USERNAME);
 	}
 
