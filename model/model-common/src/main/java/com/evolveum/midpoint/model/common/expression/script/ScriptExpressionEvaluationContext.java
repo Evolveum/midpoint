@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.common.expression.script;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 
 /**
  * @author semancik
@@ -24,20 +25,22 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  */
 public class ScriptExpressionEvaluationContext {
 
-	private static ThreadLocal<ScriptExpressionEvaluationContext> threadLocalContext = new ThreadLocal<ScriptExpressionEvaluationContext>();
+	private static final ThreadLocal<ScriptExpressionEvaluationContext> threadLocalContext = new ThreadLocal<ScriptExpressionEvaluationContext>();
 
-	private ExpressionVariables variables;
-	private String contextDescription;
-	private OperationResult result;
-	private ScriptExpression scriptExpression;
+	private final ExpressionVariables variables;
+	private final String contextDescription;
+	private final OperationResult result;
+	private final Task task;
+	private final ScriptExpression scriptExpression;
 	private boolean evaluateNew = false;
 
 	ScriptExpressionEvaluationContext(ExpressionVariables variables, String contextDescription,
-			OperationResult result, ScriptExpression scriptExpression) {
+			OperationResult result, Task task, ScriptExpression scriptExpression) {
 		super();
 		this.variables = variables;
 		this.contextDescription = contextDescription;
 		this.result = result;
+		this.task = task;
 		this.scriptExpression = scriptExpression;
 	}
 
@@ -51,6 +54,10 @@ public class ScriptExpressionEvaluationContext {
 
 	public OperationResult getResult() {
 		return result;
+	}
+
+	public Task getTask() {
+		return task;
 	}
 
 	public ScriptExpression getScriptExpression() {

@@ -673,11 +673,27 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public Task getCurrentTask() {
-    	return ModelExpressionThreadLocalHolder.getCurrentTask();
+	    Task rv = ModelExpressionThreadLocalHolder.getCurrentTask();
+	    if (rv == null) {
+	    	// fallback (MID-4130): but maybe we should instead make sure ModelExpressionThreadLocalHolder is set up correctly
+		    ScriptExpressionEvaluationContext ctx = ScriptExpressionEvaluationContext.getThreadLocal();
+		    if (ctx != null) {
+			    rv = ctx.getTask();
+		    }
+	    }
+	    return rv;
     }
 
     private OperationResult getCurrentResult() {
-    	return ModelExpressionThreadLocalHolder.getCurrentResult();
+	    OperationResult rv = ModelExpressionThreadLocalHolder.getCurrentResult();
+	    if (rv == null) {
+		    // fallback (MID-4130): but maybe we should instead make sure ModelExpressionThreadLocalHolder is set up correctly
+		    ScriptExpressionEvaluationContext ctx = ScriptExpressionEvaluationContext.getThreadLocal();
+		    if (ctx != null) {
+		    	rv = ctx.getResult();
+		    }
+	    }
+	    return rv;
     }
 
     private OperationResult getCurrentResult(String operationName) {
