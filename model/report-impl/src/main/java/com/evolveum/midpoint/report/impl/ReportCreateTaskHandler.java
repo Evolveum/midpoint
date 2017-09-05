@@ -14,6 +14,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRTemplate;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -226,6 +227,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
             saveReportOutputType(reportFilePath, parentReport, task, result);
             LOGGER.trace("create report output type : {}", reportFilePath);
 
+            processPostReportScript(parentReport.getPostReportScript().getCode(), reportFilePath, result);
             result.computeStatus();
 
         } catch (Exception ex) {
@@ -509,6 +511,22 @@ public class ReportCreateTaskHandler implements TaskHandler {
 		task.setExtensionPropertyImmediate(outputOidProperty, subResult);
 
         subResult.computeStatus();
+    }
+
+    private void processPostReportScript(String code,String reportOutputFilePath,OperationResult parentResult ){
+        if (code!=null && !code.isEmpty()){
+
+            try{
+                CommandLineScriptExecutor commandLineScriptExecutor = new CommandLineScriptExecutor(code,reportOutputFilePath,null, parentResult);
+            }catch (Exception e) {
+                LOGGER.error("An exception has occurred during post report script execution {}",e.getLocalizedMessage());
+                // LoggingUtils.logExceptionAsWarning(LOGGER,"And unexpected exception occurred during post report script execution",e, task);
+            }
+        } else{
+            if(LOGGER.isDebugEnabled()){
+                LOGGER.debug("No post report script found");
+            }
+        }
     }
 
     @Override
