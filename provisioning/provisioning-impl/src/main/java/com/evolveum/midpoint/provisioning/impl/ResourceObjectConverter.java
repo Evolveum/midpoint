@@ -497,7 +497,7 @@ public class ResourceObjectConverter {
 			for (ItemDelta modification: itemDeltas) {
 				ItemPath path = modification.getPath();
 				QName firstPathName = ItemPath.getFirstName(path);
-				if (QNameUtil.match(firstPathName, ShadowType.F_ATTRIBUTES)) {
+				if (ProvisioningUtil.isAttributeModification(firstPathName)) {
 					hasResourceModification = true;
 					QName attrName = ItemPath.getFirstName(path.rest());
 					RefinedAttributeDefinition<Object> attrDef = ctx.getObjectClassDefinition().findAttributeDefinition(attrName);
@@ -506,8 +506,7 @@ public class ResourceObjectConverter {
 						hasVolatilityTriggerModification = true;
 						break;
 					}
-				} else if (QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION) || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS) ||
-						QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION) || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS)) {
+				} else if (ProvisioningUtil.isNonAttributeResourceModification(firstPathName)) {
 					hasResourceModification = true;
 				}
 			}
