@@ -48,7 +48,8 @@ class AdditionalInformationGenerator {
 		attachedRules.forEach(rule -> collectPrimitiveTriggers(triggers, rule.getRule()));
 
 		List<InformationType> rv = new ArrayList<>();
-		generateAssignmentMessages(rv, extractTriggers(triggers, PolicyConstraintKindType.ASSIGNMENT));
+		generateAssignmentModificationMessages(rv, extractTriggers(triggers, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION));
+		generateObjectModificationMessages(rv, extractTriggers(triggers, PolicyConstraintKindType.OBJECT_MODIFICATION));
 		generateExclusionMessages(rv, extractTriggers(triggers, PolicyConstraintKindType.EXCLUSION));
 		generateOtherMessages(rv, triggers);
 		return rv;
@@ -78,7 +79,12 @@ class AdditionalInformationGenerator {
 	}
 
 	@SuppressWarnings("unused")
-	private void generateAssignmentMessages(List<InformationType> infoList, List<EvaluatedPolicyRuleTriggerType> triggers) {
+	private void generateAssignmentModificationMessages(List<InformationType> infoList, List<EvaluatedPolicyRuleTriggerType> triggers) {
+		// Nothing to do here. The information about assignments to be added/removed is obvious from the delta.
+	}
+
+	@SuppressWarnings("unused")
+	private void generateObjectModificationMessages(List<InformationType> infoList, List<EvaluatedPolicyRuleTriggerType> triggers) {
 		// Nothing to do here. The information about assignments to be added/removed is obvious from the delta.
 	}
 

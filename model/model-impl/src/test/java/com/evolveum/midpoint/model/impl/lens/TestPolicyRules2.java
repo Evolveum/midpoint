@@ -143,7 +143,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
 		assertTargetTriggers(context, null, 2);
-		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT, 1);
+		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1);
 		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
 
 		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
@@ -186,7 +186,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
 		assertTargetTriggers(context, null, 2);
-		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT, 1);
+		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1);
 		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
 
 		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
@@ -233,7 +233,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
 		assertTargetTriggers(context, null, 2);
-		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT, 1);
+		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1);
 		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
 
 		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
@@ -284,7 +284,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
 		assertTargetTriggers(context, null, 2);
-		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT, 1);
+		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1);
 		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
 
 		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
@@ -294,7 +294,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
 
 		assertAssignmentPolicySituation(context, roleStudentOid,
-				SchemaConstants.MODEL_POLICY_SITUATION_ASSIGNED,
+				SchemaConstants.MODEL_POLICY_SITUATION_ASSIGNMENT_MODIFIED,
 				SchemaConstants.MODEL_POLICY_SITUATION_OBJECT_STATE);
 		assertFocusPolicySituation(context,
 				SchemaConstants.MODEL_POLICY_SITUATION_OBJECT_STATE,
@@ -332,7 +332,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);        // no assignment change => no triggering of ASSIGNMENT constraint (is this correct?)
 		assertTargetTriggers(context, null, 1);
-		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT, 0);
+		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 0);
 		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
 
 		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
@@ -379,7 +379,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
 		assertTargetTriggers(context, null, 3);
-		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT, 1);
+		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1);
 		assertTargetTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 1);
 		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
 
@@ -419,7 +419,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
 		assertTargetTriggers(context, null, 2);
-		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT, 1);
+		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1);
 		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
 
 		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);

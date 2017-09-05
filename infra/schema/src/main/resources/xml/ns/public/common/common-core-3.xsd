@@ -12739,31 +12739,31 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="minAssignees">
+            <xsd:enumeration value="minAssigneesViolation">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="MIN_ASSIGNEES"/>
+                        <jaxb:typesafeEnumMember name="MIN_ASSIGNEES_VIOLATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="maxAssignees">
+            <xsd:enumeration value="maxAssigneesViolation">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="MAX_ASSIGNEES"/>
+                        <jaxb:typesafeEnumMember name="MAX_ASSIGNEES_VIOLATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="modification">
+            <xsd:enumeration value="objectModification">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="MODIFICATION"/>
+                        <jaxb:typesafeEnumMember name="OBJECT_MODIFICATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="assignment">
+            <xsd:enumeration value="assignmentModification">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ASSIGNMENT"/>
+                        <jaxb:typesafeEnumMember name="ASSIGNMENT_MODIFICATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

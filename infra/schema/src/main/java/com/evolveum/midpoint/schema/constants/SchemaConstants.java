@@ -308,10 +308,10 @@ public abstract class SchemaConstants {
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "underassigned"));
 	public static final String MODEL_POLICY_SITUATION_OVERASSIGNED =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "overassigned"));
+	// should not be used, because it is a transitional constraint
 	public static final String MODEL_POLICY_SITUATION_MODIFIED =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "modified"));
-	public static final String MODEL_POLICY_SITUATION_ASSIGNED =
-			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "assigned"));
+	public static final String MODEL_POLICY_SITUATION_ASSIGNMENT_MODIFIED = MODEL_POLICY_SITUATION_MODIFIED;        // TODO
 	public static final String MODEL_POLICY_SITUATION_HAS_ASSIGNMENT =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "hasAssignment"));        // TODO
 	public static final String MODEL_POLICY_SITUATION_HAS_NO_ASSIGNMENT =

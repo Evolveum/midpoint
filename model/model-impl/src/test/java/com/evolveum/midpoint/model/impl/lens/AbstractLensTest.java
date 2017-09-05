@@ -298,7 +298,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 	}
 
 	protected void dumpPolicyRules(LensContext<? extends FocusType> context) {
-		display("Policy rules", context.dumpPolicyRules(3));
+		display("Policy rules", context.dumpAssignmentPolicyRules(3));
 	}
 
 	protected void dumpPolicySituations(LensContext<? extends FocusType> context) {

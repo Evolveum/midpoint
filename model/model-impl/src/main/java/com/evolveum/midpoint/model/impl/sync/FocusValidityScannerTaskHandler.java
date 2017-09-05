@@ -262,7 +262,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 			policyRule.getTriggers().add(evaluatedTrigger);
 			lensContext.getFocusContext().addPolicyRule(policyRule);
 		}
-		LOGGER.trace("Recomputing of user {}: context:\n{}", user, lensContext.debugDump());
+		LOGGER.trace("Recomputing of user {}: context:\n{}", user, lensContext.debugDumpLazily());
 		clockwork.run(lensContext, workerTask, result);
 		LOGGER.trace("Recomputing of user {}: {}", user, result.getStatus());
 	}

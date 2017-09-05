@@ -491,7 +491,17 @@
             <xsd:element name="triggerId" type="xsd:int" minOccurs="0" />       <!-- not 'id' to avoid collisions with container identifiers -->
             <xsd:element name="ruleName" type="xsd:string" minOccurs="0" />
             <xsd:element name="constraintKind" type="tns:PolicyConstraintKindType" minOccurs="0" />
-            <xsd:element name="constraint" type="tns:AbstractPolicyConstraintType" minOccurs="0" />
+            <xsd:element name="constraint" type="tns:AbstractPolicyConstraintType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        DEPRECATED. DO NOT USE.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>3.7</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="message" type="xsd:string" minOccurs="0" />
 			<xsd:element name="assignmentPath" type="tns:AssignmentPathType" minOccurs="0" />
 			<xsd:element name="directOwnerRef" type="c:ObjectReferenceType" minOccurs="0" />
@@ -533,10 +543,15 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						DO NOT USE
+
 						Keeping only because some "pre-3.6" code stored some data here. So we're not deleting
 						it to avoid schema exceptions.
 						Will be replaced by something more compact in the future (something like a reference to the rule).
 					</xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>3.6</a:deprecatedSince>
+                    </xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded" />

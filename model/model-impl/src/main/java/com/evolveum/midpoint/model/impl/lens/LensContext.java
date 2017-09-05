@@ -945,7 +945,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	}
 
 	@Override
-	public String dumpPolicyRules(int indent) {
+	public String dumpAssignmentPolicyRules(int indent) {
 		if (evaluatedAssignmentTriple == null) {
 			return "";
 		}
@@ -963,6 +963,15 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			Collection<EvaluatedPolicyRule> focusPolicyRules = assignment.getFocusPolicyRules();
 			dumpPolicyRulesCollection("focusPolicyRules", indent + 1, sb, focusPolicyRules);
 		}, 1);
+		return sb.toString();
+	}
+
+	@Override
+	public String dumpFocusPolicyRules(int indent) {
+		StringBuilder sb = new StringBuilder();
+		if (focusContext != null) {
+			dumpPolicyRulesCollection("objectPolicyRules", indent, sb, focusContext.getPolicyRules());
+		}
 		return sb.toString();
 	}
 

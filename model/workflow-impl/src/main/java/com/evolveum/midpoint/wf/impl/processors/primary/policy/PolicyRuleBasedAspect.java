@@ -282,19 +282,19 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		List<EvaluatedPolicyRule> approvalActionRules = getApprovalActionRules(focusContext.getPolicyRules());
 		LOGGER.trace("extractObjectBasedInstructions: approvalActionRules:\n{}", DebugUtil.debugDumpLazily(approvalActionRules));
 		for (EvaluatedPolicyRule rule : approvalActionRules) {
-			Set<ItemPath> key;
-			if (focusDelta.isAdd() || focusDelta.isDelete()) {
-				key = Collections.emptySet();
-			} else {
-				Set<ItemPath> items = getAffectedItems(rule.getTriggers());
-				Set<ItemPath> affectedItems;
-				if (!items.isEmpty()) {
-					affectedItems = items;				// all items in triggered constraints were modified (that's how the constraints work)
-				} else {
-					affectedItems = new HashSet<>(focusDelta.getModifiedItems());        // whole object
-				}
-				key = affectedItems;
-			}
+			Set<ItemPath> key = Collections.emptySet();;
+//			if (focusDelta.isAdd() || focusDelta.isDelete()) {
+//				key = Collections.emptySet();
+//			} else {
+//				Set<ItemPath> items = getAffectedItems(rule.getTriggers());
+//				Set<ItemPath> affectedItems;
+//				if (!items.isEmpty()) {
+//					affectedItems = items;				// all items in triggered constraints were modified (that's how the constraints work)
+//				} else {
+//					affectedItems = new HashSet<>(focusDelta.getModifiedItems());        // whole object
+//				}
+//				key = affectedItems;
+//			}
 			ApprovalSchemaBuilder builder = schemaBuilders.computeIfAbsent(key, k -> new ApprovalSchemaBuilder(this,
 					approvalSchemaHelper));
 			for (ApprovalPolicyActionType approvalAction : rule.getActions().getApproval()) {

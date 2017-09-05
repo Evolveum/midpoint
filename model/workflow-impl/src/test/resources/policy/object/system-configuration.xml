@@ -59,6 +59,7 @@
 		<useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
     </workflowConfiguration>
 	<globalPolicyRule>
+		<name>approve-employee-role-add</name>
 		<policyConstraints>
 			<modification>
 				<operation>add</operation>

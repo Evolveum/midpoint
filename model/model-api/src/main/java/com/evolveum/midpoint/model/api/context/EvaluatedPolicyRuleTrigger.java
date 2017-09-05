@@ -120,7 +120,7 @@ public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType>
 	protected void fillCommonContent(EvaluatedPolicyRuleTriggerType tt, EvaluatedPolicyRule owningRule) {
 		tt.setRuleName(owningRule.getName());
 		tt.setConstraintKind(constraintKind);
-		tt.setConstraint(constraint);
+		//tt.setConstraint(constraint);
 		tt.setMessage(message);
 		if (owningRule.getAssignmentPath() != null) {
 			tt.setAssignmentPath(owningRule.getAssignmentPath().toAssignmentPathType());

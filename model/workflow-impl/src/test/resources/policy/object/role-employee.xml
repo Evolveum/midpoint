@@ -22,6 +22,7 @@
 	  xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 	  xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
 	<name>employee</name>
+	<lifecycleState>draft</lifecycleState>
 	<assignment>
 		<targetRef oid="a370bac5-6619-4fb5-bcf8-8e1199dc43e8" type="RoleType"/>	<!-- constraints -->
 	</assignment>

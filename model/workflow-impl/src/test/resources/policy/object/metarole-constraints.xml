@@ -18,8 +18,116 @@
 	  xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	  xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	  xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+	  xmlns:q='http://prism.evolveum.com/xml/ns/public/query-3'
 	  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	  xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-	  xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+	  xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
 	<name>constraints</name>
+	<inducement>
+		<policyRule>
+			<name>disallow-incomplete-role-activation</name>
+			<policyConstraints>
+				<modification>
+					<item>lifecycleState</item>
+				</modification>
+				<objectState>
+					<name>active lifecycleState</name>
+					<filter>
+						<q:equal>
+							<q:path>lifecycleState</q:path>
+							<q:value>active</q:value>
+						</q:equal>
+					</filter>
+					<checkInState>new</checkInState>
+				</objectState>
+				<or>
+					<minAssignees>
+						<multiplicity>1</multiplicity>
+						<relation>owner</relation>
+						<relation>approver</relation>
+					</minAssignees>
+					<objectState>
+						<name>no description</name>
+						<filter>
+							<q:equal>
+								<q:path>description</q:path>
+							</q:equal>
+						</filter>
+						<checkInState>new</checkInState>
+					</objectState>
+				</or>
+			</policyConstraints>
+			<policyActions>
+				<enforcement/>
+			</policyActions>
+			<evaluationTarget>focus</evaluationTarget>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>approve-role-activation</name>
+			<policyConstraints>
+				<and>
+					<modification>
+						<item>lifecycleState</item>
+					</modification>
+					<objectState>
+						<name>active lifecycleState</name>
+						<filter>
+							<q:equal>
+								<q:path>lifecycleState</q:path>
+								<q:value>active</q:value>
+							</q:equal>
+						</filter>
+						<checkInState>new</checkInState>
+					</objectState>
+				</and>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>10</order>
+					</compositionStrategy>
+					<approverRelation>owner</approverRelation>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>approve-high-risk-role-activation</name>
+			<policyConstraints>
+				<modification>
+					<item>lifecycleState</item>
+				</modification>
+				<objectState>
+					<name>active lifecycleState</name>
+					<filter>
+						<q:equal>
+							<q:path>lifecycleState</q:path>
+							<q:value>active</q:value>
+						</q:equal>
+					</filter>
+					<checkInState>new</checkInState>
+				</objectState>
+				<objectState>
+					<name>high-risk roles</name>
+					<filter>
+						<q:equal>
+							<q:path>riskLevel</q:path>
+							<q:value>high</q:value>
+						</q:equal>
+					</filter>
+					<checkInState>new</checkInState>
+				</objectState>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>20</order>
+					</compositionStrategy>
+					<approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/> <!-- administrator -->
+				</approval>
+			</policyActions>
+		</policyRule>
+	</inducement>
 </role>

@@ -280,6 +280,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		return false;
 	}
 
+	@NotNull
 	public SimpleOperationName getOperation() {
 		if (isAdd()) {
 			return SimpleOperationName.ADD;
@@ -670,7 +671,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     		case DELETE:
     			return getOperation() == SimpleOperationName.DELETE;
     	}
-    	throw new IllegalArgumentException("Unknown operaiton "+operation);
+    	throw new IllegalArgumentException("Unknown operation "+operation);
     }
 
 	protected abstract String getElementDefaultDesc();

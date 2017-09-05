@@ -126,10 +126,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		if (evaluatedAssignmentTriple == null) {
 			return;
 		}
-		evaluatedAssignmentTriple.simpleAccept(assignment -> {
-			enforceTriggeredRules(evalCtx, assignment.getFocusPolicyRules());
-			enforceTriggeredRules(evalCtx, assignment.getAllTargetsPolicyRules());
-		});
+		evaluatedAssignmentTriple.simpleAccept(assignment -> enforceTriggeredRules(evalCtx, assignment.getAllTargetsPolicyRules()));
 	}
 
 	private <F extends FocusType> void enforceTriggeredRules(EvaluationContext evalCtx, Collection<EvaluatedPolicyRule> policyRules) {

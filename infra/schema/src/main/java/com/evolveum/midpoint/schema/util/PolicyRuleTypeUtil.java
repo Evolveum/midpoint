@@ -39,32 +39,66 @@ public class PolicyRuleTypeUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleTypeUtil.class);
 
+	private static final char JOIN_AND = '*';
+	private static final char JOIN_OR = '|';
+
 	private static Map<String, String> CONSTRAINT_NAMES = new HashMap<>();
 	static {
-		CONSTRAINT_NAMES.put(ExclusionPolicyConstraintType.class.getName(), "exc");
-		CONSTRAINT_NAMES.put(MultiplicityPolicyConstraintType.class.getName(), "multi");
-		CONSTRAINT_NAMES.put(ModificationPolicyConstraintType.class.getName(), "mod");
-		CONSTRAINT_NAMES.put(AssignmentPolicyConstraintType.class.getName(), "assign");
-		CONSTRAINT_NAMES.put(PolicySituationPolicyConstraintType.class.getName(), "sit");
-	}
-
-	public static String getConstraintClassShortcut(Class<?> clazz) {
-		String shortcut = CONSTRAINT_NAMES.get(clazz.getName());
-		return shortcut != null ? shortcut : clazz.getSimpleName();
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_MIN_ASSIGNEES.getLocalPart(), "min");
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_MAX_ASSIGNEES.getLocalPart(), "max");
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ASSIGNMENT.getLocalPart(), "amod");
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_MODIFICATION.getLocalPart(), "omod");
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_OBJECT_STATE.getLocalPart(), "ostate");
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ASSIGNMENT_STATE.getLocalPart(), "astate");
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_EXCLUSION.getLocalPart(), "exc");
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_HAS_ASSIGNMENT.getLocalPart(), "hasass");
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_HAS_NO_ASSIGNMENT.getLocalPart(), "noass");
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_TIME_VALIDITY.getLocalPart(), "time");
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_SITUATION.getLocalPart(), "sit");
 	}
 
 	public static String toShortString(PolicyConstraintsType constraints) {
+		return toShortString(constraints, JOIN_AND);
+	}
+
+	public static String toShortString(PolicyConstraintsType constraints, char join) {
 		if (constraints == null) {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder();
-		constraints.getExclusion().forEach(excl -> sb.append("exc "));
-		constraints.getMinAssignees().forEach(min -> sb.append("min "));
-		constraints.getMaxAssignees().forEach(max -> sb.append("max "));
-		constraints.getModification().forEach(mod -> sb.append("mod "));
-		constraints.getAssignment().forEach(assign -> sb.append("assign "));
-		constraints.getSituation().forEach(assign -> sb.append("sit "));
-		return sb.toString().trim();
+		for (JAXBElement<AbstractPolicyConstraintType> primitive : toPrimitiveConstraintsList(constraints, false)) {
+			QName name = primitive.getName();
+			String abbreviation = CONSTRAINT_NAMES.get(name.getLocalPart());
+			if (sb.length() > 0) {
+				sb.append(join);
+			}
+			sb.append(abbreviation != null ? abbreviation : name.getLocalPart());
+		}
+		for (PolicyConstraintsType component : constraints.getAnd()) {
+			if (sb.length() > 0) {
+				sb.append(join);
+			}
+			sb.append('(');
+			sb.append(toShortString(component, JOIN_AND));
+			sb.append(')');
+		}
+		for (PolicyConstraintsType component : constraints.getOr()) {
+			if (sb.length() > 0) {
+				sb.append(join);
+			}
+			sb.append('(');
+			sb.append(toShortString(component, JOIN_OR));
+			sb.append(')');
+		}
+		for (PolicyConstraintsType component : constraints.getNot()) {
+			if (sb.length() > 0) {
+				sb.append(join);
+			}
+			sb.append("!(");
+			sb.append(toShortString(component, JOIN_AND));
+			sb.append(')');
+		}
+		return sb.toString();
 	}
 
 	public static String toShortString(PolicyActionsType actions) {
@@ -90,28 +124,33 @@ public class PolicyRuleTypeUtil {
 		return sb.toString().trim();
 	}
 
-	public static String toShortString(AbstractPolicyConstraintType constraint) {
-		if (constraint == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder();
-		sb.append(getConstraintClassShortcut(constraint.getClass()));
-		if (constraint.getName() != null) {
-			sb.append(":").append(constraint.getName());
-		}
-		return sb.toString();
-	}
+//	public static String toShortString(AbstractPolicyConstraintType constraint) {
+//		if (constraint == null) {
+//			return "null";
+//		}
+//		StringBuilder sb = new StringBuilder();
+//		sb.append(getConstraintClassShortcut(constraint.getClass()));
+//		if (constraint.getName() != null) {
+//			sb.append(":").append(constraint.getName());
+//		}
+//		return sb.toString();
+//	}
 
 	public static String toDiagShortcut(PolicyConstraintKindType constraintKind) {
 		if (constraintKind == null) {
 			return "null";
 		}
 		switch (constraintKind) {
-			case ASSIGNMENT: return "assign";
+			case ASSIGNMENT_MODIFICATION: return "a-mod";
+			case OBJECT_MODIFICATION: return "o-mod";
 			case EXCLUSION: return "exc";
-			case MAX_ASSIGNEES: return "max";
-			case MIN_ASSIGNEES: return "min";
-			case MODIFICATION: return "mod";
+			case MAX_ASSIGNEES_VIOLATION: return "max";
+			case MIN_ASSIGNEES_VIOLATION: return "min";
+			case OBJECT_STATE: return "o-state";
+			case ASSIGNMENT_STATE: return "a-state";
+			case HAS_ASSIGNMENT: return "has-a";
+			case HAS_NO_ASSIGNMENT: return "no-a";
+			case TIME_VALIDITY: return "time";
 			case SITUATION: return "sit";
 			default: return constraintKind.toString();
 		}
@@ -270,7 +309,6 @@ public class PolicyRuleTypeUtil {
 			return false;
 		}
 		boolean rv = hasMatchingPrimitiveConstraint(pc.getMinAssignees(), F_MIN_ASSIGNEES, matcher)
-				|| hasMatchingPrimitiveConstraint(pc.getMinAssignees(), F_MIN_ASSIGNEES, matcher)
 				|| hasMatchingPrimitiveConstraint(pc.getMaxAssignees(), F_MAX_ASSIGNEES, matcher)
 				|| hasMatchingPrimitiveConstraint(pc.getExclusion(), F_EXCLUSION, matcher)
 				|| hasMatchingPrimitiveConstraint(pc.getAssignment(), F_ASSIGNMENT, matcher)

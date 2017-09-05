@@ -110,7 +110,7 @@ public class TestPolicyRules extends AbstractLensTest {
 
 		assertEvaluatedTargetPolicyRules(context, 7);
 		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 2);
-		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT, 4);
+		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 4);
 		assertTargetTriggers(context, null, 6);
 	}
 
@@ -147,7 +147,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		//dumpPolicySituations(context);
 
 		assertEvaluatedTargetPolicyRules(context, 4);
-		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT, 0);
+		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 0);
 	}
 
 
@@ -211,7 +211,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		dumpPolicySituations(context);
 
 		assertEvaluatedTargetPolicyRules(context, 7);
-		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT, 2);
+		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 2);
 		assertTargetTriggers(context, null, 2);
 	}
 
@@ -580,7 +580,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		EvaluatedExclusionTrigger engineerTrigger = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.EXCLUSION, 1, false);
 		assertNotNull("No conflicting assignment in trigger", engineerTrigger.getConflictingAssignment());
 		assertEquals("Wrong conflicting assignment in trigger", ROLE_CORP_CONTRACTOR_OID, engineerTrigger.getConflictingAssignment().getTarget().getOid());
-		assertTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.ASSIGNMENT, 1, false);
+		assertTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1, false);
 		assertTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.SITUATION, 1, false);
 
 		EvaluatedPolicyRule engineerRule = getTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.EXCLUSION);

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -61,15 +62,66 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<MultiplicityPolicyConstraintType> constraint,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result) throws SchemaException {
 
-		if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
+		if (rctx instanceof ObjectPolicyRuleEvaluationContext) {
+			return evaluateForObject(constraint, (ObjectPolicyRuleEvaluationContext<F>) rctx, result);
+		} else if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
+			return evaluateForAssignment(constraint, (AssignmentPolicyRuleEvaluationContext<F>) rctx, result);
+		} else {
 			return null;
 		}
-		AssignmentPolicyRuleEvaluationContext<F> ctx = (AssignmentPolicyRuleEvaluationContext<F>) rctx;
+	}
 
+	// TODO shouldn't we return all triggers?
+	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluateForObject(JAXBElement<MultiplicityPolicyConstraintType> constraint,
+			ObjectPolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException {
+		PrismObject<? extends ObjectType> target = ctx.focusContext.getObjectAny();
+		if (target == null || !(target.asObjectable() instanceof AbstractRoleType)) {
+			return null;
+		}
+		List<QName> relationsToCheck = constraint.getValue().getRelation().isEmpty()
+				? Collections.singletonList(SchemaConstants.ORG_DEFAULT) : constraint.getValue().getRelation();
+
+		AbstractRoleType targetRole = (AbstractRoleType) target.asObjectable();
+		boolean isMin = QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_MIN_ASSIGNEES);
+		boolean isMax = QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_MAX_ASSIGNEES);
+		assert isMin || isMax;
+		// TODO cache repository call results
+		if (isMin) {
+			Integer requiredMultiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getValue().getMultiplicity());
+			if (requiredMultiplicity <= 0) {
+				return null;            // unbounded or 0
+			}
+			for (QName relationToCheck : relationsToCheck) {
+				int currentAssignees = getNumberOfAssigneesExceptMyself(targetRole, null, relationToCheck, result);
+				if (currentAssignees < requiredMultiplicity) {
+					return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
+							constraint.getValue(), ObjectTypeUtil.toShortString(target) + " requires at least " + requiredMultiplicity
+							+ " assignees with the relation of '" + relationToCheck.getLocalPart() + "'");
+				}
+			}
+			return null;
+		} else {
+			Integer requiredMultiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getValue().getMultiplicity());
+			if (requiredMultiplicity < 0) {
+				return null;			// unbounded
+			}
+			for (QName relationToCheck : relationsToCheck) {
+				int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, null, relationToCheck, result);
+				if (currentAssigneesExceptMyself >= requiredMultiplicity) {
+					return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
+							constraint.getValue(), ObjectTypeUtil.toShortString(target) + " requires at most " + requiredMultiplicity +
+							" assignees with the relation of '" + relationToCheck.getLocalPart() + "'");
+				}
+			}
+			return null;
+		}
+	}
+
+	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluateForAssignment(JAXBElement<MultiplicityPolicyConstraintType> constraint,
+			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException {
 		if (!ctx.isDirect) {
 			return null;
 		}
-
 		if (ctx.inPlus) {
 			if (!ctx.evaluatedAssignment.isPresentInCurrentObject()) {
 				return checkAssigneeConstraints(constraint, ctx.lensContext, ctx.evaluatedAssignment, PLUS, result);		// only really new assignments
@@ -106,8 +158,8 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 			// Complain only if the situation is getting worse
 			int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, focusOid, relation, result);
 			if (currentAssigneesExceptMyself < requiredMultiplicity && plusMinus == PlusMinusZero.MINUS) {
-				return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.MIN_ASSIGNEES,
-						constraint.getValue(), target + " requires at least " + requiredMultiplicity
+				return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
+						constraint.getValue(), ObjectTypeUtil.toShortString(targetRole) + " requires at least " + requiredMultiplicity
 						+ " assignees with the relation of '" + relation.getLocalPart()
 						+ "'. The operation would result in " + currentAssigneesExceptMyself + " assignees.");
 			} else {
@@ -121,8 +173,8 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 			// Complain only if the situation is getting worse
 			int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, focusOid, relation, result);
 			if (currentAssigneesExceptMyself >= requiredMultiplicity && plusMinus == PLUS) {
-				return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.MAX_ASSIGNEES,
-						constraint.getValue(), target + " requires at most " + requiredMultiplicity +
+				return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
+						constraint.getValue(), ObjectTypeUtil.toShortString(targetRole) + " requires at most " + requiredMultiplicity +
 						" assignees with the relation of '" + relation.getLocalPart()
 						+ "'. The operation would result in " + (currentAssigneesExceptMyself + 1) + " assignees.");
 			}

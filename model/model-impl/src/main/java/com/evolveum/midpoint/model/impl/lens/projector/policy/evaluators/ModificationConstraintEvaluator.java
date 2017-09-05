@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -56,8 +57,8 @@ public class ModificationConstraintEvaluator implements PolicyConstraintEvaluato
 		ObjectPolicyRuleEvaluationContext<F> ctx = (ObjectPolicyRuleEvaluationContext<F>) rctx;
 
 		if (modificationConstraintMatches(constraint.getValue(), ctx)) {
-			return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.MODIFICATION,
-					constraint.getValue(), "Focus "+ctx.focusContext.getHumanReadableName()+" was modified");
+			return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.OBJECT_MODIFICATION,
+					constraint.getValue(), "Object "+ ObjectTypeUtil.toShortString(ctx.focusContext.getObjectAny())+" was " + ctx.focusContext.getOperation().getPastTense());
 		} else {
 			return null;
 		}

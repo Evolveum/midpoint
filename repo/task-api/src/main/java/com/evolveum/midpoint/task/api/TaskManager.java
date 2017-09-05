@@ -284,6 +284,9 @@ public interface TaskManager {
 	@NotNull
 	Task getTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
+	@NotNull
+	Task getTask(String taskOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
     /**
      * Returns a task with a given identifier.
      *

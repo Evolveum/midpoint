@@ -53,7 +53,7 @@ public class AssignmentConstraintEvaluator implements PolicyConstraintEvaluator<
 			for (QName constraintRelation : relationsToCheck) {
 				if (MiscSchemaUtil.compareRelation(constraintRelation, ctx.evaluatedAssignment.getRelation())) {
 					return new EvaluatedPolicyRuleTrigger<>(
-							PolicyConstraintKindType.ASSIGNMENT,
+							PolicyConstraintKindType.ASSIGNMENT_MODIFICATION,
 							constraint, "Assignment of " + ctx.evaluatedAssignment.getTarget());
 				}
 			}
