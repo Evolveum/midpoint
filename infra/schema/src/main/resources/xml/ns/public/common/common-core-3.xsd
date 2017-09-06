@@ -16521,6 +16521,19 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+            <xsd:element name="skin" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of the adminLTE skin that will be applied to the base template.
+                        The base template contains 12 predefined skins including: skin-blue, skin-blue-light
+                        skin-yellow, skin-yellow-light, skin-green, skin-green-light, skin-purple, skin-purple-light,
+                        skin-red, skin-red-light, skin-black and skin-black-light.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6.2</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
 			<xsd:element name="logo" type="tns:IconType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
