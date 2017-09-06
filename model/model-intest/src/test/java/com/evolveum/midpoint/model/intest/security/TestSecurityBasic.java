@@ -141,6 +141,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         // WHEN
         assertReadAllow();
+        assertReadDenyRaw();
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -209,6 +210,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         // WHEN
         assertReadAllow();
+        assertReadDenyRaw();
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -229,6 +231,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         // WHEN
         assertReadAllow();
+        assertReadDenyRaw();
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -249,6 +252,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         // WHEN
         assertReadAllow();
+        assertReadDenyRaw();
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -271,6 +275,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        assertReadDenyRaw();
 
         assertVisibleUsers(1);
         assertSearch(OrgType.class, null, 0);
@@ -294,6 +299,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
         assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+        assertModifyDenyRaw();
 
         assertDeleteDeny();
         assertDeleteDeny(UserType.class, USER_JACK_OID);
@@ -316,6 +322,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         displayWhen(TEST_NAME);
 
         assertReadAllow();
+        assertReadDenyRaw();
 
         assertAddDeny();
 
@@ -341,11 +348,51 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         displayWhen(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        assertReadDenyRaw();
+
+        assertSearch(UserType.class, null, 2);
+        assertSearch(ObjectType.class, null, 2);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
+        assertSearchDeny(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        assertSearch(ObjectType.class, createNameQuery(USER_JACK_USERNAME), 1);
+        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
+        assertSearchDeny(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        assertSearch(ObjectType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
+
+        assertAddDeny();
+
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+        assertModifyAllow(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Mutinier"));
+        assertModifyDenyRaw();
+
+        assertDeleteDeny();
+
+        assertGlobalStateUntouched();
+	}
+	
+	@Test
+    public void test207rAutzJackObjectFilterCaribbeanRole() throws Exception {
+		final String TEST_NAME = "test207rAutzJackObjectFilterCaribbeanRole";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_OBJECT_FILTER_CARIBBEAN_RAW_OID);
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 
         assertSearch(UserType.class, null, 2);
+        assertSearchRaw(UserType.class, null, 2);
         assertSearch(ObjectType.class, null, 2);
         assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
         assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
@@ -357,8 +404,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertAddDeny();
 
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+        assertModifyAllowOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, ModelExecuteOptions.createRaw(), PrismTestUtil.createPolyString("Raw Captain"));
         assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
         assertModifyAllow(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Mutinier"));
+        assertModifyAllowOptions(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, ModelExecuteOptions.createRaw(), PrismTestUtil.createPolyString("Raw Mutinier"));
 
         assertDeleteDeny();
 
@@ -381,6 +430,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         displayWhen(TEST_NAME);
 
         assertReadDeny();
+        assertReadDenyRaw();
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -420,6 +470,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         displayWhen(TEST_NAME);
 
         assertReadAllow();
+        assertReadDenyRaw();
 
         assertAddDeny();
 
@@ -429,6 +480,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
         assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
         assertModifyDeny(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Mutinier"));
+        
+        assertModifyDenyRaw();
 
         assertDeleteDeny();
 
@@ -455,15 +508,16 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         displayWhen(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
-		assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 		assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
 		assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		assertReadDenyRaw();
 
 		assertSearch(UserType.class, null, 1);
 		assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
-		assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
+		assertSearchDeny(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 		assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
-		assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 0);
+		assertSearchDeny(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 
         assertAddDeny();
 
@@ -1095,20 +1149,20 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
 	private void assertJack24xManager(final String TEST_NAME, boolean fullControl) throws Exception {
 		assertGetAllow(UserType.class, USER_JACK_OID);
-        assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 
         assertSearch(UserType.class, null, 4);
         assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
-        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
+        assertSearchDeny(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
-        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 0);
+        assertSearchDeny(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 
         assertAddDeny();
 
 		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
-		assertModifyAllowOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, ModelExecuteOptions.createRaw(), PrismTestUtil.createPolyString("CSc"));
+		assertModifyDenyRaw(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, PrismTestUtil.createPolyString("CSc"));
 		assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
 
         assertDeleteDeny();
@@ -1189,20 +1243,20 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
 	private void assertJack24xManagerDefense(String TEST_NAME, boolean fullControl) throws Exception {
 		assertGetAllow(UserType.class, USER_JACK_OID);
-        assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 
         assertSearch(UserType.class, null, 4);
         assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
-        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
+        assertSearchDeny(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
-        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 0);
+        assertSearchDeny(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 
         assertAddDeny();
 
 		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
-		assertModifyAllowOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, ModelExecuteOptions.createRaw(), PrismTestUtil.createPolyString("CSc"));
+		assertModifyDenyRaw(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, PrismTestUtil.createPolyString("CSc"));
 		assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
 
         assertDeleteDeny();
@@ -1567,7 +1621,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         displayWhen(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
-        assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 
@@ -1575,10 +1629,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertSearch(ObjectType.class, null, 8);
         assertSearch(OrgType.class, null, 6);
         assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
-        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
+        assertSearchDeny(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertSearch(ObjectType.class, createNameQuery(USER_JACK_USERNAME), 1);
         assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
-        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 0);
+        assertSearchDeny(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertSearch(ObjectType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
 
         assertAddDeny();
@@ -2216,15 +2270,15 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         displayWhen(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
-        assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 
         assertSearch(UserType.class, null, 1);
         assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
-        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
+        assertSearchDeny(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
-        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 0);
+        assertSearchDeny(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 
         assertAddDeny();
         assertModifyDeny();

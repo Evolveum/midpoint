@@ -250,7 +250,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 //            }
 
             object = (PrismObject<T>) objectResolver.getObject(clazz, oid, options, task, result).asPrismObject();
-
+            
             object = object.cloneIfImmutable();
             schemaTransformer.applySchemasAndSecurity(object, rootOptions, options, null, task, result);
 			resolve(object, options, task, result);
@@ -454,6 +454,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 								}
 								PrismObject<? extends ObjectType> objectToAdd = delta.getObjectToAdd();
 								if (!preAuthorized) {
+									securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, objectToAdd, null, null, null, result1);
 									securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), null, objectToAdd, null, null, null, result1);
 								}
 								String oid;
@@ -481,6 +482,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 										}
 									}
 									if (!preAuthorized) {
+										securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, existingObject, null, null, null, result1);
 										securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, existingObject, null, null, null, result1);
 									}
 									try {
@@ -506,6 +508,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 									PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
 									objectToDetermineDetailsForAudit = existingObject;
 									if (!preAuthorized) {
+										securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, existingObject, null, null, null, result1);
 										securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, existingObject, delta, null, null, result1);
 									}
 									try {
@@ -851,7 +854,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				}
 			}
 			// better to use cache here (MID-4059)
-			schemaTransformer.applySchemasAndSecurityToObjects(list, rootOptions, options,null, task, result);
+			schemaTransformer.applySchemasAndSecurityToObjects(list, rootOptions, options, null, task, result);
 
 		} finally {
 			RepositoryCache.exit();
@@ -1765,7 +1768,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.READ.getUrl(), null, objectType, null, origFilter);
 		return updateObjectQuery(origQuery, secFilter);
 	}
-
+	
 	// we expect that objectType is a direct parent of containerType
 	private <C extends Containerable, O extends ObjectType>
 	ObjectQuery preProcessSubobjectQuerySecurity(Class<C> containerType, Class<O> objectType, ObjectQuery origQuery) throws SchemaException {

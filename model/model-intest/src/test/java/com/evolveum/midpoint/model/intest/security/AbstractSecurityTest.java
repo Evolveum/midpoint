@@ -168,6 +168,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected static final File ROLE_OBJECT_FILTER_CARIBBEAN_FILE = new File(TEST_DIR, "role-filter-object-caribbean.xml");
 	protected static final String ROLE_OBJECT_FILTER_CARIBBEAN_OID = "00000000-0000-0000-0000-00000000aa07";
+	
+	protected static final File ROLE_OBJECT_FILTER_CARIBBEAN_RAW_FILE = new File(TEST_DIR, "role-filter-object-caribbean-raw.xml");
+	protected static final String ROLE_OBJECT_FILTER_CARIBBEAN_RAW_OID = "00000000-0000-0000-0000-a0000000aa07";
 
 	protected static final File ROLE_PROP_READ_SOME_MODIFY_SOME_FILE = new File(TEST_DIR, "role-prop-read-some-modify-some.xml");
 	protected static final String ROLE_PROP_READ_SOME_MODIFY_SOME_OID = "00000000-0000-0000-0000-00000000aa08";
@@ -341,7 +344,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 61;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 62;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 
 	protected String userRumRogersOid;
@@ -366,6 +369,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_USER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_MASTER_MINISTRY_OF_RUM_FILE, initResult);
 		repoAddObjectFromFile(ROLE_OBJECT_FILTER_CARIBBEAN_FILE, initResult);
+		repoAddObjectFromFile(ROLE_OBJECT_FILTER_CARIBBEAN_RAW_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_EXEC_ALL_FILE, initResult);
@@ -487,7 +491,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected void assertSuperuserAccess(int readUserNum) throws Exception {
 		assertReadAllow(readUserNum);
+		assertReadAllowRaw(readUserNum);
         assertAddAllow();
+        assertAddAllowRaw();
         assertModifyAllow();
         assertDeleteAllow();
 
@@ -505,7 +511,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected void assertNoAccess(PrismObject<UserType> userJack) throws Exception {
 		assertReadDeny();
+		assertReadDenyRaw();
         assertAddDeny();
+        assertAddDenyRaw();
         assertModifyDeny();
         assertDeleteDeny();
 
@@ -608,6 +616,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected void assertReadDeny() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		assertReadDeny(0);
+		assertReadDenyRaw();
 	}
 
 	protected void assertReadCertCasesDeny() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -634,6 +643,15 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
         assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 0);
 	}
+	
+	protected void assertReadDenyRaw() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+
+        assertSearchDeny(UserType.class, null, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        assertSearchDeny(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        assertSearchDeny(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+	}
 
 	protected void assertReadAllow() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		assertReadAllow(NUMBER_OF_ALL_USERS);
@@ -641,45 +659,68 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected void assertReadAllow(int expectedNumAllUsers) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         assertGetAllow(UserType.class, USER_JACK_OID);
-        assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
-        assertGetAllow(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 
         assertSearch(UserType.class, null, expectedNumAllUsers);
         assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
-        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
         assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 1);
+	}
+	
+	protected void assertReadAllowRaw() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		assertReadAllowRaw(NUMBER_OF_ALL_USERS);
+	}
+	
+	protected void assertReadAllowRaw(int expectedNumAllUsers) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        assertGetAllow(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+
+        assertSearch(UserType.class, null, SelectorOptions.createCollection(GetOperationOptions.createRaw()), expectedNumAllUsers);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
         assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
 	}
 
 	protected void assertAddDeny() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
 		assertAddDeny(USER_HERMAN_FILE);
-		assertAddDeny(USER_DRAKE_FILE, ModelExecuteOptions.createRaw());
 		assertImportStreamDeny(USER_RAPP_FILE);
+		assertAddDenyRaw();
+	}
+	
+	protected void assertAddDenyRaw() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
+		assertAddDeny(USER_DRAKE_FILE, ModelExecuteOptions.createRaw());
 	}
 
 	protected void assertAddAllow() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
 		assertAddAllow(USER_HERMAN_FILE);
-		assertAddAllow(USER_DRAKE_FILE, ModelExecuteOptions.createRaw());
 		assertImportStreamAllow(USER_RAPP_FILE);
+	}
+	
+	protected void assertAddAllowRaw() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+		assertAddAllow(USER_DRAKE_FILE, ModelExecuteOptions.createRaw());
 	}
 
 	protected void assertModifyDeny() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		// self-modify, common property
 		assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
-		assertModifyDenyOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, ModelExecuteOptions.createRaw(), PrismTestUtil.createPolyString("CSc"));
 		// TODO: self-modify password
 		assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
 		// TODO: modify other objects
+		assertModifyDenyRaw();
+	}
+	
+	protected void assertModifyDenyRaw() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		assertModifyDenyOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, ModelExecuteOptions.createRaw(), PrismTestUtil.createPolyString("CSc"));
 	}
 
 	protected void assertModifyAllow() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		// self-modify, common property
 		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
-		assertModifyAllowOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, ModelExecuteOptions.createRaw(), PrismTestUtil.createPolyString("CSc"));
 		// TODO: self-modify password
 		assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
 		// TODO: modify other objects
+	}
+	
+	protected void assertModifyAllowRaw() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		assertModifyAllowOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, ModelExecuteOptions.createRaw(), PrismTestUtil.createPolyString("CSc"));
 	}
 
 	protected void assertDeleteDeny() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -729,11 +770,25 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		assertSearch(type, query, null, expectedResults);
 	}
+	
+	protected <O extends ObjectType> void assertSearchRaw(Class<O> type, ObjectQuery query, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		assertSearch(type, query, SelectorOptions.createCollection(GetOperationOptions.createRaw()), expectedResults);
+	}
 
 	protected <C extends Containerable> void assertContainerSearch(Class<C> type, ObjectQuery query, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         assertContainerSearch(type, query, null, expectedResults);
     }
 
+	protected <O extends ObjectType> void assertSearchDeny(Class<O> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		try {
+			assertSearch(type, query, options, 0);
+		} catch (SecurityViolationException e) {
+			// This is expected. The search should either return zero results or throw an exception.
+			logDeny("search");
+		}
+	}
+	
 	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertSearchObjects");
@@ -872,6 +927,10 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected <O extends ObjectType> void assertModifyDeny(Class<O> type, String oid, QName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		assertModifyDenyOptions(type, oid, propertyName, null, newRealValue);
+	}
+	
+	protected <O extends ObjectType> void assertModifyDenyRaw(Class<O> type, String oid, QName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		assertModifyDenyOptions(type, oid, propertyName, ModelExecuteOptions.createRaw(), newRealValue);
 	}
 
 	protected <O extends ObjectType> void assertModifyDeny(Class<O> type, String oid, ItemPath itemPath, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
