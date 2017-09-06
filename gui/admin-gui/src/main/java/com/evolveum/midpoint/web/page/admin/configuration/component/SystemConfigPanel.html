@@ -43,62 +43,22 @@
                     <wicket:message key="SystemConfigPanel.title.accountSynchronization"/>
                 </h3>
 
-                <div class="form-group">
-                    <label class="col-md-4 control-label">
-                        <wicket:message key="SystemConfigPanel.assignmentPolicyEnforcement"/>
-                    </label>
-
-                    <div class="col-md-4">
-                        <select class="form-control input-sm" wicket:id="aepChooser">
-                        </select>
-                    </div>
-                </div>
-
+                    <div wicket:id="chooseAssignmentPolicyEnforcement" />
                 <h3 style="margin-left: 20px">
                     <wicket:message key="SystemConfigPanel.cleanupPolicy"/>
                 </h3>
+                    <div wicket:id="auditRecordsCleanup"
+                         wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
 
-                <div class="form-group">
-                    <label class="col-md-4 control-label">
-                        <wicket:message key="SystemConfigPanel.cleanupPolicy.auditRecords"/>
-                    </label>
 
-                    <div class="col-md-2">
-                        <input type="text" class="form-control input-sm" wicket:id="auditRecordsCleanup"
-                                wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder">
-                    </div>
-
-                    <i wicket:id="auditRecordsCleanupTooltip" wicket:message="title:SystemConfigPanel.tooltip.duration"/>
-                </div>
-                <div class="form-group">
-                    <label class="col-md-4 control-label">
-                        <wicket:message key="SystemConfigPanel.cleanupPolicy.closedTasks"/>
-                    </label>
-
-                    <div class="col-md-2">
-                        <input type="text" class="form-control input-sm" wicket:id="closedTasksCleanup"
-                               wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder">
-                    </div>
-
-                    <i wicket:id="closedTasksCleanupTooltip" wicket:message="title:SystemConfigPanel.tooltip.duration"/>
-                </div>
-                
+                    <div wicket:id="closedTasksCleanup"
+                         wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
                  <h3>
                     <wicket:message key="SystemConfigPanel.title.misc"/>
                 </h3>
 
-                <div class="form-group">
-                    <label class="col-md-4 control-label">
-                        <wicket:message key="SystemConfigPanel.misc.enableExperimentalCode"/>
-                    </label>
+                    <div wicket:id="experimentalCodeCheckbox" />
 
-                    <div class="col-md-4">
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" name="optionsRadios2" wicket:id="experimentalCodeCheckbox">
-                            </label>
-                        </div>
-                    </div>
                 </div>
                 
             </div>
@@ -126,7 +86,6 @@
                 </div>
                 -->
                 </wicket:remove>
-            </div>
         
 
 </wicket:panel>
