@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="21ab0054-3d64-44d6-ac87-d14e844781f7"
+      version="14">
+   <name>Max master</name>
+   <metadata>
+      <createTimestamp>2017-07-20T12:39:04.016+02:00</createTimestamp>
+      <creatorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                  oid="00000000-0000-0000-0000-000000000002"
+                  relation="org:default"
+                  type="c:UserType"><!-- administrator --></creatorRef>
+      <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
+   </metadata>
+   <activation>
+      <effectiveStatus>enabled</effectiveStatus>
+      <enableTimestamp>2017-06-12T09:00:38.359+02:00</enableTimestamp>
+   </activation>
+   <iteration>0</iteration>
+   <iterationToken/>
+   <roleMembershipRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                      oid="8c177712-cdd5-4ab1-a89c-0e957951dae2"
+                      relation="org:default"
+                      type="c:RoleType"><!-- Metarole for Role --></roleMembershipRef>
+   <inducement id="4">
+      <construction>
+         <resourceRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                      oid="1c151bec-fa20-4097-bc64-0462ab2e5b7a"
+                      relation="org:default"
+                      type="c:ResourceType"><!-- Gitlab --></resourceRef>
+         <kind>entitlement</kind>
+         <intent>Group</intent>
+         <association>
+            <c:ref>ri:Shared Project-master</c:ref>
+            <outbound>
+               <strength>strong</strength>
+               <source>
+                  <name>orgUnit</name>
+                  <c:path>$assignment/c:orgRef</c:path>
+               </source>
+               <expression>
+                  <associationTargetSearch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                           xsi:type="c:SearchObjectExpressionEvaluatorType">
+                     <filter>
+                        <q:equal>
+                           <q:path>attributes/icfs:name</q:path>
+                           <expression>
+                              <script>
+                                 <code>
+            					    org = midpoint.getOrgByOid(orgUnit.getOid());
+                                    return org.getName()
+							</code>
+                              </script>
+                           </expression>
+                        </q:equal>
+                     </filter>
+                     <searchStrategy>onResourceIfNeeded</searchStrategy>
+                  </associationTargetSearch>
+               </expression>
+            </outbound>
+         </association>
+      </construction>
+      <order>1</order>
+      <focusType>OrgType</focusType>
+      <condition>
+         <source>
+            <name>orgUnit</name>
+            <c:path>$assignment/c:orgRef</c:path>
+         </source>
+         <expression>
+            <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:type="c:ScriptExpressionEvaluatorType">
+               <code>
+                   if(orgUnit != null){
+                        org = midpoint.getOrgByOid(orgUnit.getOid());
+                        types = org.getOrgType();
+                        if(types.contains('project')){
+                            return true;
+                        }
+                   }
+                                     return false;
+                                     </code>
+            </script>
+         </expression>
+      </condition>
+   </inducement>
+</role>
+</objects>

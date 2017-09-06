@@ -91,6 +91,12 @@ public class GuiStyleConstants {
 	public static final String CLASS_SHADOW_ICON_GENERIC = "fa fa-circle-o";
 	public static final String CLASS_SHADOW_ICON_PROTECTED = "fa fa-shield";
 	public static final String CLASS_SHADOW_ICON_UNKNOWN = "fa fa-eye";
+	
+	public static final String CLASS_ICON_DASHBOARD = "fa fa-dashboard";
+	public static final String CLASS_ICON_PROFILE = "fa fa-user";
+	public static final String CLASS_ICON_CREDENTIALS = "fa fa-shield";
+	public static final String CLASS_ICON_REQUEST = "fa fa-pencil-square-o";
+	public static final String CLASS_ICON_CONSENT = "fa fa-check-square-o";
 
 	public static final String CLASS_APPROVAL_OUTCOME_ICON_UNKNOWN_COLORED = "fa fa-check text-warning";
 	public static final String CLASS_APPROVAL_OUTCOME_ICON_APPROVED_COLORED = "fa fa-check text-success";
