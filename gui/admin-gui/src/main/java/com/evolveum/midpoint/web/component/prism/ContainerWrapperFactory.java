@@ -377,7 +377,7 @@ public class ContainerWrapperFactory {
         return properties;
     }
 
-    public ContainerWrapper<AssignmentType> createAssignmentContainerWrapper(AssignmentType container, ContainerStatus status, ItemPath path, boolean readonly) {
+    public <C extends Containerable> ContainerWrapper<C> createCustomContainerWrapper(C container, ContainerStatus status, ItemPath path, boolean readonly) {
 
 		result = new OperationResult(CREATE_PROPERTIES);
 
@@ -393,7 +393,7 @@ public class ContainerWrapperFactory {
 		return cWrapper;
     }
 
-private List<ItemWrapper> createProperties(AssignmentType container, PrismContainerDefinition definition, ContainerWrapper<Containerable> cWrapper) {
+private <C extends Containerable> List<ItemWrapper> createProperties(C container, PrismContainerDefinition definition, ContainerWrapper<Containerable> cWrapper) {
 	 Collection<ItemDefinition> propertyDefinitions = definition.getDefinitions();
 
 	 List<ItemWrapper> properties = new ArrayList<>();
@@ -411,15 +411,6 @@ private List<ItemWrapper> createProperties(AssignmentType container, PrismContai
              }
              if (!cWrapper.isShowInheritedObjectAttributes()
                      && INHERITED_OBJECT_ATTRIBUTES.contains(def.getName())) {
-                 continue;
-             }
-
-             // capability handling for activation properties
-             if (isShadowActivation(cWrapper) && !hasActivationCapability(cWrapper, def)) {
-                 continue;
-             }
-
-             if (isShadowAssociation(cWrapper)) {
                  continue;
              }
 

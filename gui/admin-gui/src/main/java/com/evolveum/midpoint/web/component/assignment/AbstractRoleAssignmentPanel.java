@@ -71,8 +71,8 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
 
 
-    public AbstractRoleAssignmentPanel(String id, IModel<List<AssignmentDto>> assignmentsModel, PageBase pageBase){
-    	super(id, assignmentsModel, pageBase);
+    public AbstractRoleAssignmentPanel(String id, IModel<List<AssignmentDto>> assignmentsModel){
+    	super(id, assignmentsModel);
     }
 
     protected void initCustomLayout(WebMarkupContainer assignmentsContainer){

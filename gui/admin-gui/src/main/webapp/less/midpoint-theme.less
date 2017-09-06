@@ -31,13 +31,8 @@ body.custom-hold-transition {
 	}
 }
 
-.skin-blue-light .main-header {
+.main-header {
   & .logo {
-    //background-color: red;
-
-	&:hover {
-		//background-color: red;
-	}
 
     & > span {
       height: 100%;
@@ -56,9 +51,6 @@ body.custom-hold-transition {
 	}
   }
 
-  & nav.navbar.navbar-static-top {
-    //background-color: red;
-  }
 }
 
 #wicketDebugLink {
@@ -130,8 +122,8 @@ th.cog, td.cog {
   width: 20px;
 }
 
-.skin-blue-light .treeview-menu > li.active > span,
-.skin-blue-light .treeview-menu > li > span:hover {
+body .treeview-menu > li.active > span,
+body .treeview-menu > li > span:hover {
   color: #000;
 }
 //end of disabled menu css fixes
@@ -1193,4 +1185,17 @@ dd.stacktrace::before {
 
 .object-merge-switch-direction-col {
 	padding-left: 0px;
+}
+
+// Consent, mostly self-service pages
+
+.consent-info-box-icon {
+	background: none;
+}
+
+.consent-buttons { // maybe figure out something better, something really reusable
+	float: right;
+	width: 80px;
+	padding-left: 10px;
+	padding-top: 7px;
 }

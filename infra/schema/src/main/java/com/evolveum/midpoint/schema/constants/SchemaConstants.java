@@ -506,7 +506,7 @@ public abstract class SchemaConstants {
 	 * Collection that contains user's assignments.
 	 */
 	public static final QName OBJECT_COLLECTION_USER_ASSIGNMENTS_QNAME = new QName(NS_OBJECT_COLLECTIONS, "userAssignments");
-	public static final String OBJECT_COLLECTION_USER_ASSIGNMENTS_URI = QNameUtil.qNameToUri(OBJECT_COLLECTION_ALL_SERVICES_QNAME);
+	public static final String OBJECT_COLLECTION_USER_ASSIGNMENTS_URI = QNameUtil.qNameToUri(OBJECT_COLLECTION_USER_ASSIGNMENTS_QNAME);
 
 	// Samples
 
