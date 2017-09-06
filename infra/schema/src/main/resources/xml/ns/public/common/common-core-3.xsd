@@ -16530,7 +16530,7 @@
                         skin-red, skin-red-light, skin-black and skin-black-light.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>3.6.2</a:since>
+                        <a:since>3.6.1</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
