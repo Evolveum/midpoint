@@ -1537,23 +1537,23 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private void createSelfServiceMenu(SideBarMenuItem menu) {
-		MainMenuItem item = new MainMenuItem("fa fa-dashboard", createStringResource("PageAdmin.menu.selfDashboard"),
+		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_ICON_DASHBOARD, createStringResource("PageAdmin.menu.selfDashboard"),
 				PageSelfDashboard.class);
 		menu.getItems().add(item);
-		item = new MainMenuItem("fa fa-user", createStringResource("PageAdmin.menu.profile"), PageSelfProfile.class);
+		item = new MainMenuItem(GuiStyleConstants.CLASS_ICON_PROFILE, createStringResource("PageAdmin.menu.profile"), PageSelfProfile.class);
 		menu.getItems().add(item);
 		// PageSelfAssignments is not implemented yet
 		// item = new MainMenuItem("fa fa-star",
 		// createStringResource("PageAdmin.menu.assignments"),
 		// PageSelfAssignments.class);
 		// menu.getItems().add(item);
-		item = new MainMenuItem("fa fa-shield", createStringResource("PageAdmin.menu.credentials"),
+		item = new MainMenuItem(GuiStyleConstants.CLASS_ICON_CREDENTIALS, createStringResource("PageAdmin.menu.credentials"),
 				PageSelfCredentials.class);
 		menu.getItems().add(item);
-		item = new MainMenuItem("fa fa-pencil-square-o", createStringResource("PageAdmin.menu.request"),
+		item = new MainMenuItem(GuiStyleConstants.CLASS_ICON_REQUEST, createStringResource("PageAdmin.menu.request"),
                 PageAssignmentShoppingKart.class);
 		menu.getItems().add(item);
-		item = new MainMenuItem("fa fa-eur", createStringResource("PageAdmin.menu.consent"),
+		item = new MainMenuItem(GuiStyleConstants.CLASS_ICON_CONSENT, createStringResource("PageAdmin.menu.consent"),
                 PageSelfConsents.class);
 		menu.getItems().add(item);
 	}

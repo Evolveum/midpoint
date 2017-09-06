@@ -20,9 +20,11 @@ import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.impl.ConnectorSpec;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
@@ -482,6 +484,33 @@ public class ProvisioningUtil {
 
 	public static boolean shouldDoRepoSearch(GetOperationOptions rootOptions) {
 		return GetOperationOptions.isNoFetch(rootOptions) || GetOperationOptions.isMaxStaleness(rootOptions);
+	}
+	
+	public static boolean isResourceModification(ItemDelta modification) {
+		ItemPath path = modification.getPath();
+		QName firstPathName = ItemPath.getFirstName(path);
+		return isAttributeModification(firstPathName) || isNonAttributeResourceModification(firstPathName);
+	}
+
+	public static boolean isAttributeModification(ItemDelta modification) {
+		ItemPath path = modification.getPath();
+		QName firstPathName = ItemPath.getFirstName(path);
+		return isAttributeModification(firstPathName);
+	}
+
+	public static boolean isAttributeModification(QName firstPathName) {
+		return QNameUtil.match(firstPathName, ShadowType.F_ATTRIBUTES);
+	}
+
+	public static boolean isNonAttributeResourceModification(ItemDelta modification) {
+		ItemPath path = modification.getPath();
+		QName firstPathName = ItemPath.getFirstName(path);
+		return isNonAttributeResourceModification(firstPathName);
+	}
+
+	public static boolean isNonAttributeResourceModification(QName firstPathName) {
+		return QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION) || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS) ||
+				QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION) || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS);
 	}
 
 }

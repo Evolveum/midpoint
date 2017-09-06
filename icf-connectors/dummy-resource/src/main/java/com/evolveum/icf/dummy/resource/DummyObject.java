@@ -92,6 +92,7 @@ public abstract class DummyObject implements DebugDumpable {
 		checkModifyBreak();
 		delayOperation();
 		this.enabled = enabled;
+		recordModify();
 	}
 
 	public Date getValidFrom() {
@@ -102,6 +103,7 @@ public abstract class DummyObject implements DebugDumpable {
 		checkModifyBreak();
 		delayOperation();
 		this.validFrom = validFrom;
+		recordModify();
 	}
 
 	public Date getValidTo() {
@@ -112,6 +114,7 @@ public abstract class DummyObject implements DebugDumpable {
 		checkModifyBreak();
 		delayOperation();
 		this.validTo = validTo;
+		recordModify();
 	}
 
 	public BreakMode getModifyBreakMode() {

@@ -27,14 +27,19 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.Counter;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
+import com.evolveum.midpoint.util.FailableProducer;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -130,6 +135,97 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		assertSteadyResource();
 	}
 
+	/**
+	 * Create a lot parallel modifications for the same property and the same value.
+	 * These should all be eliminated - except for one of them.
+	 * 
+	 * There is a slight chance that one of the thread starts after the first operation
+	 * is finished. But the threads are fast and the operations are slow. So this is
+	 * a very slim chance.
+	 */
+	@Test
+	public void test202ParallelModifyCaptainMorgan() throws Exception {
+		final String TEST_NAME = "test202ParallelModifyCaptainMorgan";
+		
+		PrismObject<ShadowType> shadowAfter = parallelModifyTest(TEST_NAME,
+				() -> ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+						accountMorganOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Captain Morgan"));
+		
+		assertAttribute(shadowAfter, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Morgan");
+	}
+	
+	/**
+	 * Create a lot parallel modifications for the same property and the same value.
+	 * These should all be eliminated - except for one of them.
+	 * 
+	 * There is a slight chance that one of the thread starts after the first operation
+	 * is finished. But the threads are fast and the operations are slow. So this is
+	 * a very slim chance.
+	 */
+	@Test
+	public void test204ParallelModifyDisable() throws Exception {
+		final String TEST_NAME = "test204ParallelModifyDisable";
+		
+		PrismObject<ShadowType> shadowAfter = parallelModifyTest(TEST_NAME,
+				() -> ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+						accountMorganOid, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, prismContext, ActivationStatusType.DISABLED));
+
+		assertActivationAdministrativeStatus(shadowAfter, ActivationStatusType.DISABLED);
+	}
+		
+	private PrismObject<ShadowType> parallelModifyTest(final String TEST_NAME, FailableProducer<ObjectDelta<ShadowType>> deltaProducer) throws Exception {
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		final Counter successCounter = new Counter();
+		rememberDummyResourceWriteOperationCount(null);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		ParallelTestThread[] threads = multithread(TEST_NAME,
+				(i) -> {
+					Task localTask = createTask(TEST_NAME + ".local");
+					OperationResult localResult = localTask.getResult();
+
+					display("Thread "+Thread.currentThread().getName()+" START");
+					
+					ObjectDelta<ShadowType> delta = deltaProducer.run();
+					display("ObjectDelta", delta);
+					
+					provisioningService.modifyObject(ShadowType.class, accountMorganOid, delta.getModifications(), null, null, localTask, localResult);
+					
+					localResult.computeStatus();
+					display("Thread "+Thread.currentThread().getName()+" DONE, result", localResult);
+					if (localResult.isSuccess()) {
+						successCounter.click();
+					} else if (localResult.isInProgress()) {
+						// expected
+					} else {
+						fail("Unexpected thread result status " + localResult.getStatus());
+					}
+
+				}, getConcurrentTestNumberOfThreads(), getConcurrentTestRandomStartDelayRange());
+
+		// THEN
+		displayThen(TEST_NAME);
+		waitForThreads(threads, WAIT_TIMEOUT);
+
+		PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, accountMorganOid, null, task, result);
+		display("Shadow after", shadowAfter);
+		
+		successCounter.assertCount("Wrong number of successful operations", 1);
+
+		assertDummyResourceWriteOperationCountIncrement(null, 1);
+
+		assertSteadyResource();
+		
+		return shadowAfter;
+	}
+	
 	@Test
 	public void test229ParallelDelete() throws Exception {
 		final String TEST_NAME = "test229ParallelDelete";

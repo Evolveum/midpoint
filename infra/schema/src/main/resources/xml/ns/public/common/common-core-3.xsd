@@ -6387,6 +6387,42 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+	
+	<xsd:complexType name="CommandLineScriptType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies a command to be executen on an operating system command-line.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<!-- TODO: later 
+            <xsd:element name="argument" type="tns:ProvisioningScriptArgumentType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Script arguments. The arguments will passed to the script
+                        in any way suitable for the script. The argument name
+                        is "local" to the script (script-specific). Script name
+                        must be unique in the argument set.
+                        The order of arguments is not significant.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element> -->
+            <xsd:element name="code" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Represents command with arguments. Sequences starting with percent sign (%) will be
+                        replaced by the value of midPoint arguments to the command line script.
+                        E.g. for the code bash -c "echo %source ; echo %name" the %source and %name strings will be
+                        replaced by the value of midPoint arguments "source" for the path to the newly created report and "name" for the name
+						of the same report file. 
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:complexType name="ConnectorConfigurationType">
         <xsd:annotation>
@@ -14934,6 +14970,18 @@
                             <xsd:documentation>
                                 Timeout in [ms] after Jasper cancels report execution.
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+					<xsd:element name="postReportScript" type="tns:CommandLineScriptType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Command-line script that will be executed after the report is complete
+                                and the output file is completely produced. Output filename will
+                                be passed to the script as the "file" argument.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+				            	<a:since>3.7</a:since>
+				            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
             	</xsd:sequence>

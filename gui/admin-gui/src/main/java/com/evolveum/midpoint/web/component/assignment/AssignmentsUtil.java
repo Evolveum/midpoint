@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.Date;
+import java.util.function.Function;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -75,10 +76,10 @@ public class AssignmentsUtil {
     }
 
     public static IModel<String> createActivationTitleModelExperimental(IModel<AssignmentDto> model, BasePanel basePanel) {
-    	return createActivationTitleModelExperimental(model.getObject(), basePanel);
+    	return createActivationTitleModelExperimental(model.getObject(), s -> s.value(), basePanel);
     }
 
-    public static IModel<String> createActivationTitleModelExperimental(AssignmentDto model, BasePanel basePanel) {
+    public static IModel<String> createActivationTitleModelExperimental(AssignmentDto model, Function<ActivationStatusType, String> transformStatusLambda, BasePanel basePanel) {
 
 //    	AssignmentDto assignmentDto = model.getObject();
     	ActivationType activation = model.getAssignment().getActivation();
@@ -92,21 +93,38 @@ public class AssignmentsUtil {
 		}
 
 		ActivationStatusType status = activation.getEffectiveStatus();
+		String statusString = transformStatusLambda.apply(status);
 
                 if (activation.getValidFrom() != null && activation.getValidTo() != null) {
-                	basePanel.createStringResource("AssignmentEditorPanel.enabledFromTo", status, MiscUtil.asDate(activation.getValidFrom()),
+                	basePanel.createStringResource("AssignmentEditorPanel.enabledFromTo", statusString, MiscUtil.asDate(activation.getValidFrom()),
                             MiscUtil.asDate(activation.getValidTo()));
                 } else if (activation.getValidFrom() != null) {
-                    return basePanel.createStringResource("AssignmentEditorPanel.enabledFrom", status,
+                    return basePanel.createStringResource("AssignmentEditorPanel.enabledFrom", statusString,
                             MiscUtil.asDate(activation.getValidFrom()));
                 } else if (activation.getValidTo() != null) {
-                    return basePanel.createStringResource("AssignmentEditorPanel.enabledTo", status,
+                    return basePanel.createStringResource("AssignmentEditorPanel.enabledTo", statusString,
                             MiscUtil.asDate(activation.getValidTo()));
                 }
 
-                return basePanel.createStringResource(status);
+                return basePanel.createStringResource(statusString);
 
     }
+    
+    public static IModel<String> createConsentActivationTitleModel(IModel<AssignmentDto> model, BasePanel basePanel) {
+    	return createActivationTitleModelExperimental(model.getObject(), 
+    			s -> { 
+    				// TODO: localization
+    				switch (s) {
+    					case ENABLED:
+    						return "Consent given";
+    					case ARCHIVED:
+    					case DISABLED:
+    						return "Consent not given";
+    				}
+    				return "";
+    			}, basePanel);
+    }
+
 
     private static IModel<String> createTimeIntervalStatusMessage(TimeIntervalStatusType timeIntervalStatus, ActivationType activation, BasePanel basePanel) {
     	switch (timeIntervalStatus) {
