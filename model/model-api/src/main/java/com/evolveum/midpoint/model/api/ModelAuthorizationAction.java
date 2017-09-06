@@ -79,8 +79,10 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
 	// any special authorization
 	AUDIT_RECORD("auditRecord", "Audit Record", "AUDIT_RECORD_HELP"),
 	// Ability to manage the audit log, e.g. to clean it up (exprunge old records).
-	AUDIT_MANAGE("auditManage", "Audit Manage", "AUDIT_MANAGE_HELP")
-	;
+	AUDIT_MANAGE("auditManage", "Audit Manage", "AUDIT_MANAGE_HELP"),
+	
+	RAW_OPERATION("rawOperation", "Raw operation", "RAW_OPERATION_HELP"),
+	PARTIAL_EXECUTION("partialExecution", "Partial execution", "PARTIAL_EXECUTION_HELP");
 
 	private String url;
 	private String label;
