@@ -25,11 +25,14 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -61,6 +64,8 @@ public class TestPolicyRules extends AbstractLensTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		setDefaultUserTemplate(USER_TEMPLATE_OID);
+
+		repoAddObjectFromFile(USER_DRAKE_FILE, initResult);
 
 		addObject(ROLE_PIRATE_FILE);
 		addObject(ROLE_MUTINIER_FILE);
@@ -599,6 +604,41 @@ public class TestPolicyRules extends AbstractLensTest {
 		display("Contractor: conflictingPath", contractorTrigger.getConflictingPath());
 		assertAssignmentPath(contractorRule.getAssignmentPath(), ROLE_CORP_CONTRACTOR_OID, null);
 		assertAssignmentPath(contractorTrigger.getConflictingPath(), ROLE_CORP_ENGINEER_OID, ROLE_CORP_EMPLOYEE_OID);
+	}
+
+	/**
+	 * Drake gets assigned role Judge. But at the same time, his employeeType is changed to T, so the notification
+	 * global policy rule should not apply.
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void test300DrakeAssignRoleJudge() throws Exception {
+		final String TEST_NAME = "test300DrakeAssignRoleJudge";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		ObjectDelta<? extends ObjectType> delta = (ObjectDelta<? extends ObjectType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT)
+				.add(ObjectTypeUtil.createAssignmentTo(ROLE_JUDGE_OID, ObjectTypes.ROLE, prismContext))
+				.item(UserType.F_EMPLOYEE_TYPE).replace("T")
+				.asObjectDelta(USER_DRAKE_OID);
+		executeChanges(delta, null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_DRAKE_OID);
+		display("User after", userAfter);
+		assertAssignedRole(userAfter, ROLE_JUDGE_OID);
+
+		// TODO check application of global policy rule
 	}
 
 	private ObjectDelta<ShadowType> assertAssignAccountToJack(LensContext<UserType> context) {

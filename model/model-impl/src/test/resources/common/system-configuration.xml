@@ -56,6 +56,18 @@
 				</q:equal>
 			</filter>
 		</targetSelector>
+		<condition>
+			<source>
+				<path>employeeType</path>
+			</source>
+			<expression>
+				<script>
+					<code>
+						employeeType != "T"
+					</code>
+				</script>
+			</expression>
+		</condition>
 	</globalPolicyRule>
 	<globalPolicyRule>
 		<name>global-assignment-disabled</name>
