@@ -78,7 +78,7 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 
 
 
-			panel = new AbstractRoleAssignmentPanel(ID_ASSIGNMENTS_PANEL, assignmentsModel, pageBase);
+			panel = new AbstractRoleAssignmentPanel(ID_ASSIGNMENTS_PANEL, assignmentsModel);
 //		} else {
 //			panel = new AssignmentTablePanel(ID_ASSIGNMENTS_PANEL,
 //					createStringResource("FocusType.assignment"), assignmentsModel, pageBase) {
