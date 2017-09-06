@@ -59,7 +59,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	protected static final File USER_PETER_FILE = new File(TEST_DIR, "user-peter.xml");
 
 	private static final int STUDENT_TARGET_RULES = 5;          // one is global
-	private static final int STUDENT_FOCUS_RULES = 17;
+	private static final int STUDENT_FOCUS_RULES = 20;
 
 	private static final String ACTIVITY_DESCRIPTION = "PROJECTOR (test)";
 
@@ -110,7 +110,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	}
 
 	/**
-	 * Jack's cost center does not match neither 1900 nor 1910. So these constraints should not trigger.
+	 * Jack's cost center does not match 1900. So these constraints should not trigger.
 	 */
 	@Test
 	public void test100JackAttemptAssignRoleStudent() throws Exception {
@@ -147,9 +147,10 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
 
 		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
-		assertFocusTriggers(context, null, 6);
-		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 5);
+		assertFocusTriggers(context, null, 7);
+		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
 		assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
+		assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 2);
 	}
 
 	/**
@@ -190,10 +191,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
 
 		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
-		assertFocusTriggers(context, null, 9);
-		assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 3);
-		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 5);
+		assertFocusTriggers(context, null, 10);
+		assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
+		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
 		assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
+		assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 4);
 	}
 
 	/**
@@ -237,10 +239,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
 
 		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
-		assertFocusTriggers(context, null, 7);
-		assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);      // new
-		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 5);
+		assertFocusTriggers(context, null, 9);
+		assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
+		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
 		assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
+		assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 3);
 	}
 
 	/**
@@ -288,10 +291,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
 
 		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
-		assertFocusTriggers(context, null, 8);
-		assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 2);      // new, current
-		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 5);
+		assertFocusTriggers(context, null, 9);
+		assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
+		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
 		assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
+		assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 3);
 
 		assertAssignmentPolicySituation(context, roleStudentOid,
 				SchemaConstants.MODEL_POLICY_SITUATION_ASSIGNMENT_MODIFIED,
@@ -337,9 +341,10 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
 		assertFocusTriggers(context, null, 9);
-		assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 3);      // old, current, new 1900 rules
-		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 5);
+		assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
+		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
 		assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
+		assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 3);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -384,10 +389,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
 
 		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
-		assertFocusTriggers(context, null, 5);
+		assertFocusTriggers(context, null, 6);
 		assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 0);
-		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
+		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 3);
 		assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
+		assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 2);
 	}
 
 	@Test
@@ -423,10 +429,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
 
 		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
-		assertFocusTriggers(context, null, 8);
-		assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 2);
-		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 2+2+1);
+		assertFocusTriggers(context, null, 9);
+		assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
+		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
 		assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
+		assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 3);
 	}
 
 	@Test
@@ -468,9 +475,12 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
 		assertFocusTriggers(context, null, 8);
-		assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 2);
-		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 2+2+1);
+		assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
+		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
 		assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
+		assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 2);
+		// for the same reason as in target rules, student assignment is caught in "true-true" transition situation
+		// instead of "false-true" and "false-any" situations!
 
 		// adapt the test after fixing MID-4126
 		assertAssignmentPolicySituation(context, roleStudentOid,

@@ -42,6 +42,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -51,9 +53,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-import static com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil.toPrimitiveConstraintsList;
+import static com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil.toConstraintsList;
 
 /**
  * @author semancik
@@ -77,6 +80,8 @@ public class PolicyRuleProcessor {
 	@Autowired private PolicySituationConstraintEvaluator policySituationConstraintEvaluator;
 	@Autowired private ModificationConstraintEvaluator modificationConstraintEvaluator;
 	@Autowired private StateConstraintEvaluator stateConstraintEvaluator;
+	@Autowired private CompositeConstraintEvaluator compositeConstraintEvaluator;
+	@Autowired private TransitionConstraintEvaluator transitionConstraintEvaluator;
 
 	private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 
@@ -239,64 +244,35 @@ public class PolicyRuleProcessor {
 	 */
 	private <F extends FocusType> void evaluateRule(PolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		if (evaluateConstraints(ctx.policyRule.getPolicyConstraints(), true, ctx, result)) {
-			ctx.triggerRule();
+		List<EvaluatedPolicyRuleTrigger<?>> triggers = evaluateConstraints(ctx.policyRule.getPolicyConstraints(), true, ctx, result);
+		if (!triggers.isEmpty()) {
+			ctx.triggerRule(triggers);
 		}
 	}
 
-	// returns true if the constraints evaluated to true (if allMustApply, all of the constraints must apply; otherwise, at least one must apply)
+	// returns non-empty list if the constraints evaluated to true (if allMustApply, all of the constraints must apply; otherwise, at least one must apply)
 	@SuppressWarnings("unchecked")
-	private <F extends FocusType> boolean evaluateConstraints(PolicyConstraintsType constraints,
+	@NotNull
+	public <F extends FocusType> List<EvaluatedPolicyRuleTrigger<?>> evaluateConstraints(PolicyConstraintsType constraints,
 			boolean allMustApply, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		if (constraints == null) {
-			return false;
+			return Collections.emptyList();
 		}
-		boolean atLeastOne = false;
-		for (JAXBElement<AbstractPolicyConstraintType> primitiveConstraint : toPrimitiveConstraintsList(constraints, false)) {
+		List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
+		for (JAXBElement<AbstractPolicyConstraintType> constraint : toConstraintsList(constraints, false)) {
 			PolicyConstraintEvaluator<AbstractPolicyConstraintType> evaluator =
-					(PolicyConstraintEvaluator<AbstractPolicyConstraintType>) getConstraintEvaluator(primitiveConstraint);
-			EvaluatedPolicyRuleTrigger<?> trigger = evaluator.evaluate(primitiveConstraint, ctx, result);
+					(PolicyConstraintEvaluator<AbstractPolicyConstraintType>) getConstraintEvaluator(constraint);
+			EvaluatedPolicyRuleTrigger<?> trigger = evaluator.evaluate(constraint, ctx, result);
 			if (trigger != null) {
-				ctx.triggers.add(trigger);
-				atLeastOne = true;
+				triggers.add(trigger);
 			} else {
 				if (allMustApply) {
-					return false; // constraint that does not apply => skip this rule
+					return Collections.emptyList(); // constraint that does not apply => skip this rule
 				}
 			}
 		}
-		for (PolicyConstraintsType andConstraint : constraints.getAnd()) {
-			boolean val = evaluateConstraints(andConstraint, true, ctx, result);
-			if (val) {
-				atLeastOne = true;
-			} else {
-				if (allMustApply) {
-					return false;
-				}
-			}
-		}
-		for (PolicyConstraintsType orConstraint : constraints.getOr()) {
-			boolean val = evaluateConstraints(orConstraint, false, ctx, result);
-			if (val) {
-				atLeastOne = true;
-			} else {
-				if (allMustApply) {
-					return false;
-				}
-			}
-		}
-		for (PolicyConstraintsType notConstraint : constraints.getNot()) {
-			boolean val = evaluateConstraints(notConstraint, true, ctx, result);
-			if (!val) {
-				atLeastOne = true;
-			} else {
-				if (allMustApply) {
-					return false;
-				}
-			}
-		}
-		return atLeastOne;      // no constraints => never returns true, even in 'all must apply' mode
+		return triggers;
 	}
 
 	private PolicyConstraintEvaluator<?> getConstraintEvaluator(JAXBElement<AbstractPolicyConstraintType> constraint) {
@@ -314,6 +290,10 @@ public class PolicyRuleProcessor {
 			return modificationConstraintEvaluator;
 		} else if (constraint.getValue() instanceof StatePolicyConstraintType) {
 			return stateConstraintEvaluator;
+		} else if (constraint.getValue() instanceof PolicyConstraintsType) {
+			return compositeConstraintEvaluator;
+		} else if (constraint.getValue() instanceof TransitionPolicyConstraintType) {
+			return transitionConstraintEvaluator;
 		} else {
 			throw new IllegalArgumentException("Unknown policy constraint: " + constraint.getName() + "/" + constraint.getValue().getClass());
 		}
@@ -430,7 +410,8 @@ public class PolicyRuleProcessor {
 				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_TARGET, evaluatedAssignment != null ? evaluatedAssignment.getTarget() : null)
-				.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment)                // TODO: ok?
+				.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, evaluatedAssignment)
+				.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment != null ? evaluatedAssignment.getAssignmentType() : null)
 				.rootNode(focusOdo);
 
 		Mapping<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();

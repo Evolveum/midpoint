@@ -52,133 +52,151 @@
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="exclusion" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="minAssignees" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Lowest number of objects that have this role assigned.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="maxAssignees" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Highest number of objects that have this role assigned.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="modification" type="tns:ModificationPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Modification of the object (add, modify, delete).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="assignment" type="tns:AssignmentPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Assignment of this object, i.e. where this object is a
-                        target of assignment or inducement that is being modified.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="timeValidity" type="tns:TimeValidityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        A constraint that triggers when validity of an object, assignment, or basically any time-sensitive
-                        item (e.g. password) is about to end.
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractPolicyConstraintType">
+				<xsd:sequence>
+					<xsd:element name="exclusion" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:element name="minAssignees" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Actual number of objects that have this role assigned is lower than prescribed value.
+								(The constraint should be perhaps named minAssigneesViolation.)
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="maxAssignees" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Actual number of objects that have this role assigned is higher than prescribed value.
+								(The constraint should be perhaps named maxAssigneesViolation.)
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="modification" type="tns:ModificationPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Modification of the object (add, modify, delete).
+								(This constraint should be perhaps named objectModification.)
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="assignment" type="tns:AssignmentPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Modification of an assignment, i.e. where this object is a target of assignment that is being modified.
+								(This constraint should be perhaps named assignmentModification.)
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="timeValidity" type="tns:TimeValidityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								A constraint that triggers when validity of an object, assignment, or basically any time-sensitive
+								item (e.g. password) is about to end.
 
-						Note: in 3.6, this constraint is _not_ evaluated during projector run. It is meant to be evaluated
-						by a special task. In the future we plan to bring evaluation of this constraint into standard
-						projector/clockwork processing.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>3.6</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="objectState" type="tns:StatePolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Particular state of the object, described by a filter or an expression.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>3.7</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="assignmentState" type="tns:StatePolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Particular state of an assignment, described by a filter or an expression.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>3.7</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="hasAssignment" type="tns:HasAssignmentPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The focus has assignment(s) of given object(s).
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>3.7</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="hasNoAssignment" type="tns:HasAssignmentPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The focus has no assignment(s) of given object(s).
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>3.7</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="situation" type="tns:PolicySituationPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Occurrence of the policy situation within an object.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="and" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Constraints that must all apply. (But note that if there are more values of this item,
-                        they are interpreted according to the enclosing operator.)
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>3.7</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="or" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Constraints from which at least one must apply. (But note that if there are more values of this item,
-						they are interpreted according to the enclosing operator.)
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>3.7</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="not" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The inner constraint must not apply.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>3.7</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
+								Note: in 3.6, this constraint is _not_ evaluated during projector run. It is meant to be evaluated
+								by a special task. In the future we plan to bring evaluation of this constraint into standard
+								projector/clockwork processing.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.6</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="objectState" type="tns:StatePolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Particular state of the object, described by a filter or an expression.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="assignmentState" type="tns:StatePolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Particular state of an assignment, described by a filter or an expression.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="hasAssignment" type="tns:HasAssignmentPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								The focus has assignment(s) of given object(s).
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="hasNoAssignment" type="tns:HasAssignmentPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								The focus has no assignment(s) of given object(s).
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="situation" type="tns:PolicySituationPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Occurrence of the policy situation within an object or an assignment.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="and" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Constraints that must all apply. (But note that if there are more values of this item,
+								they are interpreted according to the enclosing operator.)
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="or" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Constraints from which at least one must apply. (But note that if there are more values of this item,
+								they are interpreted according to the enclosing operator.)
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="not" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								The inner constraint must not apply.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="transition" type="tns:TransitionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies how the inner constraints are to be evaluated with regards to operation start and end state.
+								May not include any transitional constraints itself!
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+        <!--<xsd:attribute name="id" type="xsd:long"/>--> <!-- already present in the abstract constraint -->
     </xsd:complexType>
 
     <xsd:complexType name="AbstractPolicyConstraintType">
@@ -200,7 +218,7 @@
                         This element is formally specified as optional, mostly
                         due to the compatibility reasons. But it
                         has to be provided in order for some functionality to
-                        work correctlry.
+                        work correctly.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.5</a:since>
@@ -215,9 +233,8 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!-- TODO: remediation -->
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="abstractPolicyConstraint" type="tns:AbstractPolicyConstraintType" />
 
@@ -443,14 +460,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-					<xsd:element name="inState" type="tns:AssignmentStateType" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								On what state(s) of the object this constraint is to be checked.
-								Default is both 'plus' and 'zero' state.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
 				</xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -545,107 +554,12 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="checkInState" type="tns:ObjectStateType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                On what state(s) of the focal object this constraint is to be checked.
-                                Default is the current state.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="objectStatePolicyConstraintType" type="tns:StatePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
     <xsd:element name="assignmentStatePolicyConstraintType" type="tns:StatePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
-
-    <xsd:simpleType name="ObjectStateType">
-        <xsd:annotation>
-            <xsd:documentation>
-                On which state of the object a constraint is to be evaluated.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>3.7</a:since>
-                <a:experimental>true</a:experimental>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="old">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Object old value i.e. value when the operation was started.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="OLD"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="new">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Object new value i.e. object value expected to be present at the moment of operation completion.
-                        This value is updated within each execution wave. However, note that e.g. approval policy actions
-                        are taken into account only on operation start (i.e. in the primary execution stage).
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="NEW"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="current">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Object current value at the moment of policy rule evaluation.
-                        This value is updated within each execution wave. However, note that e.g. approval policy actions
-                        are taken into account only on operation start (i.e. in the primary execution stage).
-
-                        For "add" operations, it is the value that is being added. It might be updated during processing as well.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="CURRENT"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:simpleType name="AssignmentStateType">
-        <xsd:annotation>
-            <xsd:documentation>
-                On which state of the assignment a constraint is to be evaluated.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>3.7</a:since>
-                <a:experimental>true</a:experimental>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-		<!-- TODO or change this to EXISTING/ADDED; beware of the difference between PLUS and Focus.NEW -->
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="zero">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Assignment target is in the "zero" set, meaning it was present in the focus before the current operation.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ZERO"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="plus">
-                <xsd:annotation>
-                    <xsd:documentation>
-						Assignment target is in the "plus" set, meaning it is being added during the current operation.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="PLUS"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
 
     <xsd:complexType name="PolicySituationPolicyConstraintType">
         <xsd:annotation>
@@ -675,10 +589,56 @@
     </xsd:complexType>
     <xsd:element name="situationPolicyConstraint" type="tns:PolicySituationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
 
+    <xsd:complexType name="TransitionPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+				Specifies how the inner constraints are to be evaluated with regards to operation start and end state.
+				May not include any transitional constraints itself!
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="stateBefore" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expected inner constraint state before the operation.
+								True means the constraint must evaluate to true. False means the constraint must evaluate to false.
+								Unspecified means the constraint is not checked before the operation.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="stateAfter" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expected inner constraint state after the operation.
+								True means the constraint must evaluate to true. False means the constraint must evaluate to false.
+								Unspecified means the constraint is not checked after the operation.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+					<xsd:element name="constraints" type="tns:PolicyConstraintsType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Non-transitional policy constraints to be evaluated.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="transitionPolicyConstraint" type="tns:TransitionPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
     <xsd:simpleType name="PolicyConstraintEnforcementType">
         <xsd:annotation>
             <xsd:documentation>
-                Enumeration of exclustion policy enforcement types.
+                Enumeration of exclusion policy enforcement types.
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>

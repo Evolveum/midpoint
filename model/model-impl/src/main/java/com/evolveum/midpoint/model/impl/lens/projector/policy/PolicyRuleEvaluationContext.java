@@ -20,12 +20,12 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * @author mederly
@@ -35,11 +35,16 @@ public abstract class PolicyRuleEvaluationContext<F extends FocusType> {
 	@NotNull public final EvaluatedPolicyRule policyRule;
 	@NotNull public final LensContext<F> lensContext;
 	@NotNull public final LensFocusContext<F> focusContext;
-	@NotNull public final List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
 	@NotNull public final Task task;
+	@NotNull public final ObjectState state;
 
 	public PolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, @NotNull LensContext<F> context,
 			@NotNull Task task) {
+		this(policyRule, context, task, null);
+	}
+
+	public PolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, @NotNull LensContext<F> context,
+			@NotNull Task task, @NotNull ObjectState state) {
 		this.policyRule = policyRule;
 		this.lensContext = context;
 		this.focusContext = context.getFocusContext();
@@ -47,7 +52,22 @@ public abstract class PolicyRuleEvaluationContext<F extends FocusType> {
 		if (focusContext == null) {
 			throw new IllegalStateException("No focus context");
 		}
+		this.state = state;
 	}
 
-	public abstract void triggerRule();
+	public abstract PolicyRuleEvaluationContext<F> cloneWithStateConstraints(ObjectState state);
+
+	public abstract void triggerRule(Collection<EvaluatedPolicyRuleTrigger<?>> triggers);
+
+	public PrismObject<F> getObject() {
+		if (state == ObjectState.BEFORE) {
+			return focusContext.getObjectOld();
+		} else {
+			return focusContext.getObjectNew();
+		}
+	}
+
+	public boolean isApplicableToState() {
+		return getObject() != null;
+	}
 }

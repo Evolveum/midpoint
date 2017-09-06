@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentTargetImpl;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -61,11 +62,9 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 		if (evaluatedAssignmentTriple == null) {
 			return createTriggerIfShouldNotExist(shouldExist, constraint);
 		}
-		boolean allowZero = constraint.getInState().isEmpty() || constraint.getInState().contains(AssignmentStateType.ZERO);
-		boolean allowPlus = constraint.getInState().isEmpty() || constraint.getInState().contains(AssignmentStateType.PLUS);
-		if (!allowPlus && !allowZero) {
-			throw new AssertionError("Assignments in neither zero nor plus set are to be checked");
-		}
+		boolean allowMinus = ctx.state == ObjectState.BEFORE;
+		boolean allowZero = true;
+		boolean allowPlus = ctx.state == ObjectState.AFTER;
 		boolean allowDirect = !Boolean.FALSE.equals(constraint.isDirect());
 		boolean allowIndirect = !Boolean.TRUE.equals(constraint.isDirect());
 		boolean allowEnabled = !Boolean.FALSE.equals(constraint.isEnabled());
@@ -74,6 +73,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 		for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
 			boolean assignmentIsInPlusSet = evaluatedAssignmentTriple.presentInPlusSet(evaluatedAssignment);
 			boolean assignmentIsInZeroSet = evaluatedAssignmentTriple.presentInZeroSet(evaluatedAssignment);
+			boolean assignmentIsInMinusSet = evaluatedAssignmentTriple.presentInMinusSet(evaluatedAssignment);
 			DeltaSetTriple<EvaluatedAssignmentTargetImpl> targetsTriple = evaluatedAssignment.getRoles();
 			for (EvaluatedAssignmentTargetImpl target : targetsTriple.getNonNegativeValues()) {
 				if (!target.appliesToFocus()) {
@@ -90,16 +90,19 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 				}
 				boolean targetIsInPlusSet = targetsTriple.presentInPlusSet(target);
 				boolean targetIsInZeroSet = targetsTriple.presentInZeroSet(target);
-				boolean isPlus = assignmentIsInPlusSet || targetIsInPlusSet;
+				boolean targetIsInMinusSet = targetsTriple.presentInMinusSet(target);
+				// TODO check these computations
+				boolean isPlus = assignmentIsInPlusSet || assignmentIsInZeroSet && targetIsInPlusSet;
 				boolean isZero = assignmentIsInZeroSet && targetIsInZeroSet;
-				if (!(allowPlus && isPlus || allowZero && isZero)) {
+				boolean isMinus = assignmentIsInMinusSet || assignmentIsInZeroSet && targetIsInMinusSet;
+				if (!(allowPlus && isPlus || allowZero && isZero || allowMinus && isMinus)) {
 					continue;
 				}
 				if (ExclusionConstraintEvaluator.matches(constraint.getTargetRef(), target, prismContext, matchingRuleRegistry, "hasAssignment constraint")) {
 					if (shouldExist) {
 						// TODO more specific trigger, containing information on matching assignment; see ExclusionConstraintEvaluator
 						return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.HAS_ASSIGNMENT, constraint,
-								"Assignment exists for " + ObjectTypeUtil.toShortString(target.getTarget()));
+								"Assignment exists for " + ObjectTypeUtil.toShortString(target.getTarget()) + " (" + ctx.state + ")");
 					}
 				}
 			}

@@ -214,7 +214,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 				.filter(rule -> "disallow-incomplete-role-activation".equals(rule.getName()))
 				.findFirst()
 				.orElseThrow(() -> new AssertionError("rule not found"));
-		assertEquals("Wrong # of triggers in incompleteActivationRule", 4, incompleteActivationRule.getTriggers().size());
+		assertEquals("Wrong # of triggers in incompleteActivationRule", 2, incompleteActivationRule.getTriggers().size());  // objectState + or
 	}
 
 	/**
@@ -250,7 +250,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 				.filter(rule -> "disallow-incomplete-role-activation".equals(rule.getName()))
 				.findFirst()
 				.orElseThrow(() -> new AssertionError("rule not found"));
-		assertEquals("Wrong # of triggers in incompleteActivationRule", 3, incompleteActivationRule.getTriggers().size());
+		assertEquals("Wrong # of triggers in incompleteActivationRule", 2, incompleteActivationRule.getTriggers().size());
 	}
 
 	@Test

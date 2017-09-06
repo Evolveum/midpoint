@@ -103,18 +103,17 @@
 	</inducement>
     <inducement>
     	<policyRule>
-			<name>no-students-from-1900-current</name>
+			<!-- no transitional information, so the state is checked for new object -->
+			<name>cc-1900</name>
     		<policyConstraints>
 		    	<objectState>
-					<name>cc-1900-current</name>
+					<name>cc-1900</name>
 					<filter>
 						<q:equal>
-							<!-- people from CC 1900 could not enroll as students -->
 							<q:path>costCenter</q:path>
 							<q:value>1900</q:value>
 						</q:equal>
 					</filter>
-					<!-- no state means current -->
 				</objectState>
 		    </policyConstraints>
 		    <policyActions>
@@ -124,19 +123,23 @@
     </inducement>
     <inducement>
     	<policyRule>
-			<name>no-students-from-1900-new</name>
+			<name>cc-1900-true-true</name>
     		<policyConstraints>
-		    	<objectState>
-					<name>cc-1900-new</name>
-					<filter>
-						<q:equal>
-							<!-- people from CC 1900 could not enroll as students -->
-							<q:path>costCenter</q:path>
-							<q:value>1900</q:value>
-						</q:equal>
-					</filter>
-					<checkInState>new</checkInState>
-				</objectState>
+				<transition>
+					<stateBefore>true</stateBefore>
+					<stateAfter>true</stateAfter>
+					<constraints>
+						<objectState>
+							<name>cc-1900</name>
+							<filter>
+								<q:equal>
+									<q:path>costCenter</q:path>
+									<q:value>1900</q:value>
+								</q:equal>
+							</filter>
+						</objectState>
+					</constraints>
+				</transition>
 		    </policyConstraints>
 		    <policyActions>
 				<!-- none -->
@@ -145,53 +148,84 @@
     </inducement>
 	<inducement>
 		<policyRule>
-			<name>no-students-from-1900-old</name>
+			<name>cc-from-1900-false-true</name>
 			<policyConstraints>
-				<objectState>
-					<name>cc-1900-old</name>
-					<filter>
-						<q:equal>
-							<!-- people from CC 1900 could not enroll as students -->
-							<q:path>costCenter</q:path>
-							<q:value>1900</q:value>
-						</q:equal>
-					</filter>
-					<checkInState>old</checkInState>
-				</objectState>
+				<transition>
+					<stateBefore>false</stateBefore>
+					<stateAfter>true</stateAfter>
+					<constraints>
+						<objectState>
+							<name>cc-1900</name>
+							<filter>
+								<q:equal>
+									<q:path>costCenter</q:path>
+									<q:value>1900</q:value>
+								</q:equal>
+							</filter>
+						</objectState>
+					</constraints>
+				</transition>
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->
 			</policyActions>
 		</policyRule>
 	</inducement>
-    <inducement>
-    	<policyRule>
-			<!-- this is a better check: we look at current and new object value -->
-			<name>no-students-from-1910-current-or-new</name>
-    		<policyConstraints>
-		    	<objectState>
-					<name>cc-1910-current-or-new</name>
-					<filter>
-						<q:equal>
-							<q:path>costCenter</q:path>
-							<q:value>1910</q:value>
-						</q:equal>
-					</filter>
-					<checkInState>current</checkInState>
-					<checkInState>new</checkInState>
-				</objectState>
-		    </policyConstraints>
-		    <policyActions>
-				<!-- none -->
-		    </policyActions>
-    	</policyRule>
-    </inducement>
 	<inducement>
 		<policyRule>
-			<name>has-student-assignment-zero-or-plus</name>
+			<name>cc-from-1900-true-false</name>
+			<policyConstraints>
+				<transition>
+					<stateBefore>true</stateBefore>
+					<stateAfter>false</stateAfter>
+					<constraints>
+						<objectState>
+							<name>cc-1900</name>
+							<filter>
+								<q:equal>
+									<q:path>costCenter</q:path>
+									<q:value>1900</q:value>
+								</q:equal>
+							</filter>
+						</objectState>
+					</constraints>
+				</transition>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>cc-from-1900-true-any</name>
+			<policyConstraints>
+				<transition>
+					<stateBefore>true</stateBefore>
+					<constraints>
+						<objectState>
+							<name>cc-1900</name>
+							<filter>
+								<q:equal>
+									<q:path>costCenter</q:path>
+									<q:value>1900</q:value>
+								</q:equal>
+							</filter>
+						</objectState>
+					</constraints>
+				</transition>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-student-assignment</name>
 			<policyConstraints>
 				<hasAssignment>
-					<name>student-assignment-zero-or-plus</name>
+					<name>student-assignment</name>
 					<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>
 					<!-- no state means current+new -->
 				</hasAssignment>
@@ -203,13 +237,18 @@
 	</inducement>
 	<inducement>
 		<policyRule>
-			<name>has-student-assignment-zero</name>
+			<name>has-student-assignment-true-true</name>
 			<policyConstraints>
-				<hasAssignment>
-					<name>student-assignment-current</name>
-					<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>
-					<inState>zero</inState>
-				</hasAssignment>
+				<transition>
+					<stateBefore>true</stateBefore>
+					<stateAfter>true</stateAfter>
+					<constraints>
+						<hasAssignment>
+							<name>student-assignment</name>
+							<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>
+						</hasAssignment>
+					</constraints>
+				</transition>
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->
@@ -218,13 +257,57 @@
 	</inducement>
 	<inducement>
 		<policyRule>
-			<name>has-student-assignment-plus</name>
+			<name>has-student-assignment-false-true</name>
 			<policyConstraints>
-				<hasAssignment>
-					<name>student-assignment-plus</name>
-					<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>
-					<inState>plus</inState>
-				</hasAssignment>
+				<transition>
+					<stateBefore>false</stateBefore>
+					<stateAfter>true</stateAfter>
+					<constraints>
+						<hasAssignment>
+							<name>student-assignment</name>
+							<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>
+						</hasAssignment>
+					</constraints>
+				</transition>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-student-assignment-true-false</name>
+			<policyConstraints>
+				<transition>
+					<stateBefore>true</stateBefore>
+					<stateAfter>false</stateAfter>
+					<constraints>
+						<hasAssignment>
+							<name>student-assignment</name>
+							<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>
+						</hasAssignment>
+					</constraints>
+				</transition>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-student-assignment-false-any</name>
+			<policyConstraints>
+				<transition>
+					<stateBefore>false</stateBefore>
+					<constraints>
+						<hasAssignment>
+							<name>student-assignment</name>
+							<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>
+						</hasAssignment>
+					</constraints>
+				</transition>
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->

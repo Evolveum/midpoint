@@ -18,15 +18,18 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.repo.common.expression.*;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -38,14 +41,15 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.StatePolicyConstraintType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -70,103 +74,54 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
-		boolean assignmentState;
 		if (QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_ASSIGNMENT_STATE)) {
-			assignmentState = true;
-		} else if (QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_OBJECT_STATE)) {
-			assignmentState = false;
-		} else {
-			throw new AssertionError("unexpected state constraint " + constraint.getName());
-		}
-
-		List<ObjectInState<F>> objects = new ArrayList<>();
-		List<ObjectStateType> states = constraint.getValue().getCheckInState().isEmpty()
-				? Collections.singletonList(ObjectStateType.CURRENT)
-				: constraint.getValue().getCheckInState();
-		for (ObjectStateType state : states) {
-			PrismObject<F> object;
-			if (state == null) {
-				state = ObjectStateType.CURRENT;
-			}
-			switch (state) {
-				case OLD: object = rctx.focusContext.getObjectOld(); break;
-				case NEW: object = rctx.focusContext.getObjectNew(); break;
-				case CURRENT:
-					object = rctx.focusContext.getObjectCurrent();
-					if (object == null) {
-						object = rctx.focusContext.getObjectNew();
-					}
-					break;
-				default: throw new AssertionError("Wrong state: " + state);
-			}
-			if (object != null && !ObjectInState.contains(objects, object)) {
-				objects.add(new ObjectInState<>(object, state));
-			}
-		}
-		if (objects.isEmpty()) {
-			return null;
-		}
-
-		if (assignmentState) {
 			if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
 				return null;            // assignment state can be evaluated only in the context of an assignment
 			} else {
-				return evaluateForAssignment(constraint.getValue(), (AssignmentPolicyRuleEvaluationContext<F>) rctx, objects, result);
+				return evaluateForAssignment(constraint.getValue(), (AssignmentPolicyRuleEvaluationContext<F>) rctx, result);
 			}
+		} else if (QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_OBJECT_STATE)) {
+			return evaluateForObject(constraint.getValue(), rctx, result);
 		} else {
-			return evaluateForFocus(constraint.getValue(), rctx, objects, result);
+			throw new AssertionError("unexpected state constraint " + constraint.getName());
 		}
 	}
 
-	private static class ObjectInState<F extends FocusType> {
-		final PrismObject<F> object;
-		final ObjectStateType state;
-
-		private ObjectInState(PrismObject<F> object, ObjectStateType state) {
-			this.object = object;
-			this.state = state;
-		}
-
-		public static <F extends FocusType> boolean contains(List<ObjectInState<F>> objects, PrismObject<F> object) {
-			return objects.stream().anyMatch(os -> os.object.equals(object));
-		}
-	}
-
-	private <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluateForFocus(StatePolicyConstraintType constraint,
-			PolicyRuleEvaluationContext<F> ctx, List<ObjectInState<F>> objects, OperationResult result)
+	private <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluateForObject(StatePolicyConstraintType constraint,
+			PolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
 		if (constraint.getFilter() == null && constraint.getExpression() == null) {
 			return null;        // shouldn't occur
 		}
 
-		for (ObjectInState<F> objectInState : objects) {
-			PrismObject<F> object = objectInState.object;
-			boolean match = true;
-			if (constraint.getFilter() != null) {
-				ObjectFilter filter = QueryConvertor
-						.parseFilter(constraint.getFilter(), object.asObjectable().getClass(), prismContext);
-				if (!filter.match(object.getValue(), matchingRuleRegistry)) {
-					match = false;
-				}
+		PrismObject<F> object = ctx.getObject();
+		if (object == null) {
+			return null;
+		}
+		boolean match = true;
+		if (constraint.getFilter() != null) {
+			ObjectFilter filter = QueryConvertor
+					.parseFilter(constraint.getFilter(), object.asObjectable().getClass(), prismContext);
+			if (!filter.match(object.getValue(), matchingRuleRegistry)) {
+				match = false;
 			}
-			if (match && constraint.getExpression() != null) {
-				match = isConstraintSatisfied(constraint.getExpression(), createExpressionVariables(ctx, object),
-						"expression in focus state constraint " + constraint.getName() + " (" + objectInState.state + ")", ctx.task, result);
-			}
+		}
+		if (match && constraint.getExpression() != null) {
+			match = isConstraintSatisfied(constraint.getExpression(), createExpressionVariables(ctx),
+					"expression in focus state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result);
+		}
 
-			if (match) {
-				return new EvaluatedPolicyRuleTrigger<>(
-						OBJECT_STATE, constraint, "Focus state ("+ objectInState.state.value() + ") matches " +
-						(constraint.getName() != null ? "constraint '" + constraint.getName() + "'" : "the constraint"));
-			}
+		if (match) {
+			return new EvaluatedPolicyRuleTrigger<>(
+					OBJECT_STATE, constraint, "Focus state ("+ ctx.state + ") matches " +
+					(constraint.getName() != null ? "constraint '" + constraint.getName() + "'" : "the constraint"));
 		}
 		return null;
 	}
 
 	private <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluateForAssignment(StatePolicyConstraintType constraint,
-			AssignmentPolicyRuleEvaluationContext<F> ctx, List<ObjectInState<F>> objects,
-			OperationResult result)
+			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		if (constraint.getFilter() != null) {
 			throw new UnsupportedOperationException("Filter is not supported for assignment state constraints yet.");
@@ -174,27 +129,34 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 		if (constraint.getExpression() == null) {
 			return null;        // shouldn't occur
 		}
-
-		for (ObjectInState<F> objectInState : objects) {
-			boolean match = isConstraintSatisfied(constraint.getExpression(), createExpressionVariables(ctx, objectInState.object),
-					"expression in assignment state constraint " + constraint.getName() + " (" + objectInState.state + ")", ctx.task, result);
-			if (match) {
-				return new EvaluatedPolicyRuleTrigger<>(ASSIGNMENT_STATE, constraint, "Assignment state ("+ objectInState.state.value() + ") matches " +
-						(constraint.getName() != null ? "constraint '" + constraint.getName() + "'" : "the constraint"));
-			}
+		if (!ctx.isApplicableToState()) {
+			return null;
+		}
+		boolean match = isConstraintSatisfied(constraint.getExpression(), createExpressionVariables(ctx),
+				"expression in assignment state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result);
+		if (match) {
+			return new EvaluatedPolicyRuleTrigger<>(ASSIGNMENT_STATE, constraint, "Assignment state ("+ ctx.state + ") matches " +
+					(constraint.getName() != null ? "constraint '" + constraint.getName() + "'" : "the constraint"));
 		}
 		return null;
 	}
 
-	private <F extends FocusType> ExpressionVariables createExpressionVariables(PolicyRuleEvaluationContext<F> ctx,
-			PrismObject<F> object) {
+	private <F extends FocusType> ExpressionVariables createExpressionVariables(PolicyRuleEvaluationContext<F> rctx) {
 		ExpressionVariables var = new ExpressionVariables();
+		PrismObject<F> object = rctx.getObject();
 		var.addVariableDefinition(ExpressionConstants.VAR_USER, object);
 		var.addVariableDefinition(ExpressionConstants.VAR_FOCUS, object);
-		EvaluatedAssignmentImpl<F> evaluatedAssignment = ctx instanceof AssignmentPolicyRuleEvaluationContext
-				? ((AssignmentPolicyRuleEvaluationContext<F>) ctx).evaluatedAssignment : null;
-		var.addVariableDefinition(ExpressionConstants.VAR_TARGET, evaluatedAssignment != null ? evaluatedAssignment.getTarget() : null);
-		var.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment);                // TODO: ok?
+		var.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object);
+		if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
+			AssignmentPolicyRuleEvaluationContext actx = (AssignmentPolicyRuleEvaluationContext<F>) rctx;
+			var.addVariableDefinition(ExpressionConstants.VAR_TARGET, actx.evaluatedAssignment.getTarget());
+			var.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment);
+			var.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, actx.evaluatedAssignment.getAssignmentType(actx.state == ObjectState.BEFORE));
+		} else {
+			var.addVariableDefinition(ExpressionConstants.VAR_TARGET, null);
+			var.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null);
+			var.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, null);
+		}
 		return var;
 	}
 

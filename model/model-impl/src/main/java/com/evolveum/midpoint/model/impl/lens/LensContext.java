@@ -986,23 +986,32 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 				sb.append("global ");
 			}
 			sb.append("rule: ").append(rule.getName());
-			for (EvaluatedPolicyRuleTrigger trigger : rule.getTriggers()) {
-				sb.append("\n");
-				DebugUtil.indentDebugDump(sb, indent + 2);
-				sb.append("trigger: ").append(trigger);
-				if (trigger instanceof EvaluatedExclusionTrigger
-						&& ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment() != null) {
-					sb.append("\n");
-					DebugUtil.indentDebugDump(sb, indent + 3);
-					sb.append("conflict: ")
-							.append(((EvaluatedAssignmentImpl) ((EvaluatedExclusionTrigger) trigger)
-									.getConflictingAssignment()).toHumanReadableString());
-				}
-			}
+			dumpTriggersCollection(indent+2, sb, rule.getTriggers());
 			for (PolicyExceptionType exc : rule.getPolicyExceptions()) {
 				sb.append("\n");
 				DebugUtil.indentDebugDump(sb, indent + 2);
 				sb.append("exception: ").append(exc);
+			}
+		}
+	}
+
+	private void dumpTriggersCollection(int indent, StringBuilder sb, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+		for (EvaluatedPolicyRuleTrigger trigger : triggers) {
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent);
+			sb.append("trigger: ").append(trigger);
+			if (trigger instanceof EvaluatedExclusionTrigger
+					&& ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment() != null) {
+				sb.append("\n");
+				DebugUtil.indentDebugDump(sb, indent + 1);
+				sb.append("conflict: ")
+						.append(((EvaluatedAssignmentImpl) ((EvaluatedExclusionTrigger) trigger)
+								.getConflictingAssignment()).toHumanReadableString());
+			}
+			if (trigger instanceof EvaluatedCompositeTrigger) {
+				dumpTriggersCollection(indent + 1, sb, ((EvaluatedCompositeTrigger) trigger).getInnerTriggers());
+			} else if (trigger instanceof EvaluatedTransitionTrigger) {
+				dumpTriggersCollection(indent + 1, sb, ((EvaluatedTransitionTrigger) trigger).getInnerTriggers());
 			}
 		}
 	}

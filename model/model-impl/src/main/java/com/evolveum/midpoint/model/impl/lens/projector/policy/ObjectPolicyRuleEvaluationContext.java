@@ -17,10 +17,13 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 /**
  * @author mederly
@@ -28,11 +31,21 @@ import org.jetbrains.annotations.NotNull;
 public class ObjectPolicyRuleEvaluationContext<F extends FocusType> extends PolicyRuleEvaluationContext<F> {
 
 	public ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, LensContext<F> context, Task task) {
-		super(policyRule, context, task);
+		this(policyRule, context, task, ObjectState.AFTER);
+	}
+
+	public ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, LensContext<F> context, Task task,
+			ObjectState state) {
+		super(policyRule, context, task, state);
 	}
 
 	@Override
-	public void triggerRule() {
+	public PolicyRuleEvaluationContext<F> cloneWithStateConstraints(ObjectState state) {
+		return new ObjectPolicyRuleEvaluationContext<>(policyRule, lensContext, task, state);
+	}
+
+	@Override
+	public void triggerRule(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
 		focusContext.triggerRule(policyRule, triggers);
 	}
 }

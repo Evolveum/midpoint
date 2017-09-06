@@ -130,6 +130,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return policyRuleType.getPolicyActions();
 	}
 
+	// TODO rewrite this method
 	@Override
 	public String getPolicySituation() {
 		// TODO default situations depending on getTriggeredConstraintKinds
@@ -158,26 +159,32 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 
 	@Nullable
 	private String getSituationFromConstraints(PolicyConstraintsType policyConstraints) {
-		if (policyConstraints.getExclusion() != null) {
+		if (!policyConstraints.getExclusion().isEmpty()) {
 			return PredefinedPolicySituation.EXCLUSION_VIOLATION.getUrl();
-		} else if (policyConstraints.getMinAssignees() != null) {
+		} else if (!policyConstraints.getMinAssignees().isEmpty()) {
 			return PredefinedPolicySituation.UNDERASSIGNED.getUrl();
-		} else if (policyConstraints.getMaxAssignees() != null) {
+		} else if (!policyConstraints.getMaxAssignees().isEmpty()) {
 			return PredefinedPolicySituation.OVERASSIGNED.getUrl();
-		} else if (policyConstraints.getModification() != null) {
+		} else if (!policyConstraints.getModification().isEmpty()) {
 			return PredefinedPolicySituation.MODIFIED.getUrl();
-		} else if (policyConstraints.getAssignment() != null) {
+		} else if (!policyConstraints.getAssignment().isEmpty()) {
 			return PredefinedPolicySituation.ASSIGNMENT_MODIFIED.getUrl();
-		} else if (policyConstraints.getTimeValidity() != null) {
+		} else if (!policyConstraints.getTimeValidity().isEmpty()) {
 			return PredefinedPolicySituation.TIME_VALIDITY.getUrl();
-		} else if (policyConstraints.getHasAssignment() != null) {
+		} else if (!policyConstraints.getHasAssignment().isEmpty()) {
 			return PredefinedPolicySituation.HAS_ASSIGNMENT.getUrl();
-		} else if (policyConstraints.getHasNoAssignment() != null) {
+		} else if (!policyConstraints.getHasNoAssignment().isEmpty()) {
 			return PredefinedPolicySituation.HAS_NO_ASSIGNMENT.getUrl();
-		} else if (policyConstraints.getObjectState() != null) {
+		} else if (!policyConstraints.getObjectState().isEmpty()) {
 			return PredefinedPolicySituation.OBJECT_STATE.getUrl();
-		} else if (policyConstraints.getAssignmentState() != null) {
+		} else if (!policyConstraints.getAssignmentState().isEmpty()) {
 			return PredefinedPolicySituation.ASSIGNMENT_STATE.getUrl();
+		}
+		for (TransitionPolicyConstraintType tc : policyConstraints.getTransition()) {
+			String s = getSituationFromConstraints(tc.getConstraints());
+			if (s != null) {
+				return s;
+			}
 		}
 		for (PolicyConstraintsType subconstraints : policyConstraints.getAnd()) {
 			String s = getSituationFromConstraints(subconstraints);

@@ -17,12 +17,15 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 /**
  * @author mederly
@@ -40,7 +43,14 @@ public class AssignmentPolicyRuleEvaluationContext<F extends FocusType> extends 
 			@NotNull EvaluatedAssignmentImpl<F> evaluatedAssignment, boolean inPlus, boolean inZero,
 			boolean inMinus, boolean isDirect, LensContext<F> context,
 			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task) {
-		super(policyRule, context, task);
+		this(policyRule, evaluatedAssignment, inPlus, inZero, inMinus, isDirect, context, evaluatedAssignmentTriple, task, ObjectState.AFTER);
+	}
+
+	public AssignmentPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule,
+			@NotNull EvaluatedAssignmentImpl<F> evaluatedAssignment, boolean inPlus, boolean inZero,
+			boolean inMinus, boolean isDirect, LensContext<F> context,
+			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, ObjectState state) {
+		super(policyRule, context, task, state);
 		this.evaluatedAssignment = evaluatedAssignment;
 		this.inPlus = inPlus;
 		this.inZero = inZero;
@@ -50,7 +60,25 @@ public class AssignmentPolicyRuleEvaluationContext<F extends FocusType> extends 
 	}
 
 	@Override
-	public void triggerRule() {
+	public AssignmentPolicyRuleEvaluationContext<F> cloneWithStateConstraints(ObjectState state) {
+		return new AssignmentPolicyRuleEvaluationContext<>(policyRule, evaluatedAssignment, inPlus, inZero, inMinus, isDirect, lensContext, evaluatedAssignmentTriple, task, state);
+	}
+
+	@Override
+	public void triggerRule(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
 		evaluatedAssignment.triggerRule(policyRule, triggers);
+	}
+
+	@Override
+	public boolean isApplicableToState() {
+		return super.isApplicableToState() && isAssignmentApplicable();
+	}
+
+	private boolean isAssignmentApplicable() {
+		if (state == ObjectState.BEFORE) {
+			return inMinus || inZero;
+		} else {
+			return inZero || inPlus;
+		}
 	}
 }

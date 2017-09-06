@@ -66,7 +66,7 @@ public class PolicyRuleTypeUtil {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder();
-		for (JAXBElement<AbstractPolicyConstraintType> primitive : toPrimitiveConstraintsList(constraints, false)) {
+		for (JAXBElement<AbstractPolicyConstraintType> primitive : toConstraintsList(constraints, false)) {
 			QName name = primitive.getName();
 			String abbreviation = CONSTRAINT_NAMES.get(name.getLocalPart());
 			if (sb.length() > 0) {
@@ -300,60 +300,76 @@ public class PolicyRuleTypeUtil {
 	}
 	
 	@FunctionalInterface
-	interface PrimitiveConstraintMatcher {
-		boolean matches(QName name, AbstractPolicyConstraintType constraint);
+	interface ConstraintConsumer {
+		/**
+		 * Returns false if the process is to be finished.
+		 */
+		boolean accept(QName name, AbstractPolicyConstraintType constraint);
 	}
-	
-	public static boolean hasMatchingPrimitiveConstraint(PolicyConstraintsType pc, PrimitiveConstraintMatcher matcher, boolean recursive) {
+
+	/**
+	 * Returns false if the process was stopped by the consumer.
+	 */
+	public static boolean iterateConstraints(PolicyConstraintsType pc, ConstraintConsumer consumer, boolean deep) {
 		if (pc == null) {
-			return false;
+			return true;
 		}
-		boolean rv = hasMatchingPrimitiveConstraint(pc.getMinAssignees(), F_MIN_ASSIGNEES, matcher)
-				|| hasMatchingPrimitiveConstraint(pc.getMaxAssignees(), F_MAX_ASSIGNEES, matcher)
-				|| hasMatchingPrimitiveConstraint(pc.getExclusion(), F_EXCLUSION, matcher)
-				|| hasMatchingPrimitiveConstraint(pc.getAssignment(), F_ASSIGNMENT, matcher)
-				|| hasMatchingPrimitiveConstraint(pc.getHasAssignment(), F_HAS_ASSIGNMENT, matcher)
-				|| hasMatchingPrimitiveConstraint(pc.getHasNoAssignment(), F_HAS_NO_ASSIGNMENT, matcher)
-				|| hasMatchingPrimitiveConstraint(pc.getModification(), F_MODIFICATION, matcher)
-				|| hasMatchingPrimitiveConstraint(pc.getTimeValidity(), F_TIME_VALIDITY, matcher)
-				|| hasMatchingPrimitiveConstraint(pc.getAssignmentState(), F_ASSIGNMENT_STATE, matcher)
-				|| hasMatchingPrimitiveConstraint(pc.getObjectState(), F_OBJECT_STATE, matcher)
-				|| hasMatchingPrimitiveConstraint(pc.getSituation(), F_SITUATION, matcher);
-		if (recursive) {
+		boolean rv = iterateConstraints(pc.getMinAssignees(), F_MIN_ASSIGNEES, consumer)
+				&& iterateConstraints(pc.getMaxAssignees(), F_MAX_ASSIGNEES, consumer)
+				&& iterateConstraints(pc.getExclusion(), F_EXCLUSION, consumer)
+				&& iterateConstraints(pc.getAssignment(), F_ASSIGNMENT, consumer)
+				&& iterateConstraints(pc.getHasAssignment(), F_HAS_ASSIGNMENT, consumer)
+				&& iterateConstraints(pc.getHasNoAssignment(), F_HAS_NO_ASSIGNMENT, consumer)
+				&& iterateConstraints(pc.getModification(), F_MODIFICATION, consumer)
+				&& iterateConstraints(pc.getTimeValidity(), F_TIME_VALIDITY, consumer)
+				&& iterateConstraints(pc.getAssignmentState(), F_ASSIGNMENT_STATE, consumer)
+				&& iterateConstraints(pc.getObjectState(), F_OBJECT_STATE, consumer)
+				&& iterateConstraints(pc.getSituation(), F_SITUATION, consumer)
+				&& iterateConstraints(pc.getTransition(), F_TRANSITION, consumer)
+				&& iterateConstraints(pc.getAnd(), F_AND, consumer)
+				&& iterateConstraints(pc.getOr(), F_OR, consumer)
+				&& iterateConstraints(pc.getNot(), F_NOT, consumer);
+		if (deep) {
+			for (TransitionPolicyConstraintType transitionConstraint : pc.getTransition()) {
+				rv = rv && iterateConstraints(transitionConstraint.getConstraints(), consumer, true);
+			}
 			rv = rv
-					|| hasMatchingPrimitiveConstraint(pc.getAnd(), matcher)
-					|| hasMatchingPrimitiveConstraint(pc.getOr(), matcher)
-					|| hasMatchingPrimitiveConstraint(pc.getNot(), matcher);
+					&& iterateConstraints(pc.getAnd(), consumer)
+					&& iterateConstraints(pc.getOr(), consumer)
+					&& iterateConstraints(pc.getNot(), consumer);
 		}
 		return rv;
 	}
 
-	private static boolean hasMatchingPrimitiveConstraint(List<? extends AbstractPolicyConstraintType> constraints, QName name, PrimitiveConstraintMatcher matcher) {
+	private static boolean iterateConstraints(List<? extends AbstractPolicyConstraintType> constraints, QName name, ConstraintConsumer consumer) {
 		for (AbstractPolicyConstraintType constraint : constraints) {
-			if (matcher.matches(name, constraint)) {
-				return true;
+			if (!consumer.accept(name, constraint)) {
+				return false;
 			}
 		}
-		return false;
+		return true;
 	}
 
-	private static boolean hasMatchingPrimitiveConstraint(List<PolicyConstraintsType> constraintsList, PrimitiveConstraintMatcher matcher) {
+	private static boolean iterateConstraints(List<PolicyConstraintsType> constraintsList, ConstraintConsumer matcher) {
 		for (PolicyConstraintsType constraints : constraintsList) {
-			if (hasMatchingPrimitiveConstraint(constraints, matcher, true)) {
-				return true;
+			if (!iterateConstraints(constraints, matcher, true)) {
+				return false;
 			}
 		}
-		return false;
+		return true;
 	}
 
-	// we (mis)use the matcher to collect all the constraints
-	public static List<JAXBElement<AbstractPolicyConstraintType>> toPrimitiveConstraintsList(PolicyConstraintsType pc, boolean recursive) {
+	public static List<JAXBElement<AbstractPolicyConstraintType>> toConstraintsList(PolicyConstraintsType pc, boolean deep) {
 		List<JAXBElement<AbstractPolicyConstraintType>> rv = new ArrayList<>();
-		hasMatchingPrimitiveConstraint(pc, (name, c) -> { rv.add(new JAXBElement<>(name, AbstractPolicyConstraintType.class, c)); return false; }, recursive);
+		iterateConstraints(pc, (name, c) -> { rv.add(new JAXBElement<>(name, AbstractPolicyConstraintType.class, c)); return true; }, deep);
 		return rv;
 	}
 
-	// e.g. situation-only constraints are applicable both to focus and assignments
+	/**
+	 * Returns true if this policy rule can be applied to an assignment.
+	 * By default, rules that have only object-related constraints, are said to be applicable to objects only
+	 * (even if technically they could be applied to assignments as well).
+	 */
 	public static boolean isApplicableToAssignment(PolicyRuleType rule) {
 		if (rule.getEvaluationTarget() != null) {
 			return rule.getEvaluationTarget() == PolicyRuleEvaluationTargetType.ASSIGNMENT;
@@ -362,6 +378,9 @@ public class PolicyRuleTypeUtil {
 		}
 	}
 
+	/**
+	 * Returns true if this policy rule can be applied to an object as a whole.
+	 */
 	public static boolean isApplicableToObject(PolicyRuleType rule) {
 		if (rule.getEvaluationTarget() != null) {
 			return rule.getEvaluationTarget() == PolicyRuleEvaluationTargetType.FOCUS;
@@ -371,12 +390,12 @@ public class PolicyRuleTypeUtil {
 	}
 
 	private static boolean hasAssignmentOnlyConstraint(PolicyRuleType rule) {
-		return hasMatchingPrimitiveConstraint(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isAssignmentOnly, true);
+		return iterateConstraints(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isAssignmentOnly, true);
 	}
 
 	// do we have a constraint that indicates a use against object?
 	private static boolean hasObjectRelatedConstraint(PolicyRuleType rule) {
-		return hasMatchingPrimitiveConstraint(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isObjectRelated, true);
+		return iterateConstraints(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isObjectRelated, true);
 	}
 
 	private static final Set<Class<? extends AbstractPolicyConstraintType>> ASSIGNMENTS_ONLY_CONSTRAINTS_CLASSES =
@@ -388,11 +407,11 @@ public class PolicyRuleTypeUtil {
 				|| c instanceof TimeValidityPolicyConstraintType && Boolean.TRUE.equals(((TimeValidityPolicyConstraintType) c).isAssignment());
 	}
 
-	private static final Set<Class<? extends AbstractPolicyConstraintType>> FOCUS_RELATED_CONSTRAINTS_CLASSES =
+	private static final Set<Class<? extends AbstractPolicyConstraintType>> OBJECT_RELATED_CONSTRAINTS_CLASSES =
 			new HashSet<>(Arrays.asList(HasAssignmentPolicyConstraintType.class, ModificationPolicyConstraintType.class));
 
 	private static boolean isObjectRelated(QName name, AbstractPolicyConstraintType c) {
-		return FOCUS_RELATED_CONSTRAINTS_CLASSES.contains(c.getClass())
+		return OBJECT_RELATED_CONSTRAINTS_CLASSES.contains(c.getClass())
 				|| QNameUtil.match(name, PolicyConstraintsType.F_OBJECT_STATE)
 				|| c instanceof TimeValidityPolicyConstraintType && !Boolean.TRUE.equals(((TimeValidityPolicyConstraintType) c).isAssignment());
 	}

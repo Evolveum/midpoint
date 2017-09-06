@@ -24,11 +24,9 @@
 	<name>constraints</name>
 	<inducement>
 		<policyRule>
+			<!-- here we simply state that it's not possible to have active role with no description or no owner or no approver -->
 			<name>disallow-incomplete-role-activation</name>
 			<policyConstraints>
-				<modification>
-					<item>lifecycleState</item>
-				</modification>
 				<objectState>
 					<name>active lifecycleState</name>
 					<filter>
@@ -37,7 +35,6 @@
 							<q:value>active</q:value>
 						</q:equal>
 					</filter>
-					<checkInState>new</checkInState>
 				</objectState>
 				<or>
 					<minAssignees>
@@ -52,35 +49,34 @@
 								<q:path>description</q:path>
 							</q:equal>
 						</filter>
-						<checkInState>new</checkInState>
 					</objectState>
 				</or>
 			</policyConstraints>
 			<policyActions>
 				<enforcement/>
 			</policyActions>
-			<evaluationTarget>focus</evaluationTarget>
 		</policyRule>
 	</inducement>
 	<inducement>
 		<policyRule>
 			<name>approve-role-activation</name>
 			<policyConstraints>
-				<and>
-					<modification>
-						<item>lifecycleState</item>
-					</modification>
-					<objectState>
-						<name>active lifecycleState</name>
-						<filter>
-							<q:equal>
-								<q:path>lifecycleState</q:path>
-								<q:value>active</q:value>
-							</q:equal>
-						</filter>
-						<checkInState>new</checkInState>
-					</objectState>
-				</and>
+				<transition>
+					<name>role-switched-to-active</name>
+					<stateBefore>false</stateBefore>
+					<stateAfter>true</stateAfter>
+					<constraints>
+						<objectState>
+							<name>active lifecycleState</name>
+							<filter>
+								<q:equal>
+									<q:path>lifecycleState</q:path>
+									<q:value>active</q:value>
+								</q:equal>
+							</filter>
+						</objectState>
+					</constraints>
+				</transition>
 			</policyConstraints>
 			<policyActions>
 				<approval>
@@ -96,29 +92,31 @@
 		<policyRule>
 			<name>approve-high-risk-role-activation</name>
 			<policyConstraints>
-				<modification>
-					<item>lifecycleState</item>
-				</modification>
 				<objectState>
-					<name>active lifecycleState</name>
-					<filter>
-						<q:equal>
-							<q:path>lifecycleState</q:path>
-							<q:value>active</q:value>
-						</q:equal>
-					</filter>
-					<checkInState>new</checkInState>
-				</objectState>
-				<objectState>
-					<name>high-risk roles</name>
+					<name>role-is-high-risk</name>
 					<filter>
 						<q:equal>
 							<q:path>riskLevel</q:path>
 							<q:value>high</q:value>
 						</q:equal>
 					</filter>
-					<checkInState>new</checkInState>
 				</objectState>
+				<transition>
+					<name>role-switched-to-active</name>
+					<stateBefore>false</stateBefore>
+					<stateAfter>true</stateAfter>
+					<constraints>
+						<objectState>
+							<name>active lifecycleState</name>
+							<filter>
+								<q:equal>
+									<q:path>lifecycleState</q:path>
+									<q:value>active</q:value>
+								</q:equal>
+							</filter>
+						</objectState>
+					</constraints>
+				</transition>
 			</policyConstraints>
 			<policyActions>
 				<approval>
