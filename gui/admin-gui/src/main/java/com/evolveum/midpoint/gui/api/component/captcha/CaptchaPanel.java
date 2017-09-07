@@ -5,6 +5,7 @@ import java.util.Random;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.captcha.CaptchaImageResource;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.form.RequiredTextField;
@@ -13,6 +14,7 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 
 public class CaptchaPanel extends BasePanel<Void> {
 
@@ -34,10 +36,10 @@ public class CaptchaPanel extends BasePanel<Void> {
 	public CaptchaPanel(String id) {
 		super(id);
 
-		FeedbackPanel feedback = new FeedbackPanel("feedback",
-				new ContainerFeedbackMessageFilter(CaptchaPanel.this));
+		FeedbackAlerts feedback = new FeedbackAlerts("feedback");
+		feedback.setFilter(new ContainerFeedbackMessageFilter(CaptchaPanel.this));
 		add(feedback);
-
+		
 		captchaImageResource = createCaptchImageResource();
 		final Image captchaImage = new Image("image", captchaImageResource);
 		captchaImage.setOutputMarkupId(true);

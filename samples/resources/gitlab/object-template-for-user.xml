@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                oid="99cc8d77-dedc-1144-a081-b006821a9c79"
+                version="47">
+   <name>User Template</name>
+   <metadata>
+      <createTimestamp>2017-06-14T12:45:43.922+02:00</createTimestamp>
+      <creatorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                  oid="00000000-0000-0000-0000-000000000002"
+                  relation="org:default"
+                  type="c:UserType"><!-- administrator --></creatorRef>
+      <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
+   </metadata>
+   <mapping>
+      <strength>strong</strength>
+      <expression>
+         <assignmentTargetSearch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xsi:type="c:SearchObjectRefExpressionEvaluatorType">
+            <targetType>c:RoleType</targetType>
+            <filter>
+               <q:equal>
+                  <q:path>c:name</q:path>
+                  <expression>
+                     <script>
+                        <code>
+                return 'Basic GitLab role for user'
+                </code>
+                     </script>
+                  </expression>
+               </q:equal>
+            </filter>
+         </assignmentTargetSearch>
+      </expression>
+      <target>
+         <c:path>assignment</c:path>
+      </target>
+   </mapping>
+</objectTemplate>
+</objects>

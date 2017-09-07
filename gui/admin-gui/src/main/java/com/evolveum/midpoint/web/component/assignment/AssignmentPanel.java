@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
@@ -18,6 +33,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.util.tester.WicketTester;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -66,18 +82,20 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 
 	protected boolean assignmentDetailsVisible;
 
-	private PageBase pageBase;
-
-	public AssignmentPanel(String id, IModel<List<AssignmentDto>> assignmentsModel, PageBase pageBase) {
+	public AssignmentPanel(String id, IModel<List<AssignmentDto>> assignmentsModel) {
 		super(id, assignmentsModel);
-		this.pageBase = pageBase;
-		initPaging();
-		initLayout();
 
 	}
 
 	protected abstract void initPaging();
 
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+		initPaging();
+		initLayout();
+	}
+	
 	private void initLayout() {
 
 		initListPanel();
@@ -150,7 +168,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 
 		List<IColumn<AssignmentDto, String>> columns = initBasicColumns();
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI)) {
-			columns.add(new InlineMenuButtonColumn<AssignmentDto>(getAssignmentMenuActions(), 2, getParentPage()));
+			columns.add(new InlineMenuButtonColumn<AssignmentDto>(getAssignmentMenuActions(), 2, getPageBase()));
 		}
 
 		BoxedTablePanel<AssignmentDto> assignmentTable = new BoxedTablePanel<AssignmentDto>(ID_ASSIGNMENTS_TABLE,
@@ -159,7 +177,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 
 			@Override
 			public int getItemsPerPage() {
-				return pageBase.getSessionStorage().getUserProfile().getTables()
+				return getPageBase().getSessionStorage().getUserProfile().getTables()
 						.get(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE);
 			}
 
@@ -177,7 +195,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 	}
 
 	protected AssignmentsTabStorage getAssignmentsStorage() {
-		return pageBase.getSessionStorage().getAssignmentsTabStorage();
+		return getPageBase().getSessionStorage().getAssignmentsTabStorage();
 	}
 
 	protected abstract ObjectQuery createObjectQuery();
@@ -436,11 +454,11 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 
 	protected void updateAssignmnetActivation(AjaxRequestTarget target, IModel<AssignmentDto> rowModel) {
 		AssignmentActivationPopupablePanel activationPanel = new AssignmentActivationPopupablePanel(
-				getParentPage().getMainPopupBodyId(),
+				getPageBase().getMainPopupBodyId(),
 				new PropertyModel<>(rowModel, AssignmentDto.F_VALUE + "." + AssignmentType.F_ACTIVATION.getLocalPart()));
 		activationPanel.setOutputMarkupId(true);
 
-		getParentPage().showMainPopup(activationPanel, target);
+		getPageBase().showMainPopup(activationPanel, target);
 	}
 
 	protected abstract TableId getTableId();
@@ -460,7 +478,8 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 		return (WebMarkupContainer) get(ID_ASSIGNMENTS);
 	}
 
-	public PageBase getParentPage() {
-		return pageBase;
+	protected PageBase getParentPage() {
+		return getPageBase();
 	}
+
 }

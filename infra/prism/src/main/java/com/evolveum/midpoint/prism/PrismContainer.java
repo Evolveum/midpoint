@@ -91,7 +91,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     }
 
 
-    protected PrismContainer(QName name, PrismContainerDefinition<C> definition, PrismContext prismContext) {
+    public PrismContainer(QName name, PrismContainerDefinition<C> definition, PrismContext prismContext) {
         super(name, definition, prismContext);
     }
 

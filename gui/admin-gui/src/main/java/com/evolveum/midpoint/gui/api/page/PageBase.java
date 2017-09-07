@@ -51,9 +51,11 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.injection.Injector;
+import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -65,6 +67,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.CssResourceReference;
 import org.apache.wicket.resource.CoreLibrariesContributor;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
@@ -199,6 +202,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private static final String ID_CUSTOM_LOGO_IMG_CSS = "customLogoImgCss";
 	private static final String ID_NAVIGATION = "navigation";
 	private static final String ID_DEPLOYMENT_NAME = "deploymentName";
+	private static final String ID_BODY = "body";
+
+	private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";
 
     private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
     private static final String OPERATION_GET_DEPLOYMENT_INFORMATION = DOT_CLASS + "getDeploymentInformation";
@@ -560,8 +566,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	@Override
 	public void renderHead(IHeaderResponse response) {
-		super.renderHead(response);
+        super.renderHead(response);
 
+        String skinCssString = CLASS_DEFAULT_SKIN;
+        if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
+                StringUtils.isNotEmpty(deploymentInfoModel.getObject().getSkin())) {
+            skinCssString = deploymentInfoModel.getObject().getSkin();
+        }
+
+        String skinCssPath = String.format("../../../../../../webjars/adminlte/2.3.11/dist/css/skins/%s.min.css", skinCssString);
+        response.render(CssHeaderItem.forReference(
+                new CssResourceReference(
+                        PageBase.class, skinCssPath)
+                )
+        );
 		// this attaches jquery.js as first header item, which is used in our
 		// scripts.
 		CoreLibrariesContributor.contribute(getApplication(), response);
@@ -682,6 +700,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private void initLayout() {
+        TransparentWebMarkupContainer body = new TransparentWebMarkupContainer(ID_BODY);
+        body.add(new AttributeAppender("class", "hold-transition ", " "));
+        body.add(new AttributeAppender("class", "custom-hold-transition ", " "));
+
+        if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
+                StringUtils.isNotEmpty(deploymentInfoModel.getObject().getSkin())) {
+
+            body.add(new AttributeAppender("class", deploymentInfoModel.getObject().getSkin(), " "));
+        } else {
+            body.add(new AttributeAppender("class", CLASS_DEFAULT_SKIN, " "));
+        }
+        add(body);
+
 		WebMarkupContainer mainHeader = new WebMarkupContainer(ID_MAIN_HEADER);
 		mainHeader.setOutputMarkupId(true);
 		add(mainHeader);
@@ -724,7 +755,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		WebMarkupContainer navigation = new WebMarkupContainer(ID_NAVIGATION);
 		mainHeader.add(navigation);
 
-		WebMarkupContainer customLogoImgSrc = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_SRC);
+
+
+
+        WebMarkupContainer customLogoImgSrc = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_SRC);
 		WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
 		if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
 				deploymentInfoModel.getObject().getLogo() != null){
@@ -1012,6 +1046,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	public String createComponentPath(String... components) {
 		return StringUtils.join(components, ":");
+	}
+
+	public String createPropertyModelExpression(String... components) {
+		return StringUtils.join(components, ".");
 	}
 
 	/**
@@ -1537,23 +1575,23 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private void createSelfServiceMenu(SideBarMenuItem menu) {
-		MainMenuItem item = new MainMenuItem("fa fa-dashboard", createStringResource("PageAdmin.menu.selfDashboard"),
+		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_ICON_DASHBOARD, createStringResource("PageAdmin.menu.selfDashboard"),
 				PageSelfDashboard.class);
 		menu.getItems().add(item);
-		item = new MainMenuItem("fa fa-user", createStringResource("PageAdmin.menu.profile"), PageSelfProfile.class);
+		item = new MainMenuItem(GuiStyleConstants.CLASS_ICON_PROFILE, createStringResource("PageAdmin.menu.profile"), PageSelfProfile.class);
 		menu.getItems().add(item);
 		// PageSelfAssignments is not implemented yet
 		// item = new MainMenuItem("fa fa-star",
 		// createStringResource("PageAdmin.menu.assignments"),
 		// PageSelfAssignments.class);
 		// menu.getItems().add(item);
-		item = new MainMenuItem("fa fa-shield", createStringResource("PageAdmin.menu.credentials"),
+		item = new MainMenuItem(GuiStyleConstants.CLASS_ICON_CREDENTIALS, createStringResource("PageAdmin.menu.credentials"),
 				PageSelfCredentials.class);
 		menu.getItems().add(item);
-		item = new MainMenuItem("fa fa-pencil-square-o", createStringResource("PageAdmin.menu.request"),
+		item = new MainMenuItem(GuiStyleConstants.CLASS_ICON_REQUEST, createStringResource("PageAdmin.menu.request"),
                 PageAssignmentShoppingKart.class);
 		menu.getItems().add(item);
-		item = new MainMenuItem("fa fa-eur", createStringResource("PageAdmin.menu.consent"),
+		item = new MainMenuItem(GuiStyleConstants.CLASS_ICON_CONSENT, createStringResource("PageAdmin.menu.consent"),
                 PageSelfConsents.class);
 		menu.getItems().add(item);
 	}
