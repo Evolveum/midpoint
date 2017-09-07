@@ -21,14 +21,28 @@
     <div class="row prism-property">
         <div class="col-md-2"><wicket:message key="PolicyRule.constraintsLabel"/></div>
         <div class="col-md-10" wicket:id="constraintsContainer">
-            <div wicket:id="exclusionConstraints" />
-            <div wicket:id="minAssigneesConstraints" />
-            <div wicket:id="maxAssigneesConstraints" />
-            <div wicket:id="modificationConstraints" />
-            <div wicket:id="assignmentConstraints" />
-            <div wicket:id="timeValidityConstraints" />
-            <div wicket:id="situationConstraints" />
-            <div class="pull-right">
+            <wicket:container wicket:id="exclusionRepeater">
+                   <div wicket:id="exclusionConstraints" />
+            </wicket:container>
+            <wicket:container wicket:id="minAssigneesRepeater">
+                <div wicket:id="minAssigneesConstraints" />
+            </wicket:container>
+            <wicket:container wicket:id="maxAssigneesRepeater">
+                <div wicket:id="maxAssigneesConstraints" />
+            </wicket:container>
+            <wicket:container wicket:id="modificationRepeater">
+                <div wicket:id="modificationConstraints" />
+            </wicket:container>
+            <wicket:container wicket:id="assignmentRepeater">
+                <div wicket:id="assignmentConstraints" />
+            </wicket:container>
+            <wicket:container wicket:id="timeValidityRepeater">
+                <div wicket:id="timeValidityConstraints" />
+            </wicket:container>
+            <wicket:container wicket:id="situationRepeater">
+                <div wicket:id="situationConstraints" />
+            </wicket:container>
+            <div class="pull-left">
                 <div class="btn-group">
                         <button wicket:id="addExclusionConstraints" type="button" class="btn btn-default"><wicket:message key="PolicyRulePropertiesPanel.exclusionConstraints"/></button>
                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">

@@ -80,10 +80,10 @@ public class PrismContainerPanel extends Panel {
             }
         });
 
-        initLayout(model, form);
+        initLayout(model, form, showHeader);
     }
 
-    private void initLayout(final IModel<ContainerWrapper> model, final Form form) {
+    private void initLayout(final IModel<ContainerWrapper> model, final Form form, boolean showHeader) {
     	PrismHeaderPanel header = new PrismHeaderPanel(ID_HEADER, model) {
 			private static final long serialVersionUID = 1L;
 
@@ -103,7 +103,7 @@ public class PrismContainerPanel extends Panel {
 
             @Override
             public boolean isVisible() {
-                return !model.getObject().isMain();
+                return showHeader && !model.getObject().isMain();
             }
         });
         add(header);

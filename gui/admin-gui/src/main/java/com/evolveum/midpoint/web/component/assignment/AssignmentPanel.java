@@ -82,14 +82,9 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 
 	protected boolean assignmentDetailsVisible;
 
-//	private PageBase pageBase;
-
 	public AssignmentPanel(String id, IModel<List<AssignmentDto>> assignmentsModel) {
 		super(id, assignmentsModel);
-//		this.pageBase = pageBase;
-//		initPaging();
-//		initLayout();
-	
+
 	}
 
 	protected abstract void initPaging();
