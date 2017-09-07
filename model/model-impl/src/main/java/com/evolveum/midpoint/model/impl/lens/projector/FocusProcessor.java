@@ -403,6 +403,7 @@ public class FocusProcessor {
 	private <F extends FocusType> void evaluateFocusPolicyRules(LensContext<F> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result)
 			throws PolicyViolationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		context.getFocusContext().clearPolicyRules();
 		triggerAssignmentFocusPolicyRules(context, activityDescription, now, task, result);
 		triggerGlobalRules(context, task, result);
 	}
