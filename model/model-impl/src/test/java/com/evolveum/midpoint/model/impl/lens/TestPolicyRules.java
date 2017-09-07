@@ -19,6 +19,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedExclusionTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedSituationTrigger;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.impl.util.RecordingProgressListener;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -43,6 +44,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static org.testng.AssertJUnit.*;
@@ -633,7 +635,9 @@ public class TestPolicyRules extends AbstractLensTest {
 				.add(ObjectTypeUtil.createAssignmentTo(ROLE_JUDGE_OID, ObjectTypes.ROLE, prismContext))
 				.item(UserType.F_EMPLOYEE_TYPE).replace("T")
 				.asObjectDelta(USER_DRAKE_OID);
-		executeChanges(delta, null, task, result);
+
+		RecordingProgressListener recordingListener = new RecordingProgressListener();
+		modelService.executeChanges(Collections.singletonList(delta), null, task, Collections.singleton(recordingListener), result);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -644,7 +648,9 @@ public class TestPolicyRules extends AbstractLensTest {
 		display("User after", userAfter);
 		assertAssignedRole(userAfter, ROLE_JUDGE_OID);
 
-		// TODO check application of global policy rule
+		LensFocusContext<?> focusContext = ((LensContext) recordingListener.getModelContext()).getFocusContext();
+		display("focusContext", focusContext);
+		assertEquals("Wrong # of focus policy rules", 0, focusContext.getPolicyRules().size());
 	}
 
 	private ObjectDelta<ShadowType> assertAssignAccountToJack(LensContext<UserType> context) {
