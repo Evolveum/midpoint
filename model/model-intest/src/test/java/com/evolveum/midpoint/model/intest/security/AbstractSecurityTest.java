@@ -88,6 +88,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -162,6 +164,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected static final File ROLE_PROP_READ_ALL_MODIFY_SOME_USER_FILE = new File(TEST_DIR, "role-prop-read-all-modify-some-user.xml");
 	protected static final String ROLE_PROP_READ_ALL_MODIFY_SOME_USER_OID = "00000000-0000-0000-0000-00000000ae05";
+	
+	protected static final File ROLE_PROP_READ_ALL_MODIFY_SOME_USER_PARTIAL_FILE = new File(TEST_DIR, "role-prop-read-all-modify-some-user-partial.xml");
+	protected static final String ROLE_PROP_READ_ALL_MODIFY_SOME_USER_PARTIAL_OID = "00000000-0000-0000-0000-b0000000ae05";
 
 	protected static final File ROLE_MASTER_MINISTRY_OF_RUM_FILE = new File(TEST_DIR, "role-org-master-ministry-of-rum.xml");
 	protected static final String ROLE_MASTER_MINISTRY_OF_RUM_OID = "00000000-0000-0000-0000-00000000aa06";
@@ -344,7 +349,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 62;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 63;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 
 	protected String userRumRogersOid;
@@ -367,6 +372,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_USER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_USER_PARTIAL_FILE, initResult);
 		repoAddObjectFromFile(ROLE_MASTER_MINISTRY_OF_RUM_FILE, initResult);
 		repoAddObjectFromFile(ROLE_OBJECT_FILTER_CARIBBEAN_FILE, initResult);
 		repoAddObjectFromFile(ROLE_OBJECT_FILTER_CARIBBEAN_RAW_FILE, initResult);
@@ -887,6 +893,10 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected void assertAddDeny(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
 		assertAddDeny(file, null);
 	}
+	
+	protected void assertAddDenyRaw(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
+		assertAddDeny(file, ModelExecuteOptions.createRaw());
+	}
 
 	protected <O extends ObjectType> void assertAddDeny(File file, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
 		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertAddDeny");
@@ -932,6 +942,12 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected <O extends ObjectType> void assertModifyDenyRaw(Class<O> type, String oid, QName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		assertModifyDenyOptions(type, oid, propertyName, ModelExecuteOptions.createRaw(), newRealValue);
 	}
+	
+	protected <O extends ObjectType> void assertModifyDenyPartial(Class<O> type, String oid, QName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		PartialProcessingOptionsType partialProcessing = new PartialProcessingOptionsType();
+		partialProcessing.setApprovals(PartialProcessingTypeType.SKIP);
+		assertModifyDenyOptions(type, oid, propertyName, ModelExecuteOptions.createPartialProcessing(partialProcessing), newRealValue);
+	}
 
 	protected <O extends ObjectType> void assertModifyDeny(Class<O> type, String oid, ItemPath itemPath, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		assertModifyDenyOptions(type, oid, itemPath, null, newRealValue);
@@ -964,6 +980,12 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected <O extends ObjectType> void assertModifyAllow(Class<O> type, String oid, QName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		assertModifyAllowOptions(type, oid, propertyName, null, newRealValue);
+	}
+	
+	protected <O extends ObjectType> void assertModifyAllowPartial(Class<O> type, String oid, QName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		PartialProcessingOptionsType partialProcessing = new PartialProcessingOptionsType();
+		partialProcessing.setApprovals(PartialProcessingTypeType.SKIP);
+		assertModifyAllowOptions(type, oid, propertyName, ModelExecuteOptions.createPartialProcessing(partialProcessing), newRealValue);
 	}
 
 	protected <O extends ObjectType> void assertModifyAllowOptions(Class<O> type, String oid, QName propertyName, ModelExecuteOptions options, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {

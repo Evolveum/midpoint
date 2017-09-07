@@ -561,6 +561,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 				try {
 					LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
+					
+					authorizePartialExecution(context, options, result);
 
 					if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
 						String m = "ReevaluateSearchFilters option is not fully supported for non-raw operations yet. Filters already present in the object will not be touched.";
@@ -617,6 +619,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return executedDeltas;
 	}
 
+
+	private void authorizePartialExecution(LensContext<? extends ObjectType> context, ModelExecuteOptions options, OperationResult result) throws SecurityViolationException, SchemaException {
+		PartialProcessingOptionsType partialProcessing = ModelExecuteOptions.getPartialProcessing(options);
+		if (partialProcessing != null) {
+			PrismObject<? extends ObjectType> object = context.getFocusContext().getObjectAny();
+			securityEnforcer.authorize(ModelAuthorizationAction.PARTIAL_EXECUTION.getUrl(), null, object, null, null, null, result);
+		}
+	}
 
 	private void invalidateCaches(Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas) {
 		if (executedDeltas == null) {
