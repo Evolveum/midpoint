@@ -14,38 +14,28 @@
   ~ limitations under the License.
   -->
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:wicket="http://wicket.apache.org">
+	xmlns:wicket="http://wicket.apache.org">
 <body>
-<wicket:panel>
+	<wicket:panel>
 
-<!-- 
-.small-box .status {
-    -webkit-transition: all .3s linear;
-    -o-transition: all .3s linear;
-    transition: all .3s linear;
-    position: absolute;
-    top: -10px;
-    left: 10px;
-    z-index: 0;
-    font-size: 90px;
-    color: rgba(0, 0, 0, 0.15);
-}
- -->
-    
-    <div class="col-md-12">
-          <div class="info-box">
-            <span><i wicket:id="consentIcon"></i></span>
+		<div class="col-md-12">
+			<div class="info-box">
+				<span class="info-box-icon consent-info-box-icon"><i wicket:id="consentIcon"></i></span>
 
-            <div class="info-box-content">
-              <span wicket:id="displayName"/>
-              <span class="info-box-text" wicket:id="validity"/>
-            </div>
-            <!-- /.info-box-content -->
-            <a class="btn btn-danger" wicket:id="revoke"></a>
-            <a class="btn btn-success" wicket:id="agree"></a>
-          </div>
-          <!-- /.info-box -->
-        </div>
-</wicket:panel>
+				<div class="info-box-content">
+					<span class="consent-buttons">
+						<div class="btn-group-vertical">
+							<a class="btn btn-sm btn-danger" wicket:id="revoke"></a>
+							<a class="btn btn-sm btn-success" wicket:id="agree"></a>
+							<a class="btn btn-sm btn-danger" wicket:id="refuse"></a>
+						</div>
+					</span>
+					<span class="info-box-number" wicket:id="displayName" /> 
+					<span class="info-box-description" wicket:id="description" />
+					<span class="info-box-text" wicket:id="validity" />
+				</div>
+			</div>
+		</div>
+	</wicket:panel>
 </body>
 </html>

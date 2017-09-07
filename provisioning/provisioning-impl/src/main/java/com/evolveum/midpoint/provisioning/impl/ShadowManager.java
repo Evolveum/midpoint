@@ -1005,8 +1005,16 @@ public class ShadowManager {
 
 	public PendingOperationType checkAndRecordPendingModifyOperationBeforeExecution(ProvisioningContext ctx,
 			PrismObject<ShadowType> repoShadow, Collection<? extends ItemDelta> modifications, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		
-		ObjectDelta<ShadowType> proposedDelta = createModifyDelta(repoShadow, modifications);
+		Collection<ItemDelta> resourceModifications = new ArrayList<>(modifications.size());
+		for (ItemDelta modification: modifications) {
+			if (ProvisioningUtil.isResourceModification(modification)) {
+				resourceModifications.add(modification);
+			}
+		}
+		if (resourceModifications.isEmpty()) {
+			return null;
+		}
+		ObjectDelta<ShadowType> proposedDelta = createModifyDelta(repoShadow, resourceModifications);
 		return checkAndRecordPendingOperationBeforeExecution(ctx, repoShadow, proposedDelta, task, parentResult);
 	}
 	

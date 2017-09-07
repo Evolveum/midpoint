@@ -68,7 +68,7 @@ public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObje
         policyRules.setOutputMarkupId(true);
         add(policyRules);
 
-        PolicyRulesPanel policyRulesPanel = new PolicyRulesPanel(ID_POLICY_RULES_PANEL, policyRulesModel, pageBase);
+        PolicyRulesPanel policyRulesPanel = new PolicyRulesPanel(ID_POLICY_RULES_PANEL, policyRulesModel);
         policyRules.add(policyRulesPanel);
     }
 

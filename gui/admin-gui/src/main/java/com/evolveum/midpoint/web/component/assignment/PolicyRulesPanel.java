@@ -56,8 +56,8 @@ public class PolicyRulesPanel extends AssignmentPanel {
     private static final long serialVersionUID = 1L;
 
 
-    public PolicyRulesPanel(String id, IModel<List<AssignmentDto>> policyRulesModel, PageBase pageBase){
-        super(id, policyRulesModel, pageBase);
+    public PolicyRulesPanel(String id, IModel<List<AssignmentDto>> policyRulesModel){
+        super(id, policyRulesModel);
 
     }
 
