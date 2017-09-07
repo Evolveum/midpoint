@@ -171,8 +171,10 @@ public class ChangeExecutor {
 		if (focusContext != null) {
 			ObjectDelta<O> focusDelta = focusContext.getWaveExecutableDelta(context.getExecutionWave());
 
-			focusDelta = policySituationUpdater.applyAssignmentSituation(context, focusDelta);
-			policySituationUpdater.storeFocusPolicySituation(context);
+			if (!focusContext.isDelete()) {
+				focusDelta = policySituationUpdater.applyAssignmentSituation(context, focusDelta);
+				policySituationUpdater.storeFocusPolicySituation(context);
+			}
 
 			if (focusDelta != null) {
 
