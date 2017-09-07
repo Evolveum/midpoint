@@ -254,6 +254,52 @@
     		</filter>
     	</focusSelector>
     </globalPolicyRule>
+    <globalPolicyRule>  <!-- see TestRbac.test880 -->
+    	<name>immutable-user-from-pluto-selector</name>
+    	<policyConstraints>
+    		<modification>
+    			<operation>modify</operation>
+    		</modification>
+    	</policyConstraints>
+    	<policyActions>
+    		<enforcement/>
+    	</policyActions>
+    	<focusSelector>
+    		<type>UserType</type>
+    		<filter>
+    			<q:equal>
+    				<q:path>description</q:path>
+    				<q:value>Came from Pluto</q:value>
+    			</q:equal>
+    		</filter>
+    	</focusSelector>
+    </globalPolicyRule>
+    <globalPolicyRule>	<!-- see TestRbac.test880 -->
+    	<name>immutable-user-from-pluto-condition</name>
+    	<policyConstraints>
+    		<modification>
+    			<operation>modify</operation>
+    		</modification>
+    	</policyConstraints>
+    	<policyActions>
+    		<enforcement/>
+    	</policyActions>
+    	<focusSelector>
+    		<type>UserType</type>
+    	</focusSelector>
+		<condition>
+			<source>
+				<path>description</path>
+			</source>
+			<expression>
+				<script>
+					<code>
+						description == 'Came from Pluto'
+					</code>
+				</script>
+			</expression>
+		</condition>
+    </globalPolicyRule>
     <globalPolicyRule>
     	<name>immutable-role-description</name>
     	<policyConstraints>

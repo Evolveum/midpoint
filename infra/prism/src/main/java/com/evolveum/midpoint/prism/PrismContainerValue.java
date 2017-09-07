@@ -1450,6 +1450,9 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         appendOriginDump(sb);
 		List<Item<?,?>> items = getItems();
 		if (items == null || items.isEmpty()) {
+			if (wasIndent) {
+				sb.append("\n");
+			}
 			DebugUtil.indentDebugDump(sb, indent + 1);
 			sb.append("(no items)");
 		} else {

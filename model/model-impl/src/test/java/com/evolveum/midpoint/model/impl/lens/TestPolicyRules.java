@@ -607,13 +607,19 @@ public class TestPolicyRules extends AbstractLensTest {
 	}
 
 	/**
-	 * Drake gets assigned role Judge. But at the same time, his employeeType is changed to T, so the notification
-	 * global policy rule should not apply.
+	 * MID-4132
+	 *
+	 * Drake changes employeeType null to T. There's a global notification policy rule applicable to users with employeeType != T.
+	 * Should we get the notification?
+	 *
+	 * Yes and no. The condition is checked on objectCurrent. So, in primary state the rule is applied (employeeType is null
+	 * at that moment). But in final state (when notification actions are evaluated) the condition should be already false.
+	 * So we should not get the notification.
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void test300DrakeAssignRoleJudge() throws Exception {
-		final String TEST_NAME = "test300DrakeAssignRoleJudge";
+	public void test300DrakeChangeEmployeeType() throws Exception {
+		final String TEST_NAME = "test300DrakeChangeEmployeeType";
 		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN

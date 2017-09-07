@@ -419,6 +419,10 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		this.policyRules.add(policyRule);
 	}
 
+	public void clearPolicyRules() {
+    	policyRules.clear();
+	}
+
 	public void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
     	LensUtil.triggerRule(rule, triggers, policySituations);
 	}

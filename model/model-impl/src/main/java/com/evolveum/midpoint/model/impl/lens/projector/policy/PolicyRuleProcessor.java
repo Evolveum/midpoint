@@ -152,6 +152,8 @@ public class PolicyRuleProcessor {
 			return;
 		}
 
+		focusContext.clearPolicyRules();
+
 		List<EvaluatedPolicyRule> rules = new ArrayList<>();
 		collectFocusRulesFromAssignments(rules, context);
 		collectGlobalObjectRules(rules, context, task, result);
