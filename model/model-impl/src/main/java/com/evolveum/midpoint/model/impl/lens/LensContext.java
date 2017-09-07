@@ -910,12 +910,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			DebugUtil.indentDebugDump(sb, indent + 3);
 			sb.append("Evaluated assignments:");
 			if (evaluatedAssignmentTriple != null) {
-				dumpEvaluatedAssignments(sb, "Zero", (Collection) evaluatedAssignmentTriple.getZeroSet(),
-						indent + 4);
-				dumpEvaluatedAssignments(sb, "Plus", (Collection) evaluatedAssignmentTriple.getPlusSet(),
-						indent + 4);
-				dumpEvaluatedAssignments(sb, "Minus", (Collection) evaluatedAssignmentTriple.getMinusSet(),
-						indent + 4);
+				dumpEvaluatedAssignments(sb, "Zero", evaluatedAssignmentTriple.getZeroSet(), indent + 4);
+				dumpEvaluatedAssignments(sb, "Plus", evaluatedAssignmentTriple.getPlusSet(), indent + 4);
+				dumpEvaluatedAssignments(sb, "Minus", evaluatedAssignmentTriple.getMinusSet(), indent + 4);
 			} else {
 				sb.append(" (null)");
 			}
@@ -993,51 +990,74 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		}
 	}
 
-	// <F> of LensContext is of ObjectType; so we need to override it (but using another name to avoid IDE warnings)
-	private <FT extends FocusType> void dumpEvaluatedAssignments(StringBuilder sb, String label,
-			Collection<EvaluatedAssignmentImpl<FT>> set, int indent) {
+	private void dumpEvaluatedAssignments(StringBuilder sb, String label, Collection<EvaluatedAssignmentImpl<?>> set, int indent) {
 		sb.append("\n");
 		DebugUtil.debugDumpLabel(sb, label, indent);
-		for (EvaluatedAssignmentImpl<FT> assignment : set) {
+		for (EvaluatedAssignmentImpl<?> assignment : set) {
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent + 1);
 			sb.append("-> ").append(assignment.getTarget());
-			dumpRules(sb, "focus rules", indent + 3, assignment.getFocusPolicyRules());
-			dumpRules(sb, "this target rules", indent + 3, assignment.getThisTargetPolicyRules());
-			dumpRules(sb, "other targets rules", indent + 3, assignment.getOtherTargetsPolicyRules());
+			dumpRulesIfNotEmpty(sb, "- focus rules", indent + 3, assignment.getFocusPolicyRules());
+			dumpRulesIfNotEmpty(sb, "- this target rules", indent + 3, assignment.getThisTargetPolicyRules());
+			dumpRulesIfNotEmpty(sb, "- other targets rules", indent + 3, assignment.getOtherTargetsPolicyRules());
 		}
 	}
 
-	private void dumpRules(StringBuilder sb, String label, int indent, Collection<EvaluatedPolicyRule> policyRules) {
+	static void dumpRulesIfNotEmpty(StringBuilder sb, String label, int indent, Collection<EvaluatedPolicyRule> policyRules) {
+		if (!policyRules.isEmpty()) {
+			dumpRules(sb, label, indent, policyRules);
+		}
+	}
+
+	static void dumpRules(StringBuilder sb, String label, int indent, Collection<EvaluatedPolicyRule> policyRules) {
 		if (policyRules.isEmpty()) {
 			return;
 		}
 		sb.append("\n");
-		DebugUtil.debugDumpLabel(sb, "- " + label + " (" + policyRules.size() + ", triggered " + getTriggeredRulesCount(policyRules) + ")", indent);
+		int triggered = getTriggeredRulesCount(policyRules);
+		DebugUtil.debugDumpLabel(sb, label + " (total " + policyRules.size() + ", triggered " + triggered + ")", indent);
+		// not triggered rules are dumped in one line
 		boolean first = true;
 		for (EvaluatedPolicyRule rule : policyRules) {
+			if (rule.isTriggered()) {
+				continue;
+			}
 			if (first) {
 				first = false;
 				sb.append(" ");
 			} else {
 				sb.append("; ");
 			}
-			if (rule.isGlobal()) {
-				sb.append("G:");
-			}
-			if (rule.getName() != null) {
-				sb.append(rule.getName());
-			}
-			sb.append("(").append(PolicyRuleTypeUtil.toShortString(rule.getPolicyConstraints())).append(")");
-			sb.append("->");
-			sb.append("(").append(PolicyRuleTypeUtil.toShortString(rule.getActions())).append(")");
-			if (!rule.getTriggers().isEmpty()) {
-				sb.append("=>T:(");
-				sb.append(rule.getTriggers().stream().map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
-						.collect(Collectors.joining(", ")));
-				sb.append(")");
+			sb.append(dumpRule(rule));
+		}
+		// now triggered rules, each on separate line
+		for (EvaluatedPolicyRule rule : policyRules) {
+			if (rule.isTriggered()) {
+				sb.append("\n");
+				DebugUtil.indentDebugDump(sb, indent + 1);
+				sb.append("- triggered: ").append(dumpRule(rule));
 			}
 		}
+	}
+
+	private static String dumpRule(EvaluatedPolicyRule rule) {
+		StringBuilder sb = new StringBuilder();
+		if (rule.isGlobal()) {
+			sb.append("G:");
+		}
+		if (rule.getName() != null) {
+			sb.append(rule.getName()).append(":");
+		}
+		sb.append("(").append(PolicyRuleTypeUtil.toShortString(rule.getPolicyConstraints())).append(")");
+		sb.append("->");
+		sb.append("(").append(PolicyRuleTypeUtil.toShortString(rule.getActions())).append(")");
+		if (!rule.getTriggers().isEmpty()) {
+			sb.append(" => T:(");
+			sb.append(rule.getTriggers().stream().map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
+					.collect(Collectors.joining(", ")));
+			sb.append(")");
+		}
+		return sb.toString();
 	}
 
 	static int getTriggeredRulesCount(Collection<EvaluatedPolicyRule> policyRules) {
