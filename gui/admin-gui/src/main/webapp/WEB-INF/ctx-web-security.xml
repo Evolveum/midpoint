@@ -41,10 +41,15 @@ http://www.springframework.org/schema/context
     <http pattern="/wro/**" security="none"/>
     <!-- todo fix later with some mounting-->
     <http pattern="/wicket/resource/**" security="none"/>
-    
+
+    <beans:bean id="wicketAuthenticationEntryPoint"
+          class="com.evolveum.midpoint.web.security.WicketLoginUrlAuthenticationEntryPoint">
+        <beans:constructor-arg value="/login"/>
+    </beans:bean>
 
 	<!-- add following: entry-point-ref="casEntryPoint"  to the http element before create-session attribute -->
-    <http create-session="never" auto-config="true" use-expressions="false" access-decision-manager-ref="accessDecisionManager">
+    <http create-session="never" auto-config="true" use-expressions="false"
+          access-decision-manager-ref="accessDecisionManager" entry-point-ref="wicketAuthenticationEntryPoint">
 <!--         <intercept-url pattern="/registration" /> -->
         <intercept-url pattern="/j_spring_security_check" />
         <intercept-url pattern="/spring_security_login" />
