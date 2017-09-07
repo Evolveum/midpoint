@@ -43,18 +43,31 @@ public class PolicyRuleTypeUtil {
 	private static final char JOIN_OR = '|';
 
 	private static Map<String, String> CONSTRAINT_NAMES = new HashMap<>();
+
+	private static final String SYMBOL_MIN = "min";
+	private static final String SYMBOL_MAX = "max";
+	private static final String SYMBOL_ASSIGNMENT_MODIFICATION = "amod";
+	private static final String SYMBOL_OBJECT_MODIFICATION = "omod";
+	private static final String SYMBOL_OBJECT_STATE = "ostate";
+	private static final String SYMBOL_ASSIGNMENT_STATE = "astate";
+	private static final String SYMBOL_EXCLUSION = "exc";
+	private static final String SYMBOL_HAS_ASSIGNMENT = "hasass";
+	private static final String SYMBOL_NO_ASSIGNMENT = "noass";
+	private static final String SYMBOL_TIME_VALIDITY = "time";
+	private static final String SYMBOL_SITUATION = "sit";
+
 	static {
-		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_MIN_ASSIGNEES.getLocalPart(), "min");
-		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_MAX_ASSIGNEES.getLocalPart(), "max");
-		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ASSIGNMENT.getLocalPart(), "amod");
-		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_MODIFICATION.getLocalPart(), "omod");
-		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_OBJECT_STATE.getLocalPart(), "ostate");
-		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ASSIGNMENT_STATE.getLocalPart(), "astate");
-		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_EXCLUSION.getLocalPart(), "exc");
-		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_HAS_ASSIGNMENT.getLocalPart(), "hasass");
-		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_HAS_NO_ASSIGNMENT.getLocalPart(), "noass");
-		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_TIME_VALIDITY.getLocalPart(), "time");
-		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_SITUATION.getLocalPart(), "sit");
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_MIN_ASSIGNEES.getLocalPart(), SYMBOL_MIN);
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_MAX_ASSIGNEES.getLocalPart(), SYMBOL_MAX);
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ASSIGNMENT.getLocalPart(), SYMBOL_ASSIGNMENT_MODIFICATION);
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_MODIFICATION.getLocalPart(), SYMBOL_OBJECT_MODIFICATION);
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_OBJECT_STATE.getLocalPart(), SYMBOL_OBJECT_STATE);
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ASSIGNMENT_STATE.getLocalPart(), SYMBOL_ASSIGNMENT_STATE);
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_EXCLUSION.getLocalPart(), SYMBOL_EXCLUSION);
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_HAS_ASSIGNMENT.getLocalPart(), SYMBOL_HAS_ASSIGNMENT);
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_HAS_NO_ASSIGNMENT.getLocalPart(), SYMBOL_NO_ASSIGNMENT);
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_TIME_VALIDITY.getLocalPart(), SYMBOL_TIME_VALIDITY);
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_SITUATION.getLocalPart(), SYMBOL_SITUATION);
 	}
 
 	public static String toShortString(PolicyConstraintsType constraints) {
@@ -141,17 +154,17 @@ public class PolicyRuleTypeUtil {
 			return "null";
 		}
 		switch (constraintKind) {
-			case ASSIGNMENT_MODIFICATION: return "a-mod";
-			case OBJECT_MODIFICATION: return "o-mod";
-			case EXCLUSION: return "exc";
-			case MAX_ASSIGNEES_VIOLATION: return "max";
-			case MIN_ASSIGNEES_VIOLATION: return "min";
-			case OBJECT_STATE: return "o-state";
-			case ASSIGNMENT_STATE: return "a-state";
-			case HAS_ASSIGNMENT: return "has-a";
-			case HAS_NO_ASSIGNMENT: return "no-a";
-			case TIME_VALIDITY: return "time";
-			case SITUATION: return "sit";
+			case ASSIGNMENT_MODIFICATION: return SYMBOL_ASSIGNMENT_MODIFICATION;
+			case OBJECT_MODIFICATION: return SYMBOL_OBJECT_MODIFICATION;
+			case EXCLUSION: return SYMBOL_EXCLUSION;
+			case MAX_ASSIGNEES_VIOLATION: return SYMBOL_MAX;
+			case MIN_ASSIGNEES_VIOLATION: return SYMBOL_MIN;
+			case OBJECT_STATE: return SYMBOL_OBJECT_STATE;
+			case ASSIGNMENT_STATE: return SYMBOL_ASSIGNMENT_STATE;
+			case HAS_ASSIGNMENT: return SYMBOL_HAS_ASSIGNMENT;
+			case HAS_NO_ASSIGNMENT: return SYMBOL_NO_ASSIGNMENT;
+			case TIME_VALIDITY: return SYMBOL_TIME_VALIDITY;
+			case SITUATION: return SYMBOL_SITUATION;
 			default: return constraintKind.toString();
 		}
 	}
