@@ -1033,9 +1033,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	}
 
 	static void dumpRules(StringBuilder sb, String label, int indent, Collection<EvaluatedPolicyRule> policyRules) {
-		if (policyRules.isEmpty()) {
-			return;
-		}
 		sb.append("\n");
 		int triggered = getTriggeredRulesCount(policyRules);
 		DebugUtil.debugDumpLabel(sb, label + " (total " + policyRules.size() + ", triggered " + triggered + ")", indent);
@@ -1060,6 +1057,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 				DebugUtil.indentDebugDump(sb, indent + 1);
 				sb.append("- triggered: ").append(dumpRule(rule));
 			}
+		}
+		if (policyRules.isEmpty()) {
+			sb.append(" (none)");
 		}
 	}
 
