@@ -418,10 +418,12 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	public void addPolicyRule(EvaluatedPolicyRule policyRule) {
 		this.policyRules.add(policyRule);
 	}
-public void clearPolicyRules() {
+
+	public void clearPolicyRules() {
     	policyRules.clear();
 	}
-	public void triggerConstraint( EvaluatedPolicyRule rule, EvaluatedPolicyRuleTriggertrigger) throws PolicyViolationException {
+
+	public void triggerConstraint( EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
     	LensUtil.triggerConstraint(rule, trigger, policySituations);
 	}
 

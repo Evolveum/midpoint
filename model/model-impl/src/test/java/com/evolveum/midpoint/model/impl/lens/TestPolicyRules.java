@@ -42,6 +42,7 @@ import org.testng.annotations.Test;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static org.testng.AssertJUnit.*;
 
@@ -208,7 +209,6 @@ public class TestPolicyRules extends AbstractLensTest {
 		TestUtil.assertSuccess(result);
 
 		dumpPolicyRules(context);
-		dumpPolicySituations(context);
 
 		assertEvaluatedRules(context, 4);
 		assertTriggeredRules(context, 2, PolicyConstraintKindType.ASSIGNMENT);
@@ -519,7 +519,6 @@ public class TestPolicyRules extends AbstractLensTest {
 		//display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
 
 		dumpPolicyRules(context);
-		dumpPolicySituations(context);
 
 		// Judge: criminal-exclusion, unassignment, all-assignment-operations
 		// Employee: approve-any-corp-role, notify-exclusion-violations, employee-excludes-contractor
@@ -565,7 +564,6 @@ public class TestPolicyRules extends AbstractLensTest {
 		//display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
 
 		dumpPolicyRules(context);
-		dumpPolicySituations(context);
 
 		// Judge: L:criminal-exclusion, L:unassignment, L:all-assignment-operations
 		// Contractor: L:approve-any-corp-role, L:notify-exclusion-violations, L:contractor-excludes-employee
