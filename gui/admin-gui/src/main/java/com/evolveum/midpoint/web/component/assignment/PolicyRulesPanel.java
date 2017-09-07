@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -142,6 +144,14 @@ public class PolicyRulesPanel extends AssignmentPanel {
 	protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
 		// TODO Auto-generated method stub
 
+        AssignmentType assignment = new AssignmentType();
+
+        PolicyRuleType policyRule = new PolicyRuleType(getPageBase().getPrismContext());
+        policyRule.setDescription("");
+        assignment.setPolicyRule(policyRule);
+
+        getModelObject().add(new AssignmentDto(assignment, UserDtoStatus.ADD));
+        target.add(getAssignmentContainer());
 	}
 
 	@Override

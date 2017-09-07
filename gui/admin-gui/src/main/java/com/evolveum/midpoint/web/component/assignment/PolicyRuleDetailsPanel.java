@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  * Created by honchar.
@@ -56,7 +58,8 @@ protected List getHiddenItems() {
 
    @Override
 protected void initPropertiesPanel(WebMarkupContainer propertiesPanel) {
-	   PolicyRulePropertiesPanel policyDetails = new PolicyRulePropertiesPanel(ID_POLICY_RULE, getModel(), pageBase);
+	   PolicyRulePropertiesPanel policyDetails = new PolicyRulePropertiesPanel(ID_POLICY_RULE,
+			   new PropertyModel<>(getModel(), pageBase.createPropertyModelExpression(AssignmentDto.F_VALUE, AssignmentType.F_POLICY_RULE.getLocalPart())), pageBase);
 		policyDetails.setOutputMarkupId(true);
 		policyDetails.add(new VisibleEnableBehaviour() {
 

@@ -1048,6 +1048,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return StringUtils.join(components, ":");
 	}
 
+	public String createPropertyModelExpression(String... components) {
+		return StringUtils.join(components, ".");
+	}
+
 	/**
 	 * It's here only because of some IDEs - it's not properly filtering
 	 * resources during maven build. "describe" variable is not replaced.
