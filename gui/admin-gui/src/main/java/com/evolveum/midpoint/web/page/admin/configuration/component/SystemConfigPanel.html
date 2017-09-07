@@ -42,18 +42,49 @@
             <h3 style="margin-left: 20px;">
                 <wicket:message key="SystemConfigPanel.title.accountSynchronization"/>
             </h3>
-            <div class="form-group" wicket:id="chooseAssignmentPolicyEnforcement" />
+            <div class="form-group" wicket:id="chooseAssignmentPolicyEnforcement"/>
             <h3 style="margin-left: 20px">
                 <wicket:message key="SystemConfigPanel.cleanupPolicy"/>
             </h3>
             <div class="form-group">
-            <div wicket:id="auditRecordsCleanup"
-                 wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
+                <div wicket:id="auditRecordsCleanup"
+                     wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
             </div>
 
             <div class="form-group">
-            <div wicket:id="closedTasksCleanup"
-                 wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
+                <div wicket:id="closedTasksCleanup"
+                     wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder"/>
+            </div>
+
+
+            <h3>
+                <wicket:message key="SystemConfigPanel.title.deploymentInformation"/>
+            </h3>
+            <div class="form-group" wicket:id="deploymentInfoContainer">
+
+                <div class="form-group" wicket:id="deploymentInfoName"/>
+
+                <div class="form-group" wicket:id="deploymentInfoDescription"/>
+
+                <div class="form-group" wicket:id="deploymentInfoHeaderColor"/>
+
+                <div class="form-group" wicket:id="deploymentInfoSkin"/>
+
+                <div class="form-group" wicket:id="deploymentInfoCustomerUrl"/>
+
+                <div class="form-group" wicket:id="deploymentInfoPartnerName"/>
+
+                <div class="form-group" wicket:id="deploymentInfoSubscriptionId"/>
+
+
+            <hr style="margin-right: 20px;">
+
+
+                <div class="form-group" wicket:id="deploymentInfoLogoImageUrl"/>
+
+                <div class="form-group" wicket:id="deploymentInfoLogoCssClass"/>
+
+            <hr style="margin-right: 20px;">
             </div>
             <h3>
                 <wicket:message key="SystemConfigPanel.title.misc"/>
