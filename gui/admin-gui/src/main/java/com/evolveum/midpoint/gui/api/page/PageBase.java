@@ -1314,7 +1314,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         if (SystemConfigurationHolder.isExperimentalCodeEnabled()) {
             addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.evaluateMapping", PageEvaluateMapping.class);
         }
-        addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.about", PageAbout.class);
+        addMainMenuItem(item, "fa fa-info-circle", "PageAdmin.menu.top.configuration.about", PageAbout.class);
     }
 
     private void addSystemMenuItem(MainMenuItem mainItem, String key, int tabIndex) {
