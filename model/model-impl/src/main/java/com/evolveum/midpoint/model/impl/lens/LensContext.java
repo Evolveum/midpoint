@@ -1019,7 +1019,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		// not triggered rules are dumped in one line
 		boolean first = true;
 		for (EvaluatedPolicyRule rule : policyRules) {
-			if (rule.isTriggered()) {
+			if (!rule.getTriggers().isEmpty()) {
 				continue;
 			}
 			if (first) {
@@ -1032,7 +1032,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		}
 		// now triggered rules, each on separate line
 		for (EvaluatedPolicyRule rule : policyRules) {
-			if (rule.isTriggered()) {
+			if (!rule.getTriggers().isEmpty()) {
 				sb.append("\n");
 				DebugUtil.indentDebugDump(sb, indent + 1);
 				sb.append("- triggered: ").append(dumpRule(rule));
