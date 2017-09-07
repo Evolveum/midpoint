@@ -17,12 +17,8 @@
 package com.evolveum.midpoint.web.boot;
 
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
-import com.evolveum.midpoint.web.security.AuditedLogoutHandler;
-import com.evolveum.midpoint.web.security.MidPointAuthenticationProvider;
-import com.evolveum.midpoint.web.security.MidPointAuthenticationSuccessHandler;
-import com.evolveum.midpoint.web.security.MidPointGuiAuthorizationEvaluator;
+import com.evolveum.midpoint.web.security.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,6 +43,11 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
 @EnableGlobalMethodSecurity(securedEnabled = true)
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Bean
+    public WicketLoginUrlAuthenticationEntryPoint wicketAuthenticationEntryPoint() {
+        return new WicketLoginUrlAuthenticationEntryPoint("/login");
+    }
 
     @Bean
     public MidPointGuiAuthorizationEvaluator accessDecisionManager(SecurityEnforcer securityEnforcer) {
@@ -107,6 +108,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .loginPage("/login")
                 .loginProcessingUrl("/spring_security_login")
                 .successHandler(authenticationSuccessHandler()).permitAll();
+
+        http.exceptionHandling()
+                .authenticationEntryPoint(wicketAuthenticationEntryPoint());
 
         http.csrf().disable();
         http.headers().disable();
