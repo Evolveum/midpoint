@@ -107,8 +107,6 @@ public class ReportDto implements Serializable {
     public PrismObject<ReportType> getObject() {
         if (reportType == null) {
             reportType = new ReportType();
-            //TODO FIXME temporary every new report will be set as parent report
-            reportType.setParent(Boolean.TRUE);
         }
         reportType.setName(new PolyStringType(name));
         reportType.setExport(exportType);
