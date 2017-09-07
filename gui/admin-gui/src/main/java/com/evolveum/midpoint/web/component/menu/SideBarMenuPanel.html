@@ -17,9 +17,12 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <!-- sidebar menu: : style can be found in sidebar.less -->
-    <ul class="sidebar-menu">
+    <ul class="sidebar-menu" wicket:id="sidebar">
         <wicket:container wicket:id="menuItems">
-            <li class="header" wicket:id="name"></li>
+            <li class="header">
+                <span wicket:id="name"></span>
+                <i class="fa fa-angle-left pull-right" wicket:id="minimizedIcon"></i>
+            </li>
             <wicket:container wicket:id="items">
                 <wicket:container wicket:id="item"/>
             </wicket:container>
