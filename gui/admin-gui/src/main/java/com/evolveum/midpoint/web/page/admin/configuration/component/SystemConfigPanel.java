@@ -20,7 +20,9 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
+import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.IModel;
@@ -49,7 +51,21 @@ public class SystemConfigPanel extends BasePanel<SystemConfigurationDto> {
     private static final String ID_GLOBAL_CHOOSEASSIGNEMNTPOLICYENFORCEMENT = "chooseAssignmentPolicyEnforcement";
     private static final String ID_CLEANUP_AUDIT_RECORDS = "auditRecordsCleanup";
     private static final String ID_CLEANUP_CLOSED_TASKS = "closedTasksCleanup";
+
+    private static final String ID_DEPLOYMENT_INFO_NAME = "deploymentInfoName";
+    private static final String ID_DEPLOYMENT_INFO_DESCRIPTION = "deploymentInfoDescription";
+    private static final String ID_DEPLOYMENT_INFO_HEADER_COLOR = "deploymentInfoHeaderColor";
+
     private static final String ID_EXPERIMENTAL_CODE_CHECKBOX = "experimentalCodeCheckbox";
+
+    private static final String ID_DEPLOYMENT_INFO_CONTAINER = "deploymentInfoContainer";
+
+    private static final String ID_DEPLOYMENT_INFO_SKIN = "deploymentInfoSkin";
+    private static final String ID_DEPLOYMENT_INFO_CUSTOMER_URL = "deploymentInfoCustomerUrl";
+    private static final String ID_DEPLOYMENT_INFO_PARTNER_NAME = "deploymentInfoPartnerName";
+    private static final String ID_DEPLOYMENT_INFO_SUBSCRIPTION_ID = "deploymentInfoSubscriptionId";
+    private static final String ID_DEPLOYMENT_INFO_LOGO_CSS = "deploymentInfoLogoCssClass";
+    private static final String ID_DEPLOYMENT_INFO_LOGO_IMAGEURL = "deploymentInfoLogoImageUrl";
 
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-4";
@@ -90,6 +106,36 @@ public class SystemConfigPanel extends BasePanel<SystemConfigurationDto> {
 
         add(auditRecordsField);
         add(closedTasksField);
+
+        TextFormGroup deploymentInfoName = new TextFormGroup(ID_DEPLOYMENT_INFO_NAME, new PropertyModel<String>(getModel(), "deploymentInformation.name"), createStringResource("SystemConfigPanel.deploymentInformation.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        TextAreaFormGroup deploymentInfoDescription = new TextAreaFormGroup(ID_DEPLOYMENT_INFO_DESCRIPTION, new PropertyModel<String>(getModel(), "deploymentInformation.description"), createStringResource("SystemConfigPanel.deploymentInformation.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        TextFormGroup deploymentInfoHeaderColor = new TextFormGroup(ID_DEPLOYMENT_INFO_HEADER_COLOR, new PropertyModel<String>(getModel(), "deploymentInformation.headerColor"), createStringResource("SystemConfigPanel.deploymentInformation.headerColor"),"SystemConfigPanel.tooltip.color", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false , false); // TODO change to a more user friendly solution
+
+        TextFormGroup deploymentInfoImageUrl = new TextFormGroup(ID_DEPLOYMENT_INFO_LOGO_IMAGEURL, new PropertyModel<String>(getModel(), "deploymentInformation.logo.imageUrl"), createStringResource("SystemConfigPanel.deploymentInformation.logoImageUrl"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        TextFormGroup deploymentInfoCssClass = new TextFormGroup(ID_DEPLOYMENT_INFO_LOGO_CSS, new PropertyModel<String>(getModel(), "deploymentInformation.logo.cssClass"), createStringResource("SystemConfigPanel.deploymentInformation.logoCssClass"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+
+
+        TextFormGroup deploymentInfoSkin = new TextFormGroup(ID_DEPLOYMENT_INFO_SKIN, new PropertyModel<String>(getModel(), "deploymentInformation.skin"), createStringResource("SystemConfigPanel.deploymentInformation.skin"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        TextFormGroup deploymentInfoCustomerUrl = new TextFormGroup(ID_DEPLOYMENT_INFO_CUSTOMER_URL, new PropertyModel<String>(getModel(), "deploymentInformation.customerUrl"), createStringResource("SystemConfigPanel.deploymentInformation.customerUrl"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        TextFormGroup deploymentInfoPartnerName = new TextFormGroup(ID_DEPLOYMENT_INFO_PARTNER_NAME, new PropertyModel<String>(getModel(), "deploymentInformation.partnerName"), createStringResource("SystemConfigPanel.deploymentInformation.partnerName"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        TextFormGroup deploymentInfoSubscriptionId = new TextFormGroup(ID_DEPLOYMENT_INFO_SUBSCRIPTION_ID, new PropertyModel<String>(getModel(), "deploymentInformation.subscriptionIdentifier"), createStringResource("SystemConfigPanel.deploymentInformation.subscriptionIdentifier"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+
+        WebMarkupContainer deploymentInfoContainer = new WebMarkupContainer(ID_DEPLOYMENT_INFO_CONTAINER);
+
+        deploymentInfoContainer.add(deploymentInfoName);
+        deploymentInfoContainer.add(deploymentInfoDescription);
+        deploymentInfoContainer.add(deploymentInfoHeaderColor);
+
+        deploymentInfoContainer.add(deploymentInfoImageUrl);
+        deploymentInfoContainer.add(deploymentInfoCssClass);
+
+        deploymentInfoContainer.add(deploymentInfoSkin);
+        deploymentInfoContainer.add(deploymentInfoCustomerUrl);
+        deploymentInfoContainer.add(deploymentInfoPartnerName);
+        deploymentInfoContainer.add(deploymentInfoSubscriptionId);
+
+        add(deploymentInfoContainer);
+
 
         CheckFormGroup experimentalCodeCheck = new CheckFormGroup(ID_EXPERIMENTAL_CODE_CHECKBOX, new PropertyModel<Boolean>(getModel(), SystemConfigurationDto.F_ENABLE_EXPERIMENTAL_CODE), createStringResource("SystemConfigPanel.misc.enableExperimentalCode"), ID_LABEL_SIZE, ID_INPUT_SIZE);
         add(experimentalCodeCheck);
