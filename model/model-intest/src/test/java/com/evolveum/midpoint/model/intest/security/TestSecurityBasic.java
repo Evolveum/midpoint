@@ -522,7 +522,60 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertAddDeny();
 
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Captain Jack Sparrow"));
+        assertModifyDenyRaw(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Raw Captain Jack Sparrow"));
+        assertModifyDenyPartial(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Partial Captain Jack Sparrow"));
         assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, "Pirate wannabe");
+        assertModifyDenyRaw(UserType.class, USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, "Raw Pirate wannabe");
+        assertModifyDenyPartial(UserType.class, USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, "Raw Pirate wannabe");
+
+        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+        assertModifyDeny(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Mutinier"));
+
+        assertDeleteDeny();
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("Jack", userJack);
+		assertJackEditSchemaReadAllModifySome(userJack);
+
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * MID-4101
+	 */
+	@Test
+    public void test212AutzJackPropReadAllModifySomeUserPartial() throws Exception {
+		final String TEST_NAME = "test212AutzJackPropReadAllModifySomeUserPartial";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_PROP_READ_ALL_MODIFY_SOME_USER_PARTIAL_OID);
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+		assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+		assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		assertReadDenyRaw();
+
+		assertSearch(UserType.class, null, 1);
+		assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
+		assertSearchDeny(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
+		assertSearchDeny(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+
+        assertAddDeny();
+
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Captain Jack Sparrow"));
+        assertModifyDenyRaw(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Raw Captain Jack Sparrow"));
+        assertModifyAllowPartial(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Partial Captain Jack Sparrow"));
+        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, "Pirate wannabe");
+        assertModifyDenyRaw(UserType.class, USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, "Raw Pirate wannabe");
+        assertModifyDenyPartial(UserType.class, USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, "Raw Pirate wannabe");
 
         assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
         assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
@@ -819,6 +872,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 		assertAssignmentsWithTargets(userGuybrush, 1);
 
 		assertAddAllow();
+		assertAddAllowRaw();
 
 		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Captain Jack Sparrow"));
 		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_ADDITIONAL_NAME, PrismTestUtil.createPolyString("Captain"));
@@ -855,6 +909,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetAllow(UserType.class, userRumRogersOid);
         assertModifyAllow(UserType.class, userRumRogersOid, UserType.F_TITLE, PrismTestUtil.createPolyString("drunk"));
         assertGetAllow(UserType.class, userCobbOid);
+        assertAddDenyRaw(USER_MANCOMB_FILE);
         assertAddAllow(USER_MANCOMB_FILE);
 
         assertVisibleUsers(4);
@@ -1170,6 +1225,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetAllow(UserType.class, userRumRogersOid);
         assertModifyAllow(UserType.class, userRumRogersOid, UserType.F_TITLE, PrismTestUtil.createPolyString("drunk"));
         assertGetAllow(UserType.class, userCobbOid); // Cobb is in Scumm Bar, transitive descendant of Ministry of Rum
+        assertAddDenyRaw(USER_MANCOMB_FILE);
         assertAddAllow(USER_MANCOMB_FILE); // MID-3874
 
         Task task = taskManager.createTaskInstance(TestSecurityBasic.class.getName() + "." + TEST_NAME);
