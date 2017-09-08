@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.HeteroComparator;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -26,6 +28,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.JAXBElement;
@@ -86,7 +89,8 @@ public class PolicyRuleTypeUtil {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder();
-		for (JAXBElement<AbstractPolicyConstraintType> constraint : toConstraintsList(constraints, false)) {
+		// we ignore refs to be able to dump even unresolved policy rules
+		for (JAXBElement<AbstractPolicyConstraintType> constraint : toConstraintsList(constraints, false, true)) {
 			QName name = constraint.getName();
 			String abbreviation = CONSTRAINT_NAMES.get(name.getLocalPart());
 			if (sb.length() > 0) {
@@ -115,6 +119,12 @@ public class PolicyRuleTypeUtil {
 			} else {
 				sb.append(abbreviation != null ? abbreviation : name.getLocalPart());
 			}
+		}
+		for (String ref : constraints.getRef()) {
+			if (sb.length() > 0) {
+				sb.append(join);
+			}
+			sb.append("ref:").append(ref);
 		}
 		return sb.toString();
 	}
@@ -397,9 +407,9 @@ public class PolicyRuleTypeUtil {
 		return true;
 	}
 
-	public static List<JAXBElement<AbstractPolicyConstraintType>> toConstraintsList(PolicyConstraintsType pc, boolean deep) {
+	public static List<JAXBElement<AbstractPolicyConstraintType>> toConstraintsList(PolicyConstraintsType pc, boolean deep, boolean ignoreRefs) {
 		List<JAXBElement<AbstractPolicyConstraintType>> rv = new ArrayList<>();
-		accept(pc, (name, c) -> { rv.add(toConstraintJaxbElement(name, c)); return true; }, deep, false, false);
+		accept(pc, (name, c) -> { rv.add(toConstraintJaxbElement(name, c)); return true; }, deep, false, ignoreRefs);
 		return rv;
 	}
 
@@ -467,23 +477,27 @@ public class PolicyRuleTypeUtil {
 
 	interface ConstraintResolver {
 		@NotNull
-		JAXBElement<? extends AbstractPolicyConstraintType> resolve(@NotNull String name) throws ObjectNotFoundException;
+		JAXBElement<? extends AbstractPolicyConstraintType> resolve(@NotNull String name)
+				throws ObjectNotFoundException, SchemaException;
 	}
 
 	public static class LazyMapConstraintsResolver implements ConstraintResolver {
-		@NotNull private final List<Supplier<Map<String, JAXBElement<? extends AbstractPolicyConstraintType>>>> constraintsSuppliers;
+		// the supplier provides list of entries instead of a map because we want to make duplicate checking at one place
+		// (in this class)
+		@NotNull private final List<Supplier<List<Map.Entry<String, JAXBElement<? extends AbstractPolicyConstraintType>>>>> constraintsSuppliers;
 		@NotNull private final Map<String, JAXBElement<? extends AbstractPolicyConstraintType>> constraintsMap = new HashMap<>();
 		private int usedSuppliers = 0;
 
 		@SafeVarargs
 		public LazyMapConstraintsResolver(
-				@NotNull Supplier<Map<String, JAXBElement<? extends AbstractPolicyConstraintType>>>... constraintsSuppliers) {
+				@NotNull Supplier<List<Map.Entry<String, JAXBElement<? extends AbstractPolicyConstraintType>>>>... constraintsSuppliers) {
 			this.constraintsSuppliers = Arrays.asList(constraintsSuppliers);
 		}
 
 		@NotNull
 		@Override
-		public JAXBElement<? extends AbstractPolicyConstraintType> resolve(@NotNull String name) throws ObjectNotFoundException {
+		public JAXBElement<? extends AbstractPolicyConstraintType> resolve(@NotNull String name)
+				throws ObjectNotFoundException, SchemaException {
 			for (;;) {
 				JAXBElement<? extends AbstractPolicyConstraintType> rv = constraintsMap.get(name);
 				if (rv != null) {
@@ -492,13 +506,29 @@ public class PolicyRuleTypeUtil {
 				if (usedSuppliers >= constraintsSuppliers.size()) {
 					throw new ObjectNotFoundException("No policy constraint named '" + name + "' could be found. Known constraints: " + constraintsMap.keySet());
 				}
-				constraintsMap.putAll(constraintsSuppliers.get(usedSuppliers++).get());
+				List<Map.Entry<String, JAXBElement<? extends AbstractPolicyConstraintType>>> newEntries =
+						constraintsSuppliers.get(usedSuppliers++).get();
+				for (Map.Entry<String, JAXBElement<? extends AbstractPolicyConstraintType>> newEntry : newEntries) {
+					JAXBElement<? extends AbstractPolicyConstraintType> existingElement = constraintsMap.get(newEntry.getKey());
+					JAXBElement<? extends AbstractPolicyConstraintType> newElement = newEntry.getValue();
+					if (existingElement != null) {
+						if (!QNameUtil.match(existingElement.getName(), newElement.getName())
+								|| !existingElement.getValue().equals(newElement.getValue())) {
+							throw new SchemaException("Conflicting definitions of '" + newEntry.getKey() + "' found.");
+						}
+					} else {
+						constraintsMap.put(newEntry.getKey(), newElement);
+					}
+				}
 			}
 		}
 	}
 
 	public static void resolveReferences(PolicyConstraintsType pc, ConstraintResolver resolver)
 			throws ObjectNotFoundException, SchemaException {
+		// This works even on chained rules because on any PolicyConstraintsType the visitor is called on a root
+		// (thus resolving the references) before it is called on children. And those children are already resolved;
+		// so, any references contained within them get also resolved.
 		accept(pc, (name, c) -> {
 			if (c instanceof PolicyConstraintsType) {
 				try {
@@ -515,6 +545,13 @@ public class PolicyRuleTypeUtil {
 	private static void resolveLocalReferences(PolicyConstraintsType pc, ConstraintResolver resolver)
 			throws ObjectNotFoundException, SchemaException {
 		for (String ref : pc.getRef()) {
+			if (StringUtils.isEmpty(ref)) {
+				throw new SchemaException("Illegal empty reference: " + ref);
+			}
+			List<String> pathToRoot = getPathToRoot(pc);
+			if (pathToRoot.contains(ref)) {
+				throw new SchemaException("Trying to resolve cyclic reference to constraint '" + ref + "'. Contained in: " + pathToRoot);
+			}
 			JAXBElement<? extends AbstractPolicyConstraintType> resolved = resolver.resolve(ref);
 			QName constraintName = resolved.getName();
 			AbstractPolicyConstraintType constraintValue = resolved.getValue();
@@ -524,29 +561,45 @@ public class PolicyRuleTypeUtil {
 		pc.getRef().clear();
 	}
 
+	// ugly hacking, but should work
+	@SuppressWarnings("unchecked")
+	private static List<String> getPathToRoot(PolicyConstraintsType pc) {
+		List<String> rv = new ArrayList<>();
+		computePathToRoot(rv, pc.asPrismContainerValue());
+		return rv;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void computePathToRoot(List<String> path, PrismContainerValue<? extends AbstractPolicyConstraintType> pc) {
+		path.add(pc.asContainerable().getName());
+		if (pc.getParent() instanceof PrismContainer) {
+			PrismContainer<? extends AbstractPolicyConstraintType> container =
+					(PrismContainer<? extends AbstractPolicyConstraintType>) pc.getParent();
+			PrismValue containerParentValue = container.getParent();
+			if (containerParentValue instanceof PrismContainerValue &&
+					((PrismContainerValue) containerParentValue).asContainerable() instanceof AbstractPolicyConstraintType) {
+				computePathToRoot(path, ((PrismContainerValue) container.getParent()));
+			}
+		}
+	}
+
 	public static void resolveReferences(List<PolicyRuleType> rules, Collection<? extends PolicyRuleType> otherRules) throws SchemaException, ObjectNotFoundException {
 		LazyMapConstraintsResolver resolver = new LazyMapConstraintsResolver(createConstraintsSupplier(rules),
 				createConstraintsSupplier(otherRules));
 		for (PolicyRuleType rule : rules) {
 			resolveReferences(rule.getPolicyConstraints(), resolver);
-//			// check resolution
-//			try {
-//				toConstraintsList(rule.getPolicyConstraints(), true);
-//			} catch (Throwable t) {
-//				System.out.println("Hi!");
-//			}
 		}
 	}
 
 	@NotNull
-	private static Supplier<Map<String, JAXBElement<? extends AbstractPolicyConstraintType>>> createConstraintsSupplier(
+	private static Supplier<List<Map.Entry<String, JAXBElement<? extends AbstractPolicyConstraintType>>>> createConstraintsSupplier(
 			Collection<? extends PolicyRuleType> rules) {
 		return () -> {
-			Map<String, JAXBElement<? extends AbstractPolicyConstraintType>> constraints = new HashMap<>();
+			List<Map.Entry<String, JAXBElement<? extends AbstractPolicyConstraintType>>> constraints = new ArrayList<>();
 			for (PolicyRuleType rule : rules) {
 				accept(rule.getPolicyConstraints(), (elementName, c) -> {
-					if (c.getName() != null) {
-						constraints.put(c.getName(), toConstraintJaxbElement(elementName, c));
+					if (StringUtils.isNotEmpty(c.getName())) {
+						constraints.add(new AbstractMap.SimpleEntry<>(c.getName(), toConstraintJaxbElement(elementName, c)));
 					}
 					return true;
 				}, true, true,true);

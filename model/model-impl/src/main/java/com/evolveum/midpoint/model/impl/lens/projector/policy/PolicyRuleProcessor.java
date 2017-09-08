@@ -291,7 +291,7 @@ public class PolicyRuleProcessor {
 			return Collections.emptyList();
 		}
 		List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
-		for (JAXBElement<AbstractPolicyConstraintType> constraint : toConstraintsList(constraints, false)) {
+		for (JAXBElement<AbstractPolicyConstraintType> constraint : toConstraintsList(constraints, false, false)) {
 			PolicyConstraintEvaluator<AbstractPolicyConstraintType> evaluator =
 					(PolicyConstraintEvaluator<AbstractPolicyConstraintType>) getConstraintEvaluator(constraint);
 			EvaluatedPolicyRuleTrigger<?> trigger = evaluator.evaluate(constraint, ctx, result);

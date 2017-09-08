@@ -399,7 +399,7 @@
 			<name>has-no-assignment-for-aaa</name>
 			<policyConstraints>
 				<hasNoAssignment>
-					<name>temporary-assignment-direct</name>
+					<name>aaa-assignment-direct</name>
 					<targetRef oid="aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" type="RoleType">
 						<targetName>abc</targetName>
 					</targetRef>

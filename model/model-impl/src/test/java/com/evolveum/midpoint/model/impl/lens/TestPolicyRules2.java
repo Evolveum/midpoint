@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
@@ -30,6 +31,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -37,6 +40,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Tests some of the "new" policy rules (state, hasAssignment).
@@ -57,6 +65,11 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	protected static final File USER_JOE_FILE = new File(TEST_DIR, "user-joe.xml");
 	protected static final File USER_FRANK_FILE = new File(TEST_DIR, "user-frank.xml");
 	protected static final File USER_PETER_FILE = new File(TEST_DIR, "user-peter.xml");
+
+	protected static final File ROLE_CHAINED_REFERENCES_FILE = new File(TEST_DIR, "role-chained-references.xml");
+	protected static final File ROLE_CYCLIC_REFERENCES_FILE = new File(TEST_DIR, "role-cyclic-references.xml");
+	protected static final File ROLE_UNRESOLVABLE_REFERENCES_FILE = new File(TEST_DIR, "role-unresolvable-references.xml");
+	protected static final File ROLE_AMBIGUOUS_REFERENCE_FILE = new File(TEST_DIR, "role-ambiguous-reference.xml");
 
 	private static final int STUDENT_TARGET_RULES = 5;          // one is global
 	private static final int STUDENT_FOCUS_RULES = 20;
@@ -495,8 +508,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	 * Test whether policy rules intended for users are not evaluated on the role itself.
 	 */
 	@Test
-	public void test200StudentRecompute() throws Exception {
-		final String TEST_NAME = "test200StudentRecompute";
+	public void test180StudentRecompute() throws Exception {
+		final String TEST_NAME = "test180StudentRecompute";
 		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
@@ -529,5 +542,159 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusTriggers(context, null, 2);
 		assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 2);
 	}
+
+	@Test
+	public void test200AddUnresolvable() throws Exception {
+		final String TEST_NAME = "test200AddUnresolvable";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		LensContext<RoleType> context = createLensContext(RoleType.class);
+		fillContextWithAddDelta(context, prismContext.parseObject(ROLE_UNRESOLVABLE_REFERENCES_FILE));
+		display("Input context", context);
+
+		assertFocusModificationSanity(context);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		try {
+			clockwork.run(context, task, result);
+			TestUtil.displayThen(TEST_NAME);
+			fail("unexpected success");
+		} catch (ObjectNotFoundException e) {
+			TestUtil.displayThen(TEST_NAME);
+			System.out.println("Expected exception: " + e);
+			e.printStackTrace(System.out);
+			if (!e.getMessage().contains("No policy constraint named 'unresolvable' could be found")) {
+				fail("Exception message was not as expected: " + e.getMessage());
+			}
+		}
+	}
+
+	@Test
+	public void test210AddCyclic() throws Exception {
+		final String TEST_NAME = "test210AddCyclic";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		LensContext<RoleType> context = createLensContext(RoleType.class);
+		fillContextWithAddDelta(context, prismContext.parseObject(ROLE_CYCLIC_REFERENCES_FILE));
+		display("Input context", context);
+
+		assertFocusModificationSanity(context);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		try {
+			clockwork.run(context, task, result);
+			TestUtil.displayThen(TEST_NAME);
+			fail("unexpected success");
+		} catch (SchemaException e) {
+			TestUtil.displayThen(TEST_NAME);
+			System.out.println("Expected exception: " + e);
+			e.printStackTrace(System.out);
+			if (!e.getMessage().contains("Trying to resolve cyclic reference to constraint")) {
+				fail("Exception message was not as expected: " + e.getMessage());
+			}
+		}
+	}
+
+	@Test
+	public void test220AddChained() throws Exception {
+		final String TEST_NAME = "test220AddChained";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		LensContext<RoleType> context = createLensContext(RoleType.class);
+		fillContextWithAddDelta(context, prismContext.parseObject(ROLE_CHAINED_REFERENCES_FILE));
+		display("Input context", context);
+
+		assertFocusModificationSanity(context);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		clockwork.run(context, task, result);
+
+		TestUtil.displayThen(TEST_NAME);
+		display("Output context", context);
+
+		Map<String,EvaluatedPolicyRule> rules = new HashMap<>();
+		forEvaluatedFocusPolicyRule(context, (r) -> {
+			display("rule", r);
+			rules.put(r.getName(), r);
+		});
+
+		assertEquals("Wrong # of policy rules", 5, rules.size());
+		EvaluatedPolicyRule rule1 = rules.get("rule1");
+		assertNotNull("no rule1", rule1);
+		PolicyConstraintsType pc1 = rule1.getPolicyConstraints();
+		assertEquals(1, pc1.getAnd().size());
+		PolicyConstraintsType pc1inner = pc1.getAnd().get(0);
+		assertEquals("mod-description-and-riskLevel-and-inducement", pc1inner.getName());
+		assertEquals("mod-riskLevel-and-inducement", pc1inner.getAnd().get(0).getName());
+		assertEquals(2, pc1inner.getAnd().get(0).getModification().size());
+
+		EvaluatedPolicyRule rule2 = rules.get("rule2");
+		assertNotNull("no rule2", rule2);
+		PolicyConstraintsType pc2 = rule2.getPolicyConstraints();
+		assertEquals("mod-description-and-riskLevel-and-inducement", pc2.getName());
+		assertEquals("mod-riskLevel-and-inducement", pc2.getAnd().get(0).getName());
+		assertEquals(2, pc2.getAnd().get(0).getModification().size());
+		assertEquals("Constraints in rule1, rule2 are different", pc1inner, pc2);
+
+		EvaluatedPolicyRule rule3 = rules.get("rule3");
+		assertNotNull("no rule3", rule3);
+		PolicyConstraintsType pc3 = rule3.getPolicyConstraints();
+		assertEquals("mod-riskLevel-and-inducement", pc3.getName());
+		assertEquals(2, pc3.getModification().size());
+		assertEquals("Constraints in rule2 and rule3 are different", pc2.getAnd().get(0), pc3);
+
+		EvaluatedPolicyRule rule4 = rules.get("rule4");
+		assertNotNull("no rule4", rule4);
+		PolicyConstraintsType pc4 = rule4.getPolicyConstraints();
+		assertEquals(1, pc4.getModification().size());
+		assertEquals("mod-inducement", pc4.getModification().get(0).getName());
+	}
+
+	@Test
+	public void test230AddAmbiguous() throws Exception {
+		final String TEST_NAME = "test230AddAmbiguous";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		LensContext<RoleType> context = createLensContext(RoleType.class);
+		fillContextWithAddDelta(context, prismContext.parseObject(ROLE_AMBIGUOUS_REFERENCE_FILE));
+		display("Input context", context);
+
+		assertFocusModificationSanity(context);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		try {
+			clockwork.run(context, task, result);
+			TestUtil.displayThen(TEST_NAME);
+			fail("unexpected success");
+		} catch (SchemaException e) {
+			TestUtil.displayThen(TEST_NAME);
+			System.out.println("Expected exception: " + e);
+			e.printStackTrace(System.out);
+			if (!e.getMessage().contains("Conflicting definitions of 'constraint-B'")) {
+				fail("Exception message was not as expected: " + e.getMessage());
+			}
+		}
+	}
+
 
 }
