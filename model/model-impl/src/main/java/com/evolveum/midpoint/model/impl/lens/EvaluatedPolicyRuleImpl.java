@@ -17,9 +17,13 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -49,10 +53,13 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	 */
 	@Nullable private final AssignmentPath assignmentPath;
 	@Nullable private final ObjectType directOwner;
+	private final transient PrismContext prismContext;     // only for debugDump - if null, nothing serious happens
 
-	public EvaluatedPolicyRuleImpl(@NotNull PolicyRuleType policyRuleType, @Nullable AssignmentPath assignmentPath) {
+	public EvaluatedPolicyRuleImpl(@NotNull PolicyRuleType policyRuleType, @Nullable AssignmentPath assignmentPath,
+			PrismContext prismContext) {
 		this.policyRuleType = policyRuleType;
 		this.assignmentPath = assignmentPath;
+		this.prismContext = prismContext;
 		this.directOwner = computeDirectOwner();
 	}
 
@@ -208,7 +215,9 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpLabelLn(sb, "EvaluatedPolicyRule " + (getName() != null ? getName() + " " : "") + "(triggers: " + triggers.size() + ")", indent);
 		DebugUtil.debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "policyRuleType", policyRuleType.toString(), indent + 1);
+		DebugUtil.debugDumpLabelLn(sb, "policyRuleType", indent + 1);
+		DebugUtil.indentDebugDump(sb, indent + 2);
+		PrismPrettyPrinter.debugDumpValue(sb, indent + 2, policyRuleType, prismContext, PolicyRuleType.COMPLEX_TYPE, PrismContext.LANG_XML);
 		DebugUtil.debugDumpWithLabelLn(sb, "assignmentPath", assignmentPath, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "triggers", triggers, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "directOwner", ObjectTypeUtil.toShortString(directOwner), indent + 1);
@@ -253,4 +262,26 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		// in the future we might employ special flag for this (if needed)
 		return policyRuleType instanceof GlobalPolicyRuleType;
 	}
+
+	@Override
+	public String toShortString() {
+		StringBuilder sb = new StringBuilder();
+		if (isGlobal()) {
+			sb.append("G:");
+		}
+		if (getName() != null) {
+			sb.append(getName()).append(":");
+		}
+		sb.append("(").append(PolicyRuleTypeUtil.toShortString(getPolicyConstraints())).append(")");
+		sb.append("->");
+		sb.append("(").append(PolicyRuleTypeUtil.toShortString(getActions())).append(")");
+		if (!getTriggers().isEmpty()) {
+			sb.append(" {T:");
+			sb.append(getTriggers().stream().map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
+					.collect(Collectors.joining(", ")));
+			sb.append("}");
+		}
+		return sb.toString();
+	}
+
 }

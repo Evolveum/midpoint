@@ -38,11 +38,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -55,6 +55,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil.toConstraintsList;
 
@@ -103,6 +104,8 @@ public class PolicyRuleProcessor {
 			boolean inMinus = evaluatedAssignmentTriple.presentInMinusSet(evaluatedAssignment);
 			boolean inZero = evaluatedAssignmentTriple.presentInZeroSet(evaluatedAssignment);
 
+			resolveReferences(evaluatedAssignment.getAllTargetsPolicyRules(), getAllGlobalRules(context));
+
 			/*
 			 *  Situation-related rules are to be evaluated last, because they refer to triggering of other rules.
 			 *
@@ -141,6 +144,12 @@ public class PolicyRuleProcessor {
 				evaluatedAssignmentTriple.getNonNegativeValues());
 	}
 
+	private void resolveReferences(Collection<EvaluatedPolicyRule> evaluatedRules, Collection<? extends PolicyRuleType> otherRules)
+			throws SchemaException, ObjectNotFoundException {
+		List<PolicyRuleType> rules = evaluatedRules.stream().map(er -> er.getPolicyRule()).collect(Collectors.toList());
+		PolicyRuleTypeUtil.resolveReferences(rules, otherRules);
+	}
+
 	//endregion
 
 	//region ------------------------------------------------------------------ Focus policy rules
@@ -152,27 +161,43 @@ public class PolicyRuleProcessor {
 			return;
 		}
 
-		focusContext.clearPolicyRules();
-
 		List<EvaluatedPolicyRule> rules = new ArrayList<>();
 		collectFocusRulesFromAssignments(rules, context);
 		collectGlobalObjectRules(rules, context, task, result);
 
+		resolveReferences(rules, getAllGlobalRules(context));
+
+		List<EvaluatedPolicyRule> situationRules = new ArrayList<>();
+		List<EvaluatedPolicyRule> nonSituationRules = new ArrayList<>();
+
+		focusContext.clearPolicyRules();
 		for (EvaluatedPolicyRule rule : rules) {
-			if (!hasSituationConstraint(rule) && isApplicableToObject(rule)) {
-				evaluateFocusRule(rule, context, task, result);
+			if (isApplicableToObject(rule)) {
+				if (hasSituationConstraint(rule)) {
+					situationRules.add(rule);
+				} else {
+					nonSituationRules.add(rule);
+				}
+				focusContext.addPolicyRule(rule);
 			}
 		}
-		for (EvaluatedPolicyRule rule : rules) {
-			if (hasSituationConstraint(rule) && isApplicableToObject(rule)) {
-				evaluateFocusRule(rule, context, task, result);
-			}
+
+		for (EvaluatedPolicyRule rule : nonSituationRules) {
+			evaluateFocusRule(rule, context, task, result);
 		}
+		for (EvaluatedPolicyRule rule : situationRules) {
+			evaluateFocusRule(rule, context, task, result);
+		}
+	}
+
+	private <F extends FocusType> Collection<? extends PolicyRuleType> getAllGlobalRules(LensContext<F> context) {
+		return context.getSystemConfiguration() != null
+				? context.getSystemConfiguration().asObjectable().getGlobalPolicyRule()
+				: Collections.emptyList();
 	}
 
 	private <F extends FocusType> void evaluateFocusRule(EvaluatedPolicyRule rule, LensContext<F> context, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		context.getFocusContext().addPolicyRule(rule);
 		evaluateRule(new ObjectPolicyRuleEvaluationContext<>(rule, context, task), result);
 	}
 
@@ -208,7 +233,7 @@ public class PolicyRuleProcessor {
 					LOGGER.trace("Skipping global policy rule because the condition evaluated to false: {}", globalPolicyRule);
 					continue;
 				}
-				rules.add(new EvaluatedPolicyRuleImpl(globalPolicyRule, null));
+				rules.add(new EvaluatedPolicyRuleImpl(globalPolicyRule, null, prismContext));
 			}
 		}
 	}
@@ -246,10 +271,14 @@ public class PolicyRuleProcessor {
 	 */
 	private <F extends FocusType> void evaluateRule(PolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Evaluating policy rule {} in {}", ctx.policyRule.toShortString(), ctx.getShortDescription());
+		}
 		List<EvaluatedPolicyRuleTrigger<?>> triggers = evaluateConstraints(ctx.policyRule.getPolicyConstraints(), true, ctx, result);
 		if (!triggers.isEmpty()) {
 			ctx.triggerRule(triggers);
 		}
+		traceRuleEvaluationResult(ctx.policyRule, ctx);
 	}
 
 	// returns non-empty list if the constraints evaluated to true (if allMustApply, all of the constraints must apply; otherwise, at least one must apply)
@@ -266,6 +295,7 @@ public class PolicyRuleProcessor {
 			PolicyConstraintEvaluator<AbstractPolicyConstraintType> evaluator =
 					(PolicyConstraintEvaluator<AbstractPolicyConstraintType>) getConstraintEvaluator(constraint);
 			EvaluatedPolicyRuleTrigger<?> trigger = evaluator.evaluate(constraint, ctx, result);
+			traceConstraintEvaluationResult(constraint, ctx, trigger);
 			if (trigger != null) {
 				triggers.add(trigger);
 			} else {
@@ -275,6 +305,55 @@ public class PolicyRuleProcessor {
 			}
 		}
 		return triggers;
+	}
+
+	private <F extends FocusType> void traceConstraintEvaluationResult(JAXBElement<AbstractPolicyConstraintType> constraintElement,
+			PolicyRuleEvaluationContext<F> ctx, EvaluatedPolicyRuleTrigger<?> trigger) throws SchemaException {
+		if (!LOGGER.isTraceEnabled()) {
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("\n---[ POLICY CONSTRAINT ");
+		if (trigger != null) {
+			sb.append("# ");
+		}
+		AbstractPolicyConstraintType constraint = constraintElement.getValue();
+		if (constraint.getName() != null) {
+			sb.append("'").append(constraint.getName()).append("'");
+		}
+		sb.append(" (").append(constraintElement.getName().getLocalPart()).append(")");
+		sb.append(" for ");
+		sb.append(ctx.getShortDescription());
+		sb.append(" (").append(ctx.lensContext.getState()).append(")");
+		sb.append("]---------------------------");
+		sb.append("\nConstraint:\n");
+		sb.append(prismContext.serializerFor(DebugUtil.getPrettyPrintBeansAs(PrismContext.LANG_XML)).serialize(constraintElement));
+		//sb.append("\nContext: ").append(ctx.debugDump());
+		sb.append("\nRule: ").append(ctx.policyRule.toShortString());
+		//sb.append("\nResult: ").append(trigger != null ? DebugUtil.debugDump(trigger) : null);  // distinction is here because debugDump(null) returns "  null"
+		sb.append("\nResult: ").append(DebugUtil.debugDump(trigger));
+		LOGGER.trace("{}", sb.toString());
+	}
+
+	private <F extends FocusType> void traceRuleEvaluationResult(EvaluatedPolicyRule rule, PolicyRuleEvaluationContext<F> ctx)
+			throws SchemaException {
+		if (!LOGGER.isTraceEnabled()) {
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("\n---[ POLICY RULE ");
+		if (rule.isTriggered()) {
+			sb.append("# ");
+		}
+		sb.append(rule.toShortString());
+		sb.append(" for ");
+		sb.append(ctx.getShortDescription());
+		sb.append(" (").append(ctx.lensContext.getState()).append(")");
+		sb.append("]---------------------------");
+		sb.append("\n");
+		sb.append(rule.debugDump());
+		//sb.append("\nContext: ").append(ctx.debugDump());
+		LOGGER.trace("{}", sb.toString());
 	}
 
 	private PolicyConstraintEvaluator<?> getConstraintEvaluator(JAXBElement<AbstractPolicyConstraintType> constraint) {
@@ -381,7 +460,7 @@ public class PolicyRuleProcessor {
 						LOGGER.trace("Skipping global policy rule because the condition evaluated to false: {}", globalPolicyRule);
 						continue;
 					}
-					EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule, target.getAssignmentPath().clone());
+					EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule, target.getAssignmentPath().clone(), prismContext);
 					boolean direct = target.isDirectlyAssigned() || target.getAssignmentPath().getFirstOrderChain().size() == 1;
 					if (direct) {
 						evaluatedAssignment.addThisTargetPolicyRule(evaluatedRule);

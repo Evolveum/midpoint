@@ -257,7 +257,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		// We will not notice that unless we go with reconcile.
 		LensContext<UserType> lensContext = contextFactory.createRecomputeContext(user, ModelExecuteOptions.createReconcile(), workerTask, result);
 		if (hasNotifyAction(workerTask)) {
-			EvaluatedPolicyRule policyRule = new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), null);
+			EvaluatedPolicyRule policyRule = new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), null, prismContext);
 			EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType>(PolicyConstraintKindType.TIME_VALIDITY, getValidityPolicyConstraint(workerTask), "Applying time validity constraint for focus");
 			policyRule.getTriggers().add(evaluatedTrigger);
 			lensContext.getFocusContext().addPolicyRule(policyRule);

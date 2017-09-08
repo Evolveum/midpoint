@@ -362,24 +362,26 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		return Stream.concat(thisTargetPolicyRules.stream(), otherTargetsPolicyRules.stream()).collect(Collectors.toList());
 	}
 
-	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints, AssignmentPath assignmentPath, FocusType directOwner) {
+	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints, AssignmentPath assignmentPath,
+			FocusType directOwner, PrismContext prismContext) {
 		// approximate solution - just add the constraints to all the places; hopefully any misplaced ones would be simply ignored
 		if (constraints == null) {
 			return;
 		}
-		otherTargetsPolicyRules.add(toEvaluatedPolicyRule(constraints, assignmentPath, directOwner));
-		thisTargetPolicyRules.add(toEvaluatedPolicyRule(constraints, assignmentPath, directOwner));
-		focusPolicyRules.add(toEvaluatedPolicyRule(constraints, assignmentPath, directOwner));
+		otherTargetsPolicyRules.add(toEvaluatedPolicyRule(constraints, assignmentPath, directOwner, prismContext));
+		thisTargetPolicyRules.add(toEvaluatedPolicyRule(constraints, assignmentPath, directOwner, prismContext));
+		focusPolicyRules.add(toEvaluatedPolicyRule(constraints, assignmentPath, directOwner, prismContext));
 	}
 
 	@NotNull
-	private EvaluatedPolicyRule toEvaluatedPolicyRule(PolicyConstraintsType constraints, AssignmentPath assignmentPath, FocusType directOwner) {
+	private EvaluatedPolicyRule toEvaluatedPolicyRule(PolicyConstraintsType constraints, AssignmentPath assignmentPath,
+			FocusType directOwner, PrismContext prismContext) {
 		PolicyRuleType policyRuleType = new PolicyRuleType();
 		policyRuleType.setPolicyConstraints(constraints);
 		PolicyActionsType policyActionsType = new PolicyActionsType();
 		policyActionsType.setEnforcement(new EnforcementPolicyActionType());
 		policyRuleType.setPolicyActions(policyActionsType);
-		return new EvaluatedPolicyRuleImpl(policyRuleType, assignmentPath);
+		return new EvaluatedPolicyRuleImpl(policyRuleType, assignmentPath, prismContext);
 	}
 
 	@Override

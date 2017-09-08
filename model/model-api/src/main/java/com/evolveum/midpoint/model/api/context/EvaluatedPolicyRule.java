@@ -66,4 +66,6 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 	EvaluatedPolicyRuleType toEvaluatedPolicyRuleType();
 
 	boolean isGlobal();
+
+	String toShortString();
 }

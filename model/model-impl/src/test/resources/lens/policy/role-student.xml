@@ -40,6 +40,7 @@
 			<name>ambivalent-rule</name>
 			<policyConstraints>
 				<objectState>
+					<name>always-true</name>
 					<expression>
 						<script>
 							<code>true</code>
@@ -58,13 +59,7 @@
 			<!-- but evaluationTarget=assignment ensures it will trigger only on assignment of Student role -->
 			<name>ambivalent-rule-manually-resolved-to-assignment</name>
 			<policyConstraints>
-				<objectState>
-					<expression>
-						<script>
-							<code>true</code>
-						</script>
-					</expression>
-				</objectState>
+				<ref>always-true</ref>
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->
@@ -78,13 +73,7 @@
 			<!-- but evaluationTarget=focus ensures it will trigger only on Student role itself -->
 			<name>ambivalent-rule-manually-resolved-to-focus</name>
 			<policyConstraints>
-				<objectState>
-					<expression>
-						<script>
-							<code>true</code>
-						</script>
-					</expression>
-				</objectState>
+				<ref>always-true</ref>
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->
@@ -129,15 +118,7 @@
 					<stateBefore>true</stateBefore>
 					<stateAfter>true</stateAfter>
 					<constraints>
-						<objectState>
-							<name>cc-1900</name>
-							<filter>
-								<q:equal>
-									<q:path>costCenter</q:path>
-									<q:value>1900</q:value>
-								</q:equal>
-							</filter>
-						</objectState>
+						<ref>cc-1900</ref>
 					</constraints>
 				</transition>
 		    </policyConstraints>
@@ -154,15 +135,7 @@
 					<stateBefore>false</stateBefore>
 					<stateAfter>true</stateAfter>
 					<constraints>
-						<objectState>
-							<name>cc-1900</name>
-							<filter>
-								<q:equal>
-									<q:path>costCenter</q:path>
-									<q:value>1900</q:value>
-								</q:equal>
-							</filter>
-						</objectState>
+						<ref>cc-1900</ref>
 					</constraints>
 				</transition>
 			</policyConstraints>
@@ -179,15 +152,7 @@
 					<stateBefore>true</stateBefore>
 					<stateAfter>false</stateAfter>
 					<constraints>
-						<objectState>
-							<name>cc-1900</name>
-							<filter>
-								<q:equal>
-									<q:path>costCenter</q:path>
-									<q:value>1900</q:value>
-								</q:equal>
-							</filter>
-						</objectState>
+						<ref>cc-1900</ref>
 					</constraints>
 				</transition>
 			</policyConstraints>
@@ -203,15 +168,7 @@
 				<transition>
 					<stateBefore>true</stateBefore>
 					<constraints>
-						<objectState>
-							<name>cc-1900</name>
-							<filter>
-								<q:equal>
-									<q:path>costCenter</q:path>
-									<q:value>1900</q:value>
-								</q:equal>
-							</filter>
-						</objectState>
+						<ref>cc-1900</ref>
 					</constraints>
 				</transition>
 			</policyConstraints>
@@ -243,10 +200,7 @@
 					<stateBefore>true</stateBefore>
 					<stateAfter>true</stateAfter>
 					<constraints>
-						<hasAssignment>
-							<name>student-assignment</name>
-							<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>
-						</hasAssignment>
+						<ref>student-assignment</ref>
 					</constraints>
 				</transition>
 			</policyConstraints>
@@ -263,10 +217,7 @@
 					<stateBefore>false</stateBefore>
 					<stateAfter>true</stateAfter>
 					<constraints>
-						<hasAssignment>
-							<name>student-assignment</name>
-							<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>
-						</hasAssignment>
+						<ref>student-assignment</ref>
 					</constraints>
 				</transition>
 			</policyConstraints>
@@ -283,10 +234,7 @@
 					<stateBefore>true</stateBefore>
 					<stateAfter>false</stateAfter>
 					<constraints>
-						<hasAssignment>
-							<name>student-assignment</name>
-							<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>
-						</hasAssignment>
+						<ref>student-assignment</ref>
 					</constraints>
 				</transition>
 			</policyConstraints>
@@ -302,10 +250,7 @@
 				<transition>
 					<stateBefore>false</stateBefore>
 					<constraints>
-						<hasAssignment>
-							<name>student-assignment</name>
-							<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>
-						</hasAssignment>
+						<ref>student-assignment</ref>
 					</constraints>
 				</transition>
 			</policyConstraints>
@@ -336,7 +281,7 @@
 				<hasAssignment>
 					<name>temporary-assignment-indirect</name>
 					<targetRef oid="9b573f03-e786-476c-bb97-b7ae69cc8228" type="RoleType"/>	<!-- Temporary -->
-					<direct>true</direct>
+					<direct>false</direct>
 				</hasAssignment>
 			</policyConstraints>
 			<policyActions>

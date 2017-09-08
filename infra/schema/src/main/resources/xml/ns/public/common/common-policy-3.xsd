@@ -193,6 +193,19 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="ref" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								References another policy constraint by its name.
+								The referenced constraint must be present as part of policy rules gathered for a given
+								assignment or object. Also, all declared global constraints are available for referencing,
+								regardless of which objects they are attached to or whether they are active or not.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>

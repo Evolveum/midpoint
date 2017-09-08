@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
@@ -534,7 +535,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 							if (DebugUtil.isDetailedDebugDump()) {
 								sb.append(PrettyPrinter.prettyPrint(value));
 							} else {
-								PrismPropertyValue.debugDumpValue(sb, indent + 1, realValue, prismContext);
+								PrismPrettyPrinter.debugDumpValue(sb, indent + 1, realValue, prismContext, getElementName(), null);
 							}
 						}
 					}
@@ -555,7 +556,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 						if (DebugUtil.isDetailedDebugDump()) {
 							sb.append(PrettyPrinter.prettyPrint(value));
 						} else {
-							PrismPropertyValue.debugDumpValue(sb, indent + 1, value.getValue(), prismContext);
+							PrismPrettyPrinter.debugDumpValue(sb, indent + 1, value.getValue(), prismContext, getElementName(), null);
 						}
 					}
 					if (iterator.hasNext()) {

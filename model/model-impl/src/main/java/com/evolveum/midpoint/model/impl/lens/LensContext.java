@@ -28,7 +28,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -47,7 +46,6 @@ import javax.xml.namespace.QName;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 /**
  * @author semancik
@@ -1048,39 +1046,19 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			} else {
 				sb.append("; ");
 			}
-			sb.append(dumpRule(rule));
+			sb.append(rule.toShortString());
 		}
 		// now triggered rules, each on separate line
 		for (EvaluatedPolicyRule rule : policyRules) {
 			if (rule.isTriggered()) {
 				sb.append("\n");
 				DebugUtil.indentDebugDump(sb, indent + 1);
-				sb.append("- triggered: ").append(dumpRule(rule));
+				sb.append("- triggered: ").append(rule.toShortString());
 			}
 		}
 		if (policyRules.isEmpty()) {
 			sb.append(" (none)");
 		}
-	}
-
-	private static String dumpRule(EvaluatedPolicyRule rule) {
-		StringBuilder sb = new StringBuilder();
-		if (rule.isGlobal()) {
-			sb.append("G:");
-		}
-		if (rule.getName() != null) {
-			sb.append(rule.getName()).append(":");
-		}
-		sb.append("(").append(PolicyRuleTypeUtil.toShortString(rule.getPolicyConstraints())).append(")");
-		sb.append("->");
-		sb.append("(").append(PolicyRuleTypeUtil.toShortString(rule.getActions())).append(")");
-		if (!rule.getTriggers().isEmpty()) {
-			sb.append(" => T:(");
-			sb.append(rule.getTriggers().stream().map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
-					.collect(Collectors.joining(", ")));
-			sb.append(")");
-		}
-		return sb.toString();
 	}
 
 	static int getTriggeredRulesCount(Collection<EvaluatedPolicyRule> policyRules) {

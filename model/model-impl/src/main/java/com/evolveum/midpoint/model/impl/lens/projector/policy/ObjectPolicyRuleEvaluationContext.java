@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
@@ -47,5 +48,10 @@ public class ObjectPolicyRuleEvaluationContext<F extends FocusType> extends Poli
 	@Override
 	public void triggerRule(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
 		focusContext.triggerRule(policyRule, triggers);
+	}
+
+	@Override
+	public String getShortDescription() {
+		return ObjectTypeUtil.toShortString(focusContext.getObjectAny()) + " / " + state;
 	}
 }

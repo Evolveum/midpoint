@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
@@ -80,5 +81,16 @@ public class AssignmentPolicyRuleEvaluationContext<F extends FocusType> extends 
 		} else {
 			return inZero || inPlus;
 		}
+	}
+
+	@Override
+	public String getShortDescription() {
+		return evaluatedAssignment.getTarget() + " (" +
+				(inPlus ? "+":"") +
+				(inMinus ? "-":"") +
+				(inZero ? "0":"") +
+				") " +
+				(isDirect ? "directly":"indirectly") +
+				" in " + ObjectTypeUtil.toShortString(focusContext.getObjectAny()) + " / " + state;
 	}
 }

@@ -17,12 +17,16 @@
 package com.evolveum.midpoint.prism.util;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -100,5 +104,27 @@ public class PrismPrettyPrinter {
 
 	public static void initialize() {
 		// nothing to do here, we just make sure static initialization will take place
+	}
+
+	// TODO a better place? cannot be in DebugUtil, because of the missing dependency on prismContext
+	// Note that expectedIndent applies only to lines after the first one. The caller is responsible for preparing
+	// indentation for the first line.
+	public static void debugDumpValue(StringBuilder sb, int expectedIndent, Object value, PrismContext prismContext, QName elementName, String defaultLanguage) {
+		String formatted;
+		String language = DebugUtil.getPrettyPrintBeansAs() != null ? DebugUtil.getPrettyPrintBeansAs() : defaultLanguage;
+		if (elementName == null) {
+			elementName = new QName("value");
+		}
+		if (language != null && value != null && !(value instanceof Enum) && prismContext != null
+				&& value.getClass().getAnnotation(XmlType.class) != null) {
+			try {
+				formatted = prismContext.serializerFor(language).serializeRealValue(value, elementName);
+			} catch (SchemaException e) {
+				formatted = PrettyPrinter.prettyPrint(value);
+			}
+		} else {
+			formatted = PrettyPrinter.prettyPrint(value);
+		}
+		sb.append(DebugUtil.fixIndentInMultiline(expectedIndent, DebugDumpable.INDENT_STRING, formatted));
 	}
 }

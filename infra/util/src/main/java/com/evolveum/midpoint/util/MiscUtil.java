@@ -642,4 +642,14 @@ public class MiscUtil {
 				? t.getMessage() + " [" + t.getClass().getSimpleName() + "]"
 				: null;
 	}
+
+	@SuppressWarnings("unchecked")
+	private static <T extends Throwable> void throwException(Throwable exception) throws T
+	{
+		throw (T) exception;
+	}
+
+	public static void throwExceptionAsUnchecked(Throwable t) {
+		MiscUtil.throwException(t);
+	}
 }

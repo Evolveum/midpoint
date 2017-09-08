@@ -37,6 +37,7 @@
 					</filter>
 				</objectState>
 				<or>
+					<name>incomplete-role</name>
 					<minAssignees>
 						<multiplicity>1</multiplicity>
 						<relation>owner</relation>
@@ -55,6 +56,7 @@
 			<policyActions>
 				<enforcement/>
 			</policyActions>
+			<evaluationTarget>focus</evaluationTarget>
 		</policyRule>
 	</inducement>
 	<inducement>
@@ -66,15 +68,7 @@
 					<stateBefore>false</stateBefore>
 					<stateAfter>true</stateAfter>
 					<constraints>
-						<objectState>
-							<name>active lifecycleState</name>
-							<filter>
-								<q:equal>
-									<q:path>lifecycleState</q:path>
-									<q:value>active</q:value>
-								</q:equal>
-							</filter>
-						</objectState>
+						<ref>active lifecycleState</ref>
 					</constraints>
 				</transition>
 			</policyConstraints>
@@ -101,22 +95,7 @@
 						</q:equal>
 					</filter>
 				</objectState>
-				<transition>
-					<name>role-switched-to-active</name>
-					<stateBefore>false</stateBefore>
-					<stateAfter>true</stateAfter>
-					<constraints>
-						<objectState>
-							<name>active lifecycleState</name>
-							<filter>
-								<q:equal>
-									<q:path>lifecycleState</q:path>
-									<q:value>active</q:value>
-								</q:equal>
-							</filter>
-						</objectState>
-					</constraints>
-				</transition>
+				<ref>role-switched-to-active</ref>
 			</policyConstraints>
 			<policyActions>
 				<approval>

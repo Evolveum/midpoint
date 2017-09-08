@@ -16,19 +16,24 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.HeteroComparator;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType.*;
 
@@ -55,6 +60,7 @@ public class PolicyRuleTypeUtil {
 	private static final String SYMBOL_NO_ASSIGNMENT = "noass";
 	private static final String SYMBOL_TIME_VALIDITY = "time";
 	private static final String SYMBOL_SITUATION = "sit";
+	private static final String SYMBOL_TRANSITION = "trans";
 
 	static {
 		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_MIN_ASSIGNEES.getLocalPart(), SYMBOL_MIN);
@@ -68,6 +74,7 @@ public class PolicyRuleTypeUtil {
 		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_HAS_NO_ASSIGNMENT.getLocalPart(), SYMBOL_NO_ASSIGNMENT);
 		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_TIME_VALIDITY.getLocalPart(), SYMBOL_TIME_VALIDITY);
 		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_SITUATION.getLocalPart(), SYMBOL_SITUATION);
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_TRANSITION.getLocalPart(), SYMBOL_TRANSITION);
 	}
 
 	public static String toShortString(PolicyConstraintsType constraints) {
@@ -79,39 +86,45 @@ public class PolicyRuleTypeUtil {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder();
-		for (JAXBElement<AbstractPolicyConstraintType> primitive : toConstraintsList(constraints, false)) {
-			QName name = primitive.getName();
+		for (JAXBElement<AbstractPolicyConstraintType> constraint : toConstraintsList(constraints, false)) {
+			QName name = constraint.getName();
 			String abbreviation = CONSTRAINT_NAMES.get(name.getLocalPart());
 			if (sb.length() > 0) {
 				sb.append(join);
 			}
-			sb.append(abbreviation != null ? abbreviation : name.getLocalPart());
-		}
-		for (PolicyConstraintsType component : constraints.getAnd()) {
-			if (sb.length() > 0) {
-				sb.append(join);
+			if (QNameUtil.match(name, PolicyConstraintsType.F_AND)) {
+				sb.append('(');
+				sb.append(toShortString((PolicyConstraintsType) constraint.getValue(), JOIN_AND));
+				sb.append(')');
+			} else if (QNameUtil.match(name, PolicyConstraintsType.F_OR)) {
+				sb.append('(');
+				sb.append(toShortString((PolicyConstraintsType) constraint.getValue(), JOIN_OR));
+				sb.append(')');
+			} else if (QNameUtil.match(name, PolicyConstraintsType.F_NOT)) {
+				sb.append('(');
+				sb.append(toShortString((PolicyConstraintsType) constraint.getValue(), JOIN_AND));
+				sb.append(')');
+			} else if (QNameUtil.match(name, PolicyConstraintsType.F_TRANSITION)) {
+				TransitionPolicyConstraintType trans = (TransitionPolicyConstraintType) constraint.getValue();
+				sb.append(SYMBOL_TRANSITION);
+				sb.append(toTransSymbol(trans.isStateBefore()));
+				sb.append(toTransSymbol(trans.isStateAfter()));
+				sb.append('(');
+				sb.append(toShortString(trans.getConstraints(), JOIN_AND));
+				sb.append(')');
+			} else {
+				sb.append(abbreviation != null ? abbreviation : name.getLocalPart());
 			}
-			sb.append('(');
-			sb.append(toShortString(component, JOIN_AND));
-			sb.append(')');
-		}
-		for (PolicyConstraintsType component : constraints.getOr()) {
-			if (sb.length() > 0) {
-				sb.append(join);
-			}
-			sb.append('(');
-			sb.append(toShortString(component, JOIN_OR));
-			sb.append(')');
-		}
-		for (PolicyConstraintsType component : constraints.getNot()) {
-			if (sb.length() > 0) {
-				sb.append(join);
-			}
-			sb.append("!(");
-			sb.append(toShortString(component, JOIN_AND));
-			sb.append(')');
 		}
 		return sb.toString();
+	}
+
+	private static String toTransSymbol(Boolean state) {
+		if (state != null) {
+			return state ? "1" : "0";
+		} else {
+			return "x";
+		}
 	}
 
 	public static String toShortString(PolicyActionsType actions) {
@@ -311,61 +324,73 @@ public class PolicyRuleTypeUtil {
 		};
 		return MiscUtil.unorderedCollectionEquals(currentTriggersUnpacked, triggers, comparator);
 	}
-	
+
 	@FunctionalInterface
-	interface ConstraintConsumer {
+	interface ConstraintVisitor {
 		/**
 		 * Returns false if the process is to be finished.
 		 */
-		boolean accept(QName name, AbstractPolicyConstraintType constraint);
+		boolean visit(QName name, AbstractPolicyConstraintType constraint);
 	}
 
 	/**
 	 * Returns false if the process was stopped by the consumer.
+	 * All references should be resolved.
 	 */
-	public static boolean iterateConstraints(PolicyConstraintsType pc, ConstraintConsumer consumer, boolean deep) {
+	public static boolean accept(PolicyConstraintsType pc, ConstraintVisitor visitor, boolean deep, boolean alsoRoots, boolean ignoreRefs) {
 		if (pc == null) {
 			return true;
 		}
-		boolean rv = iterateConstraints(pc.getMinAssignees(), F_MIN_ASSIGNEES, consumer)
-				&& iterateConstraints(pc.getMaxAssignees(), F_MAX_ASSIGNEES, consumer)
-				&& iterateConstraints(pc.getExclusion(), F_EXCLUSION, consumer)
-				&& iterateConstraints(pc.getAssignment(), F_ASSIGNMENT, consumer)
-				&& iterateConstraints(pc.getHasAssignment(), F_HAS_ASSIGNMENT, consumer)
-				&& iterateConstraints(pc.getHasNoAssignment(), F_HAS_NO_ASSIGNMENT, consumer)
-				&& iterateConstraints(pc.getModification(), F_MODIFICATION, consumer)
-				&& iterateConstraints(pc.getTimeValidity(), F_TIME_VALIDITY, consumer)
-				&& iterateConstraints(pc.getAssignmentState(), F_ASSIGNMENT_STATE, consumer)
-				&& iterateConstraints(pc.getObjectState(), F_OBJECT_STATE, consumer)
-				&& iterateConstraints(pc.getSituation(), F_SITUATION, consumer)
-				&& iterateConstraints(pc.getTransition(), F_TRANSITION, consumer)
-				&& iterateConstraints(pc.getAnd(), F_AND, consumer)
-				&& iterateConstraints(pc.getOr(), F_OR, consumer)
-				&& iterateConstraints(pc.getNot(), F_NOT, consumer);
+		boolean rv;
+		if (alsoRoots) {
+			rv = visit(Collections.singletonList(pc), F_AND, visitor);
+		} else {
+			rv = true;
+		}
+		rv = rv && visit(pc.getMinAssignees(), F_MIN_ASSIGNEES, visitor)
+				&& visit(pc.getMaxAssignees(), F_MAX_ASSIGNEES, visitor)
+				&& visit(pc.getExclusion(), F_EXCLUSION, visitor)
+				&& visit(pc.getAssignment(), F_ASSIGNMENT, visitor)
+				&& visit(pc.getHasAssignment(), F_HAS_ASSIGNMENT, visitor)
+				&& visit(pc.getHasNoAssignment(), F_HAS_NO_ASSIGNMENT, visitor)
+				&& visit(pc.getModification(), F_MODIFICATION, visitor)
+				&& visit(pc.getTimeValidity(), F_TIME_VALIDITY, visitor)
+				&& visit(pc.getAssignmentState(), F_ASSIGNMENT_STATE, visitor)
+				&& visit(pc.getObjectState(), F_OBJECT_STATE, visitor)
+				&& visit(pc.getSituation(), F_SITUATION, visitor)
+				&& visit(pc.getTransition(), F_TRANSITION, visitor)
+				&& visit(pc.getAnd(), F_AND, visitor)
+				&& visit(pc.getOr(), F_OR, visitor)
+				&& visit(pc.getNot(), F_NOT, visitor);
+
+		if (!ignoreRefs && !pc.getRef().isEmpty()) {
+			throw new IllegalStateException("Unresolved constraint reference (" + pc.getRef() + ").");
+		}
+
 		if (deep) {
 			for (TransitionPolicyConstraintType transitionConstraint : pc.getTransition()) {
-				rv = rv && iterateConstraints(transitionConstraint.getConstraints(), consumer, true);
+				rv = rv && accept(transitionConstraint.getConstraints(), visitor, true, alsoRoots, ignoreRefs);
 			}
 			rv = rv
-					&& iterateConstraints(pc.getAnd(), consumer)
-					&& iterateConstraints(pc.getOr(), consumer)
-					&& iterateConstraints(pc.getNot(), consumer);
+					&& accept(pc.getAnd(), visitor, alsoRoots, ignoreRefs)
+					&& accept(pc.getOr(), visitor, alsoRoots, ignoreRefs)
+					&& accept(pc.getNot(), visitor, alsoRoots, ignoreRefs);
 		}
 		return rv;
 	}
 
-	private static boolean iterateConstraints(List<? extends AbstractPolicyConstraintType> constraints, QName name, ConstraintConsumer consumer) {
+	private static boolean visit(List<? extends AbstractPolicyConstraintType> constraints, QName name, ConstraintVisitor visitor) {
 		for (AbstractPolicyConstraintType constraint : constraints) {
-			if (!consumer.accept(name, constraint)) {
+			if (!visitor.visit(name, constraint)) {
 				return false;
 			}
 		}
 		return true;
 	}
 
-	private static boolean iterateConstraints(List<PolicyConstraintsType> constraintsList, ConstraintConsumer matcher) {
+	private static boolean accept(List<PolicyConstraintsType> constraintsList, ConstraintVisitor matcher, boolean alsoRoots, boolean ignoreRefs) {
 		for (PolicyConstraintsType constraints : constraintsList) {
-			if (!iterateConstraints(constraints, matcher, true)) {
+			if (!accept(constraints, matcher, true, alsoRoots, ignoreRefs)) {
 				return false;
 			}
 		}
@@ -374,8 +399,13 @@ public class PolicyRuleTypeUtil {
 
 	public static List<JAXBElement<AbstractPolicyConstraintType>> toConstraintsList(PolicyConstraintsType pc, boolean deep) {
 		List<JAXBElement<AbstractPolicyConstraintType>> rv = new ArrayList<>();
-		iterateConstraints(pc, (name, c) -> { rv.add(new JAXBElement<>(name, AbstractPolicyConstraintType.class, c)); return true; }, deep);
+		accept(pc, (name, c) -> { rv.add(toConstraintJaxbElement(name, c)); return true; }, deep, false, false);
 		return rv;
+	}
+
+	@NotNull
+	private static JAXBElement<AbstractPolicyConstraintType> toConstraintJaxbElement(QName name, AbstractPolicyConstraintType c) {
+		return new JAXBElement<>(name, AbstractPolicyConstraintType.class, c);
 	}
 
 	/**
@@ -403,29 +433,126 @@ public class PolicyRuleTypeUtil {
 	}
 
 	private static boolean hasAssignmentOnlyConstraint(PolicyRuleType rule) {
-		return iterateConstraints(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isAssignmentOnly, true);
+		// 'accept' continues until isNotAssignmentOnly is false; and returns false then --> so we return true in that case (i.e. we have found assignmentOnly-constraint)
+		return !accept(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isNotAssignmentOnly, true, true, false);
 	}
 
 	// do we have a constraint that indicates a use against object?
 	private static boolean hasObjectRelatedConstraint(PolicyRuleType rule) {
-		return iterateConstraints(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isObjectRelated, true);
+		// 'accept' continues until isNotObjectRelated is false; and returns false then --> so we return true in that case (i.e. we have found object-related constraint)
+		return !accept(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isNotObjectRelated, true, true, false);
 	}
 
 	private static final Set<Class<? extends AbstractPolicyConstraintType>> ASSIGNMENTS_ONLY_CONSTRAINTS_CLASSES =
 			new HashSet<>(Arrays.asList(AssignmentPolicyConstraintType.class, ExclusionPolicyConstraintType.class, MultiplicityPolicyConstraintType.class));
 
-	private static boolean isAssignmentOnly(QName name, AbstractPolicyConstraintType c) {
-		return ASSIGNMENTS_ONLY_CONSTRAINTS_CLASSES.contains(c.getClass())
+	private static boolean isNotAssignmentOnly(QName name, AbstractPolicyConstraintType c) {
+		boolean rv = ASSIGNMENTS_ONLY_CONSTRAINTS_CLASSES.contains(c.getClass())
 				|| QNameUtil.match(name, PolicyConstraintsType.F_ASSIGNMENT_STATE)
 				|| c instanceof TimeValidityPolicyConstraintType && Boolean.TRUE.equals(((TimeValidityPolicyConstraintType) c).isAssignment());
+		//System.out.println("isAssignmentOnly: " + name.getLocalPart() + "/" + c.getClass().getSimpleName() + " -> " + rv);
+		return !rv;
 	}
 
 	private static final Set<Class<? extends AbstractPolicyConstraintType>> OBJECT_RELATED_CONSTRAINTS_CLASSES =
 			new HashSet<>(Arrays.asList(HasAssignmentPolicyConstraintType.class, ModificationPolicyConstraintType.class));
 
-	private static boolean isObjectRelated(QName name, AbstractPolicyConstraintType c) {
-		return OBJECT_RELATED_CONSTRAINTS_CLASSES.contains(c.getClass())
+	private static boolean isNotObjectRelated(QName name, AbstractPolicyConstraintType c) {
+		boolean rv = OBJECT_RELATED_CONSTRAINTS_CLASSES.contains(c.getClass())
 				|| QNameUtil.match(name, PolicyConstraintsType.F_OBJECT_STATE)
 				|| c instanceof TimeValidityPolicyConstraintType && !Boolean.TRUE.equals(((TimeValidityPolicyConstraintType) c).isAssignment());
+		//System.out.println("isObjectRelated: " + name.getLocalPart() + "/" + c.getClass().getSimpleName() + " -> " + rv);
+		return !rv;
 	}
+
+	interface ConstraintResolver {
+		@NotNull
+		JAXBElement<? extends AbstractPolicyConstraintType> resolve(@NotNull String name) throws ObjectNotFoundException;
+	}
+
+	public static class LazyMapConstraintsResolver implements ConstraintResolver {
+		@NotNull private final List<Supplier<Map<String, JAXBElement<? extends AbstractPolicyConstraintType>>>> constraintsSuppliers;
+		@NotNull private final Map<String, JAXBElement<? extends AbstractPolicyConstraintType>> constraintsMap = new HashMap<>();
+		private int usedSuppliers = 0;
+
+		@SafeVarargs
+		public LazyMapConstraintsResolver(
+				@NotNull Supplier<Map<String, JAXBElement<? extends AbstractPolicyConstraintType>>>... constraintsSuppliers) {
+			this.constraintsSuppliers = Arrays.asList(constraintsSuppliers);
+		}
+
+		@NotNull
+		@Override
+		public JAXBElement<? extends AbstractPolicyConstraintType> resolve(@NotNull String name) throws ObjectNotFoundException {
+			for (;;) {
+				JAXBElement<? extends AbstractPolicyConstraintType> rv = constraintsMap.get(name);
+				if (rv != null) {
+					return rv;
+				}
+				if (usedSuppliers >= constraintsSuppliers.size()) {
+					throw new ObjectNotFoundException("No policy constraint named '" + name + "' could be found. Known constraints: " + constraintsMap.keySet());
+				}
+				constraintsMap.putAll(constraintsSuppliers.get(usedSuppliers++).get());
+			}
+		}
+	}
+
+	public static void resolveReferences(PolicyConstraintsType pc, ConstraintResolver resolver)
+			throws ObjectNotFoundException, SchemaException {
+		accept(pc, (name, c) -> {
+			if (c instanceof PolicyConstraintsType) {
+				try {
+					resolveLocalReferences((PolicyConstraintsType) c, resolver);
+				} catch (ObjectNotFoundException | SchemaException e) {
+					MiscUtil.throwExceptionAsUnchecked(e);
+				}
+			}
+			return true;
+		}, true, true, true);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void resolveLocalReferences(PolicyConstraintsType pc, ConstraintResolver resolver)
+			throws ObjectNotFoundException, SchemaException {
+		for (String ref : pc.getRef()) {
+			JAXBElement<? extends AbstractPolicyConstraintType> resolved = resolver.resolve(ref);
+			QName constraintName = resolved.getName();
+			AbstractPolicyConstraintType constraintValue = resolved.getValue();
+			PrismContainer<? extends AbstractPolicyConstraintType> container = pc.asPrismContainerValue().findOrCreateContainer(constraintName);
+			container.add(constraintValue.asPrismContainerValue().clone());
+		}
+		pc.getRef().clear();
+	}
+
+	public static void resolveReferences(List<PolicyRuleType> rules, Collection<? extends PolicyRuleType> otherRules) throws SchemaException, ObjectNotFoundException {
+		LazyMapConstraintsResolver resolver = new LazyMapConstraintsResolver(createConstraintsSupplier(rules),
+				createConstraintsSupplier(otherRules));
+		for (PolicyRuleType rule : rules) {
+			resolveReferences(rule.getPolicyConstraints(), resolver);
+//			// check resolution
+//			try {
+//				toConstraintsList(rule.getPolicyConstraints(), true);
+//			} catch (Throwable t) {
+//				System.out.println("Hi!");
+//			}
+		}
+	}
+
+	@NotNull
+	private static Supplier<Map<String, JAXBElement<? extends AbstractPolicyConstraintType>>> createConstraintsSupplier(
+			Collection<? extends PolicyRuleType> rules) {
+		return () -> {
+			Map<String, JAXBElement<? extends AbstractPolicyConstraintType>> constraints = new HashMap<>();
+			for (PolicyRuleType rule : rules) {
+				accept(rule.getPolicyConstraints(), (elementName, c) -> {
+					if (c.getName() != null) {
+						constraints.put(c.getName(), toConstraintJaxbElement(elementName, c));
+					}
+					return true;
+				}, true, true,true);
+			}
+			return constraints;
+		};
+	}
+
 }

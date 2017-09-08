@@ -70,4 +70,6 @@ public abstract class PolicyRuleEvaluationContext<F extends FocusType> {
 	public boolean isApplicableToState() {
 		return getObject() != null;
 	}
+
+	public abstract String getShortDescription();
 }
