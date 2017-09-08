@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
@@ -57,8 +58,17 @@ public class ModificationConstraintEvaluator implements PolicyConstraintEvaluato
 		ObjectPolicyRuleEvaluationContext<F> ctx = (ObjectPolicyRuleEvaluationContext<F>) rctx;
 
 		if (modificationConstraintMatches(constraint.getValue(), ctx)) {
+			ModelState state = rctx.lensContext.getState();
+			String verb;
+			if (state == ModelState.INITIAL || state == ModelState.PRIMARY) {
+				verb = "is about to be";
+			} else if (state == ModelState.FINAL) {
+				verb = "was";
+			} else {
+				verb = "is being (or was)";		// TODO derive more precise information from executed deltas, if needed
+			}
 			return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.OBJECT_MODIFICATION,
-					constraint.getValue(), "Object "+ ObjectTypeUtil.toShortString(ctx.focusContext.getObjectAny())+" was " + ctx.focusContext.getOperation().getPastTense());
+					constraint.getValue(), "Object "+ ObjectTypeUtil.toShortString(ctx.focusContext.getObjectAny())+" " + verb + " " + ctx.focusContext.getOperation().getPastTense());
 		} else {
 			return null;
 		}

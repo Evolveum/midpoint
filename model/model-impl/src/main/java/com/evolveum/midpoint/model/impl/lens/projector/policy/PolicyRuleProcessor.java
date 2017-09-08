@@ -147,7 +147,7 @@ public class PolicyRuleProcessor {
 	private void resolveReferences(Collection<EvaluatedPolicyRule> evaluatedRules, Collection<? extends PolicyRuleType> otherRules)
 			throws SchemaException, ObjectNotFoundException {
 		List<PolicyRuleType> rules = evaluatedRules.stream().map(er -> er.getPolicyRule()).collect(Collectors.toList());
-		PolicyRuleTypeUtil.resolveReferences(rules, otherRules);
+		PolicyRuleTypeUtil.resolveReferences(rules, otherRules, prismContext);
 	}
 
 	//endregion

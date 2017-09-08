@@ -276,7 +276,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		sb.append("->");
 		sb.append("(").append(PolicyRuleTypeUtil.toShortString(getActions())).append(")");
 		if (!getTriggers().isEmpty()) {
-			sb.append(" {T:");
+			sb.append(" # {T:");
 			sb.append(getTriggers().stream().map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
 					.collect(Collectors.joining(", ")));
 			sb.append("}");

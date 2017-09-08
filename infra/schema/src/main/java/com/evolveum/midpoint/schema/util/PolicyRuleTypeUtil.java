@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.HeteroComparator;
@@ -347,13 +348,14 @@ public class PolicyRuleTypeUtil {
 	 * Returns false if the process was stopped by the consumer.
 	 * All references should be resolved.
 	 */
-	public static boolean accept(PolicyConstraintsType pc, ConstraintVisitor visitor, boolean deep, boolean alsoRoots, boolean ignoreRefs) {
+	public static boolean accept(PolicyConstraintsType pc, ConstraintVisitor visitor, boolean deep, boolean alsoRoots, QName rootElementName, boolean ignoreRefs) {
 		if (pc == null) {
 			return true;
 		}
 		boolean rv;
 		if (alsoRoots) {
-			rv = visit(Collections.singletonList(pc), F_AND, visitor);
+			assert rootElementName != null;
+			rv = visit(Collections.singletonList(pc), rootElementName, visitor);
 		} else {
 			rv = true;
 		}
@@ -379,12 +381,12 @@ public class PolicyRuleTypeUtil {
 
 		if (deep) {
 			for (TransitionPolicyConstraintType transitionConstraint : pc.getTransition()) {
-				rv = rv && accept(transitionConstraint.getConstraints(), visitor, true, alsoRoots, ignoreRefs);
+				rv = rv && accept(transitionConstraint.getConstraints(), visitor, true, alsoRoots, F_AND, ignoreRefs);
 			}
 			rv = rv
-					&& accept(pc.getAnd(), visitor, alsoRoots, ignoreRefs)
-					&& accept(pc.getOr(), visitor, alsoRoots, ignoreRefs)
-					&& accept(pc.getNot(), visitor, alsoRoots, ignoreRefs);
+					&& accept(pc.getAnd(), visitor, alsoRoots, F_AND, ignoreRefs)
+					&& accept(pc.getOr(), visitor, alsoRoots, F_OR, ignoreRefs)
+					&& accept(pc.getNot(), visitor, alsoRoots, F_AND, ignoreRefs);
 		}
 		return rv;
 	}
@@ -398,9 +400,9 @@ public class PolicyRuleTypeUtil {
 		return true;
 	}
 
-	private static boolean accept(List<PolicyConstraintsType> constraintsList, ConstraintVisitor matcher, boolean alsoRoots, boolean ignoreRefs) {
+	private static boolean accept(List<PolicyConstraintsType> constraintsList, ConstraintVisitor matcher, boolean alsoRoots, QName rootElementName, boolean ignoreRefs) {
 		for (PolicyConstraintsType constraints : constraintsList) {
-			if (!accept(constraints, matcher, true, alsoRoots, ignoreRefs)) {
+			if (!accept(constraints, matcher, true, alsoRoots, rootElementName, ignoreRefs)) {
 				return false;
 			}
 		}
@@ -409,7 +411,7 @@ public class PolicyRuleTypeUtil {
 
 	public static List<JAXBElement<AbstractPolicyConstraintType>> toConstraintsList(PolicyConstraintsType pc, boolean deep, boolean ignoreRefs) {
 		List<JAXBElement<AbstractPolicyConstraintType>> rv = new ArrayList<>();
-		accept(pc, (name, c) -> { rv.add(toConstraintJaxbElement(name, c)); return true; }, deep, false, ignoreRefs);
+		accept(pc, (name, c) -> { rv.add(toConstraintJaxbElement(name, c)); return true; }, deep, false, null, ignoreRefs);
 		return rv;
 	}
 
@@ -444,13 +446,13 @@ public class PolicyRuleTypeUtil {
 
 	private static boolean hasAssignmentOnlyConstraint(PolicyRuleType rule) {
 		// 'accept' continues until isNotAssignmentOnly is false; and returns false then --> so we return true in that case (i.e. we have found assignmentOnly-constraint)
-		return !accept(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isNotAssignmentOnly, true, true, false);
+		return !accept(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isNotAssignmentOnly, true, true, F_AND, false);
 	}
 
 	// do we have a constraint that indicates a use against object?
 	private static boolean hasObjectRelatedConstraint(PolicyRuleType rule) {
 		// 'accept' continues until isNotObjectRelated is false; and returns false then --> so we return true in that case (i.e. we have found object-related constraint)
-		return !accept(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isNotObjectRelated, true, true, false);
+		return !accept(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isNotObjectRelated, true, true, F_AND, false);
 	}
 
 	private static final Set<Class<? extends AbstractPolicyConstraintType>> ASSIGNMENTS_ONLY_CONSTRAINTS_CLASSES =
@@ -486,11 +488,14 @@ public class PolicyRuleTypeUtil {
 		// (in this class)
 		@NotNull private final List<Supplier<List<Map.Entry<String, JAXBElement<? extends AbstractPolicyConstraintType>>>>> constraintsSuppliers;
 		@NotNull private final Map<String, JAXBElement<? extends AbstractPolicyConstraintType>> constraintsMap = new HashMap<>();
+		@NotNull private final PrismContext prismContext;
 		private int usedSuppliers = 0;
 
 		@SafeVarargs
 		public LazyMapConstraintsResolver(
+				@NotNull PrismContext prismContext,
 				@NotNull Supplier<List<Map.Entry<String, JAXBElement<? extends AbstractPolicyConstraintType>>>>... constraintsSuppliers) {
+			this.prismContext = prismContext;
 			this.constraintsSuppliers = Arrays.asList(constraintsSuppliers);
 		}
 
@@ -514,6 +519,10 @@ public class PolicyRuleTypeUtil {
 					if (existingElement != null) {
 						if (!QNameUtil.match(existingElement.getName(), newElement.getName())
 								|| !existingElement.getValue().equals(newElement.getValue())) {
+							LOGGER.error("Conflicting definitions of '{}' found:\n>>> new:\n{}\n>>> existing:\n{}",
+									newEntry.getKey(),
+									prismContext.xmlSerializer().serialize(newElement),
+									prismContext.xmlSerializer().serialize(existingElement));
 							throw new SchemaException("Conflicting definitions of '" + newEntry.getKey() + "' found.");
 						}
 					} else {
@@ -538,7 +547,7 @@ public class PolicyRuleTypeUtil {
 				}
 			}
 			return true;
-		}, true, true, true);
+		}, true, true, F_AND, true);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -583,8 +592,9 @@ public class PolicyRuleTypeUtil {
 		}
 	}
 
-	public static void resolveReferences(List<PolicyRuleType> rules, Collection<? extends PolicyRuleType> otherRules) throws SchemaException, ObjectNotFoundException {
-		LazyMapConstraintsResolver resolver = new LazyMapConstraintsResolver(createConstraintsSupplier(rules),
+	public static void resolveReferences(List<PolicyRuleType> rules, Collection<? extends PolicyRuleType> otherRules,
+			PrismContext prismContext) throws SchemaException, ObjectNotFoundException {
+		LazyMapConstraintsResolver resolver = new LazyMapConstraintsResolver(prismContext, createConstraintsSupplier(rules),
 				createConstraintsSupplier(otherRules));
 		for (PolicyRuleType rule : rules) {
 			resolveReferences(rule.getPolicyConstraints(), resolver);
@@ -602,7 +612,7 @@ public class PolicyRuleTypeUtil {
 						constraints.add(new AbstractMap.SimpleEntry<>(c.getName(), toConstraintJaxbElement(elementName, c)));
 					}
 					return true;
-				}, true, true,true);
+				}, true, true, F_AND, true);
 			}
 			return constraints;
 		};

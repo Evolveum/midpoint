@@ -106,6 +106,13 @@ public class PrismPrettyPrinter {
 		// nothing to do here, we just make sure static initialization will take place
 	}
 
+	public static String debugDumpValue(int indent, Object value, PrismContext prismContext, QName elementName, String defaultLanguage) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		debugDumpValue(sb, indent, value, prismContext, elementName, defaultLanguage);
+		return sb.toString();
+	}
+
 	// TODO a better place? cannot be in DebugUtil, because of the missing dependency on prismContext
 	// Note that expectedIndent applies only to lines after the first one. The caller is responsible for preparing
 	// indentation for the first line.

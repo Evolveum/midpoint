@@ -298,29 +298,30 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 				ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
 				assertTrue("Non-empty primary focus delta: " + realDelta0.debugDump(), realDelta0.isEmpty());
 				ExpectedTask expectedTask = new ExpectedTask(null, "Approve modification of employee");
-//				ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
+				ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
 //				assertWfContextAfterClockworkRun(rootTask, subtasks, workItems, result,
 //						null,
 //						Collections.singletonList(expectedTask),
 //						Collections.singletonList(expectedWorkItem));
-//
-//				Collection<SelectorOptions<GetOperationOptions>> options =
-//						SelectorOptions.createCollection(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
-//				Task opTask = taskManager.createTaskInstance();
-//				TaskType subtask = modelService.getObject(TaskType.class, subtasks.get(0).getOid(), options, opTask, result).asObjectable();
-//
-//				WfContextType wfc = subtask.getWorkflowContext();
-//				ItemApprovalProcessStateType processState = WfContextUtil.getItemApprovalProcessInfo(wfc);
-//				assertEquals("Wrong # of attached policy rules entries", 1, processState.getPolicyRules().getEntry().size());
-//				SchemaAttachedPolicyRuleType attachedRule = processState.getPolicyRules().getEntry().get(0);
-//				assertEquals(1, attachedRule.getStageMin().intValue());
-//				assertEquals(1, attachedRule.getStageMax().intValue());
-//				assertEquals("Wrong # of attached triggers", 1, attachedRule.getRule().getTrigger().size());
-//				EvaluatedPolicyRuleTriggerType trigger = attachedRule.getRule().getTrigger().get(0);
-//				assertEquals("Wrong constraintKind in trigger", PolicyConstraintKindType.OBJECT_MODIFICATION, trigger.getConstraintKind());
-//
-//				WorkItemType workItem = wfc.getWorkItem().get(0);
-//				assertEquals("Wrong # of additional information", 0, workItem.getAdditionalInformation().size());
+
+				Collection<SelectorOptions<GetOperationOptions>> options =
+						SelectorOptions.createCollection(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
+				Task opTask = taskManager.createTaskInstance();
+				TaskType subtask = modelService.getObject(TaskType.class, subtasks.get(0).getOid(), options, opTask, result).asObjectable();
+				display("subtask", subtask);
+
+				WfContextType wfc = subtask.getWorkflowContext();
+				ItemApprovalProcessStateType processState = WfContextUtil.getItemApprovalProcessInfo(wfc);
+				assertEquals("Wrong # of attached policy rules entries", 1, processState.getPolicyRules().getEntry().size());
+				SchemaAttachedPolicyRuleType attachedRule = processState.getPolicyRules().getEntry().get(0);
+				assertEquals(1, attachedRule.getStageMin().intValue());
+				assertEquals(1, attachedRule.getStageMax().intValue());
+				assertEquals("Wrong # of attached triggers", 1, attachedRule.getRule().getTrigger().size());
+				EvaluatedPolicyRuleTriggerType trigger = attachedRule.getRule().getTrigger().get(0);
+				assertEquals("Wrong constraintKind in trigger", PolicyConstraintKindType.TRANSITION, trigger.getConstraintKind());
+
+				WorkItemType workItem = wfc.getWorkItem().get(0);
+				assertEquals("Wrong # of additional information", 0, workItem.getAdditionalInformation().size());
 			}
 
 			@Override

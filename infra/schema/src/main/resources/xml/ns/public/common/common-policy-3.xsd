@@ -789,7 +789,7 @@
                         Prune action. The operation will proceed. Any other assignments that are in conflict with
                         this assignment that triggered the rule will be "pruned": they will be removed. The removal
                         of the conflicting assignments is automatic and silent. It will not be subject to approvals
-                        or other policy contratints.
+                        or other policy constraints.
                         This mechanism can be used for example to implement set of roles where only one of the roles
                         can be assigned at a time.
                     </xsd:documentation>
