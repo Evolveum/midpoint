@@ -1284,18 +1284,18 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private void createConfigurationMenu(SideBarMenuItem item) {
-        addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.bulkActions", PageBulkAction.class);
-        addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.importObject", PageImportObject.class);
-        addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.repositoryObjects", PageDebugList.class);
+        addMainMenuItem(item, "fa fa-bullseye", "PageAdmin.menu.top.configuration.bulkActions", PageBulkAction.class);
+        addMainMenuItem(item, "fa fa-upload", "PageAdmin.menu.top.configuration.importObject", PageImportObject.class);
 
-        //todo
-//		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjectView"),
-//		PageDebugView.class, null, createVisibleDisabledBehaviorForEditMenu(PageDebugView.class));
-//		submenu.add(menu);
+        MainMenuItem debugs = addMainMenuItem(item, "fa fa-file-text", "PageAdmin.menu.top.configuration.repositoryObjects", null);
 
-        MainMenuItem systemItem = new MainMenuItem("fa fa-cog",
-                createStringResource("PageAdmin.menu.top.configuration.basic"), null);
-        item.getItems().add(systemItem);
+        addMenuItem(debugs, "PageAdmin.menu.top.configuration.repositoryObjectsList", PageDebugList.class);
+
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjectView"),
+                PageDebugView.class, null, createVisibleDisabledBehaviorForEditMenu(PageDebugView.class));
+        debugs.getItems().add(menu);
+
+        MainMenuItem systemItem = addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic", null);
 
         addSystemMenuItem(systemItem, "PageAdmin.menu.top.configuration.basic",
                 PageSystemConfiguration.CONFIGURATION_TAB_BASIC);
@@ -1308,9 +1308,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         addSystemMenuItem(systemItem, "PageAdmin.menu.top.configuration.adminGui",
                 PageSystemConfiguration.CONFIGURATION_TAB_ADMIN_GUI);
 
-        addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.shadowsDetails", PageAccounts.class);
-        addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.internals", PageInternals.class);
-        addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.repoQuery", PageRepositoryQuery.class);
+        addMainMenuItem(item, "fa fa-address-book", "PageAdmin.menu.top.configuration.shadowsDetails", PageAccounts.class);
+        addMainMenuItem(item, "fa fa-archive", "PageAdmin.menu.top.configuration.internals", PageInternals.class);
+        addMainMenuItem(item, "fa fa-search", "PageAdmin.menu.top.configuration.repoQuery", PageRepositoryQuery.class);
         if (SystemConfigurationHolder.isExperimentalCodeEnabled()) {
             addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.evaluateMapping", PageEvaluateMapping.class);
         }
@@ -1335,9 +1335,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         mainItem.getItems().add(menu);
     }
 
-    private void addMainMenuItem(SideBarMenuItem item, String icon, String key, Class<? extends PageBase> page) {
-        MainMenuItem repositoryObjects = new MainMenuItem(icon, createStringResource(key), page);
-        item.getItems().add(repositoryObjects);
+    private MainMenuItem addMainMenuItem(SideBarMenuItem item, String icon, String key, Class<? extends PageBase> page) {
+        MainMenuItem mainItem = new MainMenuItem(icon, createStringResource(key), page);
+        item.getItems().add(mainItem);
+
+        return mainItem;
     }
 
     private void addMenuItem(MainMenuItem item, String key, Class<? extends PageBase> page) {
@@ -1638,42 +1640,36 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private MainMenuItem createOrganizationsMenu() {
-        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ORG_ICON_COLORED, createStringResource("PageAdmin.menu.top.users.org"),
-                null);
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ORG_ICON_COLORED,
+                createStringResource("PageAdmin.menu.top.users.org"), null);
 
-        List<MenuItem> submenu = item.getItems();
+        addMenuItem(item, "PageAdmin.menu.top.users.org.tree", PageOrgTree.class);
 
-        MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.users.org.tree"), PageOrgTree.class);
-        submenu.add(list);
-        createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.users.org.new", "PageAdmin.menu.top.users.org.edit",
+        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.org.new", "PageAdmin.menu.top.users.org.edit",
                 PageOrgUnit.class, true);
 
         return item;
     }
 
     private MainMenuItem createRolesItems() {
-        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, createStringResource("PageAdmin.menu.top.roles"),
-                null);
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED,
+                createStringResource("PageAdmin.menu.top.roles"), null);
 
-        List<MenuItem> submenu = item.getItems();
+        addMenuItem(item, "PageAdmin.menu.top.roles.list", PageRoles.class);
 
-        MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.roles.list"), PageRoles.class);
-        submenu.add(list);
-        createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.roles.new", "PageAdmin.menu.top.roles.edit",
+        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.roles.new", "PageAdmin.menu.top.roles.edit",
                 PageRole.class, true);
 
         return item;
     }
 
     private MainMenuItem createServicesItems() {
-        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED, createStringResource("PageAdmin.menu.top.services"),
-                null);
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED,
+                createStringResource("PageAdmin.menu.top.services"), null);
 
-        List<MenuItem> submenu = item.getItems();
+        addMenuItem(item, "PageAdmin.menu.top.services.list", PageServices.class);
 
-        MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.services.list"), PageServices.class);
-        submenu.add(list);
-        createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.services.new", "PageAdmin.menu.top.services.edit",
+        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.services.new", "PageAdmin.menu.top.services.edit",
                 PageService.class, true);
 
         return item;
