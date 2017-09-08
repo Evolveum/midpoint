@@ -140,6 +140,9 @@ public abstract class AbstractRbacTest extends AbstractInitializedModelIntegrati
 	protected static final File ROLE_NON_CREATEABLE_FILE = new File(TEST_DIR, "role-non-createable.xml");
 	protected static final String ROLE_NON_CREATEABLE_OID = "c45a25ce-b2e8-11e6-923e-938d2c54d334";
 	
+	protected static final File ROLE_CREATEABLE_FILE = new File(TEST_DIR, "role-createable.xml");
+	protected static final String ROLE_CREATEABLE_OID = "667a242c-dd13-4dbb-bc9f-ab678ba80d37";
+
 	protected static final File ROLE_IMMUTABLE_ASSIGN_FILE = new File(TEST_DIR, "role-immutable-assign.xml");
 	protected static final String ROLE_IMMUTABLE_ASSIGN_OID = "a6b10a7c-b57e-11e6-bcb3-1ba47cb07e2e";
 

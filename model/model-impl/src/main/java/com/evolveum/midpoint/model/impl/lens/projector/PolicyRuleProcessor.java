@@ -650,7 +650,7 @@ public class PolicyRuleProcessor {
 		}
 	}
 
-	private <F extends FocusType> boolean isRuleConditionTrue(GlobalPolicyRuleType globalPolicyRule, PrismObject<F> focus,
+	public <F extends FocusType> boolean isRuleConditionTrue(GlobalPolicyRuleType globalPolicyRule, PrismObject<F> focus,
 			EvaluatedAssignmentImpl<F> evaluatedAssignment, LensContext<F> context, Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		MappingType condition = globalPolicyRule.getCondition();
@@ -668,7 +668,7 @@ public class PolicyRuleProcessor {
 						new PrismPropertyDefinitionImpl<>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, prismContext))
 				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
-				.addVariableDefinition(ExpressionConstants.VAR_TARGET, evaluatedAssignment.getTarget())
+				.addVariableDefinition(ExpressionConstants.VAR_TARGET, evaluatedAssignment != null ? evaluatedAssignment.getTarget() : null)
 				.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment)                // TODO: ok?
 				.rootNode(focusOdo);
 

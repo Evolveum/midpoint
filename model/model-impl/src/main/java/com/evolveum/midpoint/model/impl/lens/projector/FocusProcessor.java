@@ -401,9 +401,11 @@ public class FocusProcessor {
 	}
 
 	private <F extends FocusType> void evaluateFocusPolicyRules(LensContext<F> context, String activityDescription,
-			XMLGregorianCalendar now, Task task, OperationResult result) throws PolicyViolationException, SchemaException {
+			XMLGregorianCalendar now, Task task, OperationResult result)
+			throws PolicyViolationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		context.getFocusContext().clearPolicyRules();
 		triggerAssignmentFocusPolicyRules(context, activityDescription, now, task, result);
-		triggerGlobalRules(context);
+		triggerGlobalRules(context, task, result);
 	}
 
 	// TODO: should we really do this? Focus policy rules (e.g. forbidden modifications) are irrelevant in this situation,
@@ -423,7 +425,9 @@ public class FocusProcessor {
 		}
 	}
 	
-	private <F extends FocusType> void triggerGlobalRules(LensContext<F> context) throws SchemaException, PolicyViolationException {
+	private <F extends FocusType> void triggerGlobalRules(LensContext<F> context, Task task,
+			OperationResult result)
+			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException {
 		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
 		if (systemConfiguration == null) {
 			return;
@@ -440,8 +444,10 @@ public class FocusProcessor {
 		for (GlobalPolicyRuleType globalPolicyRule: systemConfiguration.asObjectable().getGlobalPolicyRule()) {
 			ObjectSelectorType focusSelector = globalPolicyRule.getFocusSelector();
 			if (cacheRepositoryService.selectorMatches(focusSelector, focus, LOGGER, "Global policy rule "+globalPolicyRule.getName()+": ")) {
-				EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule, null);
-				triggerRule(focusContext, evaluatedRule);
+				if (policyRuleProcessor.isRuleConditionTrue(globalPolicyRule, focus, null, context, task, result)) {
+					EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule, null);
+					triggerRule(focusContext, evaluatedRule);
+				}
 			}
 		}
 	}
