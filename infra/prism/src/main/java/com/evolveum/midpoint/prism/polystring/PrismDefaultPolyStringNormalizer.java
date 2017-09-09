@@ -24,7 +24,7 @@ import org.apache.commons.lang.StringUtils;
  *
  */
 public class PrismDefaultPolyStringNormalizer implements PolyStringNormalizer {
-	private static final String MALFORMED_REGEX = "[^\\w\\s\\d]";
+	private static final String MALFORMED_REGEX = "[^\\p{L}\\w\\s\\d]";
 	private static final Pattern MALFORMED_PATTERN = Pattern.compile(MALFORMED_REGEX);
 	private static final String WHITESPACE_REGEX = "\\s+";
 	private static final Pattern WHITESPACE_PATTERN = Pattern.compile(WHITESPACE_REGEX);
