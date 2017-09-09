@@ -51,16 +51,13 @@ public class SystemConfigurationDto implements Serializable {
 	public static final String F_ENABLE_EXPERIMENTAL_CODE = "enableExperimentalCode";
 	public static final String F_USER_DASHBOARD_LINK = "userDashboardLink";
 	public static final String F_ADDITIONAL_MENU_LINK = "additionalMenuLink";
-	public static final String F_DEPLOYMENT_NAME = "deploymentNameValue";
-	public static final String F_DEPLOYMENT_COLOUR = "deploymentColourValue";
-
+	public static final String F_DEPLOYMENT_INFORMATION = "deploymentInformation";
 	private AEPlevel aepLevel;
 
 	private String auditCleanupValue;
 	private String taskCleanupValue;
 
-	private String deploymentNameValue;
-	private String deploymentColourValue;
+	private DeploymentInformationType deploymentInformation;
 
 	private Boolean enableExperimentalCode;
 
@@ -101,10 +98,7 @@ public class SystemConfigurationDto implements Serializable {
 		CleanupPolicyType auditCleanup = config.getCleanupPolicy().getAuditRecords();
 		CleanupPolicyType taskCleanup = config.getCleanupPolicy().getClosedTasks();
 
-		//DeploymentInformationType deploymentInformation = config.getDeploymentInformation();
-
-		//deploymentNameValue = deploymentInformationdeploymentInformation.getName();
-		//deploymentColourValue = deploymentInformation.getHeaderColor();
+		deploymentInformation = config.getDeploymentInformation();
 
 		auditCleanupValue = auditCleanup.getMaxAge().toString();
 		taskCleanupValue = taskCleanup.getMaxAge().toString();
@@ -203,8 +197,8 @@ public class SystemConfigurationDto implements Serializable {
 		cleanupPolicies.setAuditRecords(auditCleanup);
 		cleanupPolicies.setClosedTasks(taskCleanup);
 
-
-		//DeploymentInformationType deplymentInformation = new DeploymentInformationType();
+		DeploymentInformationType deploymentInformation = getDeploymentInformation();
+		newObject.setDeploymentInformation(deploymentInformation);
 
 		newObject.setCleanupPolicy(cleanupPolicies);
 		SystemConfigurationTypeUtil.setEnableExperimentalCode(newObject, getEnableExperimentalCode());
@@ -276,6 +270,10 @@ public class SystemConfigurationDto implements Serializable {
 		securityPolicyDto.setType(SecurityPolicyType.class);
 		return securityPolicyDto;
 	}
+
+	public DeploymentInformationType getDeploymentInformation() { return deploymentInformation; }
+
+	public void setDeploymentInformation(DeploymentInformationType deploymentInformation) { this.deploymentInformation = deploymentInformation; }
 
 	public String getAuditCleanupValue() {
 		return auditCleanupValue;
