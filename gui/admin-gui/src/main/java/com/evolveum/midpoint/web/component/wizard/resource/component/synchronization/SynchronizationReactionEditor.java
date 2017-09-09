@@ -78,6 +78,8 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
     private static final String ID_T_OBJ_TEMPLATE = "objectTemplateRefTooltip";
     private static final String ID_T_ACTION = "actionTooltip";
 
+    private static final StringChoiceRenderer CHANNEL_RENDERER = StringChoiceRenderer.prefixedSplit("Channel.", "#");
+
     private Map<String, String> objectTemplateMap = new HashMap<>();
 
 	@NotNull private final SynchronizationStep parentStep;
@@ -138,8 +140,7 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
 
             @Override
             protected IChoiceRenderer<String> createRenderer() {
-            	return new StringChoiceRenderer("Channel.", "#");
-
+                return CHANNEL_RENDERER;
             }
         };
         add(channel);
