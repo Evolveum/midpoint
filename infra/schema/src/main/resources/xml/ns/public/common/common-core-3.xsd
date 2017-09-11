@@ -8769,7 +8769,7 @@
                             <xsd:documentation>
 	                            <p>
 	                                Identifier of the role or org. It should be a structured information usually used for
-	                                refering to the role or org or correlating it in various systems. E.g. numeric organizational
+	                                referring to the role or org or correlating it in various systems. E.g. numeric organizational
 	                                unit identifier, role code, etc. It should be unique in its "own" scope. E.g. an organizational
 	                                unit identifier should be unique in the scope of all organizational units but it may conflict 
 	                                with an identifier of a project.
