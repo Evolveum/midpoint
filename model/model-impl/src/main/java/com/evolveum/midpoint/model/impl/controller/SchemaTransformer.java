@@ -166,7 +166,6 @@ public class SchemaTransformer {
 	
 	private <O extends ObjectType> void authorizeOptions(GetOperationOptions rootOptions, PrismObject<O> object, ObjectDelta<O> delta, AuthorizationPhaseType phase, OperationResult result)
 			throws SchemaException, SecurityViolationException {
-		LOGGER.info("AAA: {}: {}", object, rootOptions);
 		if (GetOperationOptions.isRaw(rootOptions)) {
 			securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), phase, object, delta, null, null, result);
 		}
