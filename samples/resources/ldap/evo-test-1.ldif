@@ -1,0 +1,11 @@
+dn: cn=schema
+objectClass: top
+objectClass: ldapSubentry
+objectClass: subschema
+cn: schema
+# Evolveum Testing 1 LDAP Schema
+# 
+# Copyright (c) 2017 Evolveum
+#
+attributeTypes: ( 1.3.6.1.4.1.45689.1.4.1.2.1 NAME 'evoT1Attr1' DESC 'Attribute One' SUP name SINGLE-VALUE  X-ORIGIN 'user defined' )
+objectClasses: ( 1.3.6.1.4.1.45689.1.4.1.1.1 NAME 'evoT1AuxOc1' DESC 'Testing auxiliary object class' AUXILIARY MAY ( evoT1Attr1 )  X-ORIGIN 'user defined' )
