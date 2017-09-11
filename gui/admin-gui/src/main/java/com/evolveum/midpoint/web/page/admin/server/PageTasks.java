@@ -1587,9 +1587,9 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                             return createCategoryList();
                         }
                     },
-                    new StringChoiceRenderer("pageTasks.category.") {
+                    new StringChoiceRenderer.Prefixed("pageTasks.category.") {
 
-                    	 @Override
+                        @Override
                         public String getDisplayValue(String object) {
                             if (ALL_CATEGORIES.equals(object)) {
                                 object = "AllCategories";
