@@ -19,6 +19,7 @@ import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -93,7 +94,7 @@ public class SchemaTransformer {
 			PrismObject<T> object = objects.get(i);
 			object = object.cloneIfImmutable();
 			objects.set(i, object);
-			applySchemaAndSecurityToObject(object, rootOptions, options, phase, task);
+			applySchemaAndSecurityToObject(object, rootOptions, options, phase, task, result);
 		}
 	}
 
@@ -140,12 +141,12 @@ public class SchemaTransformer {
 		return new SearchResultList<>(newValues, originalResultList.getMetadata());
 	}
 
-	protected <T extends ObjectType> void applySchemaAndSecurityToObject(PrismObject<T> object, GetOperationOptions rootOptions,
-			Collection<SelectorOptions<GetOperationOptions>> options, AuthorizationPhaseType phase, Task task) {
+	private <T extends ObjectType> void applySchemaAndSecurityToObject(PrismObject<T> object, GetOperationOptions rootOptions,
+			Collection<SelectorOptions<GetOperationOptions>> options, AuthorizationPhaseType phase, Task task, OperationResult result) throws SecurityViolationException {
 		OperationResult subresult = new OperationResult(SchemaTransformer.class.getName()+".applySchemasAndSecurityToObjects");
 		try {
             applySchemasAndSecurity(object, rootOptions, options, phase, task, subresult);
-        } catch (IllegalArgumentException|IllegalStateException|SchemaException |SecurityViolationException |ConfigurationException |ObjectNotFoundException e) {
+        } catch (IllegalArgumentException|IllegalStateException|SchemaException |ConfigurationException |ObjectNotFoundException e) {
             LOGGER.error("Error post-processing object {}: {}", object, e.getMessage(), e);
             OperationResultType fetchResult = object.asObjectable().getFetchResult();
             if (fetchResult == null) {
@@ -155,7 +156,19 @@ public class SchemaTransformer {
                 fetchResult.getPartialResults().add(subresult.createOperationResultType());
             }
             fetchResult.setStatus(OperationResultStatusType.FATAL_ERROR);
+        } catch (SecurityViolationException e) {
+        	// We cannot go on and leave this object in the result set. The object was not post-processed.
+        	// Leaving it in the result set may leak information.
+        	result.recordFatalError(e);
+        	throw e;
         }
+	}
+	
+	private <O extends ObjectType> void authorizeOptions(GetOperationOptions rootOptions, PrismObject<O> object, ObjectDelta<O> delta, AuthorizationPhaseType phase, OperationResult result)
+			throws SchemaException, SecurityViolationException {
+		if (GetOperationOptions.isRaw(rootOptions)) {
+			securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), phase, object, delta, null, null, result);
+		}
 	}
 
 	/**
@@ -169,6 +182,7 @@ public class SchemaTransformer {
 					throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 		LOGGER.trace("applySchemasAndSecurity starting");
     	OperationResult result = parentResult.createMinorSubresult(SchemaTransformer.class.getName()+".applySchemasAndSecurity");
+    	authorizeOptions(rootOptions, object, null, phase, result);
     	validateObject(object, rootOptions, result);
 
     	PrismObjectDefinition<O> objectDefinition = object.deepCloneDefinition(true);

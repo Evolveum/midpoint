@@ -16,27 +16,92 @@
 
 package com.evolveum.midpoint.gui.api.page;
 
-import java.io.Serializable;
-import java.util.*;
-
-import javax.management.MBeanServer;
-import javax.management.MBeanServerFactory;
-import javax.management.ObjectName;
-
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.common.validator.EventHandler;
+import com.evolveum.midpoint.common.validator.EventResult;
+import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.*;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.model.api.validator.ResourceValidator;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.report.api.ReportManager;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.DescriptorLoader;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
+import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
+import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.*;
+import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
+import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.*;
+import com.evolveum.midpoint.web.page.admin.resources.*;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
+import com.evolveum.midpoint.web.page.admin.services.PageService;
+import com.evolveum.midpoint.web.page.admin.services.PageServices;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.admin.workflow.*;
+import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.*;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
+import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -75,88 +140,11 @@ import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.common.validator.EventHandler;
-import com.evolveum.midpoint.common.validator.EventResult;
-import com.evolveum.midpoint.common.validator.Validator;
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.validator.ResourceValidator;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.report.api.ReportManager;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.DescriptorLoader;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
-import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
-import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.resources.PageConnectorHosts;
-import com.evolveum.midpoint.web.page.admin.resources.PageImportResource;
-import com.evolveum.midpoint.web.page.admin.resources.PageResource;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
-import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
-import com.evolveum.midpoint.web.page.admin.services.PageService;
-import com.evolveum.midpoint.web.page.admin.services.PageServices;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesAll;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedBy;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedFor;
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsAll;
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsAllocatedToMe;
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsClaimable;
-import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
-import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
-
-import static com.evolveum.midpoint.gui.api.GuiStyleConstants.DEFAULT_BG_COLOR;
+import javax.management.MBeanServer;
+import javax.management.MBeanServerFactory;
+import javax.management.ObjectName;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -164,408 +152,408 @@ import static com.evolveum.midpoint.gui.api.GuiStyleConstants.DEFAULT_BG_COLOR;
  */
 public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String DOT_CLASS = PageBase.class.getName() + ".";
-	private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
-	private static final String OPERATION_LOAD_WORK_ITEM_COUNT = DOT_CLASS + "loadWorkItemCount";
-	private static final String OPERATION_LOAD_CERT_WORK_ITEM_COUNT = DOT_CLASS + "loadCertificationWorkItemCount";
+    private static final String DOT_CLASS = PageBase.class.getName() + ".";
+    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
+    private static final String OPERATION_LOAD_WORK_ITEM_COUNT = DOT_CLASS + "loadWorkItemCount";
+    private static final String OPERATION_LOAD_CERT_WORK_ITEM_COUNT = DOT_CLASS + "loadCertificationWorkItemCount";
 
-	private static final String ID_TITLE = "title";
-	private static final String ID_MAIN_HEADER = "mainHeader";
-	private static final String ID_PAGE_TITLE_CONTAINER = "pageTitleContainer";
-	private static final String ID_PAGE_TITLE_REAL = "pageTitleReal";
-	private static final String ID_PAGE_TITLE = "pageTitle";
-	private static final String ID_DEBUG_PANEL = "debugPanel";
-	private static final String ID_VERSION = "version";
-	public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
-	private static final String ID_FEEDBACK = "feedback";
-	private static final String ID_DEBUG_BAR = "debugBar";
-	private static final String ID_CLEAR_CACHE = "clearCssCache";
-	private static final String ID_SIDEBAR_MENU = "sidebarMenu";
-	private static final String ID_RIGHT_MENU = "rightMenu";
-	private static final String ID_LOCALE = "locale";
-	private static final String ID_MENU_TOGGLE = "menuToggle";
-	private static final String ID_BREADCRUMBS = "breadcrumbs";
-	private static final String ID_BREADCRUMB = "breadcrumb";
-	private static final String ID_BC_LINK = "bcLink";
-	private static final String ID_BC_ICON = "bcIcon";
-	private static final String ID_BC_NAME = "bcName";
-	private static final String ID_MAIN_POPUP = "mainPopup";
-	private static final String ID_MAIN_POPUP_BODY = "popupBody";
-	private static final String ID_SUBSCRIPTION_MESSAGE = "subscriptionMessage";
-	private static final String ID_FOOTER_CONTAINER = "footerContainer";
-	private static final String ID_COPYRIGHT_MESSAGE = "copyrightMessage";
-	private static final String ID_LOGO = "logo";
-	private static final String ID_CUSTOM_LOGO = "customLogo";
-	private static final String ID_CUSTOM_LOGO_IMG_SRC = "customLogoImgSrc";
-	private static final String ID_CUSTOM_LOGO_IMG_CSS = "customLogoImgCss";
-	private static final String ID_NAVIGATION = "navigation";
-	private static final String ID_DEPLOYMENT_NAME = "deploymentName";
-	private static final String ID_BODY = "body";
+    private static final String ID_TITLE = "title";
+    private static final String ID_MAIN_HEADER = "mainHeader";
+    private static final String ID_PAGE_TITLE_CONTAINER = "pageTitleContainer";
+    private static final String ID_PAGE_TITLE_REAL = "pageTitleReal";
+    private static final String ID_PAGE_TITLE = "pageTitle";
+    private static final String ID_DEBUG_PANEL = "debugPanel";
+    private static final String ID_VERSION = "version";
+    public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
+    private static final String ID_FEEDBACK = "feedback";
+    private static final String ID_DEBUG_BAR = "debugBar";
+    private static final String ID_CLEAR_CACHE = "clearCssCache";
+    private static final String ID_SIDEBAR_MENU = "sidebarMenu";
+    private static final String ID_RIGHT_MENU = "rightMenu";
+    private static final String ID_LOCALE = "locale";
+    private static final String ID_MENU_TOGGLE = "menuToggle";
+    private static final String ID_BREADCRUMBS = "breadcrumbs";
+    private static final String ID_BREADCRUMB = "breadcrumb";
+    private static final String ID_BC_LINK = "bcLink";
+    private static final String ID_BC_ICON = "bcIcon";
+    private static final String ID_BC_NAME = "bcName";
+    private static final String ID_MAIN_POPUP = "mainPopup";
+    private static final String ID_MAIN_POPUP_BODY = "popupBody";
+    private static final String ID_SUBSCRIPTION_MESSAGE = "subscriptionMessage";
+    private static final String ID_FOOTER_CONTAINER = "footerContainer";
+    private static final String ID_COPYRIGHT_MESSAGE = "copyrightMessage";
+    private static final String ID_LOGO = "logo";
+    private static final String ID_CUSTOM_LOGO = "customLogo";
+    private static final String ID_CUSTOM_LOGO_IMG_SRC = "customLogoImgSrc";
+    private static final String ID_CUSTOM_LOGO_IMG_CSS = "customLogoImgCss";
+    private static final String ID_NAVIGATION = "navigation";
+    private static final String ID_DEPLOYMENT_NAME = "deploymentName";
+    private static final String ID_BODY = "body";
 
-	private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";
+    private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";
 
     private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
     private static final String OPERATION_GET_DEPLOYMENT_INFORMATION = DOT_CLASS + "getDeploymentInformation";
 
-	private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
-	// Strictly speaking following fields should be transient.
-	// But making them transient is causing problems on some
-	// JVM version or tomcat configurations (MID-3357).
-	// It seems to be somehow related to session persistence.
-	// But honestly I have no idea about the real cause.
-	// Anyway, setting these fields to non-transient seems to
-	// fix it. And surprisingly it does not affect the session
-	// size.
+    // Strictly speaking following fields should be transient.
+    // But making them transient is causing problems on some
+    // JVM version or tomcat configurations (MID-3357).
+    // It seems to be somehow related to session persistence.
+    // But honestly I have no idea about the real cause.
+    // Anyway, setting these fields to non-transient seems to
+    // fix it. And surprisingly it does not affect the session
+    // size.
 
-	@SpringBean(name = "modelController")
-	private ScriptingService scriptingService;
+    @SpringBean(name = "modelController")
+    private ScriptingService scriptingService;
 
-	@SpringBean(name = "modelController")
-	private ModelService modelService;
+    @SpringBean(name = "modelController")
+    private ModelService modelService;
 
-	@SpringBean(name = "modelInteractionService")
-	private ModelInteractionService modelInteractionService;
+    @SpringBean(name = "modelInteractionService")
+    private ModelInteractionService modelInteractionService;
 
-	@SpringBean(name = "modelController")
-	private TaskService taskService;
+    @SpringBean(name = "modelController")
+    private TaskService taskService;
 
-	@SpringBean(name = "modelDiagController")
-	private ModelDiagnosticService modelDiagnosticService;
+    @SpringBean(name = "modelDiagController")
+    private ModelDiagnosticService modelDiagnosticService;
 
-	@SpringBean(name = "taskManager")
-	private TaskManager taskManager;
+    @SpringBean(name = "taskManager")
+    private TaskManager taskManager;
 
     @SpringBean(name = "auditService")
     private AuditService auditService;
 
     @SpringBean(name = "modelController")
-	private WorkflowService workflowService;
+    private WorkflowService workflowService;
 
-	@SpringBean(name = "workflowManager")
-	private WorkflowManager workflowManager;
+    @SpringBean(name = "workflowManager")
+    private WorkflowManager workflowManager;
 
-	@SpringBean(name = "midpointConfiguration")
-	private MidpointConfiguration midpointConfiguration;
+    @SpringBean(name = "midpointConfiguration")
+    private MidpointConfiguration midpointConfiguration;
 
-	@SpringBean(name = "reportManager")
-	private ReportManager reportManager;
-
-	@SpringBean(name = "resourceValidator")
-	private ResourceValidator resourceValidator;
-
-	// @SpringBean(name = "certificationManager")
-	// private CertificationManager certificationManager;
-
-	@SpringBean(name = "modelController")
-	private AccessCertificationService certficationService;
-
-	@SpringBean(name = "accessDecisionManager")
-	private SecurityEnforcer securityEnforcer;
-
-	@SpringBean
-	private MidpointFormValidatorRegistry formValidatorRegistry;
-
-	@SpringBean(name = "modelObjectResolver")
-	private ObjectResolver modelObjectResolver;
-
-	private List<Breadcrumb> breadcrumbs;
-
-	private boolean initialized = false;
-
-	private LoadableModel<Integer> workItemCountModel;
-	private LoadableModel<Integer> certWorkItemCountModel;
-	private LoadableModel<DeploymentInformationType> deploymentInfoModel;
-
-	// No need to store this in the session. Retrieval is cheap.
-	private transient AdminGuiConfigurationType adminGuiConfiguration;
-
-	// No need for this to store in session. It is used only during single init and render.
-	private transient Task pageTask;
-
-	public PageBase(PageParameters parameters) {
-		super(parameters);
-
-		LOGGER.debug("Initializing page {}", this.getClass());
-
-		Injector.get().inject(this);
-		Validate.notNull(modelService, "Model service was not injected.");
-		Validate.notNull(taskManager, "Task manager was not injected.");
-		Validate.notNull(reportManager, "Report manager was not injected.");
-
-		MidPointAuthWebSession.getSession().setClientCustomization();
-
-		add(new NewWindowNotifyingBehavior());
-
-		initializeModel();
-
-		initLayout();
-	}
-
-	@Override
-	protected void onConfigure() {
-		super.onConfigure();
-
-		if (initialized) {
-			return;
-		}
-		initialized = true;
-
-		createBreadcrumb();
-	}
-
-	private void initializeModel() {
-		workItemCountModel = new LoadableModel<Integer>() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected Integer load() {
-				try {
-					Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEM_COUNT);
-					S_FilterEntryOrEmpty q = QueryBuilder.queryFor(WorkItemType.class, getPrismContext());
-					ObjectQuery query = QueryUtils.filterForAssignees(q, getPrincipal(),
-							OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS).build();
-					return getModelService().countContainers(WorkItemType.class, query, null, task, task.getResult());
-				} catch (SchemaException|SecurityViolationException e) {
-					LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load work item count", e);
-					return null;
-				}
-			}
-		};
-		certWorkItemCountModel = new LoadableModel<Integer>() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected Integer load() {
-				try {
-					AccessCertificationService acs = getCertificationService();
-					Task task = createSimpleTask(OPERATION_LOAD_CERT_WORK_ITEM_COUNT);
-					OperationResult result = task.getResult();
-					return acs.countOpenWorkItems(new ObjectQuery(), true, null, task, result);
-				} catch (SchemaException|SecurityViolationException|ObjectNotFoundException
-						|ConfigurationException|CommunicationException e) {
-					LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load certification work item count", e);
-					return null;
-				}
-			}
-		};
-		deploymentInfoModel = new LoadableModel<DeploymentInformationType>() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected DeploymentInformationType load() {
-				return loadDeploymentInformationType();
-			}
-		};
-	}
-
-	public void resetWorkItemCountModel() {
-		if (workItemCountModel != null) {
-			workItemCountModel.reset();
-		}
-	}
-
-	public void resetCertWorkItemCountModel() {
-		if (certWorkItemCountModel != null) {
-			certWorkItemCountModel.reset();
-		}
-	}
-
-	protected void createBreadcrumb() {
-		BreadcrumbPageClass bc = new BreadcrumbPageClass(new AbstractReadOnlyModel<String>() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getObject() {
-				return getPageTitleModel().getObject();
-			}
-		}, this.getClass(), getPageParameters());
-
-		addBreadcrumb(bc);
-	}
-
-	protected void createInstanceBreadcrumb() {
-		BreadcrumbPageInstance bc = new BreadcrumbPageInstance(new AbstractReadOnlyModel<String>() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getObject() {
-				return getPageTitleModel().getObject();
-			}
-		}, this);
-
-		addBreadcrumb(bc);
-	}
-
-	public void updateBreadcrumbParameters(String key, Object value) {
-		List<Breadcrumb> list = getBreadcrumbs();
-		if (list.isEmpty()) {
-			return;
-		}
-
-		Breadcrumb bc = list.get(list.size() - 1);
-		PageParameters params = bc.getParameters();
-		if (params == null) {
-			return;
-		}
-
-		params.set(key, value);
-	}
-
-	public PageBase() {
-		this(null);
-	}
-
-	public MidPointApplication getMidpointApplication() {
-		return (MidPointApplication) getApplication();
-	}
-
-	public WebApplicationConfiguration getWebApplicationConfiguration() {
-		MidPointApplication application = getMidpointApplication();
-		return application.getWebApplicationConfiguration();
-	}
-
-	public PrismContext getPrismContext() {
-		return getMidpointApplication().getPrismContext();
-	}
-
-	public ExpressionFactory getExpressionFactory() {
-		return getMidpointApplication().getExpressionFactory();
-	}
-
-	public MatchingRuleRegistry getMatchingRuleRegistry() {
-		return getMidpointApplication().getMatchingRuleRegistry();
-	}
-
-	public TaskManager getTaskManager() {
-		return taskManager;
-	}
-
-	public WorkflowService getWorkflowService() {
-		return workflowService;
-	}
-
-	public WorkflowManager getWorkflowManager() {
-		return workflowManager;
-	}
-
-	public ResourceValidator getResourceValidator() {
-		return resourceValidator;
-	}
-
-	public ReportManager getReportManager() {
-		return reportManager;
-	}
-
-	public AuditService getAuditService() {
-		return auditService;
-	}
-
-	public AccessCertificationService getCertificationService() {
-		return certficationService;
-	}
-
-	@Override
-	public ModelService getModelService() {
-		return modelService;
-	}
-
-	@Override
-	public ObjectResolver getModelObjectResolver() {
-		return modelObjectResolver;
-	}
-
-	public ScriptingService getScriptingService() {
-		return scriptingService;
-	}
-
-	public TaskService getTaskService() {
-		return taskService;
-	}
-
-	@Override
-	public SecurityEnforcer getSecurityEnforcer() {
-		return securityEnforcer;
-	}
-
-	@Override
-	public ModelInteractionService getModelInteractionService() {
-		return modelInteractionService;
-	}
-
-	protected ModelDiagnosticService getModelDiagnosticService() {
-		return modelDiagnosticService;
-	}
-
-	@Override
-	public AdminGuiConfigurationType getAdminGuiConfiguration() {
-		if (adminGuiConfiguration == null) {
-			Task task = createSimpleTask(PageBase.DOT_CLASS + "getAdminGuiConfiguration");
-			try {
-				adminGuiConfiguration = modelInteractionService.getAdminGuiConfiguration(task, task.getResult());
-			} catch (ObjectNotFoundException | SchemaException e) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve admin GUI configuration", e);
-				if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
-					throw new SystemException("Cannot retrieve admin GUI configuration: "+e.getMessage(), e);
-				} else {
-					// Just return empty admin GUI config, so the GUI can go on (and the problem may get fixed)
-					return new AdminGuiConfigurationType();
-				}
-			}
-		}
-		return adminGuiConfiguration;
-	}
-
-	@Override
-	public Task getPageTask() {
-		if (pageTask == null) {
-			pageTask = createSimpleTask(this.getClass().getName());
-		}
-		return pageTask;
-	}
-
-	public MidpointFormValidatorRegistry getFormValidatorRegistry() {
-		return formValidatorRegistry;
-	}
-
-	public MidPointPrincipal getPrincipal() {
-		return SecurityUtils.getPrincipalUser();
-	}
-
-	public static StringResourceModel createStringResourceStatic(Component component, Enum e) {
-		String resourceKey = createEnumResourceKey(e);
-		return createStringResourceStatic(component, resourceKey);
-	}
-
-	public static String createEnumResourceKey(Enum e) {
-		return e.getDeclaringClass().getSimpleName() + "." + e.name();
-	}
-
-	public Task createAnonymousTask(String operation) {
-		TaskManager manager = getTaskManager();
-		Task task = manager.createTaskInstance(operation);
-
-		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
-
-		return task;
-	}
-
-	public Task createSimpleTask(String operation) {
-		MidPointPrincipal user = SecurityUtils.getPrincipalUser();
-		if (user == null) {
-			throw new RestartResponseException(PageLogin.class);
-		}
-		return WebModelServiceUtils.createSimpleTask(operation, user.getUser().asPrismObject(), getTaskManager());
-	}
-
-	public MidpointConfiguration getMidpointConfiguration() {
-		return midpointConfiguration;
-	}
-
-	@Override
-	public void renderHead(IHeaderResponse response) {
+    @SpringBean(name = "reportManager")
+    private ReportManager reportManager;
+
+    @SpringBean(name = "resourceValidator")
+    private ResourceValidator resourceValidator;
+
+    // @SpringBean(name = "certificationManager")
+    // private CertificationManager certificationManager;
+
+    @SpringBean(name = "modelController")
+    private AccessCertificationService certficationService;
+
+    @SpringBean(name = "accessDecisionManager")
+    private SecurityEnforcer securityEnforcer;
+
+    @SpringBean
+    private MidpointFormValidatorRegistry formValidatorRegistry;
+
+    @SpringBean(name = "modelObjectResolver")
+    private ObjectResolver modelObjectResolver;
+
+    private List<Breadcrumb> breadcrumbs;
+
+    private boolean initialized = false;
+
+    private LoadableModel<Integer> workItemCountModel;
+    private LoadableModel<Integer> certWorkItemCountModel;
+    private LoadableModel<DeploymentInformationType> deploymentInfoModel;
+
+    // No need to store this in the session. Retrieval is cheap.
+    private transient AdminGuiConfigurationType adminGuiConfiguration;
+
+    // No need for this to store in session. It is used only during single init and render.
+    private transient Task pageTask;
+
+    public PageBase(PageParameters parameters) {
+        super(parameters);
+
+        LOGGER.debug("Initializing page {}", this.getClass());
+
+        Injector.get().inject(this);
+        Validate.notNull(modelService, "Model service was not injected.");
+        Validate.notNull(taskManager, "Task manager was not injected.");
+        Validate.notNull(reportManager, "Report manager was not injected.");
+
+        MidPointAuthWebSession.getSession().setClientCustomization();
+
+        add(new NewWindowNotifyingBehavior());
+
+        initializeModel();
+
+        initLayout();
+    }
+
+    @Override
+    protected void onConfigure() {
+        super.onConfigure();
+
+        if (initialized) {
+            return;
+        }
+        initialized = true;
+
+        createBreadcrumb();
+    }
+
+    private void initializeModel() {
+        workItemCountModel = new LoadableModel<Integer>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Integer load() {
+                try {
+                    Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEM_COUNT);
+                    S_FilterEntryOrEmpty q = QueryBuilder.queryFor(WorkItemType.class, getPrismContext());
+                    ObjectQuery query = QueryUtils.filterForAssignees(q, getPrincipal(),
+                            OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS).build();
+                    return getModelService().countContainers(WorkItemType.class, query, null, task, task.getResult());
+                } catch (SchemaException | SecurityViolationException e) {
+                    LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load work item count", e);
+                    return null;
+                }
+            }
+        };
+        certWorkItemCountModel = new LoadableModel<Integer>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Integer load() {
+                try {
+                    AccessCertificationService acs = getCertificationService();
+                    Task task = createSimpleTask(OPERATION_LOAD_CERT_WORK_ITEM_COUNT);
+                    OperationResult result = task.getResult();
+                    return acs.countOpenWorkItems(new ObjectQuery(), true, null, task, result);
+                } catch (SchemaException | SecurityViolationException | ObjectNotFoundException
+                        | ConfigurationException | CommunicationException e) {
+                    LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load certification work item count", e);
+                    return null;
+                }
+            }
+        };
+        deploymentInfoModel = new LoadableModel<DeploymentInformationType>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected DeploymentInformationType load() {
+                return loadDeploymentInformationType();
+            }
+        };
+    }
+
+    public void resetWorkItemCountModel() {
+        if (workItemCountModel != null) {
+            workItemCountModel.reset();
+        }
+    }
+
+    public void resetCertWorkItemCountModel() {
+        if (certWorkItemCountModel != null) {
+            certWorkItemCountModel.reset();
+        }
+    }
+
+    protected void createBreadcrumb() {
+        BreadcrumbPageClass bc = new BreadcrumbPageClass(new AbstractReadOnlyModel<String>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                return getPageTitleModel().getObject();
+            }
+        }, this.getClass(), getPageParameters());
+
+        addBreadcrumb(bc);
+    }
+
+    protected void createInstanceBreadcrumb() {
+        BreadcrumbPageInstance bc = new BreadcrumbPageInstance(new AbstractReadOnlyModel<String>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                return getPageTitleModel().getObject();
+            }
+        }, this);
+
+        addBreadcrumb(bc);
+    }
+
+    public void updateBreadcrumbParameters(String key, Object value) {
+        List<Breadcrumb> list = getBreadcrumbs();
+        if (list.isEmpty()) {
+            return;
+        }
+
+        Breadcrumb bc = list.get(list.size() - 1);
+        PageParameters params = bc.getParameters();
+        if (params == null) {
+            return;
+        }
+
+        params.set(key, value);
+    }
+
+    public PageBase() {
+        this(null);
+    }
+
+    public MidPointApplication getMidpointApplication() {
+        return (MidPointApplication) getApplication();
+    }
+
+    public WebApplicationConfiguration getWebApplicationConfiguration() {
+        MidPointApplication application = getMidpointApplication();
+        return application.getWebApplicationConfiguration();
+    }
+
+    public PrismContext getPrismContext() {
+        return getMidpointApplication().getPrismContext();
+    }
+
+    public ExpressionFactory getExpressionFactory() {
+        return getMidpointApplication().getExpressionFactory();
+    }
+
+    public MatchingRuleRegistry getMatchingRuleRegistry() {
+        return getMidpointApplication().getMatchingRuleRegistry();
+    }
+
+    public TaskManager getTaskManager() {
+        return taskManager;
+    }
+
+    public WorkflowService getWorkflowService() {
+        return workflowService;
+    }
+
+    public WorkflowManager getWorkflowManager() {
+        return workflowManager;
+    }
+
+    public ResourceValidator getResourceValidator() {
+        return resourceValidator;
+    }
+
+    public ReportManager getReportManager() {
+        return reportManager;
+    }
+
+    public AuditService getAuditService() {
+        return auditService;
+    }
+
+    public AccessCertificationService getCertificationService() {
+        return certficationService;
+    }
+
+    @Override
+    public ModelService getModelService() {
+        return modelService;
+    }
+
+    @Override
+    public ObjectResolver getModelObjectResolver() {
+        return modelObjectResolver;
+    }
+
+    public ScriptingService getScriptingService() {
+        return scriptingService;
+    }
+
+    public TaskService getTaskService() {
+        return taskService;
+    }
+
+    @Override
+    public SecurityEnforcer getSecurityEnforcer() {
+        return securityEnforcer;
+    }
+
+    @Override
+    public ModelInteractionService getModelInteractionService() {
+        return modelInteractionService;
+    }
+
+    protected ModelDiagnosticService getModelDiagnosticService() {
+        return modelDiagnosticService;
+    }
+
+    @Override
+    public AdminGuiConfigurationType getAdminGuiConfiguration() {
+        if (adminGuiConfiguration == null) {
+            Task task = createSimpleTask(PageBase.DOT_CLASS + "getAdminGuiConfiguration");
+            try {
+                adminGuiConfiguration = modelInteractionService.getAdminGuiConfiguration(task, task.getResult());
+            } catch (ObjectNotFoundException | SchemaException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve admin GUI configuration", e);
+                if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
+                    throw new SystemException("Cannot retrieve admin GUI configuration: " + e.getMessage(), e);
+                } else {
+                    // Just return empty admin GUI config, so the GUI can go on (and the problem may get fixed)
+                    return new AdminGuiConfigurationType();
+                }
+            }
+        }
+        return adminGuiConfiguration;
+    }
+
+    @Override
+    public Task getPageTask() {
+        if (pageTask == null) {
+            pageTask = createSimpleTask(this.getClass().getName());
+        }
+        return pageTask;
+    }
+
+    public MidpointFormValidatorRegistry getFormValidatorRegistry() {
+        return formValidatorRegistry;
+    }
+
+    public MidPointPrincipal getPrincipal() {
+        return SecurityUtils.getPrincipalUser();
+    }
+
+    public static StringResourceModel createStringResourceStatic(Component component, Enum e) {
+        String resourceKey = createEnumResourceKey(e);
+        return createStringResourceStatic(component, resourceKey);
+    }
+
+    public static String createEnumResourceKey(Enum e) {
+        return e.getDeclaringClass().getSimpleName() + "." + e.name();
+    }
+
+    public Task createAnonymousTask(String operation) {
+        TaskManager manager = getTaskManager();
+        Task task = manager.createTaskInstance(operation);
+
+        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+
+        return task;
+    }
+
+    public Task createSimpleTask(String operation) {
+        MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+        if (user == null) {
+            throw new RestartResponseException(PageLogin.class);
+        }
+        return WebModelServiceUtils.createSimpleTask(operation, user.getUser().asPrismObject(), getTaskManager());
+    }
+
+    public MidpointConfiguration getMidpointConfiguration() {
+        return midpointConfiguration;
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
         String skinCssString = CLASS_DEFAULT_SKIN;
@@ -580,90 +568,90 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                         PageBase.class, skinCssPath)
                 )
         );
-		// this attaches jquery.js as first header item, which is used in our
-		// scripts.
-		CoreLibrariesContributor.contribute(getApplication(), response);
+        // this attaches jquery.js as first header item, which is used in our
+        // scripts.
+        CoreLibrariesContributor.contribute(getApplication(), response);
 
 //		response.render(JavaScriptHeaderItem.forScript("alert(window.name);", "windowNameScript"));
     }
 
     @Override
-	protected void onBeforeRender() {
-		super.onBeforeRender();
-		FeedbackMessages messages = getSession().getFeedbackMessages();
-		for (FeedbackMessage message : messages) {
-			getFeedbackMessages().add(message);
-		}
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+        FeedbackMessages messages = getSession().getFeedbackMessages();
+        for (FeedbackMessage message : messages) {
+            getFeedbackMessages().add(message);
+        }
 
-		getSession().getFeedbackMessages().clear();
-	}
+        getSession().getFeedbackMessages().clear();
+    }
 
-	private void initHeaderLayout(WebMarkupContainer container) {
-		WebMarkupContainer menuToggle = new WebMarkupContainer(ID_MENU_TOGGLE);
-		menuToggle.add(createUserStatusBehaviour(true));
-		container.add(menuToggle);
+    private void initHeaderLayout(WebMarkupContainer container) {
+        WebMarkupContainer menuToggle = new WebMarkupContainer(ID_MENU_TOGGLE);
+        menuToggle.add(createUserStatusBehaviour(true));
+        container.add(menuToggle);
 
-		UserMenuPanel rightMenu = new UserMenuPanel(ID_RIGHT_MENU);
-		rightMenu.add(createUserStatusBehaviour(true));
-		container.add(rightMenu);
+        UserMenuPanel rightMenu = new UserMenuPanel(ID_RIGHT_MENU);
+        rightMenu.add(createUserStatusBehaviour(true));
+        container.add(rightMenu);
 
-		LocalePanel locale = new LocalePanel(ID_LOCALE);
-		locale.add(createUserStatusBehaviour(false));
-		container.add(locale);
-	}
+        LocalePanel locale = new LocalePanel(ID_LOCALE);
+        locale.add(createUserStatusBehaviour(false));
+        container.add(locale);
+    }
 
-	private void initTitleLayout(WebMarkupContainer mainHeader) {
-		WebMarkupContainer pageTitleContainer = new WebMarkupContainer(ID_PAGE_TITLE_CONTAINER);
-		pageTitleContainer.add(createUserStatusBehaviour(true));
-		mainHeader.add(pageTitleContainer);
+    private void initTitleLayout(WebMarkupContainer mainHeader) {
+        WebMarkupContainer pageTitleContainer = new WebMarkupContainer(ID_PAGE_TITLE_CONTAINER);
+        pageTitleContainer.add(createUserStatusBehaviour(true));
+        mainHeader.add(pageTitleContainer);
 
-		WebMarkupContainer pageTitle = new WebMarkupContainer(ID_PAGE_TITLE);
-		pageTitleContainer.add(pageTitle);
+        WebMarkupContainer pageTitle = new WebMarkupContainer(ID_PAGE_TITLE);
+        pageTitleContainer.add(pageTitle);
 
-		String environmentName = "";
-		if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
-				StringUtils.isNotEmpty(deploymentInfoModel.getObject().getName())) {
-			environmentName = deploymentInfoModel.getObject().getName();
-		}
-		Model<String> deploymentNameModel = new Model<String>(StringUtils.isNotEmpty(environmentName) ? environmentName + ": " : "");
-		Label deploymentName = new Label(ID_DEPLOYMENT_NAME, deploymentNameModel);
-		deploymentName.add(new VisibleEnableBehaviour(){
-			public boolean isVisible(){
-				return StringUtils.isNotEmpty(deploymentNameModel.getObject());
-			}
-		});
-		deploymentName.setRenderBodyOnly(true);
-		pageTitle.add(deploymentName);
+        String environmentName = "";
+        if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
+                StringUtils.isNotEmpty(deploymentInfoModel.getObject().getName())) {
+            environmentName = deploymentInfoModel.getObject().getName();
+        }
+        Model<String> deploymentNameModel = new Model<String>(StringUtils.isNotEmpty(environmentName) ? environmentName + ": " : "");
+        Label deploymentName = new Label(ID_DEPLOYMENT_NAME, deploymentNameModel);
+        deploymentName.add(new VisibleEnableBehaviour() {
+            public boolean isVisible() {
+                return StringUtils.isNotEmpty(deploymentNameModel.getObject());
+            }
+        });
+        deploymentName.setRenderBodyOnly(true);
+        pageTitle.add(deploymentName);
 
-		Label pageTitleReal = new Label(ID_PAGE_TITLE_REAL, createPageTitleModel());
-		pageTitleReal.setRenderBodyOnly(true);
-		pageTitle.add(pageTitleReal);
+        Label pageTitleReal = new Label(ID_PAGE_TITLE_REAL, createPageTitleModel());
+        pageTitleReal.setRenderBodyOnly(true);
+        pageTitle.add(pageTitleReal);
 
-		ListView breadcrumbs = new ListView<Breadcrumb>(ID_BREADCRUMB,
-				new AbstractReadOnlyModel<List<Breadcrumb>>() {
-					private static final long serialVersionUID = 1L;
+        ListView breadcrumbs = new ListView<Breadcrumb>(ID_BREADCRUMB,
+                new AbstractReadOnlyModel<List<Breadcrumb>>() {
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public List<Breadcrumb> getObject() {
-						return getBreadcrumbs();
-					}
-				}) {
+                    @Override
+                    public List<Breadcrumb> getObject() {
+                        return getBreadcrumbs();
+                    }
+                }) {
 
             @Override
             protected void populateItem(ListItem<Breadcrumb> item) {
                 final Breadcrumb dto = item.getModelObject();
 
-				AjaxLink bcLink = new AjaxLink(ID_BC_LINK) {
-					private static final long serialVersionUID = 1L;
+                AjaxLink bcLink = new AjaxLink(ID_BC_LINK) {
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						redirectBackToBreadcrumb(dto);
-					}
-				};
-				item.add(bcLink);
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        redirectBackToBreadcrumb(dto);
+                    }
+                };
+                item.add(bcLink);
                 bcLink.add(new VisibleEnableBehaviour() {
-                	private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public boolean isEnabled() {
@@ -671,117 +659,116 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     }
                 });
 
-				WebMarkupContainer bcIcon = new WebMarkupContainer(ID_BC_ICON);
-				bcIcon.add(new VisibleEnableBehaviour() {
-					private static final long serialVersionUID = 1L;
+                WebMarkupContainer bcIcon = new WebMarkupContainer(ID_BC_ICON);
+                bcIcon.add(new VisibleEnableBehaviour() {
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public boolean isVisible() {
-						return dto.getIcon() != null && dto.getIcon().getObject() != null;
-					}
-				});
-				bcIcon.add(AttributeModifier.replace("class", dto.getIcon()));
-				bcLink.add(bcIcon);
+                    @Override
+                    public boolean isVisible() {
+                        return dto.getIcon() != null && dto.getIcon().getObject() != null;
+                    }
+                });
+                bcIcon.add(AttributeModifier.replace("class", dto.getIcon()));
+                bcLink.add(bcIcon);
 
                 Label bcName = new Label(ID_BC_NAME, dto.getLabel());
-				bcLink.add(bcName);
+                bcLink.add(bcName);
 
-				item.add(new VisibleEnableBehaviour() {
-					private static final long serialVersionUID = 1L;
+                item.add(new VisibleEnableBehaviour() {
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public boolean isVisible() {
-						return dto.isVisible();
-					}
-				});
-			}
-		};
-		mainHeader.add(breadcrumbs);
-	}
+                    @Override
+                    public boolean isVisible() {
+                        return dto.isVisible();
+                    }
+                });
+            }
+        };
+        mainHeader.add(breadcrumbs);
+    }
 
-	private void initLayout() {
+    private void initLayout() {
         TransparentWebMarkupContainer body = new TransparentWebMarkupContainer(ID_BODY);
         body.add(new AttributeAppender("class", "hold-transition ", " "));
         body.add(new AttributeAppender("class", "custom-hold-transition ", " "));
 
-        if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
-                StringUtils.isNotEmpty(deploymentInfoModel.getObject().getSkin())) {
+        Boolean usingSkin = deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
+                StringUtils.isNotEmpty(deploymentInfoModel.getObject().getSkin());
 
+        if (usingSkin) {
             body.add(new AttributeAppender("class", deploymentInfoModel.getObject().getSkin(), " "));
         } else {
             body.add(new AttributeAppender("class", CLASS_DEFAULT_SKIN, " "));
         }
         add(body);
 
-		WebMarkupContainer mainHeader = new WebMarkupContainer(ID_MAIN_HEADER);
-		mainHeader.setOutputMarkupId(true);
-		add(mainHeader);
+        WebMarkupContainer mainHeader = new WebMarkupContainer(ID_MAIN_HEADER);
+        mainHeader.setOutputMarkupId(true);
+        add(mainHeader);
 
-		AjaxLink logo = new AjaxLink(ID_LOGO) {
-			private static final long serialVersionUID = 1L;
+        AjaxLink logo = new AjaxLink(ID_LOGO) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				Class<? extends Page> page = MidPointApplication.get().getHomePage();
-				setResponsePage(page);
-			}
-		};
-		logo.add(new VisibleEnableBehaviour(){
-			@Override
-			public boolean isVisible(){
-				return !isCustomLogoVisible();
-			}
-		});
-		mainHeader.add(logo);
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                Class<? extends Page> page = MidPointApplication.get().getHomePage();
+                setResponsePage(page);
+            }
+        };
+        logo.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return !isCustomLogoVisible();
+            }
+        });
+        mainHeader.add(logo);
 
-		AjaxLink customLogo = new AjaxLink(ID_CUSTOM_LOGO) {
-			private static final long serialVersionUID = 1L;
+        AjaxLink customLogo = new AjaxLink(ID_CUSTOM_LOGO) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				//TODO may be this should lead to customerUrl ?
-				Class<? extends Page> page = MidPointApplication.get().getHomePage();
-				setResponsePage(page);
-			}
-		};
-		customLogo.add(new VisibleEnableBehaviour(){
-			@Override
-			public boolean isVisible(){
-				return isCustomLogoVisible();
-			}
-		});
-		mainHeader.add(customLogo);
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                //TODO may be this should lead to customerUrl ?
+                Class<? extends Page> page = MidPointApplication.get().getHomePage();
+                setResponsePage(page);
+            }
+        };
+        customLogo.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return isCustomLogoVisible();
+            }
+        });
+        mainHeader.add(customLogo);
 
-		WebMarkupContainer navigation = new WebMarkupContainer(ID_NAVIGATION);
-		mainHeader.add(navigation);
-
-
+        WebMarkupContainer navigation = new WebMarkupContainer(ID_NAVIGATION);
+        mainHeader.add(navigation);
 
 
         WebMarkupContainer customLogoImgSrc = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_SRC);
-		WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
-		if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
-				deploymentInfoModel.getObject().getLogo() != null){
-			if (StringUtils.isNotEmpty(deploymentInfoModel.getObject().getLogo().getCssClass())) {
-				customLogoImgCss.add(new AttributeAppender("class", deploymentInfoModel.getObject().getLogo().getCssClass()));
-				customLogoImgSrc.setVisible(false);
-			} else {
-				customLogoImgSrc.add(new AttributeAppender("src",
-						deploymentInfoModel.getObject().getLogo().getImageUrl()));
-				customLogoImgCss.setVisible(false);
-			}
-			mainHeader.add(new AttributeAppender("style",
-					"background-color: " + GuiStyleConstants.DEFAULT_BG_COLOR + "; !important;"));
-		}
-		customLogo.add(customLogoImgSrc);
-		customLogo.add(customLogoImgCss);
+        WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
+        if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
+                deploymentInfoModel.getObject().getLogo() != null) {
+            if (StringUtils.isNotEmpty(deploymentInfoModel.getObject().getLogo().getCssClass())) {
+                customLogoImgCss.add(new AttributeAppender("class", deploymentInfoModel.getObject().getLogo().getCssClass()));
+                customLogoImgSrc.setVisible(false);
+            } else {
+                customLogoImgSrc.add(new AttributeAppender("src",
+                        deploymentInfoModel.getObject().getLogo().getImageUrl()));
+                customLogoImgCss.setVisible(false);
+            }
+            mainHeader.add(new AttributeAppender("style",
+                    "background-color: " + GuiStyleConstants.DEFAULT_BG_COLOR + "; !important;"));
+        }
+        customLogo.add(customLogoImgSrc);
+        customLogo.add(customLogoImgCss);
 
-		Label title = new Label(ID_TITLE, createPageTitleModel());
-		title.setRenderBodyOnly(true);
-		add(title);
+        Label title = new Label(ID_TITLE, createPageTitleModel());
+        title.setRenderBodyOnly(true);
+        add(title);
 
-		initHeaderLayout(navigation);
-		initTitleLayout(navigation);
+        initHeaderLayout(navigation);
+        initTitleLayout(navigation);
 
         if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
                 StringUtils.isNotEmpty(deploymentInfoModel.getObject().getHeaderColor())) {
@@ -791,197 +778,200 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     "background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
             mainHeader.add(new AttributeAppender("style",
                     "background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
-            navigation.add(new AttributeAppender("style",
-                    "background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
+            //using a skin overrides the navigation color
+            if (!usingSkin) {
+                navigation.add(new AttributeAppender("style",
+                        "background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
+            }
         }
         initDebugBarLayout();
 
-		List<SideBarMenuItem> menuItems = createMenuItems();
-		SideBarMenuPanel sidebarMenu = new SideBarMenuPanel(ID_SIDEBAR_MENU, new Model((Serializable) menuItems));
-		sidebarMenu.add(createUserStatusBehaviour(true));
-		add(sidebarMenu);
+        List<SideBarMenuItem> menuItems = createMenuItems();
+        SideBarMenuPanel sidebarMenu = new SideBarMenuPanel(ID_SIDEBAR_MENU, new Model((Serializable) menuItems));
+        sidebarMenu.add(createUserStatusBehaviour(true));
+        add(sidebarMenu);
 
-		WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
-		footerContainer.setOutputMarkupId(true);
-		footerContainer.add(getFooterVisibleBehaviour());
-		add(footerContainer);
+        WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
+        footerContainer.setOutputMarkupId(true);
+        footerContainer.add(getFooterVisibleBehaviour());
+        add(footerContainer);
 
-		WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
-			private static final long serialVersionUID = 1L;
+        WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
+            private static final long serialVersionUID = 1L;
 
-			@Deprecated
-			public String getDescribe() {
-				return PageBase.this.getDescribe();
-			}
-		};
-		version.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+            @Deprecated
+            public String getDescribe() {
+                return PageBase.this.getDescribe();
+            }
+        };
+        version.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isVisible() {
-				return RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType());
-			}
-		});
-		footerContainer.add(version);
+            @Override
+            public boolean isVisible() {
+                return RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType());
+            }
+        });
+        footerContainer.add(version);
 
         WebMarkupContainer copyrightMessage = new WebMarkupContainer(ID_COPYRIGHT_MESSAGE);
         copyrightMessage.add(getFooterVisibleBehaviour());
-		footerContainer.add(copyrightMessage);
+        footerContainer.add(copyrightMessage);
 
-		Label subscriptionMessage = new Label(ID_SUBSCRIPTION_MESSAGE,
-				new AbstractReadOnlyModel<String>() {
-					private static final long serialVersionUID = 1L;
+        Label subscriptionMessage = new Label(ID_SUBSCRIPTION_MESSAGE,
+                new AbstractReadOnlyModel<String>() {
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public String getObject() {
-						String subscriptionId = getSubscriptionId();
-						if (!WebComponentUtil.isSubscriptionIdCorrect(subscriptionId)){
-							return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
-						}
-						if (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))){
-							return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
-						}
-						return "";
-					}
-				});
-		subscriptionMessage.setOutputMarkupId(true);
+                    @Override
+                    public String getObject() {
+                        String subscriptionId = getSubscriptionId();
+                        if (!WebComponentUtil.isSubscriptionIdCorrect(subscriptionId)) {
+                            return " " + createStringResource("PageBase.nonActiveSubscriptionMessage").getString();
+                        }
+                        if (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))) {
+                            return " " + createStringResource("PageBase.demoSubscriptionMessage").getString();
+                        }
+                        return "";
+                    }
+                });
+        subscriptionMessage.setOutputMarkupId(true);
         subscriptionMessage.add(getFooterVisibleBehaviour());
-		footerContainer.add(subscriptionMessage);
+        footerContainer.add(subscriptionMessage);
 
-		WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
-		feedbackContainer.setOutputMarkupId(true);
-		add(feedbackContainer);
+        WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
+        feedbackContainer.setOutputMarkupId(true);
+        add(feedbackContainer);
 
-		FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK);
-		feedbackList.setOutputMarkupId(true);
-		feedbackContainer.add(feedbackList);
+        FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK);
+        feedbackList.setOutputMarkupId(true);
+        feedbackContainer.add(feedbackList);
 
-		MainPopupDialog mainPopup = new MainPopupDialog(ID_MAIN_POPUP);
-		mainPopup.setOutputMarkupId(true);
-		add(mainPopup);
-	}
+        MainPopupDialog mainPopup = new MainPopupDialog(ID_MAIN_POPUP);
+        mainPopup.setOutputMarkupId(true);
+        add(mainPopup);
+    }
 
-	public MainPopupDialog getMainPopup() {
-		return (MainPopupDialog) get(ID_MAIN_POPUP);
-	}
+    public MainPopupDialog getMainPopup() {
+        return (MainPopupDialog) get(ID_MAIN_POPUP);
+    }
 
-	public String getMainPopupBodyId() {
-		return ID_MAIN_POPUP_BODY;
-	}
+    public String getMainPopupBodyId() {
+        return ID_MAIN_POPUP_BODY;
+    }
 
-	public void setMainPopupTitle(IModel<String> title) {
-		getMainPopup().setTitle(title);
-	}
+    public void setMainPopupTitle(IModel<String> title) {
+        getMainPopup().setTitle(title);
+    }
 
-	public void showMainPopup(Popupable popupable, AjaxRequestTarget target) {
+    public void showMainPopup(Popupable popupable, AjaxRequestTarget target) {
         getMainPopup().setBody(popupable);
         getMainPopup().show(target);
-	}
+    }
 
     public void hideMainPopup(AjaxRequestTarget target) {
         getMainPopup().close(target);
     }
 
     private VisibleEnableBehaviour createUserStatusBehaviour(final boolean visibleIfLoggedIn) {
-		return new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+        return new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isVisible() {
-				return isSideMenuVisible(visibleIfLoggedIn);
-			}
-		};
-	}
-
-    protected boolean isSideMenuVisible(boolean visibleIfLoggedIn) {
-    	return SecurityUtils.getPrincipalUser() != null ? visibleIfLoggedIn : !visibleIfLoggedIn;
+            @Override
+            public boolean isVisible() {
+                return isSideMenuVisible(visibleIfLoggedIn);
+            }
+        };
     }
 
-	private void initDebugBarLayout() {
-		DebugBar debugPanel = new DebugBar(ID_DEBUG_PANEL);
-		add(debugPanel);
+    protected boolean isSideMenuVisible(boolean visibleIfLoggedIn) {
+        return SecurityUtils.getPrincipalUser() != null ? visibleIfLoggedIn : !visibleIfLoggedIn;
+    }
 
-		WebMarkupContainer debugBar = new WebMarkupContainer(ID_DEBUG_BAR);
-		debugBar.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+    private void initDebugBarLayout() {
+        DebugBar debugPanel = new DebugBar(ID_DEBUG_PANEL);
+        add(debugPanel);
 
-			@Override
-			public boolean isVisible() {
-				RuntimeConfigurationType runtime = getApplication().getConfigurationType();
-				return RuntimeConfigurationType.DEVELOPMENT.equals(runtime);
-			}
-		});
-		add(debugBar);
+        WebMarkupContainer debugBar = new WebMarkupContainer(ID_DEBUG_BAR);
+        debugBar.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
 
-		AjaxButton clearCache = new AjaxButton(ID_CLEAR_CACHE, createStringResource("PageBase.clearCssCache")) {
-			private static final long serialVersionUID = 1L;
+            @Override
+            public boolean isVisible() {
+                RuntimeConfigurationType runtime = getApplication().getConfigurationType();
+                return RuntimeConfigurationType.DEVELOPMENT.equals(runtime);
+            }
+        });
+        add(debugBar);
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				clearLessJsCache(target);
-			}
-		};
-		debugBar.add(clearCache);
-	}
+        AjaxButton clearCache = new AjaxButton(ID_CLEAR_CACHE, createStringResource("PageBase.clearCssCache")) {
+            private static final long serialVersionUID = 1L;
 
-	protected void clearLessJsCache(AjaxRequestTarget target) {
-		try {
-			ArrayList<MBeanServer> servers = MBeanServerFactory.findMBeanServer(null);
-			if (servers.size() > 1) {
-				LOGGER.info("Too many mbean servers, cache won't be cleared.");
-				for (MBeanServer server : servers) {
-					LOGGER.info(server.getDefaultDomain());
-				}
-				return;
-			}
-			MBeanServer server = servers.get(0);
-			ObjectName objectName = ObjectName.getInstance("wro4j-idm:type=WroConfiguration");
-			server.invoke(objectName, "reloadCache", new Object[] {}, new String[] {});
-			if (target != null) {
-				target.add(PageBase.this);
-			}
-		} catch (Exception ex) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't clear less/js cache", ex);
-			error("Error occurred, reason: " + ex.getMessage());
-			if (target != null) {
-				target.add(getFeedbackPanel());
-			}
-		}
-	}
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                clearLessJsCache(target);
+            }
+        };
+        debugBar.add(clearCache);
+    }
 
-	public WebMarkupContainer getFeedbackPanel() {
-		return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
-	}
+    protected void clearLessJsCache(AjaxRequestTarget target) {
+        try {
+            ArrayList<MBeanServer> servers = MBeanServerFactory.findMBeanServer(null);
+            if (servers.size() > 1) {
+                LOGGER.info("Too many mbean servers, cache won't be cleared.");
+                for (MBeanServer server : servers) {
+                    LOGGER.info(server.getDefaultDomain());
+                }
+                return;
+            }
+            MBeanServer server = servers.get(0);
+            ObjectName objectName = ObjectName.getInstance("wro4j-idm:type=WroConfiguration");
+            server.invoke(objectName, "reloadCache", new Object[]{}, new String[]{});
+            if (target != null) {
+                target.add(PageBase.this);
+            }
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't clear less/js cache", ex);
+            error("Error occurred, reason: " + ex.getMessage());
+            if (target != null) {
+                target.add(getFeedbackPanel());
+            }
+        }
+    }
 
-	public SessionStorage getSessionStorage() {
-		MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
-		return session.getSessionStorage();
-	}
+    public WebMarkupContainer getFeedbackPanel() {
+        return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
+    }
 
-	protected IModel<String> createPageTitleModel() {
-		String key = getClass().getSimpleName() + ".title";
-		return createStringResource(key);
-	}
+    public SessionStorage getSessionStorage() {
+        MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
+        return session.getSessionStorage();
+    }
+
+    protected IModel<String> createPageTitleModel() {
+        String key = getClass().getSimpleName() + ".title";
+        return createStringResource(key);
+    }
 
     public IModel<String> getPageTitleModel() {
         return (IModel) get(ID_TITLE).getDefaultModel();
     }
 
-	public String getString(String resourceKey, Object... objects) {
-		return createStringResource(resourceKey, objects).getString();
-	}
+    public String getString(String resourceKey, Object... objects) {
+        return createStringResource(resourceKey, objects).getString();
+    }
 
-	public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-		return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
-				.setParameters(objects);
-	}
+    public StringResourceModel createStringResource(String resourceKey, Object... objects) {
+        return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
+                .setParameters(objects);
+    }
 
-	public StringResourceModel createStringResource(Enum e) {
-		String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
-		return createStringResource(resourceKey);
-	}
+    public StringResourceModel createStringResource(Enum e) {
+        String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
+        return createStringResource(resourceKey);
+    }
 
-	@NotNull
+    @NotNull
     public static StringResourceModel createStringResourceStatic(Component component, String resourceKey,
                                                                  Object... objects) {
         return new StringResourceModel(resourceKey, component).setModel(new Model<String>())
@@ -993,11 +983,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public OpResult showResult(OperationResult result, boolean showSuccess) {
-    	return showResult(result, null, showSuccess);
+        return showResult(result, null, showSuccess);
     }
 
     public OpResult showResult(OperationResult result) {
-    	return showResult(result, null, true);
+        return showResult(result, null, true);
     }
 
     public OpResult showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
@@ -1005,7 +995,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
         OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
-		opResult.determineBackgroundTaskVisibility(this);
+        opResult.determineBackgroundTaskVisibility(this);
         switch (opResult.getStatus()) {
             case FATAL_ERROR:
             case PARTIAL_ERROR:
@@ -1014,7 +1004,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 break;
             case IN_PROGRESS:
             case NOT_APPLICABLE:
-            	getSession().info(opResult);
+                getSession().info(opResult);
                 break;
             case SUCCESS:
                 if (!showSuccess) {
@@ -1026,571 +1016,473 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             case UNKNOWN:
             case WARNING:
             default:
-            	getSession().warn(opResult);
+                getSession().warn(opResult);
 
         }
         return opResult;
     }
 
     // common result processing
-	protected void processResult(AjaxRequestTarget target, OperationResult result, boolean showSuccess) {
-		result.computeStatusIfUnknown();
-		if (!result.isSuccess()) {
-			showResult(result, showSuccess);
-			target.add(getFeedbackPanel());
-		} else {
-			showResult(result);
-			redirectBack();
-		}
-	}
+    protected void processResult(AjaxRequestTarget target, OperationResult result, boolean showSuccess) {
+        result.computeStatusIfUnknown();
+        if (!result.isSuccess()) {
+            showResult(result, showSuccess);
+            target.add(getFeedbackPanel());
+        } else {
+            showResult(result);
+            redirectBack();
+        }
+    }
 
-	public String createComponentPath(String... components) {
-		return StringUtils.join(components, ":");
-	}
+    public String createComponentPath(String... components) {
+        return StringUtils.join(components, ":");
+    }
 
-	/**
-	 * It's here only because of some IDEs - it's not properly filtering
-	 * resources during maven build. "describe" variable is not replaced.
-	 *
-	 * @return "unknown" instead of "git describe" for current build.
+    public String createPropertyModelExpression(String... components) {
+        return StringUtils.join(components, ".");
+    }
+
+    /**
+     * It's here only because of some IDEs - it's not properly filtering
+     * resources during maven build. "describe" variable is not replaced.
+     *
+     * @return "unknown" instead of "git describe" for current build.
      */
     @Deprecated
     public String getDescribe() {
-		return getString("pageBase.unknownBuildNumber");
-	}
+        return getString("pageBase.unknownBuildNumber");
+    }
 
-	protected ModalWindow createModalWindow(final String id, IModel<String> title, int width, int height) {
-		final ModalWindow modal = new ModalWindow(id);
-		add(modal);
+    protected ModalWindow createModalWindow(final String id, IModel<String> title, int width, int height) {
+        final ModalWindow modal = new ModalWindow(id);
+        add(modal);
 
-		modal.setResizable(false);
-		modal.setTitle(title);
-		modal.setCookieName(PageBase.class.getSimpleName() + ((int) (Math.random() * 100)));
+        modal.setResizable(false);
+        modal.setTitle(title);
+        modal.setCookieName(PageBase.class.getSimpleName() + ((int) (Math.random() * 100)));
 
-		modal.setInitialWidth(width);
-		modal.setWidthUnit("px");
-		modal.setInitialHeight(height);
-		modal.setHeightUnit("px");
+        modal.setInitialWidth(width);
+        modal.setWidthUnit("px");
+        modal.setInitialHeight(height);
+        modal.setHeightUnit("px");
 
-		modal.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+        modal.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
 
-			@Override
-			public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-				return true;
-			}
-		});
+            @Override
+            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+                return true;
+            }
+        });
 
-		modal.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+        modal.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
 
-			@Override
-			public void onClose(AjaxRequestTarget target) {
-				modal.close(target);
-			}
-		});
+            @Override
+            public void onClose(AjaxRequestTarget target) {
+                modal.close(target);
+            }
+        });
 
-		modal.add(new AbstractDefaultAjaxBehavior() {
+        modal.add(new AbstractDefaultAjaxBehavior() {
 
-			@Override
-			public void renderHead(Component component, IHeaderResponse response) {
-				response.render(OnDomReadyHeaderItem.forScript("Wicket.Window.unloadConfirmation = false;"));
-				response.render(JavaScriptHeaderItem
-						.forScript("$(document).ready(function() {\n" + "  $(document).bind('keyup', function(evt) {\n"
-								+ "    if (evt.keyCode == 27) {\n" + getCallbackScript() + "\n"
-								+ "        evt.preventDefault();\n" + "    }\n" + "  });\n" + "});", id));
-			}
+            @Override
+            public void renderHead(Component component, IHeaderResponse response) {
+                response.render(OnDomReadyHeaderItem.forScript("Wicket.Window.unloadConfirmation = false;"));
+                response.render(JavaScriptHeaderItem
+                        .forScript("$(document).ready(function() {\n" + "  $(document).bind('keyup', function(evt) {\n"
+                                + "    if (evt.keyCode == 27) {\n" + getCallbackScript() + "\n"
+                                + "        evt.preventDefault();\n" + "    }\n" + "  });\n" + "});", id));
+            }
 
-			@Override
-			protected void respond(AjaxRequestTarget target) {
-				modal.close(target);
-			}
-		});
+            @Override
+            protected void respond(AjaxRequestTarget target) {
+                modal.close(target);
+            }
+        });
 
-		return modal;
-	}
+        return modal;
+    }
 
-	// returns to previous page via restart response exception
-	public RestartResponseException getRestartResponseException(Class<? extends Page> defaultBackPageClass) {
-		return new RestartResponseException(defaultBackPageClass);
-	}
+    // returns to previous page via restart response exception
+    public RestartResponseException getRestartResponseException(Class<? extends Page> defaultBackPageClass) {
+        return new RestartResponseException(defaultBackPageClass);
+    }
 
-	// TODO untangle this brutal code (list vs objectable vs other cases)
-	public <T> void parseObject(String lexicalRepresentation, final Holder<T> objectHolder,
-			String language, boolean validateSchema, boolean skipChecks, Class<T> clazz, OperationResult result) {
+    // TODO untangle this brutal code (list vs objectable vs other cases)
+    public <T> void parseObject(String lexicalRepresentation, final Holder<T> objectHolder,
+                                String language, boolean validateSchema, boolean skipChecks, Class<T> clazz, OperationResult result) {
 
-    	boolean isListOfObjects = List.class.isAssignableFrom(clazz);
-		boolean isObjectable = Objectable.class.isAssignableFrom(clazz);
-		if (skipChecks || language == null || PrismContext.LANG_JSON.equals(language) || PrismContext.LANG_YAML.equals(language)
-				|| (!isObjectable && !isListOfObjects)) {
-			T object;
-			try {
-				if (isListOfObjects) {
-					List<PrismObject<? extends Objectable>> prismObjects = getPrismContext().parserFor(lexicalRepresentation)
-							.language(language).parseObjects();
-					if (!skipChecks) {
-						for (PrismObject<? extends Objectable> prismObject : prismObjects) {
-							prismObject.checkConsistence();
-						}
-					}
-					object = (T) prismObjects;
-				} else if (isObjectable) {
-					PrismObject<ObjectType> prismObject = getPrismContext().parserFor(lexicalRepresentation).language(language).parse();
-					if (!skipChecks) {
-						prismObject.checkConsistence();
-					}
-					object = (T) prismObject.asObjectable();
-				} else {
-					object = getPrismContext().parserFor(lexicalRepresentation).language(language).type(clazz).parseRealValue();
-				}
-				objectHolder.setValue(object);
-			} catch (RuntimeException | SchemaException e) {
-				result.recordFatalError("Couldn't parse object: " + e.getMessage(), e);
-			}
-			return;
-		}
+        boolean isListOfObjects = List.class.isAssignableFrom(clazz);
+        boolean isObjectable = Objectable.class.isAssignableFrom(clazz);
+        if (skipChecks || language == null || PrismContext.LANG_JSON.equals(language) || PrismContext.LANG_YAML.equals(language)
+                || (!isObjectable && !isListOfObjects)) {
+            T object;
+            try {
+                if (isListOfObjects) {
+                    List<PrismObject<? extends Objectable>> prismObjects = getPrismContext().parserFor(lexicalRepresentation)
+                            .language(language).parseObjects();
+                    if (!skipChecks) {
+                        for (PrismObject<? extends Objectable> prismObject : prismObjects) {
+                            prismObject.checkConsistence();
+                        }
+                    }
+                    object = (T) prismObjects;
+                } else if (isObjectable) {
+                    PrismObject<ObjectType> prismObject = getPrismContext().parserFor(lexicalRepresentation).language(language).parse();
+                    if (!skipChecks) {
+                        prismObject.checkConsistence();
+                    }
+                    object = (T) prismObject.asObjectable();
+                } else {
+                    object = getPrismContext().parserFor(lexicalRepresentation).language(language).type(clazz).parseRealValue();
+                }
+                objectHolder.setValue(object);
+            } catch (RuntimeException | SchemaException e) {
+                result.recordFatalError("Couldn't parse object: " + e.getMessage(), e);
+            }
+            return;
+        }
 
-		List<PrismObject<?>> list = new ArrayList<>();
-		if (isListOfObjects) {
-			objectHolder.setValue((T) list);
-		}
-		EventHandler handler = new EventHandler() {
+        List<PrismObject<?>> list = new ArrayList<>();
+        if (isListOfObjects) {
+            objectHolder.setValue((T) list);
+        }
+        EventHandler handler = new EventHandler() {
 
-			@Override
-			public EventResult preMarshall(Element objectElement, Node postValidationTree,
-					OperationResult objectResult) {
-				return EventResult.cont();
-			}
+            @Override
+            public EventResult preMarshall(Element objectElement, Node postValidationTree,
+                                           OperationResult objectResult) {
+                return EventResult.cont();
+            }
 
-			@Override
-			public <O extends Objectable> EventResult postMarshall(PrismObject<O> object, Element objectElement,
-					OperationResult objectResult) {
-				if (isListOfObjects) {
-					list.add(object);
-				} else {
-					@SuppressWarnings({ "unchecked", "raw" })
-					T value = (T) object.asObjectable();
-					objectHolder.setValue(value);
-				}
-				return EventResult.cont();
-			}
+            @Override
+            public <O extends Objectable> EventResult postMarshall(PrismObject<O> object, Element objectElement,
+                                                                   OperationResult objectResult) {
+                if (isListOfObjects) {
+                    list.add(object);
+                } else {
+                    @SuppressWarnings({"unchecked", "raw"})
+                    T value = (T) object.asObjectable();
+                    objectHolder.setValue(value);
+                }
+                return EventResult.cont();
+            }
 
-			@Override
-			public void handleGlobalError(OperationResult currentResult) {
-			}
-		};
-		Validator validator = new Validator(getPrismContext(), handler);
-		validator.setVerbose(true);
-		validator.setValidateSchema(validateSchema);
-		validator.validate(lexicalRepresentation, result, OperationConstants.IMPORT_OBJECT);        // TODO the operation name
+            @Override
+            public void handleGlobalError(OperationResult currentResult) {
+            }
+        };
+        Validator validator = new Validator(getPrismContext(), handler);
+        validator.setVerbose(true);
+        validator.setValidateSchema(validateSchema);
+        validator.validate(lexicalRepresentation, result, OperationConstants.IMPORT_OBJECT);        // TODO the operation name
 
-		result.computeStatus();
-	}
+        result.computeStatus();
+    }
 
-	public long getItemsPerPage(UserProfileStorage.TableId tableId) {
-		UserProfileStorage userProfile = getSessionStorage().getUserProfile();
-		return userProfile.getPagingSize(tableId);
-	}
+    public long getItemsPerPage(UserProfileStorage.TableId tableId) {
+        UserProfileStorage userProfile = getSessionStorage().getUserProfile();
+        return userProfile.getPagingSize(tableId);
+    }
 
-	protected List<SideBarMenuItem> createMenuItems() {
-		List<SideBarMenuItem> menus = new ArrayList<>();
+    protected List<SideBarMenuItem> createMenuItems() {
+        List<SideBarMenuItem> menus = new ArrayList<>();
 
-		SideBarMenuItem menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.selfService"));
-		menus.add(menu);
-		createSelfServiceMenu(menu);
+        SideBarMenuItem menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.selfService"));
+        menus.add(menu);
+        createSelfServiceMenu(menu);
 
-		menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.mainNavigation"));
-		menus.add(menu);
-		List<MainMenuItem> items = menu.getItems();
+        menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.mainNavigation"));
+        menus.add(menu);
+        List<MainMenuItem> items = menu.getItems();
+
+
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
+                AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL,
+                AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUGS_URL,
+                AuthorizationConstants.AUTZ_UI_CONFIGURATION_IMPORT_URL,
+                AuthorizationConstants.AUTZ_UI_CONFIGURATION_LOGGING_URL,
+                AuthorizationConstants.AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_URL,
+                AuthorizationConstants.AUTZ_UI_CONFIGURATION_ABOUT_URL,
+                AuthorizationConstants.AUTZ_UI_CONFIGURATION_REPOSITORY_QUERY_URL,
+                AuthorizationConstants.AUTZ_UI_CONFIGURATION_SYNCHRONIZATION_ACCOUNTS_URL,
+                AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+
+            menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.top.configuration"));
+            menus.add(menu);
+            createConfigurationMenu(menu);
+        }
 
         menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.additional"));
         menus.add(menu);
         createAdditionalMenu(menu);
 
-		// todo fix with visible behaviour [lazyman]
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
-				AuthorizationConstants.AUTZ_UI_HOME_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-			items.add(createHomeItems());
-		}
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL,
-				AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-			items.add(createUsersItems());
-		}
+        // todo fix with visible behaviour [lazyman]
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+                AuthorizationConstants.AUTZ_UI_HOME_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+            items.add(createHomeItems());
+        }
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ORG_STRUCT_URL,
-				AuthorizationConstants.AUTZ_UI_ORG_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-			items.add(createOrganizationsMenu());
-		}
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL,
+                AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+            items.add(createUsersItems());
+        }
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_URL,
-				AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-			items.add(createRolesItems());
-		}
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ORG_STRUCT_URL,
+                AuthorizationConstants.AUTZ_UI_ORG_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+            items.add(createOrganizationsMenu());
+        }
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SERVICES_URL,
-				AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-			items.add(createServicesItems());
-		}
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_URL,
+                AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+            items.add(createRolesItems());
+        }
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
-				AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL, AuthorizationConstants.AUTZ_UI_RESOURCE_URL,
-				AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL)) {
-			items.add(createResourcesItems());
-		}
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SERVICES_URL,
+                AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+            items.add(createServicesItems());
+        }
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
-				AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-			if (getWorkflowManager().isEnabled()) {
-				items.add(createWorkItemsItems());
-			}
-		}
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
+                AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL, AuthorizationConstants.AUTZ_UI_RESOURCE_URL,
+                AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL)) {
+            items.add(createResourcesItems());
+        }
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_ALL_URL,
-				AuthorizationConstants.AUTZ_UI_CERTIFICATION_DEFINITIONS_URL,
-				AuthorizationConstants.AUTZ_UI_CERTIFICATION_NEW_DEFINITION_URL,
-				AuthorizationConstants.AUTZ_UI_CERTIFICATION_CAMPAIGNS_URL,
-				AuthorizationConstants.AUTZ_UI_CERTIFICATION_DECISIONS_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-			items.add(createCertificationItems());
-		}
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
+                AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+            if (getWorkflowManager().isEnabled()) {
+                items.add(createWorkItemsItems());
+            }
+        }
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_URL,
-				AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-			items.add(createServerTasksItems());
-		}
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_CERTIFICATION_DEFINITIONS_URL,
+                AuthorizationConstants.AUTZ_UI_CERTIFICATION_NEW_DEFINITION_URL,
+                AuthorizationConstants.AUTZ_UI_CERTIFICATION_CAMPAIGNS_URL,
+                AuthorizationConstants.AUTZ_UI_CERTIFICATION_DECISIONS_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+            items.add(createCertificationItems());
+        }
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_REPORTS_URL,
-				AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-			items.add(createReportsItems());
-		}
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_URL,
+                AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+            items.add(createServerTasksItems());
+        }
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
-				AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL,
-				AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUGS_URL,
-				AuthorizationConstants.AUTZ_UI_CONFIGURATION_IMPORT_URL,
-				AuthorizationConstants.AUTZ_UI_CONFIGURATION_LOGGING_URL,
-				AuthorizationConstants.AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_URL,
-				AuthorizationConstants.AUTZ_UI_CONFIGURATION_ABOUT_URL,
-				AuthorizationConstants.AUTZ_UI_CONFIGURATION_REPOSITORY_QUERY_URL,
-				AuthorizationConstants.AUTZ_UI_CONFIGURATION_SYNCHRONIZATION_ACCOUNTS_URL,
-				AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-			items.add(createConfigurationItems());
-		}
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_REPORTS_URL,
+                AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+            items.add(createReportsItems());
+        }
 
-		return menus;
-	}
+        return menus;
+    }
 
-	private MainMenuItem createWorkItemsItems() {
-		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON_COLORED, createStringResource("PageAdmin.menu.top.workItems"), null) {
-			private static final long serialVersionUID = 1L;
+    private void createConfigurationMenu(SideBarMenuItem item) {
+        addMainMenuItem(item, "fa fa-bullseye", "PageAdmin.menu.top.configuration.bulkActions", PageBulkAction.class);
+        addMainMenuItem(item, "fa fa-upload", "PageAdmin.menu.top.configuration.importObject", PageImportObject.class);
 
-			@Override
-			public String getBubbleLabel() {
-				Integer workItemCount = workItemCountModel.getObject();
-				if (workItemCount == null || workItemCount == 0) {
-					return null;
-				} else {
-					return workItemCount.toString();
-				}
-			}
+        MainMenuItem debugs = addMainMenuItem(item, "fa fa-file-text", "PageAdmin.menu.top.configuration.repositoryObjects", null);
 
-		};
+        addMenuItem(debugs, "PageAdmin.menu.top.configuration.repositoryObjectsList", PageDebugList.class);
 
-		List<MenuItem> submenu = item.getItems();
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjectView"),
+                PageDebugView.class, null, createVisibleDisabledBehaviorForEditMenu(PageDebugView.class));
+        debugs.getItems().add(menu);
 
-		MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.list"), PageWorkItemsAllocatedToMe.class);
-		submenu.add(menu);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listClaimable"),
-				PageWorkItemsClaimable.class);
-		submenu.add(menu);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listAll"), PageWorkItemsAll.class);
-		submenu.add(menu);
+        MainMenuItem systemItem = addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic", null);
 
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesRequestedBy"),
-				PageProcessInstancesRequestedBy.class);
-		submenu.add(menu);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesRequestedFor"),
-				PageProcessInstancesRequestedFor.class);
-		submenu.add(menu);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesAll"),
-				PageProcessInstancesAll.class);
-		submenu.add(menu);
+        addSystemMenuItem(systemItem, "PageAdmin.menu.top.configuration.basic",
+                PageSystemConfiguration.CONFIGURATION_TAB_BASIC);
+        addSystemMenuItem(systemItem, "PageAdmin.menu.top.configuration.notifications",
+                PageSystemConfiguration.CONFIGURATION_TAB_NOTIFICATION);
+        addSystemMenuItem(systemItem, "PageAdmin.menu.top.configuration.logging",
+                PageSystemConfiguration.CONFIGURATION_TAB_LOGGING);
+        addSystemMenuItem(systemItem, "PageAdmin.menu.top.configuration.profiling",
+                PageSystemConfiguration.CONFIGURATION_TAB_PROFILING);
+        addSystemMenuItem(systemItem, "PageAdmin.menu.top.configuration.adminGui",
+                PageSystemConfiguration.CONFIGURATION_TAB_ADMIN_GUI);
 
-		return item;
-	}
+        addMainMenuItem(item, "fa fa-address-book", "PageAdmin.menu.top.configuration.shadowsDetails", PageAccounts.class);
+        addMainMenuItem(item, "fa fa-archive", "PageAdmin.menu.top.configuration.internals", PageInternals.class);
+        addMainMenuItem(item, "fa fa-search", "PageAdmin.menu.top.configuration.repoQuery", PageRepositoryQuery.class);
+        if (SystemConfigurationHolder.isExperimentalCodeEnabled()) {
+            addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.evaluateMapping", PageEvaluateMapping.class);
+        }
+        addMainMenuItem(item, "fa fa-info-circle", "PageAdmin.menu.top.configuration.about", PageAbout.class);
+    }
 
-	private MainMenuItem createServerTasksItems() {
-		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_TASK_ICON_COLORED, createStringResource("PageAdmin.menu.top.serverTasks"),
-				null);
+    private void addSystemMenuItem(MainMenuItem mainItem, String key, int tabIndex) {
+        PageParameters params = new PageParameters();
+        params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, tabIndex);
+        MenuItem menu = new MenuItem(createStringResource(key), PageSystemConfiguration.class, params, null) {
 
-		List<MenuItem> submenu = item.getItems();
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                if (!PageSystemConfiguration.class.equals(page.getClass())) {
+                    return false;
+                }
 
-		MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.list"), PageTasks.class, null,
-				null);
-		submenu.add(list);
-		MenuItem n = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.new"), PageTaskAdd.class);
-		submenu.add(n);
-		n = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.edit"), PageTaskEdit.class, null,
-				createVisibleDisabledBehaviorForEditMenu(PageTaskEdit.class));
-		submenu.add(n);
+                int index = getSelectedTabForConfiguration(page);
+                return tabIndex == index ? true : false;
+            }
+        };
+        mainItem.getItems().add(menu);
+    }
 
-		return item;
-	}
+    private MainMenuItem addMainMenuItem(SideBarMenuItem item, String icon, String key, Class<? extends PageBase> page) {
+        MainMenuItem mainItem = new MainMenuItem(icon, createStringResource(key), page);
+        item.getItems().add(mainItem);
 
-	private MainMenuItem createResourcesItems() {
-		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED, createStringResource("PageAdmin.menu.top.resources"),
-				null);
+        return mainItem;
+    }
 
-		List<MenuItem> submenu = item.getItems();
+    private void addMenuItem(MainMenuItem item, String key, Class<? extends PageBase> page) {
+        MenuItem menu = new MenuItem(createStringResource(key), page);
+        item.getItems().add(menu);
+    }
 
-		MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.resources.list"), PageResources.class);
-		submenu.add(list);
-		createFocusPageViewMenu(submenu, "PageAdmin.menu.top.resources.view", PageResource.class);
-        createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.resources.new", "PageAdmin.menu.top.resources.edit",
-				PageResourceWizard.class, false);
-		MenuItem n = new MenuItem(createStringResource("PageAdmin.menu.top.resources.import"),
-				PageImportResource.class);
-		submenu.add(n);
+    private MainMenuItem createWorkItemsItems() {
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON_COLORED,
+                createStringResource("PageAdmin.menu.top.workItems"), null) {
 
-		MenuItem connectorHostsList = new MenuItem(createStringResource("PageAdmin.menu.top.connectorHosts.list"),
-				PageConnectorHosts.class);
-		submenu.add(connectorHostsList);
-		return item;
-	}
+            private static final long serialVersionUID = 1L;
 
-	private MainMenuItem createReportsItems() {
-		MainMenuItem item = new MainMenuItem("fa fa-pie-chart", createStringResource("PageAdmin.menu.top.reports"),
-				null);
+            @Override
+            public String getBubbleLabel() {
+                Integer workItemCount = workItemCountModel.getObject();
+                if (workItemCount == null || workItemCount == 0) {
+                    return null;
+                } else {
+                    return workItemCount.toString();
+                }
+            }
+        };
 
-		List<MenuItem> submenu = item.getItems();
+        addMenuItem(item, "PageAdmin.menu.top.workItems.list", PageWorkItemsAllocatedToMe.class);
+        addMenuItem(item, "PageAdmin.menu.top.workItems.listClaimable", PageWorkItemsClaimable.class);
+        addMenuItem(item, "PageAdmin.menu.top.workItems.listAll", PageWorkItemsAll.class);
+        addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesRequestedBy", PageProcessInstancesRequestedBy.class);
+        addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesRequestedFor", PageProcessInstancesRequestedFor.class);
+        addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesAll", PageProcessInstancesAll.class);
 
-		MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.reports.list"), PageReports.class);
-		submenu.add(list);
-		MenuItem configure = new MenuItem(createStringResource("PageAdmin.menu.top.reports.configure"),
-				PageReport.class, null, createVisibleDisabledBehaviorForEditMenu(PageReport.class));
-		submenu.add(configure);
-		MenuItem created = new MenuItem(createStringResource("PageAdmin.menu.top.reports.created"),
-				PageCreatedReports.class);
-		submenu.add(created);
-		MenuItem n = new MenuItem(createStringResource("PageAdmin.menu.top.reports.new"), PageNewReport.class);
-		submenu.add(n);
+        return item;
+    }
 
-		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl())){
-			MenuItem auditLogViewer = new MenuItem(createStringResource("PageAuditLogViewer.menuName"),
-					PageAuditLogViewer.class);
-			submenu.add(auditLogViewer);
-		}
-		return item;
-	}
+    private MainMenuItem createServerTasksItems() {
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_TASK_ICON_COLORED,
+                createStringResource("PageAdmin.menu.top.serverTasks"), null);
 
-	private MainMenuItem createCertificationItems() {
+        addMenuItem(item, "PageAdmin.menu.top.serverTasks.list", PageTasks.class);
+        addMenuItem(item, "PageAdmin.menu.top.serverTasks.new", PageTaskAdd.class);
 
-		MainMenuItem item = new MainMenuItem("fa fa-certificate",
-				createStringResource("PageAdmin.menu.top.certification"), null){
-			private static final long serialVersionUID = 1L;
+        MenuItem menuItem = new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.edit"),
+                PageTaskEdit.class, null, createVisibleDisabledBehaviorForEditMenu(PageTaskEdit.class));
+        item.getItems().add(menuItem);
 
-			@Override
-			public String getBubbleLabel() {
-				Integer certWorkItemCount = certWorkItemCountModel.getObject();
-				if (certWorkItemCount == null || certWorkItemCount == 0) {
-					return null;
-				} else {
-					return certWorkItemCount.toString();
-				}
-			}
-		};
+        return item;
+    }
 
-		List<MenuItem> submenu = item.getItems();
+    private MainMenuItem createResourcesItems() {
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED,
+                createStringResource("PageAdmin.menu.top.resources"), null);
 
-		MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.definitions"),
-				PageCertDefinitions.class);
-		submenu.add(menu);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.newDefinition"),
-				PageCertDefinition.class);
-		submenu.add(menu);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.campaigns"),
-				PageCertCampaigns.class);
-		submenu.add(menu);
-		PageParameters params = new PageParameters();
-		params.add(PageTasks.SELECTED_CATEGORY, TaskCategory.ACCESS_CERTIFICATION);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.scheduling"), PageTasksCertScheduling.class,
-				params, null);
-		submenu.add(menu);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.decisions"),
-				PageCertDecisions.class);
-		submenu.add(menu);
+        addMenuItem(item, "PageAdmin.menu.top.resources.list", PageResources.class);
 
-		return item;
-	}
+        createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.resources.view", PageResource.class);
+        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.resources.new",
+                "PageAdmin.menu.top.resources.edit", PageResourceWizard.class, false);
 
-	private MainMenuItem createConfigurationItems() {
-		MainMenuItem item = new MainMenuItem("fa fa-cog", createStringResource("PageAdmin.menu.top.configuration"),
-				null);
-		item.setInsertDefaultBackBreadcrumb(false);
+        addMenuItem(item, "PageAdmin.menu.top.resources.import", PageImportResource.class);
+        addMenuItem(item, "PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class);
 
-		List<MenuItem> submenu = item.getItems();
+        return item;
+    }
 
-		MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.bulkActions"),
-				PageBulkAction.class);
-		submenu.add(menu);
+    private MainMenuItem createReportsItems() {
+        MainMenuItem item = new MainMenuItem("fa fa-pie-chart", createStringResource("PageAdmin.menu.top.reports"),
+                null);
 
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.importObject"),
-				PageImportObject.class, null, null);
-		submenu.add(menu);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjects"),
-				PageDebugList.class);
-		submenu.add(menu);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjectView"),
-				PageDebugView.class, null, createVisibleDisabledBehaviorForEditMenu(PageDebugView.class));
-		submenu.add(menu);
+        addMenuItem(item, "PageAdmin.menu.top.reports.list", PageReports.class);
 
-		PageParameters params = new PageParameters();
-		params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_BASIC);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.basic"),
-				PageSystemConfiguration.class, params, null) {
+        MenuItem configure = new MenuItem(createStringResource("PageAdmin.menu.top.reports.configure"),
+                PageReport.class, null, createVisibleDisabledBehaviorForEditMenu(PageReport.class));
+        item.getItems().add(configure);
 
-			@Override
-			public boolean isMenuActive(WebPage page) {
-				if (!PageSystemConfiguration.class.equals(page.getClass())) {
-					return false;
-				}
+        addMenuItem(item, "PageAdmin.menu.top.reports.created", PageCreatedReports.class);
+        addMenuItem(item, "PageAdmin.menu.top.reports.new", PageNewReport.class);
 
-				int index = getSelectedTabForConfiguration(page);
-				return PageSystemConfiguration.CONFIGURATION_TAB_BASIC == index ? true : false;
-			}
-		};
-		submenu.add(menu);
+        if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl())) {
+            addMenuItem(item, "PageAuditLogViewer.menuName", PageAuditLogViewer.class);
+        }
 
-		params = new PageParameters();
-		params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_NOTIFICATION);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.notifications"),
-				PageSystemConfiguration.class, params, null) {
+        return item;
+    }
 
-			@Override
-			public boolean isMenuActive(WebPage page) {
-				if (!PageSystemConfiguration.class.equals(page.getClass())) {
-					return false;
-				}
+    private MainMenuItem createCertificationItems() {
+        MainMenuItem item = new MainMenuItem("fa fa-certificate",
+                createStringResource("PageAdmin.menu.top.certification"), null) {
 
-				int index = getSelectedTabForConfiguration(page);
-				return PageSystemConfiguration.CONFIGURATION_TAB_NOTIFICATION == index ? true : false;
-			}
-		};
-		submenu.add(menu);
+            private static final long serialVersionUID = 1L;
 
-		params = new PageParameters();
-		params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_LOGGING);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.logging"),
-				PageSystemConfiguration.class, params, null) {
+            @Override
+            public String getBubbleLabel() {
+                Integer certWorkItemCount = certWorkItemCountModel.getObject();
+                if (certWorkItemCount == null || certWorkItemCount == 0) {
+                    return null;
+                } else {
+                    return certWorkItemCount.toString();
+                }
+            }
+        };
 
-			@Override
-			public boolean isMenuActive(WebPage page) {
-				if (!PageSystemConfiguration.class.equals(page.getClass())) {
-					return false;
-				}
+        addMenuItem(item, "PageAdmin.menu.top.certification.definitions", PageCertDefinitions.class);
+        addMenuItem(item, "PageAdmin.menu.top.certification.newDefinition", PageCertDefinition.class);
+        addMenuItem(item, "PageAdmin.menu.top.certification.campaigns", PageCertCampaigns.class);
 
-				int index = getSelectedTabForConfiguration(page);
-				return PageSystemConfiguration.CONFIGURATION_TAB_LOGGING == index ? true : false;
-			}
-		};
-		submenu.add(menu);
+        PageParameters params = new PageParameters();
+        params.add(PageTasks.SELECTED_CATEGORY, TaskCategory.ACCESS_CERTIFICATION);
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.scheduling"),
+                PageTasksCertScheduling.class, params, null);
+        item.getItems().add(menu);
 
-		params = new PageParameters();
-		params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_PROFILING);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.profiling"),
-				PageSystemConfiguration.class, params, null) {
+        addMenuItem(item, "PageAdmin.menu.top.certification.decisions", PageCertDecisions.class);
 
-			@Override
-			public boolean isMenuActive(WebPage page) {
-				if (!PageSystemConfiguration.class.equals(page.getClass())) {
-					return false;
-				}
+        return item;
+    }
 
-				int index = getSelectedTabForConfiguration(page);
-				return PageSystemConfiguration.CONFIGURATION_TAB_PROFILING == index ? true : false;
-			}
-		};
-		submenu.add(menu);
+    private int getSelectedTabForConfiguration(WebPage page) {
+        PageParameters params = page.getPageParameters();
+        StringValue val = params.get(PageSystemConfiguration.SELECTED_TAB_INDEX);
+        String value = null;
+        if (val != null && !val.isNull()) {
+            value = val.toString();
+        }
 
-		params = new PageParameters();
-		params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_ADMIN_GUI);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.adminGui"),
-				PageSystemConfiguration.class, params, null) {
+        return StringUtils.isNumeric(value) ? Integer.parseInt(value) : PageSystemConfiguration.CONFIGURATION_TAB_BASIC;
+    }
 
-			@Override
-			public boolean isMenuActive(WebPage page) {
-				if (!PageSystemConfiguration.class.equals(page.getClass())) {
-					return false;
-				}
-
-				int index = getSelectedTabForConfiguration(page);
-				return PageSystemConfiguration.CONFIGURATION_TAB_ADMIN_GUI == index ? true : false;
-			}
-		};
-		submenu.add(menu);
-
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.shadowsDetails"),
-				PageAccounts.class);
-		submenu.add(menu);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.internals"), PageInternals.class);
-		submenu.add(menu);
-
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repoQuery"),
-				PageRepositoryQuery.class);
-		submenu.add(menu);
-
-		if (SystemConfigurationHolder.isExperimentalCodeEnabled()) {
-			menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.evaluateMapping"),
-					PageEvaluateMapping.class);
-			submenu.add(menu);
-		}
-
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.about"), PageAbout.class);
-		submenu.add(menu);
-
-		return item;
-	}
-
-	private int getSelectedTabForConfiguration(WebPage page) {
-		PageParameters params = page.getPageParameters();
-		StringValue val = params.get(PageSystemConfiguration.SELECTED_TAB_INDEX);
-		String value = null;
-		if (val != null && !val.isNull()) {
-			value = val.toString();
-		}
-
-		return StringUtils.isNumeric(value) ? Integer.parseInt(value) : PageSystemConfiguration.CONFIGURATION_TAB_BASIC;
-	}
-
-	private void createSelfServiceMenu(SideBarMenuItem menu) {
-		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_ICON_DASHBOARD, createStringResource("PageAdmin.menu.selfDashboard"),
-				PageSelfDashboard.class);
-		menu.getItems().add(item);
-		item = new MainMenuItem(GuiStyleConstants.CLASS_ICON_PROFILE, createStringResource("PageAdmin.menu.profile"), PageSelfProfile.class);
-		menu.getItems().add(item);
-		// PageSelfAssignments is not implemented yet
-		// item = new MainMenuItem("fa fa-star",
-		// createStringResource("PageAdmin.menu.assignments"),
-		// PageSelfAssignments.class);
-		// menu.getItems().add(item);
-		item = new MainMenuItem(GuiStyleConstants.CLASS_ICON_CREDENTIALS, createStringResource("PageAdmin.menu.credentials"),
-				PageSelfCredentials.class);
-		menu.getItems().add(item);
-		item = new MainMenuItem(GuiStyleConstants.CLASS_ICON_REQUEST, createStringResource("PageAdmin.menu.request"),
+    private void createSelfServiceMenu(SideBarMenuItem menu) {
+        addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_DASHBOARD, "PageAdmin.menu.selfDashboard",
+                PageSelfDashboard.class);
+        addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_PROFILE, "PageAdmin.menu.profile",
+                PageSelfProfile.class);
+        addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_CREDENTIALS, "PageAdmin.menu.credentials",
+                PageSelfCredentials.class);
+        addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_REQUEST, "PageAdmin.menu.request",
                 PageAssignmentShoppingKart.class);
-		menu.getItems().add(item);
-		item = new MainMenuItem(GuiStyleConstants.CLASS_ICON_CONSENT, createStringResource("PageAdmin.menu.consent"),
+        addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_CONSENT, "PageAdmin.menu.consent",
                 PageSelfConsents.class);
-		menu.getItems().add(item);
-	}
+    }
 
     private void createAdditionalMenu(SideBarMenuItem menu) {
         AdminGuiConfigurationType adminGuiConfig = loadAdminGuiConfiguration();
@@ -1611,7 +1503,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
     }
 
-    private IModel<String> getAdditionalMenuItemNameModel(final String name){
+    private IModel<String> getAdditionalMenuItemNameModel(final String name) {
         return new IModel<String>() {
             @Override
             public String getObject() {
@@ -1629,201 +1521,190 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private MainMenuItem createHomeItems() {
-		MainMenuItem item = new MainMenuItem("fa fa-dashboard", createStringResource("PageAdmin.menu.dashboard"),
-				PageDashboard.class);
+        MainMenuItem item = new MainMenuItem("fa fa-dashboard",
+                createStringResource("PageAdmin.menu.dashboard"), PageDashboard.class);
 
-		return item;
-	}
+        return item;
+    }
 
-	private MainMenuItem createUsersItems() {
-		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED, createStringResource("PageAdmin.menu.top.users"), null);
+    private MainMenuItem createUsersItems() {
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED,
+                createStringResource("PageAdmin.menu.top.users"), null);
 
-		List<MenuItem> submenu = item.getItems();
+        addMenuItem(item, "PageAdmin.menu.top.users.list", PageUsers.class);
 
-		MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.users.list"), PageUsers.class);
-		submenu.add(list);
-		createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.users.new", "PageAdmin.menu.top.users.edit",
-				PageUser.class, true);
-		// MenuItem search = new
-		// MenuItem(createStringResource("PageAdmin.menu.users.search"),
-		// PageUsersSearch.class);
-		// submenu.add(search);
+        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.new",
+                "PageAdmin.menu.top.users.edit", PageUser.class, true);
 
-		return item;
-	}
+        return item;
+    }
 
-	private void createFocusPageNewEditMenu(List<MenuItem> submenu, String newKey, String editKey,
-			final Class<? extends PageAdmin> newPageClass, boolean checkAuthorization) {
-		MenuItem edit = new MenuItem(createStringResource(editKey), newPageClass, null, new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+    private void createFocusPageNewEditMenu(List<MenuItem> submenu, String newKey, String editKey,
+                                            final Class<? extends PageAdmin> newPageClass, boolean checkAuthorization) {
+        MenuItem edit = new MenuItem(createStringResource(editKey), newPageClass, null, new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isEnabled() {
-				return false;
-			}
+            @Override
+            public boolean isEnabled() {
+                return false;
+            }
 
-			@Override
-			public boolean isVisible() {
-				if (!getPage().getClass().equals(newPageClass)) {
-					return false;
-				}
+            @Override
+            public boolean isVisible() {
+                if (!getPage().getClass().equals(newPageClass)) {
+                    return false;
+                }
 
-				if (getPage() instanceof PageAdminFocus) {
-					PageAdminFocus page = (PageAdminFocus) getPage();
-					return page.isEditingFocus();
-				} else if (getPage() instanceof PageResourceWizard) {
-					PageResourceWizard page = (PageResourceWizard) getPage();
-					return !page.isNewResource();
-				} else {
-					return false;
-				}
-			}
-		});
-		submenu.add(edit);
-			MenuItem newMenu = new MenuItem(createStringResource(newKey), newPageClass, null, new VisibleEnableBehaviour() {
-				private static final long serialVersionUID = 1L;
+                if (getPage() instanceof PageAdminFocus) {
+                    PageAdminFocus page = (PageAdminFocus) getPage();
+                    return page.isEditingFocus();
+                } else if (getPage() instanceof PageResourceWizard) {
+                    PageResourceWizard page = (PageResourceWizard) getPage();
+                    return !page.isNewResource();
+                } else {
+                    return false;
+                }
+            }
+        });
+        submenu.add(edit);
+        MenuItem newMenu = new MenuItem(createStringResource(newKey), newPageClass, null, new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
 
-				@Override
-				public boolean isVisible() {
-					return !checkAuthorization || isMenuItemAuthorized(newPageClass);
-				}
-			}) {
-				private static final long serialVersionUID = 1L;
+            @Override
+            public boolean isVisible() {
+                return !checkAuthorization || isMenuItemAuthorized(newPageClass);
+            }
+        }) {
+            private static final long serialVersionUID = 1L;
 
-				@Override
-				protected boolean isMenuActive() {
-					if (!PageBase.this.getPage().getClass().equals(newPageClass)) {
-						return false;
-					}
+            @Override
+            protected boolean isMenuActive() {
+                if (!PageBase.this.getPage().getClass().equals(newPageClass)) {
+                    return false;
+                }
 
-					if (PageBase.this.getPage() instanceof PageAdminFocus) {
-						PageAdminFocus page = (PageAdminFocus) PageBase.this.getPage();
-						return !page.isEditingFocus();
-					} else if (PageBase.this.getPage() instanceof PageResourceWizard) {
-						PageResourceWizard page = (PageResourceWizard) PageBase.this.getPage();
-						return page.isNewResource();
-					} else {
-						return false;
-					}
-				}
-			};
-			submenu.add(newMenu);
-	}
+                if (PageBase.this.getPage() instanceof PageAdminFocus) {
+                    PageAdminFocus page = (PageAdminFocus) PageBase.this.getPage();
+                    return !page.isEditingFocus();
+                } else if (PageBase.this.getPage() instanceof PageResourceWizard) {
+                    PageResourceWizard page = (PageResourceWizard) PageBase.this.getPage();
+                    return page.isNewResource();
+                } else {
+                    return false;
+                }
+            }
+        };
+        submenu.add(newMenu);
+    }
 
-	private boolean isMenuItemAuthorized(Class<? extends PageAdmin> newPageClass) {
-		try {
-			ObjectType object = null;
-			if (PageOrgUnit.class.equals(newPageClass)) {
-				object = new OrgType(getPrismContext());
-			} else if (PageUser.class.equals(newPageClass)) {
-				object = new UserType(getPrismContext());
-			} else if (PageRole.class.equals(newPageClass)) {
-				object = new RoleType(getPrismContext());
-			} else if (PageService.class.equals(newPageClass)) {
-				object = new ServiceType(getPrismContext());
-			}
+    private boolean isMenuItemAuthorized(Class<? extends PageAdmin> newPageClass) {
+        try {
+            ObjectType object = null;
+            if (PageOrgUnit.class.equals(newPageClass)) {
+                object = new OrgType(getPrismContext());
+            } else if (PageUser.class.equals(newPageClass)) {
+                object = new UserType(getPrismContext());
+            } else if (PageRole.class.equals(newPageClass)) {
+                object = new RoleType(getPrismContext());
+            } else if (PageService.class.equals(newPageClass)) {
+                object = new ServiceType(getPrismContext());
+            }
 
-			// TODO: the modify authorization here is probably wrong.
-			// It is a model autz. UI autz should be here instead?
-			return getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
-					AuthorizationPhaseType.REQUEST, object == null ? null : object.asPrismObject(),
-					null, null, null);
-		} catch (SchemaException ex) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't solve authorization for New organization menu item", ex);
-		}
-		return false;
-	}
+            // TODO: the modify authorization here is probably wrong.
+            // It is a model autz. UI autz should be here instead?
+            return getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
+                    AuthorizationPhaseType.REQUEST, object == null ? null : object.asPrismObject(),
+                    null, null, null);
+        } catch (SchemaException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't solve authorization for New organization menu item", ex);
+        }
+        return false;
+    }
 
-	private void createFocusPageViewMenu(List<MenuItem> submenu, String viewKey,
-			final Class<? extends PageBase> newPageType) {
-		MenuItem view = new MenuItem(createStringResource(viewKey), newPageType, null, new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+    private void createFocusPageViewMenu(List<MenuItem> submenu, String viewKey,
+                                         final Class<? extends PageBase> newPageType) {
+        MenuItem view = new MenuItem(createStringResource(viewKey), newPageType, null, new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isEnabled() {
-				return false;
-			}
+            @Override
+            public boolean isEnabled() {
+                return false;
+            }
 
-			@Override
-			public boolean isVisible() {
-				if (!getPage().getClass().equals(newPageType)) {
-					return false;
-				}
+            @Override
+            public boolean isVisible() {
+                if (!getPage().getClass().equals(newPageType)) {
+                    return false;
+                }
 
-				return true;
-			}
-		});
-		submenu.add(view);
-	}
+                return true;
+            }
+        });
+        submenu.add(view);
+    }
 
-	private MainMenuItem createOrganizationsMenu() {
-		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ORG_ICON_COLORED, createStringResource("PageAdmin.menu.top.users.org"),
-				null);
+    private MainMenuItem createOrganizationsMenu() {
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ORG_ICON_COLORED,
+                createStringResource("PageAdmin.menu.top.users.org"), null);
 
-		List<MenuItem> submenu = item.getItems();
+        addMenuItem(item, "PageAdmin.menu.top.users.org.tree", PageOrgTree.class);
 
-		MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.users.org.tree"), PageOrgTree.class);
-		submenu.add(list);
-		createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.users.org.new", "PageAdmin.menu.top.users.org.edit",
-				PageOrgUnit.class, true);
+        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.org.new", "PageAdmin.menu.top.users.org.edit",
+                PageOrgUnit.class, true);
 
-		return item;
-	}
+        return item;
+    }
 
-	private MainMenuItem createRolesItems() {
-		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, createStringResource("PageAdmin.menu.top.roles"),
-				null);
+    private MainMenuItem createRolesItems() {
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED,
+                createStringResource("PageAdmin.menu.top.roles"), null);
 
-		List<MenuItem> submenu = item.getItems();
+        addMenuItem(item, "PageAdmin.menu.top.roles.list", PageRoles.class);
 
-		MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.roles.list"), PageRoles.class);
-		submenu.add(list);
-		createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.roles.new", "PageAdmin.menu.top.roles.edit",
-				PageRole.class, true);
+        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.roles.new", "PageAdmin.menu.top.roles.edit",
+                PageRole.class, true);
 
-		return item;
-	}
+        return item;
+    }
 
-	private MainMenuItem createServicesItems() {
-		MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED, createStringResource("PageAdmin.menu.top.services"),
-				null);
+    private MainMenuItem createServicesItems() {
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED,
+                createStringResource("PageAdmin.menu.top.services"), null);
 
-		List<MenuItem> submenu = item.getItems();
+        addMenuItem(item, "PageAdmin.menu.top.services.list", PageServices.class);
 
-		MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.services.list"), PageServices.class);
-		submenu.add(list);
-		createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.services.new", "PageAdmin.menu.top.services.edit",
-				PageService.class, true);
+        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.services.new", "PageAdmin.menu.top.services.edit",
+                PageService.class, true);
 
-		return item;
-	}
+        return item;
+    }
 
-	public PrismObject<UserType> loadUserSelf() {
-		Task task = createSimpleTask(OPERATION_LOAD_USER);
-		OperationResult result = task.getResult();
-		PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class,
-				WebModelServiceUtils.getLoggedInUserOid(), PageBase.this, task, result);
-		result.computeStatus();
+    public PrismObject<UserType> loadUserSelf() {
+        Task task = createSimpleTask(OPERATION_LOAD_USER);
+        OperationResult result = task.getResult();
+        PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class,
+                WebModelServiceUtils.getLoggedInUserOid(), PageBase.this, task, result);
+        result.computeStatus();
 
-		showResult(result, null, false);
+        showResult(result, null, false);
 
-		return user;
-	}
+        return user;
+    }
 
-	private VisibleEnableBehaviour createVisibleDisabledBehaviorForEditMenu(final Class<? extends WebPage> page) {
-		return new VisibleEnableBehaviour() {
+    private VisibleEnableBehaviour createVisibleDisabledBehaviorForEditMenu(final Class<? extends WebPage> page) {
+        return new VisibleEnableBehaviour() {
 
-			@Override
-			public boolean isVisible() {
-				return getPage().getClass().equals(page);
-			}
+            @Override
+            public boolean isVisible() {
+                return getPage().getClass().equals(page);
+            }
 
-			@Override
-			public boolean isEnabled() {
-				return false;
-			}
-		};
-	}
+            @Override
+            public boolean isEnabled() {
+                return false;
+            }
+        };
+    }
 
 
     public AdminGuiConfigurationType loadAdminGuiConfiguration() {
@@ -1838,7 +1719,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 adminGuiConfig = getModelInteractionService().getAdminGuiConfiguration(task, result);
                 LOGGER.trace("Admin GUI config: {}", adminGuiConfig);
                 result.recordSuccess();
-            } catch(Exception ex){
+            } catch (Exception ex) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load system configuration", ex);
                 result.recordFatalError("Couldn't load system configuration.", ex);
             }
@@ -1848,120 +1729,120 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public DeploymentInformationType loadDeploymentInformationType() {
         DeploymentInformationType deploymentInformationType = null;
-            OperationResult result = new OperationResult(OPERATION_GET_DEPLOYMENT_INFORMATION);
-            try {
-				deploymentInformationType = getModelInteractionService().getDeploymentInformationConfiguration(result);
-                LOGGER.trace("Deployment information : {}", deploymentInformationType);
-                result.recordSuccess();
-            } catch(Exception ex){
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load deployment information", ex);
-                result.recordFatalError("Couldn't load deployment information.", ex);
-            }
-            return deploymentInformationType;
+        OperationResult result = new OperationResult(OPERATION_GET_DEPLOYMENT_INFORMATION);
+        try {
+            deploymentInformationType = getModelInteractionService().getDeploymentInformationConfiguration(result);
+            LOGGER.trace("Deployment information : {}", deploymentInformationType);
+            result.recordSuccess();
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load deployment information", ex);
+            result.recordFatalError("Couldn't load deployment information.", ex);
+        }
+        return deploymentInformationType;
     }
 
     public boolean canRedirectBack() {
-		List<Breadcrumb> breadcrumbs = getBreadcrumbs();
-		if (breadcrumbs.size() > 2) {
-			return true;
-		}
-		if (breadcrumbs.size() == 2){
-			BreadcrumbPageClass breadcrumb =  null;
-			if ((breadcrumbs.get(breadcrumbs.size() - 2)) instanceof BreadcrumbPageClass){
-				breadcrumb = (BreadcrumbPageClass) breadcrumbs.get(breadcrumbs.size() - 2);
-			}
-			if (breadcrumb != null && breadcrumb.getPage() != null){
-				return true;
-			}
-		}
+        List<Breadcrumb> breadcrumbs = getBreadcrumbs();
+        if (breadcrumbs.size() > 2) {
+            return true;
+        }
+        if (breadcrumbs.size() == 2) {
+            BreadcrumbPageClass breadcrumb = null;
+            if ((breadcrumbs.get(breadcrumbs.size() - 2)) instanceof BreadcrumbPageClass) {
+                breadcrumb = (BreadcrumbPageClass) breadcrumbs.get(breadcrumbs.size() - 2);
+            }
+            if (breadcrumb != null && breadcrumb.getPage() != null) {
+                return true;
+            }
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	public Breadcrumb redirectBack() {
-		List<Breadcrumb> breadcrumbs = getBreadcrumbs();
-		if (!canRedirectBack()) {
-			setResponsePage(getMidpointApplication().getHomePage());
+    public Breadcrumb redirectBack() {
+        List<Breadcrumb> breadcrumbs = getBreadcrumbs();
+        if (!canRedirectBack()) {
+            setResponsePage(getMidpointApplication().getHomePage());
 
-			return null;
-		}
+            return null;
+        }
 
-		Breadcrumb breadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);
-		redirectBackToBreadcrumb(breadcrumb);
-		return breadcrumb;
-	}
+        Breadcrumb breadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);
+        redirectBackToBreadcrumb(breadcrumb);
+        return breadcrumb;
+    }
 
-	public void navigateToNext(Class<? extends WebPage> page) {
-		navigateToNext(page, null);
-	}
+    public void navigateToNext(Class<? extends WebPage> page) {
+        navigateToNext(page, null);
+    }
 
-	public void navigateToNext(Class<? extends WebPage> pageType, PageParameters params) {
-		IPageFactory pFactory = Session.get().getPageFactory();
-		WebPage page;
-		if (params == null) {
-			page = pFactory.newPage(pageType);
-		} else {
-			page = pFactory.newPage(pageType, params);
-		}
+    public void navigateToNext(Class<? extends WebPage> pageType, PageParameters params) {
+        IPageFactory pFactory = Session.get().getPageFactory();
+        WebPage page;
+        if (params == null) {
+            page = pFactory.newPage(pageType);
+        } else {
+            page = pFactory.newPage(pageType, params);
+        }
 
-		navigateToNext(page);
-	}
+        navigateToNext(page);
+    }
 
-	public void navigateToNext(WebPage page) {
-    	if (!(page instanceof PageBase)) {
-    		setResponsePage(page);
-    		return;
-		}
+    public void navigateToNext(WebPage page) {
+        if (!(page instanceof PageBase)) {
+            setResponsePage(page);
+            return;
+        }
 
-		PageBase next = (PageBase) page;
-    	next.setBreadcrumbs(getBreadcrumbs());
+        PageBase next = (PageBase) page;
+        next.setBreadcrumbs(getBreadcrumbs());
 
-		setResponsePage(next);
-	}
+        setResponsePage(next);
+    }
 
-	// TODO deduplicate with redirectBack
-	public RestartResponseException redirectBackViaRestartResponseException() {
-		List<Breadcrumb> breadcrumbs = getBreadcrumbs();
-		if (breadcrumbs.size() < 2) {
-			return new RestartResponseException(getApplication().getHomePage());
-		}
+    // TODO deduplicate with redirectBack
+    public RestartResponseException redirectBackViaRestartResponseException() {
+        List<Breadcrumb> breadcrumbs = getBreadcrumbs();
+        if (breadcrumbs.size() < 2) {
+            return new RestartResponseException(getApplication().getHomePage());
+        }
 
-		Breadcrumb breadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);
-		redirectBackToBreadcrumb(breadcrumb);
-		return breadcrumb.getRestartResponseException();
-	}
+        Breadcrumb breadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);
+        redirectBackToBreadcrumb(breadcrumb);
+        return breadcrumb.getRestartResponseException();
+    }
 
 
-	public void redirectBackToBreadcrumb(Breadcrumb breadcrumb) {
-		Validate.notNull(breadcrumb, "Breadcrumb must not be null");
+    public void redirectBackToBreadcrumb(Breadcrumb breadcrumb) {
+        Validate.notNull(breadcrumb, "Breadcrumb must not be null");
 
-		boolean found = false;
+        boolean found = false;
 
-		//we remove all breadcrumbs that are after "breadcrumb"
-		List<Breadcrumb> breadcrumbs = getBreadcrumbs();
-		Iterator<Breadcrumb> iterator = breadcrumbs.iterator();
-		while (iterator.hasNext()) {
-			Breadcrumb b = iterator.next();
-			if (found) {
-				iterator.remove();
-			} else if (b.equals(breadcrumb)) {
-				found = true;
-			}
-		}
-		WebPage page = breadcrumb.redirect();
-		if (page instanceof PageBase) {
-			PageBase base = (PageBase) page;
-			base.setBreadcrumbs(breadcrumbs);
-		}
+        //we remove all breadcrumbs that are after "breadcrumb"
+        List<Breadcrumb> breadcrumbs = getBreadcrumbs();
+        Iterator<Breadcrumb> iterator = breadcrumbs.iterator();
+        while (iterator.hasNext()) {
+            Breadcrumb b = iterator.next();
+            if (found) {
+                iterator.remove();
+            } else if (b.equals(breadcrumb)) {
+                found = true;
+            }
+        }
+        WebPage page = breadcrumb.redirect();
+        if (page instanceof PageBase) {
+            PageBase base = (PageBase) page;
+            base.setBreadcrumbs(breadcrumbs);
+        }
 
-		setResponsePage(page);
-	}
+        setResponsePage(page);
+    }
 
-    protected void setTimeZone(PageBase page){
+    protected void setTimeZone(PageBase page) {
         PrismObject<UserType> user = loadUserSelf();
         String timeZone = null;
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
-        if (user != null && user.asObjectable().getTimezone() != null){
+        if (user != null && user.asObjectable().getTimezone() != null) {
             timeZone = user.asObjectable().getTimezone();
         } else {
             timeZone = principal.getAdminGuiConfiguration().getDefaultTimezone();
@@ -1973,94 +1854,94 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected <T> T runPrivileged(Producer<T> producer) {
-    	return securityEnforcer.runPrivileged(producer);
+        return securityEnforcer.runPrivileged(producer);
     }
 
     public void setBreadcrumbs(List<Breadcrumb> breadcrumbs) {
-    	getBreadcrumbs().clear();
+        getBreadcrumbs().clear();
 
-    	if (breadcrumbs != null) {
-			getBreadcrumbs().addAll(breadcrumbs);
-		}
-	}
+        if (breadcrumbs != null) {
+            getBreadcrumbs().addAll(breadcrumbs);
+        }
+    }
 
-	public List<Breadcrumb> getBreadcrumbs() {
-		if (breadcrumbs == null) {
-			breadcrumbs = new ArrayList<>();
-		}
-		return breadcrumbs;
-	}
+    public List<Breadcrumb> getBreadcrumbs() {
+        if (breadcrumbs == null) {
+            breadcrumbs = new ArrayList<>();
+        }
+        return breadcrumbs;
+    }
 
-	public void addBreadcrumb(Breadcrumb breadcrumb) {
-		Validate.notNull(breadcrumb, "Breadcrumb must not be null");
+    public void addBreadcrumb(Breadcrumb breadcrumb) {
+        Validate.notNull(breadcrumb, "Breadcrumb must not be null");
 
-		Breadcrumb last = getBreadcrumbs().isEmpty() ?
-				null : getBreadcrumbs().get(getBreadcrumbs().size() - 1);
-		if (last != null && last.equals(breadcrumb)) {
-			return;
-		}
+        Breadcrumb last = getBreadcrumbs().isEmpty() ?
+                null : getBreadcrumbs().get(getBreadcrumbs().size() - 1);
+        if (last != null && last.equals(breadcrumb)) {
+            return;
+        }
 
-		getBreadcrumbs().add(breadcrumb);
-	}
+        getBreadcrumbs().add(breadcrumb);
+    }
 
-	public Breadcrumb getLastBreadcrumb() {
-		if (getBreadcrumbs().isEmpty()) {
-			return null;
-		}
-
-		return getBreadcrumbs().get(getBreadcrumbs().size() - 1);
-	}
-
-	public void clearBreadcrumbs() {
-		getBreadcrumbs().clear();
-	}
-
-	private boolean isCustomLogoVisible(){
-		if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null
-				&& deploymentInfoModel.getObject().getLogo() != null
-				&& (StringUtils.isNotEmpty(deploymentInfoModel.getObject().getLogo().getImageUrl())
-				|| StringUtils.isNotEmpty(deploymentInfoModel.getObject().getLogo().getCssClass()))) {
-			return true;
-		}
-		return false;
-	}
-
-	private String getSubscriptionId(){
-        if (deploymentInfoModel == null || deploymentInfoModel.getObject() == null){
+    public Breadcrumb getLastBreadcrumb() {
+        if (getBreadcrumbs().isEmpty()) {
             return null;
         }
-		return deploymentInfoModel.getObject().getSubscriptionIdentifier();
-	}
 
-	private VisibleEnableBehaviour getFooterVisibleBehaviour(){
-		return new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+        return getBreadcrumbs().get(getBreadcrumbs().size() - 1);
+    }
 
-			@Override
-			public boolean isVisible() {
-				String subscriptionId = getSubscriptionId();
-				if (StringUtils.isEmpty(subscriptionId)){
-					return true;
-				}
-				return !WebComponentUtil.isSubscriptionIdCorrect(subscriptionId) ||
-						(SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))
-								&& WebComponentUtil.isSubscriptionIdCorrect(subscriptionId));
-			}
-		};
-	}
+    public void clearBreadcrumbs() {
+        getBreadcrumbs().clear();
+    }
 
-	protected String determineDataLanguage() {
-		AdminGuiConfigurationType config = loadAdminGuiConfiguration();
-		if (config != null && config.getPreferredDataLanguage() != null) {
-			if (PrismContext.LANG_JSON.equals(config.getPreferredDataLanguage())){
-				return PrismContext.LANG_JSON;
-			} else if (PrismContext.LANG_YAML.equals(config.getPreferredDataLanguage())){
-				return PrismContext.LANG_YAML;
-			} else {
-				return PrismContext.LANG_XML;
-			}
-		} else {
-			return PrismContext.LANG_XML;
-		}
-	}
+    private boolean isCustomLogoVisible() {
+        if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null
+                && deploymentInfoModel.getObject().getLogo() != null
+                && (StringUtils.isNotEmpty(deploymentInfoModel.getObject().getLogo().getImageUrl())
+                || StringUtils.isNotEmpty(deploymentInfoModel.getObject().getLogo().getCssClass()))) {
+            return true;
+        }
+        return false;
+    }
+
+    private String getSubscriptionId() {
+        if (deploymentInfoModel == null || deploymentInfoModel.getObject() == null) {
+            return null;
+        }
+        return deploymentInfoModel.getObject().getSubscriptionIdentifier();
+    }
+
+    private VisibleEnableBehaviour getFooterVisibleBehaviour() {
+        return new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                String subscriptionId = getSubscriptionId();
+                if (StringUtils.isEmpty(subscriptionId)) {
+                    return true;
+                }
+                return !WebComponentUtil.isSubscriptionIdCorrect(subscriptionId) ||
+                        (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))
+                                && WebComponentUtil.isSubscriptionIdCorrect(subscriptionId));
+            }
+        };
+    }
+
+    protected String determineDataLanguage() {
+        AdminGuiConfigurationType config = loadAdminGuiConfiguration();
+        if (config != null && config.getPreferredDataLanguage() != null) {
+            if (PrismContext.LANG_JSON.equals(config.getPreferredDataLanguage())) {
+                return PrismContext.LANG_JSON;
+            } else if (PrismContext.LANG_YAML.equals(config.getPreferredDataLanguage())) {
+                return PrismContext.LANG_YAML;
+            } else {
+                return PrismContext.LANG_XML;
+            }
+        } else {
+            return PrismContext.LANG_XML;
+        }
+    }
 }

@@ -80,7 +80,7 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
 		this.containerDefinition = getItemDefinition();
 	}
 
-	ContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readOnly) {
+	ContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readOnly, boolean showInheritedObjectAttributes) {
         Validate.notNull(container, "container must not be null.");
         Validate.notNull(container.getDefinition(), "container definition must not be null.");
         Validate.notNull(status, "Container status must not be null.");
@@ -91,7 +91,7 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
         this.path = path;
         this.main = path == null;
         this.readonly = readOnly;
-        this.showInheritedObjectAttributes = false;
+        this.showInheritedObjectAttributes = showInheritedObjectAttributes;
     }
 
     public void revive(PrismContext prismContext) throws SchemaException {

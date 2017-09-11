@@ -110,6 +110,8 @@ public class MappingEditorDialog extends ModalWindow {
 
 	private static final int CODE_ROW_COUNT = 5;
 
+	private static final StringChoiceRenderer CHANNEL_RENDERER = StringChoiceRenderer.prefixedSplit("Channel.", "#");
+
 	private boolean initialized;
 	private IModel<MappingTypeDto> model;
 	private Map<String, String> policyMap = new HashMap<>();
@@ -255,7 +257,7 @@ public class MappingEditorDialog extends ModalWindow {
 
 			@Override
 			protected IChoiceRenderer<String> createRenderer() {
-				return new StringChoiceRenderer("Channel.", "#");
+				return CHANNEL_RENDERER;
 
 			}
 		};
@@ -282,7 +284,7 @@ public class MappingEditorDialog extends ModalWindow {
 
 			@Override
 			protected IChoiceRenderer<String> createRenderer() {
-					return new StringChoiceRenderer("Channel.", "#");
+					return CHANNEL_RENDERER;
 			}
 		};
 		form.add(exceptChannel);

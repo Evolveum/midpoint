@@ -33,6 +33,8 @@ public class SideBarMenuItem implements Serializable {
     private IModel<String> name;
     private List<MainMenuItem> items;
 
+    private boolean expanded = true;
+
     public SideBarMenuItem(IModel<String> name) {
         this.name = name;
     }
@@ -42,6 +44,14 @@ public class SideBarMenuItem implements Serializable {
             items = new ArrayList<>();
         }
         return items;
+    }
+
+    public boolean isExpanded() {
+        return expanded;
+    }
+
+    public void setExpanded(boolean expanded) {
+        this.expanded = expanded;
     }
 
     public IModel<String> getName() {

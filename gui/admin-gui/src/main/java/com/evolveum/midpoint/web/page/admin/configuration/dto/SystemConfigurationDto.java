@@ -25,6 +25,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -33,27 +34,13 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
  * @author lazyman
  */
 public class SystemConfigurationDto implements Serializable {
 
-	public static final String F_AEP_LEVEL = "aepLevel";
+	public static final String F_ASSIGNMENTPOLICYENFORCEMENT_LEVEL = "aepLevel";
 	public static final String F_AUDIT_CLEANUP = "auditCleanupValue";
 	public static final String F_TASK_CLEANUP = "taskCleanupValue";
 	public static final String F_PASSWORD_POLICY = "passPolicyDto";
@@ -64,11 +51,13 @@ public class SystemConfigurationDto implements Serializable {
 	public static final String F_ENABLE_EXPERIMENTAL_CODE = "enableExperimentalCode";
 	public static final String F_USER_DASHBOARD_LINK = "userDashboardLink";
 	public static final String F_ADDITIONAL_MENU_LINK = "additionalMenuLink";
-
+	public static final String F_DEPLOYMENT_INFORMATION = "deploymentInformation";
 	private AEPlevel aepLevel;
 
 	private String auditCleanupValue;
 	private String taskCleanupValue;
+
+	private DeploymentInformationType deploymentInformation;
 
 	private Boolean enableExperimentalCode;
 
@@ -108,6 +97,8 @@ public class SystemConfigurationDto implements Serializable {
 
 		CleanupPolicyType auditCleanup = config.getCleanupPolicy().getAuditRecords();
 		CleanupPolicyType taskCleanup = config.getCleanupPolicy().getClosedTasks();
+
+		deploymentInformation = config.getDeploymentInformation();
 
 		auditCleanupValue = auditCleanup.getMaxAge().toString();
 		taskCleanupValue = taskCleanup.getMaxAge().toString();
@@ -206,6 +197,9 @@ public class SystemConfigurationDto implements Serializable {
 		cleanupPolicies.setAuditRecords(auditCleanup);
 		cleanupPolicies.setClosedTasks(taskCleanup);
 
+		DeploymentInformationType deploymentInformation = getDeploymentInformation();
+		newObject.setDeploymentInformation(deploymentInformation);
+
 		newObject.setCleanupPolicy(cleanupPolicies);
 		SystemConfigurationTypeUtil.setEnableExperimentalCode(newObject, getEnableExperimentalCode());
 
@@ -276,6 +270,10 @@ public class SystemConfigurationDto implements Serializable {
 		securityPolicyDto.setType(SecurityPolicyType.class);
 		return securityPolicyDto;
 	}
+
+	public DeploymentInformationType getDeploymentInformation() { return deploymentInformation; }
+
+	public void setDeploymentInformation(DeploymentInformationType deploymentInformation) { this.deploymentInformation = deploymentInformation; }
 
 	public String getAuditCleanupValue() {
 		return auditCleanupValue;

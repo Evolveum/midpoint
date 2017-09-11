@@ -41,8 +41,8 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 
 	private static final long serialVersionUID = 1L;
 
-	public GdprAssignmentPanel(String id, IModel<List<AssignmentDto>> assignmentsModel, PageBase pageBase) {
-		super(id, assignmentsModel, pageBase);
+	public GdprAssignmentPanel(String id, IModel<List<AssignmentDto>> assignmentsModel) {
+		super(id, assignmentsModel);
 	}
 
 

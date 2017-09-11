@@ -28,7 +28,7 @@ public class FocusConsentTabPanel<F extends FocusType> extends AbstractObjectTab
 
 	private void initLayout() {
 
-		GdprAssignmentPanel consentRoles =  new GdprAssignmentPanel(ID_ROLES, consentsModel, getPageBase());
+		GdprAssignmentPanel consentRoles =  new GdprAssignmentPanel(ID_ROLES, consentsModel);
 		add(consentRoles);
 		consentRoles.setOutputMarkupId(true);
 

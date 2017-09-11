@@ -99,7 +99,7 @@ public class ContainerWrapperFactory {
 
 		result = new OperationResult(CREATE_PROPERTIES);
 
-		ContainerWrapper cWrapper = new ContainerWrapper(container, status, path, readonly);
+		ContainerWrapper cWrapper = new ContainerWrapper(container, status, path, readonly, false);
 
 		List<ItemWrapper> properties = createProperties(cWrapper, result);
 		cWrapper.setProperties(properties);
@@ -377,15 +377,16 @@ public class ContainerWrapperFactory {
         return properties;
     }
 
-    public ContainerWrapper<AssignmentType> createAssignmentContainerWrapper(AssignmentType container, ContainerStatus status, ItemPath path, boolean readonly) {
+    public <C extends Containerable> ContainerWrapper<C> createCustomContainerWrapper(C container, ContainerStatus status, ItemPath path,
+                                                                                      boolean readonly, boolean showInheritedAttributes) {
 
 		result = new OperationResult(CREATE_PROPERTIES);
 
-		PrismContainer<AssignmentType> assignmentContainer = container.asPrismContainerValue().getContainer();
+		PrismContainer<C> containerValue = container.asPrismContainerValue().getContainer();
 
-		ContainerWrapper cWrapper = new ContainerWrapper(assignmentContainer, status, path, readonly);
+		ContainerWrapper cWrapper = new ContainerWrapper(containerValue, status, path, readonly, showInheritedAttributes);
 
-		List<ItemWrapper> properties = createProperties(container, assignmentContainer.getDefinition(), cWrapper);
+		List<ItemWrapper> properties = createProperties(container, containerValue.getDefinition(), cWrapper);
 		cWrapper.setProperties(properties);
 
 		cWrapper.computeStripes();
@@ -393,7 +394,7 @@ public class ContainerWrapperFactory {
 		return cWrapper;
     }
 
-private List<ItemWrapper> createProperties(AssignmentType container, PrismContainerDefinition definition, ContainerWrapper<Containerable> cWrapper) {
+private <C extends Containerable> List<ItemWrapper> createProperties(C container, PrismContainerDefinition definition, ContainerWrapper<Containerable> cWrapper) {
 	 Collection<ItemDefinition> propertyDefinitions = definition.getDefinitions();
 
 	 List<ItemWrapper> properties = new ArrayList<>();
@@ -411,15 +412,6 @@ private List<ItemWrapper> createProperties(AssignmentType container, PrismContai
              }
              if (!cWrapper.isShowInheritedObjectAttributes()
                      && INHERITED_OBJECT_ATTRIBUTES.contains(def.getName())) {
-                 continue;
-             }
-
-             // capability handling for activation properties
-             if (isShadowActivation(cWrapper) && !hasActivationCapability(cWrapper, def)) {
-                 continue;
-             }
-
-             if (isShadowAssociation(cWrapper)) {
                  continue;
              }
 
