@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.reports.*;
+import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicies;
 import com.evolveum.midpoint.web.page.self.*;
 import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
 import com.evolveum.midpoint.wf.util.QueryUtils;
@@ -1247,6 +1248,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			items.add(createResourcesItems());
 		}
 
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_URL,
+				AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+			items.add(createValuePolicieItems());
+		}
+
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
 				AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
 				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
@@ -1274,6 +1280,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
 			items.add(createReportsItems());
 		}
+
+
 
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
 				AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL,
@@ -1369,6 +1377,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		submenu.add(connectorHostsList);
 		return item;
 	}
+
+	private MainMenuItem createValuePolicieItems(){
+    	MainMenuItem item = new MainMenuItem("fa fa-asterisk", createStringResource("PageAdmin.menu.top.valuePolicies"),null);
+		List<MenuItem> submenu = item.getItems();
+
+		MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.valuePolicies.list"), PageValuePolicies.class);
+		submenu.add(list);
+
+		return item;
+    }
 
 	private MainMenuItem createReportsItems() {
 		MainMenuItem item = new MainMenuItem("fa fa-pie-chart", createStringResource("PageAdmin.menu.top.reports"),
