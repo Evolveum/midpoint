@@ -172,7 +172,7 @@ public class PageCreatedReports extends PageAdminReports {
         DropDownChoicePanel<String> reportTypeSelect = new DropDownChoicePanel(ID_REPORT_TYPE_SELECT,
               Model.of(reportTypeMal.get(getReportType())),
               Model.of(reportTypeMal.values()),
-              new StringChoiceRenderer(null), true);
+              StringChoiceRenderer.simple(), true);
 
       reportTypeSelect.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 

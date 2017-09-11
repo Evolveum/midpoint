@@ -150,6 +150,9 @@ public class PageTaskAdd extends PageAdminTasks {
     private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "createResourceList";
     private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
     private static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
+
+    private static final StringChoiceRenderer CATEGORY_RENDERER = StringChoiceRenderer.prefixed("pageTask.category.");
+
     private IModel<TaskAddDto> model;
 
     public PageTaskAdd() {
@@ -341,7 +344,7 @@ public class PageTaskAdd extends PageAdminTasks {
                     public List<String> getObject() {
                         return WebComponentUtil.createTaskCategoryList();
                     }
-                }, new StringChoiceRenderer("pageTask.category."));
+                }, CATEGORY_RENDERER);
         type.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override

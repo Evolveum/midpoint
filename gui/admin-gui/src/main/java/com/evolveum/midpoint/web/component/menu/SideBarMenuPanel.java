@@ -18,6 +18,9 @@ package com.evolveum.midpoint.web.component.menu;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -31,23 +34,53 @@ import java.util.List;
  */
 public class SideBarMenuPanel extends SimplePanel<List<SideBarMenuItem>> {
 
+    private static final String ID_SIDEBAR = "sidebar";
     private static final String ID_MENU_ITEMS = "menuItems";
     private static final String ID_NAME = "name";
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
+    private static final String ID_MINIMIZED_ICON = "minimizedIcon";
 
     public SideBarMenuPanel(String id, IModel<List<SideBarMenuItem>> model) {
         super(id, model);
+
+        setOutputMarkupId(true);
     }
 
     @Override
     protected void initLayout() {
+        WebMarkupContainer sidebar = new WebMarkupContainer(ID_SIDEBAR);
+        sidebar.setOutputMarkupId(true);
+        add(sidebar);
+
         ListView<SideBarMenuItem> menuItems = new ListView<SideBarMenuItem>(ID_MENU_ITEMS, getModel()) {
 
             @Override
             protected void populateItem(final ListItem<SideBarMenuItem> item) {
                 Label name = new Label(ID_NAME, item.getModelObject().getName());
+                name.add(new AjaxEventBehavior("click") {
+
+                    @Override
+                    protected void onEvent(AjaxRequestTarget target) {
+                        SideBarMenuItem menuItem = item.getModelObject();
+                        menuItem.setExpanded(!menuItem.isExpanded());
+
+                        target.add(sidebar);
+                    }
+                });
                 item.add(name);
+
+                WebMarkupContainer icon = new WebMarkupContainer(ID_MINIMIZED_ICON);
+                icon.add(new VisibleEnableBehaviour() {
+
+                    @Override
+                    public boolean isVisible() {
+                        SideBarMenuItem mainMenu = item.getModelObject();
+
+                        return !mainMenu.isExpanded();
+                    }
+                });
+                item.add(icon);
 
                 ListView<MainMenuItem> items = new ListView<MainMenuItem>(ID_ITEMS,
                         new PropertyModel<List<MainMenuItem>>(item.getModel(), SideBarMenuItem.F_ITEMS)) {
@@ -98,11 +131,22 @@ public class SideBarMenuPanel extends SimplePanel<List<SideBarMenuItem>> {
                                 return true;
                             }
                         }
+
                         return false;
+                    }
+                });
+
+                items.add(new VisibleEnableBehaviour() {
+
+                    @Override
+                    public boolean isVisible() {
+                        SideBarMenuItem mainMenu = item.getModelObject();
+
+                        return mainMenu.isExpanded();
                     }
                 });
             }
         };
-        add(menuItems);
+        sidebar.add(menuItems);
     }
 }
