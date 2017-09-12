@@ -15,27 +15,59 @@
  */
 package com.evolveum.midpoint.web.page.self;
 
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.assignment.AssignmentCatalogPanel;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.assignment.*;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchPanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
+import com.evolveum.midpoint.web.page.self.dto.ShoppingCartConfigurationDto;
+import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
+import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
-import org.apache.poi.util.StringUtil;
-import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxChannel;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -51,76 +83,532 @@ import java.util.List;
 public class PageAssignmentShoppingKart extends PageSelf {
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_MAIN_PANEL = "mainPanel";
     private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_TREE_PANEL_CONTAINER = "treePanelContainer";
+    private static final String ID_TREE_PANEL = "treePanel";
+    private static final String ID_NO_CATALOG_REF_DEFINED_LABEL = "noCatalogRefDefinedLabel";
+    private static final String ID_CONTENT_PANEL = "contentPanel";
+    private static final String ID_CATALOG_ITEMS_PANEL_CONTAINER = "catalogItemsPanelContainer";
+    private static final String ID_ASSIGNMENTS_OWNER_NAME = "assignmentsOwnerName";
+    private static final String ID_CATALOG_ITEMS_PANEL = "catalogItemsPanel";
+    private static final String ID_CART_BUTTON = "cartButton";
+    private static final String ID_CART_ITEMS_COUNT = "itemsCount";
+    private static final String ID_HEADER_PANEL = "headerPanel";
+    private static final String ID_VIEW_TYPE = "viewTypeSelect";
+    private static final String ID_SEARCH_FORM = "searchForm";
+    private static final String ID_SEARCH = "search";
+    private static final String ID_TARGET_USER_PANEL = "targetUserPanel";
     private static final String DOT_CLASS = PageAssignmentShoppingKart.class.getName() + ".";
-    private static final String OPERATION_LOAD_ROLE_CATALOG_REFERENCE = DOT_CLASS + "loadRoleCatalogReference";
-    private static final String OPERATION_GET_ASSIGNMENT_VIEW_LIST = DOT_CLASS + "getAssignmentViewList";
+    private static final int ITEMS_PER_ROW = 4;
+
+    private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
+    private static final String OPERATION_GET_ASSIGNMENT_VIEW_LIST = DOT_CLASS + "getRoleCatalogViewsList";
     private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentShoppingKart.class);
 
-    private String catalogOid = null;
-    private RoleManagementConfigurationType roleManagementConfigurationType;
+    private ShoppingCartConfigurationDto shoppingCartConfigurationDto;
+    private LoadableModel<Search> searchModel;
+    private IModel<AssignmentViewType> viewTypeModel;
+    private PrismObject<UserType> selfUser;
+    private BaseSortableDataProvider provider;
 
     public PageAssignmentShoppingKart() {
-        initLayout();
     }
 
-    private void initLayout() {
-        roleManagementConfigurationType = getRoleManagementConfigurationType();
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        if (getRoleCatalogStorage().getShoppingCartConfigurationDto() == null){
+            initShoppingCartConfigurationDto();
+            getRoleCatalogStorage().setShoppingCartConfigurationDto(shoppingCartConfigurationDto);
+        }
+        initModels();
+        initProvider();
+        selfUser = loadUserSelf();
 
-        Form mainForm = new org.apache.wicket.markup.html.form.Form(ID_MAIN_FORM);
+
+        setOutputMarkupId(true);
+
+        Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        catalogOid = getRoleCatalogOid();
-        mainForm.add(initMainPanel());
+        initHeaderPanel(mainForm);
+
+        WebMarkupContainer contentPanel = new WebMarkupContainer(ID_CONTENT_PANEL);
+        contentPanel.setOutputMarkupId(true);
+        mainForm.add(contentPanel);
+
+        Label noCatalogRefDefinedLabel = new Label(ID_NO_CATALOG_REF_DEFINED_LABEL, createStringResource("PageAssignmentShoppingKart.roleCatalogIsNotConfigured"));
+        noCatalogRefDefinedLabel.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+            @Override
+            public boolean isVisible(){
+                return AssignmentViewType.ROLE_CATALOG_VIEW.equals(viewTypeModel.getObject()) &&
+                        isCatalogOidEmpty();
+            }
+        });
+        contentPanel.add(noCatalogRefDefinedLabel);
+
+        initContentPanel(contentPanel);
 
     }
 
-    private PageBase getPageBase() {
-        return (PageBase) getPage();
+    private void initShoppingCartConfigurationDto(){
+        this.shoppingCartConfigurationDto = new ShoppingCartConfigurationDto();
+        this.shoppingCartConfigurationDto.initShoppingCartConfigurationDto(getRoleManagementConfigurationType());
     }
 
-    private String getRoleCatalogOid() {
-        Task task = getPageBase().createAnonymousTask(OPERATION_LOAD_ROLE_CATALOG_REFERENCE);
-        OperationResult result = task.getResult();
+    private void initModels(){
+        viewTypeModel = new IModel<AssignmentViewType>() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public AssignmentViewType getObject() {
+                return getRoleCatalogStorage().getShoppingCartConfigurationDto().getDefaultViewType();
+            }
 
-        SystemConfigurationType config;
-        try {
-            config = getPageBase().getModelInteractionService().getSystemConfiguration(result);
-        } catch (ObjectNotFoundException | SchemaException e) {
-            LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
-            return null;
-        }
-        if (config != null && config.getRoleManagement() != null &&
-                config.getRoleManagement().getRoleCatalogRef() != null) {
-            return config.getRoleManagement().getRoleCatalogRef().getOid();
-        }
-        return "";
+            @Override
+            public void setObject(AssignmentViewType assignmentViewType) {
+                getRoleCatalogStorage().getShoppingCartConfigurationDto().setDefaultViewType(assignmentViewType);
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
+
+        searchModel = new LoadableModel<Search>(false) {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public Search load() {
+                Class searchType;
+                AssignmentViewType viewType =  viewTypeModel.getObject();
+                switch (viewType){
+                    case ROLE_TYPE:
+                        searchType = RoleType.class;
+                        break;
+                    case SERVICE_TYPE:
+                        searchType = ServiceType.class;
+                        break;
+                    case ORG_TYPE:
+                        searchType = OrgType.class;
+                        break;
+                    case ROLE_CATALOG_VIEW:
+                    case USER_TYPE:
+                        searchType = AbstractRoleType.class;
+                        break;
+                    default:
+                        searchType = AbstractRoleType.class;
+                }
+                Search search = SearchFactory.createSearch(searchType, PageAssignmentShoppingKart.this);
+                return search;
+            }
+        };
     }
 
-    private Component initMainPanel() {
-        List<AssignmentViewType> viewTypeList = getAssignmentViewList();
-        AssignmentViewType defaultViewType = getDefaultAssignmentViewType();
-        if (viewTypeList == null || viewTypeList.size() == 0){
-            viewTypeList = new ArrayList<>(Arrays.asList(AssignmentViewType.values()));
+    private void initProvider() {
+        if (AssignmentViewType.USER_TYPE.equals(viewTypeModel.getObject())){
+            PrismObject<UserType> assignmentsOwner =  getRoleCatalogStorage().getAssignmentsUserOwner();
+            List<AssignmentEditorDto> listProviderData = new ArrayList<>();
+            if (assignmentsOwner != null) {
+                List<AssignmentType> assignments = assignmentsOwner.asObjectable().getAssignment();
+                for (AssignmentType assignment : assignments) {
+                    if (assignment.getTargetRef() == null ||
+                            !UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
+                        assignment.setId(null);
+                        listProviderData.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, PageAssignmentShoppingKart.this));
+                    }
+                }
+                Collections.sort(listProviderData);
+            }
+            provider = new ListDataProvider(this, Model.ofList(listProviderData));
+
+        } else {
+            provider = new ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>(PageAssignmentShoppingKart.this, AbstractRoleType.class) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public AssignmentEditorDto createDataObjectWrapper(PrismObject<AbstractRoleType> obj) {
+
+                    AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.ADD, PageAssignmentShoppingKart.this);
+                    if (!getRoleCatalogStorage().isMultiUserRequest()) {
+                        dto.setAlreadyAssigned(isAlreadyAssigned(obj, dto));
+                        dto.setDefualtAssignmentConstraints(getRoleCatalogStorage().getShoppingCartConfigurationDto().getDefaultAssignmentConstraints());
+                    }
+                    return dto;
+                }
+
+                @Override
+                public ObjectQuery getQuery() {
+                    return createContentQuery(null);
+                }
+            };
         }
-        if (defaultViewType != null && !viewTypeList.contains(defaultViewType)) {
-            viewTypeList.add(defaultViewType);
-        } else if (defaultViewType == null) {
-            if (viewTypeList.size() == 1) {
-                defaultViewType = viewTypeList.get(0);
-            } else {
-                if (StringUtils.isEmpty(catalogOid) && AssignmentViewType.ROLE_CATALOG_VIEW.getUri().equals(viewTypeList.get(0).getUri())) {
-                    defaultViewType = viewTypeList.get(1);
+    }
+
+    private void initHeaderPanel(Form mainForm){
+        WebMarkupContainer headerPanel = new WebMarkupContainer(ID_HEADER_PANEL);
+        headerPanel.setOutputMarkupId(true);
+
+        initViewSelector(headerPanel);
+        initTargetUserSelectionPanel(headerPanel);
+        initCartButton(headerPanel);
+        initSearchPanel(headerPanel);
+        mainForm.add(headerPanel);
+    }
+
+    public void initContentPanel(WebMarkupContainer contentPanel) {
+        WebMarkupContainer treePanelContainer = new WebMarkupContainer(ID_TREE_PANEL_CONTAINER);
+        treePanelContainer.setOutputMarkupId(true);
+        contentPanel.add(treePanelContainer);
+
+            OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL,
+                    Model.of(!isCatalogOidEmpty() ? getRoleCatalogStorage().getShoppingCartConfigurationDto().getRoleCatalogOid() : ""),
+                    false, PageAssignmentShoppingKart.this, "AssignmentShoppingCartPanel.treeTitle") {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                protected void selectTreeItemPerformed(SelectableBean<OrgType> selected,
+                                                       AjaxRequestTarget target) {
+                    PageAssignmentShoppingKart.this.selectTreeItemPerformed(selected, target);
+                }
+
+                protected List<InlineMenuItem> createTreeMenu() {
+                    return new ArrayList<>();
+                }
+
+                @Override
+                protected List<InlineMenuItem> createTreeChildrenMenu(OrgType org) {
+                    return new ArrayList<>();
+                }
+
+                @Override
+                protected OrgTreeStateStorage getOrgTreeStateStorage(){
+                    return getRoleCatalogStorage();
+                }
+            };
+            treePanel.setOutputMarkupId(true);
+            treePanelContainer.add(AttributeAppender.append("class", "col-md-3"));
+            treePanelContainer.add(new VisibleEnableBehaviour(){
+                private static final long serialVersionUID = 1L;
+                @Override
+                public boolean isVisible(){
+                    return AssignmentViewType.ROLE_CATALOG_VIEW.equals(viewTypeModel.getObject()) &&
+                            !isCatalogOidEmpty();
+                }
+            });
+        treePanelContainer.add(treePanel);
+
+        addOrReplaceCatalogItemsPanel(contentPanel);
+    }
+
+    private void addOrReplaceCatalogItemsPanel(WebMarkupContainer panelContainer){
+        WebMarkupContainer catalogItemsPanelContainer = new WebMarkupContainer(ID_CATALOG_ITEMS_PANEL_CONTAINER);
+        catalogItemsPanelContainer.setOutputMarkupId(true);
+        catalogItemsPanelContainer.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+            @Override
+            public boolean isVisible(){
+                return !(AssignmentViewType.ROLE_CATALOG_VIEW.equals(viewTypeModel.getObject()) &&
+                        isCatalogOidEmpty());
+            }
+        });
+        panelContainer.addOrReplace(catalogItemsPanelContainer);
+
+        String assignmentsOwnerName =  getRoleCatalogStorage().getAssignmentsUserOwner() != null ?
+                getRoleCatalogStorage().getAssignmentsUserOwner().getName().getOrig() : "";
+        Label assignmentsOwnerLabel = new Label(ID_ASSIGNMENTS_OWNER_NAME,
+                createStringResource("AssignmentCatalogPanel.assignmentsOwner", assignmentsOwnerName));
+        assignmentsOwnerLabel.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+            @Override
+            public boolean isVisible(){
+                return AssignmentViewType.USER_TYPE.equals( getRoleCatalogStorage().getViewType());
+            }
+        });
+        catalogItemsPanelContainer.add(assignmentsOwnerLabel);
+
+        CatalogItemsPanel catalogItemsPanel;
+        catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, new AbstractReadOnlyModel<BaseSortableDataProvider>(){
+            @Override
+            public BaseSortableDataProvider getObject(){
+                return provider;
+            }
+        }, ITEMS_PER_ROW);
+        catalogItemsPanelContainer.add(getCatalogItemsPanelClassAppender());
+        catalogItemsPanel.setOutputMarkupId(true);
+        catalogItemsPanelContainer.add(catalogItemsPanel);
+
+    }
+
+    private void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
+        final OrgType selectedOrg = selected.getValue();
+        if (selectedOrg == null) {
+            return;
+        }
+        getRoleCatalogStorage().setSelectedOid(selectedOrg.getOid());
+        addOrReplaceCatalogItemsPanel(getContentPanel());
+        target.add(getCatalogItemsPanelContainer());
+
+    }
+
+    private void initTargetUserSelectionPanel(WebMarkupContainer headerPanel){
+        WebMarkupContainer targetUserPanel = new TargetUserSelectorComponent(ID_TARGET_USER_PANEL, "btn-sm", PageAssignmentShoppingKart.this);
+        targetUserPanel.setOutputMarkupId(true);
+        headerPanel.add(targetUserPanel);
+    }
+
+    private void initViewSelector(WebMarkupContainer headerPanel){
+        DropDownChoice<AssignmentViewType> viewSelect = new DropDownChoice(ID_VIEW_TYPE, viewTypeModel,
+                Model.ofList(getRoleCatalogStorage().getShoppingCartConfigurationDto().getViewTypeList()),
+                new EnumChoiceRenderer<AssignmentViewType>(this));
+        viewSelect.add(new OnChangeAjaxBehavior() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                if (AssignmentViewType.USER_TYPE.equals(viewSelect.getModelObject())){
+                    initUserViewSelectionPopup(createStringResource("AssignmentCatalogPanel.selectAssignmentsUserOwner"),
+                            target);
                 } else {
-                    defaultViewType = viewTypeList.get(0);
+                    initProvider();
+                    provider.setQuery(createContentQuery(null));
+                    searchModel.reset();
+
+                    //TODO remove addOrReplace using
+                    PageAssignmentShoppingKart.this.addOrReplaceCatalogItemsPanel(getContentPanel());
+                    target.add(getContentPanel());
+                    target.add(getHeaderPanel());
                 }
             }
-        }
-                AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, catalogOid, defaultViewType, viewTypeList, PageAssignmentShoppingKart.this);
-                panel.setOutputMarkupId(true);
-                return panel;
+        });
+        viewSelect.setOutputMarkupId(true);
+        headerPanel.add(viewSelect);
+
     }
+
+    private void initSearchPanel(WebMarkupContainer headerPanel) {
+        final Form searchForm = new Form(ID_SEARCH_FORM);
+        searchForm.add(new VisibleEnableBehaviour() {
+            public boolean isVisible() {
+                return !(AssignmentViewType.ROLE_CATALOG_VIEW.equals(viewTypeModel.getObject()) && isCatalogOidEmpty())
+                        && !AssignmentViewType.USER_TYPE.equals(viewTypeModel.getObject());
+            }
+        });
+        searchForm.setOutputMarkupId(true);
+
+        SearchPanel search = new SearchPanel(ID_SEARCH, (IModel) searchModel, false) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+                PageAssignmentShoppingKart.this.searchPerformed(query, target);
+            }
+        };
+        searchForm.add(search);
+        headerPanel.addOrReplace(searchForm);
+    }
+
+    private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+        provider.setQuery(createContentQuery(query));
+        PageAssignmentShoppingKart.this.addOrReplaceCatalogItemsPanel(getContentPanel());
+        target.add(getCatalogItemsPanelContainer());
+    }
+
+    protected ObjectQuery createContentQuery(ObjectQuery searchQuery) {
+        ObjectQuery memberQuery = new ObjectQuery();
+        if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(viewTypeModel.getObject())){
+            String oid = getRoleCatalogStorage().getSelectedOid();
+            if(StringUtils.isEmpty(oid)){
+                return null;
+            }
+            addOrgMembersFilter(oid, memberQuery);
+        }
+        addAssignableRolesFilter(memberQuery);
+        addViewTypeFilter(memberQuery);
+        if (memberQuery == null) {
+            memberQuery = new ObjectQuery();
+        }
+        if (searchQuery == null) {
+            if (searchModel != null && searchModel.getObject() != null) {
+                Search search = searchModel.getObject();
+                searchQuery = search.createObjectQuery(getPrismContext());
+            }
+        }
+        if (searchQuery != null && searchQuery.getFilter() != null) {
+            memberQuery.addFilter(searchQuery.getFilter());
+        }
+        return memberQuery;
+    }
+
+    private void addViewTypeFilter(ObjectQuery query) {
+        ObjectFilter prependedAndFilter = null;
+        if (AssignmentViewType.ORG_TYPE.equals(viewTypeModel.getObject())){
+            prependedAndFilter = ObjectQueryUtil.filterAnd(TypeFilter.createType(OrgType.COMPLEX_TYPE, null), query.getFilter());
+            query.addFilter(prependedAndFilter);
+        } else if (AssignmentViewType.ROLE_TYPE.equals(viewTypeModel.getObject())){
+            prependedAndFilter = ObjectQueryUtil.filterAnd(TypeFilter.createType(RoleType.COMPLEX_TYPE, null), query.getFilter());
+            query.addFilter(prependedAndFilter);
+        } else if (AssignmentViewType.SERVICE_TYPE.equals(viewTypeModel.getObject())){
+            prependedAndFilter = ObjectQueryUtil.filterAnd(TypeFilter.createType(ServiceType.COMPLEX_TYPE, null), query.getFilter());
+            query.addFilter(prependedAndFilter);
+        }
+    }
+
+    private void addAssignableRolesFilter(ObjectQuery query) {
+        ObjectFilter filter = null;
+        LOGGER.debug("Loading roles which the current user has right to assign");
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNABLE_ROLES);
+        try {
+            ModelInteractionService mis = getModelInteractionService();
+            RoleSelectionSpecification roleSpec =
+                    mis.getAssignableRoleSpecification(getTargetUser(), result);
+            filter = roleSpec.getFilter();
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
+            result.recordFatalError("Couldn't load available roles", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+        if (!result.isSuccess() && !result.isHandledError()) {
+            showResult(result);
+        }
+        if (query == null) {
+            query = new ObjectQuery();
+        }
+        query.addFilter(filter);
+    }
+
+    private ObjectQuery addOrgMembersFilter(String oid, ObjectQuery query) {
+        ObjectFilter filter = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
+
+        TypeFilter roleTypeFilter = TypeFilter.createType(RoleType.COMPLEX_TYPE, filter);
+        TypeFilter serviceTypeFilter = TypeFilter.createType(ServiceType.COMPLEX_TYPE, filter);
+        query.addFilter(OrFilter.createOr(roleTypeFilter, serviceTypeFilter));
+        return query;
+
+    }
+
+    private void initCartButton(WebMarkupContainer headerPanel){
+        AjaxButton cartButton = new AjaxButton(ID_CART_BUTTON) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                navigateToNext(new PageAssignmentsList(true));
+            }
+        };
+//        cartButton.add(new VisibleEnableBehaviour(){
+//            public boolean isVisible(){
+//                return !isCatalogOidEmpty();
+//            }
+//        });
+        cartButton.setOutputMarkupId(true);
+        headerPanel.add(cartButton);
+
+        Label cartItemsCount = new Label(ID_CART_ITEMS_COUNT,  new LoadableModel<String>(true) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String load(){
+                return Integer.toString(getRoleCatalogStorage().getAssignmentShoppingCart().size());
+            }
+        });
+        cartItemsCount.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                if (getRoleCatalogStorage().getAssignmentShoppingCart().size() == 0) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        });
+        cartItemsCount.setOutputMarkupId(true);
+        cartButton.add(cartItemsCount);
+    }
+
+    public void reloadCartButton(AjaxRequestTarget target) {
+        target.add(getHeaderPanel().get(ID_CART_BUTTON));
+    }
+
+    private boolean isCatalogOidEmpty(){
+        return StringUtils.isEmpty(getRoleCatalogStorage().getShoppingCartConfigurationDto().getRoleCatalogOid());
+    }
+
+
+    private WebMarkupContainer getCatalogItemsPanelContainer(){
+        return (WebMarkupContainer)getContentPanel().get(ID_CATALOG_ITEMS_PANEL_CONTAINER);
+    }
+
+    private WebMarkupContainer getHeaderPanel(){
+        return (WebMarkupContainer)get(createComponentPath(ID_MAIN_FORM, ID_HEADER_PANEL));
+    }
+
+    private WebMarkupContainer getContentPanel(){
+        return (WebMarkupContainer)get(createComponentPath(ID_MAIN_FORM, ID_CONTENT_PANEL));
+    }
+
+    private void initUserViewSelectionPopup(StringResourceModel title, AjaxRequestTarget target) {
+
+        List<QName> supportedTypes = new ArrayList<>();
+        supportedTypes.add(getPrismContext().getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(UserType.class).getTypeName());
+        ObjectBrowserPanel<UserType> focusBrowser = new ObjectBrowserPanel<UserType>(getMainPopupBodyId(),
+                UserType.class, supportedTypes, false, PageAssignmentShoppingKart.this, null, new ArrayList<>()) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSelectPerformed(AjaxRequestTarget target, UserType targetUser) {
+                super.onSelectPerformed(target, targetUser);
+                getRoleCatalogStorage().setAssignmentsUserOwner(targetUser.asPrismContainer());
+                initProvider();
+                PageAssignmentShoppingKart.this.addOrReplaceCatalogItemsPanel(getContentPanel());
+                target.add(PageAssignmentShoppingKart.this.get(ID_MAIN_FORM));
+            }
+
+            @Override
+            public StringResourceModel getTitle() {
+                return title;
+            }
+
+        };
+        showMainPopup(focusBrowser, target);
+    }
+
+    private boolean isAlreadyAssigned(PrismObject<AbstractRoleType> obj, AssignmentEditorDto assignmentDto){
+        PrismObject<UserType> user = getTargetUser();
+        if (user == null || user.asObjectable().getAssignment() == null){
+            return false;
+        }
+        boolean isAssigned = false;
+        List<RelationTypes> assignedRelationsList = new ArrayList<>();
+        for (AssignmentType assignment : user.asObjectable().getAssignment()){
+            if (assignment.getTargetRef() != null && assignment.getTargetRef().getOid().equals(obj.getOid())){
+                isAssigned = true;
+                assignedRelationsList.add(RelationTypes.getRelationType(assignment.getTargetRef().getRelation()));
+            }
+        }
+        assignmentDto.setAssignedRelationsList(assignedRelationsList);
+        return isAssigned;
+    }
+
+    private PrismObject<UserType> getTargetUser(){
+        if (getRoleCatalogStorage().isSelfRequest()){
+            return selfUser;
+        }
+        return getRoleCatalogStorage().getTargetUserList().get(0);
+    }
+
+    private RoleCatalogStorage getRoleCatalogStorage(){
+        return getSessionStorage().getRoleCatalog();
+    }
+
 
     private RoleManagementConfigurationType getRoleManagementConfigurationType() {
         OperationResult result = new OperationResult(OPERATION_GET_ASSIGNMENT_VIEW_LIST);
@@ -137,26 +625,12 @@ public class PageAssignmentShoppingKart extends PageSelf {
         return null;
     }
 
-    private List<AssignmentViewType> getAssignmentViewList() {
-        List<AssignmentViewType> assignmentViewTypes = new ArrayList<>();
-        if (roleManagementConfigurationType != null
-                && roleManagementConfigurationType.getRoleCatalogCollections() != null
-                && roleManagementConfigurationType.getRoleCatalogCollections().getCollection() != null) {
-            for (ObjectCollectionUseType collection :
-                    roleManagementConfigurationType.getRoleCatalogCollections().getCollection()){
-                AssignmentViewType viewType = AssignmentViewType.getViewType(collection);
-                if (viewType != null){
-                    assignmentViewTypes.add(viewType);
-                }
-            }
+    private AttributeAppender getCatalogItemsPanelClassAppender(){
+        if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(viewTypeModel.getObject())) {
+            return AttributeAppender.append("class", "col-md-9");
+        } else {
+            return AttributeAppender.append("class", "col-md-12");
         }
-        return assignmentViewTypes;
-    }
 
-    private AssignmentViewType getDefaultAssignmentViewType(){
-        if (roleManagementConfigurationType == null){
-            return null;
-        }
-        return AssignmentViewType.getViewType(roleManagementConfigurationType.getDefaultCollection());
     }
 }

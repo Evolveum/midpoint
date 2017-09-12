@@ -41,25 +41,4 @@ public enum AssignmentViewType {
         return uri;
     }
 
-    public static AssignmentViewType getViewTypeFromSession(PageBase pageBase){
-        SessionStorage storage = pageBase.getSessionStorage();
-        return storage.getRoleCatalog().getViewType();
-    }
-
-    public static void saveViewTypeToSession(PageBase pageBase, AssignmentViewType viewType){
-        SessionStorage storage = pageBase.getSessionStorage();
-        storage.getRoleCatalog().setViewType(viewType);
-    }
-
-    public static AssignmentViewType getViewType(ObjectCollectionUseType collectionType){
-        if (collectionType == null){
-            return null;
-        }
-        for (AssignmentViewType viewType : values()){
-            if (viewType.getUri().equals(collectionType.getCollectionUri())){
-                return viewType;
-            }
-        }
-        return null;
-    }
 }

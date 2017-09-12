@@ -65,7 +65,8 @@ public class ListDataProvider<T extends Serializable> extends BaseSortableDataPr
 			sort(list);
 		}
         if (list != null) {
-            for (long i = first; i < first + count; i++) {
+		    long last = list.size() < (first + count) ? list.size() : (first + count);
+            for (long i = first; i < last; i++) {
                 if (i < 0 || i >= list.size()) {
                     throw new ArrayIndexOutOfBoundsException("Trying to get item on index " + i
                             + " but list size is " + list.size());
