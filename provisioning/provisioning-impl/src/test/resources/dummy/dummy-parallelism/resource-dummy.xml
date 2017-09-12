@@ -199,6 +199,7 @@
 		<useProposedShadows>true</useProposedShadows>
 		<recordPendingOperations>all</recordPendingOperations>
 		<avoidDuplicateOperations>true</avoidDuplicateOperations>
+		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod> <!-- Not need for this. But presence of grace period may induce some bugs -->
 	</consistency>
 		
 </resource>
