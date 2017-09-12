@@ -684,9 +684,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         body.add(new AttributeAppender("class", "hold-transition ", " "));
         body.add(new AttributeAppender("class", "custom-hold-transition ", " "));
 
-        if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
-                StringUtils.isNotEmpty(deploymentInfoModel.getObject().getSkin())) {
+        Boolean usingSkin = deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
+                StringUtils.isNotEmpty(deploymentInfoModel.getObject().getSkin());
 
+        if (usingSkin) {
             body.add(new AttributeAppender("class", deploymentInfoModel.getObject().getSkin(), " "));
         } else {
             body.add(new AttributeAppender("class", CLASS_DEFAULT_SKIN, " "));
@@ -771,8 +772,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     "background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
             mainHeader.add(new AttributeAppender("style",
                     "background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
-            navigation.add(new AttributeAppender("style",
-                    "background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
+            //using a skin overrides the navigation color
+            if (!usingSkin) {
+                navigation.add(new AttributeAppender("style",
+                        "background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
+            }
         }
         initDebugBarLayout();
 
