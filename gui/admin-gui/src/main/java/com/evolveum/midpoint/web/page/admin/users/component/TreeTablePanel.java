@@ -132,7 +132,7 @@ public class TreeTablePanel extends BasePanel<String> {
 	}
 
 	private OrgMemberPanel createMemberPanel(OrgType org) {
-		OrgMemberPanel memberPanel = new OrgMemberPanel(ID_MEMBER_PANEL, new Model<OrgType>(org), parentPage);
+		OrgMemberPanel memberPanel = new OrgMemberPanel(ID_MEMBER_PANEL, new Model<OrgType>(org));
 		memberPanel.setOutputMarkupId(true);
 		return memberPanel;
 	}

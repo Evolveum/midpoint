@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -9,8 +24,6 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -31,7 +44,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -47,14 +59,14 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
     private static final String OPERATION_LOAD_OWNER_RELATION_OBJECTS = DOT_CLASS + "loadOwnerRelationObjects";
     private static final String OPERATION_LOAD_MANAGER_RELATION_OBJECTS = DOT_CLASS + "loadManagerRelationObjects";
 
-    private LoadableModel<List<String>> approverRelationObjects;
-    private LoadableModel<List<String>> ownerRelationObjects;
-    private LoadableModel<List<String>> managerRelationObjects;
+    private LoadableModel<List<String>> approverRelationObjectsModel;
+    private LoadableModel<List<String>> ownerRelationObjectsModel;
+    private LoadableModel<List<String>> managerRelationObjectsModel;
 
     private boolean areModelsInitialized = false;
 
-    public RoleGovernanceRelationsPanel(String id, IModel<RoleType> model, List<RelationTypes> relations, PageBase pageBase) {
-        super(id, model, relations, pageBase);
+    public RoleGovernanceRelationsPanel(String id, IModel<RoleType> model, List<RelationTypes> relations) {
+        super(id, model, relations);
     }
 
     @Override
@@ -169,6 +181,7 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> cellItem,
                                      String componentId, IModel<SelectableBean<ObjectType>> rowModel) {
+                loadAllRelationModels();
                 cellItem.add(new Label(componentId,
                         getRelationValue((FocusType) rowModel.getObject().getValue())));
             }
@@ -183,31 +196,27 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
         return columns;
     }
 
-    private String getRelationValue(FocusType focusObject){
-        StringBuilder relations = new StringBuilder();
-        if (focusObject == null){
-            return "";
+
+    private void loadAllRelationModels(){
+        if (approverRelationObjectsModel != null) {
+            approverRelationObjectsModel.reset();
+        } else {
+            initApproverRelationObjectsModel();
         }
-        if (!areModelsInitialized) {
-            initLoadableModels();
-            areModelsInitialized = true;
+        if (managerRelationObjectsModel != null) {
+            managerRelationObjectsModel.reset();
+        } else {
+            initManagerRelationObjectsModel();
         }
-        if (approverRelationObjects.getObject().contains(focusObject.getOid())){
-            relations.append(createStringResource("RelationTypes.APPROVER").getString());
+        if (ownerRelationObjectsModel != null) {
+            ownerRelationObjectsModel.reset();
+        } else {
+            initOwnerRelationObjectsModel();
         }
-        if (ownerRelationObjects.getObject().contains(focusObject.getOid())){
-            relations.append(relations.length() > 0 ? ", " : "");
-            relations.append(createStringResource("RelationTypes.OWNER").getString());
-        }
-        if (managerRelationObjects.getObject().contains(focusObject.getOid())){
-            relations.append(relations.length() > 0 ? ", " : "");
-            relations.append(createStringResource("RelationTypes.MANAGER").getString());
-        }
-        return relations.toString();
     }
 
-    private void initLoadableModels(){
-        approverRelationObjects = new LoadableModel<List<String>>(false) {
+    private void initApproverRelationObjectsModel(){
+        approverRelationObjectsModel = new LoadableModel<List<String>>(false) {
             @Override
             protected List<String> load() {
                 OperationResult result = new OperationResult(OPERATION_LOAD_APPROVER_RELATION_OBJECTS);
@@ -224,8 +233,10 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
                 return getObjectOidsList(approverRelationObjects);
             }
         };
+    }
 
-        ownerRelationObjects = new LoadableModel<List<String>>(false) {
+    private void initOwnerRelationObjectsModel(){
+        ownerRelationObjectsModel = new LoadableModel<List<String>>(false) {
             @Override
             protected List<String> load() {
                 OperationResult result = new OperationResult(OPERATION_LOAD_OWNER_RELATION_OBJECTS);
@@ -242,8 +253,10 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
                 return getObjectOidsList(ownerRelationObjects);
             }
         };
+    }
 
-        managerRelationObjects = new LoadableModel<List<String>>(false) {
+    private void initManagerRelationObjectsModel(){
+        managerRelationObjectsModel = new LoadableModel<List<String>>(false) {
             @Override
             protected List<String> load() {
                 OperationResult result = new OperationResult(OPERATION_LOAD_MANAGER_RELATION_OBJECTS);
@@ -262,6 +275,26 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
         };
     }
 
+    private String getRelationValue(FocusType focusObject){
+        StringBuilder relations = new StringBuilder();
+        if (focusObject == null){
+            return "";
+        }
+
+        if (approverRelationObjectsModel.getObject().contains(focusObject.getOid())){
+            relations.append(createStringResource("RelationTypes.APPROVER").getString());
+        }
+        if (ownerRelationObjectsModel.getObject().contains(focusObject.getOid())){
+            relations.append(relations.length() > 0 ? ", " : "");
+            relations.append(createStringResource("RelationTypes.OWNER").getString());
+        }
+        if (managerRelationObjectsModel.getObject().contains(focusObject.getOid())){
+            relations.append(relations.length() > 0 ? ", " : "");
+            relations.append(createStringResource("RelationTypes.MANAGER").getString());
+        }
+        return relations.toString();
+    }
+
     private List<String> getObjectOidsList(List<PrismObject<FocusType>> objectList){
         List<String> oidsList = new ArrayList<>();
         if (objectList == null){
@@ -278,9 +311,5 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
         return oidsList;
     }
 
-    @Override
-    protected boolean isGovernance(){
-        return true;
-    }
 
 }

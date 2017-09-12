@@ -36,6 +36,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
+
 /**
  * Created by honchar.
  */
@@ -164,7 +166,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
 
             @Override
             public StringResourceModel getTitle() {
-                return pageBase.createStringResource("pageUsers.message.confirmActionPopupTitle");
+                return createStringResource("pageUsers.message.confirmActionPopupTitle");
             }
 
             @Override

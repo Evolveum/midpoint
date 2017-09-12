@@ -17,7 +17,40 @@
       xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div class="row shopping-cart-item-table" wicket:id="multiButtonTable"/>
+    <div class="row shopping-cart-item-table" >
+        <div class="row shopping-cart-row" wicket:id="row">
+            <div wicket:id="cell">
+                <div class="col-lg-3 col-xs-6">
+                    <div class="small-box shopping-cart-item-box">
+                        <div wicket:id="itemButtonContainer">
+
+                            <div wicket:id="inner" class="inner">
+                                <div wicket:id="innerLabel" class="inner-label"></div>
+                                <div wicket:id="innerDescription" class="inner-description"></div>
+                            </div>
+                            <div class="icon">
+                                <i wicket:id="typeIcon"></i>
+                            </div>
+                            <div>
+                                <i class="fa fa-check-circle"
+                                   wicket:id="alreadyAssignedIcon" style="position: absolute; top: 3px; right: 3px; font-size: 20px;"></i>
+                            </div>
+                            <div class="shopping-cart-item-box-footer">
+                        <span wicket:id="detailsLink" class="shopping-cart-item-button-details">
+                            <span wicket:id="detailsLinkLabel"/>
+                            <i wicket:id="detailsLinkIcon" class="fa fa-arrow-circle-right"/>
+                        </span>
+                                <span wicket:id="addToCartLink" class="shopping-cart-item-button-add">
+                            <wicket:message key="MultiButtonPanel.addToCartLink"/>
+                            <i wicket:id="addToCartLinkIcon" class="fa fa-plus-circle" style="margin-left: 10px;"/>
+                        </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div wicket:id="footer"/>
 </wicket:panel>
 

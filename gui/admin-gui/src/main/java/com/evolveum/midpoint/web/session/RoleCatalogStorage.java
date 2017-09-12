@@ -24,6 +24,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
+import com.evolveum.midpoint.web.page.self.dto.ShoppingCartConfigurationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -55,6 +56,8 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     private List<ConflictDto> conflictsList;
     private String requestDescription = "";
     private ObjectPaging roleCatalogPaging;
+
+    private ShoppingCartConfigurationDto shoppingCartConfigurationDto = null;
 
     public Search getSearch() {
         return roleCatalogSearch;
@@ -196,4 +199,11 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
         return getTargetUserList() != null && getTargetUserList().size() > 1;
     }
 
+    public ShoppingCartConfigurationDto getShoppingCartConfigurationDto() {
+        return shoppingCartConfigurationDto;
+    }
+
+    public void setShoppingCartConfigurationDto(ShoppingCartConfigurationDto shoppingCartConfigurationDto) {
+        this.shoppingCartConfigurationDto = shoppingCartConfigurationDto;
+    }
 }
