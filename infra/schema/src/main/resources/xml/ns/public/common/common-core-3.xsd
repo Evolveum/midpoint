@@ -12671,7 +12671,7 @@
     		<xsd:element name="evaluationTarget" type="tns:PolicyRuleEvaluationTargetType" minOccurs="0">
     			<xsd:annotation>
     				<xsd:documentation>
-    					Whether this rule has to be applied on focal object or an assignment. Normally this is determined
+    					Whether this rule has to be applied on an object or an assignment. Normally this is determined
 						by looking at policy constraints. But this setting can be used to override that.
     				</xsd:documentation>
 					<xsd:appinfo>
@@ -12692,13 +12692,13 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="focus">
+			<xsd:enumeration value="object">
 				<xsd:annotation>
 					<xsd:documentation>
-						The rule is to be evaluated against focal object.
+						The rule is to be evaluated against an object.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="FOCUS"/>
+						<jaxb:typesafeEnumMember name="OBJECT"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -12817,10 +12817,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="timeValidity">
+            <xsd:enumeration value="objectTimeValidity">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="TIME_VALIDITY"/>
+                        <jaxb:typesafeEnumMember name="OBJECT_TIME_VALIDITY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="assignmentTimeValidity">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ASSIGNMENT_TIME_VALIDITY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

@@ -89,10 +89,10 @@
 							</q:equal>
 						</filter>
 					</objectState>
-					<minAssignees>
+					<objectMinAssigneesViolation>
 						<multiplicity>2</multiplicity>
 						<relation>approver</relation>
-					</minAssignees>
+					</objectMinAssigneesViolation>
 				</and>
 				<and>
 					<name>c3-less-than-1-approver-for-non-high-risk-role</name>
@@ -108,17 +108,17 @@
 							</q:not>
 						</filter>
 					</objectState>
-					<minAssignees>
+					<objectMinAssigneesViolation>
 						<multiplicity>1</multiplicity>
 						<relation>approver</relation>
-					</minAssignees>
+					</objectMinAssigneesViolation>
 				</and>
-				<minAssignees>
+				<objectMinAssigneesViolation>
 					<name>c4-no-role-owner</name>
 					<!-- TODO presentation -->
 					<multiplicity>1</multiplicity>
 					<relation>owner</relation>
-				</minAssignees>
+				</objectMinAssigneesViolation>
 			</or>
 			<objectState>
 				<name>c5-no-identifier</name>
@@ -202,7 +202,6 @@
 		<policyActions>
 			<enforcement/>
 		</policyActions>
-		<evaluationTarget>focus</evaluationTarget>
 		<focusSelector>
 			<type>RoleType</type>
 		</focusSelector>

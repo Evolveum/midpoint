@@ -42,7 +42,9 @@ public enum PredefinedPolicySituation {
 
 	ASSIGNMENT_STATE(SchemaConstants.MODEL_POLICY_SITUATION_ASSIGNMENT_STATE, PolicyConstraintKindType.ASSIGNMENT_STATE),
 
-	TIME_VALIDITY(SchemaConstants.MODEL_POLICY_SITUATION_TIME_VALIDITY, PolicyConstraintKindType.TIME_VALIDITY);
+	OBJECT_TIME_VALIDITY(SchemaConstants.MODEL_POLICY_SITUATION_TIME_VALIDITY, PolicyConstraintKindType.OBJECT_TIME_VALIDITY),
+
+	ASSIGNMENT_TIME_VALIDITY(SchemaConstants.MODEL_POLICY_SITUATION_TIME_VALIDITY, PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY);
 
 	private String url;
 	private PolicyConstraintKindType constraintKind;

@@ -258,7 +258,10 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		LensContext<UserType> lensContext = contextFactory.createRecomputeContext(user, ModelExecuteOptions.createReconcile(), workerTask, result);
 		if (hasNotifyAction(workerTask)) {
 			EvaluatedPolicyRule policyRule = new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), null, prismContext);
-			EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType>(PolicyConstraintKindType.TIME_VALIDITY, getValidityPolicyConstraint(workerTask), "Applying time validity constraint for focus");
+			TimeValidityPolicyConstraintType constraint = getValidityPolicyConstraint(workerTask);
+			EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedPolicyRuleTrigger<>(
+					Boolean.TRUE.equals(constraint.isAssignment()) ? PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY : PolicyConstraintKindType.OBJECT_TIME_VALIDITY,
+					constraint, "Applying time validity constraint for focus");
 			policyRule.getTriggers().add(evaluatedTrigger);
 			lensContext.getFocusContext().addPolicyRule(policyRule);
 		}
@@ -278,7 +281,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 			return null;
 		}
 
-		List<TimeValidityPolicyConstraintType> timeValidityContstraints = policyRule.getPolicyConstraints().getTimeValidity();
+		List<TimeValidityPolicyConstraintType> timeValidityContstraints = policyRule.getPolicyConstraints().getObjectTimeValidity();
 		if (CollectionUtils.isEmpty(timeValidityContstraints)){
 			return null;
 		}

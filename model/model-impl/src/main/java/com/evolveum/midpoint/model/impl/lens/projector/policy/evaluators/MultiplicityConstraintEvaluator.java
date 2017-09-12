@@ -82,8 +82,10 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 				? Collections.singletonList(SchemaConstants.ORG_DEFAULT) : constraint.getValue().getRelation();
 
 		AbstractRoleType targetRole = (AbstractRoleType) target.asObjectable();
-		boolean isMin = QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_MIN_ASSIGNEES);
-		boolean isMax = QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_MAX_ASSIGNEES);
+		boolean isMin = QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_MIN_ASSIGNEES)
+				|| QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_OBJECT_MIN_ASSIGNEES_VIOLATION);
+		boolean isMax = QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_MAX_ASSIGNEES)
+				|| QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_OBJECT_MAX_ASSIGNEES_VIOLATION);
 		assert isMin || isMax;
 		// TODO cache repository call results
 		if (isMin) {

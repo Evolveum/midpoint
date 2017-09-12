@@ -38,11 +38,11 @@
 				</objectState>
 				<or>
 					<name>incomplete-role</name>
-					<minAssignees>
+					<objectMinAssigneesViolation>
 						<multiplicity>1</multiplicity>
 						<relation>owner</relation>
 						<relation>approver</relation>
-					</minAssignees>
+					</objectMinAssigneesViolation>
 					<objectState>
 						<name>no description</name>
 						<filter>
@@ -56,7 +56,6 @@
 			<policyActions>
 				<enforcement/>
 			</policyActions>
-			<evaluationTarget>focus</evaluationTarget>
 		</policyRule>
 	</inducement>
 	<inducement>

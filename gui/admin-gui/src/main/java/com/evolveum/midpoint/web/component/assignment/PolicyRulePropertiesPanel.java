@@ -180,7 +180,7 @@ public class PolicyRulePropertiesPanel extends BasePanel<PolicyRuleType>{
         constraintsContainer.addOrReplace(assignmentRepeater);
 
         ListView timeValidityRepeater = new ListView<TimeValidityPolicyConstraintType>(ID_TIME_VALIDITY_REPEATER, new PropertyModel<>(getModel(),
-                pageBase.createPropertyModelExpression(PolicyRuleType.F_POLICY_CONSTRAINTS.getLocalPart(), PolicyConstraintsType.F_TIME_VALIDITY.getLocalPart()))) {
+                pageBase.createPropertyModelExpression(PolicyRuleType.F_POLICY_CONSTRAINTS.getLocalPart(), PolicyConstraintsType.F_OBJECT_TIME_VALIDITY.getLocalPart()))) {
             @Override
             protected void populateItem(final ListItem<TimeValidityPolicyConstraintType> listItem) {
                 PolicyRuleConstraintsExpandablePanel timeValidityPropertiesPanel =
@@ -239,10 +239,10 @@ public class PolicyRulePropertiesPanel extends BasePanel<PolicyRuleType>{
     }
 
     private void addNewTimeValidityPerformed(AjaxRequestTarget target){
-        if (getPolicyConstraints().getTimeValidity() == null){
-            getPolicyConstraints().createTimeValidityList();
+        if (getPolicyConstraints().getObjectTimeValidity() == null){
+            getPolicyConstraints().createObjectTimeValidityList();
         }
-        getPolicyConstraints().getTimeValidity().add(new TimeValidityPolicyConstraintType());
+        getPolicyConstraints().getObjectTimeValidity().add(new TimeValidityPolicyConstraintType());
         initConstraintsContainer(getConstraintsContainer());
         target.add(getConstraintsContainer());
     }

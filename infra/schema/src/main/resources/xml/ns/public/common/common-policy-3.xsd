@@ -112,6 +112,24 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="objectMinAssigneesViolation" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Actual number of objects that have this object (e.g. role) assigned is lower than prescribed value.
+								This is the same as minAssignees, but indicates that the constraint should be evaluated against an object
+								when evaluating object constraints. HIGHLY EXPERIMENTAL
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="objectMaxAssigneesViolation" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Actual number of objects that have this object (e.g. role) assigned is higher than prescribed value.
+								This is the same as minAssignees, but indicates that the constraint should be evaluated against an object
+								when evaluating object constraints. HIGHLY EXPERIMENTAL
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
 					<xsd:element name="modification" type="tns:ModificationPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -128,15 +146,22 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="timeValidity" type="tns:TimeValidityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+					<xsd:element name="objectTimeValidity" type="tns:TimeValidityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
-								A constraint that triggers when validity of an object, assignment, or basically any time-sensitive
-								item (e.g. password) is about to end.
-
-								Note: in 3.6, this constraint is _not_ evaluated during projector run. It is meant to be evaluated
-								by a special task. In the future we plan to bring evaluation of this constraint into standard
-								projector/clockwork processing.
+								A constraint that triggers when validity of an object or any of its time-sensitive
+								items (e.g. password) is about to end.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.6</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="assignmentTimeValidity" type="tns:TimeValidityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								A constraint that triggers when validity of an assignment or any of its time-sensitive
+								items (e.g. password) is about to end.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.6</a:since>

@@ -62,7 +62,8 @@ public class PolicyRuleTypeUtil {
 	private static final String SYMBOL_EXCLUSION = "exc";
 	private static final String SYMBOL_HAS_ASSIGNMENT = "hasass";
 	private static final String SYMBOL_NO_ASSIGNMENT = "noass";
-	private static final String SYMBOL_TIME_VALIDITY = "time";
+	private static final String SYMBOL_OBJECT_TIME_VALIDITY = "otime";
+	private static final String SYMBOL_ASSIGNMENT_TIME_VALIDITY = "atime";
 	private static final String SYMBOL_SITUATION = "sit";
 	private static final String SYMBOL_TRANSITION = "trans";
 
@@ -76,7 +77,8 @@ public class PolicyRuleTypeUtil {
 		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_EXCLUSION.getLocalPart(), SYMBOL_EXCLUSION);
 		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_HAS_ASSIGNMENT.getLocalPart(), SYMBOL_HAS_ASSIGNMENT);
 		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_HAS_NO_ASSIGNMENT.getLocalPart(), SYMBOL_NO_ASSIGNMENT);
-		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_TIME_VALIDITY.getLocalPart(), SYMBOL_TIME_VALIDITY);
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_OBJECT_TIME_VALIDITY.getLocalPart(), SYMBOL_OBJECT_TIME_VALIDITY);
+		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ASSIGNMENT_TIME_VALIDITY.getLocalPart(), SYMBOL_ASSIGNMENT_TIME_VALIDITY);
 		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_SITUATION.getLocalPart(), SYMBOL_SITUATION);
 		CONSTRAINT_NAMES.put(PolicyConstraintsType.F_TRANSITION.getLocalPart(), SYMBOL_TRANSITION);
 	}
@@ -187,7 +189,8 @@ public class PolicyRuleTypeUtil {
 			case ASSIGNMENT_STATE: return SYMBOL_ASSIGNMENT_STATE;
 			case HAS_ASSIGNMENT: return SYMBOL_HAS_ASSIGNMENT;
 			case HAS_NO_ASSIGNMENT: return SYMBOL_NO_ASSIGNMENT;
-			case TIME_VALIDITY: return SYMBOL_TIME_VALIDITY;
+			case OBJECT_TIME_VALIDITY: return SYMBOL_OBJECT_TIME_VALIDITY;
+			case ASSIGNMENT_TIME_VALIDITY: return SYMBOL_ASSIGNMENT_TIME_VALIDITY;
 			case SITUATION: return SYMBOL_SITUATION;
 			default: return constraintKind.toString();
 		}
@@ -361,12 +364,15 @@ public class PolicyRuleTypeUtil {
 		}
 		rv = rv && visit(pc.getMinAssignees(), F_MIN_ASSIGNEES, visitor)
 				&& visit(pc.getMaxAssignees(), F_MAX_ASSIGNEES, visitor)
+				&& visit(pc.getObjectMinAssigneesViolation(), F_OBJECT_MIN_ASSIGNEES_VIOLATION, visitor)
+				&& visit(pc.getObjectMaxAssigneesViolation(), F_OBJECT_MAX_ASSIGNEES_VIOLATION, visitor)
 				&& visit(pc.getExclusion(), F_EXCLUSION, visitor)
 				&& visit(pc.getAssignment(), F_ASSIGNMENT, visitor)
 				&& visit(pc.getHasAssignment(), F_HAS_ASSIGNMENT, visitor)
 				&& visit(pc.getHasNoAssignment(), F_HAS_NO_ASSIGNMENT, visitor)
 				&& visit(pc.getModification(), F_MODIFICATION, visitor)
-				&& visit(pc.getTimeValidity(), F_TIME_VALIDITY, visitor)
+				&& visit(pc.getObjectTimeValidity(), F_OBJECT_TIME_VALIDITY, visitor)
+				&& visit(pc.getAssignmentTimeValidity(), F_ASSIGNMENT_TIME_VALIDITY, visitor)
 				&& visit(pc.getAssignmentState(), F_ASSIGNMENT_STATE, visitor)
 				&& visit(pc.getObjectState(), F_OBJECT_STATE, visitor)
 				&& visit(pc.getSituation(), F_SITUATION, visitor)
@@ -438,7 +444,7 @@ public class PolicyRuleTypeUtil {
 	 */
 	public static boolean isApplicableToObject(PolicyRuleType rule) {
 		if (rule.getEvaluationTarget() != null) {
-			return rule.getEvaluationTarget() == PolicyRuleEvaluationTargetType.FOCUS;
+			return rule.getEvaluationTarget() == PolicyRuleEvaluationTargetType.OBJECT;
 		} else {
 			return !hasAssignmentOnlyConstraint(rule);
 		}
@@ -456,25 +462,31 @@ public class PolicyRuleTypeUtil {
 	}
 
 	private static final Set<Class<? extends AbstractPolicyConstraintType>> ASSIGNMENTS_ONLY_CONSTRAINTS_CLASSES =
-			new HashSet<>(Arrays.asList(AssignmentPolicyConstraintType.class, ExclusionPolicyConstraintType.class, MultiplicityPolicyConstraintType.class));
+			new HashSet<>(Arrays.asList(AssignmentPolicyConstraintType.class, ExclusionPolicyConstraintType.class));
 
 	private static boolean isNotAssignmentOnly(QName name, AbstractPolicyConstraintType c) {
-		boolean rv = ASSIGNMENTS_ONLY_CONSTRAINTS_CLASSES.contains(c.getClass())
+		boolean assignmentOnly = ASSIGNMENTS_ONLY_CONSTRAINTS_CLASSES.contains(c.getClass())
 				|| QNameUtil.match(name, PolicyConstraintsType.F_ASSIGNMENT_STATE)
-				|| c instanceof TimeValidityPolicyConstraintType && Boolean.TRUE.equals(((TimeValidityPolicyConstraintType) c).isAssignment());
+				|| QNameUtil.match(name, PolicyConstraintsType.F_ASSIGNMENT_TIME_VALIDITY)
+				|| QNameUtil.match(name, PolicyConstraintsType.F_MIN_ASSIGNEES)     // these can be evaluated also on object level
+				|| QNameUtil.match(name, PolicyConstraintsType.F_MAX_ASSIGNEES)     // but it requires evaluationTarget=object set (to maintain backwards compatibility)
+				;
 		//System.out.println("isAssignmentOnly: " + name.getLocalPart() + "/" + c.getClass().getSimpleName() + " -> " + rv);
-		return !rv;
+		return !assignmentOnly;
 	}
 
 	private static final Set<Class<? extends AbstractPolicyConstraintType>> OBJECT_RELATED_CONSTRAINTS_CLASSES =
 			new HashSet<>(Arrays.asList(HasAssignmentPolicyConstraintType.class, ModificationPolicyConstraintType.class));
 
 	private static boolean isNotObjectRelated(QName name, AbstractPolicyConstraintType c) {
-		boolean rv = OBJECT_RELATED_CONSTRAINTS_CLASSES.contains(c.getClass())
+		boolean objectRelated = OBJECT_RELATED_CONSTRAINTS_CLASSES.contains(c.getClass())
 				|| QNameUtil.match(name, PolicyConstraintsType.F_OBJECT_STATE)
-				|| c instanceof TimeValidityPolicyConstraintType && !Boolean.TRUE.equals(((TimeValidityPolicyConstraintType) c).isAssignment());
+				|| QNameUtil.match(name, PolicyConstraintsType.F_OBJECT_TIME_VALIDITY)
+				|| QNameUtil.match(name, PolicyConstraintsType.F_OBJECT_MIN_ASSIGNEES_VIOLATION)
+				|| QNameUtil.match(name, PolicyConstraintsType.F_OBJECT_MAX_ASSIGNEES_VIOLATION)
+				;
 		//System.out.println("isObjectRelated: " + name.getLocalPart() + "/" + c.getClass().getSimpleName() + " -> " + rv);
-		return !rv;
+		return !objectRelated;
 	}
 
 	interface ConstraintResolver {

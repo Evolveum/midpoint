@@ -17,14 +17,12 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 
 import javax.xml.namespace.QName;
-import java.time.Duration;
 import java.util.List;
 
 /**
@@ -104,11 +102,11 @@ public class PolicyRuleUtil {
                 }
             }
         }
-        if (policyConstraints.getTimeValidity() != null){
+        if (policyConstraints.getObjectTimeValidity() != null){
             addNewLineIfNotEmpty(policyConstraintsString);
-            for (TimeValidityPolicyConstraintType timeValidity : policyConstraints.getTimeValidity()){
+            for (TimeValidityPolicyConstraintType timeValidity : policyConstraints.getObjectTimeValidity()){
                 policyConstraintsString.append(getTimeValidityAsString(timeValidity));
-                if (policyConstraints.getTimeValidity().indexOf(timeValidity) < policyConstraints.getTimeValidity().size() - 1){
+                if (policyConstraints.getObjectTimeValidity().indexOf(timeValidity) < policyConstraints.getObjectTimeValidity().size() - 1){
                     policyConstraintsString.append("\n");
                 }
             }
@@ -145,7 +143,8 @@ public class PolicyRuleUtil {
         if (timeValidity == null){
             return null;
         }
-        StringBuilder sb = new StringBuilder(PolicyConstraintsType.F_TIME_VALIDITY.getLocalPart());
+        // TODO assignment time validity
+        StringBuilder sb = new StringBuilder(PolicyConstraintsType.F_OBJECT_TIME_VALIDITY.getLocalPart());
         if (timeValidity.getItem() != null){
             sb.append(" " + TimeValidityPolicyConstraintType.F_ITEM.getLocalPart() + ": " + timeValidity.getItem().toString() + ";");
         }

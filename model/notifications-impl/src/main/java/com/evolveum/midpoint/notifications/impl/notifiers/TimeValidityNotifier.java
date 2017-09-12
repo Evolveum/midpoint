@@ -61,8 +61,8 @@ public class TimeValidityNotifier extends SimplePolicyRuleNotifier {
 	    PolicyRuleEvent ruleEvent = (PolicyRuleEvent) event;
 	    PolicyConstraintsType policyConstraints = ruleEvent.getPolicyRule().getPolicyConstraints();
 	    return policyConstraints != null &&
-			    policyConstraints.getTimeValidity() != null &&
-			    !policyConstraints.getTimeValidity().isEmpty();
+			    policyConstraints.getObjectTimeValidity() != null &&
+			    !policyConstraints.getObjectTimeValidity().isEmpty();
     }
 
     @Override

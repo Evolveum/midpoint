@@ -130,7 +130,18 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
     }
 
-    public Item<?,?> getNextItem(Item<?,?> referenceItem) {
+    @SuppressWarnings("unchecked")
+	public <I extends Item<?,?>> List<I> getItems(Class<I> type) {
+		List<I> rv = new ArrayList<>();
+		for (Item<?, ?> item : CollectionUtils.emptyIfNull(items)) {
+			if (type.isAssignableFrom(item.getClass())) {
+				rv.add(((I) item));
+			}
+		}
+		return rv;
+	}
+
+	public Item<?,?> getNextItem(Item<?,?> referenceItem) {
     	if (items == null) {
     		return null;
     	}
