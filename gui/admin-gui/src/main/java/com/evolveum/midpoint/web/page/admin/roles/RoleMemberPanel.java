@@ -78,12 +78,12 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	private static final String ID_INDIRECT_MEMBERS_CONTAINER = "indirectMembersContainer";
 	private static final String ID_INDIRECT_MEMBERS = "indirectMembers";
 
-	public RoleMemberPanel(String id, IModel<T> model, PageBase pageBase) {
-		super(id, TableId.ROLE_MEMEBER_PANEL, model, pageBase);
+	public RoleMemberPanel(String id, IModel<T> model) {
+		super(id, TableId.ROLE_MEMEBER_PANEL, model);
 	}
 
-	public RoleMemberPanel(String id, IModel<T> model, List<RelationTypes> relations, PageBase pageBase) {
-		super(id, TableId.ROLE_MEMEBER_PANEL, model, relations, pageBase);
+	public RoleMemberPanel(String id, IModel<T> model, List<RelationTypes> relations) {
+		super(id, TableId.ROLE_MEMEBER_PANEL, model, relations);
 	}
 
 	private boolean indirectMembersContainerVisibility() {

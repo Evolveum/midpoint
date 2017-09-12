@@ -83,7 +83,7 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
 
 			@Override
 			public AbstractRoleMemberPanel<ServiceType> createMemberPanel(String panelId) {
-				return new ServiceMemberPanel(panelId, Model.of(getObject().asObjectable()), PageService.this);
+				return new ServiceMemberPanel(panelId, Model.of(getObject().asObjectable()));
 			}
 		};
 	}

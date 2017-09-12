@@ -115,8 +115,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	private static final long serialVersionUID = 1L;
 
-	public OrgMemberPanel(String id, IModel<OrgType> model, PageBase parentPage) {
-		super(id, TableId.ORG_MEMEBER_PANEL, model, parentPage);
+	public OrgMemberPanel(String id, IModel<OrgType> model) {
+		super(id, TableId.ORG_MEMEBER_PANEL, model);
 		setOutputMarkupId(true);
 	}
 
