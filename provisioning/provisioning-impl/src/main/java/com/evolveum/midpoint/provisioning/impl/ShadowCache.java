@@ -1052,7 +1052,7 @@ public abstract class ShadowCache {
 	}
 
 	private boolean isCompleted(OperationResultStatusType statusType) {
-		 return statusType != OperationResultStatusType.IN_PROGRESS && statusType != OperationResultStatusType.UNKNOWN;
+		 return statusType != null && statusType != OperationResultStatusType.IN_PROGRESS && statusType != OperationResultStatusType.UNKNOWN;
 	}
 
 	private List<PendingOperationType> sortOperations(List<PendingOperationType> pendingOperations) {
