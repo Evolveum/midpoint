@@ -4513,4 +4513,42 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		XMLGregorianCalendar after = clock.currentTimeXMLGregorianCalendar();
 		display("Clock going forward", before + " --[" + duration + "]--> " + after);
 	}
+
+	protected List<PrismObject<TaskType>> getTasksForObject(String oid, QName type,
+			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException {
+		ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+				.item(TaskType.F_OBJECT_REF).ref(new PrismReferenceValue(oid, type))
+				.build();
+		return modelService.searchObjects(TaskType.class, query, options, task, result);
+	}
+
+	protected TaskType getApprovalTask(List<PrismObject<TaskType>> tasks) {
+		List<TaskType> rv = tasks.stream()
+				.map(o -> o.asObjectable())
+				.filter(t -> t.getWorkflowContext() != null && t.getWorkflowContext().getProcessInstanceId() != null)
+				.collect(Collectors.toList());
+		if (rv.isEmpty()) {
+			throw new AssertionError("No approval task found");
+		} else if (rv.size() > 1) {
+			throw new AssertionError("More than one approval task found: " + rv);
+		} else {
+			return rv.get(0);
+		}
+	}
+
+	protected TaskType getRootTask(List<PrismObject<TaskType>> tasks) {
+		List<TaskType> rv = tasks.stream()
+				.map(o -> o.asObjectable())
+				.filter(t -> t.getParent() == null)
+				.collect(Collectors.toList());
+		if (rv.isEmpty()) {
+			throw new AssertionError("No root task found");
+		} else if (rv.size() > 1) {
+			throw new AssertionError("More than one root task found: " + rv);
+		} else {
+			return rv.get(0);
+		}
+	}
 }

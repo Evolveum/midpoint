@@ -55,6 +55,46 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:AbstractPolicyConstraintType">
 				<xsd:sequence>
+					<xsd:element name="objectState" type="tns:StatePolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Particular state of the object, described by a filter or an expression.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="assignmentState" type="tns:StatePolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Particular state of an assignment, described by a filter or an expression.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="hasAssignment" type="tns:HasAssignmentPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								The focus has assignment(s) of given object(s).
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="hasNoAssignment" type="tns:HasAssignmentPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								The focus has no assignment(s) of given object(s).
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
 					<xsd:element name="exclusion" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded"/>
 					<xsd:element name="minAssignees" type="tns:MultiplicityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
@@ -100,46 +140,6 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.6</a:since>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="objectState" type="tns:StatePolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								Particular state of the object, described by a filter or an expression.
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:since>3.7</a:since>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="assignmentState" type="tns:StatePolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								Particular state of an assignment, described by a filter or an expression.
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:since>3.7</a:since>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="hasAssignment" type="tns:HasAssignmentPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								The focus has assignment(s) of given object(s).
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:since>3.7</a:since>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="hasNoAssignment" type="tns:HasAssignmentPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								The focus has no assignment(s) of given object(s).
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:since>3.7</a:since>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>

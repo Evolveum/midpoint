@@ -39,6 +39,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -58,7 +59,7 @@ import static org.testng.AssertJUnit.*;
  * @author mederly
  *
  */
-public class AbstractCertificationTest extends AbstractModelIntegrationTest {
+public class AbstractCertificationTest extends AbstractUninitializedCertificationTest {
 
 	@Autowired
 	private AccCertResponseComputationHelper computationHelper;
@@ -98,10 +99,6 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	protected static final String USER_ADMINISTRATOR_DEPUTY_NO_ASSIGNMENTS_OID = "0b88d83f-1722-4b13-b7cc-a2d500470d7f";
 	protected static final String USER_ADMINISTRATOR_DEPUTY_NONE_OID = "e38df3fc-3510-45c2-a379-2b4a1406d4b6";
 
-	public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
-	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
-	protected static final String USER_ADMINISTRATOR_NAME = "administrator";
-
 	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	protected static final String USER_JACK_USERNAME = "jack";
@@ -115,8 +112,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	public static final File ROLE_EROOT_USER_ASSIGNMENT_CAMPAIGN_OWNER_FILE = new File(COMMON_DIR, "role-eroot-user-assignment-campaign-owner.xml");
 	protected static final String ROLE_EROOT_USER_ASSIGNMENT_CAMPAIGN_OWNER_OID = "00000000-d34d-b33f-f00d-ffffffff0001";
 
-	public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
-	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
+	public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 
 	public static final File METAROLE_CXO_FILE = new File(COMMON_DIR, "metarole-cxo.xml");
 	protected static final String METAROLE_CXO_OID = "00000000-d34d-b33f-f00d-444444444444";
@@ -165,7 +161,6 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	protected RoleType roleCeo;
 	protected RoleType roleCoo;
 	protected RoleType roleCto;
-	protected RoleType roleSuperuser;
 
 	protected UserType userAdministrator;
 	protected UserType userJack;
@@ -176,21 +171,6 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
 		super.initSystem(initTask, initResult);
-
-		modelService.postInit(initResult);
-
-		// System Configuration
-		try {
-			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
-		} catch (ObjectAlreadyExistsException e) {
-			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
-					"looks like the previous test haven't cleaned it up", e);
-		}
-
-		// Administrator
-		roleSuperuser = repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult).asObjectable();
-		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult).asObjectable();
-		login(userAdministrator.asPrismObject());
 
 		// roles
 		repoAddObjectFromFile(METAROLE_CXO_FILE, RoleType.class, initResult);
@@ -243,6 +223,12 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		recomputeFocus(RoleType.class, ROLE_REVIEWER_OID, initTask, initResult);
 		recomputeFocus(RoleType.class, ROLE_EROOT_USER_ASSIGNMENT_CAMPAIGN_OWNER_OID, initTask, initResult);
 		recomputeFocus(OrgType.class, ORG_SECURITY_TEAM_OID, initTask, initResult);
+	}
+
+	@NotNull
+	@Override
+	protected File getUserAdministratorFile() {
+		return USER_ADMINISTRATOR_FILE;
 	}
 
 	protected AccessCertificationCaseType checkCase(Collection<AccessCertificationCaseType> caseList, String subjectOid, String targetOid, FocusType focus, String campaignOid) {

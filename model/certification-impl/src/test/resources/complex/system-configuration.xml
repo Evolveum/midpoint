@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>SystemConfiguration</name>
+    <logging>
+    	<rootLoggerAppender>File Appender</rootLoggerAppender>
+    	<rootLoggerLevel>INFO</rootLoggerLevel>
+        <classLogger>
+	        <level>TRACE</level>
+	        <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
+      	</classLogger>
+        <appender xsi:type="c:FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+            <fileName>target/test.log</fileName>
+            <append>true</append>
+        </appender>
+    </logging>
+	<notificationConfiguration>
+		<handler>
+			<simpleReviewerNotifier>
+				<recipientExpression>
+					<value>recipient@evolveum.com</value>
+				</recipientExpression>
+				<transport>dummy:simpleReviewerNotifier</transport>
+			</simpleReviewerNotifier>
+		</handler>
+		<mail>
+			<redirectToFile>target/mail-notifications.log</redirectToFile>
+		</mail>
+	</notificationConfiguration>
+	<globalPolicyRule>
+		<name>basic-constraints-definitions</name>
+		<description>
+			This is no-action rule that is used to define basic constraints:
+			what is an incomplete role (as per C1 to C4), what is a role activation, etc.
+		</description>
+		<policyConstraints>
+			<or>
+				<name>incomplete-role-c1-to-c4</name>
+				<!-- TODO presentation -->
+				<!-- TODO situation -->
+				<!-- TODO expected use -->
+				<objectState>
+					<name>c1-no-risk-level</name>
+					<!-- TODO presentation -->
+					<filter>
+						<q:equal>
+							<q:path>riskLevel</q:path>
+						</q:equal>
+					</filter>
+				</objectState>
+				<objectState>
+					<!-- could be implemented also as a conjunction of two filter-based objectState constraints -->
+					<name>c2-no-description-for-high-risk-role</name>
+					<!-- TODO presentation -->
+					<expression>
+						<script>
+							<code>object.riskLevel == 'high' &amp;&amp; object.description == null</code>
+						</script>
+					</expression>
+				</objectState>
+				<and>
+					<name>c3-less-than-2-approvers-for-high-risk-role</name>
+					<!-- TODO presentation -->
+					<objectState>
+						<name>high-risk-role</name>
+						<filter>
+							<q:equal>
+								<q:path>riskLevel</q:path>
+								<q:value>high</q:value>
+							</q:equal>
+						</filter>
+					</objectState>
+					<minAssignees>
+						<multiplicity>2</multiplicity>
+						<relation>approver</relation>
+					</minAssignees>
+				</and>
+				<and>
+					<name>c3-less-than-1-approver-for-non-high-risk-role</name>
+					<!-- TODO presentation -->
+					<objectState>
+						<name>not-high-risk-role</name>
+						<filter>
+							<q:not>
+								<q:equal>
+									<q:path>riskLevel</q:path>
+									<q:value>high</q:value>
+								</q:equal>
+							</q:not>
+						</filter>
+					</objectState>
+					<minAssignees>
+						<multiplicity>1</multiplicity>
+						<relation>approver</relation>
+					</minAssignees>
+				</and>
+				<minAssignees>
+					<name>c4-no-role-owner</name>
+					<!-- TODO presentation -->
+					<multiplicity>1</multiplicity>
+					<relation>owner</relation>
+				</minAssignees>
+			</or>
+			<objectState>
+				<name>c5-no-identifier</name>
+				<!-- TODO presentation -->
+				<!-- TODO situation -->
+				<!-- TODO expected use -->
+				<filter>
+					<q:equal>
+						<q:path>identifier</q:path>
+					</q:equal>
+				</filter>
+			</objectState>
+			<objectState>
+				<name>validity-not-limited</name>
+				<expression>
+					<script>
+						<code>
+							import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+							import com.evolveum.midpoint.prism.xml.XmlTypeConverter
+
+							if (object.activation == null) {
+								return true
+							}
+							def state = object.activation.administrativeStatus
+							if (state == ActivationStatusType.ENABLED) {
+								return true
+							} else if (state != null) {
+								return false
+							}
+							def validTo = object.activation.validTo
+							if (validTo == null) {
+								return true
+							}
+							def nowPlus180 = XmlTypeConverter.fromNow(XmlTypeConverter.createDuration("P180D"))
+							return validTo.toGregorianCalendar().compareTo(nowPlus180.toGregorianCalendar()) &gt; 0
+						</code>
+					</script>
+				</expression>
+			</objectState>
+			<objectState>
+				<name>role-active</name>
+				<filter>
+					<q:or>
+						<q:equal>
+							<q:path>lifecycleState</q:path>
+							<q:value>active</q:value>
+						</q:equal>
+						<q:equal>
+							<q:path>lifecycleState</q:path>
+						</q:equal>
+					</q:or>
+				</filter>
+			</objectState>
+			<transition>
+				<name>role-activation</name>
+				<stateBefore>false</stateBefore>
+				<stateAfter>true</stateAfter>
+				<constraints>
+					<ref>role-active</ref>
+				</constraints>
+			</transition>
+		</policyConstraints>
+		<condition>
+			<!-- This rule serves as a container for constraints definitions. It is not to be evaluated directly. -->
+			<expression>
+				<value>false</value>
+			</expression>
+		</condition>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>r1-no-activation-of-incomplete-roles</name>
+		<description>R1: No role that does not meet C1-C4 might be activated i.e. switched to lifecycleState of active.</description>
+		<policyConstraints>
+			<name>r1-no-activation-of-incomplete-roles</name>
+			<!-- TODO presentation -->
+			<!-- Note: situation is not defined here, as this is a transition-related rule.
+			     Situation marking incomplete rules is defined in incomplete-role-c1-to-c4 constraint. -->
+			<ref>incomplete-role-c1-to-c4</ref>
+			<ref>role-activation</ref>
+		</policyConstraints>
+		<policyActions>
+			<enforcement/>
+		</policyActions>
+		<evaluationTarget>focus</evaluationTarget>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>r2-role-activation-approval</name>
+		<description>R2: Activation of a role must be approved by its owner.</description>
+		<policyConstraints>
+			<!-- TODO presentation -->
+			<ref>role-activation</ref>
+		</policyConstraints>
+		<policyActions>
+			<approval>
+				<compositionStrategy>
+					<order>10</order>
+				</compositionStrategy>
+				<approvalSchema>
+					<stage>
+						<approverRelation>owner</approverRelation>
+					</stage>
+				</approvalSchema>
+			</approval>
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>r3-no-identifier-role-activation-approval</name>
+		<description>R3: Activation of a role without identifier is subject to an approval by Security Administrators.</description>
+		<policyConstraints>
+			<!-- TODO presentation -->
+			<ref>role-activation</ref>
+			<ref>c5-no-identifier</ref>
+		</policyConstraints>
+		<policyActions>
+			<approval>
+				<compositionStrategy>
+					<order>10</order>
+				</compositionStrategy>
+				<approvalSchema>
+					<stage>
+						<approverRef oid="TODO" type="OrgType"/>		<!-- Security Administrators -->
+					</stage>
+				</approvalSchema>
+			</approval>
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>r5-validity-limitation-for-active-role</name>
+		<description>R5: Validity of an active role without identifier must be limited to 180 days at most.</description>
+		<policyConstraints>
+			<!-- TODO presentation -->
+			<ref>role-active</ref>
+			<ref>c5-no-identifier</ref>
+			<ref>validity-not-limited</ref>
+		</policyConstraints>
+		<policyActions>
+			<enforcement/>
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
+</systemConfiguration>

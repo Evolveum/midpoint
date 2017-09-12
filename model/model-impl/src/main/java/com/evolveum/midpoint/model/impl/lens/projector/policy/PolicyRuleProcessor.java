@@ -115,33 +115,50 @@ public class PolicyRuleProcessor {
 			 *    Situation(URL2) -> Action2 [URL1]
 			 */
 			for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getThisTargetPolicyRules()) {
-				if (!hasSituationConstraint(policyRule) && isApplicableToAssignment(policyRule)) {
-					evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-							evaluatedAssignment, inPlus, inZero, inMinus, true, context, evaluatedAssignmentTriple, task), result);
+				if (!hasSituationConstraint(policyRule)) {
+					if (checkApplicabilityToAssignment(policyRule)) {
+						evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
+										evaluatedAssignment, inPlus, inZero, inMinus, true, context, evaluatedAssignmentTriple, task), result);
+					}
 				}
 			}
 			for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getOtherTargetsPolicyRules()) {
-				if (!hasSituationConstraint(policyRule) && isApplicableToAssignment(policyRule)) {
-					evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-							evaluatedAssignment, inPlus, inZero, inMinus, false, context, evaluatedAssignmentTriple, task), result);
+				if (!hasSituationConstraint(policyRule)) {
+					if (checkApplicabilityToAssignment(policyRule)) {
+						evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
+										evaluatedAssignment, inPlus, inZero, inMinus, false, context, evaluatedAssignmentTriple, task), result);
+					}
 				}
 			}
 			for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getThisTargetPolicyRules()) {
-				if (hasSituationConstraint(policyRule) && isApplicableToAssignment(policyRule)) {
-					evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-							evaluatedAssignment, inPlus, inZero, inMinus, true, context, evaluatedAssignmentTriple, task), result);
+				if (hasSituationConstraint(policyRule)) {
+					if (checkApplicabilityToAssignment(policyRule)) {
+						evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
+										evaluatedAssignment, inPlus, inZero, inMinus, true, context, evaluatedAssignmentTriple, task), result);
+					}
 				}
 			}
 			for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getOtherTargetsPolicyRules()) {
-				if (hasSituationConstraint(policyRule) && isApplicableToAssignment(policyRule)) {
-					evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-							evaluatedAssignment, inPlus, inZero, inMinus, false, context, evaluatedAssignmentTriple, task), result);
+				if (hasSituationConstraint(policyRule)) {
+					if (checkApplicabilityToAssignment(policyRule)) {
+						evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
+										evaluatedAssignment, inPlus, inZero, inMinus, false, context, evaluatedAssignmentTriple, task), result);
+					}
 				}
 			}
 		}
 
 		exclusionConstraintEvaluator.checkExclusionsLegacy(context, evaluatedAssignmentTriple.getPlusSet(),
 				evaluatedAssignmentTriple.getNonNegativeValues());
+	}
+
+	private boolean checkApplicabilityToAssignment(EvaluatedPolicyRule policyRule) {
+		if (isApplicableToAssignment(policyRule)) {
+			return true;
+		} else {
+			LOGGER.trace("Skipping rule {} because it is not applicable to assignment: {}", policyRule.getName(), policyRule);
+			return false;
+		}
 	}
 
 	private void resolveReferences(Collection<EvaluatedPolicyRule> evaluatedRules, Collection<? extends PolicyRuleType> otherRules)
@@ -170,6 +187,7 @@ public class PolicyRuleProcessor {
 		List<EvaluatedPolicyRule> situationRules = new ArrayList<>();
 		List<EvaluatedPolicyRule> nonSituationRules = new ArrayList<>();
 
+		LOGGER.trace("Evaluating {} object policy rules", rules.size());
 		focusContext.clearPolicyRules();
 		for (EvaluatedPolicyRule rule : rules) {
 			if (isApplicableToObject(rule)) {
@@ -179,6 +197,8 @@ public class PolicyRuleProcessor {
 					nonSituationRules.add(rule);
 				}
 				focusContext.addPolicyRule(rule);
+			} else {
+				LOGGER.trace("Rule {} is not applicable to an object, skipping: {}", rule.getName(), rule);
 			}
 		}
 
@@ -226,14 +246,18 @@ public class PolicyRuleProcessor {
 		if (focus == null) {
 			focus = focusContext.getObjectNew();
 		}
-		for (GlobalPolicyRuleType globalPolicyRule: systemConfiguration.asObjectable().getGlobalPolicyRule()) {
+		List<GlobalPolicyRuleType> globalPolicyRuleList = systemConfiguration.asObjectable().getGlobalPolicyRule();
+		LOGGER.trace("Checking {} global policy rules", globalPolicyRuleList.size());
+		for (GlobalPolicyRuleType globalPolicyRule: globalPolicyRuleList) {
 			ObjectSelectorType focusSelector = globalPolicyRule.getFocusSelector();
 			if (repositoryService.selectorMatches(focusSelector, focus, LOGGER, "Global policy rule "+globalPolicyRule.getName()+": ")) {
-				if (!isRuleConditionTrue(globalPolicyRule, focus, null, context, task, result)) {
-					LOGGER.trace("Skipping global policy rule because the condition evaluated to false: {}", globalPolicyRule);
-					continue;
+				if (isRuleConditionTrue(globalPolicyRule, focus, null, context, task, result)) {
+					rules.add(new EvaluatedPolicyRuleImpl(globalPolicyRule, null, prismContext));
+				} else {
+					LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}", globalPolicyRule.getName(), globalPolicyRule);
 				}
-				rules.add(new EvaluatedPolicyRuleImpl(globalPolicyRule, null, prismContext));
+			} else {
+				LOGGER.trace("Skipping global policy rule {} because the selector did not match: {}", globalPolicyRule.getName(), globalPolicyRule);
 			}
 		}
 	}
@@ -437,10 +461,13 @@ public class PolicyRuleProcessor {
 			focus = focusContext.getObjectNew();		// only if it does not exist, let's try the new one
 		}
 
+		List<GlobalPolicyRuleType> globalPolicyRuleList = systemConfiguration.asObjectable().getGlobalPolicyRule();
+		LOGGER.trace("Checking {} global policy rules for selection to assignments", globalPolicyRuleList.size());
 		for (GlobalPolicyRuleType globalPolicyRule: systemConfiguration.asObjectable().getGlobalPolicyRule()) {
 			ObjectSelectorType focusSelector = globalPolicyRule.getFocusSelector();
 			if (!repositoryService.selectorMatches(focusSelector, focus, LOGGER,
 					"Global policy rule "+globalPolicyRule.getName()+" focus selector: ")) {
+				LOGGER.trace("Skipping global policy rule {} because focus selector did not match: {}", globalPolicyRule.getName(), globalPolicyRule);
 				continue;
 			}
 			for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
@@ -454,10 +481,11 @@ public class PolicyRuleProcessor {
 					}
 					if (!repositoryService.selectorMatches(globalPolicyRule.getTargetSelector(),
 							target.getTarget(), LOGGER, "Global policy rule "+globalPolicyRule.getName()+" target selector: ")) {
+						LOGGER.trace("Skipping global policy rule {} because target selector did not match: {}", globalPolicyRule.getName(), globalPolicyRule);
 						continue;
 					}
 					if (!isRuleConditionTrue(globalPolicyRule, focus, evaluatedAssignment, context, task, result)) {
-						LOGGER.trace("Skipping global policy rule because the condition evaluated to false: {}", globalPolicyRule);
+						LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}", globalPolicyRule.getName(), globalPolicyRule);
 						continue;
 					}
 					EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule, target.getAssignmentPath().clone(), prismContext);
