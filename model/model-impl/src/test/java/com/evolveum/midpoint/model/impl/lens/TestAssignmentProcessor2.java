@@ -636,9 +636,9 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
 		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
 
-		assertTargets(evaluatedAssignment, true, "R1", null, null, null, null, null);
-		assertTargets(evaluatedAssignment, false, "MR1", null, null, null, null, null);
-		assertMembershipRef(evaluatedAssignment, "R1");
+		assertTargets(evaluatedAssignment, true, "R1", "R2 R4", null, null, null, null);
+		assertTargets(evaluatedAssignment, false, "MR1", "MMR1 MR3", null, null, null, null);
+		assertMembershipRef(evaluatedAssignment, "R1 R2 R4");
 		assertOrgRef(evaluatedAssignment, null);
 		assertDelegation(evaluatedAssignment, null);
 
@@ -799,9 +799,9 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
 
 		// R4 is not in plusInvalid, because only directly assigned targets are listed among targets (see validityOverride)
-		assertTargets(evaluatedAssignment, true, "R1", null, "", null, "R2", null);
+		assertTargets(evaluatedAssignment, true, "R1", null, "", "R4", "R2", null);
 		assertTargets(evaluatedAssignment, false, "", null, "MR1 MMR1", null, "MR2", null);
-		assertMembershipRef(evaluatedAssignment, "R1");
+		assertMembershipRef(evaluatedAssignment, "R1 R4");
 		assertOrgRef(evaluatedAssignment, null);
 		assertDelegation(evaluatedAssignment, null);
 
