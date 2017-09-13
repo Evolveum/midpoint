@@ -70,6 +70,8 @@
         	<useless>xUSEless</useless>
         	<drink>rum</drink>
         	<blabla>Bla bla bla</blabla>
+        	<baseDn>dc=example,dc=com</baseDn>
+        	<passwordClear>secret</passwordClear>
         </constants>
     </midpoint>
 </configuration>
