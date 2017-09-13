@@ -78,7 +78,7 @@
 			<policyActions>
 				<!-- none -->
 			</policyActions>
-			<evaluationTarget>focus</evaluationTarget>
+			<evaluationTarget>object</evaluationTarget>
 		</policyRule>
 	</assignment>
 	<inducement>
@@ -97,6 +97,11 @@
     		<policyConstraints>
 		    	<objectState>
 					<name>cc-1900</name>
+					<presentation>
+						<message>
+							<key>cc-1900</key>
+						</message>
+					</presentation>
 					<filter>
 						<q:equal>
 							<q:path>costCenter</q:path>

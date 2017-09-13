@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 
 import java.text.MessageFormat;
@@ -52,7 +53,16 @@ public class LocalizationUtil {
 		LocalizableMessageType rv = new LocalizableMessageType();
 		rv.setKey(message.getKey());
 		if (message.getArgs() != null) {
-			Arrays.stream(message.getArgs()).forEach(a -> rv.getArgument().add(a));
+			for (Object argument : message.getArgs()) {
+				LocalizableMessageArgumentType messageArgument;
+				if (argument instanceof LocalizableMessage) {
+					messageArgument = new LocalizableMessageArgumentType()
+								.localizable(toLocalizableMessageType(((LocalizableMessage) argument)));
+				} else {
+					messageArgument = new LocalizableMessageArgumentType().value(argument);
+				}
+				rv.getArgument().add(messageArgument);
+			}
 		}
 		rv.setFallbackMessage(message.getFallbackMessage());
 		return rv;

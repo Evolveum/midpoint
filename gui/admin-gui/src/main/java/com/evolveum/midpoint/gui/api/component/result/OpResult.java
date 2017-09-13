@@ -34,6 +34,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.Application;
+import org.apache.wicket.Localizer;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -92,6 +94,15 @@ public class OpResult implements Serializable, Visitable {
         if (result.getCause() != null && result.getCause() instanceof CommonException){
         	LocalizableMessage localizableMessage = ((CommonException) result.getCause()).getUserFriendlyMessage();
         	if (localizableMessage != null) {
+        		while (localizableMessage.getFallbackLocalizableMessage() != null) {
+			        if (localizableMessage.getKey() != null) {
+				        Localizer localizer = Application.get().getResourceSettings().getLocalizer();
+				        if (localizer.getString(localizableMessage.getKey(), page) != null) {
+					        break; // the key exists => we can use the current localizableMessage
+				        }
+			        }
+			        localizableMessage = localizableMessage.getFallbackLocalizableMessage();
+		        }
         		String key = localizableMessage.getKey() != null ? localizableMessage.getKey() : localizableMessage.getFallbackMessage();
         		StringResourceModel stringResourceModel = new StringResourceModel(key, page).setModel(new Model<String>()).setDefaultValue(localizableMessage.getFallbackMessage())
 				.setParameters(localizableMessage.getArgs());

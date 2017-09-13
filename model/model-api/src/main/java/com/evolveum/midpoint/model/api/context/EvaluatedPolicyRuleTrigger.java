@@ -101,6 +101,7 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 	}
 
 	private void debugDumpCommon(StringBuilder sb, int indent) {
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraintName", constraint.getName(), indent);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraintKind", constraintKind, indent);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraint", constraint, indent);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "message", message, indent);

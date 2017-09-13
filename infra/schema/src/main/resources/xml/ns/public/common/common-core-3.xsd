@@ -16881,21 +16881,58 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="argument" type="xsd:anySimpleType" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="argument" type="tns:LocalizableMessageArgumentType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
 						Arguments to be used as values for localized message parameters.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="fallbackLocalizableMessage" type="tns:LocalizableMessageType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Fallback localizable message to be used when key couldn't be resolved. Mutually exclusive with fallbackMessage.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="fallbackMessage" type="xsd:string" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Fallback message to be used when key couldn't be resolved.
+						Fallback message to be used when key couldn't be resolved. Mutually exclusive with fallbackLocalizableMessage.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="LocalizableMessageArgumentType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Argument that is to be used for localized message parameter.
+				Might be a LocalizableMessageType itself, allowing for messages like
+				"Assignment exists for {0} {1} (OID {2}" where {0} has to be resolved
+				to e.g. "role", localized for the target language.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:choice>
+			<xsd:element name="value" type="xsd:anySimpleType">
+				<xsd:annotation>
+					<xsd:documentation>
+						Literal value.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="localizable" type="tns:LocalizableMessageType">
+				<xsd:annotation>
+					<xsd:documentation>
+						Embedded localizable message.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:choice>
 	</xsd:complexType>
 
 	<xsd:complexType name="LocalizableMessageTemplateType">
@@ -16922,10 +16959,19 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="argument" type="tns:LocalizableMessageArgumentType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Values for arguments. Mutually exclusive with argumentExpression: if at least one argument is used,
+						no argumentExpression can be used, and vice versa.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="argumentExpression" type="tns:ExpressionType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
 						Expressions to be evaluated to specific arguments, which are to be used as values for localized message parameters.
+						Mutually exclusive with argument: if at least one argumentExpression is used, no argument can be used, and vice versa.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
