@@ -28,7 +28,9 @@
         },
         "principal" : "cn=directory manager",
         "credentials" : {
-          "clearValue" : "secret"
+            "expression" : {
+        		"const" : "password"
+        	}
         },
         "vlvSortAttribute" : "uid",
         "accountOperationalAttributes" : "ds-pwp-account-disabled"
