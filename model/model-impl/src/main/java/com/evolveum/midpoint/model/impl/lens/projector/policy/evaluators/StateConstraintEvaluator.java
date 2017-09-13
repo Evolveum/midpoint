@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.EvaluatedStateTrigger;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
@@ -53,6 +54,7 @@ import javax.xml.namespace.QName;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.util.LocalizableMessageBuilder.buildFallbackMessage;
 import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.ASSIGNMENT_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.OBJECT_STATE;
@@ -113,9 +115,9 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 		}
 
 		if (match) {
-			return new EvaluatedPolicyRuleTrigger<>(
-					OBJECT_STATE, constraint, "Focus state ("+ ctx.state + ") matches " +
-					(constraint.getName() != null ? "constraint '" + constraint.getName() + "'" : "the constraint"));
+			return new EvaluatedStateTrigger(
+					OBJECT_STATE, constraint, buildFallbackMessage("Focus state ("+ ctx.state + ") matches " +
+					(constraint.getName() != null ? "constraint '" + constraint.getName() + "'" : "the constraint")));
 		}
 		return null;
 	}
@@ -135,8 +137,8 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 		boolean match = isConstraintSatisfied(constraint.getExpression(), createExpressionVariables(ctx),
 				"expression in assignment state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result);
 		if (match) {
-			return new EvaluatedPolicyRuleTrigger<>(ASSIGNMENT_STATE, constraint, "Assignment state ("+ ctx.state + ") matches " +
-					(constraint.getName() != null ? "constraint '" + constraint.getName() + "'" : "the constraint"));
+			return new EvaluatedStateTrigger(ASSIGNMENT_STATE, constraint, buildFallbackMessage("Assignment state ("+ ctx.state + ") matches " +
+					(constraint.getName() != null ? "constraint '" + constraint.getName() + "'" : "the constraint")));
 		}
 		return null;
 	}

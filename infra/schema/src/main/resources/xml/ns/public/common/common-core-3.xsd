@@ -16881,7 +16881,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="argument" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="argument" type="xsd:anySimpleType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
 						Arguments to be used as values for localized message parameters.

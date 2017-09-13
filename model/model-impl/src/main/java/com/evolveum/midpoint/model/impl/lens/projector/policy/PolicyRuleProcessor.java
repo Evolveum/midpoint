@@ -381,7 +381,7 @@ public class PolicyRuleProcessor {
 	}
 
 	private PolicyConstraintEvaluator<?> getConstraintEvaluator(JAXBElement<AbstractPolicyConstraintType> constraint) {
-		if (constraint.getValue() instanceof AssignmentPolicyConstraintType) {
+		if (constraint.getValue() instanceof AssignmentModificationPolicyConstraintType) {
 			return assignmentConstraintEvaluator;
 		} else if (constraint.getValue() instanceof HasAssignmentPolicyConstraintType) {
 			return hasAssignmentConstraintEvaluator;

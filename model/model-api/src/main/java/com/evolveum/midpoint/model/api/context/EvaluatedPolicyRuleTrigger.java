@@ -15,10 +15,12 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleTriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -32,13 +34,13 @@ import java.util.Objects;
  *
  * @author semancik
  */
-public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType> implements DebugDumpable {
+public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType> implements DebugDumpable {
 
 	@NotNull private final PolicyConstraintKindType constraintKind;
 	@NotNull private final CT constraint;
-	private final String message;
+	private final LocalizableMessage message;
 
-	public EvaluatedPolicyRuleTrigger(@NotNull PolicyConstraintKindType constraintKind, @NotNull CT constraint, String message) {
+	public EvaluatedPolicyRuleTrigger(@NotNull PolicyConstraintKindType constraintKind, @NotNull CT constraint, LocalizableMessage message) {
 		this.constraintKind = constraintKind;
 		this.constraint = constraint;
 		this.message = message;
@@ -63,7 +65,7 @@ public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType>
 	 * in the logs, as an error message, in the audit trail
 	 * and so on.
 	 */
-	public String getMessage() {
+	public LocalizableMessage getMessage() {
 		return message;
 	}
 
@@ -101,7 +103,7 @@ public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType>
 	private void debugDumpCommon(StringBuilder sb, int indent) {
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraintKind", constraintKind, indent);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraint", constraint, indent);
-		DebugUtil.debugDumpWithLabelLn(sb, "message", message, indent);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "message", message, indent);
 	}
 
 	protected void debugDumpSpecific(StringBuilder sb, int indent) {
@@ -121,7 +123,7 @@ public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType>
 		tt.setRuleName(owningRule.getName());
 		tt.setConstraintKind(constraintKind);
 		//tt.setConstraint(constraint);
-		tt.setMessage(message);
+		tt.setMessage(LocalizationUtil.toLocalizableMessageType(message));
 		if (owningRule.getAssignmentPath() != null) {
 			tt.setAssignmentPath(owningRule.getAssignmentPath().toAssignmentPathType());
 		}

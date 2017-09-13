@@ -17,8 +17,11 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.ResourceBundle;
 
 /**
@@ -45,4 +48,21 @@ public class LocalizationUtil {
 		}
 	}
 
+	public static LocalizableMessageType toLocalizableMessageType(LocalizableMessage message) {
+		LocalizableMessageType rv = new LocalizableMessageType();
+		rv.setKey(message.getKey());
+		if (message.getArgs() != null) {
+			Arrays.stream(message.getArgs()).forEach(a -> rv.getArgument().add(a));
+		}
+		rv.setFallbackMessage(message.getFallbackMessage());
+		return rv;
+	}
+
+	public static LocalizableMessageType forFallbackMessage(String fallbackMessage) {
+		return new LocalizableMessageType().fallbackMessage(fallbackMessage);
+	}
+
+	public static LocalizableMessageType forKey(String key) {
+		return new LocalizableMessageType().key(key);
+	}
 }

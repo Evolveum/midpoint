@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
@@ -52,6 +53,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.evolveum.midpoint.util.LocalizableMessageBuilder.buildFallbackMessage;
 
 /**
  * @author semancik
@@ -135,8 +138,8 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 		ObjectType objectA = getConflictingObject(pathA, assignmentA.getTarget());
 		ObjectType objectB = getConflictingObject(pathB, targetB.getTarget());
 		return new EvaluatedExclusionTrigger(
-				constraint, "Violation of SoD policy: " + infoA + " excludes " + infoB +
-				", they cannot be assigned at the same time", assignmentB, objectA, objectB, pathA, pathB);
+				constraint, buildFallbackMessage("Violation of SoD policy: " + infoA + " excludes " + infoB +
+				", they cannot be assigned at the same time"), assignmentB, objectA, objectB, pathA, pathB);
 	}
 
 	private ObjectType getConflictingObject(AssignmentPath path, PrismObject<?> defaultObject) {
@@ -209,8 +212,8 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 		ObjectReferenceType targetRef = constraint.getTargetRef();
 		if (roleB.getOid().equals(targetRef.getOid())) {
 			EvaluatedExclusionTrigger trigger = new EvaluatedExclusionTrigger(
-					constraint, "Violation of SoD policy: " + roleA.getTarget() + " excludes " + roleB.getTarget() +
-					", they cannot be assigned at the same time", assignmentB,
+					constraint, buildFallbackMessage("Violation of SoD policy: " + roleA.getTarget() + " excludes " + roleB.getTarget() +
+					", they cannot be assigned at the same time"), assignmentB,
 					roleA.getTarget() != null ? roleA.getTarget().asObjectable() : null,
 					roleB.getTarget() != null ? roleB.getTarget().asObjectable() : null,
 					roleA.getAssignmentPath(), roleB.getAssignmentPath());

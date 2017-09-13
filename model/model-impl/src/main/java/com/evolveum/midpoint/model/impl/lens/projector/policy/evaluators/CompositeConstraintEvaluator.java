@@ -35,9 +35,8 @@ import org.springframework.stereotype.Component;
 import javax.xml.bind.JAXBElement;
 import java.util.List;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.AND;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.NOT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.OR;
+import static com.evolveum.midpoint.util.LocalizableMessageBuilder.buildFallbackMessage;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.*;
 
 /**
  * @author mederly
@@ -73,6 +72,6 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
 	@NotNull
 	private EvaluatedCompositeTrigger createTrigger(PolicyConstraintKindType kind, PolicyConstraintsType value,
 			List<EvaluatedPolicyRuleTrigger<?>> triggers) {
-		return new EvaluatedCompositeTrigger(kind, value, "'" + kind.value() + "' policy constraint applies", triggers);
+		return new EvaluatedCompositeTrigger(kind, value, buildFallbackMessage("'" + kind.value() + "' policy constraint applies"), triggers);
 	}
 }

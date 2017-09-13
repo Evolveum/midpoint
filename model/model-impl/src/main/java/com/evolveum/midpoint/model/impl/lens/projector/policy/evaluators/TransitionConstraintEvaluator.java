@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -54,7 +55,7 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
 			evaluateState(trans, rctx, ObjectState.BEFORE, trans.isStateBefore(), triggers, result)
 					&& evaluateState(trans, rctx, ObjectState.AFTER, trans.isStateAfter(), triggers, result);
 		if (match) {
-			return new EvaluatedTransitionTrigger(PolicyConstraintKindType.TRANSITION, trans, "transition policy constraint matched", triggers);
+			return new EvaluatedTransitionTrigger(PolicyConstraintKindType.TRANSITION, trans, LocalizableMessageBuilder.buildFallbackMessage("transition policy constraint matched"), triggers);
 		} else {
 			return null;
 		}

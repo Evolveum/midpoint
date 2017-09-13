@@ -19,6 +19,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.EvaluatedTimeValidityTrigger;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -259,9 +261,9 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		if (hasNotifyAction(workerTask)) {
 			EvaluatedPolicyRule policyRule = new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), null, prismContext);
 			TimeValidityPolicyConstraintType constraint = getValidityPolicyConstraint(workerTask);
-			EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedPolicyRuleTrigger<>(
+			EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedTimeValidityTrigger(
 					Boolean.TRUE.equals(constraint.isAssignment()) ? PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY : PolicyConstraintKindType.OBJECT_TIME_VALIDITY,
-					constraint, "Applying time validity constraint for focus");
+					constraint, LocalizableMessageBuilder.buildFallbackMessage("Applying time validity constraint for focus"));
 			policyRule.getTriggers().add(evaluatedTrigger);
 			lensContext.getFocusContext().addPolicyRule(policyRule);
 		}

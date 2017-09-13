@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolicyConstraintType;
@@ -63,12 +64,13 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
 		if (sourceRules.isEmpty()) {
 			return null;
 		}
+		// TODO localizable - manipulate the messages!
 		String message =
 				sourceRules.stream()
-						.flatMap(r -> r.getTriggers().stream().map(EvaluatedPolicyRuleTrigger::getMessage))
+						.flatMap(r -> r.getTriggers().stream().map(t -> t.getMessage().getFallbackMessage()))
 						.distinct()
 						.collect(Collectors.joining("; "));
-		return new EvaluatedSituationTrigger(situationConstraint, message, sourceRules);
+		return new EvaluatedSituationTrigger(situationConstraint, LocalizableMessageBuilder.buildFallbackMessage(message), sourceRules);
 	}
 
 	private <F extends FocusType> Collection<EvaluatedPolicyRule> selectTriggeredRules(

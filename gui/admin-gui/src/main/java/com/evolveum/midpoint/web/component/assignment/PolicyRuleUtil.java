@@ -95,7 +95,7 @@ public class PolicyRuleUtil {
         }
         if (policyConstraints.getAssignment() != null){
             addNewLineIfNotEmpty(policyConstraintsString);
-            for (AssignmentPolicyConstraintType assignment : policyConstraints.getAssignment()){
+            for (AssignmentModificationPolicyConstraintType assignment : policyConstraints.getAssignment()){
                 policyConstraintsString.append(getAssignmentAsString(assignment));
                 if (policyConstraints.getAssignment().indexOf(assignment) < policyConstraints.getAssignment().size() - 1){
                     policyConstraintsString.append("\n");
@@ -160,14 +160,14 @@ public class PolicyRuleUtil {
         return sb.toString();
     }
 
-    public static String getAssignmentAsString(AssignmentPolicyConstraintType assignment){
+    public static String getAssignmentAsString(AssignmentModificationPolicyConstraintType assignment){
         if (assignment == null){
             return "";
         }
         StringBuilder sb = new StringBuilder(PolicyConstraintsType.F_ASSIGNMENT.getLocalPart());
         if (assignment.getOperation() != null){
-            sb.append(" " + AssignmentPolicyConstraintType.F_OPERATION.getLocalPart() + ":");
-            for (ModificationTypeType type : assignment.getOperation()){
+            sb.append(" " + AssignmentModificationPolicyConstraintType.F_OPERATION.getLocalPart() + ":");
+            for (ChangeTypeType type : assignment.getOperation()){
                 sb.append(" " + type.value());
                 if (assignment.getOperation().indexOf(type) < assignment.getOperation().size() - 1){
                     sb.append(", ");

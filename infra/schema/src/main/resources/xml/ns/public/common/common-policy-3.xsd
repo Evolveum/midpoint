@@ -138,7 +138,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="assignment" type="tns:AssignmentPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+					<xsd:element name="assignment" type="tns:AssignmentModificationPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
 								Modification of an assignment, i.e. where this object is a target of assignment that is being modified.
@@ -548,7 +548,8 @@
                             <xsd:documentation>
                                 Specifies the operation(s) for which this constraints should be triggered.
                                 If not specified then it will be triggered for all operations.
-                                This defines the object operation (add/modify/delete of the entire object).
+                                This defines the object operation (add/modify/delete of the entire object)
+								or assignment operation (add/modify/delete of the given assignment).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -567,7 +568,7 @@
     </xsd:complexType>
     <xsd:element name="modificationPolicyConstraint" type="tns:ModificationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
 
-    <xsd:complexType name="AssignmentPolicyConstraintType">
+    <xsd:complexType name="AssignmentModificationPolicyConstraintType">
         <xsd:annotation>
             <xsd:documentation>
                 Constraint that triggers the rule when the object is assigned.
@@ -579,28 +580,14 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractPolicyConstraintType">
+            <xsd:extension base="tns:ModificationPolicyConstraintType">
                 <xsd:sequence>
-                    <xsd:element name="operation" type="t:ModificationTypeType"  minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Specifies the operation(s) for which this constraints should be triggered.
-                                If not specified then it will be triggered for all operations.
-                                This defines the object modification operation (add/replace/delete of the specific assignment).
-                                In case that new object is added then all assignments in the object are considered to
-                                be added. The case of object deletion does not make sense here.
-
-                                Currently supported are ADD and DELETE operations.
-								REPLACE (meaning MODIFY?) is not supported yet.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="relation" type="xsd:QName"  minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 This constraint only applies to relations of the specified type. The value
                                 of this element is compared to the relation of the targetRef relation
-                                in the assignment/inducement. If not specified then this policy only
+                                in the assignment. If not specified then this policy only
                                 applies to the null (default) relation. If all relations need to be
                                 affected by this policy then the special value of "any" should be specified
                                 in this element.
@@ -621,7 +608,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="assignmentPolicyConstraint" type="tns:AssignmentPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="assignmentModificationPolicyConstraint" type="tns:AssignmentModificationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
 
     <xsd:complexType name="HasAssignmentPolicyConstraintType">
         <xsd:annotation>
@@ -1419,7 +1406,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="exceptionMessage" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="exceptionMessage" type="tns:LocalizableMessageType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>

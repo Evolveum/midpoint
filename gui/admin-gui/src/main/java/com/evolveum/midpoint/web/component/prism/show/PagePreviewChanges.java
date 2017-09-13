@@ -44,10 +44,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.workflow.InformationPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutionInformationDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerHookPreviewOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
@@ -138,7 +135,7 @@ public class PagePreviewChanges extends PageAdmin {
 		PolicyRuleEnforcerHookPreviewOutputType enforcements = modelContext != null
 				? modelContext.getHookPreviewResult(PolicyRuleEnforcerHookPreviewOutputType.class)
 				: null;
-		List<String> violations = enforcements != null ? enforcements.getExceptionMessage() : Collections.emptyList();
+		List<LocalizableMessageType> violations = enforcements != null ? enforcements.getExceptionMessage() : Collections.emptyList();
 		InformationType information = MiscSchemaUtil.createInformationType(violations);
 		policyViolationsModel = Model.of(information);
 

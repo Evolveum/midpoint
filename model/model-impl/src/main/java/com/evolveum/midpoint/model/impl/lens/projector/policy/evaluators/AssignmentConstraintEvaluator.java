@@ -16,15 +16,16 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedModificationTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentModificationPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
@@ -32,17 +33,19 @@ import javax.xml.namespace.QName;
 import java.util.Collections;
 import java.util.List;
 
+import static com.evolveum.midpoint.util.LocalizableMessageBuilder.buildFallbackMessage;
+
 /**
  * @author semancik
  * @author mederly
  */
 @Component
-public class AssignmentConstraintEvaluator implements PolicyConstraintEvaluator<AssignmentPolicyConstraintType> {
+public class AssignmentConstraintEvaluator implements PolicyConstraintEvaluator<AssignmentModificationPolicyConstraintType> {
 
 	@Override
-	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<AssignmentPolicyConstraintType> constraintElement,
+	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<AssignmentModificationPolicyConstraintType> constraintElement,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result) {
-		AssignmentPolicyConstraintType constraint = constraintElement.getValue();
+		AssignmentModificationPolicyConstraintType constraint = constraintElement.getValue();
 		if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
 			return null;
 		}
@@ -52,20 +55,20 @@ public class AssignmentConstraintEvaluator implements PolicyConstraintEvaluator<
 					Collections.singletonList(null) : constraint.getRelation();
 			for (QName constraintRelation : relationsToCheck) {
 				if (MiscSchemaUtil.compareRelation(constraintRelation, ctx.evaluatedAssignment.getRelation())) {
-					return new EvaluatedPolicyRuleTrigger<>(
+					return new EvaluatedModificationTrigger(
 							PolicyConstraintKindType.ASSIGNMENT_MODIFICATION,
-							constraint, "Assignment of " + ctx.evaluatedAssignment.getTarget());
+							constraint, buildFallbackMessage("Assignment of " + ctx.evaluatedAssignment.getTarget()));  // TODO
 				}
 			}
 		}
 		return null;
 	}
 
-	private boolean matchesOperation(AssignmentPolicyConstraintType constraint, boolean inPlus, boolean inMinus) {
-		List<ModificationTypeType> operations = constraint.getOperation();
+	private boolean matchesOperation(AssignmentModificationPolicyConstraintType constraint, boolean inPlus, boolean inMinus) {
+		List<ChangeTypeType> operations = constraint.getOperation();
 		return operations.isEmpty() ||
-				inPlus && operations.contains(ModificationTypeType.ADD) ||
-				inMinus && operations.contains(ModificationTypeType.DELETE);
+				inPlus && operations.contains(ChangeTypeType.ADD) ||
+				inMinus && operations.contains(ChangeTypeType.DELETE);
 	}
 
 }

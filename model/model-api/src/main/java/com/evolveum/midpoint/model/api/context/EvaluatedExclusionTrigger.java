@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +34,7 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 	private final AssignmentPath conflictingPath;
 
 	public EvaluatedExclusionTrigger(@NotNull ExclusionPolicyConstraintType constraint,
-			String message, @NotNull EvaluatedAssignment conflictingAssignment,
+			LocalizableMessage message, @NotNull EvaluatedAssignment conflictingAssignment,
 			ObjectType thisTarget, ObjectType conflictingTarget, AssignmentPath thisPath, AssignmentPath conflictingPath) {
 		super(PolicyConstraintKindType.EXCLUSION, constraint, message);
 		this.conflictingAssignment = conflictingAssignment;

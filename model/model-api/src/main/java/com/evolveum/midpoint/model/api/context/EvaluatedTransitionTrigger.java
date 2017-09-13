@@ -17,9 +17,8 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedSituationTriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TransitionPolicyConstraintType;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -34,7 +33,7 @@ public class EvaluatedTransitionTrigger extends EvaluatedPolicyRuleTrigger<Trans
 	@NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers;
 
 	public EvaluatedTransitionTrigger(@NotNull PolicyConstraintKindType kind, @NotNull TransitionPolicyConstraintType constraint,
-			String message, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
+			LocalizableMessage message, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
 		super(kind, constraint, message);
 		this.innerTriggers = innerTriggers;
 	}
@@ -76,8 +75,8 @@ public class EvaluatedTransitionTrigger extends EvaluatedPolicyRuleTrigger<Trans
 	}
 
 	@Override
-	public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule) {
-		EvaluatedSituationTriggerType rv = new EvaluatedSituationTriggerType();
+	public EvaluatedTransitionTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule) {
+		EvaluatedTransitionTriggerType rv = new EvaluatedTransitionTriggerType();
 		fillCommonContent(rv, owningRule);
 		//innerTriggers.forEach(r -> rv.getSourceRule().add(r.toEvaluatedPolicyRuleType()));
 		//TODO

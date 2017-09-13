@@ -523,7 +523,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 		assertEquals("Wrong # of schema execution information pieces", also24 ? 5 : 4, approvalInfo.size());
 		assertEquals("Wrong # of enforcement hook preview output items", 1, enforceInfo.size());
-		List<String> enforcementMessages = enforceInfo.get(0).getExceptionMessage();
+		List<LocalizableMessageType> enforcementMessages = enforceInfo.get(0).getExceptionMessage();
 		if (also24) {
 			assertEquals("Wrong # of enforcement exception message", 1, enforcementMessages.size());
 		} else {

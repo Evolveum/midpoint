@@ -328,6 +328,7 @@ public class PolicyRuleTypeUtil {
 			return Objects.equals(st1.getRef(), st2.getRef())
 					&& Objects.equals(st1.getTriggerId(), st2.getTriggerId())
 					&& Objects.equals(st1.getRuleName(), st2.getRuleName())
+					&& Objects.equals(st1.getConstraintName(), st2.getConstraintName())
 					&& Objects.equals(st1.getConstraintKind(), st2.getConstraintKind())
 					&& Objects.equals(st1.getConstraint(), st2.getConstraint())
 					&& Objects.equals(st1.getMessage(), st2.getMessage())
@@ -462,7 +463,7 @@ public class PolicyRuleTypeUtil {
 	}
 
 	private static final Set<Class<? extends AbstractPolicyConstraintType>> ASSIGNMENTS_ONLY_CONSTRAINTS_CLASSES =
-			new HashSet<>(Arrays.asList(AssignmentPolicyConstraintType.class, ExclusionPolicyConstraintType.class));
+			new HashSet<>(Arrays.asList(AssignmentModificationPolicyConstraintType.class, ExclusionPolicyConstraintType.class));
 
 	private static boolean isNotAssignmentOnly(QName name, AbstractPolicyConstraintType c) {
 		boolean assignmentOnly = ASSIGNMENTS_ONLY_CONSTRAINTS_CLASSES.contains(c.getClass())
@@ -476,10 +477,11 @@ public class PolicyRuleTypeUtil {
 	}
 
 	private static final Set<Class<? extends AbstractPolicyConstraintType>> OBJECT_RELATED_CONSTRAINTS_CLASSES =
-			new HashSet<>(Arrays.asList(HasAssignmentPolicyConstraintType.class, ModificationPolicyConstraintType.class));
+			new HashSet<>(Arrays.asList(HasAssignmentPolicyConstraintType.class));
 
 	private static boolean isNotObjectRelated(QName name, AbstractPolicyConstraintType c) {
 		boolean objectRelated = OBJECT_RELATED_CONSTRAINTS_CLASSES.contains(c.getClass())
+				|| QNameUtil.match(name, PolicyConstraintsType.F_MODIFICATION)
 				|| QNameUtil.match(name, PolicyConstraintsType.F_OBJECT_STATE)
 				|| QNameUtil.match(name, PolicyConstraintsType.F_OBJECT_TIME_VALIDITY)
 				|| QNameUtil.match(name, PolicyConstraintsType.F_OBJECT_MIN_ASSIGNEES_VIOLATION)

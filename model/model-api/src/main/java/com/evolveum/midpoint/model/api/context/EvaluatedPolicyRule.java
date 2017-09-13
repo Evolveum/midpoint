@@ -37,7 +37,7 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 	}
 
 	/**
-	 * Returns all triggers, even those that were indirectly "collected" via situation policy rules.
+	 * Returns all triggers, even those that were indirectly collected via situation policy rules.
 	 */
 	@NotNull
 	Collection<EvaluatedPolicyRuleTrigger<?>> getAllTriggers();
@@ -46,20 +46,20 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 
 	PolicyRuleType getPolicyRule();
 
+	PolicyConstraintsType getPolicyConstraints();
+
+	PolicyActionsType getActions();
+
 	AssignmentPath getAssignmentPath();
 
 	/**
 	 * Object that "directly owns" the rule. TODO. [consider if really needed]
-	 * @return
 	 */
 	@Nullable
 	ObjectType getDirectOwner();
 
-	PolicyConstraintsType getPolicyConstraints();
-
+	// TODO consider removing
 	String getPolicySituation();
-
-	PolicyActionsType getActions();
 
 	Collection<PolicyExceptionType> getPolicyExceptions();
 

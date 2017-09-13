@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedHasAssignmentTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentTargetImpl;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -38,6 +40,8 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.evolveum.midpoint.util.LocalizableMessageBuilder.*;
 
 /**
  * @author mederly
@@ -101,8 +105,8 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 				if (ExclusionConstraintEvaluator.matches(constraint.getTargetRef(), target, prismContext, matchingRuleRegistry, "hasAssignment constraint")) {
 					if (shouldExist) {
 						// TODO more specific trigger, containing information on matching assignment; see ExclusionConstraintEvaluator
-						return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.HAS_ASSIGNMENT, constraint,
-								"Assignment exists for " + ObjectTypeUtil.toShortString(target.getTarget()) + " (" + ctx.state + ")");
+						return new EvaluatedHasAssignmentTrigger(PolicyConstraintKindType.HAS_ASSIGNMENT, constraint,
+								buildFallbackMessage("Assignment exists for " + ObjectTypeUtil.toShortString(target.getTarget()) + " (" + ctx.state + ")"));
 					}
 				}
 			}
@@ -114,14 +118,14 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 		if (shouldExist) {
 			return null;
 		} else if (constraint.getTargetRef().getOid() != null) {
-			return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint,
-					"No relevant assignment exists for " +
+			return new EvaluatedHasAssignmentTrigger(PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint,
+					buildFallbackMessage("No relevant assignment exists for " +
 							(constraint.getTargetRef().getType() != null ? constraint.getTargetRef().getType().getLocalPart() + " " : "") +
-							(constraint.getTargetRef().getTargetName() != null ? constraint.getTargetRef().getTargetName() : constraint.getTargetRef().getOid()));
+							(constraint.getTargetRef().getTargetName() != null ? constraint.getTargetRef().getTargetName() : constraint.getTargetRef().getOid())));
 			// (actually, targetName seems to be always null, even if specified in the policy rule)
 		} else {
-			return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint,
-					"No relevant assignment exists" + (constraint.getName() != null ? " (" + constraint.getName() + ")" : ""));
+			return new EvaluatedHasAssignmentTrigger(PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint,
+					buildFallbackMessage("No relevant assignment exists" + (constraint.getName() != null ? " (" + constraint.getName() + ")" : "")));
 		}
 	}
 

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedModificationTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -67,8 +69,9 @@ public class ModificationConstraintEvaluator implements PolicyConstraintEvaluato
 			} else {
 				verb = "is being (or was)";		// TODO derive more precise information from executed deltas, if needed
 			}
-			return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.OBJECT_MODIFICATION,
-					constraint.getValue(), "Object "+ ObjectTypeUtil.toShortString(ctx.focusContext.getObjectAny())+" " + verb + " " + ctx.focusContext.getOperation().getPastTense());
+			return new EvaluatedModificationTrigger(PolicyConstraintKindType.OBJECT_MODIFICATION,
+					constraint.getValue(),
+					LocalizableMessageBuilder.buildFallbackMessage("Object "+ ObjectTypeUtil.toShortString(ctx.focusContext.getObjectAny())+" " + verb + " " + ctx.focusContext.getOperation().getPastTense()));
 		} else {
 			return null;
 		}

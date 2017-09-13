@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedMultiplicityTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
@@ -47,6 +48,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
+import static com.evolveum.midpoint.util.LocalizableMessageBuilder.buildFallbackMessage;
 
 /**
  * @author semancik
@@ -96,9 +98,9 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 			for (QName relationToCheck : relationsToCheck) {
 				int currentAssignees = getNumberOfAssigneesExceptMyself(targetRole, null, relationToCheck, result);
 				if (currentAssignees < requiredMultiplicity) {
-					return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
-							constraint.getValue(), ObjectTypeUtil.toShortString(target) + " requires at least " + requiredMultiplicity
-							+ " assignees with the relation of '" + relationToCheck.getLocalPart() + "'");
+					return new EvaluatedMultiplicityTrigger(PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
+							constraint.getValue(), buildFallbackMessage(ObjectTypeUtil.toShortString(target) + " requires at least " + requiredMultiplicity
+							+ " assignees with the relation of '" + relationToCheck.getLocalPart() + "'"));
 				}
 			}
 			return null;
@@ -110,9 +112,9 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 			for (QName relationToCheck : relationsToCheck) {
 				int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, null, relationToCheck, result);
 				if (currentAssigneesExceptMyself >= requiredMultiplicity) {
-					return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
-							constraint.getValue(), ObjectTypeUtil.toShortString(target) + " requires at most " + requiredMultiplicity +
-							" assignees with the relation of '" + relationToCheck.getLocalPart() + "'");
+					return new EvaluatedMultiplicityTrigger(PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
+							constraint.getValue(), buildFallbackMessage(ObjectTypeUtil.toShortString(target) + " requires at most " + requiredMultiplicity +
+							" assignees with the relation of '" + relationToCheck.getLocalPart() + "'"));
 				}
 			}
 			return null;
@@ -160,10 +162,10 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 			// Complain only if the situation is getting worse
 			int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, focusOid, relation, result);
 			if (currentAssigneesExceptMyself < requiredMultiplicity && plusMinus == PlusMinusZero.MINUS) {
-				return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
-						constraint.getValue(), ObjectTypeUtil.toShortString(targetRole) + " requires at least " + requiredMultiplicity
+				return new EvaluatedMultiplicityTrigger(PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
+						constraint.getValue(), buildFallbackMessage(ObjectTypeUtil.toShortString(targetRole) + " requires at least " + requiredMultiplicity
 						+ " assignees with the relation of '" + relation.getLocalPart()
-						+ "'. The operation would result in " + currentAssigneesExceptMyself + " assignees.");
+						+ "'. The operation would result in " + currentAssigneesExceptMyself + " assignees."));
 			} else {
 				return null;
 			}
@@ -175,10 +177,10 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 			// Complain only if the situation is getting worse
 			int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, focusOid, relation, result);
 			if (currentAssigneesExceptMyself >= requiredMultiplicity && plusMinus == PLUS) {
-				return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
-						constraint.getValue(), ObjectTypeUtil.toShortString(targetRole) + " requires at most " + requiredMultiplicity +
+				return new EvaluatedMultiplicityTrigger(PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
+						constraint.getValue(), buildFallbackMessage(ObjectTypeUtil.toShortString(targetRole) + " requires at most " + requiredMultiplicity +
 						" assignees with the relation of '" + relation.getLocalPart()
-						+ "'. The operation would result in " + (currentAssigneesExceptMyself + 1) + " assignees.");
+						+ "'. The operation would result in " + (currentAssigneesExceptMyself + 1) + " assignees."));
 			}
 		}
 		return null;

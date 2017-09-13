@@ -25,6 +25,7 @@ import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import static com.evolveum.midpoint.schema.util.LocalizationUtil.toLocalizableMessageType;
 
 /**
  * Hook used to enforce the policy rules that have the enforce action.
@@ -70,7 +73,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
     }
 
     private class EvaluationContext {
-		private final List<String> messages = new ArrayList<>();
+		private final List<LocalizableMessage> messages = new ArrayList<>();
     }
 
 	/* (non-Javadoc)
@@ -83,7 +86,10 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		if (context.getState() == ModelState.PRIMARY) {
 			EvaluationContext evalCtx = invokeInternal(context, task, result);
 			if (!evalCtx.messages.isEmpty()) {
-				String compositeMessage = evalCtx.messages.stream().collect(Collectors.joining("; "));
+				// TODO localizable - correctly join the messages!
+				String compositeMessage = evalCtx.messages.stream()
+						.map(m -> m.getFallbackMessage())
+						.collect(Collectors.joining("; "));
 				throw new PolicyViolationException(compositeMessage);
 			}
         }
@@ -96,7 +102,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		// TODO check partial processing option (after it will be implemented)
 		PolicyRuleEnforcerHookPreviewOutputType output = new PolicyRuleEnforcerHookPreviewOutputType(prismContext);
 		EvaluationContext evalCtx = invokeInternal(context, task, result);
-		output.getExceptionMessage().addAll(evalCtx.messages);
+		evalCtx.messages.forEach(m -> output.getExceptionMessage().add(toLocalizableMessageType(m)));
 		((LensContext) context).addHookPreviewResults(HOOK_URI, Collections.singletonList(output));
 	}
 

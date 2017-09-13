@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * TODO
@@ -93,7 +92,7 @@ class AdditionalInformationGenerator {
 			return;
 		}
 		InformationType info = new InformationType();
-		info.setTitle(LocalizationUtil.resolve("AdditionalInformationGenerator.exclusionsTitle"));
+		info.setTitle(LocalizationUtil.forKey("AdditionalInformationGenerator.exclusionsTitle"));
 		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
 			EvaluatedExclusionTriggerType exclusion = (EvaluatedExclusionTriggerType) trigger;
 			InformationPartType part = new InformationPartType();
@@ -111,7 +110,7 @@ class AdditionalInformationGenerator {
 				sb.append(" (").append(conflictingPathInfo).append(")");
 			}
 			sb.append(".");
-			part.setText(sb.toString());
+			part.setText(LocalizationUtil.forFallbackMessage(sb.toString()));   // TODO localizable
 			info.getPart().add(part);
 		}
 		infoList.add(info);
@@ -123,7 +122,7 @@ class AdditionalInformationGenerator {
 			return;
 		}
 		InformationType info = new InformationType();
-		info.setTitle(LocalizationUtil.resolve("AdditionalInformationGenerator.notes"));
+		info.setTitle(LocalizationUtil.forKey("AdditionalInformationGenerator.notes"));
 		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
 			InformationPartType part = new InformationPartType();
 			part.setText(trigger.getMessage());
@@ -132,22 +131,22 @@ class AdditionalInformationGenerator {
 		infoList.add(info);
 	}
 
-	private Stream<String> getRuleMessages(EvaluatedPolicyRuleType rule) {
-		if (rule == null) {
-			return null;
-		}
-		return rule.getTrigger().stream()
-				.flatMap(this::getTriggerMessages);
-	}
-
-	private Stream<String> getTriggerMessages(EvaluatedPolicyRuleTriggerType t) {
-		if (t instanceof EvaluatedSituationTriggerType) {
-			return ((EvaluatedSituationTriggerType) t).getSourceRule().stream()
-					.flatMap(this::getRuleMessages);
-		} else {
-			return t.getMessage() != null ? Stream.of(t.getMessage()) : Stream.empty();
-		}
-	}
+//	private Stream<String> getRuleMessages(EvaluatedPolicyRuleType rule) {
+//		if (rule == null) {
+//			return null;
+//		}
+//		return rule.getTrigger().stream()
+//				.flatMap(this::getTriggerMessages);
+//	}
+//
+//	private Stream<String> getTriggerMessages(EvaluatedPolicyRuleTriggerType t) {
+//		if (t instanceof EvaluatedSituationTriggerType) {
+//			return ((EvaluatedSituationTriggerType) t).getSourceRule().stream()
+//					.flatMap(this::getRuleMessages);
+//		} else {
+//			return t.getMessage() != null ? Stream.of(t.getMessage()) : Stream.empty();
+//		}
+//	}
 
 	private String getObjectTypeAndName(ObjectReferenceType ref, PolyStringType displayNamePoly) {
 		String name = PolyString.getOrig(ref.getTargetName());
