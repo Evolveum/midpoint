@@ -18,22 +18,28 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedModificationTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentModificationPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.Collections;
 import java.util.List;
-
-import static com.evolveum.midpoint.util.LocalizableMessageBuilder.buildFallbackMessage;
 
 /**
  * @author semancik
@@ -42,9 +48,14 @@ import static com.evolveum.midpoint.util.LocalizableMessageBuilder.buildFallback
 @Component
 public class AssignmentConstraintEvaluator implements PolicyConstraintEvaluator<AssignmentModificationPolicyConstraintType> {
 
+	private static final String CONSTRAINT_KEY_PREFIX = "assignmentModification.";
+
+	@Autowired private ConstraintEvaluatorHelper evaluatorHelper;
+
 	@Override
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<AssignmentModificationPolicyConstraintType> constraintElement,
-			PolicyRuleEvaluationContext<F> rctx, OperationResult result) {
+			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		AssignmentModificationPolicyConstraintType constraint = constraintElement.getValue();
 		if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
 			return null;
@@ -57,11 +68,37 @@ public class AssignmentConstraintEvaluator implements PolicyConstraintEvaluator<
 				if (MiscSchemaUtil.compareRelation(constraintRelation, ctx.evaluatedAssignment.getRelation())) {
 					return new EvaluatedModificationTrigger(
 							PolicyConstraintKindType.ASSIGNMENT_MODIFICATION,
-							constraint, buildFallbackMessage("Assignment of " + ctx.evaluatedAssignment.getTarget()));  // TODO
+							constraint, createMessage(constraintElement, ctx, result));
 				}
 			}
 		}
 		return null;
+	}
+
+	private <F extends FocusType> LocalizableMessage createMessage(JAXBElement<AssignmentModificationPolicyConstraintType> constraint,
+			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		ModelState state = ctx.lensContext.getState();
+		String stateKey;
+		if (state == ModelState.INITIAL || state == ModelState.PRIMARY) {
+			stateKey = "toBe";
+		} else {
+			stateKey = "was";
+			// TODO derive more precise information from executed deltas, if needed
+		}
+		if (ctx.inPlus) {
+			stateKey += "Added";
+		} else if (ctx.inMinus) {
+			stateKey += "Deleted";
+		} else{
+			stateKey += "Modified";
+		}
+		LocalizableMessage defaultMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + stateKey)
+				.args(evaluatorHelper.createObjectSpecification(ctx.evaluatedAssignment.getTarget()),
+						ctx.evaluatedAssignment.getRelation() != null ? ctx.evaluatedAssignment.getRelation().getLocalPart() : null)
+				.build();
+		return evaluatorHelper.createLocalizableMessage(constraint.getValue(), ctx, defaultMessage, result);
 	}
 
 	private boolean matchesOperation(AssignmentModificationPolicyConstraintType constraint, boolean inPlus, boolean inMinus) {

@@ -48,7 +48,7 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import static com.evolveum.midpoint.schema.util.LocalizationUtil.toLocalizableMessageType;
+import static com.evolveum.midpoint.schema.util.LocalizationUtil.createLocalizableMessageType;
 
 /**
  * Hook used to enforce the policy rules that have the enforce action.
@@ -102,7 +102,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		// TODO check partial processing option (after it will be implemented)
 		PolicyRuleEnforcerHookPreviewOutputType output = new PolicyRuleEnforcerHookPreviewOutputType(prismContext);
 		EvaluationContext evalCtx = invokeInternal(context, task, result);
-		evalCtx.messages.forEach(m -> output.getExceptionMessage().add(toLocalizableMessageType(m)));
+		evalCtx.messages.forEach(m -> output.getExceptionMessage().add(createLocalizableMessageType(m)));
 		((LensContext) context).addHookPreviewResults(HOOK_URI, Collections.singletonList(output));
 	}
 

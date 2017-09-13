@@ -531,7 +531,13 @@ public abstract class SchemaConstants {
 	public static final String USER_ID = "user";
 	public static final String TOKEN = "token";
 
-//	// resetPassword
+	public static final String OBJECT_TYPE_KEY_PREFIX = "ObjectType.";
+	public static final String DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX = "DefaultPolicyConstraint.";
+	public static final String POLICY_CONSTRAINT_KEY_PREFIX = "PolicyConstraint.";
+	public static final String POLICY_CONSTRAINTS_BEFORE_KEY = "PolicyConstraints.before";
+	public static final String POLICY_CONSTRAINTS_AFTER_KEY = "PolicyConstraints.after";
+
+	//	// resetPassword
 //	public static final String RESET_PASSWORD_ID = "user";
 //	public static final String RESET_PASSWORD_TOKEN = "token";
 }

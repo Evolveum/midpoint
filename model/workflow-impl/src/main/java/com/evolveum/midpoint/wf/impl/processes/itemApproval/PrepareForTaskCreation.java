@@ -103,7 +103,7 @@ public class PrepareForTaskCreation implements JavaDelegate {
 			InformationType info = new InformationType();
 			for (Object o : data) {
 				InformationPartType part = new InformationPartType();
-				part.setText(LocalizationUtil.forFallbackMessage((String) o));
+				part.setText(LocalizationUtil.createForFallbackMessage((String) o));
 				info.getPart().add(part);
 			}
 			return Collections.singletonList(info);

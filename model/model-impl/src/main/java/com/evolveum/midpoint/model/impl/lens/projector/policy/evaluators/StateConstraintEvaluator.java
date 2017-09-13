@@ -18,44 +18,35 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedStateTrigger;
-import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StatePolicyConstraintType;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
-import java.util.List;
-import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.util.LocalizableMessageBuilder.buildFallbackMessage;
-import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.ASSIGNMENT_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.OBJECT_STATE;
 
@@ -67,9 +58,15 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 
 	private static final Trace LOGGER = TraceManager.getTrace(StateConstraintEvaluator.class);
 
+	private static final String OBJECT_CONSTRAINT_KEY_PREFIX = "objectState.";
+	private static final String ASSIGNMENT_CONSTRAINT_KEY_PREFIX = "assignmentState.";
+	private static final String KEY_NAMED = "named";
+	private static final String KEY_UNNAMED = "unnamed";
+
 	@Autowired private PrismContext prismContext;
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
 	@Autowired protected ExpressionFactory expressionFactory;
+	@Autowired protected ConstraintEvaluatorHelper evaluatorHelper;
 
 	@Override
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluate(JAXBElement<StatePolicyConstraintType> constraint,
@@ -110,14 +107,12 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 			}
 		}
 		if (match && constraint.getExpression() != null) {
-			match = isConstraintSatisfied(constraint.getExpression(), createExpressionVariables(ctx),
-					"expression in focus state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result);
+			match = evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx),
+					"expression in object state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result);
 		}
 
 		if (match) {
-			return new EvaluatedStateTrigger(
-					OBJECT_STATE, constraint, buildFallbackMessage("Focus state ("+ ctx.state + ") matches " +
-					(constraint.getName() != null ? "constraint '" + constraint.getName() + "'" : "the constraint")));
+			return new EvaluatedStateTrigger(OBJECT_STATE, constraint, createMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result));
 		}
 		return null;
 	}
@@ -134,48 +129,31 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 		if (!ctx.isApplicableToState()) {
 			return null;
 		}
-		boolean match = isConstraintSatisfied(constraint.getExpression(), createExpressionVariables(ctx),
+		boolean match = evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx),
 				"expression in assignment state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result);
 		if (match) {
-			return new EvaluatedStateTrigger(ASSIGNMENT_STATE, constraint, buildFallbackMessage("Assignment state ("+ ctx.state + ") matches " +
-					(constraint.getName() != null ? "constraint '" + constraint.getName() + "'" : "the constraint")));
+			return new EvaluatedStateTrigger(ASSIGNMENT_STATE, constraint, createMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result));
 		}
 		return null;
 	}
 
-	private <F extends FocusType> ExpressionVariables createExpressionVariables(PolicyRuleEvaluationContext<F> rctx) {
-		ExpressionVariables var = new ExpressionVariables();
-		PrismObject<F> object = rctx.getObject();
-		var.addVariableDefinition(ExpressionConstants.VAR_USER, object);
-		var.addVariableDefinition(ExpressionConstants.VAR_FOCUS, object);
-		var.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object);
-		if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
-			AssignmentPolicyRuleEvaluationContext actx = (AssignmentPolicyRuleEvaluationContext<F>) rctx;
-			var.addVariableDefinition(ExpressionConstants.VAR_TARGET, actx.evaluatedAssignment.getTarget());
-			var.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment);
-			var.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, actx.evaluatedAssignment.getAssignmentType(actx.state == ObjectState.BEFORE));
+	@NotNull
+	private <F extends FocusType> LocalizableMessage createMessage(String constraintKeyPrefix,
+			StatePolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		List<Object> args = new ArrayList<>();
+		args.add(evaluatorHelper.createBeforeAfterMessage(ctx));
+		String keySuffix;
+		if (constraint.getName() != null) {
+			args.add(constraint.getName());
+			keySuffix = KEY_NAMED;
 		} else {
-			var.addVariableDefinition(ExpressionConstants.VAR_TARGET, null);
-			var.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null);
-			var.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, null);
+			keySuffix = KEY_UNNAMED;
 		}
-		return var;
+		LocalizableMessage defaultMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + constraintKeyPrefix + keySuffix)
+				.args(args)
+				.build();
+		return evaluatorHelper.createLocalizableMessage(constraint, ctx, defaultMessage, result);
 	}
-
-	private boolean isConstraintSatisfied(ExpressionType expressionBean, ExpressionVariables expressionVariables,
-			String contextDescription, Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
-		PrismPropertyDefinition<Boolean> resultDef = new PrismPropertyDefinitionImpl<>(
-				new QName(SchemaConstants.NS_C, "result"), DOMUtil.XSD_BOOLEAN, prismContext);
-		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression =
-				expressionFactory.makeExpression(expressionBean, resultDef, contextDescription, task, result);
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, expressionVariables, contextDescription, task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = ModelExpressionThreadLocalHolder
-				.evaluateExpressionInContext(expression, context, task, result);
-		List<Boolean> results = exprResultTriple.getZeroSet().stream()
-				.map(ppv -> (Boolean) ppv.getRealValue())
-				.collect(Collectors.toList());
-		return getSingleValue(results, false, contextDescription);
-	}
-
 }

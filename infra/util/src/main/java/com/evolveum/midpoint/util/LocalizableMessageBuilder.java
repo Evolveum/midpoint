@@ -26,29 +26,39 @@ public class LocalizableMessageBuilder {
 	private String key;
 	private Object[] args;
 	private String fallbackMessage;
+	private LocalizableMessage fallbackLocalizableMessage;
 
 	public LocalizableMessageBuilder() {
 		super();
 	}
 
-	public void key(String key) {
+	public LocalizableMessageBuilder key(String key) {
 		this.key = key;
+		return this;
 	}
 
 	public static LocalizableMessage buildKey(String key) {
-		return new LocalizableMessage(key, null, null);
+		return new LocalizableMessage(key, null, (LocalizableMessage) null);
 	}
 
-	public void args(Object... args) {
+	public LocalizableMessageBuilder args(Object... args) {
 		this.args = args;
+		return this;
 	}
 
-	public void args(List<Object> args) {
+	public LocalizableMessageBuilder args(List<Object> args) {
 		this.args = args.toArray();
+		return this;
 	}
 
-	public void fallbackMessage(String fallbackMessage) {
+	public LocalizableMessageBuilder fallbackMessage(String fallbackMessage) {
 		this.fallbackMessage = fallbackMessage;
+		return this;
+	}
+
+	public LocalizableMessageBuilder fallbackLocalizableMessage(LocalizableMessage fallbackLocalizableMessage) {
+		this.fallbackLocalizableMessage = fallbackLocalizableMessage;
+		return this;
 	}
 
 	public static LocalizableMessage buildFallbackMessage(String fallbackMessage) {
@@ -56,6 +66,13 @@ public class LocalizableMessageBuilder {
 	}
 
 	public LocalizableMessage build() {
-		return new LocalizableMessage(key, args, fallbackMessage);
+		if (fallbackMessage != null) {
+			if (fallbackLocalizableMessage != null) {
+				throw new IllegalStateException("fallbackMessage and fallbackLocalizableMessage cannot be both set");
+			}
+			return new LocalizableMessage(key, args, fallbackMessage);
+		} else {
+			return new LocalizableMessage(key, args, fallbackLocalizableMessage);
+		}
 	}
 }

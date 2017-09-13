@@ -25,17 +25,19 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluati
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModificationPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
@@ -50,9 +52,14 @@ public class ModificationConstraintEvaluator implements PolicyConstraintEvaluato
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModificationConstraintEvaluator.class);
 
+	private static final String CONSTRAINT_KEY_PREFIX = "objectModification.";
+
+	@Autowired private ConstraintEvaluatorHelper evaluatorHelper;
+
 	@Override
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluate(JAXBElement<ModificationPolicyConstraintType> constraint,
-			PolicyRuleEvaluationContext<F> rctx, OperationResult result) throws SchemaException {
+			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
 		if (!(rctx instanceof ObjectPolicyRuleEvaluationContext)) {
 			return null;
@@ -60,21 +67,36 @@ public class ModificationConstraintEvaluator implements PolicyConstraintEvaluato
 		ObjectPolicyRuleEvaluationContext<F> ctx = (ObjectPolicyRuleEvaluationContext<F>) rctx;
 
 		if (modificationConstraintMatches(constraint.getValue(), ctx)) {
-			ModelState state = rctx.lensContext.getState();
-			String verb;
-			if (state == ModelState.INITIAL || state == ModelState.PRIMARY) {
-				verb = "is about to be";
-			} else if (state == ModelState.FINAL) {
-				verb = "was";
-			} else {
-				verb = "is being (or was)";		// TODO derive more precise information from executed deltas, if needed
-			}
-			return new EvaluatedModificationTrigger(PolicyConstraintKindType.OBJECT_MODIFICATION,
-					constraint.getValue(),
-					LocalizableMessageBuilder.buildFallbackMessage("Object "+ ObjectTypeUtil.toShortString(ctx.focusContext.getObjectAny())+" " + verb + " " + ctx.focusContext.getOperation().getPastTense()));
+			LocalizableMessage message = createMessage(constraint, rctx, result);
+			return new EvaluatedModificationTrigger(PolicyConstraintKindType.OBJECT_MODIFICATION, constraint.getValue(), message);
 		} else {
 			return null;
 		}
+	}
+
+	private <F extends FocusType> LocalizableMessage createMessage(JAXBElement<ModificationPolicyConstraintType> constraint,
+			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		ModelState state = rctx.lensContext.getState();
+		String stateKey;
+		if (state == ModelState.INITIAL || state == ModelState.PRIMARY) {
+			stateKey = "toBe";
+		} else {
+			stateKey = "was";
+			// TODO derive more precise information from executed deltas, if needed
+		}
+		if (rctx.focusContext.isAdd()) {
+			stateKey += "Added";
+		} else if (rctx.focusContext.isDelete()) {
+			stateKey += "Deleted";
+		} else{
+			stateKey += "Modified";
+		}
+		LocalizableMessage defaultMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + stateKey)
+				.args(evaluatorHelper.createObjectSpecification(rctx.focusContext.getObjectAny()))
+				.build();
+		return evaluatorHelper.createLocalizableMessage(constraint.getValue(), rctx, defaultMessage, result);
 	}
 
 	private <F extends FocusType> boolean modificationConstraintMatches(ModificationPolicyConstraintType constraint,

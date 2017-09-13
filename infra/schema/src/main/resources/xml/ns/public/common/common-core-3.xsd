@@ -16918,7 +16918,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:choice>
-			<xsd:element name="value" type="xsd:anySimpleType">
+			<xsd:element name="value" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
 						Literal value.

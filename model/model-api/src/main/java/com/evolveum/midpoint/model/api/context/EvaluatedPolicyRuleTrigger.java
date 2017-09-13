@@ -124,7 +124,7 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 		tt.setRuleName(owningRule.getName());
 		tt.setConstraintKind(constraintKind);
 		//tt.setConstraint(constraint);
-		tt.setMessage(LocalizationUtil.toLocalizableMessageType(message));
+		tt.setMessage(LocalizationUtil.createLocalizableMessageType(message));
 		if (owningRule.getAssignmentPath() != null) {
 			tt.setAssignmentPath(owningRule.getAssignmentPath().toAssignmentPathType());
 		}
