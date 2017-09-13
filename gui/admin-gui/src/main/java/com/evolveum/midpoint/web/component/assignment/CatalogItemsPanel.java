@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.data.*;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
@@ -71,27 +72,22 @@ public class CatalogItemsPanel<P extends BaseSortableDataProvider> extends BaseP
     private static final String ID_DETAILS_LINK = "detailsLink";
     private static final String ID_DETAILS_LINK_LABEL = "detailsLinkLabel";
     private static final String ID_DETAILS_LINK_ICON = "detailsLinkIcon";
-
-    private long itemsCount = 0;
     private boolean plusIconClicked = false;
 
-    private int itemsPerRow = 4;
     private static final long DEFAULT_ROWS_COUNT = 5;
+    private static final long DEFAULT_ITEMS_PER_ROW_COUNT = 4;
     private IModel<String> catalogOidModel;
     private long currentPage = 0;
 
 
-    public CatalogItemsPanel(String id, IModel<P> providerModel, int itemsPerRow) {
+    public CatalogItemsPanel(String id, IModel<P> providerModel) {
         super(id, providerModel);
-        this.catalogOidModel = Model.of(getSession().getSessionStorage().getRoleCatalog().getSelectedOid());
-        if (itemsPerRow > 0){
-            this.itemsPerRow = itemsPerRow;
-        }
     }
 
     @Override
     protected void onInitialize(){
         super.onInitialize();
+        this.catalogOidModel = Model.of(getSession().getSessionStorage().getRoleCatalog().getSelectedOid());
         setCurrentPage(0);
         initLayout();
     }
@@ -103,12 +99,12 @@ public class CatalogItemsPanel<P extends BaseSortableDataProvider> extends BaseP
     }
 
     private void initAssignmentItemsPanel(){
-        itemsCount = getModel() != null ? (getModel().getObject() != null ? getModel().getObject().size() : 0) : 0;
+        int providerSize = getModelObject() != null ? getModelObject().getAvailableData().size() : 0;
         RepeatingView rows = new RepeatingView(ID_ROW);
         rows.setOutputMarkupId(true);
-        if (itemsCount > 0 && itemsPerRow > 0){
+        if (providerSize > 0){
             int index = 0;
-            long rowCount = itemsCount % itemsPerRow == 0 ? (itemsCount / itemsPerRow) : (itemsCount / itemsPerRow + 1);
+            long rowCount = providerSize % DEFAULT_ITEMS_PER_ROW_COUNT == 0 ? (providerSize / DEFAULT_ITEMS_PER_ROW_COUNT) : (providerSize / DEFAULT_ITEMS_PER_ROW_COUNT + 1);
             for (int rowNumber = 0; rowNumber < rowCount; rowNumber++){
                 WebMarkupContainer rowContainer = new WebMarkupContainer(rows.newChildId());
                 rowContainer.setOutputMarkupId(true);
@@ -116,7 +112,7 @@ public class CatalogItemsPanel<P extends BaseSortableDataProvider> extends BaseP
                 RepeatingView columns = new RepeatingView(ID_CELL);
                 columns.setOutputMarkupId(true);
                 rowContainer.add(columns);
-                for (int colNumber = 0; colNumber < itemsPerRow; colNumber++){
+                for (int colNumber = 0; colNumber < DEFAULT_ITEMS_PER_ROW_COUNT; colNumber++){
                     WebMarkupContainer colContainer = new WebMarkupContainer(columns.newChildId());
                     colContainer.setOutputMarkupId(true);
                     columns.add(colContainer);
@@ -137,13 +133,13 @@ public class CatalogItemsPanel<P extends BaseSortableDataProvider> extends BaseP
         add(rows);
     }
 
-    public void reloadProviderData() {
+    private void reloadProviderData() {
             if (getModelObject() != null) {
                 if (getModelObject().getAvailableData() != null) {
                     getModelObject().getAvailableData().clear();
                 }
-                long from = currentPage * itemsPerRow * DEFAULT_ROWS_COUNT;
-                getModelObject().internalIterator(from, itemsPerRow * DEFAULT_ROWS_COUNT);
+                long from = currentPage * DEFAULT_ITEMS_PER_ROW_COUNT * DEFAULT_ROWS_COUNT;
+                getModelObject().internalIterator(from, DEFAULT_ITEMS_PER_ROW_COUNT * DEFAULT_ROWS_COUNT);
             }
     }
 
@@ -152,7 +148,7 @@ public class CatalogItemsPanel<P extends BaseSortableDataProvider> extends BaseP
         footer.add(new VisibleEnableBehaviour(){
            @Override
             public boolean isVisible(){
-               return !isCatalogOidEmpty() && getPageCount() > 1;
+               return getPageCount() > 1;
            }
         });
         return footer;
@@ -199,11 +195,11 @@ public class CatalogItemsPanel<P extends BaseSortableDataProvider> extends BaseP
     @Override
     public void setCurrentPage(long page) {
         currentPage = page;
-        long from  = page * itemsPerRow * DEFAULT_ROWS_COUNT;
+        long from  = page * DEFAULT_ITEMS_PER_ROW_COUNT * DEFAULT_ROWS_COUNT;
         if (getModelObject().getAvailableData() != null) {
             getModelObject().getAvailableData().clear();
         }
-        getModelObject().internalIterator(from, itemsPerRow * DEFAULT_ROWS_COUNT);
+        getModelObject().internalIterator(from, DEFAULT_ITEMS_PER_ROW_COUNT * DEFAULT_ROWS_COUNT);
     }
 
     @Override
@@ -227,21 +223,12 @@ public class CatalogItemsPanel<P extends BaseSortableDataProvider> extends BaseP
 
     @Override
     public long getItemsPerPage() {
-        return DEFAULT_ROWS_COUNT * itemsPerRow;
+        return DEFAULT_ROWS_COUNT * DEFAULT_ITEMS_PER_ROW_COUNT;
     }
 
     @Override
     public long getItemCount() {
         return 0l;
-    }
-
-    private boolean isCatalogOidEmpty(){
-        return AssignmentViewType.ROLE_CATALOG_VIEW.equals(getViewTypeFromSession()) &&
-                (catalogOidModel == null || StringUtils.isEmpty(catalogOidModel.getObject()));
-    }
-
-    private AssignmentViewType getViewTypeFromSession(){
-        return getSession().getSessionStorage().getRoleCatalog().getShoppingCartConfigurationDto().getDefaultViewType();
     }
 
     private IModel<String> getAlreadyAssignedIconTitleModel(AssignmentEditorDto dto) {
@@ -448,7 +435,7 @@ public class CatalogItemsPanel<P extends BaseSortableDataProvider> extends BaseP
         addToCartLink.add(addToCartLinkIcon);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_TYPE_ICON);
-        icon.add(new AttributeAppender("class", getIconClass(assignmentModel.getObject().getType())));
+        icon.add(new AttributeAppender("class", WebComponentUtil.createDefaultBlackIcon(assignmentModel.getObject().getType().getQname())));
         cellContainer.add(icon);
 
         WebMarkupContainer alreadyAssignedIcon = new WebMarkupContainer(ID_ALREADY_ASSIGNED_ICON);

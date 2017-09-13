@@ -99,7 +99,6 @@ public class PageAssignmentShoppingKart extends PageSelf {
     private static final String ID_SEARCH = "search";
     private static final String ID_TARGET_USER_PANEL = "targetUserPanel";
     private static final String DOT_CLASS = PageAssignmentShoppingKart.class.getName() + ".";
-    private static final int ITEMS_PER_ROW = 4;
 
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
     private static final String OPERATION_GET_ASSIGNMENT_VIEW_LIST = DOT_CLASS + "getRoleCatalogViewsList";
@@ -120,6 +119,9 @@ public class PageAssignmentShoppingKart extends PageSelf {
         if (getRoleCatalogStorage().getShoppingCartConfigurationDto() == null){
             initShoppingCartConfigurationDto();
             getRoleCatalogStorage().setShoppingCartConfigurationDto(shoppingCartConfigurationDto);
+        }
+        if (StringUtils.isEmpty(getRoleCatalogStorage().getSelectedOid())){
+            getRoleCatalogStorage().setSelectedOid(shoppingCartConfigurationDto.getRoleCatalogOid());
         }
         initModels();
         initProvider();
@@ -180,27 +182,8 @@ public class PageAssignmentShoppingKart extends PageSelf {
             private static final long serialVersionUID = 1L;
             @Override
             public Search load() {
-                Class searchType;
                 AssignmentViewType viewType =  viewTypeModel.getObject();
-                switch (viewType){
-                    case ROLE_TYPE:
-                        searchType = RoleType.class;
-                        break;
-                    case SERVICE_TYPE:
-                        searchType = ServiceType.class;
-                        break;
-                    case ORG_TYPE:
-                        searchType = OrgType.class;
-                        break;
-                    case ROLE_CATALOG_VIEW:
-                    case USER_TYPE:
-                        searchType = AbstractRoleType.class;
-                        break;
-                    default:
-                        searchType = AbstractRoleType.class;
-                }
-                Search search = SearchFactory.createSearch(searchType, PageAssignmentShoppingKart.this);
-                return search;
+                return SearchFactory.createSearch(viewType.getType(), PageAssignmentShoppingKart.this);
             }
         };
     }
@@ -333,7 +316,7 @@ public class PageAssignmentShoppingKart extends PageSelf {
             public BaseSortableDataProvider getObject(){
                 return provider;
             }
-        }, ITEMS_PER_ROW);
+        });
         catalogItemsPanelContainer.add(getCatalogItemsPanelClassAppender());
         catalogItemsPanel.setOutputMarkupId(true);
         catalogItemsPanelContainer.add(catalogItemsPanel);
@@ -502,11 +485,6 @@ public class PageAssignmentShoppingKart extends PageSelf {
                 navigateToNext(new PageAssignmentsList(true));
             }
         };
-//        cartButton.add(new VisibleEnableBehaviour(){
-//            public boolean isVisible(){
-//                return !isCatalogOidEmpty();
-//            }
-//        });
         cartButton.setOutputMarkupId(true);
         headerPanel.add(cartButton);
 
@@ -521,11 +499,7 @@ public class PageAssignmentShoppingKart extends PageSelf {
         cartItemsCount.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                if (getRoleCatalogStorage().getAssignmentShoppingCart().size() == 0) {
-                    return false;
-                } else {
-                    return true;
-                }
+                return !(getRoleCatalogStorage().getAssignmentShoppingCart().size() == 0);
             }
         });
         cartItemsCount.setOutputMarkupId(true);
