@@ -23,13 +23,17 @@ import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,20 +45,22 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.evolveum.midpoint.util.LocalizableMessageBuilder.*;
-
 /**
  * @author mederly
  */
 @Component
 public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluator<HasAssignmentPolicyConstraintType> {
 
+	private static final String CONSTRAINT_KEY_POSITIVE = "hasAssignment";
+	private static final String CONSTRAINT_KEY_NEGATIVE = "hasNoAssignment";
+
+	@Autowired private ConstraintEvaluatorHelper evaluatorHelper;
 	@Autowired private PrismContext prismContext;
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
 	@Override
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
-			PolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException {
+			PolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
 		boolean shouldExist = QNameUtil.match(constraintElement.getName(), PolicyConstraintsType.F_HAS_ASSIGNMENT);
 		HasAssignmentPolicyConstraintType constraint = constraintElement.getValue();
@@ -64,7 +70,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 
 		DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = ctx.lensContext.getEvaluatedAssignmentTriple();
 		if (evaluatedAssignmentTriple == null) {
-			return createTriggerIfShouldNotExist(shouldExist, constraint);
+			return createTriggerIfShouldNotExist(shouldExist, constraint, ctx, result);
 		}
 		boolean allowMinus = ctx.state == ObjectState.BEFORE;
 		boolean allowZero = true;
@@ -106,26 +112,46 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 					if (shouldExist) {
 						// TODO more specific trigger, containing information on matching assignment; see ExclusionConstraintEvaluator
 						return new EvaluatedHasAssignmentTrigger(PolicyConstraintKindType.HAS_ASSIGNMENT, constraint,
-								buildFallbackMessage("Assignment exists for " + ObjectTypeUtil.toShortString(target.getTarget()) + " (" + ctx.state + ")"));
+								createPositiveMessage(constraint, ctx, target.getTarget(), result));
 					}
 				}
 			}
 		}
-		return createTriggerIfShouldNotExist(shouldExist, constraint);
+		return createTriggerIfShouldNotExist(shouldExist, constraint, ctx, result);
 	}
 
-	private EvaluatedPolicyRuleTrigger createTriggerIfShouldNotExist(boolean shouldExist, HasAssignmentPolicyConstraintType constraint) {
+	private <F extends FocusType> LocalizableMessage createPositiveMessage(HasAssignmentPolicyConstraintType constraint,
+			PolicyRuleEvaluationContext<F> ctx, PrismObject<?> target, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		LocalizableMessage defaultMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_POSITIVE)
+				.arg(evaluatorHelper.createObjectSpecification(target))
+				.arg(evaluatorHelper.createBeforeAfterMessage(ctx))
+				.build();
+		return evaluatorHelper.createLocalizableMessage(constraint, ctx, defaultMessage, result);
+	}
+
+	private <F extends FocusType> LocalizableMessage createNegativeMessage(HasAssignmentPolicyConstraintType constraint,
+			PolicyRuleEvaluationContext<F> ctx, QName targetType, String targetOid, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		LocalizableMessage defaultMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_NEGATIVE)
+				.arg(evaluatorHelper.createObjectTypeSpecification(targetType))
+				.arg(targetOid)
+				.arg(evaluatorHelper.createBeforeAfterMessage(ctx))
+				.build();
+		return evaluatorHelper.createLocalizableMessage(constraint, ctx, defaultMessage, result);
+	}
+
+	private EvaluatedPolicyRuleTrigger createTriggerIfShouldNotExist(boolean shouldExist,
+			HasAssignmentPolicyConstraintType constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		if (shouldExist) {
 			return null;
-		} else if (constraint.getTargetRef().getOid() != null) {
-			return new EvaluatedHasAssignmentTrigger(PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint,
-					buildFallbackMessage("No relevant assignment exists for " +
-							(constraint.getTargetRef().getType() != null ? constraint.getTargetRef().getType().getLocalPart() + " " : "") +
-							(constraint.getTargetRef().getTargetName() != null ? constraint.getTargetRef().getTargetName() : constraint.getTargetRef().getOid())));
-			// (actually, targetName seems to be always null, even if specified in the policy rule)
 		} else {
 			return new EvaluatedHasAssignmentTrigger(PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint,
-					buildFallbackMessage("No relevant assignment exists" + (constraint.getName() != null ? " (" + constraint.getName() + ")" : "")));
+					createNegativeMessage(constraint, ctx, constraint.getTargetRef().getType(), constraint.getTargetRef().getOid(), result));
+			// targetName seems to be always null, even if specified in the policy rule
 		}
 	}
 

@@ -35,7 +35,11 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +52,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
-import static com.evolveum.midpoint.util.LocalizableMessageBuilder.buildFallbackMessage;
 
 /**
  * @author semancik
@@ -57,12 +60,19 @@ import static com.evolveum.midpoint.util.LocalizableMessageBuilder.buildFallback
 @Component
 public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluator<MultiplicityPolicyConstraintType> {
 
+	private static final String CONSTRAINT_KEY_PREFIX = "multiplicityConstraint.";
+	private static final String KEY_MIN = "min.";
+	private static final String KEY_MAX = "max.";
+	private static final String KEY_OBJECT = "object";
+	private static final String KEY_TARGET = "target";
+
+	@Autowired private ConstraintEvaluatorHelper evaluatorHelper;
 	@Autowired private PrismContext prismContext;
 	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
 	@Override
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<MultiplicityPolicyConstraintType> constraint,
-			PolicyRuleEvaluationContext<F> rctx, OperationResult result) throws SchemaException {
+			PolicyRuleEvaluationContext<F> rctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
 		if (rctx instanceof ObjectPolicyRuleEvaluationContext) {
 			return evaluateForObject(constraint, (ObjectPolicyRuleEvaluationContext<F>) rctx, result);
@@ -74,8 +84,9 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 	}
 
 	// TODO shouldn't we return all triggers?
-	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluateForObject(JAXBElement<MultiplicityPolicyConstraintType> constraint,
-			ObjectPolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException {
+	private <F extends FocusType> EvaluatedPolicyRuleTrigger evaluateForObject(
+			JAXBElement<MultiplicityPolicyConstraintType> constraint,
+			ObjectPolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		PrismObject<? extends ObjectType> target = ctx.focusContext.getObjectAny();
 		if (target == null || !(target.asObjectable() instanceof AbstractRoleType)) {
 			return null;
@@ -99,8 +110,9 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 				int currentAssignees = getNumberOfAssigneesExceptMyself(targetRole, null, relationToCheck, result);
 				if (currentAssignees < requiredMultiplicity) {
 					return new EvaluatedMultiplicityTrigger(PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
-							constraint.getValue(), buildFallbackMessage(ObjectTypeUtil.toShortString(target) + " requires at least " + requiredMultiplicity
-							+ " assignees with the relation of '" + relationToCheck.getLocalPart() + "'"));
+							constraint.getValue(),
+							getMessage(constraint.getValue(), ctx, result, KEY_MIN, KEY_OBJECT, target,
+									requiredMultiplicity, relationToCheck.getLocalPart()));
 				}
 			}
 			return null;
@@ -113,33 +125,36 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 				int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, null, relationToCheck, result);
 				if (currentAssigneesExceptMyself >= requiredMultiplicity) {
 					return new EvaluatedMultiplicityTrigger(PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
-							constraint.getValue(), buildFallbackMessage(ObjectTypeUtil.toShortString(target) + " requires at most " + requiredMultiplicity +
-							" assignees with the relation of '" + relationToCheck.getLocalPart() + "'"));
+							constraint.getValue(),
+							getMessage(constraint.getValue(), ctx, result, KEY_MAX, KEY_OBJECT, target,
+									requiredMultiplicity, relationToCheck.getLocalPart()));
 				}
 			}
 			return null;
 		}
 	}
 
-	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluateForAssignment(JAXBElement<MultiplicityPolicyConstraintType> constraint,
-			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException {
+	private <F extends FocusType> EvaluatedPolicyRuleTrigger evaluateForAssignment(
+			JAXBElement<MultiplicityPolicyConstraintType> constraint,
+			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		if (!ctx.isDirect) {
 			return null;
 		}
 		if (ctx.inPlus) {
 			if (!ctx.evaluatedAssignment.isPresentInCurrentObject()) {
-				return checkAssigneeConstraints(constraint, ctx.lensContext, ctx.evaluatedAssignment, PLUS, result);		// only really new assignments
+				return checkAssigneeConstraints(constraint, ctx.lensContext, ctx.evaluatedAssignment, PLUS, ctx, result);		// only really new assignments
 			}
 		} else if (ctx.inMinus) {
 			if (ctx.evaluatedAssignment.isPresentInCurrentObject()) {
-				return checkAssigneeConstraints(constraint, ctx.lensContext, ctx.evaluatedAssignment, PlusMinusZero.MINUS, result);		// only assignments that are really deleted
+				return checkAssigneeConstraints(constraint, ctx.lensContext, ctx.evaluatedAssignment, PlusMinusZero.MINUS, ctx, result);		// only assignments that are really deleted
 			}
 		}
 		return null;
 	}
 
 	private <F extends FocusType> EvaluatedPolicyRuleTrigger<MultiplicityPolicyConstraintType> checkAssigneeConstraints(JAXBElement<MultiplicityPolicyConstraintType> constraint,
-			LensContext<F> context, EvaluatedAssignment<F> assignment, PlusMinusZero plusMinus, OperationResult result) throws SchemaException {
+			LensContext<F> context, EvaluatedAssignment<F> assignment, PlusMinusZero plusMinus,
+			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		PrismObject<?> target = assignment.getTarget();
 		if (target == null || !(target.asObjectable() instanceof AbstractRoleType)) {
 			return null;
@@ -163,9 +178,9 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 			int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, focusOid, relation, result);
 			if (currentAssigneesExceptMyself < requiredMultiplicity && plusMinus == PlusMinusZero.MINUS) {
 				return new EvaluatedMultiplicityTrigger(PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
-						constraint.getValue(), buildFallbackMessage(ObjectTypeUtil.toShortString(targetRole) + " requires at least " + requiredMultiplicity
-						+ " assignees with the relation of '" + relation.getLocalPart()
-						+ "'. The operation would result in " + currentAssigneesExceptMyself + " assignees."));
+						constraint.getValue(),
+						getMessage(constraint.getValue(), ctx, result, KEY_MIN, KEY_TARGET, targetRole.asPrismObject(),
+								requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself));
 			} else {
 				return null;
 			}
@@ -178,9 +193,9 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 			int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, focusOid, relation, result);
 			if (currentAssigneesExceptMyself >= requiredMultiplicity && plusMinus == PLUS) {
 				return new EvaluatedMultiplicityTrigger(PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
-						constraint.getValue(), buildFallbackMessage(ObjectTypeUtil.toShortString(targetRole) + " requires at most " + requiredMultiplicity +
-						" assignees with the relation of '" + relation.getLocalPart()
-						+ "'. The operation would result in " + (currentAssigneesExceptMyself + 1) + " assignees."));
+						constraint.getValue(),
+						getMessage(constraint.getValue(), ctx, result, KEY_MAX, KEY_TARGET, targetRole.asPrismObject(),
+								requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself+1));
 			}
 		}
 		return null;
@@ -212,4 +227,15 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 		return repositoryService.countObjects(FocusType.class, query, null, result);
 	}
 
+	private <F extends FocusType> LocalizableMessage getMessage(MultiplicityPolicyConstraintType constraint,
+			PolicyRuleEvaluationContext<F> rctx, OperationResult result, String key1, String key2,
+			PrismObject<?> target, Object... args)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		LocalizableMessage defaultMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + key1 + key2)
+				.arg(evaluatorHelper.createObjectSpecification(target))
+				.args(args)
+				.build();
+		return evaluatorHelper.createLocalizableMessage(constraint, rctx, defaultMessage, result);
+	}
 }

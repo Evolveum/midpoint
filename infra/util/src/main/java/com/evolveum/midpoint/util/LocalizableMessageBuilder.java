@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.util;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -24,7 +26,7 @@ import java.util.List;
 public class LocalizableMessageBuilder {
 
 	private String key;
-	private Object[] args;
+	private final List<Object> args = new ArrayList<>();
 	private String fallbackMessage;
 	private LocalizableMessage fallbackLocalizableMessage;
 
@@ -42,12 +44,17 @@ public class LocalizableMessageBuilder {
 	}
 
 	public LocalizableMessageBuilder args(Object... args) {
-		this.args = args;
+		Collections.addAll(this.args, args);
 		return this;
 	}
 
 	public LocalizableMessageBuilder args(List<Object> args) {
-		this.args = args.toArray();
+		Collections.addAll(this.args, args);
+		return this;
+	}
+
+	public LocalizableMessageBuilder arg(Object arg) {
+		this.args.add(arg);
 		return this;
 	}
 
@@ -70,9 +77,9 @@ public class LocalizableMessageBuilder {
 			if (fallbackLocalizableMessage != null) {
 				throw new IllegalStateException("fallbackMessage and fallbackLocalizableMessage cannot be both set");
 			}
-			return new LocalizableMessage(key, args, fallbackMessage);
+			return new LocalizableMessage(key, args.toArray(), fallbackMessage);
 		} else {
-			return new LocalizableMessage(key, args, fallbackLocalizableMessage);
+			return new LocalizableMessage(key, args.toArray(), fallbackLocalizableMessage);
 		}
 	}
 }

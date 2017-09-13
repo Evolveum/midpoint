@@ -138,18 +138,26 @@ public class ConstraintEvaluatorHelper {
 
 	public LocalizableMessage createObjectSpecification(PrismObject<?> object) {
 		if (object != null) {
-			String objectClassName = object.asObjectable().getClass().getSimpleName();
-			LocalizableMessage objectTypeMessage = new LocalizableMessageBuilder()
-					.key(SchemaConstants.OBJECT_TYPE_KEY_PREFIX + objectClassName)
-					.fallbackMessage(objectClassName)
-					.build();
 			return new LocalizableMessageBuilder()
-					.key("TechnicalObjectSpecification")
-					.args(objectTypeMessage, object.asObjectable().getName(), object.getOid())
+					.key(SchemaConstants.TECHNICAL_OBJECT_SPECIFICATION_KEY)
+					.arg(createObjectTypeSpecification(object.asObjectable().getClass().getSimpleName()))
+					.arg(object.asObjectable().getName())
+					.arg(object.getOid())
 					.build();
 		} else {
 			return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!
 		}
+	}
+
+	public LocalizableMessage createObjectTypeSpecification(QName type) {
+		return createObjectTypeSpecification(type != null ? type.getLocalPart() : null);
+	}
+
+	public LocalizableMessage createObjectTypeSpecification(String objectClassName) {
+		return new LocalizableMessageBuilder()
+						.key(SchemaConstants.OBJECT_TYPE_KEY_PREFIX + objectClassName)
+						.fallbackMessage(objectClassName)
+						.build();
 	}
 
 	public <F extends FocusType> LocalizableMessage createLocalizableMessage(
