@@ -351,9 +351,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final String ACCOUNT_HERMAN_DUMMY_OID = "22220000-2200-0000-0000-444400004444";
 	public static final String ACCOUNT_HERMAN_DUMMY_USERNAME = "ht";
 
-	public static final String ACCOUNT_HERMAN_OPENDJ_FILENAME = COMMON_DIR + "/account-herman-opendj.xml";
-	public static final String ACCOUNT_HERMAN_OPENDJ_OID = "22220000-2200-0000-0000-333300003333";
-
 	public static final File ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILE = new File(COMMON_DIR, "account-shadow-guybrush-dummy.xml");
 	public static final String ACCOUNT_SHADOW_GUYBRUSH_OID = "22226666-2200-6666-6666-444400004444";
 	public static final String ACCOUNT_GUYBRUSH_DUMMY_USERNAME = "guybrush";

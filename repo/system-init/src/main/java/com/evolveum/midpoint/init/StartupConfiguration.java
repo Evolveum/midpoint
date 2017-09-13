@@ -264,6 +264,7 @@ public class StartupConfiguration implements MidpointConfiguration {
     private void createXmlConfiguration(DocumentBuilder documentBuilder, String filename) throws ConfigurationException {
         XMLConfiguration xmlConfig = new XMLConfiguration();
         xmlConfig.setDocumentBuilder(documentBuilder);
+        xmlConfig.setDelimiterParsingDisabled(true);
         xmlConfig.setFileName(filename);
         xmlConfig.load();
         config.addConfiguration(xmlConfig);
