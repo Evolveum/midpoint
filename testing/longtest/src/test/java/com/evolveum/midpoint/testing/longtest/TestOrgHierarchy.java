@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.io.File;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -39,14 +41,14 @@ public class TestOrgHierarchy extends AbstractModelIntegrationTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestOrgHierarchy.class);
 
-    private static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_PATH + "/system-configuration.xml";
+    private static final File SYSTEM_CONFIGURATION_FILE = new File( COMMON_DIR, "system-configuration.xml");
     private static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
-    private static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_PATH + "/user-administrator.xml";
+    private static final File USER_ADMINISTRATOR_FILENAME = new File( COMMON_DIR, "user-administrator.xml");
     private static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
     private static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 
-    private static final String ROLE_SUPERUSER_FILENAME = COMMON_DIR_PATH + "/role-superuser.xml";
+    private static final File ROLE_SUPERUSER_FILENAME = new File( COMMON_DIR, "role-superuser.xml");
     private static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
     //222 org. units, 2160 users
@@ -74,7 +76,7 @@ public class TestOrgHierarchy extends AbstractModelIntegrationTest {
         modelService.postInit(initResult);
 
         // System Configuration and administrator
-        repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
+        repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
         PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
         repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, initResult);
         login(userAdministrator);
