@@ -264,6 +264,54 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0"/>
+			<xsd:element name="presentation" type="tns:PolicyConstraintPresentationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How should be triggering of this constraint presented, e.g. in enforcement messages,
+						in approvals, in certification, in notifications, etc.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="policySituation" type="xsd:anyURI" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Policy situation that is the result when this constraint is triggered.
+						TODO specify the relation to policySituation defined at the level of policy rule.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="expectedUse" type="tns:PolicyConstraintExpectedUseType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						How is this constraint to be used? E.g. also for reporting or for certification? This determines
+						if its triggers and/or related policy situation should be stored into repository.
+						EXPERIMENTAL
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+            <xsd:element name="storageCompaction" type="tns:PolicyTriggerStorageCompactionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						If triggers are to be stored, what level of details should be preserved?
+						EXPERIMENTAL
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="enforcement" type="tns:PolicyConstraintEnforcementType" minOccurs="0" default="enforce">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -275,6 +323,135 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="abstractPolicyConstraint" type="tns:AbstractPolicyConstraintType" />
+
+	<xsd:complexType name="PolicyConstraintPresentationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How should be triggering of this constraint presented, e.g. in enforcement messages,
+				in approvals, in certification, in notifications, etc.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="message" type="tns:LocalizableMessageTemplateType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Message to be conveyed to the user.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="shortMessage" type="tns:LocalizableMessageTemplateType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Very short message describing the situation. Could be used for e.g. notification messages subject, approval process or work item names.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="longMessage" type="tns:LocalizableMessageTemplateType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Long, documentation-like explanation of the rule.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long"/>
+	</xsd:complexType>
+	<xsd:element name="policyConstraintPresentation" type="tns:PolicyConstraintPresentationType" />
+
+	<xsd:simpleType name="PolicyConstraintExpectedUseType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How is this constraint to be used? E.g. also for reporting or for certification? This determines
+				if its triggers and/or related policy situation should be stored into repository.
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:deprecated>true</a:deprecated>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="certification">
+				<xsd:annotation>
+					<xsd:documentation>
+						Situation and triggers will be stored.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="CERTIFICATION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="briefReport">
+				<xsd:annotation>
+					<xsd:documentation>
+						Situation will be stored but no triggers.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="BRIEF_REPORT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="fullReport">
+				<xsd:annotation>
+					<xsd:documentation>
+						Situation and triggers will be stored.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="FULL_REPORT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="PolicyTriggerStorageCompactionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				If triggers are to be stored, what level of details should be preserved?
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:deprecated>true</a:deprecated>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="full">
+				<xsd:annotation>
+					<xsd:documentation>
+						Only message and short message will be stored.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="FULL"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="normal">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whole triggers will be stored. (But only those that are directly marked with expectedUse property.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="NORMAL"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="none">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whole triggers will be stored, including subtriggers.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="NONE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 
     <xsd:complexType name="ExclusionPolicyConstraintType">
         <xsd:annotation>

@@ -38,11 +38,6 @@
 				</objectState>
 				<or>
 					<name>incomplete-role</name>
-					<objectMinAssigneesViolation>
-						<multiplicity>1</multiplicity>
-						<relation>owner</relation>
-						<relation>approver</relation>
-					</objectMinAssigneesViolation>
 					<objectState>
 						<name>no description</name>
 						<filter>
@@ -51,6 +46,11 @@
 							</q:equal>
 						</filter>
 					</objectState>
+					<objectMinAssigneesViolation>
+						<multiplicity>1</multiplicity>
+						<relation>owner</relation>
+						<relation>approver</relation>
+					</objectMinAssigneesViolation>
 				</or>
 			</policyConstraints>
 			<policyActions>

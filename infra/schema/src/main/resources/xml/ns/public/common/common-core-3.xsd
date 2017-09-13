@@ -12415,12 +12415,12 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AppenderConfigurationType">
                 <xsd:sequence>
-                    <xsd:element name="fileName" type="xsd:string"/>
-                    <xsd:element name="filePattern" type="xsd:string"/>
-                    <xsd:element name="maxHistory" type="xsd:int"/>
-                    <xsd:element name="maxFileSize" type="xsd:string"/>
-                    <xsd:element name="append" type="xsd:boolean"/>
-                    <xsd:element name="prudent" type="xsd:boolean">
+                    <xsd:element name="fileName" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="filePattern" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="maxHistory" type="xsd:int" minOccurs="0"/>
+                    <xsd:element name="maxFileSize" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="append" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="prudent" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Prudent mode allows remote and shared file destinations (see https://logback.qos.ch/manual/appenders.html#prudentWithRolling )
@@ -16862,6 +16862,88 @@
 			</xsd:element>
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:long" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="LocalizableMessageType">
+		<xsd:annotation>
+			<xsd:documentation>
+				A message that is to be localized into specified language.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="key" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Localization key.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="argument" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Arguments to be used as values for localized message parameters.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="fallbackMessage" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Fallback message to be used when key couldn't be resolved.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="LocalizableMessageTemplateType">
+		<xsd:annotation>
+			<xsd:documentation>
+				A template that produces a localizable message after argument expressions are evaluated into specific arguments.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="key" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Localization key. Mutually exclusive with keyExpression.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="keyExpression" type="tns:ExpressionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Localization key expression. Mutually exclusive with the key.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="argumentExpression" type="tns:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Expressions to be evaluated to specific arguments, which are to be used as values for localized message parameters.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="fallbackMessage" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Fallback message to be used when key couldn't be resolved. Mutually exclusive with fallbackMessageExpression.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="fallbackMessageExpression" type="tns:ExpressionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Fallback message expression to be evaluated to specific fallback message. Mutually exclusive with fallbackMessage.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
 	</xsd:complexType>
 
 </xsd:schema>

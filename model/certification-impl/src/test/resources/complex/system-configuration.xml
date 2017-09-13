@@ -21,8 +21,6 @@
 	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>SystemConfiguration</name>
     <logging>
-    	<rootLoggerAppender>File Appender</rootLoggerAppender>
-    	<rootLoggerLevel>INFO</rootLoggerLevel>
         <classLogger>
 	        <level>TRACE</level>
 	        <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
@@ -32,6 +30,8 @@
             <fileName>target/test.log</fileName>
             <append>true</append>
         </appender>
+		<rootLoggerAppender>File Appender</rootLoggerAppender>
+		<rootLoggerLevel>INFO</rootLoggerLevel>
     </logging>
 	<notificationConfiguration>
 		<handler>
@@ -49,137 +49,169 @@
 	<globalPolicyRule>
 		<name>basic-constraints-definitions</name>
 		<description>
-			This is no-action rule that is used to define basic constraints:
+			This is no-action disabled rule that is used to define basic constraints:
 			what is an incomplete role (as per C1 to C4), what is a role activation, etc.
+			To keep constraints in the logical order we must enclose each in separate "and"
+			element. Otherwise the IDE would issue a lot of XSD validation errors
+			(because of the ordering prescribed in PolicyConstraintsType definition).
 		</description>
 		<policyConstraints>
-			<or>
-				<name>incomplete-role-c1-to-c4</name>
-				<!-- TODO presentation -->
-				<!-- TODO situation -->
-				<!-- TODO expected use -->
+			<and>
 				<objectState>
 					<name>c1-no-risk-level</name>
-					<!-- TODO presentation -->
+					<!-- presentation is not needed, as default key of constraint.c1-no-risk-level is used -->
 					<filter>
 						<q:equal>
 							<q:path>riskLevel</q:path>
 						</q:equal>
 					</filter>
 				</objectState>
+			</and>
+			<and>
 				<objectState>
 					<!-- could be implemented also as a conjunction of two filter-based objectState constraints -->
 					<name>c2-no-description-for-high-risk-role</name>
-					<!-- TODO presentation -->
+					<!-- presentation is not needed, as default key of constraint.c2-no-description-for-high-risk-role is used -->
 					<expression>
 						<script>
 							<code>object.riskLevel == 'high' &amp;&amp; object.description == null</code>
 						</script>
 					</expression>
 				</objectState>
-				<and>
-					<name>c3-less-than-2-approvers-for-high-risk-role</name>
-					<!-- TODO presentation -->
-					<objectState>
-						<name>high-risk-role</name>
-						<filter>
+			</and>
+			<and>
+				<name>c3-less-than-2-approvers-for-high-risk-role</name>
+				<!-- presentation is not needed, as default key of constraint.c3-less-than-2-approvers-for-high-risk-role is used -->
+				<objectState>
+					<name>high-risk-role</name>
+					<filter>
+						<q:equal>
+							<q:path>riskLevel</q:path>
+							<q:value>high</q:value>
+						</q:equal>
+					</filter>
+				</objectState>
+				<objectMinAssigneesViolation>
+					<multiplicity>2</multiplicity>
+					<relation>approver</relation>
+				</objectMinAssigneesViolation>
+			</and>
+			<and>
+				<name>c3-less-than-1-approver-for-non-high-risk-role</name>
+				<!-- presentation is not needed, as default key of constraint.c3-less-than-1-approver-for-non-high-risk-role is used -->
+				<objectState>
+					<name>not-high-risk-role</name>
+					<filter>
+						<q:not>
 							<q:equal>
 								<q:path>riskLevel</q:path>
 								<q:value>high</q:value>
 							</q:equal>
-						</filter>
-					</objectState>
-					<objectMinAssigneesViolation>
-						<multiplicity>2</multiplicity>
-						<relation>approver</relation>
-					</objectMinAssigneesViolation>
-				</and>
-				<and>
-					<name>c3-less-than-1-approver-for-non-high-risk-role</name>
-					<!-- TODO presentation -->
-					<objectState>
-						<name>not-high-risk-role</name>
-						<filter>
-							<q:not>
-								<q:equal>
-									<q:path>riskLevel</q:path>
-									<q:value>high</q:value>
-								</q:equal>
-							</q:not>
-						</filter>
-					</objectState>
-					<objectMinAssigneesViolation>
-						<multiplicity>1</multiplicity>
-						<relation>approver</relation>
-					</objectMinAssigneesViolation>
-				</and>
+						</q:not>
+					</filter>
+				</objectState>
+				<objectMinAssigneesViolation>
+					<multiplicity>1</multiplicity>
+					<relation>approver</relation>
+				</objectMinAssigneesViolation>
+			</and>
+			<and>
 				<objectMinAssigneesViolation>
 					<name>c4-no-role-owner</name>
-					<!-- TODO presentation -->
+					<!-- in this case we use the default presentation for objectMinAssigneesViolation, just to illustrate the concept -->
 					<multiplicity>1</multiplicity>
 					<relation>owner</relation>
 				</objectMinAssigneesViolation>
-			</or>
-			<objectState>
-				<name>c5-no-identifier</name>
-				<!-- TODO presentation -->
-				<!-- TODO situation -->
-				<!-- TODO expected use -->
-				<filter>
-					<q:equal>
-						<q:path>identifier</q:path>
-					</q:equal>
-				</filter>
-			</objectState>
-			<objectState>
-				<name>validity-not-limited</name>
-				<expression>
-					<script>
-						<code>
-							import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-							import com.evolveum.midpoint.prism.xml.XmlTypeConverter
+			</and>
+			<and>
+				<objectState>
+					<name>c5-no-identifier</name>
+					<!-- no presentation is needed: a key of constraint.c5-no-identifier is used -->
+					<!-- situation and expectedUse are set for "active role with no identifier" because that's what we want to certify and report -->
+					<filter>
+						<q:equal>
+							<q:path>identifier</q:path>
+						</q:equal>
+					</filter>
+				</objectState>
+			</and>
+			<and>
+				<objectState>
+					<name>role-active</name>
+					<filter>
+						<q:or>
+							<q:equal>
+								<q:path>lifecycleState</q:path>
+								<q:value>active</q:value>
+							</q:equal>
+							<q:equal>
+								<q:path>lifecycleState</q:path>
+							</q:equal>
+						</q:or>
+					</filter>
+				</objectState>
+			</and>
+			<and>
+				<objectState>
+					<name>validity-not-limited</name>
+					<expression>
+						<script>
+							<code>
+								import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+								import com.evolveum.midpoint.prism.xml.XmlTypeConverter
 
-							if (object.activation == null) {
-								return true
-							}
-							def state = object.activation.administrativeStatus
-							if (state == ActivationStatusType.ENABLED) {
-								return true
-							} else if (state != null) {
-								return false
-							}
-							def validTo = object.activation.validTo
-							if (validTo == null) {
-								return true
-							}
-							def nowPlus180 = XmlTypeConverter.fromNow(XmlTypeConverter.createDuration("P180D"))
-							return validTo.toGregorianCalendar().compareTo(nowPlus180.toGregorianCalendar()) &gt; 0
-						</code>
-					</script>
-				</expression>
-			</objectState>
-			<objectState>
-				<name>role-active</name>
-				<filter>
-					<q:or>
-						<q:equal>
-							<q:path>lifecycleState</q:path>
-							<q:value>active</q:value>
-						</q:equal>
-						<q:equal>
-							<q:path>lifecycleState</q:path>
-						</q:equal>
-					</q:or>
-				</filter>
-			</objectState>
-			<transition>
-				<name>role-activation</name>
-				<stateBefore>false</stateBefore>
-				<stateAfter>true</stateAfter>
-				<constraints>
-					<ref>role-active</ref>
-				</constraints>
-			</transition>
+								if (object.activation == null) {
+									return true
+								}
+								def state = object.activation.administrativeStatus
+								if (state == ActivationStatusType.ENABLED) {
+									return true
+								} else if (state != null) {
+									return false
+								}
+								def validTo = object.activation.validTo
+								if (validTo == null) {
+									return true
+								}
+								def nowPlus180 = XmlTypeConverter.fromNow(XmlTypeConverter.createDuration("P180D"))
+								return validTo.toGregorianCalendar().compareTo(nowPlus180.toGregorianCalendar()) &gt; 0
+							</code>
+						</script>
+					</expression>
+				</objectState>
+			</and>
+			<and>
+				<name>active-role-with-no-identifier</name>
+				<!-- presentation is not needed, as default key of constraint.active-role-with-no-identifier is used -->
+				<policySituation>http://sample.org/situations#active-role-with-no-identifier</policySituation>
+				<expectedUse>certification</expectedUse> <!-- R4 -->
+				<expectedUse>fullReport</expectedUse>	<!-- RE2 -->
+				<ref>role-active</ref>
+				<ref>c5-no-identifier</ref>
+			</and>
+			<and>
+				<or>
+					<name>incomplete-role-c1-to-c4</name>
+					<!-- presentation is not needed, as the default key of constraint.incomplete-role-c1-to-c4 is used -->
+					<policySituation>http://sample.org/situations#incomplete-role-c1-to-c4</policySituation>
+					<expectedUse>fullReport</expectedUse>	<!-- RE1 -->
+					<ref>c1-no-risk-level</ref>
+					<ref>c2-no-description-for-high-risk-role</ref>
+					<ref>c3-less-than-1-approver-for-non-high-risk-role</ref>
+					<ref>c3-less-than-2-approvers-for-high-risk-role</ref>
+					<ref>c4-no-role-owner</ref>
+				</or>
+			</and>
+			<and>
+				<transition>
+					<name>role-activation</name>
+					<stateBefore>false</stateBefore>
+					<stateAfter>true</stateAfter>
+					<constraints>
+						<ref>role-active</ref>
+					</constraints>
+				</transition>
+			</and>
 		</policyConstraints>
 		<condition>
 			<!-- This rule serves as a container for constraints definitions. It is not to be evaluated directly. -->
@@ -193,7 +225,7 @@
 		<description>R1: No role that does not meet C1-C4 might be activated i.e. switched to lifecycleState of active.</description>
 		<policyConstraints>
 			<name>r1-no-activation-of-incomplete-roles</name>
-			<!-- TODO presentation -->
+			<!-- presentation uses constraint.r1-no-activation-of-incomplete-roles -->
 			<!-- Note: situation is not defined here, as this is a transition-related rule.
 			     Situation marking incomplete rules is defined in incomplete-role-c1-to-c4 constraint. -->
 			<ref>incomplete-role-c1-to-c4</ref>
@@ -210,7 +242,6 @@
 		<name>r2-role-activation-approval</name>
 		<description>R2: Activation of a role must be approved by its owner.</description>
 		<policyConstraints>
-			<!-- TODO presentation -->
 			<ref>role-activation</ref>
 		</policyConstraints>
 		<policyActions>
@@ -233,7 +264,6 @@
 		<name>r3-no-identifier-role-activation-approval</name>
 		<description>R3: Activation of a role without identifier is subject to an approval by Security Administrators.</description>
 		<policyConstraints>
-			<!-- TODO presentation -->
 			<ref>role-activation</ref>
 			<ref>c5-no-identifier</ref>
 		</policyConstraints>
@@ -258,8 +288,7 @@
 		<description>R5: Validity of an active role without identifier must be limited to 180 days at most.</description>
 		<policyConstraints>
 			<!-- TODO presentation -->
-			<ref>role-active</ref>
-			<ref>c5-no-identifier</ref>
+			<ref>active-role-with-no-identifier</ref>
 			<ref>validity-not-limited</ref>
 		</policyConstraints>
 		<policyActions>
