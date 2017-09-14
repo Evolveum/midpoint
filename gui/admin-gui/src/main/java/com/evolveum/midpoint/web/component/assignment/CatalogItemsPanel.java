@@ -109,7 +109,7 @@ public class CatalogItemsPanel<P extends BaseSortableDataProvider> extends BaseP
         if (itemsCount > 0 && itemsPerRow > 0){
             int index = 0;
             long rowCount = itemsCount % itemsPerRow == 0 ? (itemsCount / itemsPerRow) : (itemsCount / itemsPerRow + 1);
-            for (int rowNumber = 0; rowNumber < rowCount; rowNumber++){
+            main: for (int rowNumber = 0; rowNumber < rowCount; rowNumber++){
                 WebMarkupContainer rowContainer = new WebMarkupContainer(rows.newChildId());
                 rowContainer.setOutputMarkupId(true);
                 rows.add(rowContainer);
@@ -128,7 +128,7 @@ public class CatalogItemsPanel<P extends BaseSortableDataProvider> extends BaseP
                     populateCell(itemButtonContainer, new PropertyModel<AssignmentEditorDto>(getModelObject(), "availableData." + index));
                     index++;
                     if (index >= getModelObject().getAvailableData().size()){
-                        break;
+                        break main;
                     }
 
                 }
