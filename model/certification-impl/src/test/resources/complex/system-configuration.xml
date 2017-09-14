@@ -355,4 +355,87 @@
 			<type>RoleType</type>
 		</focusSelector>
 	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>test-primary</name>
+		<policyConstraints>
+			<objectState>
+				<filter>
+					<q:equal>
+						<q:path>name</q:path>
+						<q:value>correct</q:value>
+					</q:equal>
+				</filter>
+			</objectState>
+			<objectState>
+				<name>temp.always-true</name>
+				<expression>
+					<value>true</value>
+				</expression>
+			</objectState>
+		</policyConstraints>
+		<policySituation>http://test/complete</policySituation>
+		<policyActions>
+			<!-- nothing: just to mark the situation -->
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>test-secondary</name>
+		<policyConstraints>
+			<situation>
+				<situation>http://test/complete</situation>
+			</situation>
+		</policyConstraints>
+		<policyActions>
+			<!-- nothing: just to test -->
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>test2-primary</name>
+		<policyConstraints>
+			<objectState>
+				<filter>
+					<q:equal>
+						<q:path>name</q:path>
+						<q:value>correct</q:value>
+					</q:equal>
+				</filter>
+			</objectState>
+			<objectState>
+				<name>temp.always-true.2</name>
+				<presentation>
+					<hidden>true</hidden>	<!-- to pass only state filter message out -->
+				</presentation>
+				<expression>
+					<value>true</value>
+				</expression>
+			</objectState>
+		</policyConstraints>
+		<policySituation>http://test/complete2</policySituation>
+		<policyActions>
+			<!-- nothing: just to mark the situation -->
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>test2-secondary</name>
+		<policyConstraints>
+			<situation>
+				<situation>http://test/complete2</situation>
+			</situation>
+		</policyConstraints>
+		<policyActions>
+			<!-- nothing: just to test -->
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
 </systemConfiguration>

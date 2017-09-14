@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
+import org.jetbrains.annotations.NotNull;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -78,7 +79,11 @@ public class LocalizationUtil {
 		return new LocalizableMessageType().key(key);
 	}
 
-	public static LocalizableMessage parseLocalizableMessageType(LocalizableMessageType message, LocalizableMessage defaultMessage) {
+	public static LocalizableMessage parseLocalizableMessageType(@NotNull LocalizableMessageType message) {
+		return parseLocalizableMessageType(message, null);
+	}
+
+	public static LocalizableMessage parseLocalizableMessageType(@NotNull LocalizableMessageType message, LocalizableMessage defaultMessage) {
 		LocalizableMessage fallbackLocalizableMessage;
 		if (message.getFallbackLocalizableMessage() != null) {
 			fallbackLocalizableMessage = parseLocalizableMessageType(message.getFallbackLocalizableMessage(), defaultMessage);
