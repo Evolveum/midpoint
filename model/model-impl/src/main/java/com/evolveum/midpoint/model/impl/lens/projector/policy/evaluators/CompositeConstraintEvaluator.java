@@ -20,14 +20,15 @@ import com.evolveum.midpoint.model.api.context.EvaluatedCompositeTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -35,7 +36,6 @@ import org.springframework.stereotype.Component;
 import javax.xml.bind.JAXBElement;
 import java.util.List;
 
-import static com.evolveum.midpoint.util.LocalizableMessageBuilder.buildFallbackMessage;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.*;
 
 /**
@@ -44,10 +44,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstra
 @Component
 public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<PolicyConstraintsType> {
 
+	@Autowired private ConstraintEvaluatorHelper evaluatorHelper;
 	@Autowired private PolicyRuleProcessor policyRuleProcessor;
 
 	@Override
-	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<PolicyConstraintsType> constraint,
+	public <F extends FocusType> EvaluatedCompositeTrigger evaluate(JAXBElement<PolicyConstraintsType> constraint,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
@@ -59,11 +60,11 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
 				.evaluateConstraints(constraint.getValue(), !isOr, rctx, result);
 		if (isNot) {
 			if (triggers.isEmpty()) {
-				return createTrigger(NOT, constraint.getValue(), triggers);
+				return createTrigger(NOT, constraint.getValue(), triggers, rctx, result);
 			}
 		} else {
 			if (!triggers.isEmpty()) {
-				return createTrigger(isAnd ? AND : OR, constraint.getValue(), triggers);
+				return createTrigger(isAnd ? AND : OR, constraint.getValue(), triggers, rctx, result);
 			}
 		}
 		return null;
@@ -71,7 +72,18 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
 
 	@NotNull
 	private EvaluatedCompositeTrigger createTrigger(PolicyConstraintKindType kind, PolicyConstraintsType value,
-			List<EvaluatedPolicyRuleTrigger<?>> triggers) {
-		return new EvaluatedCompositeTrigger(kind, value, buildFallbackMessage("'" + kind.value() + "' policy constraint applies"), triggers);
+			List<EvaluatedPolicyRuleTrigger<?>> triggers,
+			PolicyRuleEvaluationContext<?> rctx, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		return new EvaluatedCompositeTrigger(kind, value, createMessage(kind, value, rctx, result), triggers);
+	}
+
+	private LocalizableMessage createMessage(PolicyConstraintKindType kind,
+			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		LocalizableMessage defaultMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + kind.value())
+				.build();
+		return evaluatorHelper.createLocalizableMessage(constraint, ctx, defaultMessage, result);
 	}
 }

@@ -67,9 +67,17 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 
 	// For diagnostic purposes (this is more detailed than rule-related part of LensContext debugDump,
 	// while less detailed than that part of detailed LensContext debugDump).
-	String dumpAssignmentPolicyRules(int indent);
+	default String dumpAssignmentPolicyRules(int indent) {
+		return dumpAssignmentPolicyRules(indent, false);
+	}
 
-	String dumpFocusPolicyRules(int indent);
+	String dumpAssignmentPolicyRules(int indent, boolean alsoMessages);
+
+	default String dumpFocusPolicyRules(int indent) {
+		return dumpFocusPolicyRules(indent, false);
+	}
+
+	String dumpFocusPolicyRules(int indent, boolean alsoMessages);
 
 	Map<String, Collection<Containerable>> getHookPreviewResultsMap();
 

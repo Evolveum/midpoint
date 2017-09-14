@@ -21,11 +21,14 @@ import com.evolveum.midpoint.model.api.context.EvaluatedTransitionTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransitionPolicyConstraintType;
@@ -42,6 +45,9 @@ import java.util.List;
 @Component
 public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<TransitionPolicyConstraintType> {
 
+	private static final String CONSTRAINT_KEY = "transition";
+
+	@Autowired private ConstraintEvaluatorHelper evaluatorHelper;
 	@Autowired private PolicyRuleProcessor policyRuleProcessor;
 
 	@Override
@@ -55,7 +61,8 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
 			evaluateState(trans, rctx, ObjectState.BEFORE, trans.isStateBefore(), triggers, result)
 					&& evaluateState(trans, rctx, ObjectState.AFTER, trans.isStateAfter(), triggers, result);
 		if (match) {
-			return new EvaluatedTransitionTrigger(PolicyConstraintKindType.TRANSITION, trans, LocalizableMessageBuilder.buildFallbackMessage("transition policy constraint matched"), triggers);
+			return new EvaluatedTransitionTrigger(PolicyConstraintKindType.TRANSITION, trans,
+					createMessage(constraintElement.getValue(), rctx, result), triggers);
 		} else {
 			return null;
 		}
@@ -74,5 +81,13 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
 		triggers.addAll(subTriggers);
 		boolean real = !subTriggers.isEmpty();
 		return expected == real;
+	}
+
+	private LocalizableMessage createMessage(AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		LocalizableMessage defaultMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
+				.build();
+		return evaluatorHelper.createLocalizableMessage(constraint, ctx, defaultMessage, result);
 	}
 }

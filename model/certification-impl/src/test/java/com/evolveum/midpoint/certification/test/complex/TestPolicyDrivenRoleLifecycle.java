@@ -19,6 +19,8 @@ package com.evolveum.midpoint.certification.test.complex;
 import com.evolveum.midpoint.certification.test.AbstractUninitializedCertificationTest;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.util.RecordingProgressListener;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +48,7 @@ import java.util.List;
 
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.createPartialProcessing;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
+import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
@@ -62,10 +66,15 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 	protected static final File ROLE_EMPTY_FILE = new File(TEST_DIR, "role-empty.xml");
 	protected static final File ROLE_HIGH_RISK_EMPTY_FILE = new File(TEST_DIR, "role-high-risk-empty.xml");
 	protected static final File ROLE_CORRECT_FILE = new File(TEST_DIR, "role-correct.xml");
+	protected static final File ROLE_CORRECT_HIGH_RISK_FILE = new File(TEST_DIR, "role-correct-high-risk.xml");
 
 	protected static String roleEmptyOid;
 	protected static String roleHighRiskEmptyOid;
 	protected static String roleCorrectOid;
+	protected static String roleCorrectHighRiskOid;
+	protected static String userJackOid;
+
+	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 
 	protected static final File ASSIGNMENT_CERT_DEF_FILE = new File(TEST_DIR, "adhoc-certification-assignment.xml");
     protected static final String ASSIGNMENT_CERT_DEF_OID = "540940e9-4ac5-4340-ba85-fd7e8b5e6686";
@@ -90,9 +99,11 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
 
+        userJackOid = repoAddObjectFromFile(USER_JACK_FILE, initResult).getOid();
 	    roleEmptyOid = repoAddObjectFromFile(ROLE_EMPTY_FILE, initResult).getOid();
 	    roleHighRiskEmptyOid = repoAddObjectFromFile(ROLE_HIGH_RISK_EMPTY_FILE, initResult).getOid();
 	    roleCorrectOid = repoAddObjectFromFile(ROLE_CORRECT_FILE, initResult).getOid();
+	    roleCorrectHighRiskOid = repoAddObjectFromFile(ROLE_CORRECT_HIGH_RISK_FILE, initResult).getOid();
     }
 
 	@NotNull
@@ -114,8 +125,9 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		// WHEN+THEN
 		TestUtil.displayWhen(TEST_NAME);
 		TestUtil.displayThen(TEST_NAME);
+		Holder<LensContext<?>> contextHolder = new Holder<>();
 		try {
-			activateRole(roleEmptyOid, task, result);
+			activateRole(roleEmptyOid, contextHolder, task, result);
 			fail("unexpected success");
 		} catch (PolicyViolationException e) {
 			System.out.println("Got expected exception:");
@@ -125,6 +137,8 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		PrismObject<RoleType> role = getRole(roleEmptyOid);
 		display("role after", role);
 		// TODO check policy situation
+
+		dumpRules(contextHolder);
 	}
 
 	@Test
@@ -140,8 +154,9 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		// WHEN+THEN
 		TestUtil.displayWhen(TEST_NAME);
 		TestUtil.displayThen(TEST_NAME);
+		Holder<LensContext<?>> contextHolder = new Holder<>();
 		try {
-			activateRole(roleHighRiskEmptyOid, task, result);
+			activateRole(roleHighRiskEmptyOid, contextHolder, task, result);
 			fail("unexpected success");
 		} catch (PolicyViolationException e) {
 			System.out.println("Got expected exception:");
@@ -151,6 +166,8 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		PrismObject<RoleType> role = getRole(roleHighRiskEmptyOid);
 		display("role after", role);
 		// TODO check policy situation
+
+		dumpRules(contextHolder);
 	}
 
 	@Test
@@ -166,8 +183,9 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		// WHEN+THEN
 		TestUtil.displayWhen(TEST_NAME);
 		TestUtil.displayThen(TEST_NAME);
+		Holder<LensContext<?>> contextHolder = new Holder<>();
 		try {
-			activateRole(roleCorrectOid, task, result);
+			activateRole(roleCorrectOid, contextHolder, task, result);
 			fail("unexpected success");
 		} catch (PolicyViolationException e) {
 			System.out.println("Got expected exception:");
@@ -177,6 +195,12 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		PrismObject<RoleType> role = getRole(roleCorrectOid);
 		display("role after", role);
 		// TODO check policy situation
+
+		dumpRules(contextHolder);
+	}
+
+	private void dumpRules(Holder<LensContext<?>> contextHolder) {
+		System.out.println(contextHolder.getValue().dumpFocusPolicyRules(0, true));
 	}
 
 	@Test
@@ -189,13 +213,28 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		task.setOwner(userAdministrator.asPrismObject());
 		OperationResult result = task.getResult();
 
+		// WHEN+THEN
+		TestUtil.displayWhen(TEST_NAME);
+		TestUtil.displayThen(TEST_NAME);
 		ModelExecuteOptions noApprovals = createPartialProcessing(new PartialProcessingOptionsType().approvals(SKIP));
 		assignRole(USER_ADMINISTRATOR_OID, roleCorrectOid, SchemaConstants.ORG_APPROVER, noApprovals, task, result);
 		assignRole(USER_ADMINISTRATOR_OID, roleCorrectOid, SchemaConstants.ORG_OWNER, noApprovals, task, result);
+	}
+
+	@Test
+	public void test050ActivateCorrectRole() throws Exception {
+		final String TEST_NAME = "test050ActivateCorrectRole";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestPolicyDrivenRoleLifecycle.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
+		OperationResult result = task.getResult();
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		activateRole(roleCorrectOid, task, result);
+		Holder<LensContext<?>> contextHolder = new Holder<>();
+		activateRole(roleCorrectOid, contextHolder, task, result);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -204,6 +243,8 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		display("role after", roleAfter);
 		assertEquals("Wrong (changed) lifecycle state", SchemaConstants.LIFECYCLE_DRAFT, roleAfter.asObjectable().getLifecycleState());
 		// TODO check policy situation
+
+		dumpRules(contextHolder);
 
 		Collection<SelectorOptions<GetOperationOptions>> options =
 				GetOperationOptions.retrieveItemsNamed(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM);
@@ -233,14 +274,96 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		assertEquals("Wrong (unchanged) lifecycle state", SchemaConstants.LIFECYCLE_ACTIVE, roleAfterApproval.asObjectable().getLifecycleState());
 	}
 
-	private void activateRole(String oid, Task task, OperationResult result)
+	@Test
+	public void test060AssignOwnerAndApproverToCorrectHighRiskRole() throws Exception {
+		final String TEST_NAME = "test060AssignOwnerAndApproverToCorrectHighRiskRole";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestPolicyDrivenRoleLifecycle.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
+		OperationResult result = task.getResult();
+
+		// WHEN+THEN
+		TestUtil.displayWhen(TEST_NAME);
+		TestUtil.displayThen(TEST_NAME);
+		ModelExecuteOptions noApprovals = createPartialProcessing(new PartialProcessingOptionsType().approvals(SKIP));
+		assignRole(USER_ADMINISTRATOR_OID, roleCorrectHighRiskOid, SchemaConstants.ORG_APPROVER, noApprovals, task, result);
+		assignRole(userJackOid, roleCorrectHighRiskOid, SchemaConstants.ORG_APPROVER, noApprovals, task, result);
+		assignRole(USER_ADMINISTRATOR_OID, roleCorrectHighRiskOid, SchemaConstants.ORG_OWNER, noApprovals, task, result);
+	}
+
+	@Test
+	public void test070ActivateCorrectHighRiskRole() throws Exception {
+		final String TEST_NAME = "test070ActivateCorrectHighRiskRole";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestPolicyDrivenRoleLifecycle.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
+		OperationResult result = task.getResult();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		Holder<LensContext<?>> contextHolder = new Holder<>();
+		activateRole(roleCorrectHighRiskOid, contextHolder, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+
+		PrismObject<RoleType> roleAfter = getRole(roleCorrectHighRiskOid);
+		display("role after", roleAfter);
+		assertEquals("Wrong (changed) lifecycle state", SchemaConstants.LIFECYCLE_DRAFT, roleAfter.asObjectable().getLifecycleState());
+		// TODO check policy situation
+
+		dumpRules(contextHolder);
+
+		Collection<SelectorOptions<GetOperationOptions>> options =
+				GetOperationOptions.retrieveItemsNamed(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM);
+		List<PrismObject<TaskType>> tasks = getTasksForObject(roleCorrectHighRiskOid, RoleType.COMPLEX_TYPE, options, task, result);
+		display("tasks for role", tasks);
+		assertEquals("Wrong # of approval tasks for role", 2, tasks.size());
+
+		TaskType approvalTask = getApprovalTask(tasks);
+		TaskType rootTask = getRootTask(tasks);
+		WfContextType wfc = approvalTask.getWorkflowContext();
+		assertEquals("Modification of correct-high-risk", wfc.getProcessInstanceName());
+		assertEquals("wrong # of work items", 1, wfc.getWorkItem().size());
+		WorkItemType workItem = wfc.getWorkItem().get(0);
+		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfc);
+		assertEquals("wrong # of approval stages", 2, info.getApprovalSchema().getStage().size());
+		assertEquals("wrong # of attached policy rules", 2, info.getPolicyRules().getEntry().size());
+//		EvaluatedPolicyRuleType rule = info.getPolicyRules().getEntry().get(0).getRule();
+//		List<EvaluatedPolicyRuleTriggerType> triggers = rule.getTrigger();
+//
+//		// TODO check trigger
+//
+//		workflowService.completeWorkItem(workItem.getExternalId(), true, null, null, result);
+//		waitForTaskFinish(rootTask.getOid(), false);
+//
+//		PrismObject<RoleType> roleAfterApproval = getRole(roleCorrectHighRiskOid);
+//		display("role after approval", roleAfterApproval);
+//		assertEquals("Wrong (unchanged) lifecycle state", SchemaConstants.LIFECYCLE_ACTIVE, roleAfterApproval.asObjectable().getLifecycleState());
+	}
+
+
+
+
+	private void activateRole(String oid, Holder<LensContext<?>> contextHolder, Task task, OperationResult result)
 			throws SchemaException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
 			PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 		ObjectDelta<RoleType> delta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
 				.item(RoleType.F_LIFECYCLE_STATE)
 				.replace(SchemaConstants.LIFECYCLE_ACTIVE)
 				.asObjectDeltaCast(oid);
-		executeChanges(delta, null, task, result);
+		RecordingProgressListener listener = new RecordingProgressListener();
+		try {
+			modelService.executeChanges(singleton(delta), null, task, singleton(listener), result);
+		} finally {
+			if (contextHolder != null) {
+				contextHolder.setValue((LensContext<?>) listener.getModelContext());
+			}
+		}
 	}
 
 //	@Test

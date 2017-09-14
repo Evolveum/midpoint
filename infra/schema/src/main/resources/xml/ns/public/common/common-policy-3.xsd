@@ -357,6 +357,21 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="final" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to true, no embedded triggers will be presented. Use for hiding constraints that are
+						to be considered too technical to be shown to user. EXPERIMENTAL
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="hidden" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to true, this trigger will be excluded from presentation. EXPERIMENTAL
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:long"/>
 	</xsd:complexType>

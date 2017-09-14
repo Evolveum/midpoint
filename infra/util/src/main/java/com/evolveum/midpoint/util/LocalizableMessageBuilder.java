@@ -49,7 +49,7 @@ public class LocalizableMessageBuilder {
 	}
 
 	public LocalizableMessageBuilder args(List<Object> args) {
-		Collections.addAll(this.args, args);
+		this.args.addAll(args);
 		return this;
 	}
 

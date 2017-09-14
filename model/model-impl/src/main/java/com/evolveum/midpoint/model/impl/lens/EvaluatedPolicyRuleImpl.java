@@ -25,6 +25,8 @@ import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -286,4 +288,30 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return sb.toString();
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<TreeNode<LocalizableMessage>> extractMessages() {
+		TreeNode<LocalizableMessage> root = new TreeNode<>();
+		for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+			createMessageTreeNode(root, trigger);
+		}
+		return root.getChildren();
+	}
+
+	private void createMessageTreeNode(TreeNode<LocalizableMessage> root, EvaluatedPolicyRuleTrigger<?> trigger) {
+		PolicyConstraintPresentationType presentation = trigger.getConstraint().getPresentation();
+		boolean hidden = presentation != null && Boolean.TRUE.equals(presentation.isHidden());
+		boolean isFinal = presentation != null && Boolean.TRUE.equals(presentation.isFinal());
+		if (!hidden) {
+			TreeNode<LocalizableMessage> newNode = new TreeNode<>();
+			root.add(newNode);
+			root = newNode;
+		}
+		root.setUserObject(trigger.getMessage());
+		if (!isFinal) {
+			for (EvaluatedPolicyRuleTrigger<?> innerTrigger : trigger.getInnerTriggers()) {
+				createMessageTreeNode(root, innerTrigger);
+			}
+		}
+	}
 }

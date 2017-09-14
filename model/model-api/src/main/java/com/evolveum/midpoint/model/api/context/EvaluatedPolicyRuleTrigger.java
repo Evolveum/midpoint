@@ -21,12 +21,11 @@ import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleTriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 
 /**
@@ -88,7 +87,9 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 
 	@Override
 	public String toString() {
-		return "EvaluatedPolicyRuleTrigger(" + constraintKind + ": " + message + ")";
+		return "EvaluatedPolicyRuleTrigger(" +
+				(constraint.getName() != null ? "[" + constraint.getName() + "] " : "") +
+				constraintKind + ": " + message + ")";
 	}
 
 	@Override
@@ -105,6 +106,14 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraintKind", constraintKind, indent);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraint", constraint, indent);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "message", message, indent);
+		if (constraint.getPresentation() != null) { // TODO implement better
+			if (Boolean.TRUE.equals(constraint.getPresentation().isFinal())) {
+				DebugUtil.debugDumpWithLabelToStringLn(sb, "final", true, indent);
+			}
+			if (Boolean.TRUE.equals(constraint.getPresentation().isHidden())) {
+				DebugUtil.debugDumpWithLabelToStringLn(sb, "hidden", true, indent);
+			}
+		}
 	}
 
 	protected void debugDumpSpecific(StringBuilder sb, int indent) {
@@ -133,5 +142,14 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 			tt.setDirectOwnerRef(ObjectTypeUtil.createObjectRef(directOwner));
 			tt.setDirectOwnerDisplayName(ObjectTypeUtil.getDisplayName(directOwner));
 		}
+		PolicyConstraintPresentationType presentation = constraint.getPresentation();
+		if (presentation != null) {
+			tt.setFinal(presentation.isFinal());
+			tt.setHidden(presentation.isHidden());
+		}
+	}
+
+	public Collection<EvaluatedPolicyRuleTrigger<?>> getInnerTriggers() {
+		return Collections.emptySet();
 	}
 }

@@ -61,7 +61,7 @@ public class LocalizationUtil {
 					messageArgument = new LocalizableMessageArgumentType()
 								.localizable(createLocalizableMessageType(((LocalizableMessage) argument)));
 				} else {
-					messageArgument = new LocalizableMessageArgumentType().value(String.valueOf(argument));
+					messageArgument = new LocalizableMessageArgumentType().value(argument != null ? String.valueOf(argument) : null);
 				}
 				rv.getArgument().add(messageArgument);
 			}
@@ -100,10 +100,10 @@ public class LocalizationUtil {
 	private static List<Object> convertLocalizableMessageArguments(List<LocalizableMessageArgumentType> arguments) {
 		List<Object> rv = new ArrayList<>();
 		for (LocalizableMessageArgumentType argument : arguments) {
-			if (argument.getValue() != null) {
-				rv.add(argument.getValue());
-			} else {
+			if (argument.getLocalizable() != null) {
 				rv.add(parseLocalizableMessageType(argument.getLocalizable(), null));
+			} else {
+				rv.add(argument.getValue());        // may be null
 			}
 		}
 		return rv;

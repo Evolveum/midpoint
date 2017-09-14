@@ -30,7 +30,9 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -940,7 +942,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	}
 
 	@Override
-	public String dumpAssignmentPolicyRules(int indent) {
+	public String dumpAssignmentPolicyRules(int indent, boolean alsoMessages) {
 		if (evaluatedAssignmentTriple == null) {
 			return "";
 		}
@@ -950,43 +952,63 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			sb.append(assignment.toHumanReadableString());
 			@SuppressWarnings("unchecked")
 			Collection<EvaluatedPolicyRule> thisTargetPolicyRules = assignment.getThisTargetPolicyRules();
-			dumpPolicyRulesCollection("thisTargetPolicyRules", indent + 1, sb, thisTargetPolicyRules);
+			dumpPolicyRulesCollection("thisTargetPolicyRules", indent + 1, sb, thisTargetPolicyRules, alsoMessages);
 			@SuppressWarnings({ "unchecked", "raw" })
 			Collection<EvaluatedPolicyRule> otherTargetsPolicyRules = assignment.getOtherTargetsPolicyRules();
-			dumpPolicyRulesCollection("otherTargetsPolicyRules", indent + 1, sb, otherTargetsPolicyRules);
+			dumpPolicyRulesCollection("otherTargetsPolicyRules", indent + 1, sb, otherTargetsPolicyRules, alsoMessages);
 			@SuppressWarnings({ "unchecked", "raw" })
 			Collection<EvaluatedPolicyRule> focusPolicyRules = assignment.getFocusPolicyRules();
-			dumpPolicyRulesCollection("focusPolicyRules", indent + 1, sb, focusPolicyRules);
+			dumpPolicyRulesCollection("focusPolicyRules", indent + 1, sb, focusPolicyRules, alsoMessages);
 		}, 1);
 		return sb.toString();
 	}
 
 	@Override
-	public String dumpFocusPolicyRules(int indent) {
+	public String dumpFocusPolicyRules(int indent, boolean alsoMessages) {
 		StringBuilder sb = new StringBuilder();
 		if (focusContext != null) {
-			dumpPolicyRulesCollection("objectPolicyRules", indent, sb, focusContext.getPolicyRules());
+			dumpPolicyRulesCollection("objectPolicyRules", indent, sb, focusContext.getPolicyRules(), alsoMessages);
 		}
 		return sb.toString();
 	}
 
-	private void dumpPolicyRulesCollection(String label, int indent, StringBuilder sb, Collection<EvaluatedPolicyRule> rules) {
+	private void dumpPolicyRulesCollection(String label, int indent, StringBuilder sb, Collection<EvaluatedPolicyRule> rules,
+			boolean alsoMessages) {
 		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append(label).append(" (").append(rules.size()).append("):");
 		for (EvaluatedPolicyRule rule : rules) {
 			sb.append("\n");
-			DebugUtil.indentDebugDump(sb, indent + 1);
-			if (rule.isGlobal()) {
-				sb.append("global ");
+			dumpPolicyRule(indent, sb, rule, alsoMessages);
+		}
+	}
+
+	private void dumpPolicyRule(int indent, StringBuilder sb, EvaluatedPolicyRule rule, boolean alsoMessages) {
+		if (alsoMessages) {
+			sb.append("=============================================== RULE ===============================================\n");
+		}
+		DebugUtil.indentDebugDump(sb, indent + 1);
+		if (rule.isGlobal()) {
+			sb.append("global ");
+		}
+		sb.append("rule: ").append(rule.toShortString());
+		dumpTriggersCollection(indent+2, sb, rule.getTriggers());
+		for (PolicyExceptionType exc : rule.getPolicyExceptions()) {
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent + 2);
+			sb.append("exception: ").append(exc);
+		}
+		if (alsoMessages) {
+			if (rule.isTriggered()) {
+				sb.append("\n\n");
+				sb.append("--------------------------------------------- MESSAGES ---------------------------------------------");
+				List<TreeNode<LocalizableMessage>> messageTrees = rule.extractMessages();
+				for (TreeNode<LocalizableMessage> messageTree : messageTrees) {
+					sb.append("\n");
+					sb.append(messageTree.debugDump(indent));
+				}
 			}
-			sb.append("rule: ").append(rule.getName());
-			dumpTriggersCollection(indent+2, sb, rule.getTriggers());
-			for (PolicyExceptionType exc : rule.getPolicyExceptions()) {
-				sb.append("\n");
-				DebugUtil.indentDebugDump(sb, indent + 2);
-				sb.append("exception: ").append(exc);
-			}
+			sb.append("\n");
 		}
 	}
 

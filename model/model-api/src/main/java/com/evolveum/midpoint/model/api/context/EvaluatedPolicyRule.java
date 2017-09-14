@@ -17,8 +17,11 @@ package com.evolveum.midpoint.model.api.context;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,4 +71,6 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 	boolean isGlobal();
 
 	String toShortString();
+
+	List<TreeNode<LocalizableMessage>> extractMessages();
 }

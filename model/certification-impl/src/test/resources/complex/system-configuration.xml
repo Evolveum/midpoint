@@ -59,7 +59,7 @@
 			<and>
 				<objectState>
 					<name>c1-no-risk-level</name>
-					<!-- presentation is not needed, as default key of constraint.c1-no-risk-level is used -->
+					<!-- presentation is not needed, as default key of PolicyConstraint.c1-no-risk-level is used -->
 					<filter>
 						<q:equal>
 							<q:path>riskLevel</q:path>
@@ -71,7 +71,7 @@
 				<objectState>
 					<!-- could be implemented also as a conjunction of two filter-based objectState constraints -->
 					<name>c2-no-description-for-high-risk-role</name>
-					<!-- presentation is not needed, as default key of constraint.c2-no-description-for-high-risk-role is used -->
+					<!-- presentation is not needed, as default key of PolicyConstraint.c2-no-description-for-high-risk-role is used -->
 					<expression>
 						<script>
 							<code>object.riskLevel == 'high' &amp;&amp; object.description == null</code>
@@ -81,7 +81,10 @@
 			</and>
 			<and>
 				<name>c3-less-than-2-approvers-for-high-risk-role</name>
-				<!-- presentation is not needed, as default key of constraint.c3-less-than-2-approvers-for-high-risk-role is used -->
+				<!-- presentation is not needed, as default key of PolicyConstraint.c3-less-than-2-approvers-for-high-risk-role is used -->
+				<presentation>
+					<final>true</final>
+				</presentation>
 				<objectState>
 					<name>high-risk-role</name>
 					<filter>
@@ -98,7 +101,10 @@
 			</and>
 			<and>
 				<name>c3-less-than-1-approver-for-non-high-risk-role</name>
-				<!-- presentation is not needed, as default key of constraint.c3-less-than-1-approver-for-non-high-risk-role is used -->
+				<!-- presentation is not needed, as default key of PolicyConstraint.c3-less-than-1-approver-for-non-high-risk-role is used -->
+				<presentation>
+					<final>true</final>
+				</presentation>
 				<objectState>
 					<name>not-high-risk-role</name>
 					<filter>
@@ -126,8 +132,11 @@
 			<and>
 				<objectState>
 					<name>c5-no-identifier</name>
-					<!-- no presentation is needed: a key of constraint.c5-no-identifier is used -->
+					<!-- no presentation is needed: a key of PolicyConstraint.c5-no-identifier is used -->
 					<!-- situation and expectedUse are set for "active role with no identifier" because that's what we want to certify and report -->
+					<presentation>
+						<hidden>true</hidden>
+					</presentation>
 					<filter>
 						<q:equal>
 							<q:path>identifier</q:path>
@@ -154,6 +163,34 @@
 			<and>
 				<objectState>
 					<name>validity-not-limited</name>
+					<presentation>
+						<message>
+							<keyExpression>
+								<script>
+									<code>
+										import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+
+										if (object.activation == null) {
+											'PolicyConstraint.validity-not-limited.validToNull'
+										} else if (object.activation.administrativeStatus == ActivationStatusType.ENABLED) {
+										 	'PolicyConstraint.validity-not-limited.enabled'
+										} else if (object.activation.validTo == null) {
+											'PolicyConstraint.validity-not-limited.validToNull'
+										} else {
+											'PolicyConstraint.validity-not-limited.validToNotNull'
+										}
+									</code>
+								</script>
+							</keyExpression>
+							<argumentExpression>
+								<script>
+									<code>
+										object.activation?.validTo
+									</code>
+								</script>
+							</argumentExpression>
+						</message>
+					</presentation>
 					<expression>
 						<script>
 							<code>
@@ -182,7 +219,10 @@
 			</and>
 			<and>
 				<name>active-role-with-no-identifier</name>
-				<!-- presentation is not needed, as default key of constraint.active-role-with-no-identifier is used -->
+				<!-- presentation is not needed, as default key of PolicyConstraint.active-role-with-no-identifier is used -->
+				<presentation>
+					<final>true</final>
+				</presentation>
 				<policySituation>http://sample.org/situations#active-role-with-no-identifier</policySituation>
 				<expectedUse>certification</expectedUse> <!-- R4 -->
 				<expectedUse>fullReport</expectedUse>	<!-- RE2 -->
@@ -192,7 +232,7 @@
 			<and>
 				<or>
 					<name>incomplete-role-c1-to-c4</name>
-					<!-- presentation is not needed, as the default key of constraint.incomplete-role-c1-to-c4 is used -->
+					<!-- presentation is not needed, as the default key of PolicyConstraint.incomplete-role-c1-to-c4 is used -->
 					<policySituation>http://sample.org/situations#incomplete-role-c1-to-c4</policySituation>
 					<expectedUse>fullReport</expectedUse>	<!-- RE1 -->
 					<ref>c1-no-risk-level</ref>
@@ -205,6 +245,9 @@
 			<and>
 				<transition>
 					<name>role-activation</name>
+					<presentation>
+						<final>true</final>
+					</presentation>
 					<stateBefore>false</stateBefore>
 					<stateAfter>true</stateAfter>
 					<constraints>
@@ -225,7 +268,7 @@
 		<description>R1: No role that does not meet C1-C4 might be activated i.e. switched to lifecycleState of active.</description>
 		<policyConstraints>
 			<name>r1-no-activation-of-incomplete-roles</name>
-			<!-- presentation uses constraint.r1-no-activation-of-incomplete-roles -->
+			<!-- presentation uses PolicyConstraint.r1-no-activation-of-incomplete-roles -->
 			<!-- Note: situation is not defined here, as this is a transition-related rule.
 			     Situation marking incomplete rules is defined in incomplete-role-c1-to-c4 constraint. -->
 			<ref>incomplete-role-c1-to-c4</ref>
@@ -242,6 +285,10 @@
 		<name>r2-role-activation-approval</name>
 		<description>R2: Activation of a role must be approved by its owner.</description>
 		<policyConstraints>
+			<name>r2-role-activation-approval</name>
+			<presentation>
+				<final>true</final>
+			</presentation>
 			<ref>role-activation</ref>
 		</policyConstraints>
 		<policyActions>
@@ -264,6 +311,10 @@
 		<name>r3-no-identifier-role-activation-approval</name>
 		<description>R3: Activation of a role without identifier is subject to an approval by Security Administrators.</description>
 		<policyConstraints>
+			<name>r3-no-identifier-role-activation-approval</name>
+			<presentation>
+				<final>true</final>
+			</presentation>
 			<ref>role-activation</ref>
 			<ref>c5-no-identifier</ref>
 		</policyConstraints>
@@ -287,8 +338,14 @@
 		<name>r5-validity-limitation-for-active-role</name>
 		<description>R5: Validity of an active role without identifier must be limited to 180 days at most.</description>
 		<policyConstraints>
-			<!-- TODO presentation -->
-			<ref>active-role-with-no-identifier</ref>
+			<name>r5-validity-limitation-for-active-role</name>
+			<and>
+				<presentation>
+					<final>true</final>
+					<hidden>true</hidden>
+				</presentation>
+				<ref>active-role-with-no-identifier</ref>
+			</and>
 			<ref>validity-not-limited</ref>
 		</policyConstraints>
 		<policyActions>

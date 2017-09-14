@@ -15,10 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedExclusionTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.*;
@@ -58,6 +55,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil.toConstraintsList;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType.F_AND;
 
 /**
  * @author semancik
@@ -298,8 +296,17 @@ public class PolicyRuleProcessor {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Evaluating policy rule {} in {}", ctx.policyRule.toShortString(), ctx.getShortDescription());
 		}
-		List<EvaluatedPolicyRuleTrigger<?>> triggers = evaluateConstraints(ctx.policyRule.getPolicyConstraints(), true, ctx, result);
-		if (!triggers.isEmpty()) {
+		PolicyConstraintsType constraints = ctx.policyRule.getPolicyConstraints();
+		JAXBElement<PolicyConstraintsType> conjunction = new JAXBElement<>(F_AND, PolicyConstraintsType.class, constraints);
+		EvaluatedCompositeTrigger trigger = compositeConstraintEvaluator.evaluate(conjunction, ctx, result);
+		if (trigger != null && !trigger.getInnerTriggers().isEmpty()) {
+			List<EvaluatedPolicyRuleTrigger<?>> triggers;
+			// TODO reconsider this
+			if (constraints.getName() == null && constraints.getPresentation() == null) {
+				triggers = new ArrayList<>(trigger.getInnerTriggers());
+			} else {
+				triggers = Collections.singletonList(trigger);
+			}
 			ctx.triggerRule(triggers);
 		}
 		traceRuleEvaluationResult(ctx.policyRule, ctx);

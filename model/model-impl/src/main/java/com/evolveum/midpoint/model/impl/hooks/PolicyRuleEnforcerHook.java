@@ -86,11 +86,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		if (context.getState() == ModelState.PRIMARY) {
 			EvaluationContext evalCtx = invokeInternal(context, task, result);
 			if (!evalCtx.messages.isEmpty()) {
-				// TODO localizable - correctly join the messages!
-				String compositeMessage = evalCtx.messages.stream()
-						.map(m -> m.getFallbackMessage())
-						.collect(Collectors.joining("; "));
-				throw new PolicyViolationException(compositeMessage);
+				throw new PolicyViolationException(evalCtx.messages);
 			}
         }
 		return HookOperationMode.FOREGROUND;
