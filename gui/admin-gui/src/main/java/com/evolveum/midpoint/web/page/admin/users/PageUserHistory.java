@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -78,16 +79,29 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
         objectWrapper.setShowEmpty(false);
 
         for (ContainerWrapper container : objectWrapper.getContainers()) {
-            container.setReadonly(true);
-
-            List<ItemWrapper> itemWrappers = container.getItems();
-            for (ItemWrapper item : itemWrappers){
-                if (item instanceof PropertyWrapper){
-                    ((PropertyWrapper) item).setReadonly(true);
-                } else if (item instanceof ReferenceWrapper){
-                    ((ReferenceWrapper) item).setReadonly(true);
-                }
-            }
+        	container.setReadonly(true);
+        	
+        	container.getValues().forEach(v -> {
+        		((ContainerValueWrapper ) v).getItems().forEach(item -> ((PropertyOrReferenceWrapper) item).setReadonly(true));
+        		((ContainerValueWrapper ) v).setReadonly(true);
+        		
+        	});
+        	
+//        	container.setReadonly(true);
+//
+//            List<ContainerValueWrapper<?>> containervalues = container.getValues();
+//            container.getValues().stream().forEach(v -> {
+//            	(v.setReadonly(true);
+//            	v.getItems().forEach(i -> ((PropertyOrReferenceWrapper) i).setReadonly(true));
+//            });
+//            List<ItemWrapper> itemWrappers = container.getItems();
+//            for (ItemWrapper item : itemWrappers){
+//                if (item instanceof PropertyWrapper){
+//                    ((PropertyWrapper) item).setReadonly(true);
+//                } else if (item instanceof ReferenceWrapper){
+//                    ((ReferenceWrapper) item).setReadonly(true);
+//                }
+//            }
         }
 
         return objectWrapper;

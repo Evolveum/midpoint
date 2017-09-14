@@ -35,7 +35,7 @@ import org.apache.wicket.model.*;
  *
  * WARNING: super ugly code ahead
  */
-public class PrismHeaderPanel extends BasePanel {
+public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel<T> {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_SHOW_EMPTY_FIELDS = "showEmptyFields";
@@ -49,11 +49,12 @@ public class PrismHeaderPanel extends BasePanel {
     public PrismHeaderPanel(String id, IModel model) {
         super(id, model);
 
-        initLayout(model);
+        initLayout();
     }
 
-	private void initLayout(final IModel model) {
+	private void initLayout() {
 
+		setOutputMarkupId(true);
 		VisibleEnableBehaviour buttonsVisibleBehaviour = new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 
@@ -69,21 +70,23 @@ public class PrismHeaderPanel extends BasePanel {
 
 			@Override
             public void onClick(AjaxRequestTarget target) {
-            	ObjectWrapper objectWrapper = getObjectWrapper(model);
-                objectWrapper.setShowMetadata(!objectWrapper.isShowMetadata());
+//				ObjectWrapper objectWrapper = getObjectWrapper(model);
+//				PrismWrapper wrapper = PrismHeaderPanel.this.getModelObject();
+//				wrapper.setShowMetadata(wrapper.isShowMetadata());
+//                objectWrapper.setShowMetadata(!objectWrapper.isShowMetadata());
 				onButtonClick(target);
             }
 
 			@Override
 			public boolean isOn() {
-				return getObjectWrapper(model).isShowMetadata();
+				return getObjectWrapper().isShowMetadata();
 			}
         };
 		showMetadataButton.add(new AttributeModifier("title", new AbstractReadOnlyModel() {
 
 			@Override
 			public Object getObject() {
-				return getObjectWrapper(model) == null ? "" : (getObjectWrapper(model).isShowMetadata() ?
+				return getObjectWrapper() == null ? "" : (getObjectWrapper().isShowMetadata() ?
 						createStringResource("PrismObjectPanel.hideMetadata").getString() :
 						createStringResource("PrismObjectPanel.showMetadata").getString());
 			}
@@ -97,7 +100,7 @@ public class PrismHeaderPanel extends BasePanel {
 
 			@Override
             public void onClick(AjaxRequestTarget target) {
-            	ObjectWrapper objectWrapper = getObjectWrapper(model);
+            	PrismWrapper objectWrapper = getObjectWrapper();
                 objectWrapper.setShowEmpty(!objectWrapper.isShowEmpty());
 
 				onButtonClick(target);
@@ -105,10 +108,10 @@ public class PrismHeaderPanel extends BasePanel {
 
 			@Override
 			public boolean isOn() {
-				return getObjectWrapper(model).isShowEmpty();
+				return getObjectWrapper().isShowEmpty();
 			}
         };
-		showEmptyFieldsButton.setMarkupId(ID_SHOW_EMPTY_FIELDS);
+		showEmptyFieldsButton.setOutputMarkupId(true);
 
 		showEmptyFieldsButton.add(buttonsVisibleBehaviour);
         add(showEmptyFieldsButton);
@@ -119,16 +122,16 @@ public class PrismHeaderPanel extends BasePanel {
 
         	@Override
             public void onClick(AjaxRequestTarget target) {
-                ObjectWrapper objectWrapper = getObjectWrapper(model);
+        		PrismWrapper objectWrapper = getObjectWrapper();
                 objectWrapper.setSorted(!objectWrapper.isSorted());
-                objectWrapper.sort((PageBase)getPage());
+//                objectWrapper.sort((PageBase)getPage());
 
                 onButtonClick(target);
             }
 
         	@Override
 			public boolean isOn() {
-				return getObjectWrapper(model).isSorted();
+				return getObjectWrapper().isSorted();
 			}
         };
         sortPropertiesButton.add(buttonsVisibleBehaviour);
@@ -140,9 +143,11 @@ public class PrismHeaderPanel extends BasePanel {
 			@Override
 			public String getObject() {
 
-				Object wrapper = model.getObject();
-				String displayName = null;
-		    	if (wrapper instanceof ContainerWrapper) {
+				PrismWrapper wrapper = getObjectWrapper();
+				String displayName = "displayName.not.set";
+				if (wrapper instanceof ContainerValueWrapper) {
+					displayName = ((ContainerValueWrapper) wrapper).getDisplayName();
+				} else if (wrapper instanceof ContainerWrapper) {
 		    		displayName = ((ContainerWrapper)wrapper).getDisplayName();
 		    	} else if (wrapper instanceof ObjectWrapper) {
 		    		// HACK HACK HACK
@@ -162,15 +167,18 @@ public class PrismHeaderPanel extends BasePanel {
         add(new Label(ID_LABEL, headerLabelModel));
     }
 
-    private ObjectWrapper getObjectWrapper(IModel model) {
-    	Object wrapper = model.getObject();
-    	ObjectWrapper objectWrapper = null;
-    	if (wrapper instanceof ContainerWrapper) {
-    		return ((ContainerWrapper)wrapper).getObject();
-    	} else if (wrapper instanceof ObjectWrapper) {
-    		return (ObjectWrapper)wrapper;
-    	}
-    	return null;
+    private PrismWrapper getObjectWrapper() {
+    	return getModelObject();
+//    	Object wrapper = model.getObject();
+//    	ObjectWrapper objectWrapper = null;
+//    	if (wrapper instanceof ContainerWrapper) {
+//    		return ((ContainerWrapper)wrapper).getObject();
+//    	} else if (wrapper instanceof ObjectWrapper) {
+//    		return (ObjectWrapper)wrapper;
+//    	} else if (wrapper instanceof ContainerValueWrapper) {
+//    		return ((ContainerValueWrapper) wrapper).getContainer().getObject();
+//    	}
+//    	return null;
     }
 
     protected void onButtonClick(AjaxRequestTarget target) {

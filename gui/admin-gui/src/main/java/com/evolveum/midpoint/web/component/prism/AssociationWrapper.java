@@ -34,7 +34,7 @@ public class AssociationWrapper extends PropertyWrapper<PrismContainer<ShadowAss
 
 	private RefinedAssociationDefinition assocRDef;
 
-	public AssociationWrapper(ContainerWrapper<ShadowAssociationType> container, PrismContainer<ShadowAssociationType> property,
+	public AssociationWrapper(ContainerValueWrapper<ShadowAssociationType> container, PrismContainer<ShadowAssociationType> property,
 			boolean readonly, ValueStatus status, RefinedAssociationDefinition assocRDef) {
 		super(container, property, readonly, status);
 		this.assocRDef = assocRDef;

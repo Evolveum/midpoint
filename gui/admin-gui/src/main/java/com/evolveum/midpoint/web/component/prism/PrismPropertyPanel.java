@@ -74,13 +74,13 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 
-            @Override
-            public boolean isVisible() {
-            	IW propertyWrapper = model.getObject();
-                boolean visible = propertyWrapper.isVisible();
-                LOGGER.trace("isVisible: {}: {}", propertyWrapper, visible);
-                return visible;
-            }
+//            @Override
+//            public boolean isVisible() {
+//            	IW propertyWrapper = model.getObject();
+//                boolean visible = propertyWrapper.isVisible(propertyWrapper.getParent().isShowEmpty());
+//                LOGGER.trace("isVisible: {}: {}", propertyWrapper, visible);
+//                return visible;
+//            }
 
             @Override
             public boolean isEnabled() {
@@ -258,16 +258,15 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
     private boolean hasPendingModification(IModel<IW> model) {
         ItemWrapper propertyWrapper = model.getObject();
-        ContainerWrapper containerWrapper = propertyWrapper.getContainer();
+        ContainerWrapper containerWrapper = propertyWrapper.getParent();
         if (containerWrapper == null) {
             return false;           // TODO - ok?
         }
-        ObjectWrapper objectWrapper = containerWrapper.getObject();
-
-		if (objectWrapper == null) {
-			return false;
-		}
-        PrismObject prismObject = objectWrapper.getObject();
+        if (!containerWrapper.isMain()) {
+        	return false;
+        }
+        
+        PrismObject prismObject = (PrismObject) containerWrapper.getItem();
         if (!ShadowType.class.isAssignableFrom(prismObject.getCompileTimeClass())) {
             return false;
         }

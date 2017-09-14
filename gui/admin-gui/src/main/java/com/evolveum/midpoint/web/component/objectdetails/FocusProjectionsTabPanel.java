@@ -433,7 +433,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			}
 
 			PropertyWrapper enabledProperty = (PropertyWrapper) activation
-					.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
+					.findPropertyWrapper(new ItemPath(ActivationType.F_ADMINISTRATIVE_STATUS));
 			if (enabledProperty == null || enabledProperty.getValues().size() != 1) {
 				warn(getString("pageAdminFocus.message.noEnabledPropertyFound", wrapper.getDisplayName()));
 				continue;
@@ -469,7 +469,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				continue;
 			}
 
-			PropertyWrapper lockedProperty = activation.findPropertyWrapper(ActivationType.F_LOCKOUT_STATUS);
+			PropertyWrapper lockedProperty = activation.findPropertyWrapper(new ItemPath(ActivationType.F_LOCKOUT_STATUS));
 			if (lockedProperty == null || lockedProperty.getValues().size() != 1) {
 				warn(getString("pageAdminFocus.message.noLockoutStatusPropertyFound", wrapper.getDisplayName()));
 				continue;

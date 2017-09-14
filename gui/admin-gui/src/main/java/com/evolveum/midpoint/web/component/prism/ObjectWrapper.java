@@ -46,7 +46,7 @@ import java.util.*;
 /**
  * @author lazyman
  */
-public class ObjectWrapper<O extends ObjectType> implements Serializable, Revivable, DebugDumpable {
+public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements Serializable, Revivable, DebugDumpable {
 	private static final long serialVersionUID = 1L;
 
 	public static final String F_DISPLAY_NAME = "displayName";
@@ -65,10 +65,10 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     private String description;
     private List<ContainerWrapper<? extends Containerable>> containers;
 
-    private boolean showEmpty;
-    private boolean minimalized;
-    private boolean sorted;
-    private boolean showMetadata = false;
+//    private boolean showEmpty;
+//    private boolean minimalized;
+//    private boolean sorted;
+//    private boolean showMetadata = false;
     private boolean selectable;
     private boolean selected;
 
@@ -89,17 +89,15 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
     private OperationResult fetchResult;
     // a "static" (non-refined) definition that reflects editability of the object in terms of midPoint schema limitations and security
-    private PrismContainerDefinition objectDefinitionForEditing;
+//    private PrismContainerDefinition objectDefinitionForEditing;
     // a refined definition of an resource object class that reflects its editability; applicable for shadows only
     private RefinedObjectClassDefinition objectClassDefinitionForEditing;
 
-    public ObjectWrapper(String displayName, String description, PrismObject object,
-            PrismContainerDefinition objectDefinitionForEditing, ContainerStatus status) {
-        this(displayName, description, object, objectDefinitionForEditing, null, status);
+    public ObjectWrapper(String displayName, String description, PrismObject object, ContainerStatus status) {
+        this(displayName, description, object, null, status);
     }
 
     public ObjectWrapper(String displayName, String description, PrismObject object,
-			PrismContainerDefinition objectDefinitionForEditing,
 			RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status) {
         Validate.notNull(object, "Object must not be null.");
         Validate.notNull(status, "Container status must not be null.");
@@ -109,13 +107,12 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         this.object = object;
         this.objectOld = object.clone();
         this.status = status;
-        this.objectDefinitionForEditing = objectDefinitionForEditing;
         this.objectClassDefinitionForEditing = objectClassDefinitionForEditing;
     }
 
-    public void initializeContainers(PageBase pageBase) {
-        //todo remove
-    }
+//    public void initializeContainers(PageBase pageBase) {
+//        //todo remove
+//    }
 
     public void revive(PrismContext prismContext) throws SchemaException {
         if (object != null) {
@@ -205,38 +202,46 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         return description;
     }
 
-    public boolean isMinimalized() {
-        return minimalized;
-    }
-
-    public void setMinimalized(boolean minimalized) {
-        this.minimalized = minimalized;
-    }
-
-    public boolean isSorted() {
-        return sorted;
-    }
-
-    public void setSorted(boolean sorted) {
-        this.sorted = sorted;
-    }
-
-    public boolean isShowMetadata() {
-        return showMetadata;
-    }
-
-    public void setShowMetadata(boolean showMetadata) {
-        this.showMetadata = showMetadata;
-    }
-
-    public boolean isShowEmpty() {
-        return showEmpty;
-    }
-
-    public void setShowEmpty(boolean showEmpty) {
-        this.showEmpty = showEmpty;
-        computeStripes();
-    }
+//    @Override
+//    public boolean isMinimalized() {
+//        return minimalized;
+//    }
+//
+//    @Override
+//    public void setMinimalized(boolean minimalized) {
+//        this.minimalized = minimalized;
+//    }
+//
+//    @Override
+//    public boolean isSorted() {
+//        return sorted;
+//    }
+//
+//    @Override
+//    public void setSorted(boolean sorted) {
+//        this.sorted = sorted;
+//    }
+//
+//    @Override
+//    public boolean isShowMetadata() {
+//        return showMetadata;
+//    }
+//
+//    @Override
+//    public void setShowMetadata(boolean showMetadata) {
+//        this.showMetadata = showMetadata;
+//    }
+//
+//    @Override
+//    public boolean isShowEmpty() {
+//        return showEmpty;
+//    }
+//
+//    @Override
+//    public void setShowEmpty(boolean showEmpty) {
+//        this.showEmpty = showEmpty;
+//        computeStripes();
+//    }
 
     public boolean isSelectable() {
         return selectable;
@@ -303,7 +308,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     	if (containerWrapper == null) {
     		return null;
     	}
-    	return (IW) containerWrapper.findPropertyWrapper(ItemPath.getFirstName(propertyPath));
+    	return (IW) containerWrapper.findPropertyWrapper(propertyPath);
     }
 
     public void normalize() throws SchemaException {
@@ -412,18 +417,18 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
         for (ContainerWrapper containerWrapper : getContainers()) {
 
-            if (containerWrapper.getItemDefinition().getName().equals(ShadowType.F_ASSOCIATION)) {
-                PrismContainer associationContainer = object.findOrCreateContainer(ShadowType.F_ASSOCIATION);
-                List<AssociationWrapper> associationItemWrappers = (List<AssociationWrapper>) containerWrapper.getItems();
-                for (AssociationWrapper associationItemWrapper : associationItemWrappers) {
-                    List<ValueWrapper> assocValueWrappers = associationItemWrapper.getValues();
-                    for (ValueWrapper assocValueWrapper : assocValueWrappers) {
-                        PrismContainerValue<ShadowAssociationType> assocValue = (PrismContainerValue<ShadowAssociationType>) assocValueWrapper.getValue();
-                        associationContainer.add(assocValue.clone());
-                    }
-                }
-                continue;
-            }
+//            if (containerWrapper.getItemDefinition().getName().equals(ShadowType.F_ASSOCIATION)) {
+//                PrismContainer associationContainer = object.findOrCreateContainer(ShadowType.F_ASSOCIATION);
+//                List<AssociationWrapper> associationItemWrappers = (List<AssociationWrapper>) containerWrapper.getItems();
+//                for (AssociationWrapper associationItemWrapper : associationItemWrappers) {
+//                    List<ValueWrapper> assocValueWrappers = associationItemWrapper.getValues();
+//                    for (ValueWrapper assocValueWrapper : assocValueWrappers) {
+//                        PrismContainerValue<ShadowAssociationType> assocValue = (PrismContainerValue<ShadowAssociationType>) assocValueWrapper.getValue();
+//                        associationContainer.add(assocValue.clone());
+//                    }
+//                }
+//                continue;
+//            }
 
             if (!containerWrapper.hasChanged()) {
                 continue;
@@ -449,18 +454,18 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
                 container = object;
             }
 
-            for (ItemWrapper itemWrapper : (List<ItemWrapper>) containerWrapper.getItems()) {
-                if (!itemWrapper.hasChanged()) {
-                    continue;
-                }
-                if (container.findItem(itemWrapper.getName()) != null) {
-                    continue;
-                }
-                Item updatedItem = ((PropertyOrReferenceWrapper) itemWrapper).getUpdatedItem(object.getPrismContext());
-                if (!updatedItem.isEmpty()) {
-                    container.add(updatedItem);
-                }
-            }
+//            for (ContainerValueWrapper itemWrapper : (List<ContainerValueWrapper>) containerWrapper.getValues()) {
+//                if (!itemWrapper.hasChanged()) {
+//                    continue;
+//                }
+//                if (container.findItem(itemWrapper.getName()) != null) {
+//                    continue;
+//                }
+//                Item updatedItem = ((PropertyOrReferenceWrapper) itemWrapper).getUpdatedItem(object.getPrismContext());
+//                if (!updatedItem.isEmpty()) {
+//                    container.add(updatedItem);
+//                }
+//            }
         }
 
         // cleanup empty containers
@@ -587,9 +592,9 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 	}
 
 	public PrismContainerDefinition getDefinition() {
-        if (objectDefinitionForEditing != null) {
-            return objectDefinitionForEditing;
-        }
+//        if (objectDefinitionForEditing != null) {
+//            return objectDefinitionForEditing;
+//        }
         return object.getDefinition();
     }
 

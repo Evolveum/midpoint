@@ -70,7 +70,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
 
     private void initLayout(final IModel<ObjectWrapper<O>> model, ResourceReference image, final Form<ObjectWrapper<O>> form) {
         Component headerComponent = createHeader(ID_HEADER, model, form);
-        add(headerComponent);
+//        add(headerComponent);
 
         addOrReplaceContainers(model, form, false);
 
@@ -104,7 +104,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
     }
 
     protected PrismContainerPanel createContainerPanel(ListItem<ContainerWrapper> item, Form form){
-        PrismContainerPanel panel = new PrismContainerPanel(ID_CONTAINER, item.getModel(), true, form, pageBase);
+        PrismContainerPanel panel = new PrismContainerPanel(ID_CONTAINER, item.getModel(), false, form, pageBase);
         panel.setOutputMarkupPlaceholderTag(true);
         item.add(panel);
         return panel;
@@ -155,7 +155,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
             @Override
             protected void populateItem(ListItem<ContainerWrapper> item) {
                 PrismContainerPanel containerPanel = createContainerPanel(item, form);
-                createMetadataPanel(model, item, containerPanel);
+//                createMetadataPanel(model, item, containerPanel);
             }
         };
         containers.setReuseItems(true);

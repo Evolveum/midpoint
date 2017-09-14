@@ -218,13 +218,13 @@ public class PrismValuePanel extends Panel {
                 public boolean isEnabled() {
                     ValueWrapper wrapper = valueWrapperModel.getObject();
                     ItemWrapper itemWrapper = wrapper.getItem();
-					if (valueWrapperModel.getObject().isReadonly()) {
+					if (wrapper.isReadonly()) {
 						return false;
 					}
-                    if (itemWrapper.getContainer() == null) {
-                        return true;        // TODO
-                    }
-                    ObjectWrapper object = itemWrapper.getContainer().getObject();
+//					  if (itemWrapper.getParent() == null) {
+//                        return true;        // TODO
+//                    }
+                    ContainerWrapper object = itemWrapper.getParent();
                     ItemDefinition def = itemWrapper.getItem().getDefinition();
 
                     return object == null || isAccessible(def, object.getStatus());
@@ -307,7 +307,7 @@ public class PrismValuePanel extends Panel {
             return false;
         }
 
-        if (propertyWrapper.getContainer() == null) {
+        if (propertyWrapper.getParent() == null) {
             return true;        // TODO
         }
 
@@ -315,7 +315,7 @@ public class PrismValuePanel extends Panel {
     }
 
 	private ContainerStatus getContainerStatus(ItemWrapper propertyWrapper) {
-		final ObjectWrapper objectWrapper = propertyWrapper.getContainer().getObject();
+		final ContainerWrapper<Containerable> objectWrapper = propertyWrapper.getParent();
 		return objectWrapper != null ? objectWrapper.getStatus() : ContainerStatus.MODIFYING;
 	}
 
@@ -345,7 +345,7 @@ public class PrismValuePanel extends Panel {
             return false;
         }
 
-        if (propertyWrapper.getContainer() == null) {
+        if (propertyWrapper.getParent() == null) {
             return true;            // TODO
         }
         return isAccessible(definition, getContainerStatus(propertyWrapper));
@@ -353,9 +353,9 @@ public class PrismValuePanel extends Panel {
 
     private Panel createInputComponent(String id, IModel<String> labelModel, Form form) {
         ValueWrapper valueWrapper = valueWrapperModel.getObject();
-        ObjectWrapper objectWrapper = null;
-        if (valueWrapper.getItem().getContainer() != null) {
-            objectWrapper = valueWrapper.getItem().getContainer().getObject();
+        ContainerWrapper objectWrapper = null;
+        if (valueWrapper.getItem().getParent() != null) {
+            objectWrapper = valueWrapper.getItem().getParent();
         }
         Item property = valueWrapper.getItem().getItem();
 		ItemDefinition definition = valueWrapper.getItem().getItemDefinition();
@@ -663,46 +663,47 @@ public class PrismValuePanel extends Panel {
     				new PropertyModel<>(valueWrapperModel, "value"), item.getValues(), false, typeClasses);
 
         } else if (item instanceof PrismContainer<?>) {
-        	AssociationWrapper itemWrapper = (AssociationWrapper) valueWrapperModel.getObject().getItem();
-        	final PrismContainer container = (PrismContainer) item;
-        	PrismContainerDefinition definition = container.getDefinition();
-            QName valueType = definition.getTypeName();
-
-            if (ShadowAssociationType.COMPLEX_TYPE.equals(valueType)) {
-
-	            PrismContext prismContext = item.getPrismContext();
-	            if (prismContext == null) {
-	                prismContext = pageBase.getPrismContext();
-	            }
-
-	            ShadowType shadowType = ((ShadowType)itemWrapper.getContainer().getObject().getObject().asObjectable());
-	            PrismObject<ResourceType> resource = shadowType.getResource().asPrismObject();
-	            // HACK. The revive should not be here. Revive is no good. The next use of the resource will
-	            // cause parsing of resource schema. We need some centralized place to maintain live cached copies
-	            // of resources.
-	            try {
-					resource.revive(prismContext);
-				} catch (SchemaException e) {
-					throw new SystemException(e.getMessage(), e);
-				}
-	            RefinedResourceSchema refinedSchema;
-	            CompositeRefinedObjectClassDefinition rOcDef;
-	            try {
-					refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-					rOcDef = refinedSchema.determineCompositeObjectClassDefinition(shadowType.asPrismObject());
-				} catch (SchemaException e) {
-					throw new SystemException(e.getMessage(),e);
-				}
-	            RefinedAssociationDefinition assocDef = itemWrapper.getRefinedAssociationDefinition();
-	            RefinedObjectClassDefinition assocTargetDef = assocDef.getAssociationTarget();
-
-	            ObjectQuery query = getAssociationsSearchQuery(prismContext, resource,
-	            		assocTargetDef.getTypeName(), assocTargetDef.getKind());
-
-	            List values = item.getValues();
-	            return new AssociationValueChoicePanel(id, valueWrapperModel, values, false, ShadowType.class,
-	            		query, assocTargetDef);
-            }
+//        	AssociationWrapper itemWrapper = (AssociationWrapper) valueWrapperModel.getObject().getItem();
+//        	final PrismContainer container = (PrismContainer) item;
+//        	PrismContainerDefinition definition = container.getDefinition();
+//            QName valueType = definition.getTypeName();
+//
+//            if (ShadowAssociationType.COMPLEX_TYPE.equals(valueType)) {
+//
+//	            PrismContext prismContext = item.getPrismContext();
+//	            if (prismContext == null) {
+//	                prismContext = pageBase.getPrismContext();
+//	            }
+//
+//	            ContainerWrapper<Containerable>itemWrapper.getParent();
+//	            ShadowType shadowType = ((ShadowType)itemWrapper.getParent().asObjectable());
+//	            PrismObject<ResourceType> resource = shadowType.getResource().asPrismObject();
+//	            // HACK. The revive should not be here. Revive is no good. The next use of the resource will
+//	            // cause parsing of resource schema. We need some centralized place to maintain live cached copies
+//	            // of resources.
+//	            try {
+//					resource.revive(prismContext);
+//				} catch (SchemaException e) {
+//					throw new SystemException(e.getMessage(), e);
+//				}
+//	            RefinedResourceSchema refinedSchema;
+//	            CompositeRefinedObjectClassDefinition rOcDef;
+//	            try {
+//					refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+//					rOcDef = refinedSchema.determineCompositeObjectClassDefinition(shadowType.asPrismObject());
+//				} catch (SchemaException e) {
+//					throw new SystemException(e.getMessage(),e);
+//				}
+//	            RefinedAssociationDefinition assocDef = itemWrapper.getRefinedAssociationDefinition();
+//	            RefinedObjectClassDefinition assocTargetDef = assocDef.getAssociationTarget();
+//
+//	            ObjectQuery query = getAssociationsSearchQuery(prismContext, resource,
+//	            		assocTargetDef.getTypeName(), assocTargetDef.getKind());
+//
+//	            List values = item.getValues();
+//	            return new AssociationValueChoicePanel(id, valueWrapperModel, values, false, ShadowType.class,
+//	            		query, assocTargetDef);
+//            }
         }
 
         return panel;

@@ -29,7 +29,7 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 
 	private static final long serialVersionUID = 3132143219403214903L;
 
-	public ReferenceWrapper(ContainerWrapper container, PrismReference reference, boolean readonly, ValueStatus status) {
+	public ReferenceWrapper(ContainerValueWrapper container, PrismReference reference, boolean readonly, ValueStatus status) {
 		super(container, reference, readonly, status);
 	}
 

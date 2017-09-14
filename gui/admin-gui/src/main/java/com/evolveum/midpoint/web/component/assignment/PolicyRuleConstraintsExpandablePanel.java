@@ -43,7 +43,7 @@ public class PolicyRuleConstraintsExpandablePanel<P extends AbstractPolicyConstr
                 PolicyConstraintsType.F_EXCLUSION);
 
 //                    if (exclusionContainer != null) {
-        policyRuleConstraintsContainerWrapper = cwf.createCustomContainerWrapper(getModelObject(), ContainerStatus.MODIFYING, exclusionContainerPath, false, true);
+        policyRuleConstraintsContainerWrapper = cwf.createContainerWrapper(getModelObject().asPrismContainerValue().getContainer(), ContainerStatus.MODIFYING, exclusionContainerPath, true);
 //                    } else {
 //                    exclusionContainer = containerDef.instantiate();
 //                        containerWrapper = cwf.createContainerWrapper(exclusionContainer, ContainerStatus.ADDING, exclusionContainerPath, false);

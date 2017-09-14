@@ -364,7 +364,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			wrapper.setSelectable(true);
 			wrapper.setMinimalized(true);
 
-			wrapper.initializeContainers(this);
+//			wrapper.initializeContainers(this);
 
 			subResult.computeStatus();
 

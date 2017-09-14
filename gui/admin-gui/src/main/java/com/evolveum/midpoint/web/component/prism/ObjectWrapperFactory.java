@@ -58,12 +58,14 @@ public class ObjectWrapperFactory {
     private static final String CREATE_OBJECT_WRAPPER = DOT_CLASS + "createObjectWrapper";
 
     private static final List<QName> INHERITED_OBJECT_SUBCONTAINERS = Arrays.asList(
-            ObjectType.F_METADATA,
-            ObjectType.F_EXTENSION);
+//            ObjectType.F_METADATA,
+//            ObjectType.F_EXTENSION
+            );
 
     private static final List<QName> CONTAINERS_TO_IGNORE = Arrays.asList(
     		 SubjectedObjectSelectorType.COMPLEX_TYPE,
     		    TriggerType.COMPLEX_TYPE,
+    		    OperationExecutionType.COMPLEX_TYPE,
     		    ApprovalSchemaType.COMPLEX_TYPE,
     		    PasswordHistoryEntryType.COMPLEX_TYPE,
     		    NonceType.COMPLEX_TYPE);
@@ -101,6 +103,8 @@ public class ObjectWrapperFactory {
             if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("Edit definition for {}:\n{}", object, objectDefinitionForEditing.debugDump(1));
             }
+            
+            
             RefinedObjectClassDefinition objectClassDefinitionForEditing = null;
             if (isShadow(object)) {
                 PrismReference resourceRef = object.findReference(ShadowType.F_RESOURCE_REF);
@@ -134,8 +138,13 @@ public class ObjectWrapperFactory {
         } else {
             this.result = result;
         }
-
-        ObjectWrapper<O> objectWrapper = new ObjectWrapper<>(displayName, description, object, objectDefinitionForEditing,
+        
+        //replace default definition with the updated definition - limitation + security included
+        if (objectDefinitionForEditing != null) {
+        	object.setDefinition(objectDefinitionForEditing);
+        }
+        
+                ObjectWrapper<O> objectWrapper = new ObjectWrapper<>(displayName, description, object,
                 objectClassDefinitionForEditing, status);
 
         List<ContainerWrapper<? extends Containerable>> containerWrappers = createContainerWrappers(objectWrapper, object,
@@ -169,7 +178,7 @@ public class ObjectWrapperFactory {
             } else if (ReportType.class.isAssignableFrom(clazz)) {
                 addReportContainers(containerWrappers, oWrapper, object, result);
             } else {
-                ContainerWrapper mainContainerWrapper = cwf.createContainerWrapper(oWrapper, object, cStatus, null);
+                ContainerWrapper mainContainerWrapper = cwf.createContainerWrapper(object, cStatus, null);
                 mainContainerWrapper.setDisplayName("prismContainer.mainPanelDisplayName");
                 result.addSubresult(cwf.getResult());
                 containerWrappers.add(mainContainerWrapper);
@@ -211,7 +220,7 @@ public class ObjectWrapperFactory {
         }
 
         ContainerWrapperFactory cwf = new ContainerWrapperFactory(modelServiceLocator);
-        ContainerWrapper wrapper = cwf.createContainerWrapper(oWrapper, container, status, new ItemPath(name));
+        ContainerWrapper wrapper = cwf.createContainerWrapper(container, status, new ItemPath(name));
         result.addSubresult(cwf.getResult());
         list.add(wrapper);
         if (!ShadowType.F_ASSOCIATION.equals(name)) {
@@ -245,17 +254,17 @@ public class ObjectWrapperFactory {
 
             PrismContainerDefinition<?> containerDef = (PrismContainerDefinition) def;
             //todo this oWrapper.isShowAssignments() value is not set when initialization occurs (only default is there) [lazyman]
-            if (!oWrapper.isShowAssignments() && AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {
-                continue;
-            }
+//            if (!oWrapper.isShowAssignments() && AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {
+//                continue;
+//            }
             //todo this oWrapper.isShowInheritedObjectAttributes() value is not set when initialization occurs (only default is there) [lazyman]
-            if (!oWrapper.isShowInheritedObjectAttributes()) {
-                boolean res = INHERITED_OBJECT_SUBCONTAINERS.contains(containerDef.getName());
-                LOGGER.info("checking " + containerDef.getName() + ", result = " + res);
-                if (res) {
-                    continue;
-                }
-            }
+//            if (!oWrapper.isShowInheritedObjectAttributes()) {
+//                boolean res = INHERITED_OBJECT_SUBCONTAINERS.contains(containerDef.getName());
+//                LOGGER.info("checking " + containerDef.getName() + ", result = " + res);
+//                if (res) {
+//                    continue;
+//                }
+//            }
 
             ItemPath newPath = createPropertyPath(parentPath, containerDef.getName());
 
@@ -264,34 +273,40 @@ public class ObjectWrapperFactory {
             // potentially multivalued.
             // Therefore (as a brutal hack), for multivalued parents we simply
             // skip it.
-            if (parentContainer.size() <= 1) {
+//            if (parentContainer.size() <= 1) {
 
                 // the same check as in getValue() implementation
-                boolean isMultiValued = parentContainer.getDefinition() != null && !parentContainer.getDefinition().isDynamic()
-                        && !parentContainer.getDefinition().isSingleValue();
-                if (!isMultiValued) {
+//                boolean isMultiValued = parentContainer.getDefinition() != null && !parentContainer.getDefinition().isDynamic();
+//                        && !parentContainer.getDefinition().isSingleValue();
+//                if (!isMultiValued) {
                     ContainerWrapperFactory cwf = new ContainerWrapperFactory(modelServiceLocator);
 
+                    if (AssignmentType.COMPLEX_TYPE.equals(parentContainer.getDefinition().getName())) {
+                    	System.out.println("something");
+                    }
+                    
                     PrismContainer prismContainer = parentContainer.findContainer(def.getName());
 
                     ContainerWrapper container;
                     if (prismContainer != null) {
-                        container = cwf.createContainerWrapper(oWrapper, prismContainer, ContainerStatus.MODIFYING, newPath);
+                        container = cwf.createContainerWrapper(prismContainer, ContainerStatus.MODIFYING, newPath);
                     } else {
                         prismContainer = containerDef.instantiate();
-                        container = cwf.createContainerWrapper(oWrapper, prismContainer, ContainerStatus.ADDING, newPath);
+                        container = cwf.createContainerWrapper(prismContainer, ContainerStatus.ADDING, newPath);
                     }
                     result.addSubresult(cwf.getResult());
                     containerWrappers.add(container);
 
-                    if (!AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())
-                            || !ShadowType.F_ASSOCIATION.equals(parentContainer.getElementName())) {
+//                    if (!AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())
+//                            || !ShadowType.F_ASSOCIATION.equals(parentContainer.getElementName())) {
                         // do not show internals of Assignments (e.g. activation)
-                        addContainerWrappers(containerWrappers, oWrapper, prismContainer, newPath, result);
-                    }
+//                    if (newPath.size() <= 1) {
+//                        addContainerWrappers(containerWrappers, oWrapper, prismContainer, newPath, result);
+//                    }
+//                    }
                 }
-            }
-        }
+//            }
+//        }
     }
 
 
@@ -355,12 +370,14 @@ public class ObjectWrapperFactory {
                     ShadowType.F_ATTRIBUTES);
             attributesContainer = definition.instantiate();
         }
+        
+        
 
-        ContainerWrapper attributesContainerWrapper = cwf.createContainerWrapper(oWrapper, attributesContainer, status,
+        ContainerWrapper attributesContainerWrapper = cwf.createContainerWrapper(attributesContainer, status,
                 new ItemPath(ShadowType.F_ATTRIBUTES));
         result.addSubresult(cwf.getResult());
 
-        attributesContainerWrapper.setMain(true);
+//        attributesContainerWrapper.setMain(true);
         attributesContainerWrapper.setDisplayName("prismContainer.shadow.mainPanelDisplayName");
         containers.add(attributesContainerWrapper);
 
@@ -376,7 +393,7 @@ public class ObjectWrapperFactory {
         }
 
         PrismContainer<ShadowAssociationType> associationContainer = object.findOrCreateContainer(ShadowType.F_ASSOCIATION);
-        attributesContainerWrapper = cwf.createContainerWrapper(oWrapper, associationContainer, ContainerStatus.MODIFYING,
+        attributesContainerWrapper = cwf.createContainerWrapper(associationContainer, ContainerStatus.MODIFYING,
                 new ItemPath(ShadowType.F_ASSOCIATION));
         result.addSubresult(cwf.getResult());
         containers.add(attributesContainerWrapper);
@@ -409,7 +426,7 @@ public class ObjectWrapperFactory {
             container = definition.instantiate();
         }
         ContainerWrapperFactory cwf = new ContainerWrapperFactory(modelServiceLocator);
-        ContainerWrapper wrapper = cwf.createContainerWrapper(oWrapper, container, status, new ItemPath(ReportType.F_CONFIGURATION));
+        ContainerWrapper wrapper = cwf.createContainerWrapper(container, status, new ItemPath(ReportType.F_CONFIGURATION));
         result.addSubresult(cwf.getResult());
 
         containers.add(wrapper);

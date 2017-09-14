@@ -29,6 +29,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -39,18 +40,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author lazyman
  * @author semancik
  */
-public class PrismContainerPanel extends Panel {
+public class ContainerValuePanel extends Panel {
 	private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(PrismContainerPanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ContainerValuePanel.class);
     private static final String ID_HEADER = "header";
     private static final String STRIPED_CLASS = "striped";
 
     private PageBase pageBase;
 
-    public PrismContainerPanel(String id, final IModel<ContainerWrapper> model, boolean showHeader, Form form, PageBase pageBase) {
-        super(id);
-        setOutputMarkupId(true); 
+    public ContainerValuePanel(String id, final IModel<ContainerValueWrapper> model, boolean showHeader, Form form, PageBase pageBase) {
+        super(id, model);
+        setOutputMarkupId(true);
 		this.pageBase = pageBase;
 
         LOGGER.trace("Creating container panel for {}", model.getObject());
@@ -60,46 +61,44 @@ public class PrismContainerPanel extends Panel {
 
 			@Override
             public boolean isVisible() {
-                ContainerWrapper<? extends PrismContainer> containerWrapper = model.getObject();
+                ContainerValueWrapper<Containerable> containerValueWrapper = model.getObject();
+                return containerValueWrapper.isItemVisible();
 //                PrismContainer prismContainer = containerWrapper.getItem();
 //                if (containerWrapper.getItemDefinition().isOperational()) {
 //                    return false;
 //                }
-                return containerWrapper.isVisible();
-//                return containerWrapper.isItemVisible();
-
+//
 //                // HACK HACK HACK
 //                if (ShadowType.F_ASSOCIATION.equals(prismContainer.getElementName())) {
 //                	return true;
 //                }
 
-//                return !containerWrapper.getValues().isEmpty() && containerWrapper.isVisible();
-//                return true;
+//                containerValueWrapper.is
 //                boolean isVisible = false;
-//                for (ContainerValueWrapper values : containerWrapper.getValues()) {
-//                    if (item.isItemVisible(item)) {
+//                for (ItemWrapper item : containerValueWrapper.getItems()) {
+//                    if (containerValueWrapper.isItemVisible(item)) {
 //                        isVisible = true;
 //                        break;
 //                    }
 //                }
-//
-//                return !containerWrapper.getValues().isEmpty() && isVisible;
+
+//                return !containerValueWrapper.getItems().isEmpty() && isVisible;
+//                return true;
             }
         });
 
         initLayout(model, form, showHeader);
-        
     }
 
-    private void initLayout(final IModel<ContainerWrapper> model, final Form form, boolean showHeader) {
+    private void initLayout(final IModel<ContainerValueWrapper> model, final Form form, boolean showHeader) {
     	PrismHeaderPanel header = new PrismHeaderPanel(ID_HEADER, model) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onButtonClick(AjaxRequestTarget target) {
-				target.add(PrismContainerPanel.this.findParent(PrismObjectPanel.class));
+				addOrReplaceProperties(model, form, true);
+				target.add(ContainerValuePanel.this.findParent(PrismObjectPanel.class));
 			}
-			
 
 			@Override
 			public boolean isButtonsVisible() {
@@ -115,7 +114,7 @@ public class PrismContainerPanel extends Panel {
                 return showHeader;// && !model.getObject().isMain();
             }
         });
-//        add(header);
+        add(header);
 
         addOrReplaceProperties(model, form, false);
     }
@@ -136,24 +135,39 @@ public class PrismContainerPanel extends Panel {
         };
     }
 
-    private void addOrReplaceProperties(IModel<ContainerWrapper> model, final Form form, boolean isToBeReplaced){
-    	
-    	ListView<ContainerValueWrapper> values = new ListView<ContainerValueWrapper>("values", new PropertyModel<List<ContainerValueWrapper>>(model, "values")) {
-			
+    private <IW extends ItemWrapper> void addOrReplaceProperties(IModel<ContainerValueWrapper> model, final Form form, boolean isToBeReplaced){
+        ListView<IW> properties = new ListView<IW>("properties",
+                new PropertyModel<List<IW>>(model, "properties")) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
-			protected void populateItem(ListItem<ContainerValueWrapper> item) {
-				item.add(new ContainerValuePanel("value", item.getModel(), true, form, pageBase));
+            protected void populateItem(final ListItem<IW> item) {
+				if (item.getModel().getObject() instanceof ContainerWrapper) {
+					PrismContainerPanel containerPanel = new PrismContainerPanel("property", (IModel<ContainerWrapper>) item.getModel(), true, form, pageBase);
+					containerPanel.setOutputMarkupId(true);
+					item.add(containerPanel);
+					return;
+				}
 				
-				
-			}
-			
-		};
-    	
-    	values.setReuseItems(true);
+				PrismPropertyPanel propertyPanel = new PrismPropertyPanel("property", item.getModel(), form, pageBase);
+				propertyPanel.setOutputMarkupId(true);
+                item.add(propertyPanel);
+                item.add(new VisibleEnableBehaviour() {
+                	private static final long serialVersionUID = 1L;
+
+                	@Override
+                	public boolean isVisible() {
+                		return item.getModel().getObject().isVisible(model.getObject().isShowEmpty());
+                	}
+                });
+                item.add(AttributeModifier.append("class", createStyleClassModel((IModel<ItemWrapper>) item.getModel())));
+            }
+        };
+        properties.setReuseItems(true);
         if (isToBeReplaced) {
-            replace(values);
+            replace(properties);
         } else {
-            add(values);
+            add(properties);
         }
     }
 }

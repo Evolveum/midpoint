@@ -63,7 +63,7 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends 
      * Visibility flag. This is NOT an override, it defines whether the item
      * should be displayed or not.
      */
-	boolean isVisible();
+	boolean isVisible(boolean showEmpty);
 
     /**
      * Used to display the form elements with stripe in every other line.
@@ -72,7 +72,7 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends 
 
     void setStripe(boolean isStripe);
 
-    ContainerWrapper getContainer();
+//    ContainerValueWrapper getContainerValue();
 
     void addValue();
 
@@ -80,7 +80,9 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends 
 
 	// are required fields enforced by wicket?
 	default boolean isEnforceRequiredFields() {
-	    ContainerWrapper cw = getContainer();
+	    ContainerWrapper cw = getParent();
 	    return cw == null || cw.isEnforceRequiredFields();
     }
+	
+	ContainerWrapper getParent();
 }

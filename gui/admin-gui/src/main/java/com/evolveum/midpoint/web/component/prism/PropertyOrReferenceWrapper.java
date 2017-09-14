@@ -38,7 +38,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 
 	private static final long serialVersionUID = -179218652752175177L;
 
-	protected ContainerWrapper container;
+	protected ContainerValueWrapper container;
 	protected I item;
 	protected ID itemDefinition;
 	protected ValueStatus status;
@@ -47,11 +47,11 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	protected boolean readonly;
 	private boolean isStripe;
 
-	public PropertyOrReferenceWrapper(@Nullable ContainerWrapper container, I item, boolean readonly, ValueStatus status) {
+	public PropertyOrReferenceWrapper(@Nullable ContainerValueWrapper containerValue, I item, boolean readonly, ValueStatus status) {
 		Validate.notNull(item, "Item must not be null.");
 		Validate.notNull(status, "Item status must not be null.");
 
-		this.container = container;
+		this.container = containerValue;
 		this.item = item;
 		this.itemDefinition = getItemDefinition();
 		this.status = status;
@@ -75,23 +75,53 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	@Override
 	public ID getItemDefinition() {
 		ID definition = null;
-		if (container != null && container.getItemDefinition() != null) {
-			definition = (ID) container.getItemDefinition().findItemDefinition(item.getDefinition().getName());
+		if (getParent() != null && getParent().getItemDefinition() != null) {
+			definition = (ID) getParent().getItemDefinition().findItemDefinition(item.getDefinition().getName());
 		}
 		if (definition == null) {
 			definition = item.getDefinition();
 		}
 		return definition;
 	}
+	
+	@Override
+	public ContainerWrapper getParent() {
+		return container.getContainer();
+	}
 
-	public boolean isVisible() {
-        if (item.getDefinition().isOperational()) {			// TODO ...or use itemDefinition instead?
+	public boolean isVisible(boolean showEmpty) {
+		
+        if (getItemDefinition().isOperational()) {			// TODO ...or use itemDefinition instead?
 			return false;
-		} else if (container != null) {
-			return container.isItemVisible(this);
-		} else {
+		} 
+        switch (status) {
+        	case ADDED : 
+        		return canAddDefault() || canAddAndShowEmpty(showEmpty);
+        	case NOT_CHANGED :
+        		return canReadOrModifyAndNonEmpty() || canReadOrModifyAndShowEmpty(showEmpty);
+        }
+//        if (getItem().isEmpty() && isS)
+//        else if (container != null) {
+//			return container.isItemVisible(this);
+//		} else {
 			return true;
-		}
+//		}
+	}
+	
+	private boolean canAddAndShowEmpty(boolean showEmpty) {
+		return getItemDefinition().canAdd() && showEmpty;
+	}
+	
+	private boolean canAddDefault() {
+		return getItemDefinition().canAdd() && getItemDefinition().isEmphasized();
+	}
+	
+	private boolean canReadOrModifyAndNonEmpty() {
+		return (getItemDefinition().canModify() || getItemDefinition().canRead()) && !getItem().isEmpty();
+	}
+	
+	private boolean canReadOrModifyAndShowEmpty(boolean showEmpty) {
+		return (getItemDefinition().canModify() || getItemDefinition().canRead()) && getItem().isEmpty() && showEmpty;
 	}
 
 	public boolean isStripe() {
@@ -102,7 +132,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		this.isStripe = isStripe;
 	}
 
-	public ContainerWrapper getContainer() {
+	public ContainerValueWrapper getContainerValue() {
 	        return container;
 	    }
 

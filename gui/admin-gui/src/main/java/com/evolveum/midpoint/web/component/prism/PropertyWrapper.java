@@ -39,7 +39,7 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
 
 	private static final long serialVersionUID = -6347026284758253783L;
 
-	public PropertyWrapper(@Nullable ContainerWrapper container, I property, boolean readonly, ValueStatus status) {
+	public PropertyWrapper(@Nullable ContainerValueWrapper container, I property, boolean readonly, ValueStatus status) {
 		super(container, property, readonly, status);
 
         if (container != null && SchemaConstants.PATH_PASSWORD.equivalent(container.getPath())
@@ -78,9 +78,9 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
         if (SchemaConstants.T_POLY_STRING_TYPE.equals(definition.getTypeName())) {
             wrapper = new ValueWrapper(this, new PrismPropertyValue(new PolyString("")),
                     new PrismPropertyValue(new PolyString("")), ValueStatus.ADDED);
-        } else if (isUser() && isThisPropertyActivationEnabled()) {
-            wrapper = new ValueWrapper(this, new PrismPropertyValue(null),
-                    new PrismPropertyValue(null), ValueStatus.ADDED);
+//        } else if (isUser() && isThisPropertyActivationEnabled()) {
+//            wrapper = new ValueWrapper(this, new PrismPropertyValue(null),
+//                    new PrismPropertyValue(null), ValueStatus.ADDED);
         } else {
             wrapper = new ValueWrapper(this, new PrismPropertyValue(null), ValueStatus.ADDED);
         }
@@ -88,18 +88,18 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
         return wrapper;
     }
 
-    private boolean isUser() {
-		if (getContainer() == null) {
-			return false;
-		}
-        ObjectWrapper wrapper = getContainer().getObject();
-		if (wrapper == null) {
-			return false;
-		}
-        PrismObject object = wrapper.getObject();
-
-        return UserType.class.isAssignableFrom(object.getCompileTimeClass());
-    }
+//    private boolean isUser() {
+//		if (getContainerValue() == null) {
+//			return false;
+//		}
+//        ObjectWrapper wrapper = getContainerValue().getContainer().getObject();
+//		if (wrapper == null) {
+//			return false;
+//		}
+//        PrismObject object = wrapper.getObject();
+//
+//        return UserType.class.isAssignableFrom(object.getCompileTimeClass());
+//    }
 
     private boolean isThisPropertyActivationEnabled() {
         if (!new ItemPath(UserType.F_ACTIVATION).equivalent(container.getPath())) {
@@ -110,10 +110,10 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
             return false;
         }
 
-        if (container.getObject() == null || ContainerStatus.MODIFYING.equals(container.getObject().getStatus())) {
-            //when modifying then we don't want to create "true" value for c:activation/c:enabled, only during add
-            return false;
-        }
+//        if (container.getContainer().getObject() == null || ContainerStatus.MODIFYING.equals(container.getContainer().getObject().getStatus())) {
+//            //when modifying then we don't want to create "true" value for c:activation/c:enabled, only during add
+//            return false;
+//        }
 
         return true;
     }
@@ -162,5 +162,6 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
 	protected String getDebugName() {
 		return "PropertyWrapper";
 	}
-
 }
+
+	
