@@ -26,7 +26,8 @@ resource:
             code: "'dc='+basic.const('orgname')+',dc=com'"
       principal: "cn=directory manager"
       credentials:
-        '@ns': "http://prism.evolveum.com/xml/ns/public/types-3"
-        clearValue: "secret"
+        '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        expression:
+          const: "password"
       vlvSortAttribute: "uid"
       accountOperationalAttributes: "ds-pwp-account-disabled"
