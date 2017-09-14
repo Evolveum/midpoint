@@ -1376,7 +1376,7 @@
     <xsd:complexType name="InformationType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO Replace by forms before 3.6 release.
+				TODO Replace by forms eventually
 				TEMPORARY
 			</xsd:documentation>
 		</xsd:annotation>
