@@ -128,10 +128,13 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
 	/**
 	 * Does a deep clone of this definition.
 	 *
-	 * @param ctdMap Keeps already cloned definitions in order to prevent indefinite loops.
+	 * @param ctdMap Keeps already cloned definitions when 'ultra deep cloning' is not requested.
+	 *               Each definition is then cloned only once.
+	 * @param onThisPath Keeps already cloned definitions on the path from root to current node;
+	 *                   in order to prevent infinite loops when doing ultra deep cloning.
 	 */
 	@NotNull
-	ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap);
+	ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath);
 
 	/**
 	 * Trims the definition (and any definitions it refers to) to contain only items related to given paths.

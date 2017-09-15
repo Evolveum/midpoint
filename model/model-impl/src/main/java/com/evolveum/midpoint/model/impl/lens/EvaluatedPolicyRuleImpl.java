@@ -17,10 +17,16 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,10 +55,13 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	 */
 	@Nullable private final AssignmentPath assignmentPath;
 	@Nullable private final ObjectType directOwner;
+	private final transient PrismContext prismContext;     // only for debugDump - if null, nothing serious happens
 
-	public EvaluatedPolicyRuleImpl(@NotNull PolicyRuleType policyRuleType, @Nullable AssignmentPath assignmentPath) {
+	public EvaluatedPolicyRuleImpl(@NotNull PolicyRuleType policyRuleType, @Nullable AssignmentPath assignmentPath,
+			PrismContext prismContext) {
 		this.policyRuleType = policyRuleType;
 		this.assignmentPath = assignmentPath;
+		this.prismContext = prismContext;
 		this.directOwner = computeDirectOwner();
 	}
 
@@ -111,8 +120,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return rv;
 	}
 
-	void addTrigger(EvaluatedPolicyRuleTrigger trigger) {
-		triggers.add(trigger);
+	void addTriggers(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+		this.triggers.addAll(triggers);
 	}
 
 	@NotNull
@@ -130,6 +139,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return policyRuleType.getPolicyActions();
 	}
 
+	// TODO rewrite this method
 	@Override
 	public String getPolicySituation() {
 		// TODO default situations depending on getTriggeredConstraintKinds
@@ -153,21 +163,54 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		}
 
 		PolicyConstraintsType policyConstraints = getPolicyConstraints();
-		if (policyConstraints.getExclusion() != null) {
+		return getSituationFromConstraints(policyConstraints);
+	}
+
+	@Nullable
+	private String getSituationFromConstraints(PolicyConstraintsType policyConstraints) {
+		if (!policyConstraints.getExclusion().isEmpty()) {
 			return PredefinedPolicySituation.EXCLUSION_VIOLATION.getUrl();
-		}
-		if (policyConstraints.getMinAssignees() != null) {
+		} else if (!policyConstraints.getMinAssignees().isEmpty()) {
 			return PredefinedPolicySituation.UNDERASSIGNED.getUrl();
-		}
-		if (policyConstraints.getMaxAssignees() != null) {
+		} else if (!policyConstraints.getMaxAssignees().isEmpty()) {
 			return PredefinedPolicySituation.OVERASSIGNED.getUrl();
-		}
-		if (policyConstraints.getModification() != null) {
+		} else if (!policyConstraints.getModification().isEmpty()) {
 			return PredefinedPolicySituation.MODIFIED.getUrl();
+		} else if (!policyConstraints.getAssignment().isEmpty()) {
+			return PredefinedPolicySituation.ASSIGNMENT_MODIFIED.getUrl();
+		} else if (!policyConstraints.getObjectTimeValidity().isEmpty()) {
+			return PredefinedPolicySituation.OBJECT_TIME_VALIDITY.getUrl();
+		} else if (!policyConstraints.getAssignmentTimeValidity().isEmpty()) {
+			return PredefinedPolicySituation.ASSIGNMENT_TIME_VALIDITY.getUrl();
+		} else if (!policyConstraints.getHasAssignment().isEmpty()) {
+			return PredefinedPolicySituation.HAS_ASSIGNMENT.getUrl();
+		} else if (!policyConstraints.getHasNoAssignment().isEmpty()) {
+			return PredefinedPolicySituation.HAS_NO_ASSIGNMENT.getUrl();
+		} else if (!policyConstraints.getObjectState().isEmpty()) {
+			return PredefinedPolicySituation.OBJECT_STATE.getUrl();
+		} else if (!policyConstraints.getAssignmentState().isEmpty()) {
+			return PredefinedPolicySituation.ASSIGNMENT_STATE.getUrl();
 		}
-		if (policyConstraints.getAssignment() != null) {
-			return PredefinedPolicySituation.ASSIGNED.getUrl();
+		for (TransitionPolicyConstraintType tc : policyConstraints.getTransition()) {
+			String s = getSituationFromConstraints(tc.getConstraints());
+			if (s != null) {
+				return s;
+			}
 		}
+		for (PolicyConstraintsType subconstraints : policyConstraints.getAnd()) {
+			String s = getSituationFromConstraints(subconstraints);
+			if (s != null) {
+				return s;
+			}
+		}
+		// desperate attempt (might be altogether wrong)
+		for (PolicyConstraintsType subconstraints : policyConstraints.getOr()) {
+			String s = getSituationFromConstraints(subconstraints);
+			if (s != null) {
+				return s;
+			}
+		}
+		// "not" will not be used
 		return null;
 	}
 
@@ -176,20 +219,14 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpLabelLn(sb, "EvaluatedPolicyRule " + (getName() != null ? getName() + " " : "") + "(triggers: " + triggers.size() + ")", indent);
 		DebugUtil.debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "policyRuleType", policyRuleType.toString(), indent + 1);
+		DebugUtil.debugDumpLabelLn(sb, "policyRuleType", indent + 1);
+		DebugUtil.indentDebugDump(sb, indent + 2);
+		PrismPrettyPrinter.debugDumpValue(sb, indent + 2, policyRuleType, prismContext, PolicyRuleType.COMPLEX_TYPE, PrismContext.LANG_XML);
 		DebugUtil.debugDumpWithLabelLn(sb, "assignmentPath", assignmentPath, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "triggers", triggers, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "directOwner", ObjectTypeUtil.toShortString(directOwner), indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "rootObjects", assignmentPath != null ? String.valueOf(assignmentPath.getFirstOrderChain()) : null, indent + 1);
 		return sb.toString();
-	}
-
-	@Override
-	public EvaluatedPolicyRuleType toEvaluatedPolicyRuleType() {
-		EvaluatedPolicyRuleType rv = new EvaluatedPolicyRuleType();
-		//rv.setPolicyRule(policyRuleType);			// DO NOT use this, in order to avoid large data in assignments
-		triggers.forEach(t -> rv.getTrigger().add(t.toEvaluatedPolicyRuleTriggerType(this)));
-		return rv;
 	}
 
 	@Override
@@ -221,4 +258,65 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		// in the future we might employ special flag for this (if needed)
 		return policyRuleType instanceof GlobalPolicyRuleType;
 	}
+
+	@Override
+	public String toShortString() {
+		StringBuilder sb = new StringBuilder();
+		if (isGlobal()) {
+			sb.append("G:");
+		}
+		if (getName() != null) {
+			sb.append(getName()).append(":");
+		}
+		sb.append("(").append(PolicyRuleTypeUtil.toShortString(getPolicyConstraints())).append(")");
+		sb.append("->");
+		sb.append("(").append(PolicyRuleTypeUtil.toShortString(getActions())).append(")");
+		if (!getTriggers().isEmpty()) {
+			sb.append(" # {T:");
+			sb.append(getTriggers().stream().map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
+					.collect(Collectors.joining(", ")));
+			sb.append("}");
+		}
+		return sb.toString();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<TreeNode<LocalizableMessage>> extractMessages() {
+		TreeNode<LocalizableMessage> root = new TreeNode<>();
+		for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+			createMessageTreeNode(root, trigger);
+		}
+		return root.getChildren();
+	}
+
+	private void createMessageTreeNode(TreeNode<LocalizableMessage> root, EvaluatedPolicyRuleTrigger<?> trigger) {
+		PolicyConstraintPresentationType presentation = trigger.getConstraint().getPresentation();
+		boolean hidden = presentation != null && Boolean.TRUE.equals(presentation.isHidden());
+		boolean isFinal = presentation != null && Boolean.TRUE.equals(presentation.isFinal());
+		if (!hidden) {
+			TreeNode<LocalizableMessage> newNode = new TreeNode<>();
+			newNode.setUserObject(trigger.getMessage());
+			root.add(newNode);
+			root = newNode;
+		}
+		if (!isFinal) {
+			for (EvaluatedPolicyRuleTrigger<?> innerTrigger : trigger.getInnerTriggers()) {
+				createMessageTreeNode(root, innerTrigger);
+			}
+		}
+	}
+
+	/**
+	 * Honors "final" but not "hidden" flag.
+	 */
+
+	@Override
+	public EvaluatedPolicyRuleType toEvaluatedPolicyRuleType(boolean respectFinalFlag) {
+		EvaluatedPolicyRuleType rv = new EvaluatedPolicyRuleType();
+		//rv.setPolicyRule(policyRuleType);			// DO NOT use this, in order to avoid large data in assignments
+		triggers.forEach(t -> rv.getTrigger().add(t.toEvaluatedPolicyRuleTriggerType(this, respectFinalFlag)));
+		return rv;
+	}
+
 }

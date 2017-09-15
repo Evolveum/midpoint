@@ -43,8 +43,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.mutable.MutableBoolean;
 
@@ -1191,46 +1191,41 @@ public class LensUtil {
 		return ObjectTypeUtil.isDelegationRelation(relation);
 	}
 
-	public static void triggerConstraint(@Nullable EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger,
-			Collection<String> policySituations) throws PolicyViolationException {
+	public static void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers,
+			Collection<String> policySituations) {
 
-		LOGGER.debug("Policy rule {} triggered: {}", rule==null?null:rule.getName(), trigger);
+		LOGGER.debug("Policy rule {} triggered: {}", rule.getName(), triggers);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Policy rule {} triggered:\n{}", rule==null?null:rule.getName(), trigger.debugDump(1));
+			LOGGER.trace("Policy rule {} triggered:\n{}", rule.getName(), DebugUtil.debugDump(triggers, 1));
 		}
 
-		if (rule == null) {
-			// legacy functionality
-			if (trigger.getConstraint().getEnforcement() == null || trigger.getConstraint().getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
-				throw new PolicyViolationException(trigger.getMessage());
-			}
-
-		} else {
-
-			((EvaluatedPolicyRuleImpl)rule).addTrigger(trigger);
-			String policySituation = rule.getPolicySituation();
-			if (policySituation != null) {
-				policySituations.add(policySituation);
-			}
-		}
-
+		((EvaluatedPolicyRuleImpl) rule).addTriggers(triggers);
+		CollectionUtils.addIgnoreNull(policySituations, rule.getPolicySituation());
 	}
 
-	public static void processRuleWithException(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger,
-			Collection<String> policySituations, PolicyExceptionType policyException) {
+	public static void triggerConstraintLegacy(EvaluatedPolicyRuleTrigger trigger, Collection<String> policySituations) throws PolicyViolationException {
 
-		LOGGER.debug("Policy rule {} would be triggered, but there is an exception for it. Not trigerring", rule==null?null:rule.getName());
-
+		LOGGER.debug("Legacy policy rule triggered: {}", trigger);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Policy rule {} would be triggered, but there is an exception for it:\nTrigger:\n{}\nException:\n{}",
-					rule==null?null:rule.getName(), trigger.debugDump(1), policyException);
+			LOGGER.trace("Legacy Policy rule triggered:\n{}", trigger.debugDump(1));
 		}
 
-		if (rule == null) {
-			return;
+		if (trigger.getConstraint().getEnforcement() == null || trigger.getConstraint().getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
+			throw new PolicyViolationException(trigger.getMessage());
+		}
+	}
+
+
+
+	public static void processRuleWithException(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger <?>> triggers,
+			 PolicyExceptionType policyException) {
+
+		LOGGER.debug("Policy rule {} would be triggered, but there is an exception for it. Not triggering", rule.getName());
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Policy rule {} would be triggered, but there is an exception for it:\nTriggers:\n{}\nException:\n{}",
+					rule.getName(), DebugUtil.debugDump(triggers, 1), policyException);
 		}
 		((EvaluatedPolicyRuleImpl)rule).addPolicyException(policyException);
-
 	}
 
 

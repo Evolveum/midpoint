@@ -25,6 +25,7 @@ import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.BooleanUtils;
+import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -1005,6 +1006,14 @@ public class ShadowManager {
 
 	public PendingOperationType checkAndRecordPendingModifyOperationBeforeExecution(ProvisioningContext ctx,
 			PrismObject<ShadowType> repoShadow, Collection<? extends ItemDelta> modifications, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		ObjectDelta<ShadowType> proposedDelta = createProposedModifyDelta(repoShadow, modifications);
+		if (proposedDelta == null) {
+			return null;
+		}
+		return checkAndRecordPendingOperationBeforeExecution(ctx, repoShadow, proposedDelta, task, parentResult);
+	}
+	
+	private ObjectDelta<ShadowType> createProposedModifyDelta(PrismObject<ShadowType> repoShadow, Collection<? extends ItemDelta> modifications) {
 		Collection<ItemDelta> resourceModifications = new ArrayList<>(modifications.size());
 		for (ItemDelta modification: modifications) {
 			if (ProvisioningUtil.isResourceModification(modification)) {
@@ -1014,8 +1023,7 @@ public class ShadowManager {
 		if (resourceModifications.isEmpty()) {
 			return null;
 		}
-		ObjectDelta<ShadowType> proposedDelta = createModifyDelta(repoShadow, resourceModifications);
-		return checkAndRecordPendingOperationBeforeExecution(ctx, repoShadow, proposedDelta, task, parentResult);
+		return createModifyDelta(repoShadow, resourceModifications);
 	}
 	
 	private ObjectDelta<ShadowType> createModifyDelta(PrismObject<ShadowType> repoShadow, Collection<? extends ItemDelta> modifications) {
@@ -1078,8 +1086,7 @@ public class ShadowManager {
 	
 
 	private boolean matchPendingDelta(ObjectDelta<Objectable> pendingDelta, ObjectDelta<ShadowType> proposedDelta) {
-		// TODO: is this entirelly reliable?
-		return pendingDelta.equals(proposedDelta);
+		return pendingDelta.equivalent(proposedDelta);
 	}
 
 	private PrismObject<ShadowType> rereadShadow(PrismObject<ShadowType> oldRepoShadow, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
@@ -1280,8 +1287,10 @@ public class ShadowManager {
 			// We have to re-read the shadow from repository here. We need valid container IDs. 
 			// Also there is some chance that the pending delta might have been created by a different thread.
 			PrismObject<ShadowType> currentShadow = rereadShadow(oldRepoShadow, parentResult);
-			ObjectDelta<ShadowType> proposedDelta = createModifyDelta(currentShadow, modifications);
-			existingPendingOperation = findExistingPendingOperation(currentShadow, proposedDelta, false);
+			ObjectDelta<ShadowType> proposedDelta = createProposedModifyDelta(currentShadow, modifications);
+			if (proposedDelta != null) {
+				existingPendingOperation = findExistingPendingOperation(currentShadow, proposedDelta, false);
+			}
 		}
 		
 		LOGGER.trace("Updating repository shadow, resourceOperationResult={}, {} modifications, existingPendingOperation={}", resourceOperationResult.getStatus(), modifications.size(), existingPendingOperation);

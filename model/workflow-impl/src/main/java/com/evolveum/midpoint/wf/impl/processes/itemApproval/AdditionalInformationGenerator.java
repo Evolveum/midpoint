@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * TODO
@@ -48,7 +47,8 @@ class AdditionalInformationGenerator {
 		attachedRules.forEach(rule -> collectPrimitiveTriggers(triggers, rule.getRule()));
 
 		List<InformationType> rv = new ArrayList<>();
-		generateAssignmentMessages(rv, extractTriggers(triggers, PolicyConstraintKindType.ASSIGNMENT));
+		generateAssignmentModificationMessages(rv, extractTriggers(triggers, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION));
+		generateObjectModificationMessages(rv, extractTriggers(triggers, PolicyConstraintKindType.OBJECT_MODIFICATION));
 		generateExclusionMessages(rv, extractTriggers(triggers, PolicyConstraintKindType.EXCLUSION));
 		generateOtherMessages(rv, triggers);
 		return rv;
@@ -78,7 +78,12 @@ class AdditionalInformationGenerator {
 	}
 
 	@SuppressWarnings("unused")
-	private void generateAssignmentMessages(List<InformationType> infoList, List<EvaluatedPolicyRuleTriggerType> triggers) {
+	private void generateAssignmentModificationMessages(List<InformationType> infoList, List<EvaluatedPolicyRuleTriggerType> triggers) {
+		// Nothing to do here. The information about assignments to be added/removed is obvious from the delta.
+	}
+
+	@SuppressWarnings("unused")
+	private void generateObjectModificationMessages(List<InformationType> infoList, List<EvaluatedPolicyRuleTriggerType> triggers) {
 		// Nothing to do here. The information about assignments to be added/removed is obvious from the delta.
 	}
 
@@ -87,7 +92,7 @@ class AdditionalInformationGenerator {
 			return;
 		}
 		InformationType info = new InformationType();
-		info.setTitle(LocalizationUtil.resolve("AdditionalInformationGenerator.exclusionsTitle"));
+		info.setTitle(LocalizationUtil.createForKey("AdditionalInformationGenerator.exclusionsTitle"));
 		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
 			EvaluatedExclusionTriggerType exclusion = (EvaluatedExclusionTriggerType) trigger;
 			InformationPartType part = new InformationPartType();
@@ -105,7 +110,7 @@ class AdditionalInformationGenerator {
 				sb.append(" (").append(conflictingPathInfo).append(")");
 			}
 			sb.append(".");
-			part.setText(sb.toString());
+			part.setText(LocalizationUtil.createForFallbackMessage(sb.toString()));   // TODO localizable
 			info.getPart().add(part);
 		}
 		infoList.add(info);
@@ -117,7 +122,7 @@ class AdditionalInformationGenerator {
 			return;
 		}
 		InformationType info = new InformationType();
-		info.setTitle(LocalizationUtil.resolve("AdditionalInformationGenerator.notes"));
+		info.setTitle(LocalizationUtil.createForKey("AdditionalInformationGenerator.notes"));
 		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
 			InformationPartType part = new InformationPartType();
 			part.setText(trigger.getMessage());
@@ -126,22 +131,22 @@ class AdditionalInformationGenerator {
 		infoList.add(info);
 	}
 
-	private Stream<String> getRuleMessages(EvaluatedPolicyRuleType rule) {
-		if (rule == null) {
-			return null;
-		}
-		return rule.getTrigger().stream()
-				.flatMap(this::getTriggerMessages);
-	}
-
-	private Stream<String> getTriggerMessages(EvaluatedPolicyRuleTriggerType t) {
-		if (t instanceof EvaluatedSituationTriggerType) {
-			return ((EvaluatedSituationTriggerType) t).getSourceRule().stream()
-					.flatMap(this::getRuleMessages);
-		} else {
-			return t.getMessage() != null ? Stream.of(t.getMessage()) : Stream.empty();
-		}
-	}
+//	private Stream<String> getRuleMessages(EvaluatedPolicyRuleType rule) {
+//		if (rule == null) {
+//			return null;
+//		}
+//		return rule.getTrigger().stream()
+//				.flatMap(this::getTriggerMessages);
+//	}
+//
+//	private Stream<String> getTriggerMessages(EvaluatedPolicyRuleTriggerType t) {
+//		if (t instanceof EvaluatedSituationTriggerType) {
+//			return ((EvaluatedSituationTriggerType) t).getSourceRule().stream()
+//					.flatMap(this::getRuleMessages);
+//		} else {
+//			return t.getMessage() != null ? Stream.of(t.getMessage()) : Stream.empty();
+//		}
+//	}
 
 	private String getObjectTypeAndName(ObjectReferenceType ref, PolyStringType displayNamePoly) {
 		String name = PolyString.getOrig(ref.getTargetName());

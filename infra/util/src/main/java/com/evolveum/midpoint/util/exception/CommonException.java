@@ -16,6 +16,13 @@
 package com.evolveum.midpoint.util.exception;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.ShortDumpable;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
  * Superclass for all common midPoint exceptions.
@@ -26,6 +33,7 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 public abstract class CommonException extends Exception {
 
 	LocalizableMessage userFriendlyMessage;
+	List<LocalizableMessage> otherUserFriendlyMessages;
 
 	public CommonException() {
 	}
@@ -85,7 +93,10 @@ public abstract class CommonException extends Exception {
 		if (userFriendlyMessage == null) {
 			return super.toString();
 		} else {
-			return super.toString() + " [" + userFriendlyMessage.shortDump() + "]";
+			return super.toString() +
+					Stream.concat(Stream.of(userFriendlyMessage), emptyIfNull(otherUserFriendlyMessages).stream())
+						.map(ShortDumpable::shortDump)
+						.collect(Collectors.joining("; ", " [", "]"));
 		}
 	}
 

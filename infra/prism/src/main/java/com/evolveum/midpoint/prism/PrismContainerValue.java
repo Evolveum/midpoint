@@ -130,7 +130,18 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
     }
 
-    public Item<?,?> getNextItem(Item<?,?> referenceItem) {
+    @SuppressWarnings("unchecked")
+	public <I extends Item<?,?>> List<I> getItems(Class<I> type) {
+		List<I> rv = new ArrayList<>();
+		for (Item<?, ?> item : CollectionUtils.emptyIfNull(items)) {
+			if (type.isAssignableFrom(item.getClass())) {
+				rv.add(((I) item));
+			}
+		}
+		return rv;
+	}
+
+	public Item<?,?> getNextItem(Item<?,?> referenceItem) {
     	if (items == null) {
     		return null;
     	}
@@ -1316,7 +1327,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			if (complexTypeDefinition == parent.getComplexTypeDefinition()) {
 				replaceComplexTypeDefinition(clonedContainerDef.getComplexTypeDefinition());
 			} else {
-				replaceComplexTypeDefinition(complexTypeDefinition.deepClone(ultraDeep ? null : new HashMap<>() ));		// OK?
+				replaceComplexTypeDefinition(complexTypeDefinition.deepClone(ultraDeep ? null : new HashMap<>(), new HashMap<>() ));		// OK?
 			}
 		}
 		if (items != null) {
@@ -1450,6 +1461,9 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         appendOriginDump(sb);
 		List<Item<?,?>> items = getItems();
 		if (items == null || items.isEmpty()) {
+			if (wasIndent) {
+				sb.append("\n");
+			}
 			DebugUtil.indentDebugDump(sb, indent + 1);
 			sb.append("(no items)");
 		} else {

@@ -453,9 +453,9 @@ public class MiscSchemaUtil {
 	}
 
 	@NotNull
-	public static InformationType createInformationType(List<String> strings) {
+	public static InformationType createInformationType(List<LocalizableMessageType> messages) {
 		InformationType rv = new InformationType();
-		strings.forEach(s -> rv.getPart().add(new InformationPartType().text(s)));
+		messages.forEach(s -> rv.getPart().add(new InformationPartType().text(s)));
 		return rv;
 	}
 }

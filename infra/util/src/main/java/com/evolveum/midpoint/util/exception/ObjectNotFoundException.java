@@ -26,7 +26,7 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 public class ObjectNotFoundException extends CommonException {
 	private static final long serialVersionUID = -9003686713018111855L;
 
-	private String oid = null;;
+	private String oid = null;
 
 	public ObjectNotFoundException() {
 		super();

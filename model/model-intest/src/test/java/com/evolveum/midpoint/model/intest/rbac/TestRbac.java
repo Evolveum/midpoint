@@ -30,6 +30,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
@@ -4243,6 +4244,27 @@ public class TestRbac extends AbstractRbacTest {
         assertNoObject(RoleType.class, ROLE_NON_CREATEABLE_OID);
 	}
 
+	@Test
+    public void test826bAddCreateableRole() throws Exception {
+		final String TEST_NAME = "test826bAddCreateableRole";
+        displayTestTitle(TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CREATEABLE_FILE);
+        display("Role before", role);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		addObject(role, getDefaultOptions(), task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		assertNotNull("object does not exist", getObject(RoleType.class, ROLE_CREATEABLE_OID));     // would get exception anyway
+	}
+
 	/**
 	 * This role has a metarole which has immutable policy rule in the
 	 * inducement.
@@ -4493,6 +4515,35 @@ public class TestRbac extends AbstractRbacTest {
 		List<Message> messages = dummyTransport.getMessages("dummy:policyRuleNotifier");
 		assertNotNull("No notification messages", messages);
 		assertEquals("Wrong # of notification messages", 1, messages.size());
+	}
+
+	/**
+	 * MID-4132: the global policy rules immutable-user-from-pluto-XXX selection is based on current object state
+	 * (not the new one) so it is _not_ selected in the primary state.
+	 *
+	 * So, this test basically confirms the behavior described in MID-4132.
+	 * If this behavior changes, so should this test.
+	 */
+	@Test
+	public void test880GlobalRuleOnChange() throws Exception {
+		final String TEST_NAME = "test880GlobalRuleOnChange";
+		displayTestTitle(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
+		display("user jack", userJackBefore);
+
+		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_DESCRIPTION).replace("Came from Pluto")
+				.asObjectDeltaCast(USER_JACK_OID);
+
+		// WHEN
+
+		displayWhen(TEST_NAME);
+		executeChangesAssertSuccess(delta, getDefaultOptions(), task, result);
 	}
 
 	protected boolean testMultiplicityConstraintsForNonDefaultRelations() {

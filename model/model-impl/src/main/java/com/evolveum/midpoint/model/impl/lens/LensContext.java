@@ -28,10 +28,11 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -47,7 +48,6 @@ import javax.xml.namespace.QName;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 /**
  * @author semancik
@@ -912,12 +912,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			DebugUtil.indentDebugDump(sb, indent + 3);
 			sb.append("Evaluated assignments:");
 			if (evaluatedAssignmentTriple != null) {
-				dumpEvaluatedAssignments(sb, "Zero", (Collection) evaluatedAssignmentTriple.getZeroSet(),
-						indent + 4);
-				dumpEvaluatedAssignments(sb, "Plus", (Collection) evaluatedAssignmentTriple.getPlusSet(),
-						indent + 4);
-				dumpEvaluatedAssignments(sb, "Minus", (Collection) evaluatedAssignmentTriple.getMinusSet(),
-						indent + 4);
+				dumpEvaluatedAssignments(sb, "Zero", evaluatedAssignmentTriple.getZeroSet(), indent + 4);
+				dumpEvaluatedAssignments(sb, "Plus", evaluatedAssignmentTriple.getPlusSet(), indent + 4);
+				dumpEvaluatedAssignments(sb, "Minus", evaluatedAssignmentTriple.getMinusSet(), indent + 4);
 			} else {
 				sb.append(" (null)");
 			}
@@ -945,7 +942,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	}
 
 	@Override
-	public String dumpPolicyRules(int indent) {
+	public String dumpAssignmentPolicyRules(int indent, boolean alsoMessages) {
 		if (evaluatedAssignmentTriple == null) {
 			return "";
 		}
@@ -955,95 +952,139 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			sb.append(assignment.toHumanReadableString());
 			@SuppressWarnings("unchecked")
 			Collection<EvaluatedPolicyRule> thisTargetPolicyRules = assignment.getThisTargetPolicyRules();
-			dumpPolicyRulesCollection("thisTargetPolicyRules", indent + 1, sb, thisTargetPolicyRules);
+			dumpPolicyRulesCollection("thisTargetPolicyRules", indent + 1, sb, thisTargetPolicyRules, alsoMessages);
 			@SuppressWarnings({ "unchecked", "raw" })
 			Collection<EvaluatedPolicyRule> otherTargetsPolicyRules = assignment.getOtherTargetsPolicyRules();
-			dumpPolicyRulesCollection("otherTargetsPolicyRules", indent + 1, sb, otherTargetsPolicyRules);
+			dumpPolicyRulesCollection("otherTargetsPolicyRules", indent + 1, sb, otherTargetsPolicyRules, alsoMessages);
+			@SuppressWarnings({ "unchecked", "raw" })
+			Collection<EvaluatedPolicyRule> focusPolicyRules = assignment.getFocusPolicyRules();
+			dumpPolicyRulesCollection("focusPolicyRules", indent + 1, sb, focusPolicyRules, alsoMessages);
 		}, 1);
 		return sb.toString();
 	}
 
-	private void dumpPolicyRulesCollection(String label, int indent, StringBuilder sb, Collection<EvaluatedPolicyRule> rules) {
+	@Override
+	public String dumpFocusPolicyRules(int indent, boolean alsoMessages) {
+		StringBuilder sb = new StringBuilder();
+		if (focusContext != null) {
+			dumpPolicyRulesCollection("objectPolicyRules", indent, sb, focusContext.getPolicyRules(), alsoMessages);
+		}
+		return sb.toString();
+	}
+
+	private void dumpPolicyRulesCollection(String label, int indent, StringBuilder sb, Collection<EvaluatedPolicyRule> rules,
+			boolean alsoMessages) {
 		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append(label).append(" (").append(rules.size()).append("):");
 		for (EvaluatedPolicyRule rule : rules) {
 			sb.append("\n");
-			DebugUtil.indentDebugDump(sb, indent + 1);
-			if (rule.isGlobal()) {
-				sb.append("global ");
-			}
-			sb.append("rule: ").append(rule.getName());
-			for (EvaluatedPolicyRuleTrigger trigger : rule.getTriggers()) {
-				sb.append("\n");
-				DebugUtil.indentDebugDump(sb, indent + 2);
-				sb.append("trigger: ").append(trigger);
-				if (trigger instanceof EvaluatedExclusionTrigger
-						&& ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment() != null) {
+			dumpPolicyRule(indent, sb, rule, alsoMessages);
+		}
+	}
+
+	private void dumpPolicyRule(int indent, StringBuilder sb, EvaluatedPolicyRule rule, boolean alsoMessages) {
+		if (alsoMessages) {
+			sb.append("=============================================== RULE ===============================================\n");
+		}
+		DebugUtil.indentDebugDump(sb, indent + 1);
+		if (rule.isGlobal()) {
+			sb.append("global ");
+		}
+		sb.append("rule: ").append(rule.toShortString());
+		dumpTriggersCollection(indent+2, sb, rule.getTriggers());
+		for (PolicyExceptionType exc : rule.getPolicyExceptions()) {
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent + 2);
+			sb.append("exception: ").append(exc);
+		}
+		if (alsoMessages) {
+			if (rule.isTriggered()) {
+				sb.append("\n\n");
+				sb.append("--------------------------------------------- MESSAGES ---------------------------------------------");
+				List<TreeNode<LocalizableMessage>> messageTrees = rule.extractMessages();
+				for (TreeNode<LocalizableMessage> messageTree : messageTrees) {
 					sb.append("\n");
-					DebugUtil.indentDebugDump(sb, indent + 3);
-					sb.append("conflict: ")
-							.append(((EvaluatedAssignmentImpl) ((EvaluatedExclusionTrigger) trigger)
-									.getConflictingAssignment()).toHumanReadableString());
+					sb.append(messageTree.debugDump(indent));
 				}
 			}
-			for (PolicyExceptionType exc : rule.getPolicyExceptions()) {
+			sb.append("\n");
+		}
+	}
+
+	private void dumpTriggersCollection(int indent, StringBuilder sb, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+		for (EvaluatedPolicyRuleTrigger trigger : triggers) {
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent);
+			sb.append("trigger: ").append(trigger);
+			if (trigger instanceof EvaluatedExclusionTrigger
+					&& ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment() != null) {
 				sb.append("\n");
-				DebugUtil.indentDebugDump(sb, indent + 2);
-				sb.append("exception: ").append(exc);
+				DebugUtil.indentDebugDump(sb, indent + 1);
+				sb.append("conflict: ")
+						.append(((EvaluatedAssignmentImpl) ((EvaluatedExclusionTrigger) trigger)
+								.getConflictingAssignment()).toHumanReadableString());
+			}
+			if (trigger instanceof EvaluatedCompositeTrigger) {
+				dumpTriggersCollection(indent + 1, sb, ((EvaluatedCompositeTrigger) trigger).getInnerTriggers());
+			} else if (trigger instanceof EvaluatedTransitionTrigger) {
+				dumpTriggersCollection(indent + 1, sb, ((EvaluatedTransitionTrigger) trigger).getInnerTriggers());
 			}
 		}
 	}
 
-	// <F> of LensContext is of ObjectType; so we need to override it (but using another name to avoid IDE warnings)
-	private <FT extends FocusType> void dumpEvaluatedAssignments(StringBuilder sb, String label,
-			Collection<EvaluatedAssignmentImpl<FT>> set, int indent) {
+	private void dumpEvaluatedAssignments(StringBuilder sb, String label, Collection<EvaluatedAssignmentImpl<?>> set, int indent) {
 		sb.append("\n");
 		DebugUtil.debugDumpLabel(sb, label, indent);
-		for (EvaluatedAssignmentImpl<FT> assignment : set) {
+		for (EvaluatedAssignmentImpl<?> assignment : set) {
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent + 1);
 			sb.append("-> ").append(assignment.getTarget());
-			dumpRules(sb, "focus rules", indent + 3, assignment.getFocusPolicyRules());
-			dumpRules(sb, "this target rules", indent + 3, assignment.getThisTargetPolicyRules());
-			dumpRules(sb, "other targets rules", indent + 3, assignment.getOtherTargetsPolicyRules());
+			dumpRulesIfNotEmpty(sb, "- focus rules", indent + 3, assignment.getFocusPolicyRules());
+			dumpRulesIfNotEmpty(sb, "- this target rules", indent + 3, assignment.getThisTargetPolicyRules());
+			dumpRulesIfNotEmpty(sb, "- other targets rules", indent + 3, assignment.getOtherTargetsPolicyRules());
 		}
 	}
 
-	private void dumpRules(StringBuilder sb, String label, int indent, Collection<EvaluatedPolicyRule> policyRules) {
-		if (policyRules.isEmpty()) {
-			return;
+	static void dumpRulesIfNotEmpty(StringBuilder sb, String label, int indent, Collection<EvaluatedPolicyRule> policyRules) {
+		if (!policyRules.isEmpty()) {
+			dumpRules(sb, label, indent, policyRules);
 		}
+	}
+
+	static void dumpRules(StringBuilder sb, String label, int indent, Collection<EvaluatedPolicyRule> policyRules) {
 		sb.append("\n");
-		DebugUtil.debugDumpLabel(sb, "- " + label + " (" + policyRules.size() + ", triggered " + getTriggeredRulesCount(policyRules) + ")", indent);
+		int triggered = getTriggeredRulesCount(policyRules);
+		DebugUtil.debugDumpLabel(sb, label + " (total " + policyRules.size() + ", triggered " + triggered + ")", indent);
+		// not triggered rules are dumped in one line
 		boolean first = true;
 		for (EvaluatedPolicyRule rule : policyRules) {
+			if (rule.isTriggered()) {
+				continue;
+			}
 			if (first) {
 				first = false;
 				sb.append(" ");
 			} else {
 				sb.append("; ");
 			}
-			if (rule.isGlobal()) {
-				sb.append("G:");
+			sb.append(rule.toShortString());
+		}
+		// now triggered rules, each on separate line
+		for (EvaluatedPolicyRule rule : policyRules) {
+			if (rule.isTriggered()) {
+				sb.append("\n");
+				DebugUtil.indentDebugDump(sb, indent + 1);
+				sb.append("- triggered: ").append(rule.toShortString());
 			}
-			if (rule.getName() != null) {
-				sb.append(rule.getName());
-			}
-			sb.append("(").append(PolicyRuleTypeUtil.toShortString(rule.getPolicyConstraints())).append(")");
-			sb.append("->");
-			sb.append("(").append(PolicyRuleTypeUtil.toShortString(rule.getActions())).append(")");
-			if (!rule.getTriggers().isEmpty()) {
-				sb.append("=>T:(");
-				sb.append(rule.getTriggers().stream().map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
-						.collect(Collectors.joining(", ")));
-				sb.append(")");
-			}
+		}
+		if (policyRules.isEmpty()) {
+			sb.append(" (none)");
 		}
 	}
 
 	static int getTriggeredRulesCount(Collection<EvaluatedPolicyRule> policyRules) {
-		return (int) policyRules.stream().filter(r -> !r.getTriggers().isEmpty()).count();
+		return (int) policyRules.stream().filter(EvaluatedPolicyRule::isTriggered).count();
 	}
 
 	public LensContextType toLensContextType() throws SchemaException {

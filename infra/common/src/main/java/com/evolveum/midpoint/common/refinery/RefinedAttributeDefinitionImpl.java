@@ -560,8 +560,8 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 	}
 
 	@Override
-	public RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
-		return (RefinedAttributeDefinition<T>) super.deepClone(ctdMap);
+	public RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath) {
+		return (RefinedAttributeDefinition<T>) super.deepClone(ctdMap, onThisPath);
 	}
 
 	@Override
@@ -599,7 +599,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 
     @Override
 	public String debugDump(int indent) {
-    	return debugDump(indent, null);
+    	return debugDump(indent, (LayerType) null);
     }
 
 	@Override

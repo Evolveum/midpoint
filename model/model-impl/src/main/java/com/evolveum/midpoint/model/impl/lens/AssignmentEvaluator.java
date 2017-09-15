@@ -538,7 +538,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		LOGGER.trace("Collecting {} policy rule '{}' in {}", focusRule ? "focus" : "target", policyRuleType.getName(), segment.source);
 		
-		EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(policyRuleType, ctx.assignmentPath.clone());
+		EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(policyRuleType, ctx.assignmentPath.clone(), prismContext);
 
 		if (focusRule) {
 			ctx.evalAssignment.addFocusPolicyRule(policyRule);
@@ -754,7 +754,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 			PolicyConstraintsType policyConstraints = ((AbstractRoleType)targetType).getPolicyConstraints();
 			if (policyConstraints != null) {
-				ctx.evalAssignment.addLegacyPolicyConstraints(policyConstraints, ctx.assignmentPath.clone(), targetType);
+				ctx.evalAssignment.addLegacyPolicyConstraints(policyConstraints, ctx.assignmentPath.clone(), targetType, prismContext);
 			}
 		}
 		

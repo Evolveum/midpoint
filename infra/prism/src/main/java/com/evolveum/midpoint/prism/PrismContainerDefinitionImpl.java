@@ -326,11 +326,11 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     }
 
     @Override
-	public ItemDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap) {
+	public ItemDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap, Map<QName,ComplexTypeDefinition> onThisPath) {
 		PrismContainerDefinitionImpl<C> clone = clone();
 		ComplexTypeDefinition ctd = getComplexTypeDefinition();
 		if (ctd != null) {
-			ctd = ctd.deepClone(ctdMap);
+			ctd = ctd.deepClone(ctdMap, onThisPath);
 			clone.setComplexTypeDefinition(ctd);
 		}
 		return clone;
@@ -488,21 +488,28 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     @Override
     public String debugDump(int indent) {
+    	return debugDump(indent, new IdentityHashMap<>());
+    }
+
+    @Override
+    public String debugDump(int indent, IdentityHashMap<Definition, Object> seen) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(toString());
         if (isRuntimeSchema()) {
             sb.append(" dynamic");
         }
-        for (Definition def : getDefinitions()) {
-        	sb.append("\n");
-        	if (def == this) {
-        		// Not perfect loop protection, but works for now
-                DebugUtil.indentDebugDump(sb, indent);
-                sb.append("<itself>");
-        	} else {
-        		sb.append(def.debugDump(indent + 1));
-        	}
+        if (seen.containsKey(this) || complexTypeDefinition != null && seen.containsKey(complexTypeDefinition)) {
+        	sb.append(" (already shown)");
+        } else {
+        	seen.put(this, null);
+        	if (complexTypeDefinition != null) {
+		        seen.put(complexTypeDefinition, null);
+	        }
+	        for (Definition def : getDefinitions()) {
+		        sb.append("\n");
+		        sb.append(def.debugDump(indent + 1, seen));
+	        }
         }
         return sb.toString();
     }

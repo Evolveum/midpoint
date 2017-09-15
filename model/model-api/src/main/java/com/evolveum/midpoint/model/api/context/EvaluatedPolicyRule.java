@@ -17,8 +17,11 @@ package com.evolveum.midpoint.model.api.context;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,8 +35,12 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 	@NotNull
 	Collection<EvaluatedPolicyRuleTrigger<?>> getTriggers();
 
+	default boolean isTriggered() {
+		return !getTriggers().isEmpty();
+	}
+
 	/**
-	 * Returns all triggers, even those that were indirectly "collected" via situation policy rules.
+	 * Returns all triggers, even those that were indirectly collected via situation policy rules.
 	 */
 	@NotNull
 	Collection<EvaluatedPolicyRuleTrigger<?>> getAllTriggers();
@@ -42,24 +49,28 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 
 	PolicyRuleType getPolicyRule();
 
+	PolicyConstraintsType getPolicyConstraints();
+
+	PolicyActionsType getActions();
+
 	AssignmentPath getAssignmentPath();
 
 	/**
 	 * Object that "directly owns" the rule. TODO. [consider if really needed]
-	 * @return
 	 */
 	@Nullable
 	ObjectType getDirectOwner();
 
-	PolicyConstraintsType getPolicyConstraints();
-
+	// TODO consider removing
 	String getPolicySituation();
-
-	PolicyActionsType getActions();
 
 	Collection<PolicyExceptionType> getPolicyExceptions();
 
-	EvaluatedPolicyRuleType toEvaluatedPolicyRuleType();
+	EvaluatedPolicyRuleType toEvaluatedPolicyRuleType(boolean respectFinalFlag);
 
 	boolean isGlobal();
+
+	String toShortString();
+
+	List<TreeNode<LocalizableMessage>> extractMessages();
 }

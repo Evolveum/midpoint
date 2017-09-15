@@ -260,8 +260,7 @@ public class SchemaTransformer {
 				throw new AuthorizationException("Access denied");
 			}
 
-			applySecurityConstraintsItemDef(objectDefinition, ItemPath.EMPTY_PATH, securityConstraints, globalReadDecision, globalAddDecision, globalModifyDecision, phase);
-
+			applySecurityConstraintsItemDef(objectDefinition, new IdentityHashMap<>(), ItemPath.EMPTY_PATH, securityConstraints, globalReadDecision, globalAddDecision, globalModifyDecision, phase);
 		} catch (SecurityViolationException | RuntimeException e) {
 			result.recordFatalError(e);
 			throw e;
@@ -351,14 +350,20 @@ public class SchemaTransformer {
 		AuthorizationDecisionType defaultModifyDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
 		LOGGER.trace("applySecurityConstraints(itemDefs): def={}, phase={}, defaults R={}, A={}, M={}",
 				itemDefinition, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
-		applySecurityConstraintsItemDef(itemDefinition, ItemPath.EMPTY_PATH, securityConstraints,
+		applySecurityConstraintsItemDef(itemDefinition, new IdentityHashMap<>(), ItemPath.EMPTY_PATH, securityConstraints,
 				defaultReadDecision, defaultAddDecision, defaultModifyDecision, phase);
 
 	}
 
-	private <D extends ItemDefinition> void applySecurityConstraintsItemDef(D itemDefinition, ItemPath itemPath, ObjectSecurityConstraints securityConstraints,
-			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision,
+	private <D extends ItemDefinition> void applySecurityConstraintsItemDef(D itemDefinition,
+			IdentityHashMap<ItemDefinition, Object> definitionsSeen,
+			ItemPath itemPath, ObjectSecurityConstraints securityConstraints, AuthorizationDecisionType defaultReadDecision,
+			AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision,
             AuthorizationPhaseType phase) {
+
+		boolean thisWasSeen = definitionsSeen.containsKey(itemDefinition);
+		definitionsSeen.put(itemDefinition, null);
+
 		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecision, phase);
 		AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultAddDecision, phase);
 		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultModifyDecision, phase);
@@ -366,12 +371,12 @@ public class SchemaTransformer {
 		boolean anySubElementRead = false;
 		boolean anySubElementAdd = false;
 		boolean anySubElementModify = false;
-		if (itemDefinition instanceof PrismContainerDefinition<?>) {
+		if (itemDefinition instanceof PrismContainerDefinition<?> && !thisWasSeen) {
 			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
 			List<? extends ItemDefinition> subDefinitions = ((PrismContainerDefinition<?>)containerDefinition).getDefinitions();
 			for (ItemDefinition subDef: subDefinitions) {
 				if (!subDef.getName().equals(ShadowType.F_ATTRIBUTES)) { // Shadow attributes have special handling
-					applySecurityConstraintsItemDef(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
+					applySecurityConstraintsItemDef(subDef, definitionsSeen, new ItemPath(itemPath, subDef.getName()), securityConstraints,
 					    readDecision, addDecision, modifyDecision, phase);
 				}
 				if (subDef.canRead()) {

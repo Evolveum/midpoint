@@ -83,7 +83,7 @@ public interface RefinedAttributeDefinition<T> extends ResourceAttributeDefiniti
 	RefinedAttributeDefinition<T> clone();
 
 	@Override
-	RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap);
+	RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath);
 
 	String debugDump(int indent, LayerType layer);
 

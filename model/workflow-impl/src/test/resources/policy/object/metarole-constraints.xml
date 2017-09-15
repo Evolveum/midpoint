@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="a370bac5-6619-4fb5-bcf8-8e1199dc43e8"
+	  xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	  xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	  xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+	  xmlns:q='http://prism.evolveum.com/xml/ns/public/query-3'
+	  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+	  xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
+	<name>constraints</name>
+	<inducement>
+		<policyRule>
+			<!-- here we simply state that it's not possible to have active role with no description or no owner or no approver -->
+			<name>disallow-incomplete-role-activation</name>
+			<policyConstraints>
+				<objectState>
+					<name>active lifecycleState</name>
+					<filter>
+						<q:equal>
+							<q:path>lifecycleState</q:path>
+							<q:value>active</q:value>
+						</q:equal>
+					</filter>
+				</objectState>
+				<or>
+					<name>incomplete-role</name>
+					<objectState>
+						<name>no description</name>
+						<filter>
+							<q:equal>
+								<q:path>description</q:path>
+							</q:equal>
+						</filter>
+					</objectState>
+					<objectMinAssigneesViolation>
+						<multiplicity>1</multiplicity>
+						<relation>owner</relation>
+						<relation>approver</relation>
+					</objectMinAssigneesViolation>
+				</or>
+			</policyConstraints>
+			<policyActions>
+				<enforcement/>
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>approve-role-activation</name>
+			<policyConstraints>
+				<transition>
+					<name>role-switched-to-active</name>
+					<stateBefore>false</stateBefore>
+					<stateAfter>true</stateAfter>
+					<constraints>
+						<ref>active lifecycleState</ref>
+					</constraints>
+				</transition>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>10</order>
+					</compositionStrategy>
+					<approverRelation>owner</approverRelation>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>approve-high-risk-role-activation</name>
+			<policyConstraints>
+				<objectState>
+					<name>role-is-high-risk</name>
+					<filter>
+						<q:equal>
+							<q:path>riskLevel</q:path>
+							<q:value>high</q:value>
+						</q:equal>
+					</filter>
+				</objectState>
+				<ref>role-switched-to-active</ref>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>20</order>
+					</compositionStrategy>
+					<approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/> <!-- administrator -->
+				</approval>
+			</policyActions>
+		</policyRule>
+	</inducement>
+</role>

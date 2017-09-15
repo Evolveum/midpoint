@@ -275,26 +275,32 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	}
 
 	public ComplexTypeDefinition deepClone() {
-		return deepClone(new HashMap<>());
+		return deepClone(new HashMap<>(), new HashMap<>());
 	}
 
 	@NotNull
 	@Override
-	public ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
+	public ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath) {
 		if (ctdMap != null) {
 			ComplexTypeDefinition clone = ctdMap.get(this.getTypeName());
 			if (clone != null) {
 				return clone; // already cloned
 			}
 		}
+		ComplexTypeDefinition cloneInParent = onThisPath.get(this.getTypeName());
+		if (cloneInParent != null) {
+			return cloneInParent;
+		}
 		ComplexTypeDefinitionImpl clone = clone(); // shallow
 		if (ctdMap != null) {
 			ctdMap.put(this.getTypeName(), clone);
 		}
+		onThisPath.put(this.getTypeName(), clone);
 		clone.itemDefinitions.clear();
 		for (ItemDefinition itemDef: this.itemDefinitions) {
-			clone.itemDefinitions.add(itemDef.deepClone(ctdMap));
+			clone.itemDefinitions.add(itemDef.deepClone(ctdMap, onThisPath));
 		}
+		onThisPath.remove(this.getTypeName());
 		return clone;
 	}
 
@@ -377,6 +383,11 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 
 	@Override
 	public String debugDump(int indent) {
+		return debugDump(indent, new IdentityHashMap<>());
+	}
+
+	@Override
+	public String debugDump(int indent, IdentityHashMap<Definition, Object> seen) {
 		StringBuilder sb = new StringBuilder();
 		for (int i=0; i<indent; i++) {
 			sb.append(DebugDumpable.INDENT_STRING);
@@ -399,10 +410,15 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 			sb.append(",Ma");
 		}
 		extendDumpHeader(sb);
-		for (ItemDefinition def : getDefinitions()) {
-			sb.append("\n");
-			sb.append(def.debugDump(indent+1));
-			extendDumpDefinition(sb, def);
+		if (seen.containsKey(this)) {
+			sb.append(" (already shown)");
+		} else {
+			seen.put(this, null);
+			for (ItemDefinition def : getDefinitions()) {
+				sb.append("\n");
+				sb.append(def.debugDump(indent + 1));
+				extendDumpDefinition(sb, def);
+			}
 		}
 		return sb.toString();
 	}
