@@ -162,7 +162,6 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 	protected RoleType roleCoo;
 	protected RoleType roleCto;
 
-	protected UserType userAdministrator;
 	protected UserType userJack;
 	protected UserType userElaine;
 	protected UserType userGuybrush;
