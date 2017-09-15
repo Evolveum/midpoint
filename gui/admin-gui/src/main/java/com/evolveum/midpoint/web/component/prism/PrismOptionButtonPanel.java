@@ -85,10 +85,10 @@ public class PrismOptionButtonPanel extends Panel {
             @Override
             public Object getObject() {
                 ObjectWrapper wrapper = model.getObject();
-                if (wrapper.isShowEmpty()) {
-                    return new PackageResourceReference(PrismObjectPanel.class,
-                            "ShowEmptyFalse.png");
-                }
+//                if (wrapper.isShowEmpty()) {
+//                    return new PackageResourceReference(PrismObjectPanel.class,
+//                            "ShowEmptyFalse.png");
+//                }
                 return new PackageResourceReference(PrismObjectPanel.class,
                         "ShowEmptyTrue.png");
             }
@@ -98,10 +98,10 @@ public class PrismOptionButtonPanel extends Panel {
 
 			@Override
 			public Object getObject() {
-				ObjectWrapper wrapper = model.getObject();
-                if (wrapper.isShowEmpty()) {
-                    return getString("prismOptionButtonPanel.hideEmpty");
-                }
+//				ObjectWrapper wrapper = model.getObject();
+//                if (wrapper.isShowEmpty()) {
+//                    return getString("prismOptionButtonPanel.hideEmpty");
+//                }
                 return getString("prismOptionButtonPanel.showEmpty");
 			}
 		}, ""));

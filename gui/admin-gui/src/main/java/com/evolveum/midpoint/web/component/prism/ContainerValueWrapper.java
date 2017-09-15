@@ -48,11 +48,13 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -63,6 +65,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper implements Serializable, DebugDumpable {
 
+	private static final long serialVersionUID = 1L;
+
 	private static final Trace LOGGER = TraceManager.getTrace(ContainerValueWrapper.class);
 
 //	private String displayName;
@@ -70,7 +74,6 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
     private PrismContainerValue<C> containerValue;
     private ValueStatus status;
 
-    private boolean main;
     private ItemPath path;
     private List<ItemWrapper> properties;
 
@@ -81,19 +84,15 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
   
     ContainerValueWrapper(ContainerWrapper<C> containerWrapper, PrismContainerValue<C> containerValue, ValueStatus status, ItemPath path) {
-//		Validate.notNull(containerValue, "container must not be null.");
-//		super(containerWrapper, containerValue, status);
     	Validate.notNull(status, "Container status must not be null.");
 
 		this.containerWrapper = containerWrapper;
 		this.containerValue = containerValue;
 		this.status = status;
 		this.path = path;
-		this.main = path == null;
 		this.readonly = containerWrapper.isReadonly(); // [pm] this is quite questionable
 		this.showInheritedObjectAttributes = containerWrapper.isShowInheritedObjectAttributes();
-		// have to be after setting "main" property
-//		this.containerDefinition = getItemDefinition();
+
 	}
 
 	ContainerValueWrapper(PrismContainerValue<C> container, ValueStatus status, ItemPath path, boolean readOnly, boolean showInheritedObjectAttributes) {
@@ -106,7 +105,6 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 //		this.containerDefinition = container.getParent().getDefinition();
         this.status = status;
         this.path = path;
-        this.main = path == null;
         this.readonly = readOnly;
         this.showInheritedObjectAttributes = showInheritedObjectAttributes;
     }
@@ -168,94 +166,17 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
     public void setProperties(List<ItemWrapper> properties) {
         this.properties = properties;
     }
-
-    
-
-    // TODO: refactor this. Why it is not in the itemWrapper?
-    boolean isItemVisible(ItemWrapper item) {
-        ItemDefinition def = item.getItemDefinition();
-        if (def.isIgnored() || def.isOperational()) {
-            return false;
-        }
-
-        if (def instanceof PrismPropertyDefinition && skipProperty((PrismPropertyDefinition) def)) {
-            return false;
-        }
-
-        // we decide not according to status of this container, but according to
-        // the status of the whole object
-        if (containerWrapper != null && containerWrapper.getStatus() == ContainerStatus.ADDING) {
-
-            return (def.canAdd() && def.isEmphasized())
-                    || (def.canAdd() && showEmpty(item));
-        }
-
-        // otherwise, object.getStatus() is MODIFYING
-
-        if (def.canModify()) {
-            return showEmpty(item);
-        } else {
-            if (def.canRead()) {
-                return showEmpty(item);
-            }
-            return false;
-        }
-    }
-    
-    boolean isItemVisible() {
-//        ItemDefinition def = item.getItemDefinition();
-//    	PrismContainerDefinition def = get
-//        if (def.isIgnored() || def.isOperational()) {
-//            return false;
-//        }
-
-//        if (def instanceof PrismPropertyDefinition && skipProperty((PrismPropertyDefinition) def)) {
-//            return false;
-//        }
-
-        // we decide not according to status of this container, but according to
-        // the status of the whole object
-//        if (containerWrapper != null && containerWrapper.getStatus() == ContainerStatus.ADDING) {
-//
-//            return (def.canAdd() && def.isEmphasized())
-//                    || (def.canAdd() && showEmpty(item));
-//        }
-    	
-    	switch (status) {
-			case ADDED:
-				return (getDefinition().isEmphasized() || isShowEmpty()) && getDefinition().canAdd();
-			case NOT_CHANGED:
-//				getItems().forEach(i -> );
-				return ((getDefinition().canModify()) || getDefinition().canRead()); 
-			default:
-				break;
-		}
-    	
-    	for (ItemWrapper item : getItems()) {
-    		if (item.isVisible(isShowEmpty())) {
-    			return true;
-    		}
-    	}
-
-        // otherwise, object.getStatus() is MODIFYING
-
-//        if (def.canModify()) {
-//            return showEmpty(item);
-//        } else {
-//            if (def.canRead()) {
-//                return showEmpty(item);
-//            }
-//            return false;
-//        }
-    	return false;
-    }
-
+ 
     public void computeStripes() {
+    	if (properties == null) {
+    		return;
+    	}
     	int visibleProperties = 0;
+    	
     	for (ItemWrapper item: properties) {
-    		if (item.isVisible(isShowEmpty())) {
+//    		if (item.isVisible(isShowEmpty())) {
     			visibleProperties++;
-    		}
+//    		}
     		if (visibleProperties % 2 == 0) {
     			item.setStripe(true);
     		} else {
@@ -268,54 +189,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return showInheritedObjectAttributes;
 	}
 
-	private boolean showEmpty(ItemWrapper item) {
-		// make sure that emphasized state is evaluated after the normal definitions are considered
-		// we do not want to display emphasized property if the user does not have an access to it.
-		// MID-3206
-        if (item.getItemDefinition().isEmphasized()) {
-        	return true;
-        }
-//        ContainerWrapper objectWrapper = getContainer();
-        List<ValueWrapper> valueWrappers = item.getValues();
-        boolean isEmpty;
-        if (valueWrappers == null) {
-            isEmpty = true;
-        } else {
-            isEmpty = valueWrappers.isEmpty();
-        }
-//        if (!isEmpty && valueWrappers.size() == 1) {
-//            ValueWrapper value = valueWrappers.get(0);
-//            if (ValueStatus.ADDED.equals(value.getStatus())) {
-//                isEmpty = true;
-//            }
-//        }
-        return (containerWrapper.isShowEmpty()) || !isEmpty;
-    }
-
-//    @Override
-//    public String getDisplayName() {
-//        if (StringUtils.isNotEmpty(displayName)) {
-//            return displayName;
-//        }
-//        return getDisplayNameFromItem(containerValue.getParent());
-//    }
-//
-//    @Override
-//    public void setDisplayName(String name) {
-//        this.displayName = name;
-//    }
-//
-//    @Override
-//    public QName getName() {
-//        return getItem().getElementName();
-//    }
-
     public boolean isMain() {
         return path==null || path.isEmpty();
-    }
-
-    public void setMain(boolean main) {
-        this.main = main;
     }
 
     static String getDisplayNameFromItem(Item item) {
@@ -403,34 +278,6 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
         this.readonly = readonly;
     }
 
-//    @Override
-//    public List<ValueWrapper> getValues() {
-//        // TODO Auto-generated method stub
-//        return null;
-//    }
-
-//    @Override
-//    public boolean isVisible() {
-//        // TODO Auto-generated method stub
-//        return false;
-//    }
-
-//    @Override
-//    public boolean isEmpty() {
-//        return getItem().isEmpty();
-//    }
-
-    //TODO add new PrismContainerValue to association container
-//    public void addValue() {
-//        getItems().add(createItem());
-//    }
-//
-//    public ItemWrapper createItem() {
-//    	Property
-//        ValueWrapper wrapper = new ValueWrapper(this, new PrismPropertyValue(null), ValueStatus.ADDED);
-//        return wrapper.getItem();
-//    }
-
 
 	public void sort(final PageBase pageBase) {
 		if (containerWrapper.isSorted()){
@@ -495,7 +342,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "status", status == null ? null : status.toString(), indent + 1);
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "main", main, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "main", isMain(), indent + 1);
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "readonly", readonly, indent + 1);
         sb.append("\n");
@@ -512,17 +359,6 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
         DebugUtil.debugDump(sb, properties, indent + 2, false);
         return sb.toString();
     }
-
-//	@Override
-//	public boolean isStripe() {
-//		// Does not make much sense, but it is given by the interface
-//		return false;
-//	}
-//
-//	@Override
-//	public void setStripe(boolean isStripe) {
-//		// Does not make much sense, but it is given by the interface
-//	}
 
 	public <O extends ObjectType> void collectModifications(ObjectDelta<O> delta) throws SchemaException {
 //		if (getItemDefinition().getName().equals(ShadowType.F_ASSOCIATION)) {
@@ -598,9 +434,15 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return pDelta;
 	}
 
-	private void addItemDelta(ItemWrapper<? extends Item, ? extends ItemDefinition> itemWrapper, ItemDelta pDelta, ItemDefinition propertyDef,
+	private void addItemDelta(PropertyOrReferenceWrapper itemWrapper, ItemDelta pDelta, ItemDefinition propertyDef,
 			ItemPath containerPath) {
-		for (ValueWrapper valueWrapper : itemWrapper.getValues()) {
+		for (Object vWrapper : itemWrapper.getValues()) {
+			if (!(vWrapper instanceof ValueWrapper)) {
+				continue;
+			} 
+			
+			ValueWrapper valueWrapper = (ValueWrapper) vWrapper;
+			
 			valueWrapper.normalize(propertyDef.getPrismContext());
 			ValueStatus valueStatus = valueWrapper.getStatus();
 			if (!valueWrapper.hasValueChanged()
@@ -705,7 +547,50 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			}
 		}
 	}
+	
+	//TODO: unify with other isVisibleMethods
+	public boolean isVisible() {
+		PrismContainerDefinition<C> def = getDefinition();
+		
+		if (def.isIgnored() || (def.isOperational() && !def.getTypeName().equals(MetadataType.COMPLEX_TYPE))) {
+			return false;
+		}
+		
+		//TODO: emphasized
+		switch (status) {
+			case NOT_CHANGED :
+				return  isNotEmptyAndCanReadAndModify(def) || showEmptyCanReadAndModify(def);
+			case ADDED :
+				return emphasizedAndCanAdd(def) || showEmptyAndCanAdd(def);
+		}
+		
+		return false;
+	}
+	
+	private boolean isNotEmptyAndCanReadAndModify(PrismContainerDefinition<C> def) {
+		return def.canRead() && def.canModify() && !getContainerValue().isEmpty();
+	}
+	
+	private boolean showEmptyCanReadAndModify(PrismContainerDefinition<C> def) {
+		return def.canRead() && def.canModify() && isShowEmpty();
+	}
 
+	private boolean showEmptyAndCanAdd(PrismContainerDefinition<C> def) {
+		return def.canAdd() && isShowEmpty();
+	}
+	
+	private boolean emphasizedAndCanAdd(PrismContainerDefinition<C> def) {
+		return def.canAdd() && def.isEmphasized();
+	}
+	
+	@Override
+	public void setShowEmpty(boolean showEmpty) {
+		super.setShowEmpty(showEmpty);
+		getItems().forEach(item -> {
+			item.setShowEmpty(showEmpty);
+		});
+	}
+	
 //	@Override
 	public boolean checkRequired(PageBase pageBase) {
     	boolean rv = true;
@@ -716,6 +601,36 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 		return rv;
 	}
+	
+	 public PropertyOrReferenceWrapper findPropertyWrapper(QName name) {
+	        Validate.notNull(name, "QName must not be null.");
+	        for (ItemWrapper wrapper : getItems()) {
+	        	if (wrapper instanceof ContainerWrapper) {
+	        		continue;
+	        	}
+	            if (QNameUtil.match(name, wrapper.getItem().getElementName())) {
+	                return (PropertyOrReferenceWrapper) wrapper;
+	            }
+	        }
+	        return null;
+	    }
+	
+	public ContainerWrapper<C> findContainerWrapper(ItemPath path) {
+        Validate.notNull(path, "QName must not be null.");
+        for (ItemWrapper wrapper : getItems()) {
+        	if (!(wrapper instanceof ContainerWrapper)) {
+        		continue;
+        	}
+        	ContainerWrapper<C> containerWrapper = (ContainerWrapper<C>) wrapper;
+        	if (containerWrapper.getPath().equivalent(path)) {
+        		return containerWrapper;
+        	}
+        	
+            return ((ContainerWrapper<C>)wrapper).findContainerWrapper(path);
+         
+        }
+        return null;
+    }
 	
 	public String getDisplayName() {
 		if (getContainer().isMain()){

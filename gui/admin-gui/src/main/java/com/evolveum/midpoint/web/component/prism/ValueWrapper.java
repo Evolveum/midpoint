@@ -16,6 +16,10 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import java.io.Serializable;
+
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -28,10 +32,6 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.apache.commons.lang.Validate;
-
-import java.io.Serializable;
 
 /**
  * @author lazyman
@@ -69,7 +69,7 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 				T val = ((PrismPropertyValue<T>) value).getValue();
 				if (val instanceof PolyString) {
 					PolyString poly = (PolyString) val;
-					this.value = new PrismPropertyValue(new PolyString(poly.getOrig(), poly.getNorm()),
+					this.value = new PrismPropertyValue<PolyString>(new PolyString(poly.getOrig(), poly.getNorm()),
 							value.getOriginType(), value.getOriginObject());
 				} else if (val instanceof ProtectedStringType) {
 					this.value = value.clone();

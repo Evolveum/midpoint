@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author lazyman
  * @author semancik
  */
-public class ContainerValuePanel extends Panel {
+public class ContainerValuePanel<C extends Containerable> extends Panel {
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ContainerValuePanel.class);
@@ -49,60 +49,32 @@ public class ContainerValuePanel extends Panel {
 
     private PageBase pageBase;
 
-    public ContainerValuePanel(String id, final IModel<ContainerValueWrapper> model, boolean showHeader, Form form, PageBase pageBase) {
+    public ContainerValuePanel(String id, final IModel<ContainerValueWrapper<C>> model, boolean showHeader, Form form, PageBase pageBase) {
         super(id, model);
         setOutputMarkupId(true);
 		this.pageBase = pageBase;
-
-        LOGGER.trace("Creating container panel for {}", model.getObject());
-
-        add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+		
+		add(new VisibleEnableBehaviour() {
 
 			@Override
-            public boolean isVisible() {
-                ContainerValueWrapper<Containerable> containerValueWrapper = model.getObject();
-                return containerValueWrapper.isItemVisible();
-//                PrismContainer prismContainer = containerWrapper.getItem();
-//                if (containerWrapper.getItemDefinition().isOperational()) {
-//                    return false;
-//                }
-//
-//                // HACK HACK HACK
-//                if (ShadowType.F_ASSOCIATION.equals(prismContainer.getElementName())) {
-//                	return true;
-//                }
+			public boolean isVisible() {
+				return model.getObject().isVisible();
+			}
+		});
 
-//                containerValueWrapper.is
-//                boolean isVisible = false;
-//                for (ItemWrapper item : containerValueWrapper.getItems()) {
-//                    if (containerValueWrapper.isItemVisible(item)) {
-//                        isVisible = true;
-//                        break;
-//                    }
-//                }
-
-//                return !containerValueWrapper.getItems().isEmpty() && isVisible;
-//                return true;
-            }
-        });
+        LOGGER.trace("Creating container panel for {}", model.getObject());
 
         initLayout(model, form, showHeader);
     }
 
-    private void initLayout(final IModel<ContainerValueWrapper> model, final Form form, boolean showHeader) {
-    	PrismHeaderPanel header = new PrismHeaderPanel(ID_HEADER, model) {
+    private void initLayout(final IModel<ContainerValueWrapper<C>> model, final Form form, boolean showHeader) {
+    	PrismContainerValueHeaderPanel<C> header = new PrismContainerValueHeaderPanel<C>(ID_HEADER, model) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onButtonClick(AjaxRequestTarget target) {
 				addOrReplaceProperties(model, form, true);
-				target.add(ContainerValuePanel.this.findParent(PrismObjectPanel.class));
-			}
-
-			@Override
-			public boolean isButtonsVisible() {
-				return true;
+				target.add(ContainerValuePanel.this);
 			}
 
     	};
@@ -115,6 +87,7 @@ public class ContainerValuePanel extends Panel {
             }
         });
         add(header);
+        header.setOutputMarkupId(true);
 
         addOrReplaceProperties(model, form, false);
     }
@@ -135,7 +108,7 @@ public class ContainerValuePanel extends Panel {
         };
     }
 
-    private <IW extends ItemWrapper> void addOrReplaceProperties(IModel<ContainerValueWrapper> model, final Form form, boolean isToBeReplaced){
+    private <IW extends ItemWrapper> void addOrReplaceProperties(IModel<ContainerValueWrapper<C>> model, final Form form, boolean isToBeReplaced){
         ListView<IW> properties = new ListView<IW>("properties",
                 new PropertyModel<List<IW>>(model, "properties")) {
 			private static final long serialVersionUID = 1L;
@@ -143,7 +116,7 @@ public class ContainerValuePanel extends Panel {
 			@Override
             protected void populateItem(final ListItem<IW> item) {
 				if (item.getModel().getObject() instanceof ContainerWrapper) {
-					PrismContainerPanel containerPanel = new PrismContainerPanel("property", (IModel<ContainerWrapper>) item.getModel(), true, form, pageBase);
+					PrismContainerPanel<C> containerPanel = new PrismContainerPanel("property", (IModel<ContainerWrapper<C>>) item.getModel(), true, form, pageBase);
 					containerPanel.setOutputMarkupId(true);
 					item.add(containerPanel);
 					return;
@@ -152,15 +125,8 @@ public class ContainerValuePanel extends Panel {
 				PrismPropertyPanel propertyPanel = new PrismPropertyPanel("property", item.getModel(), form, pageBase);
 				propertyPanel.setOutputMarkupId(true);
                 item.add(propertyPanel);
-                item.add(new VisibleEnableBehaviour() {
-                	private static final long serialVersionUID = 1L;
-
-                	@Override
-                	public boolean isVisible() {
-                		return item.getModel().getObject().isVisible(model.getObject().isShowEmpty());
-                	}
-                });
                 item.add(AttributeModifier.append("class", createStyleClassModel((IModel<ItemWrapper>) item.getModel())));
+               
             }
         };
         properties.setReuseItems(true);

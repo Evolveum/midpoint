@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 /**
  * @author lazyman
  */
-public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends Revivable, DebugDumpable, Serializable {
+public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> extends Revivable, DebugDumpable, Serializable {
 
 	QName getName();
 
@@ -57,13 +57,13 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends 
 
     boolean hasChanged();
 
-    List<ValueWrapper> getValues();
+    List<V> getValues();
 
     /**
      * Visibility flag. This is NOT an override, it defines whether the item
      * should be displayed or not.
      */
-	boolean isVisible(boolean showEmpty);
+	boolean isVisible();
 
     /**
      * Used to display the form elements with stripe in every other line.
@@ -74,7 +74,7 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends 
 
 //    ContainerValueWrapper getContainerValue();
 
-    void addValue();
+    void addValue(boolean showEmpty);
 
 	boolean checkRequired(PageBase pageBase);
 
@@ -85,4 +85,8 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends 
     }
 	
 	ContainerWrapper getParent();
+	
+	boolean isShowEmpty();
+	
+	void setShowEmpty(boolean isShowEmpty);
 }

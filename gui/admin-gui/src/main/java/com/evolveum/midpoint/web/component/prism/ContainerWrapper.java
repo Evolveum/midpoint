@@ -16,44 +16,56 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.math.NumberUtils;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-
-import java.io.Serializable;
-import java.util.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman
+ * @author katkav
  */
-public class ContainerWrapper<C extends Containerable> extends PrismWrapper implements ItemWrapper, Serializable, DebugDumpable {
+public class ContainerWrapper<C extends Containerable> extends PrismWrapper implements ItemWrapper<PrismContainer<C>, PrismContainerDefinition<C>, ContainerValueWrapper<C>>, Serializable, DebugDumpable {
+
+	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapper.class);
 
 	private String displayName;
-//    private ObjectWrapper<? extends ObjectType> objectWrapper;
     private PrismContainer<C> container;
     private ContainerStatus status;
 
@@ -63,20 +75,14 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
     private boolean readonly;
     private boolean showInheritedObjectAttributes;
 
-    private PrismContainerDefinition<C> containerDefinition;
 
 	ContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path) {
 		Validate.notNull(container, "container must not be null.");
 		Validate.notNull(status, "Container status must not be null.");
 
-//		this.objectWrapper = objectWrapper;
 		this.container = container;
 		this.status = status;
 		this.path = path;
-//		this.readonly = objectWrapper.isReadonly(); // [pm] this is quite questionable
-//		this.showInheritedObjectAttributes = objectWrapper.isShowInheritedObjectAttributes();
-		// have to be after setting "main" property
-		this.containerDefinition = getItemDefinition();
 	}
 
 	ContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readOnly, boolean showInheritedObjectAttributes) {
@@ -85,7 +91,6 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
         Validate.notNull(status, "Container status must not be null.");
 
         this.container = container;
-		this.containerDefinition = container.getDefinition();
         this.status = status;
         this.path = path;
         this.readonly = readOnly;
@@ -96,8 +101,8 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
         if (container != null) {
             container.revive(prismContext);
         }
-        if (containerDefinition != null) {
-            containerDefinition.revive(prismContext);
+        if (getItemDefinition() != null) {
+        	getItemDefinition().revive(prismContext);
         }
         if (values != null) {
             for (ContainerValueWrapper itemWrapper : values) {
@@ -108,20 +113,8 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 
     @Override
     public PrismContainerDefinition<C> getItemDefinition() {
-		if (containerDefinition != null) {
-			return containerDefinition;
-		}
-//        if (isMain()) {
             return container.getDefinition();
-//        } else {
-//            return objectWrapper.getDefinition().findContainerDefinition(path);
-//        }
     }
-
-//    @Nullable
-//	ObjectWrapper getObject() {
-//        return objectWrapper;
-//    }
 
     public ContainerStatus getStatus() {
         return status;
@@ -136,76 +129,40 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
         return container;
     }
 
+   
+    @Override
     public List<ContainerValueWrapper<C>> getValues() {
-        if (values == null) {
-        	values = new ArrayList<>();
-        }
-        return values;
+    	 if (values == null) {
+         	values = new ArrayList<>();
+         }
+         return values;
+    	
     }
 
     public void setProperties(List<ContainerValueWrapper<C>> properties) {
         this.values = properties;
     }
 
-    public <IW extends ItemWrapper> IW findPropertyWrapper(ItemPath name) {
+    public PropertyOrReferenceWrapper findPropertyWrapper(QName name) {
         Validate.notNull(name, "QName must not be null.");
         for (ContainerValueWrapper wrapper : getValues()) {
-            if (name.equals(wrapper.getContainerValue().getPath())) {
-                return (IW) wrapper;
-            }
+        	PropertyOrReferenceWrapper propertyWrapper = wrapper.findPropertyWrapper(name);
+        	if (propertyWrapper != null) {
+        		return propertyWrapper;
+        	}
         }
         return null;
     }
-
-    // TODO: refactor this. Why it is not in the itemWrapper?
-    boolean isItemVisible(ItemWrapper item) {
-        ItemDefinition def = item.getItemDefinition();
-        if (def.isIgnored() || def.isOperational()) {
-            return false;
-        }
-
-        if (def instanceof PrismPropertyDefinition && skipProperty((PrismPropertyDefinition) def)) {
-            return false;
-        }
-
-        // we decide not according to status of this container, but according to
-        // the status of the whole object
-        
-//        if (objectWrapper != null && objectWrapper.getStatus() == ContainerStatus.ADDING) {
-//
-//            return (def.canAdd() && def.isEmphasized())
-//                    || (def.canAdd() && showEmpty(item));
-//        }
-
-        // otherwise, object.getStatus() is MODIFYING
-
-        if (def.canModify()) {
-            return showEmpty(item);
-        } else {
-            if (def.canRead()) {
-                return showEmpty(item);
-            }
-            return false;
-        }
-    }
     
-    boolean isItemVisible() {
-    	
-    	//TODO: [katka] should we consider child items? e.g. we can dee assignemnt/description but noothing else.. 
-       PrismContainerDefinition<C> containerDefinition = getItemDefinition();
-       if (containerDefinition.isIgnored() || containerDefinition.isOperational()) {
-    	   return false;
-       }
-       
-       switch (status) {
-    	   case ADDING : 
-    		   return containerDefinition.canAdd();
-    	   case MODIFYING : 
-    		   return (containerDefinition.canRead() && containerDefinition.canModify());
-       }
-       
-       return false;
-       
+    public ContainerWrapper<C> findContainerWrapper(ItemPath path) {
+        Validate.notNull(path, "QName must not be null.");
+        for (ContainerValueWrapper<C> wrapper : getValues()) {
+            ContainerWrapper<C> containerWrapper = wrapper.findContainerWrapper(path);
+            if (containerWrapper != null) {
+            	return containerWrapper;
+            }
+        }
+        return null;
     }
 
     public void computeStripes() {
@@ -226,31 +183,6 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	public boolean isShowInheritedObjectAttributes() {
 		return showInheritedObjectAttributes;
 	}
-
-	private boolean showEmpty(ItemWrapper item) {
-		// make sure that emphasized state is evaluated after the normal definitions are considered
-		// we do not want to display emphasized property if the user does not have an access to it.
-		// MID-3206
-        if (item.getItemDefinition().isEmphasized()) {
-        	return true;
-        }
-//        ObjectWrapper objectWrapper = getObject();
-        List<ValueWrapper> valueWrappers = item.getValues();
-        boolean isEmpty;
-        if (valueWrappers == null) {
-            isEmpty = true;
-        } else {
-            isEmpty = valueWrappers.isEmpty();
-        }
-        if (!isEmpty && valueWrappers.size() == 1) {
-            ValueWrapper value = valueWrappers.get(0);
-            if (ValueStatus.ADDED.equals(value.getStatus())) {
-                isEmpty = true;
-            }
-        }
-//        /(objectWrapper == null || objectWrapper.isShowEmpty()) ||
-        return  !isEmpty;
-    }
 
     @Override
     public String getDisplayName() {
@@ -366,19 +298,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 //        return null;
 //    }
 //
-//    @Override
-    public boolean isVisible() {
-       switch (status) {
-    	   case ADDING : 
-    		   return getItemDefinition().canAdd();
-    	   case MODIFYING :
-    		   if (getItemDefinition().canModify()) {
-    			   return !isEmpty();
-    		   }
-       }
-       
-       return false;
-    }
+
 
     @Override
     public boolean isEmpty() {
@@ -390,14 +310,16 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 //        return container
 //    }
 
+    
     //TODO add new PrismContainerValue to association container
-    public void addValue() {
-        getValues().add(createItem());
+    public void addValue(boolean showEmpty) {
+    	getValues().add(createItem(showEmpty));
     }
 
-    public ContainerValueWrapper<C> createItem() {
+    public ContainerValueWrapper<C> createItem(boolean showEmpty) {
     	PrismContainerValue<C> pcv = container.createNewValue();
         ContainerValueWrapper<C> wrapper = new ContainerValueWrapper<C>(this, pcv, ValueStatus.ADDED, pcv.getPath());
+        wrapper.setShowEmpty(showEmpty);
         return wrapper;
     }
 
@@ -478,7 +400,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "path", path == null ? null : path.toString(), indent + 1);
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "containerDefinition", containerDefinition == null ? null : containerDefinition.toString(), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "containerDefinition", getItemDefinition() == null ? null : getItemDefinition().toString(), indent + 1);
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "container", container == null ? null : container.toString(), indent + 1);
         sb.append("\n");
@@ -561,128 +483,128 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 //		}
 	}
 
-	private ItemDelta computePropertyDeltas(PropertyWrapper propertyWrapper, ItemPath containerPath) {
-		ItemDefinition itemDef = propertyWrapper.getItemDefinition();
-		ItemDelta pDelta = itemDef.createEmptyDelta(containerPath.subPath(itemDef.getName()));
-		addItemDelta(propertyWrapper, pDelta, itemDef, containerPath);
-		return pDelta;
-	}
-
-	private ReferenceDelta computeReferenceDeltas(ReferenceWrapper referenceWrapper, ItemPath containerPath) {
-		PrismReferenceDefinition propertyDef = referenceWrapper.getItemDefinition();
-		ReferenceDelta pDelta = new ReferenceDelta(containerPath, propertyDef.getName(), propertyDef,
-				propertyDef.getPrismContext());
-		addItemDelta(referenceWrapper, pDelta, propertyDef, containerPath.subPath(propertyDef.getName()));
-		return pDelta;
-	}
-
-	private void addItemDelta(ItemWrapper<? extends Item, ? extends ItemDefinition> itemWrapper, ItemDelta pDelta, ItemDefinition propertyDef,
-			ItemPath containerPath) {
-		for (ValueWrapper valueWrapper : itemWrapper.getValues()) {
-			valueWrapper.normalize(propertyDef.getPrismContext());
-			ValueStatus valueStatus = valueWrapper.getStatus();
-			if (!valueWrapper.hasValueChanged()
-					&& (ValueStatus.NOT_CHANGED.equals(valueStatus) || ValueStatus.ADDED.equals(valueStatus))) {
-				continue;
-			}
-
-			// TODO: need to check if the resource has defined
-			// capabilities
-			// todo this is bad hack because now we have not tri-state
-			// checkbox
-//			if (SchemaConstants.PATH_ACTIVATION.equivalent(containerPath) && getObject() != null) {
+//	private ItemDelta computePropertyDeltas(PropertyWrapper propertyWrapper, ItemPath containerPath) {
+//		ItemDefinition itemDef = propertyWrapper.getItemDefinition();
+//		ItemDelta pDelta = itemDef.createEmptyDelta(containerPath.subPath(itemDef.getName()));
+//		addItemDelta(propertyWrapper, pDelta, itemDef, containerPath);
+//		return pDelta;
+//	}
 //
-//				PrismObject<?> object = getObject().getObject();
-//				if (object.asObjectable() instanceof ShadowType
-//						&& (((ShadowType) object.asObjectable()).getActivation() == null || ((ShadowType) object
-//						.asObjectable()).getActivation().getAdministrativeStatus() == null)) {
+//	private ReferenceDelta computeReferenceDeltas(ReferenceWrapper referenceWrapper, ItemPath containerPath) {
+//		PrismReferenceDefinition propertyDef = referenceWrapper.getItemDefinition();
+//		ReferenceDelta pDelta = new ReferenceDelta(containerPath, propertyDef.getName(), propertyDef,
+//				propertyDef.getPrismContext());
+//		addItemDelta(referenceWrapper, pDelta, propertyDef, containerPath.subPath(propertyDef.getName()));
+//		return pDelta;
+//	}
 //
-//					if (!getObject().hasResourceCapability(((ShadowType) object.asObjectable()).getResource(),
-//							ActivationCapabilityType.class)) {
-//						continue;
-//					}
-//				}
+//	private void addItemDelta(ItemWrapper<? extends Item, ? extends ItemDefinition> itemWrapper, ItemDelta pDelta, ItemDefinition propertyDef,
+//			ItemPath containerPath) {
+//		for (ValueWrapper valueWrapper : itemWrapper.getValues()) {
+//			valueWrapper.normalize(propertyDef.getPrismContext());
+//			ValueStatus valueStatus = valueWrapper.getStatus();
+//			if (!valueWrapper.hasValueChanged()
+//					&& (ValueStatus.NOT_CHANGED.equals(valueStatus) || ValueStatus.ADDED.equals(valueStatus))) {
+//				continue;
 //			}
-
-			PrismValue newValCloned = ObjectWrapper.clone(valueWrapper.getValue());
-			PrismValue oldValCloned = ObjectWrapper.clone(valueWrapper.getOldValue());
-			switch (valueWrapper.getStatus()) {
-				case ADDED:
-					if (newValCloned != null) {
-						if (SchemaConstants.PATH_PASSWORD.equivalent(containerPath)) {
-							// password change will always look like add,
-							// therefore we push replace
-							if (LOGGER.isTraceEnabled()) {
-								LOGGER.trace("Delta from wrapper: {} (password) ADD -> replace {}", pDelta.getPath(), newValCloned);
-							}
-							pDelta.setValuesToReplace(Arrays.asList(newValCloned));
-						} else if (propertyDef.isSingleValue()) {
-							// values for single-valued properties
-							// should be pushed via replace
-							// in order to prevent problems e.g. with
-							// summarizing deltas for
-							// unreachable resources
-							if (LOGGER.isTraceEnabled()) {
-								LOGGER.trace("Delta from wrapper: {} (single,new) ADD -> replace {}", pDelta.getPath(), newValCloned);
-							}
-							pDelta.setValueToReplace(newValCloned);
-						} else {
-							if (LOGGER.isTraceEnabled()) {
-								LOGGER.trace("Delta from wrapper: {} (multi,new) ADD -> add {}", pDelta.getPath(), newValCloned);
-							}
-							pDelta.addValueToAdd(newValCloned);
-						}
-					}
-					break;
-				case DELETED:
-					if (newValCloned != null) {
-						if (LOGGER.isTraceEnabled()) {
-							LOGGER.trace("Delta from wrapper: {} (new) DELETE -> delete {}", pDelta.getPath(), newValCloned);
-						}
-						pDelta.addValueToDelete(newValCloned);
-					}
-					if (oldValCloned != null) {
-						if (LOGGER.isTraceEnabled()) {
-							LOGGER.trace("Delta from wrapper: {} (old) DELETE -> delete {}", pDelta.getPath(), oldValCloned);
-						}
-						pDelta.addValueToDelete(oldValCloned);
-					}
-					break;
-				case NOT_CHANGED:
-					// this is modify...
-					if (propertyDef.isSingleValue()) {
-						// newValCloned.isEmpty()
-						if (newValCloned != null && !newValCloned.isEmpty()) {
-							if (LOGGER.isTraceEnabled()) {
-								LOGGER.trace("Delta from wrapper: {} (single,new) NOT_CHANGED -> replace {}", pDelta.getPath(), newValCloned);
-							}
-							pDelta.setValuesToReplace(Arrays.asList(newValCloned));
-						} else {
-							if (oldValCloned != null) {
-								if (LOGGER.isTraceEnabled()) {
-									LOGGER.trace("Delta from wrapper: {} (single,old) NOT_CHANGED -> delete {}", pDelta.getPath(), oldValCloned);
-								}
-								pDelta.addValueToDelete(oldValCloned);
-							}
-						}
-					} else {
-						if (newValCloned != null && !newValCloned.isEmpty()) {
-							if (LOGGER.isTraceEnabled()) {
-								LOGGER.trace("Delta from wrapper: {} (multi,new) NOT_CHANGED -> add {}", pDelta.getPath(), newValCloned);
-							}
-							pDelta.addValueToAdd(newValCloned);
-						}
-						if (oldValCloned != null) {
-							if (LOGGER.isTraceEnabled()) {
-								LOGGER.trace("Delta from wrapper: {} (multi,old) NOT_CHANGED -> delete {}", pDelta.getPath(), oldValCloned);
-							}
-							pDelta.addValueToDelete(oldValCloned);
-						}
-					}
-					break;
-			}
-		}
-	}
+//
+//			// TODO: need to check if the resource has defined
+//			// capabilities
+//			// todo this is bad hack because now we have not tri-state
+//			// checkbox
+////			if (SchemaConstants.PATH_ACTIVATION.equivalent(containerPath) && getObject() != null) {
+////
+////				PrismObject<?> object = getObject().getObject();
+////				if (object.asObjectable() instanceof ShadowType
+////						&& (((ShadowType) object.asObjectable()).getActivation() == null || ((ShadowType) object
+////						.asObjectable()).getActivation().getAdministrativeStatus() == null)) {
+////
+////					if (!getObject().hasResourceCapability(((ShadowType) object.asObjectable()).getResource(),
+////							ActivationCapabilityType.class)) {
+////						continue;
+////					}
+////				}
+////			}
+//
+//			PrismValue newValCloned = ObjectWrapper.clone(valueWrapper.getValue());
+//			PrismValue oldValCloned = ObjectWrapper.clone(valueWrapper.getOldValue());
+//			switch (valueWrapper.getStatus()) {
+//				case ADDED:
+//					if (newValCloned != null) {
+//						if (SchemaConstants.PATH_PASSWORD.equivalent(containerPath)) {
+//							// password change will always look like add,
+//							// therefore we push replace
+//							if (LOGGER.isTraceEnabled()) {
+//								LOGGER.trace("Delta from wrapper: {} (password) ADD -> replace {}", pDelta.getPath(), newValCloned);
+//							}
+//							pDelta.setValuesToReplace(Arrays.asList(newValCloned));
+//						} else if (propertyDef.isSingleValue()) {
+//							// values for single-valued properties
+//							// should be pushed via replace
+//							// in order to prevent problems e.g. with
+//							// summarizing deltas for
+//							// unreachable resources
+//							if (LOGGER.isTraceEnabled()) {
+//								LOGGER.trace("Delta from wrapper: {} (single,new) ADD -> replace {}", pDelta.getPath(), newValCloned);
+//							}
+//							pDelta.setValueToReplace(newValCloned);
+//						} else {
+//							if (LOGGER.isTraceEnabled()) {
+//								LOGGER.trace("Delta from wrapper: {} (multi,new) ADD -> add {}", pDelta.getPath(), newValCloned);
+//							}
+//							pDelta.addValueToAdd(newValCloned);
+//						}
+//					}
+//					break;
+//				case DELETED:
+//					if (newValCloned != null) {
+//						if (LOGGER.isTraceEnabled()) {
+//							LOGGER.trace("Delta from wrapper: {} (new) DELETE -> delete {}", pDelta.getPath(), newValCloned);
+//						}
+//						pDelta.addValueToDelete(newValCloned);
+//					}
+//					if (oldValCloned != null) {
+//						if (LOGGER.isTraceEnabled()) {
+//							LOGGER.trace("Delta from wrapper: {} (old) DELETE -> delete {}", pDelta.getPath(), oldValCloned);
+//						}
+//						pDelta.addValueToDelete(oldValCloned);
+//					}
+//					break;
+//				case NOT_CHANGED:
+//					// this is modify...
+//					if (propertyDef.isSingleValue()) {
+//						// newValCloned.isEmpty()
+//						if (newValCloned != null && !newValCloned.isEmpty()) {
+//							if (LOGGER.isTraceEnabled()) {
+//								LOGGER.trace("Delta from wrapper: {} (single,new) NOT_CHANGED -> replace {}", pDelta.getPath(), newValCloned);
+//							}
+//							pDelta.setValuesToReplace(Arrays.asList(newValCloned));
+//						} else {
+//							if (oldValCloned != null) {
+//								if (LOGGER.isTraceEnabled()) {
+//									LOGGER.trace("Delta from wrapper: {} (single,old) NOT_CHANGED -> delete {}", pDelta.getPath(), oldValCloned);
+//								}
+//								pDelta.addValueToDelete(oldValCloned);
+//							}
+//						}
+//					} else {
+//						if (newValCloned != null && !newValCloned.isEmpty()) {
+//							if (LOGGER.isTraceEnabled()) {
+//								LOGGER.trace("Delta from wrapper: {} (multi,new) NOT_CHANGED -> add {}", pDelta.getPath(), newValCloned);
+//							}
+//							pDelta.addValueToAdd(newValCloned);
+//						}
+//						if (oldValCloned != null) {
+//							if (LOGGER.isTraceEnabled()) {
+//								LOGGER.trace("Delta from wrapper: {} (multi,old) NOT_CHANGED -> delete {}", pDelta.getPath(), oldValCloned);
+//							}
+//							pDelta.addValueToDelete(oldValCloned);
+//						}
+//					}
+//					break;
+//			}
+//		}
+//	}
 
 	@Override
 	public boolean checkRequired(PageBase pageBase) {
@@ -693,6 +615,12 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 			}
 		}
 		return rv;
+	}
+	
+	@Override
+	public void setShowEmpty(boolean showEmpty) {
+		super.setShowEmpty(showEmpty);
+		getValues().forEach(value -> value.setShowEmpty(showEmpty));
 	}
 
 	@Override
@@ -707,15 +635,38 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	}
 
 	@Override
-	public boolean isVisible(boolean showEmpty) {
-		// TODO Auto-generated method stub
+	public boolean isVisible() {
+		PrismContainerDefinition<C> def = getItemDefinition();
+		
+		if (def.isIgnored() || (def.isOperational() && !def.getTypeName().equals(MetadataType.COMPLEX_TYPE))) {
+			return false;
+		}
+		
+		//TODO: emphasized
+		switch (status) {
+			case MODIFYING :
+				return  isNotEmptyAndCanReadAndModify(def) || showEmptyCanReadAndModify(def);
+			case ADDING :
+				return emphasizedAndCanAdd(def) || showEmptyAndCanAdd(def);
+		}
+		
 		return false;
 	}
-
 	
-//	@Override
-//	public ContainerValueWrapper getContainerValue() {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
+	private boolean isNotEmptyAndCanReadAndModify(PrismContainerDefinition<C> def) {
+		return def.canRead() && def.canModify() && !getItem().isEmpty();
+	}
+	
+	private boolean showEmptyCanReadAndModify(PrismContainerDefinition<C> def) {
+		return def.canRead() && def.canModify() && isShowEmpty();
+	}
+
+	private boolean showEmptyAndCanAdd(PrismContainerDefinition<C> def) {
+		return def.canAdd() && isShowEmpty();
+	}
+	
+	private boolean emphasizedAndCanAdd(PrismContainerDefinition<C> def) {
+		return def.canAdd() && def.isEmphasized();
+	}
+	
 }

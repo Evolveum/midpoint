@@ -233,7 +233,7 @@ public class PrismValuePanel extends Panel {
         }
     }
 
-    private int countUsableValues(ItemWrapper<? extends Item, ? extends ItemDefinition> property) {
+    private int countUsableValues(PropertyOrReferenceWrapper<? extends Item, ? extends ItemDefinition> property) {
         int count = 0;
         for (ValueWrapper value : property.getValues()) {
             value.normalize(property.getItemDefinition().getPrismContext());
@@ -251,7 +251,7 @@ public class PrismValuePanel extends Panel {
         return count;
     }
 
-    private List<ValueWrapper> getUsableValues(ItemWrapper<? extends Item, ? extends ItemDefinition> property) {
+    private List<ValueWrapper> getUsableValues(PropertyOrReferenceWrapper<? extends Item, ? extends ItemDefinition> property) {
         List<ValueWrapper> values = new ArrayList<>();
         for (ValueWrapper value : property.getValues()) {
             value.normalize(property.getItemDefinition().getPrismContext());
@@ -264,7 +264,7 @@ public class PrismValuePanel extends Panel {
         return values;
     }
 
-    private int countNonDeletedValues(ItemWrapper<? extends Item, ? extends ItemDefinition> property) {
+    private int countNonDeletedValues(PropertyOrReferenceWrapper<? extends Item, ? extends ItemDefinition> property) {
         int count = 0;
         for (ValueWrapper value : property.getValues()) {
             value.normalize(property.getItemDefinition().getPrismContext());
@@ -276,7 +276,7 @@ public class PrismValuePanel extends Panel {
         return count;
     }
 
-    private boolean hasEmptyPlaceholder(ItemWrapper<? extends Item, ? extends ItemDefinition> property) {
+    private boolean hasEmptyPlaceholder(PropertyOrReferenceWrapper<? extends Item, ? extends ItemDefinition> property) {
         for (ValueWrapper value : property.getValues()) {
             value.normalize(property.getItemDefinition().getPrismContext());
             if (ValueStatus.ADDED.equals(value.getStatus()) && !value.hasValueChanged()) {
@@ -298,7 +298,7 @@ public class PrismValuePanel extends Panel {
             return true;
         }
 
-        ItemWrapper propertyWrapper = valueWrapper.getItem();
+        PropertyOrReferenceWrapper propertyWrapper = (PropertyOrReferenceWrapper) valueWrapper.getItem();
         ItemDefinition definition = propertyWrapper.getItem().getDefinition();
         int min = definition.getMinOccurs();
 
@@ -327,7 +327,7 @@ public class PrismValuePanel extends Panel {
             return false;
         }
 
-        ItemWrapper propertyWrapper = valueWrapper.getItem();
+        PropertyOrReferenceWrapper propertyWrapper = (PropertyOrReferenceWrapper) valueWrapper.getItem();
         Item property = propertyWrapper.getItem();
 
         ItemDefinition definition = property.getDefinition();
@@ -807,14 +807,14 @@ public class PrismValuePanel extends Panel {
         ValueWrapper wrapper = valueWrapperModel.getObject();
         ItemWrapper propertyWrapper = wrapper.getItem();
         LOGGER.debug("Adding value of {}", propertyWrapper);
-        propertyWrapper.addValue();
+        propertyWrapper.addValue(true);
         ListView parent = findParent(ListView.class);
         target.add(parent.getParent());
     }
 
     private void removeValue(AjaxRequestTarget target) {
         ValueWrapper wrapper = valueWrapperModel.getObject();
-        ItemWrapper propertyWrapper = wrapper.getItem();
+        PropertyOrReferenceWrapper propertyWrapper = (PropertyOrReferenceWrapper) wrapper.getItem();
         LOGGER.debug("Removing value of {}", propertyWrapper);
 
         List<ValueWrapper> values = propertyWrapper.getValues();

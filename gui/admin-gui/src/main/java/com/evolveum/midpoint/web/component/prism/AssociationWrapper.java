@@ -27,46 +27,53 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTyp
  * @author semancik
  *
  */
-public class AssociationWrapper extends PropertyWrapper<PrismContainer<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> {
-	private static final long serialVersionUID = 1L;
-
-	private static final Trace LOGGER = TraceManager.getTrace(AssociationWrapper.class);
-
-	private RefinedAssociationDefinition assocRDef;
-
-	public AssociationWrapper(ContainerValueWrapper<ShadowAssociationType> container, PrismContainer<ShadowAssociationType> property,
-			boolean readonly, ValueStatus status, RefinedAssociationDefinition assocRDef) {
-		super(container, property, readonly, status);
-		this.assocRDef = assocRDef;
-	}
-
-	@Override
-	public ValueWrapper<ShadowAssociationType> createAddedValue() {
-		PrismContainer<ShadowAssociationType> container = (PrismContainer<ShadowAssociationType>)getItem();
-		PrismContainerValue<ShadowAssociationType> cval = container.createNewValue();
-        ValueWrapper<ShadowAssociationType> wrapper = new ValueWrapper<>(this, cval, ValueStatus.ADDED);
-
-        return wrapper;
-	}
-
-	@Override
-	public String getDisplayName() {
-		if (assocRDef != null) {
-			String displayName = assocRDef.getDisplayName();
-			if (displayName != null) {
-				return displayName;
-			}
-		}
-		return super.getDisplayName();
-	}
-
-	public RefinedAssociationDefinition getRefinedAssociationDefinition() {
-		return assocRDef;
-	}
-
-	@Override
-	protected String getDebugName() {
-		return "AssociationWrapper";
-	}
-
+public class AssociationWrapper {
+//	extends PropertyWrapper<PrismContainer<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> {
 }
+//	private static final long serialVersionUID = 1L;
+//
+//	private static final Trace LOGGER = TraceManager.getTrace(AssociationWrapper.class);
+//
+//	private RefinedAssociationDefinition assocRDef;
+//
+//	public AssociationWrapper(ContainerValueWrapper<ShadowAssociationType> container, PrismContainer<ShadowAssociationType> property,
+//			boolean readonly, ValueStatus status, RefinedAssociationDefinition assocRDef) {
+//		super(container, property, readonly, status);
+//		this.assocRDef = assocRDef;
+//	}
+//
+//	@Override
+//	public ValueWrapper createAddedValue() {
+//		// TODO Auto-generated method stub
+//		return super.createAddedValue();
+//	}
+//	@Override
+//	public ValueWrapper<ShadowAssociationType> createAddedValue() {
+//		PrismContainer<ShadowAssociationType> container = (PrismContainer<ShadowAssociationType>)getItem();
+//		PrismContainerValue<ShadowAssociationType> cval = container.createNewValue();
+//        ValueWrapper<ShadowAssociationType> wrapper = new ValueWrapper<>(this, cval, ValueStatus.ADDED);
+//
+//        return wrapper;
+//	}
+//
+//	@Override
+//	public String getDisplayName() {
+//		if (assocRDef != null) {
+//			String displayName = assocRDef.getDisplayName();
+//			if (displayName != null) {
+//				return displayName;
+//			}
+//		}
+//		return super.getDisplayName();
+//	}
+//
+//	public RefinedAssociationDefinition getRefinedAssociationDefinition() {
+//		return assocRDef;
+//	}
+//
+//	@Override
+//	protected String getDebugName() {
+//		return "AssociationWrapper";
+//	}
+//
+//}

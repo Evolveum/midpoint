@@ -51,7 +51,7 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 		while (values.size() < minOccurs) {
 			values.add(createAddedValue());
 		}
-
+ 
 		if (values.isEmpty()) {
 			values.add(createAddedValue());
 		}
@@ -97,7 +97,7 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "readonly", readonly, indent+1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "itemDefinition", itemDefinition == null?null:itemDefinition.toString(), indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "itemDefinition", getItemDefinition() == null?null:getItemDefinition().toString(), indent+1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "reference", item, indent+1);
 		sb.append("\n");

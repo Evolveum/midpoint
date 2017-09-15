@@ -34,18 +34,18 @@ import java.util.List;
  *
  * @author mederly
  */
-public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismValue, ID>, ID extends ItemDefinition> implements ItemWrapper<I, ID>, Serializable {
+public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismValue, ID>, ID extends ItemDefinition<I>> implements ItemWrapper<I, ID, ValueWrapper>, Serializable {
 
 	private static final long serialVersionUID = -179218652752175177L;
 
 	protected ContainerValueWrapper container;
 	protected I item;
-	protected ID itemDefinition;
 	protected ValueStatus status;
 	protected List<ValueWrapper> values;
 	protected String displayName;
 	protected boolean readonly;
 	private boolean isStripe;
+	private boolean showEmpty;
 
 	public PropertyOrReferenceWrapper(@Nullable ContainerValueWrapper containerValue, I item, boolean readonly, ValueStatus status) {
 		Validate.notNull(item, "Item must not be null.");
@@ -53,7 +53,6 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 
 		this.container = containerValue;
 		this.item = item;
-		this.itemDefinition = getItemDefinition();
 		this.status = status;
 		this.readonly = readonly;
 	}
@@ -68,20 +67,14 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 			getItem().revive(prismContext);
 		}
 		if (getItemDefinition() != null) {
-			itemDefinition.revive(prismContext);
+			getItemDefinition().revive(prismContext);
 		}
 	}
 
 	@Override
 	public ID getItemDefinition() {
-		ID definition = null;
-		if (getParent() != null && getParent().getItemDefinition() != null) {
-			definition = (ID) getParent().getItemDefinition().findItemDefinition(item.getDefinition().getName());
-		}
-		if (definition == null) {
-			definition = item.getDefinition();
-		}
-		return definition;
+		return item.getDefinition();
+		
 	}
 	
 	@Override
@@ -89,16 +82,16 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		return container.getContainer();
 	}
 
-	public boolean isVisible(boolean showEmpty) {
+	public boolean isVisible() {
 		
         if (getItemDefinition().isOperational()) {			// TODO ...or use itemDefinition instead?
 			return false;
 		} 
         switch (status) {
         	case ADDED : 
-        		return canAddDefault() || canAddAndShowEmpty(showEmpty);
+        		return canAddDefault() || canAddAndShowEmpty();
         	case NOT_CHANGED :
-        		return canReadOrModifyAndNonEmpty() || canReadOrModifyAndShowEmpty(showEmpty);
+        		return canReadOrModifyAndNonEmpty() || canReadOrModifyAndShowEmpty();
         }
 //        if (getItem().isEmpty() && isS)
 //        else if (container != null) {
@@ -108,8 +101,8 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 //		}
 	}
 	
-	private boolean canAddAndShowEmpty(boolean showEmpty) {
-		return getItemDefinition().canAdd() && showEmpty;
+	private boolean canAddAndShowEmpty() {
+		return getItemDefinition().canAdd() && isShowEmpty();
 	}
 	
 	private boolean canAddDefault() {
@@ -120,8 +113,8 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		return (getItemDefinition().canModify() || getItemDefinition().canRead()) && !getItem().isEmpty();
 	}
 	
-	private boolean canReadOrModifyAndShowEmpty(boolean showEmpty) {
-		return (getItemDefinition().canModify() || getItemDefinition().canRead()) && getItem().isEmpty() && showEmpty;
+	private boolean canReadOrModifyAndShowEmpty() {
+		return (getItemDefinition().canModify() || getItemDefinition().canRead()) && isShowEmpty();
 	}
 
 	public boolean isStripe() {
@@ -160,8 +153,17 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	public List<ValueWrapper> getValues() {
 		return values;
 	}
+	
+	public boolean isShowEmpty() {
+		return showEmpty;
+	}
+	
+	public void setShowEmpty(boolean showEmpty) {
+		this.showEmpty = showEmpty;
+	}
 
-	public void addValue() {
+	public void addValue(boolean showEmpty) {
+		this.showEmpty = showEmpty;
 		getValues().add(createAddedValue());
 	}
 
@@ -225,7 +227,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 
 	@Override
 	public boolean checkRequired(PageBase pageBase) {
-		if (itemDefinition == null || !itemDefinition.isMandatory()) {
+		if (getItemDefinition() == null || !getItemDefinition().isMandatory()) {
 			return true;
 		}
 		for (ValueWrapper valueWrapper : CollectionUtils.emptyIfNull(getValues())) {

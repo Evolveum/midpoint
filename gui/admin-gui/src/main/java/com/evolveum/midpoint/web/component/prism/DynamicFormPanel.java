@@ -121,7 +121,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 		ObjectWrapper<O> objectWrapper = owf.createObjectWrapper("DisplayName", "description",
 				prismObject, prismObject.getOid() == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING,
 				authorizationPhase, task);
-		objectWrapper.setShowEmpty(true);
+//		objectWrapper.setShowEmpty(true);
 		objectWrapper.setEnforceRequiredFields(enforceRequiredFields);
 		return objectWrapper;
 	}

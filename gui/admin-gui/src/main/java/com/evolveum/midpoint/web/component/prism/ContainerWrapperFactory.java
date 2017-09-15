@@ -397,26 +397,10 @@ public class ContainerWrapperFactory {
         }
     }
     
-	private <T, C extends Containerable> PropertyWrapper<PrismProperty<T>, PrismPropertyDefinition<T>> createPropertyWrapper(
+	private <T, C extends Containerable> PropertyWrapper<T> createPropertyWrapper(
 			PrismPropertyDefinition<T> def, ContainerValueWrapper<C> cWrapper) {
 		PrismContainerValue<C> containerValue = cWrapper.getContainerValue();
-//		if (def.isIgnored() || skipProperty(def)) {
-//			return null;
-//		}
-//		if (!cWrapper.isShowInheritedObjectAttributes() && INHERITED_OBJECT_ATTRIBUTES.contains(def.getName())) {
-//			return null;
-//		}
-
-		// capability handling for activation properties
-		// if (isShadowActivation(cWrapper) &&
-		// !hasActivationCapability(cWrapper, def)) {
-		// continue;
-		// }
-		//
-		// if (isShadowAssociation(cWrapper)) {
-		// continue;
-		// }
-
+ 
 		PrismProperty property = containerValue.findProperty(def.getName());
 		boolean propertyIsReadOnly = isItemReadOnly(def, cWrapper);
 		// decision is based on parent object status, not this

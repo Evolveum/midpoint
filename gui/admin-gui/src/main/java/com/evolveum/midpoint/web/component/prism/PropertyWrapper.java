@@ -35,11 +35,11 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extends ItemDefinition> extends PropertyOrReferenceWrapper<I, ID> implements Serializable, DebugDumpable {
+public class PropertyWrapper<T> extends PropertyOrReferenceWrapper<PrismProperty<T>, PrismPropertyDefinition<T>> implements Serializable, DebugDumpable {
 
 	private static final long serialVersionUID = -6347026284758253783L;
 
-	public PropertyWrapper(@Nullable ContainerValueWrapper container, I property, boolean readonly, ValueStatus status) {
+	public PropertyWrapper(@Nullable ContainerValueWrapper container, PrismProperty<T> property, boolean readonly, ValueStatus status) {
 		super(container, property, readonly, status);
 
         if (container != null && SchemaConstants.PATH_PASSWORD.equivalent(container.getPath())
@@ -55,7 +55,7 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
         List<ValueWrapper> values = new ArrayList<>();
 
         for (PrismValue prismValue : item.getValues()) {
-            values.add(new ValueWrapper(this, prismValue, ValueStatus.NOT_CHANGED));
+            values.add(new ValueWrapper<T>(this, prismValue, ValueStatus.NOT_CHANGED));
         }
 
         int minOccurs = getItemDefinition().getMinOccurs();
@@ -71,7 +71,7 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
     }
 
 	@Override
-    public ValueWrapper createAddedValue() {
+    public ValueWrapper<T> createAddedValue() {
         ItemDefinition definition = item.getDefinition();
 
         ValueWrapper wrapper;
@@ -149,7 +149,7 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "readonly", readonly, indent+1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "itemDefinition", itemDefinition == null?null:itemDefinition.toString(), indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "itemDefinition", getItemDefinition() == null?null:getItemDefinition().toString(), indent+1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "property", item == null?null:item.toString(), indent+1);
 		sb.append("\n");

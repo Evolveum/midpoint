@@ -76,7 +76,7 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
     protected ObjectWrapper<UserType> loadObjectWrapper(PrismObject<UserType> user) {
         ObjectWrapper<UserType> objectWrapper = super.loadObjectWrapper(user);
         objectWrapper.setReadonly(true);
-        objectWrapper.setShowEmpty(false);
+//        objectWrapper.setShowEmpty(false);
 
         for (ContainerWrapper container : objectWrapper.getContainers()) {
         	container.setReadonly(true);

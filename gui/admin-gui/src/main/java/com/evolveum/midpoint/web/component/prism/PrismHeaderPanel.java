@@ -38,15 +38,13 @@ import org.apache.wicket.model.*;
 public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel<T> {
 	private static final long serialVersionUID = 1L;
 
-	private static final String ID_SHOW_EMPTY_FIELDS = "showEmptyFields";
-    private static final String ID_SORT_PROPERTIES = "sortProperties";
-    private static final String ID_SHOW_METADATA = "showMetadata";
+	
 	private static final String ID_LABEL = "label";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismHeaderPanel.class);
 
 
-    public PrismHeaderPanel(String id, IModel model) {
+    public PrismHeaderPanel(String id, IModel<T> model) {
         super(id, model);
 
         initLayout();
@@ -55,87 +53,8 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
 	private void initLayout() {
 
 		setOutputMarkupId(true);
-		VisibleEnableBehaviour buttonsVisibleBehaviour = new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isVisible() {
-				return PrismHeaderPanel.this.isButtonsVisible();
-			}
-		};
-
-		ToggleIconButton showMetadataButton = new ToggleIconButton(ID_SHOW_METADATA,
-				GuiStyleConstants.CLASS_ICON_SHOW_METADATA, GuiStyleConstants.CLASS_ICON_SHOW_METADATA) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-            public void onClick(AjaxRequestTarget target) {
-//				ObjectWrapper objectWrapper = getObjectWrapper(model);
-//				PrismWrapper wrapper = PrismHeaderPanel.this.getModelObject();
-//				wrapper.setShowMetadata(wrapper.isShowMetadata());
-//                objectWrapper.setShowMetadata(!objectWrapper.isShowMetadata());
-				onButtonClick(target);
-            }
-
-			@Override
-			public boolean isOn() {
-				return getObjectWrapper().isShowMetadata();
-			}
-        };
-		showMetadataButton.add(new AttributeModifier("title", new AbstractReadOnlyModel() {
-
-			@Override
-			public Object getObject() {
-				return getObjectWrapper() == null ? "" : (getObjectWrapper().isShowMetadata() ?
-						createStringResource("PrismObjectPanel.hideMetadata").getString() :
-						createStringResource("PrismObjectPanel.showMetadata").getString());
-			}
-		}));
-		showMetadataButton.add(buttonsVisibleBehaviour);
-		add(showMetadataButton);
-
-		ToggleIconButton showEmptyFieldsButton = new ToggleIconButton(ID_SHOW_EMPTY_FIELDS,
-				GuiStyleConstants.CLASS_ICON_SHOW_EMPTY_FIELDS, GuiStyleConstants.CLASS_ICON_NOT_SHOW_EMPTY_FIELDS) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-            public void onClick(AjaxRequestTarget target) {
-            	PrismWrapper objectWrapper = getObjectWrapper();
-                objectWrapper.setShowEmpty(!objectWrapper.isShowEmpty());
-
-				onButtonClick(target);
-            }
-
-			@Override
-			public boolean isOn() {
-				return getObjectWrapper().isShowEmpty();
-			}
-        };
-		showEmptyFieldsButton.setOutputMarkupId(true);
-
-		showEmptyFieldsButton.add(buttonsVisibleBehaviour);
-        add(showEmptyFieldsButton);
-
-        ToggleIconButton sortPropertiesButton = new ToggleIconButton(ID_SORT_PROPERTIES,
-        		GuiStyleConstants.CLASS_ICON_SORT_ALPHA_ASC, GuiStyleConstants.CLASS_ICON_SORT_AMOUNT_ASC) {
-        	private static final long serialVersionUID = 1L;
-
-        	@Override
-            public void onClick(AjaxRequestTarget target) {
-        		PrismWrapper objectWrapper = getObjectWrapper();
-                objectWrapper.setSorted(!objectWrapper.isSorted());
-//                objectWrapper.sort((PageBase)getPage());
-
-                onButtonClick(target);
-            }
-
-        	@Override
-			public boolean isOn() {
-				return getObjectWrapper().isSorted();
-			}
-        };
-        sortPropertiesButton.add(buttonsVisibleBehaviour);
-        add(sortPropertiesButton);
+		
+		initButtons();
 
         IModel<String> headerLabelModel = new AbstractReadOnlyModel<String>() {
         	private static final long serialVersionUID = 1L;
@@ -143,7 +62,7 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
 			@Override
 			public String getObject() {
 
-				PrismWrapper wrapper = getObjectWrapper();
+				PrismWrapper wrapper = getModelObject();
 				String displayName = "displayName.not.set";
 				if (wrapper instanceof ContainerValueWrapper) {
 					displayName = ((ContainerValueWrapper) wrapper).getDisplayName();
@@ -167,20 +86,9 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
         add(new Label(ID_LABEL, headerLabelModel));
     }
 
-    private PrismWrapper getObjectWrapper() {
-    	return getModelObject();
-//    	Object wrapper = model.getObject();
-//    	ObjectWrapper objectWrapper = null;
-//    	if (wrapper instanceof ContainerWrapper) {
-//    		return ((ContainerWrapper)wrapper).getObject();
-//    	} else if (wrapper instanceof ObjectWrapper) {
-//    		return (ObjectWrapper)wrapper;
-//    	} else if (wrapper instanceof ContainerValueWrapper) {
-//    		return ((ContainerValueWrapper) wrapper).getContainer().getObject();
-//    	}
-//    	return null;
-    }
 
+    protected abstract void initButtons();
+    
     protected void onButtonClick(AjaxRequestTarget target) {
 
     }

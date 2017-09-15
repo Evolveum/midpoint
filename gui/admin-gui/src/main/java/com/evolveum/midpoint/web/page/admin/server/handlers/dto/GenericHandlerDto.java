@@ -62,7 +62,7 @@ public class GenericHandlerDto extends HandlerDto {
 		for (Item item : items) {
 			PrismProperty<?> property = taskDto.getExtensionProperty(item.name);
 			if (property != null) {
-				PropertyWrapper<?, ?> propertyWrapper = new PropertyWrapper<>(null, property, true, ValueStatus.NOT_CHANGED);
+				PropertyWrapper propertyWrapper = new PropertyWrapper<>(null, property, true, ValueStatus.NOT_CHANGED);
 				propertyWrappers.add(propertyWrapper);
 			} else {
 				// TODO create empty property?

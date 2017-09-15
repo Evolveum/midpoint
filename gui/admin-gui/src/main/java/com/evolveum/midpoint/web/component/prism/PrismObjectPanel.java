@@ -69,7 +69,7 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
     }
 
     private void initLayout(final IModel<ObjectWrapper<O>> model, ResourceReference image, final Form<ObjectWrapper<O>> form) {
-        Component headerComponent = createHeader(ID_HEADER, model, form);
+//        Component headerComponent = createHeader(ID_HEADER, model, form);
 //        add(headerComponent);
 
         addOrReplaceContainers(model, form, false);
@@ -80,23 +80,23 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
 		((ListView<ContainerWrapper>) get(ID_CONTAINERS)).removeAll();
 	}
 
-    protected Component createHeader(String id, final IModel<ObjectWrapper<O>> model, final Form<ObjectWrapper<O>> form) {
-    	PrismHeaderPanel header = new PrismHeaderPanel(ID_HEADER, model) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onButtonClick(AjaxRequestTarget target) {
-                addOrReplaceContainers(model, form, true);
-				target.add(PrismObjectPanel.this);
-			}
-
-			@Override
-			public boolean isButtonsVisible() {
-				return true;
-			}
-    	};
-        return header;
-    }
+//    protected Component createHeader(String id, final IModel<ObjectWrapper<O>> model, final Form<ObjectWrapper<O>> form) {
+//    	PrismHeaderPanel header = new PrismHeaderPanel(ID_HEADER, model) {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			protected void onButtonClick(AjaxRequestTarget target) {
+//                addOrReplaceContainers(model, form, true);
+//				target.add(PrismObjectPanel.this);
+//			}
+//
+//			@Override
+//			public boolean isButtonsVisible() {
+//				return true;
+//			}
+//    	};
+//        return header;
+//    }
 
 
     protected IModel<List<ContainerWrapper>> createContainerModel(IModel<ObjectWrapper<O>> model){

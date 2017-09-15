@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.web.component.prism;
 
-public class PrismWrapper {
+public abstract class PrismWrapper {
 
 	
 	 	private boolean showEmpty;
@@ -38,6 +38,8 @@ public class PrismWrapper {
 
 	    public void setShowEmpty(boolean showEmpty) {
 	        this.showEmpty = showEmpty;
-//	        computeStripes();
+	        computeStripes();
 	    }
+	    
+	    public abstract void computeStripes();
 }

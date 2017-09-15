@@ -116,7 +116,7 @@ public class PageAccount extends PageAdminResources {
 		} catch (SchemaException e) {
 			throw new SystemException(e.getMessage(), e);
 		}
-        wrapper.setShowEmpty(false);
+//        wrapper.setShowEmpty(false);
         return wrapper;
     }
 

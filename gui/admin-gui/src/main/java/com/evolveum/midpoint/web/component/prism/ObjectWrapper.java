@@ -271,19 +271,22 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
     }
 
     public <C extends Containerable> ContainerWrapper<C> findContainerWrapper(ItemPath path) {
-        for (ContainerWrapper wrapper : getContainers()) {
-            if (path != null) {
-                if (path.equivalent(wrapper.getPath())) {
-                    return wrapper;
-                }
-            } else {
-                if (wrapper.getPath() == null) {
-                    return wrapper;
-                }
-            }
-        }
+    	if (path == null || path.isEmpty()) {
+    		return (ContainerWrapper<C>) findMainContainerWrapper();
+    	}
+    	
+    	if (path.size() == 1) {
+    		return (ContainerWrapper<C>) getContainers().stream().filter(wrapper -> path.equivalent(wrapper.getPath())).findFirst().orElse(null);    		
+    	} 
 
-        return null;
+    	
+    		ContainerWrapper<C> containerWrapper = findContainerWrapper(path.head());
+    	if (containerWrapper == null) {
+    		return null;
+    	}
+    	
+        return containerWrapper.findContainerWrapper(path);
+
     }
 
     public ContainerWrapper<O> findMainContainerWrapper() {
@@ -308,7 +311,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
     	if (containerWrapper == null) {
     		return null;
     	}
-    	return (IW) containerWrapper.findPropertyWrapper(propertyPath);
+    	return (IW) containerWrapper.findPropertyWrapper(ItemPath.getFirstName(propertyPath));
     }
 
     public void normalize() throws SchemaException {
@@ -328,10 +331,15 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
     	computeStripes();
     }
 
-    private void computeStripes() {
-		for (ContainerWrapper<? extends Containerable> container: containers) {
-			container.computeStripes();
-		}
+//    @Override
+//    public void setShowEmpty(boolean showEmpty) {
+//    	super.setShowEmpty(showEmpty);
+//    	getContainers().forEach(c -> c.setShowEmpty(showEmpty));
+//    }
+    
+    @Override
+    public void computeStripes() {
+		getContainers().forEach(c -> c.computeStripes());
 	}
 
 	public ObjectDelta<O> getObjectDelta() throws SchemaException {
@@ -564,6 +572,12 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
         this.showAssignments = showAssignments;
     }
 
+    @Override
+    public void setShowEmpty(boolean showEmpty) {
+    	super.setShowEmpty(showEmpty);
+    	getContainers().forEach(container -> container.setShowEmpty(true));
+    }
+    
     public boolean isReadonly() {
         if (isProtectedAccount()) {
             return true;
@@ -607,7 +621,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 
 	public void copyRuntimeStateTo(ObjectWrapper<O> newWrapper) {
 		newWrapper.setMinimalized(this.isMinimalized());
-		newWrapper.setShowEmpty(this.isShowEmpty());
+//		newWrapper.setShowEmpty(this.isShowEmpty());
 		newWrapper.setSorted(this.isSorted());
 		newWrapper.setSelectable(this.isSelectable());
 		newWrapper.setSelected(this.isSelected());

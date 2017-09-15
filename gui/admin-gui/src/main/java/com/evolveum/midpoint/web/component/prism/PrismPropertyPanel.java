@@ -74,13 +74,13 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 
-//            @Override
-//            public boolean isVisible() {
-//            	IW propertyWrapper = model.getObject();
-//                boolean visible = propertyWrapper.isVisible(propertyWrapper.getParent().isShowEmpty());
-//                LOGGER.trace("isVisible: {}: {}", propertyWrapper, visible);
-//                return visible;
-//            }
+            @Override
+            public boolean isVisible() {
+            	IW propertyWrapper = model.getObject();
+                boolean visible = propertyWrapper.isVisible();
+                LOGGER.trace("isVisible: {}: {}", propertyWrapper, visible);
+                return visible;
+            }
 
             @Override
             public boolean isEnabled() {
