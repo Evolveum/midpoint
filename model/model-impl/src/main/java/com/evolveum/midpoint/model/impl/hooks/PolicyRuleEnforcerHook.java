@@ -15,40 +15,30 @@
  */
 package com.evolveum.midpoint.model.impl.hooks;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
-
+import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.api.hooks.ChangeHook;
+import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
+import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.model.api.context.ModelState;
-import com.evolveum.midpoint.model.api.hooks.ChangeHook;
-import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
-import com.evolveum.midpoint.model.api.hooks.HookRegistry;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import static com.evolveum.midpoint.schema.util.LocalizationUtil.createLocalizableMessageType;
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Hook used to enforce the policy rules that have the enforce action.
@@ -72,8 +62,10 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		LOGGER.trace("PolicyRuleEnforcerHook registered.");
     }
 
+    // TODO clean this up
     private class EvaluationContext {
 		private final List<LocalizableMessage> messages = new ArrayList<>();
+		private final List<EvaluatedPolicyRuleType> rules = new ArrayList<>();
     }
 
 	/* (non-Javadoc)
@@ -98,7 +90,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		// TODO check partial processing option (after it will be implemented)
 		PolicyRuleEnforcerHookPreviewOutputType output = new PolicyRuleEnforcerHookPreviewOutputType(prismContext);
 		EvaluationContext evalCtx = invokeInternal(context, task, result);
-		evalCtx.messages.forEach(m -> output.getExceptionMessage().add(createLocalizableMessageType(m)));
+		output.getRule().addAll(evalCtx.rules);
 		((LensContext) context).addHookPreviewResults(HOOK_URI, Collections.singletonList(output));
 	}
 
@@ -142,6 +134,8 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 			if (!isEnforce(policyRule)) {
 				continue;
 			}
+
+			evalCtx.rules.add(policyRule.toEvaluatedPolicyRuleType(true));
 
 			for (EvaluatedPolicyRuleTrigger trigger: triggers) {
 				if (trigger.getMessage() != null) {

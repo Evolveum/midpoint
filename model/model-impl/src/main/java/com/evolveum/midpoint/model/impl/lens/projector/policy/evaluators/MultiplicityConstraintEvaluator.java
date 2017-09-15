@@ -217,6 +217,9 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 	 */
 	private int getNumberOfAssigneesExceptMyself(AbstractRoleType target, String selfOid, QName relation, OperationResult result)
 			throws SchemaException {
+		if (target.getOid() == null) {
+			return 0;
+		}
 		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, prismContext)
 				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(
 						new PrismReferenceValue(target.getOid()).relation(relation));

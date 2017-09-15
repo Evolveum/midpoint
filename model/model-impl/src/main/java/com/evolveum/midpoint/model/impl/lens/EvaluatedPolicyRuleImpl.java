@@ -230,14 +230,6 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	}
 
 	@Override
-	public EvaluatedPolicyRuleType toEvaluatedPolicyRuleType() {
-		EvaluatedPolicyRuleType rv = new EvaluatedPolicyRuleType();
-		//rv.setPolicyRule(policyRuleType);			// DO NOT use this, in order to avoid large data in assignments
-		triggers.forEach(t -> rv.getTrigger().add(t.toEvaluatedPolicyRuleTriggerType(this)));
-		return rv;
-	}
-
-	@Override
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;
@@ -304,14 +296,27 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		boolean isFinal = presentation != null && Boolean.TRUE.equals(presentation.isFinal());
 		if (!hidden) {
 			TreeNode<LocalizableMessage> newNode = new TreeNode<>();
+			newNode.setUserObject(trigger.getMessage());
 			root.add(newNode);
 			root = newNode;
 		}
-		root.setUserObject(trigger.getMessage());
 		if (!isFinal) {
 			for (EvaluatedPolicyRuleTrigger<?> innerTrigger : trigger.getInnerTriggers()) {
 				createMessageTreeNode(root, innerTrigger);
 			}
 		}
 	}
+
+	/**
+	 * Honors "final" but not "hidden" flag.
+	 */
+
+	@Override
+	public EvaluatedPolicyRuleType toEvaluatedPolicyRuleType(boolean respectFinalFlag) {
+		EvaluatedPolicyRuleType rv = new EvaluatedPolicyRuleType();
+		//rv.setPolicyRule(policyRuleType);			// DO NOT use this, in order to avoid large data in assignments
+		triggers.forEach(t -> rv.getTrigger().add(t.toEvaluatedPolicyRuleTriggerType(this, respectFinalFlag)));
+		return rv;
+	}
+
 }

@@ -31,7 +31,8 @@ public class EvaluatedHasAssignmentTrigger extends EvaluatedPolicyRuleTrigger<Ha
 	}
 
 	@Override
-	public EvaluatedHasAssignmentTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule) {
+	public EvaluatedHasAssignmentTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule,
+			boolean respectFinalFlag) {
 		EvaluatedHasAssignmentTriggerType rv = new EvaluatedHasAssignmentTriggerType();
 		fillCommonContent(rv, owningRule);
 		return rv;

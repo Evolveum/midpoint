@@ -1421,7 +1421,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="exceptionMessage" type="tns:LocalizableMessageType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="rule" type="tns:EvaluatedPolicyRuleType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>

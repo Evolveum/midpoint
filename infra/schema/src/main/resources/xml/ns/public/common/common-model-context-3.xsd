@@ -563,15 +563,35 @@
 	</xsd:complexType>
 	<xsd:element name="evaluatedModificationTrigger" type="tns:EvaluatedModificationTriggerType" />
 
-	<xsd:complexType name="EvaluatedTransitionTriggerType">
+	<xsd:complexType name="EvaluatedEmbeddingTriggerType">  <!-- TODO name -->
 		<xsd:complexContent>
 			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+				<xsd:sequence>
+                    <xsd:element name="embedded" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="EvaluatedTransitionTriggerType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:EvaluatedEmbeddingTriggerType">
 				<xsd:sequence>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
 	<xsd:element name="evaluatedTransitionTrigger" type="tns:EvaluatedTransitionTriggerType" />
+
+	<xsd:complexType name="EvaluatedLogicalTriggerType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:EvaluatedEmbeddingTriggerType">
+				<xsd:sequence>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="evaluatedLogicalTrigger" type="tns:EvaluatedLogicalTriggerType" />
 
 	<xsd:complexType name="EvaluatedExclusionTriggerType">
 		<xsd:complexContent>

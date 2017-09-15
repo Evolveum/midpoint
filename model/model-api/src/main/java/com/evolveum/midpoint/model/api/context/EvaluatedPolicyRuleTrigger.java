@@ -106,14 +106,22 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraintKind", constraintKind, indent);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraint", constraint, indent);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "message", message, indent);
-		if (constraint.getPresentation() != null) { // TODO implement better
-			if (Boolean.TRUE.equals(constraint.getPresentation().isFinal())) {
-				DebugUtil.debugDumpWithLabelToStringLn(sb, "final", true, indent);
-			}
-			if (Boolean.TRUE.equals(constraint.getPresentation().isHidden())) {
-				DebugUtil.debugDumpWithLabelToStringLn(sb, "hidden", true, indent);
-			}
+		if (isFinal()) {
+			DebugUtil.debugDumpWithLabelToStringLn(sb, "final", true, indent);
 		}
+		if (isHidden()) {
+			DebugUtil.debugDumpWithLabelToStringLn(sb, "hidden", true, indent);
+		}
+	}
+
+	public boolean isHidden() {
+		PolicyConstraintPresentationType presentation = constraint.getPresentation();
+		return presentation != null && Boolean.TRUE.equals(presentation.isHidden());
+	}
+
+	public boolean isFinal() {
+		PolicyConstraintPresentationType presentation = constraint.getPresentation();
+		return presentation != null && Boolean.TRUE.equals(presentation.isFinal());
 	}
 
 	protected void debugDumpSpecific(StringBuilder sb, int indent) {
@@ -123,7 +131,8 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 		return PolicyRuleTypeUtil.toDiagShortcut(constraintKind);
 	}
 
-	public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule) {
+	public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule,
+			boolean respectFinalFlag) {
 		EvaluatedPolicyRuleTriggerType rv = new EvaluatedPolicyRuleTriggerType();
 		fillCommonContent(rv, owningRule);
 		return rv;
@@ -152,4 +161,5 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 	public Collection<EvaluatedPolicyRuleTrigger<?>> getInnerTriggers() {
 		return Collections.emptySet();
 	}
+
 }

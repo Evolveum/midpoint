@@ -208,7 +208,7 @@ class ApprovalSchemaBuilder {
 			SchemaAttachedPolicyRuleType attachedRule = new SchemaAttachedPolicyRuleType();
 			attachedRule.setStageMin(from);
 			attachedRule.setStageMax(i - 1);
-			attachedRule.setRule(firstFragment.policyRule.toEvaluatedPolicyRuleType());
+			attachedRule.setRule(firstFragment.policyRule.toEvaluatedPolicyRuleType(false));
 			attachedRules.getEntry().add(attachedRule);
 		}
 	}

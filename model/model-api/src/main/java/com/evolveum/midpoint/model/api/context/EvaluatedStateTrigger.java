@@ -33,7 +33,7 @@ public class EvaluatedStateTrigger extends EvaluatedPolicyRuleTrigger<StatePolic
 	}
 
 	@Override
-	public EvaluatedStateTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule) {
+	public EvaluatedStateTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule, boolean respectFinalFlag) {
 		EvaluatedStateTriggerType rv = new EvaluatedStateTriggerType();
 		fillCommonContent(rv, owningRule);
 		return rv;

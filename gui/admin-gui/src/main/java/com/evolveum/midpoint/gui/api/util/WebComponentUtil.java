@@ -292,7 +292,7 @@ public final class WebComponentUtil {
 		while (localizableMessage.getFallbackLocalizableMessage() != null) {
 			if (localizableMessage.getKey() != null) {
 				Localizer localizer = Application.get().getResourceSettings().getLocalizer();
-				if (localizer.getString(localizableMessage.getKey(), component) != null) {
+				if (localizer.getStringIgnoreSettings(localizableMessage.getKey(), component, null, null) != null) {
 					break; // the key exists => we can use the current localizableMessage
 				}
 			}
@@ -302,8 +302,20 @@ public final class WebComponentUtil {
 		StringResourceModel stringResourceModel = new StringResourceModel(key, component)
 				.setModel(new Model<String>())
 				.setDefaultValue(localizableMessage.getFallbackMessage())
-				.setParameters(localizableMessage.getArgs());
+				.setParameters(resolveArguments(localizableMessage.getArgs(), component));
 		return stringResourceModel.getString();
+	}
+
+	private static Object[] resolveArguments(Object[] args, Component component) {
+		Object[] rv = new Object[args.length];
+		for (int i = 0; i < args.length; i++) {
+			if (args[i] instanceof LocalizableMessage) {
+				rv[i] = resolveLocalizableMessage(((LocalizableMessage) args[i]), component);
+			} else {
+				rv[i] = args[i];
+			}
+		}
+		return rv;
 	}
 
 	public enum Channel {

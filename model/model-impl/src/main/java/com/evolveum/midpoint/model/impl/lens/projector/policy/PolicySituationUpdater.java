@@ -168,7 +168,7 @@ public class PolicySituationUpdater {
 		List<EvaluatedPolicyRuleTriggerType> rv = new ArrayList<>();
 		for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
 			for (EvaluatedPolicyRuleTrigger<?> trigger : policyRule.getTriggers()) {
-				EvaluatedPolicyRuleTriggerType triggerType = trigger.toEvaluatedPolicyRuleTriggerType(policyRule).clone();
+				EvaluatedPolicyRuleTriggerType triggerType = trigger.toEvaluatedPolicyRuleTriggerType(policyRule, false).clone();
 				simplifyTrigger(triggerType);
 				rv.add(triggerType);
 			}

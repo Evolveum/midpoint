@@ -75,11 +75,13 @@ public class EvaluatedTransitionTrigger extends EvaluatedPolicyRuleTrigger<Trans
 	}
 
 	@Override
-	public EvaluatedTransitionTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule) {
+	public EvaluatedTransitionTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule,
+			boolean respectFinalFlag) {
 		EvaluatedTransitionTriggerType rv = new EvaluatedTransitionTriggerType();
 		fillCommonContent(rv, owningRule);
-		//innerTriggers.forEach(r -> rv.getSourceRule().add(r.toEvaluatedPolicyRuleType()));
-		//TODO
+		if (!respectFinalFlag || !isFinal()) {
+			innerTriggers.forEach(t -> rv.getEmbedded().add(t.toEvaluatedPolicyRuleTriggerType(owningRule, respectFinalFlag)));
+		}
 		return rv;
 	}
 }

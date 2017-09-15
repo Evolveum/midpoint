@@ -31,7 +31,8 @@ public class EvaluatedMultiplicityTrigger extends EvaluatedPolicyRuleTrigger<Mul
 	}
 
 	@Override
-	public EvaluatedMultiplicityTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule) {
+	public EvaluatedMultiplicityTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule,
+			boolean respectFinalFlag) {
 		EvaluatedMultiplicityTriggerType rv = new EvaluatedMultiplicityTriggerType();
 		fillCommonContent(rv, owningRule);
 		return rv;

@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedSituationTriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedLogicalTriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import org.jetbrains.annotations.NotNull;
@@ -77,11 +77,12 @@ public class EvaluatedCompositeTrigger extends EvaluatedPolicyRuleTrigger<Policy
 	}
 
 	@Override
-	public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule) {
-		EvaluatedSituationTriggerType rv = new EvaluatedSituationTriggerType();
+	public EvaluatedLogicalTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule, boolean respectFinalFlag) {
+		EvaluatedLogicalTriggerType rv = new EvaluatedLogicalTriggerType();
 		fillCommonContent(rv, owningRule);
-		//innerTriggers.forEach(r -> rv.getSourceRule().add(r.toEvaluatedPolicyRuleType()));
-		//TODO
+		if (!respectFinalFlag || !isFinal()) {
+			innerTriggers.forEach(t -> rv.getEmbedded().add(t.toEvaluatedPolicyRuleTriggerType(owningRule, respectFinalFlag)));
+		}
 		return rv;
 	}
 }

@@ -81,9 +81,9 @@
 			</and>
 			<and>
 				<name>c3-less-than-2-approvers-for-high-risk-role</name>
-				<!-- presentation is not needed, as default key of PolicyConstraint.c3-less-than-2-approvers-for-high-risk-role is used -->
+				<!-- message definition is not needed, as default key of PolicyConstraint.c3-less-than-2-approvers-for-high-risk-role is used -->
 				<presentation>
-					<final>true</final>
+					<final>true</final>		<!-- we don't need to show further details -->
 				</presentation>
 				<objectState>
 					<name>high-risk-role</name>
@@ -101,7 +101,7 @@
 			</and>
 			<and>
 				<name>c3-less-than-1-approver-for-non-high-risk-role</name>
-				<!-- presentation is not needed, as default key of PolicyConstraint.c3-less-than-1-approver-for-non-high-risk-role is used -->
+				<!-- message definition is not needed, as default key of PolicyConstraint.c3-less-than-1-approver-for-non-high-risk-role is used -->
 				<presentation>
 					<final>true</final>
 				</presentation>
@@ -124,7 +124,7 @@
 			<and>
 				<objectMinAssigneesViolation>
 					<name>c4-no-role-owner</name>
-					<!-- in this case we use the default presentation for objectMinAssigneesViolation, just to illustrate the concept -->
+					<!-- PolicyConstraint.c4-no-role-owner is intentionally not defined, to demonstrate the use of the built-in message -->
 					<multiplicity>1</multiplicity>
 					<relation>owner</relation>
 				</objectMinAssigneesViolation>
@@ -132,7 +132,7 @@
 			<and>
 				<objectState>
 					<name>c5-no-identifier</name>
-					<!-- no presentation is needed: a key of PolicyConstraint.c5-no-identifier is used -->
+					<!-- no message definition is needed: a key of PolicyConstraint.c5-no-identifier is used -->
 					<!-- situation and expectedUse are set for "active role with no identifier" because that's what we want to certify and report -->
 					<presentation>
 						<hidden>true</hidden>
@@ -232,7 +232,10 @@
 			<and>
 				<or>
 					<name>incomplete-role-c1-to-c4</name>
-					<!-- presentation is not needed, as the default key of PolicyConstraint.incomplete-role-c1-to-c4 is used -->
+					<!-- message definition is not needed, as the default key of PolicyConstraint.incomplete-role-c1-to-c4 is used -->
+					<presentation>
+						<hidden>true</hidden>
+					</presentation>
 					<policySituation>http://sample.org/situations#incomplete-role-c1-to-c4</policySituation>
 					<expectedUse>fullReport</expectedUse>	<!-- RE1 -->
 					<ref>c1-no-risk-level</ref>
@@ -247,6 +250,7 @@
 					<name>role-activation</name>
 					<presentation>
 						<final>true</final>
+						<hidden>true</hidden>
 					</presentation>
 					<stateBefore>false</stateBefore>
 					<stateAfter>true</stateAfter>
@@ -325,7 +329,7 @@
 				</compositionStrategy>
 				<approvalSchema>
 					<stage>
-						<approverRef oid="TODO" type="OrgType"/>		<!-- Security Administrators -->
+						<approverRef oid="a14afc10-e4a2-48a4-abfd-e8a2399f98d3" type="c:OrgType"/> <!-- Security Administrators -->
 					</stage>
 				</approvalSchema>
 			</approval>

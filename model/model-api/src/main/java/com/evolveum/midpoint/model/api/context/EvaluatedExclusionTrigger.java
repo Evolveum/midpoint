@@ -77,7 +77,8 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 	}
 
 	@Override
-	public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule) {
+	public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule,
+			boolean respectFinalFlag) {
 		EvaluatedExclusionTriggerType rv = new EvaluatedExclusionTriggerType();
 		fillCommonContent(rv, owningRule);
 		rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget));

@@ -67,6 +67,9 @@ public class LocalizationUtil {
 				rv.getArgument().add(messageArgument);
 			}
 		}
+		if (message.getFallbackLocalizableMessage() != null) {
+			rv.setFallbackLocalizableMessage(createLocalizableMessageType(message.getFallbackLocalizableMessage()));
+		}
 		rv.setFallbackMessage(message.getFallbackMessage());
 		return rv;
 	}
