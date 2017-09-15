@@ -41,14 +41,15 @@
             </div>
 
             <div wicket:id="contentPanel" class="row">
-                <div wicket:id="treePanelContainer" style="margin-top: 10px;">
+                <div wicket:id="treePanelContainer" class="col-md-3" style="margin-top: 10px;">
                     <div wicket:id="treePanel"/>
                 </div>
                 <div wicket:id="noCatalogRefDefinedLabel" class="col-md-12"/>
 
                 <div wicket:id="catalogItemsPanelContainer">
-                    <h3 wicket:id="assignmentsOwnerName"/>
-                    <div wicket:id="catalogItemsPanel"/>
+                    <div class="h3 col-md-12" wicket:id="assignmentsOwnerName"/>
+                    <div wicket:id="catalogItemsGridPanel"/>
+
                 </div>
             </div>
         </div>
