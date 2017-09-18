@@ -100,6 +100,7 @@ public class PageAssignmentShoppingKart extends PageSelf {
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_SEARCH = "search";
     private static final String ID_TARGET_USER_PANEL = "targetUserPanel";
+    private static final String ID_SOURCE_USER_PANEL = "sourceUserPanel";
     private static final String DOT_CLASS = PageAssignmentShoppingKart.class.getName() + ".";
 
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
@@ -198,8 +199,8 @@ public class PageAssignmentShoppingKart extends PageSelf {
             if (assignmentsOwner != null) {
                 List<AssignmentType> assignments = assignmentsOwner.asObjectable().getAssignment();
                 for (AssignmentType assignment : assignments) {
-                    if (assignment.getTargetRef() == null ||
-                            !UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
+                    if (!AssignmentsUtil.isPolicyRuleAssignment(assignment) && !AssignmentsUtil.isConsentAssignment(assignment)
+                            && AssignmentsUtil.isAssignmentRelevant(assignment)) {
                         assignment.setId(null);
                         listProviderData.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, PageAssignmentShoppingKart.this));
                     }
@@ -239,6 +240,7 @@ public class PageAssignmentShoppingKart extends PageSelf {
 
         initViewSelector(headerPanel);
         initTargetUserSelectionPanel(headerPanel);
+        initSourceUserSelectionPanel(headerPanel);
         initCartButton(headerPanel);
         initSearchPanel(headerPanel);
         mainForm.add(headerPanel);
@@ -360,6 +362,14 @@ public class PageAssignmentShoppingKart extends PageSelf {
         WebMarkupContainer targetUserPanel = new TargetUserSelectorComponent(ID_TARGET_USER_PANEL, "btn-sm", PageAssignmentShoppingKart.this);
         targetUserPanel.setOutputMarkupId(true);
         headerPanel.add(targetUserPanel);
+    }
+
+    private void initSourceUserSelectionPanel(WebMarkupContainer headerPanel){
+        WebMarkupContainer sourceUserPanel = new TargetUserSelectorComponent(ID_SOURCE_USER_PANEL, "btn-sm", PageAssignmentShoppingKart.this);
+        sourceUserPanel.setOutputMarkupId(true);
+        //TODO temporary
+        sourceUserPanel.setVisible(false);
+        headerPanel.add(sourceUserPanel);
     }
 
     private void initViewSelector(WebMarkupContainer headerPanel){
