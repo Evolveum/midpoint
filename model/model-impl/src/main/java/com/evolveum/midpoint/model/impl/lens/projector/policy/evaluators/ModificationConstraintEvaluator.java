@@ -92,11 +92,11 @@ public class ModificationConstraintEvaluator implements PolicyConstraintEvaluato
 		} else{
 			stateKey += "Modified";
 		}
-		LocalizableMessage defaultMessage = new LocalizableMessageBuilder()
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + stateKey)
 				.args(evaluatorHelper.createObjectSpecification(rctx.focusContext.getObjectAny()))
 				.build();
-		return evaluatorHelper.createLocalizableMessage(constraint.getValue(), rctx, defaultMessage, result);
+		return evaluatorHelper.createLocalizableMessage(constraint.getValue(), rctx, builtInMessage, result);
 	}
 
 	private <F extends FocusType> boolean modificationConstraintMatches(ModificationPolicyConstraintType constraint,

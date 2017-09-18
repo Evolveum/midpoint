@@ -81,9 +81,9 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
 	private LocalizableMessage createMessage(PolicyConstraintKindType kind,
 			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		LocalizableMessage defaultMessage = new LocalizableMessageBuilder()
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + kind.value())
 				.build();
-		return evaluatorHelper.createLocalizableMessage(constraint, ctx, defaultMessage, result);
+		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
 	}
 }

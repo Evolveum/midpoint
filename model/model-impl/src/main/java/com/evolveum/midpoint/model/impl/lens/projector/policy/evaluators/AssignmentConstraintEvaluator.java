@@ -93,12 +93,12 @@ public class AssignmentConstraintEvaluator implements PolicyConstraintEvaluator<
 		} else{
 			stateKey += "Modified";
 		}
-		LocalizableMessage defaultMessage = new LocalizableMessageBuilder()
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + stateKey)
 				.args(evaluatorHelper.createObjectSpecification(ctx.evaluatedAssignment.getTarget()),
 						ctx.evaluatedAssignment.getRelation() != null ? ctx.evaluatedAssignment.getRelation().getLocalPart() : null)
 				.build();
-		return evaluatorHelper.createLocalizableMessage(constraint.getValue(), ctx, defaultMessage, result);
+		return evaluatorHelper.createLocalizableMessage(constraint.getValue(), ctx, builtInMessage, result);
 	}
 
 	private boolean matchesOperation(AssignmentModificationPolicyConstraintType constraint, boolean inPlus, boolean inMinus) {
