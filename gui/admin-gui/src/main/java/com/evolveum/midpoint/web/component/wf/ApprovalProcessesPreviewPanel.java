@@ -18,11 +18,13 @@ package com.evolveum.midpoint.web.component.wf;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.web.page.admin.workflow.EvaluatedTriggerGroupPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutionInformationDto;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
 import java.util.List;
 
@@ -34,6 +36,7 @@ public class ApprovalProcessesPreviewPanel extends BasePanel<List<ApprovalProces
 	private static final String ID_PROCESSES = "processes";
 	private static final String ID_NAME = "name";
 	private static final String ID_PREVIEW = "preview";
+	private static final String ID_TRIGGERS = "triggers";
 
 	public ApprovalProcessesPreviewPanel(String id, IModel<List<ApprovalProcessExecutionInformationDto>> model) {
 		super(id, model);
@@ -53,6 +56,7 @@ public class ApprovalProcessesPreviewPanel extends BasePanel<List<ApprovalProces
 					}
 				}, false)));
 				item.add(new ApprovalProcessExecutionInformationPanel(ID_PREVIEW, item.getModel()));
+				item.add(new EvaluatedTriggerGroupPanel(ID_TRIGGERS, new PropertyModel<>(item.getModel(), ApprovalProcessExecutionInformationDto.F_TRIGGERS)));
 			}
 		};
 		add(list);

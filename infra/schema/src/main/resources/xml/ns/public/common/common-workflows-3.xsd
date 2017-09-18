@@ -278,6 +278,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="policyRules" type="tns:SchemaAttachedPolicyRulesType"/>
 		</xsd:sequence>
 	</xsd:complexType>
 

@@ -747,4 +747,14 @@ public class WfContextUtil {
 		WfContextType wfc = getWorkflowContext(info);
 		return wfc != null ? wfc.getOutcome() : null;
 	}
+
+	public static List<EvaluatedPolicyRuleType> getAllRules(SchemaAttachedPolicyRulesType policyRules) {
+		List<EvaluatedPolicyRuleType> rv = new ArrayList<>();
+		for (SchemaAttachedPolicyRuleType entry : policyRules.getEntry()) {
+			if (!rv.contains(entry.getRule())) {
+				rv.add(entry.getRule());
+			}
+		}
+		return rv;
+	}
 }
