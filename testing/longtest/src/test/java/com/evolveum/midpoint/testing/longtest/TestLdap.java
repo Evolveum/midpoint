@@ -139,8 +139,8 @@ public class TestLdap extends AbstractModelIntegrationTest {
 	
     private static final int NUM_INITIAL_USERS = 3;
 	// Make it at least 1501 so it will go over the 3000 entries size limit
-	private static final int NUM_LDAP_ENTRIES = 1600;
-//	private static final int NUM_LDAP_ENTRIES = 100;
+//	private static final int NUM_LDAP_ENTRIES = 1600;
+	private static final int NUM_LDAP_ENTRIES = 100;
 
 	private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
 	

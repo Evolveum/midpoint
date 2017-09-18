@@ -2087,10 +2087,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		ParallelTestThread[] threads = new ParallelTestThread[numberOfThreads];
 		for (int i = 0; i < numberOfThreads; i++) {
 			threads[i] = new ParallelTestThread(i,
-					(ii) -> {				
-						if (randomStartDelayRange != null) {
-							Thread.sleep(RND.nextInt(randomStartDelayRange)); // Random start delay
-						}
+					(ii) -> {
+						randomDelay(randomStartDelayRange);
 						LOGGER.info("{} starting", Thread.currentThread().getName());
 						lambda.run(ii);
 					});
@@ -2100,6 +2098,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return threads;
 	}
 	
+	protected void randomDelay(Integer range) {
+		if (range == null) {
+			return;
+		}
+		try {
+			Thread.sleep(RND.nextInt(range));
+		} catch (InterruptedException e) {
+			// Nothing to do, really
+		}
+	}
+
 	protected void waitForThreads(ParallelTestThread[] threads, long timeout) throws InterruptedException {
 		for (int i = 0; i < threads.length; i++) {
 			if (threads[i].isAlive()) {
