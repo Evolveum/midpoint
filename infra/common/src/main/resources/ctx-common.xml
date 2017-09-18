@@ -38,5 +38,7 @@
             <ref bean="clock"/>
         </property>
     </bean>
-    
+
+    <bean class="com.evolveum.midpoint.common.LocalizationServiceImpl" init-method="init"/>
+
 </beans>
