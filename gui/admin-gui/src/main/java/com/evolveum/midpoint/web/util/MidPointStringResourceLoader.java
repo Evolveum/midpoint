@@ -45,6 +45,6 @@ public class MidPointStringResourceLoader implements IStringResourceLoader {
             locale = Session.exists() ? Session.get().getLocale() : Locale.getDefault();
         }
 
-        return resourceLoader.translate(key, null, locale, key);
+        return resourceLoader.translate(key, null, locale);
     }
 }
