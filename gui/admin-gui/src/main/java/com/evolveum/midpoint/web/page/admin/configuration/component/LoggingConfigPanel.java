@@ -361,7 +361,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                 options.setObject(optionsMap);
                 ListMultipleChoicePanel panel = new ListMultipleChoicePanel<>(componentId,
                         new PropertyModel<List<String>>(model, getPropertyExpression()),
-                        createNewLoggerAppendersListModel(), new StringChoiceRenderer(null), options);
+                        createNewLoggerAppendersListModel(), StringChoiceRenderer.simple(), options);
 
                 FormComponent<AppenderConfigurationType> input = panel.getBaseFormComponent();
                 input.add(new EmptyOnChangeAjaxFormUpdatingBehavior());

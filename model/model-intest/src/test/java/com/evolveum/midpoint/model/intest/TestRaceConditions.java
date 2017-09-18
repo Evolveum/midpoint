@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import com.evolveum.midpoint.model.intest.util.DelayingProgressListener;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;

@@ -614,7 +614,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 
     @Override
     public String debugDump(int indent) {
-    	return debugDump(indent, null);
+    	return debugDump(indent, (LayerType) null);
     }
 
     protected String debugDump(int indent, LayerType layer) {
@@ -664,10 +664,10 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 
 	@NotNull
 	@Override
-	public CompositeRefinedObjectClassDefinitionImpl deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
-		RefinedObjectClassDefinition structuralClone = structuralObjectClassDefinition.deepClone(ctdMap);
+	public CompositeRefinedObjectClassDefinitionImpl deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath) {
+		RefinedObjectClassDefinition structuralClone = structuralObjectClassDefinition.deepClone(ctdMap, onThisPath);
 		List<RefinedObjectClassDefinition> auxiliaryClones = auxiliaryObjectClassDefinitions.stream()
-				.map(def -> def.deepClone(ctdMap))
+				.map(def -> def.deepClone(ctdMap, onThisPath))
 				.collect(Collectors.toCollection(ArrayList::new));
 		return new CompositeRefinedObjectClassDefinitionImpl(structuralClone, auxiliaryClones);
 	}

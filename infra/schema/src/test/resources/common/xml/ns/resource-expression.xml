@@ -68,7 +68,9 @@
             </icfcldap:baseContexts>
             <icfcldap:principal>cn=directory manager</icfcldap:principal>
             <icfcldap:credentials>
-                <t:clearValue>secret</t:clearValue>
+            	<expression>
+            		<const>password</const>
+            	</expression>
             </icfcldap:credentials>
             <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
             <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>

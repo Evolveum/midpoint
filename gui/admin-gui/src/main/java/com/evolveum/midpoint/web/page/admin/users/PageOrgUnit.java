@@ -85,7 +85,7 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 
 			@Override
 			public AbstractRoleMemberPanel<OrgType> createMemberPanel(String panelId) {
-				return new OrgMemberPanel(panelId, Model.of(getObject().asObjectable()), PageOrgUnit.this);
+				return new OrgMemberPanel(panelId, Model.of(getObject().asObjectable()));
 			}
 		};
 	}

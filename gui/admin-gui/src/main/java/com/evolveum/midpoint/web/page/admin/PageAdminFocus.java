@@ -43,6 +43,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
+import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
@@ -405,7 +406,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		PrismObject<F> focus = getObjectModel().getObject().getObject();
 		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
-			if (!isPolicyRuleAssignment(assignment) && !isConsentAssignment(assignment) && isAssignmentRelevant(assignment)) {
+			if (!AssignmentsUtil.isPolicyRuleAssignment(assignment) && !AssignmentsUtil.isConsentAssignment(assignment)
+					&& AssignmentsUtil.isAssignmentRelevant(assignment)) {
 				rv++;
 			}
 		}
@@ -419,7 +421,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		PrismObject<F> focus = focusWrapper.getObject();
 		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
-			if (!isPolicyRuleAssignment(assignment) && !isConsentAssignment(assignment) && isAssignmentRelevant(assignment)) {
+			if (!AssignmentsUtil.isPolicyRuleAssignment(assignment) && !AssignmentsUtil.isConsentAssignment(assignment)
+					&& AssignmentsUtil.isAssignmentRelevant(assignment)) {
 				list.add(new AssignmentDto(assignment, StringUtils.isEmpty(focusWrapper.getOid()) ? UserDtoStatus.ADD : UserDtoStatus.MODIFY));
 			}
 		}
@@ -434,7 +437,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		PrismObject<F> focus = getObjectModel().getObject().getObject();
 		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
-			if (isPolicyRuleAssignment(assignment)) {
+			if (AssignmentsUtil.isPolicyRuleAssignment(assignment)) {
 				policyRuleCounter++;
 			}
 		}
@@ -453,32 +456,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
     protected List<AssignmentDto> getPolicyRulesList(List<AssignmentType> assignments, UserDtoStatus status){
 		List<AssignmentDto> list = new ArrayList<AssignmentDto>();
 		for (AssignmentType assignment : assignments) {
-			if (isPolicyRuleAssignment(assignment)) {
+			if (AssignmentsUtil.isPolicyRuleAssignment(assignment)) {
 				list.add(new AssignmentDto(assignment, status));
 			}
 		}
 		return list;
 	}
-
-
-	private boolean isAssignmentRelevant(AssignmentType assignment) {
-		return assignment.getTargetRef() == null ||
-				!UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType());
-	}
-
-	private boolean isPolicyRuleAssignment(AssignmentType assignment) {
-		return assignment.asPrismContainerValue() != null
-				&& assignment.asPrismContainerValue().findContainer(AssignmentType.F_POLICY_RULE) != null;
-	}
-
-	private boolean isConsentAssignment(AssignmentType assignment) {
-		if (assignment.getTargetRef() == null) {
-			return false;
-		}
-
-		return QNameUtil.match(assignment.getTargetRef().getRelation(), SchemaConstants.ORG_CONSENT);
-	}
-
 
 	@Override
 	protected void prepareObjectForAdd(PrismObject<F> focus) throws SchemaException {

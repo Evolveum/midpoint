@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -32,6 +34,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -64,8 +68,16 @@ public class PrismContainerPanel extends Panel {
                 }
 
                 // HACK HACK HACK
-                if (ShadowType.F_ASSOCIATION.equals(prismContainer.getElementName())) {
+				QName elementName = prismContainer.getElementName();
+				if (ShadowType.F_ASSOCIATION.equals(elementName)) {
                 	return true;
+                }
+                // TODO FIX THIS IMMEDIATELY (see MID-4146)
+                if (AbstractRoleType.F_POLICY_CONSTRAINTS.equals(elementName)) {
+					return false;
+                }
+                if (AbstractPolicyConstraintType.F_PRESENTATION.equals(elementName)) {
+					return false;
                 }
 
                 boolean isVisible = false;

@@ -550,13 +550,20 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	@Override
 	@NotNull
 	public Task getTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		return getTask(taskOid, null, parentResult);
+	}
+
+	@Override
+	@NotNull
+	public Task getTask(String taskOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "getTask");          // todo ... or .createSubresult (without 'minor')?
 		result.addParam(OperationResult.PARAM_OID, taskOid);
+		result.addArbitraryObjectCollectionAsParam(OperationResult.PARAM_OPTIONS, options);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
 		Task task;
 		try {
-			PrismObject<TaskType> taskPrism = repositoryService.getObject(TaskType.class, taskOid, null, result);
+			PrismObject<TaskType> taskPrism = repositoryService.getObject(TaskType.class, taskOid, options, result);
             task = createTaskInstance(taskPrism, result);
         } catch (ObjectNotFoundException e) {
 			result.recordFatalError("Task not found", e);

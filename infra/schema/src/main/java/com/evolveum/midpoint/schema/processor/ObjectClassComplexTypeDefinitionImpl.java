@@ -232,8 +232,8 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 
 	@NotNull
 	@Override
-	public ObjectClassComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
-		return (ObjectClassComplexTypeDefinition) super.deepClone(ctdMap);
+	public ObjectClassComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath) {
+		return (ObjectClassComplexTypeDefinition) super.deepClone(ctdMap, onThisPath);
 	}
 
 	protected void copyDefinitionData(ObjectClassComplexTypeDefinitionImpl clone) {

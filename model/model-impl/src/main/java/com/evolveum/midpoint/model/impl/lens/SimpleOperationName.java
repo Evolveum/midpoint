@@ -21,18 +21,23 @@ package com.evolveum.midpoint.model.impl.lens;
  */
 public enum SimpleOperationName {
 
-	ADD("add"),
-	MODIFY("modify"),
-	DELETE("delete");
+	ADD("add", "added"),
+	MODIFY("modify", "modified"),
+	DELETE("delete", "deleted");
 
 	private final String value;
+	private final String pastTense;
 
-	private SimpleOperationName(String value) {
+	SimpleOperationName(String value, String pastTense) {
 		this.value = value;
+		this.pastTense = pastTense;
 	}
 
 	public String getValue() {
 		return value;
 	}
 
+	public String getPastTense() {
+		return pastTense;
+	}
 }

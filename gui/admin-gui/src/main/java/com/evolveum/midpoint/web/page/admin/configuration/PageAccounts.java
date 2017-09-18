@@ -360,7 +360,7 @@ public class PageAccounts extends PageAdminConfiguration {
 
         DropDownChoice intent = new DropDownChoice<>(ID_SEARCH_INTENT,
                 new PropertyModel<String>(searchModel, AccountDetailsSearchDto.F_INTENT),
-                createIntentChoices(), new StringChoiceRenderer(null));
+                createIntentChoices(), StringChoiceRenderer.simple());
         intent.setNullValid(true);
         intent.add(new OnChangeAjaxBehavior() {
 

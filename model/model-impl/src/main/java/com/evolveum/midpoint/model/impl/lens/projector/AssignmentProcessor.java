@@ -23,6 +23,7 @@ import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -237,7 +238,7 @@ public class AssignmentProcessor {
         // Evaluates all assignments and sorts them to triple: added, removed and untouched assignments.
         // This is where most of the assignment-level action happens.
         DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
-        policyRuleProcessor.addGlobalPoliciesToAssignments(context, evaluatedAssignmentTriple, task, result);
+        policyRuleProcessor.addGlobalPolicyRulesToAssignments(context, evaluatedAssignmentTriple, task, result);
         context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
 
         if (LOGGER.isTraceEnabled()) {
@@ -246,8 +247,7 @@ public class AssignmentProcessor {
 
         // PROCESSING POLICIES
 
-        policyRuleProcessor.processPolicies(context, evaluatedAssignmentTriple, result);
-
+        policyRuleProcessor.evaluateAssignmentPolicyRules(context, evaluatedAssignmentTriple, task, result);
         boolean needToReevaluateAssignments = policyRuleProcessor.processPruning(context, evaluatedAssignmentTriple, result);
 
         if (needToReevaluateAssignments) {
@@ -257,13 +257,13 @@ public class AssignmentProcessor {
         	evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
 			context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
 
-			policyRuleProcessor.addGlobalPoliciesToAssignments(context, evaluatedAssignmentTriple, task, result);
+			policyRuleProcessor.addGlobalPolicyRulesToAssignments(context, evaluatedAssignmentTriple, task, result);
 
         	if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDump());
             }
 
-        	policyRuleProcessor.processPolicies(context, evaluatedAssignmentTriple, result);
+        	policyRuleProcessor.evaluateAssignmentPolicyRules(context, evaluatedAssignmentTriple, task, result);
         }
 
         //policyRuleProcessor.storeAssignmentPolicySituation(context, evaluatedAssignmentTriple, result);

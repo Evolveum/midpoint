@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -68,18 +69,6 @@ public class WfExpressionEvaluationHelper {
 				ObjectReferenceType.COMPLEX_TYPE, ExpressionUtil.createRefConvertor(UserType.COMPLEX_TYPE), task, result);
 	}
 
-	public <T> T getSingleValue(Collection<T> values, T defaultValue, String contextDescription) {
-		if (values.size() == 0) {
-			return defaultValue;
-		} else if (values.size() > 1) {
-			throw new IllegalStateException("Expression should return exactly one value; it returned "
-					+ values.size() + " ones in " + contextDescription);
-		} else {
-			T value = values.iterator().next();
-			return value != null ? value : defaultValue;
-		}
-	}
-
 	@SuppressWarnings("unchecked")
 	@NotNull
 	public <T> List<T> evaluateExpression(ExpressionType expressionType, ExpressionVariables variables,
@@ -107,6 +96,6 @@ public class WfExpressionEvaluationHelper {
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 		Collection<Boolean> values = evaluateExpression(expressionType, expressionVariables, contextDescription,
 				Boolean.class, DOMUtil.XSD_BOOLEAN, null, task, result);
-		return getSingleValue(values, false, contextDescription);
+		return MiscUtil.getSingleValue(values, false, contextDescription);
 	}
 }

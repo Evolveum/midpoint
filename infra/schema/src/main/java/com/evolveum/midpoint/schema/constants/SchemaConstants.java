@@ -308,12 +308,20 @@ public abstract class SchemaConstants {
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "underassigned"));
 	public static final String MODEL_POLICY_SITUATION_OVERASSIGNED =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "overassigned"));
+	// should not be used, because it is a transitional constraint
 	public static final String MODEL_POLICY_SITUATION_MODIFIED =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "modified"));
-	public static final String MODEL_POLICY_SITUATION_ASSIGNED =
-			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "assigned"));
+	public static final String MODEL_POLICY_SITUATION_ASSIGNMENT_MODIFIED = MODEL_POLICY_SITUATION_MODIFIED;        // TODO
+	public static final String MODEL_POLICY_SITUATION_HAS_ASSIGNMENT =
+			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "hasAssignment"));        // TODO
+	public static final String MODEL_POLICY_SITUATION_HAS_NO_ASSIGNMENT =
+			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "hasNoAssignment"));        // TODO
+	public static final String MODEL_POLICY_SITUATION_OBJECT_STATE =
+			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "objectState"));           // TODO
+	public static final String MODEL_POLICY_SITUATION_ASSIGNMENT_STATE =
+			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "assignmentState"));      // TODO
 	public static final String MODEL_POLICY_SITUATION_TIME_VALIDITY =
-			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "timeValidity"));			// currently unused, planned for 3.7+
+			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "timeValidity"));
 
 	public static final String NS_MODEL_APPROVAL = NS_MODEL + "/approval";
 	public static final String NS_MODEL_APPROVAL_OUTCOME = NS_MODEL_APPROVAL + "/outcome";
@@ -523,7 +531,15 @@ public abstract class SchemaConstants {
 	public static final String USER_ID = "user";
 	public static final String TOKEN = "token";
 
-//	// resetPassword
+	public static final String OBJECT_TYPE_KEY_PREFIX = "ObjectType.";
+	public static final String DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX = "DefaultPolicyConstraint.";
+	public static final String POLICY_CONSTRAINT_KEY_PREFIX = "PolicyConstraint.";
+	public static final String POLICY_CONSTRAINTS_BEFORE_KEY = "PolicyConstraints.before";
+	public static final String POLICY_CONSTRAINTS_AFTER_KEY = "PolicyConstraints.after";
+	public static final String TECHNICAL_OBJECT_SPECIFICATION_KEY = "TechnicalObjectSpecification";
+	public static final String POLICY_VIOLATION_EXCEPTION_AGGREGATE_KEY = "PolicyViolationException.message.aggregate";
+
+	//	// resetPassword
 //	public static final String RESET_PASSWORD_ID = "user";
 //	public static final String RESET_PASSWORD_TOKEN = "token";
 }

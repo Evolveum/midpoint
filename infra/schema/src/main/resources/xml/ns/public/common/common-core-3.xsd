@@ -8769,7 +8769,7 @@
                             <xsd:documentation>
 	                            <p>
 	                                Identifier of the role or org. It should be a structured information usually used for
-	                                refering to the role or org or correlating it in various systems. E.g. numeric organizational
+	                                referring to the role or org or correlating it in various systems. E.g. numeric organizational
 	                                unit identifier, role code, etc. It should be unique in its "own" scope. E.g. an organizational
 	                                unit identifier should be unique in the scope of all organizational units but it may conflict 
 	                                with an identifier of a project.
@@ -12415,12 +12415,12 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AppenderConfigurationType">
                 <xsd:sequence>
-                    <xsd:element name="fileName" type="xsd:string"/>
-                    <xsd:element name="filePattern" type="xsd:string"/>
-                    <xsd:element name="maxHistory" type="xsd:int"/>
-                    <xsd:element name="maxFileSize" type="xsd:string"/>
-                    <xsd:element name="append" type="xsd:boolean"/>
-                    <xsd:element name="prudent" type="xsd:boolean">
+                    <xsd:element name="fileName" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="filePattern" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="maxHistory" type="xsd:int" minOccurs="0"/>
+                    <xsd:element name="maxFileSize" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="append" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="prudent" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Prudent mode allows remote and shared file destinations (see https://logback.qos.ch/manual/appenders.html#prudentWithRolling )
@@ -12643,7 +12643,7 @@
     			</xsd:annotation>
     		</xsd:element>
         	<xsd:element name="description" type="xsd:string" minOccurs="0"/>
- 		    <xsd:element name="policyConstraints" type="tns:PolicyConstraintsType" minOccurs="1">
+ 		    <xsd:element name="policyConstraints" type="tns:PolicyConstraintsType">
     			<xsd:annotation>
     				<xsd:documentation>
     					Constraints to be applied to selected objects.
@@ -12668,8 +12668,52 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
+    		<xsd:element name="evaluationTarget" type="tns:PolicyRuleEvaluationTargetType" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Whether this rule has to be applied on an object or an assignment. Normally this is determined
+						by looking at policy constraints. But this setting can be used to override that.
+    				</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+	<xsd:simpleType name="PolicyRuleEvaluationTargetType">
+		<xsd:annotation>
+			<xsd:documentation>
+				On what target is the policy rule intended to be evaluated.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="object">
+				<xsd:annotation>
+					<xsd:documentation>
+						The rule is to be evaluated against an object.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="OBJECT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="assignment">
+				<xsd:annotation>
+					<xsd:documentation>
+						The rule is to be evaluated against an assignment.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ASSIGNMENT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
     
     <xsd:complexType name="GlobalPolicyRuleType">
         <xsd:annotation>
@@ -12731,38 +12775,73 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="minAssignees">
+            <xsd:enumeration value="minAssigneesViolation">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="MIN_ASSIGNEES"/>
+                        <jaxb:typesafeEnumMember name="MIN_ASSIGNEES_VIOLATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="maxAssignees">
+            <xsd:enumeration value="maxAssigneesViolation">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="MAX_ASSIGNEES"/>
+                        <jaxb:typesafeEnumMember name="MAX_ASSIGNEES_VIOLATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="modification">
+            <xsd:enumeration value="objectModification">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="MODIFICATION"/>
+                        <jaxb:typesafeEnumMember name="OBJECT_MODIFICATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="assignment">
+            <xsd:enumeration value="assignmentModification">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ASSIGNMENT"/>
+                        <jaxb:typesafeEnumMember name="ASSIGNMENT_MODIFICATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="timeValidity">
+            <xsd:enumeration value="hasAssignment">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="TIME_VALIDITY"/>
+                        <jaxb:typesafeEnumMember name="HAS_ASSIGNMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="hasNoAssignment">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HAS_NO_ASSIGNMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="objectTimeValidity">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT_TIME_VALIDITY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="assignmentTimeValidity">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ASSIGNMENT_TIME_VALIDITY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="objectState">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT_STATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="assignmentState">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ASSIGNMENT_STATE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -12770,6 +12849,34 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SITUATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="transition">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TRANSITION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="and">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AND"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="or">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="not">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NOT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -16755,6 +16862,134 @@
 			</xsd:element>
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:long" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="LocalizableMessageType">
+		<xsd:annotation>
+			<xsd:documentation>
+				A message that is to be localized into specified language.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="key" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Localization key.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="argument" type="tns:LocalizableMessageArgumentType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Arguments to be used as values for localized message parameters.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="fallbackLocalizableMessage" type="tns:LocalizableMessageType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Fallback localizable message to be used when key couldn't be resolved. Mutually exclusive with fallbackMessage.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="fallbackMessage" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Fallback message to be used when key couldn't be resolved. Mutually exclusive with fallbackLocalizableMessage.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="LocalizableMessageArgumentType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Argument that is to be used for localized message parameter.
+				Might be a LocalizableMessageType itself, allowing for messages like
+				"Assignment exists for {0} {1} (OID {2}" where {0} has to be resolved
+				to e.g. "role", localized for the target language.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:choice>
+			<xsd:element name="value" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Literal value.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="localizable" type="tns:LocalizableMessageType">
+				<xsd:annotation>
+					<xsd:documentation>
+						Embedded localizable message.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:choice>
+	</xsd:complexType>
+
+	<xsd:complexType name="LocalizableMessageTemplateType">
+		<xsd:annotation>
+			<xsd:documentation>
+				A template that produces a localizable message after argument expressions are evaluated into specific arguments.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="key" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Localization key. Mutually exclusive with keyExpression.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="keyExpression" type="tns:ExpressionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Localization key expression. Mutually exclusive with the key.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="argument" type="tns:LocalizableMessageArgumentType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Values for arguments. Mutually exclusive with argumentExpression: if at least one argument is used,
+						no argumentExpression can be used, and vice versa.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="argumentExpression" type="tns:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Expressions to be evaluated to specific arguments, which are to be used as values for localized message parameters.
+						Mutually exclusive with argument: if at least one argumentExpression is used, no argument can be used, and vice versa.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="fallbackMessage" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Fallback message to be used when key couldn't be resolved. Mutually exclusive with fallbackMessageExpression.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="fallbackMessageExpression" type="tns:ExpressionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Fallback message expression to be evaluated to specific fallback message. Mutually exclusive with fallbackMessage.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
 	</xsd:complexType>
 
 </xsd:schema>

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.gui.api.component.result;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -34,8 +35,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -92,10 +91,7 @@ public class OpResult implements Serializable, Visitable {
         if (result.getCause() != null && result.getCause() instanceof CommonException){
         	LocalizableMessage localizableMessage = ((CommonException) result.getCause()).getUserFriendlyMessage();
         	if (localizableMessage != null) {
-        		String key = localizableMessage.getKey() != null ? localizableMessage.getKey() : localizableMessage.getFallbackMessage();
-        		StringResourceModel stringResourceModel = new StringResourceModel(key, page).setModel(new Model<String>()).setDefaultValue(localizableMessage.getFallbackMessage())
-				.setParameters(localizableMessage.getArgs());
-        		opResult.message = stringResourceModel.getString();
+		        opResult.message = WebComponentUtil.resolveLocalizableMessage(localizableMessage, page);
         	}
         }
 

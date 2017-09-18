@@ -123,8 +123,14 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_SERVICE_QNAME = new QName(NS_AUTHORIZATION_UI, "service");
 	public static final String AUTZ_UI_SERVICE_URL = NS_AUTHORIZATION_UI + "#service";
 
+	public static final QName AUTZ_UI_VALUE_POLICIES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "valuePoliciesAll");
+	public static final String AUTZ_UI_VALUE_POLICIES_ALL_URL = NS_AUTHORIZATION_UI + "#valuePoliciesAll";
 
+	public static final QName AUTZ_UI_VALUE_POLICIES_QNAME = new QName(NS_AUTHORIZATION_UI, "valuePolicies");
+	public static final String AUTZ_UI_VALUE_POLICIES_URL = NS_AUTHORIZATION_UI + "#valuePolicies";
 
+	public static final QName AUTZ_UI_VALUE_POLICY_QNAME = new QName(NS_AUTHORIZATION_UI, "valuePolicy");
+	public static final String AUTZ_UI_VALUE_POLICY_URL = NS_AUTHORIZATION_UI + "#valuePolicy";
 
 	//resources
 	public static final QName AUTZ_UI_RESOURCES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "resourcesAll");

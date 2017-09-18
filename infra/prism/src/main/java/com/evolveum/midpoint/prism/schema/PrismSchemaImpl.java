@@ -268,6 +268,7 @@ public class PrismSchemaImpl implements PrismSchema {
 
 	@Override
 	public String debugDump(int indent) {
+		IdentityHashMap<Definition, Object> seen = new IdentityHashMap<>();
 		StringBuilder sb = new StringBuilder();
 		for (int i=0;i<indent;i++) {
 			sb.append(INDENT_STRING);
@@ -276,7 +277,7 @@ public class PrismSchemaImpl implements PrismSchema {
 		Iterator<Definition> i = definitions.iterator();
 		while (i.hasNext()) {
 			Definition def = i.next();
-			sb.append(def.debugDump(indent+1));
+			sb.append(def.debugDump(indent+1, seen));
 			if (i.hasNext()) {
 				sb.append("\n");
 			}

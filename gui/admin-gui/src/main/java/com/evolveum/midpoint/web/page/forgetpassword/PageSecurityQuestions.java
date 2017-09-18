@@ -498,7 +498,7 @@ public class PageSecurityQuestions extends PageBase {
 			} else {
 				// TODO localization
 				getSession().error(getString("pageSecurityQuestions.message.notificationsNotSet"));
-				LOGGER.trace("Notificatons not set, returning to login page");
+				LOGGER.trace("Notifications not set, returning to login page");
 				throw new RestartResponseException(PageLogin.class);
 
 			}

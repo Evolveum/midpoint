@@ -17,6 +17,7 @@ package com.evolveum.midpoint.util;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * @author semancik
@@ -27,12 +28,23 @@ public class LocalizableMessage implements Serializable, ShortDumpable {
 
 	final private String key;
 	final private Object[] args;
+	// at most one of the following can be present
+	final private LocalizableMessage fallbackLocalizableMessage;
 	final private String fallbackMessage;
+
+	public LocalizableMessage(String key, Object[] args, LocalizableMessage fallbackLocalizableMessage) {
+		super();
+		this.key = key;
+		this.args = args;
+		this.fallbackLocalizableMessage = fallbackLocalizableMessage;
+		this.fallbackMessage = null;
+	}
 
 	public LocalizableMessage(String key, Object[] args, String fallbackMessage) {
 		super();
 		this.key = key;
 		this.args = args;
+		this.fallbackLocalizableMessage = null;
 		this.fallbackMessage = fallbackMessage;
 	}
 
@@ -59,52 +71,36 @@ public class LocalizableMessage implements Serializable, ShortDumpable {
 		return fallbackMessage;
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + Arrays.hashCode(args);
-		result = prime * result + ((fallbackMessage == null) ? 0 : fallbackMessage.hashCode());
-		result = prime * result + ((key == null) ? 0 : key.hashCode());
-		return result;
+	/**
+	 * Fallback localization message. This message is used in case that the
+	 * message key cannot be found in the localization files.
+	 */
+	public LocalizableMessage getFallbackLocalizableMessage() {
+		return fallbackLocalizableMessage;
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+	public boolean equals(Object o) {
+		if (this == o)
 			return true;
-		}
-		if (obj == null) {
+		if (!(o instanceof LocalizableMessage))
 			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		LocalizableMessage other = (LocalizableMessage) obj;
-		if (!Arrays.equals(args, other.args)) {
-			return false;
-		}
-		if (fallbackMessage == null) {
-			if (other.fallbackMessage != null) {
-				return false;
-			}
-		} else if (!fallbackMessage.equals(other.fallbackMessage)) {
-			return false;
-		}
-		if (key == null) {
-			if (other.key != null) {
-				return false;
-			}
-		} else if (!key.equals(other.key)) {
-			return false;
-		}
-		return true;
+		LocalizableMessage that = (LocalizableMessage) o;
+		return Objects.equals(key, that.key) &&
+				Arrays.equals(args, that.args) &&
+				Objects.equals(fallbackLocalizableMessage, that.fallbackLocalizableMessage) &&
+				Objects.equals(fallbackMessage, that.fallbackMessage);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(key, args, fallbackLocalizableMessage, fallbackMessage);
 	}
 
 	@Override
 	public String toString() {
 		return "LocalizableMessage(" + key + ": " + Arrays.toString(args) + " ("
-				+ fallbackMessage + "))";
+				+ (fallbackMessage != null ? fallbackMessage : fallbackLocalizableMessage) + "))";
 	}
 
 	@Override
@@ -120,9 +116,14 @@ public class LocalizableMessage implements Serializable, ShortDumpable {
 				sb.append(fallbackMessage);
 				sb.append(")");
 			}
+			if (fallbackLocalizableMessage != null) {
+				sb.append(" (");
+				sb.append(fallbackLocalizableMessage.shortDump());
+				sb.append(")");
+			}
 		} else {
-			sb.append(fallbackMessage);
-		};
+			sb.append(fallbackLocalizableMessage != null ? fallbackLocalizableMessage.shortDump() : fallbackMessage);
+		}
 	}
 
 }

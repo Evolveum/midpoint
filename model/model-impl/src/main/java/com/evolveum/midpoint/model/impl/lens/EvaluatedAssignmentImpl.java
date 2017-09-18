@@ -42,7 +42,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
 
@@ -363,33 +362,26 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		return Stream.concat(thisTargetPolicyRules.stream(), otherTargetsPolicyRules.stream()).collect(Collectors.toList());
 	}
 
-	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints, AssignmentPath assignmentPath, FocusType directOwner) {
-		if (!constraints.getModification().isEmpty()) {
-			PolicyConstraintsType focusConstraints = constraints.clone();
-			focusConstraints.getAssignment().clear();
-			focusConstraints.getMaxAssignees().clear();
-			focusConstraints.getMinAssignees().clear();
-			focusConstraints.getExclusion().clear();
-			focusPolicyRules.add(toEvaluatedPolicyRule(focusConstraints, assignmentPath, directOwner));
+	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints, AssignmentPath assignmentPath,
+			FocusType directOwner, PrismContext prismContext) {
+		// approximate solution - just add the constraints to all the places; hopefully any misplaced ones would be simply ignored
+		if (constraints == null) {
+			return;
 		}
-		if (!constraints.getMinAssignees().isEmpty() || !constraints.getMaxAssignees().isEmpty()
-				|| !constraints.getAssignment().isEmpty() || !constraints.getExclusion().isEmpty()) {
-			PolicyConstraintsType targetConstraints = constraints.clone();
-			targetConstraints.getModification().clear();
-			EvaluatedPolicyRule evaluatedPolicyRule = toEvaluatedPolicyRule(targetConstraints, assignmentPath, directOwner);
-			otherTargetsPolicyRules.add(evaluatedPolicyRule);
-			thisTargetPolicyRules.add(evaluatedPolicyRule);
-		}
+		otherTargetsPolicyRules.add(toEvaluatedPolicyRule(constraints, assignmentPath, directOwner, prismContext));
+		thisTargetPolicyRules.add(toEvaluatedPolicyRule(constraints, assignmentPath, directOwner, prismContext));
+		focusPolicyRules.add(toEvaluatedPolicyRule(constraints, assignmentPath, directOwner, prismContext));
 	}
 
 	@NotNull
-	private EvaluatedPolicyRule toEvaluatedPolicyRule(PolicyConstraintsType constraints, AssignmentPath assignmentPath, FocusType directOwner) {
+	private EvaluatedPolicyRule toEvaluatedPolicyRule(PolicyConstraintsType constraints, AssignmentPath assignmentPath,
+			FocusType directOwner, PrismContext prismContext) {
 		PolicyRuleType policyRuleType = new PolicyRuleType();
 		policyRuleType.setPolicyConstraints(constraints);
 		PolicyActionsType policyActionsType = new PolicyActionsType();
 		policyActionsType.setEnforcement(new EnforcementPolicyActionType());
 		policyRuleType.setPolicyActions(policyActionsType);
-		return new EvaluatedPolicyRuleImpl(policyRuleType, assignmentPath);
+		return new EvaluatedPolicyRuleImpl(policyRuleType, assignmentPath, prismContext);
 	}
 
 	@Override
@@ -398,31 +390,36 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	@Override
-	public void triggerConstraint(@Nullable EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
-		boolean hasException = processRuleExceptions(this, rule, trigger);
+	public void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+		boolean hasException = processRuleExceptions(this, rule, triggers);
 
-		if (trigger instanceof EvaluatedExclusionTrigger) {
-			EvaluatedExclusionTrigger exclTrigger = (EvaluatedExclusionTrigger) trigger;
-			if (exclTrigger.getConflictingAssignment() != null) {
-				hasException =
-						hasException || processRuleExceptions((EvaluatedAssignmentImpl<F>) exclTrigger.getConflictingAssignment(),
-								rule, trigger);
+		for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+			if (trigger instanceof EvaluatedExclusionTrigger) {
+				EvaluatedExclusionTrigger exclTrigger = (EvaluatedExclusionTrigger) trigger;
+				if (exclTrigger.getConflictingAssignment() != null) {
+					hasException =
+							hasException || processRuleExceptions((EvaluatedAssignmentImpl<F>) exclTrigger.getConflictingAssignment(),
+									rule, triggers);
+				}
 			}
 		}
 
 		if (!hasException) {
-			LensUtil.triggerConstraint(rule, trigger, policySituations);
+			LensUtil.triggerRule(rule, triggers, policySituations);
 		}
 	}
 
-	private boolean processRuleExceptions(EvaluatedAssignmentImpl<F> evaluatedAssignment, EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) {
+	@Override
+	public void triggerConstraintLegacy(EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
+		LensUtil.triggerConstraintLegacy(trigger, policySituations);
+	}
+
+	private boolean processRuleExceptions(EvaluatedAssignmentImpl<F> evaluatedAssignment, @NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
 		boolean hasException = false;
 		for (PolicyExceptionType policyException: evaluatedAssignment.getAssignmentType().getPolicyException()) {
 			if (policyException.getRuleName().equals(rule.getName())) {
-				LensUtil.processRuleWithException(rule, trigger, policySituations, policyException);
+				LensUtil.processRuleWithException(rule, triggers, policyException);
 				hasException = true;
-//			} else {
-//				LOGGER.trace("Skipped exception because it does not match rule name, exception: {}, rule: {}", policyException.getRuleName(), rule.getName());
 			}
 		}
 		return hasException;
