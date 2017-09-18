@@ -81,15 +81,15 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
 		List<TreeNode<LocalizableMessage>> messageTrees = sourceRules.stream()
 				.flatMap(r -> r.extractMessages().stream())
 				.collect(Collectors.toList());
-		LocalizableMessage defaultMessage;
+		LocalizableMessage builtInMessage;
 		if (messageTrees.size() == 1) {
-			defaultMessage = messageTrees.get(0).getUserObject();
+			builtInMessage = messageTrees.get(0).getUserObject();
 		} else {
-			defaultMessage = new LocalizableMessageBuilder()
+			builtInMessage = new LocalizableMessageBuilder()
 					.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
 					.build();
 		}
-		return evaluatorHelper.createLocalizableMessage(constraint, ctx, defaultMessage, result);
+		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
 	}
 
 

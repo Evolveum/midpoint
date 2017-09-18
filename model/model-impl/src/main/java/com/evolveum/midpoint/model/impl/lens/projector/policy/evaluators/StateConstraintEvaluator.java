@@ -150,10 +150,10 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 		} else {
 			keySuffix = KEY_UNNAMED;
 		}
-		LocalizableMessage defaultMessage = new LocalizableMessageBuilder()
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + constraintKeyPrefix + keySuffix)
 				.args(args)
 				.build();
-		return evaluatorHelper.createLocalizableMessage(constraint, ctx, defaultMessage, result);
+		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
 	}
 }

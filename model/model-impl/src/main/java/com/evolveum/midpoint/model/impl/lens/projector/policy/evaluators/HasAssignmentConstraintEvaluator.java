@@ -123,24 +123,24 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 	private <F extends FocusType> LocalizableMessage createPositiveMessage(HasAssignmentPolicyConstraintType constraint,
 			PolicyRuleEvaluationContext<F> ctx, PrismObject<?> target, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		LocalizableMessage defaultMessage = new LocalizableMessageBuilder()
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_POSITIVE)
 				.arg(evaluatorHelper.createObjectSpecification(target))
 				.arg(evaluatorHelper.createBeforeAfterMessage(ctx))
 				.build();
-		return evaluatorHelper.createLocalizableMessage(constraint, ctx, defaultMessage, result);
+		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
 	}
 
 	private <F extends FocusType> LocalizableMessage createNegativeMessage(HasAssignmentPolicyConstraintType constraint,
 			PolicyRuleEvaluationContext<F> ctx, QName targetType, String targetOid, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		LocalizableMessage defaultMessage = new LocalizableMessageBuilder()
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_NEGATIVE)
 				.arg(evaluatorHelper.createObjectTypeSpecification(targetType))
 				.arg(targetOid)
 				.arg(evaluatorHelper.createBeforeAfterMessage(ctx))
 				.build();
-		return evaluatorHelper.createLocalizableMessage(constraint, ctx, defaultMessage, result);
+		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
 	}
 
 	private EvaluatedPolicyRuleTrigger createTriggerIfShouldNotExist(boolean shouldExist,
