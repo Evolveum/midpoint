@@ -71,13 +71,6 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
     }
 
     private void initLayout(final LoadableModel<ObjectWrapper<F>> focusWrapperModel, final PageAdminObjectDetails<F> page) {
-        AuditSearchDto searchDto = new AuditSearchDto();
-        ObjectReferenceType ort = new ObjectReferenceType();
-        ort.setOid(focusWrapperModel.getObject().getOid());
-        searchDto.setTargetNames(asList(ort));
-
-        searchDto.setEventStage(AuditEventStageType.EXECUTION);
-
         Map<String, Boolean> visibilityMap = new HashMap<>();
         visibilityMap.put(AuditLogViewerPanel.TARGET_NAME_LABEL_VISIBILITY, false);
         visibilityMap.put(AuditLogViewerPanel.TARGET_NAME_FIELD_VISIBILITY, false);
@@ -88,12 +81,31 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
         visibilityMap.put(AuditLogViewerPanel.EVENT_STAGE_COLUMN_VISIBILITY, false);
         visibilityMap.put(AuditLogViewerPanel.TARGET_COLUMN_VISIBILITY, false);
         visibilityMap.put(AuditLogViewerPanel.TARGET_OWNER_COLUMN_VISIBILITY, false);
-        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, page, searchDto, visibilityMap) {
+        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, visibilityMap) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected AuditSearchDto initAuditSearchDto(){
+                AuditSearchDto searchDto = new AuditSearchDto();
+                ObjectReferenceType ort = new ObjectReferenceType();
+                ort.setOid(focusWrapperModel.getObject().getOid());
+                searchDto.setTargetNames(asList(ort));
+                searchDto.setEventStage(AuditEventStageType.EXECUTION);
+
+                return searchDto;
+            }
+
+            @Override
+            protected boolean useSessionStorageOnPanelLoad(){
+                return false;
+            }
+
             @Override
             protected List<IColumn<AuditEventRecordType, String>> initColumns() {
                 List<IColumn<AuditEventRecordType, String>> columns = super.initColumns();
                 IColumn<AuditEventRecordType, String> column
                         = new MultiButtonColumn<AuditEventRecordType>(new Model(), 2) {
+                    private static final long serialVersionUID = 1L;
 
                     private final DoubleButtonColumn.BUTTON_COLOR_CLASS[] colors = {
                             DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO,
@@ -191,6 +203,8 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
 
         setResponsePage(new PageXmlDataReview(getPageBase().createStringResource("PageXmlDataReview.aceEditorPanelTitle", name, date),
                 new IModel<String>() {
+                    private static final long serialVersionUID = 1L;
+
                     @Override
                     public String getObject() {
                         PrismContext context = getPageBase().getPrismContext();
