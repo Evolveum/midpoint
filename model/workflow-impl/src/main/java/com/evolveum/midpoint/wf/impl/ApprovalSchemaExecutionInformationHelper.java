@@ -134,6 +134,9 @@ public class ApprovalSchemaExecutionInformationHelper {
 			}
 			rv.getStage().add(stageExecution);
 		}
+		if (itemApprovalState.getPolicyRules() != null) {
+			rv.setPolicyRules(itemApprovalState.getPolicyRules().clone());
+		}
 		return rv;
 	}
 
