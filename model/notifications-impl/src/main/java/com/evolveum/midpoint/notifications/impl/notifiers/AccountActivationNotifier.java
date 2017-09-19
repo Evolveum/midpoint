@@ -85,7 +85,7 @@ public class AccountActivationNotifier extends ConfirmationNotifier {
 	protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport,
 			Task task, OperationResult result) throws SchemaException {
 
-		String message = "Your accounts was successully created. To activate your accounts, please click on the link bellow.";
+		String message = "Your accounts was successfully created. To activate your accounts, please click on the link bellow.";
 
 		String accountsToActivate = "Shadow to be activated: \n";
 		for (ShadowType shadow : getShadowsToActivate((ModelEvent) event)) {

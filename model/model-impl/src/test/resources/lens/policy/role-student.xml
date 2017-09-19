@@ -1,0 +1,418 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <name>Student</name>
+	<assignment>
+		<!-- this is just to test when the assignment constraint is triggered and when not -->
+		<policyRule>
+			<name>assignment-of-student</name>
+			<policyConstraints>
+				<assignment/>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<assignment>
+		<policyRule>
+			<!-- this rule could trigger on assignment of Student role as well as on modification of Student role itself -->
+			<!-- but because it contains only focus-specific constraints, it will be evaluated on Student role itself -->
+			<name>ambivalent-rule</name>
+			<policyConstraints>
+				<objectState>
+					<name>always-true</name>
+					<expression>
+						<script>
+							<code>true</code>
+						</script>
+					</expression>
+				</objectState>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<assignment>
+		<policyRule>
+			<!-- this rule could trigger on assignment of Student role as well as on modification of Student role itself -->
+			<!-- but evaluationTarget=assignment ensures it will trigger only on assignment of Student role -->
+			<name>ambivalent-rule-manually-resolved-to-assignment</name>
+			<policyConstraints>
+				<ref>always-true</ref>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+			<evaluationTarget>assignment</evaluationTarget>
+		</policyRule>
+	</assignment>
+	<assignment>
+		<policyRule>
+			<!-- this rule could trigger on assignment of Student role as well as on modification of Student role itself -->
+			<!-- but evaluationTarget=focus ensures it will trigger only on Student role itself -->
+			<name>ambivalent-rule-manually-resolved-to-focus</name>
+			<policyConstraints>
+				<ref>always-true</ref>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+			<evaluationTarget>object</evaluationTarget>
+		</policyRule>
+	</assignment>
+	<inducement>
+		<targetRef oid="a91a6e0d-e152-46e6-ad1b-079fedfb5862" type="RoleType"/>	<!-- Person -->
+	</inducement>
+	<inducement>
+		<targetRef oid="9b573f03-e786-476c-bb97-b7ae69cc8228" type="RoleType"/>	<!-- Temporary -->
+		<activation>
+			<validTo>2015-01-01T00:00:00.000</validTo>
+		</activation>
+	</inducement>
+    <inducement>
+    	<policyRule>
+			<!-- no transitional information, so the state is checked for new object -->
+			<name>cc-1900</name>
+    		<policyConstraints>
+		    	<objectState>
+					<name>cc-1900</name>
+					<presentation>
+						<message>
+							<key>cc-1900</key>
+						</message>
+					</presentation>
+					<filter>
+						<q:equal>
+							<q:path>costCenter</q:path>
+							<q:value>1900</q:value>
+						</q:equal>
+					</filter>
+				</objectState>
+		    </policyConstraints>
+		    <policyActions>
+		    	<!-- none -->
+		    </policyActions>
+    	</policyRule>
+    </inducement>
+    <inducement>
+    	<policyRule>
+			<name>cc-1900-true-true</name>
+    		<policyConstraints>
+				<transition>
+					<stateBefore>true</stateBefore>
+					<stateAfter>true</stateAfter>
+					<constraints>
+						<ref>cc-1900</ref>
+					</constraints>
+				</transition>
+		    </policyConstraints>
+		    <policyActions>
+				<!-- none -->
+		    </policyActions>
+    	</policyRule>
+    </inducement>
+	<inducement>
+		<policyRule>
+			<name>cc-from-1900-false-true</name>
+			<policyConstraints>
+				<transition>
+					<stateBefore>false</stateBefore>
+					<stateAfter>true</stateAfter>
+					<constraints>
+						<ref>cc-1900</ref>
+					</constraints>
+				</transition>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>cc-from-1900-true-false</name>
+			<policyConstraints>
+				<transition>
+					<stateBefore>true</stateBefore>
+					<stateAfter>false</stateAfter>
+					<constraints>
+						<ref>cc-1900</ref>
+					</constraints>
+				</transition>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>cc-from-1900-true-any</name>
+			<policyConstraints>
+				<transition>
+					<stateBefore>true</stateBefore>
+					<constraints>
+						<ref>cc-1900</ref>
+					</constraints>
+				</transition>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-student-assignment</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>student-assignment</name>
+					<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>
+					<!-- no state means current+new -->
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-student-assignment-true-true</name>
+			<policyConstraints>
+				<transition>
+					<stateBefore>true</stateBefore>
+					<stateAfter>true</stateAfter>
+					<constraints>
+						<ref>student-assignment</ref>
+					</constraints>
+				</transition>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-student-assignment-false-true</name>
+			<policyConstraints>
+				<transition>
+					<stateBefore>false</stateBefore>
+					<stateAfter>true</stateAfter>
+					<constraints>
+						<ref>student-assignment</ref>
+					</constraints>
+				</transition>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-student-assignment-true-false</name>
+			<policyConstraints>
+				<transition>
+					<stateBefore>true</stateBefore>
+					<stateAfter>false</stateAfter>
+					<constraints>
+						<ref>student-assignment</ref>
+					</constraints>
+				</transition>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-student-assignment-false-any</name>
+			<policyConstraints>
+				<transition>
+					<stateBefore>false</stateBefore>
+					<constraints>
+						<ref>student-assignment</ref>
+					</constraints>
+				</transition>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-temporary-assignment-direct</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>temporary-assignment-direct</name>
+					<targetRef oid="9b573f03-e786-476c-bb97-b7ae69cc8228" type="RoleType"/>	<!-- Temporary -->
+					<direct>true</direct>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-temporary-assignment-indirect</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>temporary-assignment-indirect</name>
+					<targetRef oid="9b573f03-e786-476c-bb97-b7ae69cc8228" type="RoleType"/>	<!-- Temporary -->
+					<direct>false</direct>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-temporary-assignment-enabled</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>temporary-assignment-enabled</name>
+					<targetRef oid="9b573f03-e786-476c-bb97-b7ae69cc8228" type="RoleType"/>	<!-- Temporary -->
+					<enabled>true</enabled>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-temporary-assignment-disabled</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>temporary-assignment-disabled</name>
+					<targetRef oid="9b573f03-e786-476c-bb97-b7ae69cc8228" type="RoleType"/>	<!-- Temporary -->
+					<enabled>false</enabled>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-person-assignment-direct</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>person-assignment-direct</name>
+					<targetRef oid="a91a6e0d-e152-46e6-ad1b-079fedfb5862" type="RoleType"/>	<!-- Person -->
+					<direct>true</direct>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-person-assignment-indirect</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>person-assignment-indirect</name>
+					<targetRef oid="a91a6e0d-e152-46e6-ad1b-079fedfb5862" type="RoleType"/>	<!-- Person -->
+					<direct>false</direct>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-person-assignment-enabled</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>person-assignment-enabled</name>
+					<targetRef oid="a91a6e0d-e152-46e6-ad1b-079fedfb5862" type="RoleType"/>	<!-- Person -->
+					<enabled>true</enabled>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-person-assignment-disabled</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>person-assignment-disabled</name>
+					<targetRef oid="a91a6e0d-e152-46e6-ad1b-079fedfb5862" type="RoleType"/>	<!-- Person -->
+					<enabled>false</enabled>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-student-assignment-enabled</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>student-assignment-enabled</name>
+					<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>	<!-- Student -->
+					<enabled>true</enabled>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-no-assignment-for-aaa</name>
+			<policyConstraints>
+				<hasNoAssignment>
+					<name>aaa-assignment-direct</name>
+					<targetRef oid="aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" type="RoleType">
+						<targetName>abc</targetName>
+					</targetRef>
+				</hasNoAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+</role>

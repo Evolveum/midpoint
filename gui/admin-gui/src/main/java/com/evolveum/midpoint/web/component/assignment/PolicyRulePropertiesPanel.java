@@ -59,15 +59,12 @@ public class PolicyRulePropertiesPanel extends BasePanel<PolicyRuleType>{
     private static final String ID_ADD_TIME_VALIDITY = "addTimeValidityConstraints";
     private static final String ID_ADD_SITUATION = "addSituationConstraints";
 
-    
-    public PolicyRulePropertiesPanel(String id, IModel<PolicyRuleType> policyRuleModel){
+    private PageBase pageBase;
+
+    public PolicyRulePropertiesPanel(String id, IModel<PolicyRuleType> policyRuleModel, PageBase pageBase){
         super(id, policyRuleModel);
-//        initLayout();
-    }
-    
-    @Override
-    protected void onInitialize() {
-    	initLayout();
+        this.pageBase = pageBase;
+        initLayout();
     }
 
     private void initLayout(){
@@ -128,7 +125,7 @@ public class PolicyRulePropertiesPanel extends BasePanel<PolicyRuleType>{
 
     private void initConstraintsContainer(WebMarkupContainer constraintsContainer){
         ListView exclusionRepeater = new ListView<ExclusionPolicyConstraintType>(ID_EXCLUSION_REPEATER, new PropertyModel<>(getModel(),
-                getPageBase().createPropertyModelExpression(PolicyRuleType.F_POLICY_CONSTRAINTS.getLocalPart(), PolicyConstraintsType.F_EXCLUSION.getLocalPart()))) {
+                pageBase.createPropertyModelExpression(PolicyRuleType.F_POLICY_CONSTRAINTS.getLocalPart(), PolicyConstraintsType.F_EXCLUSION.getLocalPart()))) {
             @Override
             protected void populateItem(final ListItem<ExclusionPolicyConstraintType> listItem) {
                 PolicyRuleConstraintsExpandablePanel exclusionPropertiesPanel =
@@ -139,7 +136,7 @@ public class PolicyRulePropertiesPanel extends BasePanel<PolicyRuleType>{
         constraintsContainer.addOrReplace(exclusionRepeater);
 
         ListView minAssigneesRepeater = new ListView<MultiplicityPolicyConstraintType>(ID_MIN_ASSIGNEES_REPEATER, new PropertyModel<>(getModel(),
-        		getPageBase().createPropertyModelExpression(PolicyRuleType.F_POLICY_CONSTRAINTS.getLocalPart(), PolicyConstraintsType.F_MIN_ASSIGNEES.getLocalPart()))) {
+                pageBase.createPropertyModelExpression(PolicyRuleType.F_POLICY_CONSTRAINTS.getLocalPart(), PolicyConstraintsType.F_MIN_ASSIGNEES.getLocalPart()))) {
             @Override
             protected void populateItem(final ListItem<MultiplicityPolicyConstraintType> listItem) {
                 PolicyRuleConstraintsExpandablePanel minAssigneesPropertiesPanel =
@@ -150,7 +147,7 @@ public class PolicyRulePropertiesPanel extends BasePanel<PolicyRuleType>{
         constraintsContainer.addOrReplace(minAssigneesRepeater);
 
         ListView maxAssigneesRepeater = new ListView<MultiplicityPolicyConstraintType>(ID_MAX_ASSIGNEES_REPEATER, new PropertyModel<>(getModel(),
-        		getPageBase().createPropertyModelExpression(PolicyRuleType.F_POLICY_CONSTRAINTS.getLocalPart(), PolicyConstraintsType.F_MAX_ASSIGNEES.getLocalPart()))) {
+                pageBase.createPropertyModelExpression(PolicyRuleType.F_POLICY_CONSTRAINTS.getLocalPart(), PolicyConstraintsType.F_MAX_ASSIGNEES.getLocalPart()))) {
             @Override
             protected void populateItem(final ListItem<MultiplicityPolicyConstraintType> listItem) {
                 PolicyRuleConstraintsExpandablePanel maxAssigneesPropertiesPanel =
@@ -161,7 +158,7 @@ public class PolicyRulePropertiesPanel extends BasePanel<PolicyRuleType>{
         constraintsContainer.addOrReplace(maxAssigneesRepeater);
 
         ListView modificationRepeater = new ListView<ModificationPolicyConstraintType>(ID_MODIFICATION_REPEATER, new PropertyModel<>(getModel(),
-        		getPageBase().createPropertyModelExpression(PolicyRuleType.F_POLICY_CONSTRAINTS.getLocalPart(), PolicyConstraintsType.F_MODIFICATION.getLocalPart()))) {
+                pageBase.createPropertyModelExpression(PolicyRuleType.F_POLICY_CONSTRAINTS.getLocalPart(), PolicyConstraintsType.F_MODIFICATION.getLocalPart()))) {
             @Override
             protected void populateItem(final ListItem<ModificationPolicyConstraintType> listItem) {
                 PolicyRuleConstraintsExpandablePanel modificationPropertiesPanel =
@@ -171,10 +168,10 @@ public class PolicyRulePropertiesPanel extends BasePanel<PolicyRuleType>{
         };
         constraintsContainer.addOrReplace(modificationRepeater);
 
-        ListView assignmentRepeater = new ListView<AssignmentPolicyConstraintType>(ID_ASSIGNMENT_REPEATER, new PropertyModel<>(getModel(),
-        		getPageBase().createPropertyModelExpression(PolicyRuleType.F_POLICY_CONSTRAINTS.getLocalPart(), PolicyConstraintsType.F_ASSIGNMENT.getLocalPart()))) {
+        ListView assignmentRepeater = new ListView<AssignmentModificationPolicyConstraintType>(ID_ASSIGNMENT_REPEATER, new PropertyModel<>(getModel(),
+                pageBase.createPropertyModelExpression(PolicyRuleType.F_POLICY_CONSTRAINTS.getLocalPart(), PolicyConstraintsType.F_ASSIGNMENT.getLocalPart()))) {
             @Override
-            protected void populateItem(final ListItem<AssignmentPolicyConstraintType> listItem) {
+            protected void populateItem(final ListItem<AssignmentModificationPolicyConstraintType> listItem) {
                 PolicyRuleConstraintsExpandablePanel assignmentPropertiesPanel =
                         new PolicyRuleConstraintsExpandablePanel(ID_ASSIGNMENT_CONSTRAINTS, listItem.getModel());
                 listItem.add(assignmentPropertiesPanel);
@@ -183,7 +180,7 @@ public class PolicyRulePropertiesPanel extends BasePanel<PolicyRuleType>{
         constraintsContainer.addOrReplace(assignmentRepeater);
 
         ListView timeValidityRepeater = new ListView<TimeValidityPolicyConstraintType>(ID_TIME_VALIDITY_REPEATER, new PropertyModel<>(getModel(),
-        		getPageBase().createPropertyModelExpression(PolicyRuleType.F_POLICY_CONSTRAINTS.getLocalPart(), PolicyConstraintsType.F_TIME_VALIDITY.getLocalPart()))) {
+                pageBase.createPropertyModelExpression(PolicyRuleType.F_POLICY_CONSTRAINTS.getLocalPart(), PolicyConstraintsType.F_OBJECT_TIME_VALIDITY.getLocalPart()))) {
             @Override
             protected void populateItem(final ListItem<TimeValidityPolicyConstraintType> listItem) {
                 PolicyRuleConstraintsExpandablePanel timeValidityPropertiesPanel =
@@ -194,7 +191,7 @@ public class PolicyRulePropertiesPanel extends BasePanel<PolicyRuleType>{
         constraintsContainer.addOrReplace(timeValidityRepeater);
 
         ListView situationRepeater = new ListView<PolicySituationPolicyConstraintType>(ID_SITUATION_REPEATER, new PropertyModel<>(getModel(),
-        		getPageBase().createPropertyModelExpression(PolicyRuleType.F_POLICY_CONSTRAINTS.getLocalPart(), PolicyConstraintsType.F_SITUATION.getLocalPart()))) {
+                pageBase.createPropertyModelExpression(PolicyRuleType.F_POLICY_CONSTRAINTS.getLocalPart(), PolicyConstraintsType.F_SITUATION.getLocalPart()))) {
             @Override
             protected void populateItem(final ListItem<PolicySituationPolicyConstraintType> listItem) {
                 PolicyRuleConstraintsExpandablePanel exclusionPropertiesPanel =
@@ -242,10 +239,10 @@ public class PolicyRulePropertiesPanel extends BasePanel<PolicyRuleType>{
     }
 
     private void addNewTimeValidityPerformed(AjaxRequestTarget target){
-        if (getPolicyConstraints().getTimeValidity() == null){
-            getPolicyConstraints().createTimeValidityList();
+        if (getPolicyConstraints().getObjectTimeValidity() == null){
+            getPolicyConstraints().createObjectTimeValidityList();
         }
-        getPolicyConstraints().getTimeValidity().add(new TimeValidityPolicyConstraintType());
+        getPolicyConstraints().getObjectTimeValidity().add(new TimeValidityPolicyConstraintType());
         initConstraintsContainer(getConstraintsContainer());
         target.add(getConstraintsContainer());
     }
@@ -254,7 +251,7 @@ public class PolicyRulePropertiesPanel extends BasePanel<PolicyRuleType>{
         if (getPolicyConstraints().getAssignment() == null){
             getPolicyConstraints().createAssignmentList();
         }
-        getPolicyConstraints().getAssignment().add(new AssignmentPolicyConstraintType());
+        getPolicyConstraints().getAssignment().add(new AssignmentModificationPolicyConstraintType());
         initConstraintsContainer(getConstraintsContainer());
         target.add(getConstraintsContainer());
     }

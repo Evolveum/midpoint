@@ -37,9 +37,7 @@
 	<globalPolicyRule>
 		<name>global-assignment-notification-for-judge</name>
 		<policyConstraints>
-			<assignment>
-				<operation>add</operation>
-			</assignment>
+			<ref>assignment-added</ref>
 		</policyConstraints>
 		<policyActions>
 			<notification/>
@@ -61,6 +59,7 @@
 		<name>global-assignment-disabled</name>
 		<policyConstraints>
 			<assignment>
+				<name>assignment-added</name>
 				<operation>add</operation>
 			</assignment>
 		</policyConstraints>
@@ -76,6 +75,32 @@
 		<condition>
 			<expression>
 				<value>false</value>
+			</expression>
+		</condition>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>global-focus-modification</name>
+		<policyConstraints>
+			<modification>
+				<item>employeeType</item>
+			</modification>
+		</policyConstraints>
+		<policyActions>
+			<notification/>
+		</policyActions>
+		<focusSelector>
+			<type>UserType</type>
+		</focusSelector>
+		<condition>
+			<source>
+				<path>employeeType</path>
+			</source>
+			<expression>
+				<script>
+					<code>
+						employeeType != "T"
+					</code>
+				</script>
 			</expression>
 		</condition>
 	</globalPolicyRule>

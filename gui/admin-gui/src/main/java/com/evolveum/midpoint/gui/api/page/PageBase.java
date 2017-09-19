@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.api.page;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
+
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
@@ -90,6 +91,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicies;
 import com.evolveum.midpoint.web.page.admin.workflow.*;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.*;
@@ -450,6 +452,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public AuditService getAuditService() {
         return auditService;
     }
+
 
     public AccessCertificationService getCertificationService() {
         return certficationService;
@@ -1256,6 +1259,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             items.add(createResourcesItems());
         }
 
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_URL,
+                AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+            items.add(createValuePolicieItems());
+        }
+
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
                 AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
                 AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
@@ -1404,6 +1412,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         addMenuItem(item, "PageAdmin.menu.top.resources.import", PageImportResource.class);
         addMenuItem(item, "PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class);
+
+        return item;
+    }
+
+    private MainMenuItem createValuePolicieItems(){
+        MainMenuItem item = new MainMenuItem("fa fa-asterisk", createStringResource("PageAdmin.menu.top.valuePolicies"),null);
+        List<MenuItem> submenu = item.getItems();
+
+        MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.valuePolicies.list"), PageValuePolicies.class);
+        submenu.add(list);
 
         return item;
     }

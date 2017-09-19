@@ -42,6 +42,7 @@ public class ApprovalProcessExecutionInformationDto implements Serializable {
 	public static final String F_PROCESS_NAME = "processName";
 	public static final String F_TARGET_NAME = "targetName";
 	public static final String F_STAGES = "stages";
+	public static final String F_TRIGGERS = "triggers";
 
 	private final boolean wholeProcess;                                   // do we represent whole process or only the future stages?
 	private final int currentStageNumber;                                 // current stage number (0 if there's no current stage, i.e. process has not started yet)
@@ -49,15 +50,18 @@ public class ApprovalProcessExecutionInformationDto implements Serializable {
 	private final String processName;
 	private final String targetName;
 	private final List<ApprovalStageExecutionInformationDto> stages = new ArrayList<>();
+	private final EvaluatedTriggerGroupDto triggers;
 	private final boolean running;
 
 	private ApprovalProcessExecutionInformationDto(boolean wholeProcess, int currentStageNumber, int numberOfStages,
-			String processName, String targetName, boolean running) {
+			String processName, String targetName,
+			EvaluatedTriggerGroupDto triggers, boolean running) {
 		this.wholeProcess = wholeProcess;
 		this.currentStageNumber = currentStageNumber;
 		this.numberOfStages = numberOfStages;
 		this.processName = processName;
 		this.targetName = targetName;
+		this.triggers = triggers;
 		this.running = running;
 	}
 
@@ -72,8 +76,10 @@ public class ApprovalProcessExecutionInformationDto implements Serializable {
 		String targetName = WfContextUtil.getTargetName(info);
 		WfContextType wfc = WfContextUtil.getWorkflowContext(info);
 		boolean running = wfc != null && wfc.getEndTimestamp() == null;
+		EvaluatedTriggerGroupDto triggers = EvaluatedTriggerGroupDto.createFrom(WfContextUtil.getAllRules(info.getPolicyRules()), false, new ArrayList<>());
 		ApprovalProcessExecutionInformationDto rv =
-				new ApprovalProcessExecutionInformationDto(wholeProcess, currentStageNumber, numberOfStages, processName, targetName, running);
+				new ApprovalProcessExecutionInformationDto(wholeProcess, currentStageNumber, numberOfStages, processName,
+						targetName, triggers, running);
 		int startingStageNumber = wholeProcess ? 1 : currentStageNumber+1;
 		boolean reachable = true;
 		for (int i = startingStageNumber - 1; i < numberOfStages; i++) {
@@ -113,5 +119,9 @@ public class ApprovalProcessExecutionInformationDto implements Serializable {
 
 	public boolean isRunning() {
 		return running;
+	}
+
+	public EvaluatedTriggerGroupDto getTriggers() {
+		return triggers;
 	}
 }

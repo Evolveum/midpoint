@@ -19,28 +19,24 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.EvaluatedTimeValidityTrigger;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerResultHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractScannerTaskHandler;
-import com.evolveum.midpoint.notifications.api.NotificationManager;
-import com.evolveum.midpoint.notifications.api.events.CustomEvent;
-import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -48,8 +44,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationPolicyActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeValidityPolicyConstraintType;
@@ -65,11 +59,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_FROM;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_TO;
@@ -268,13 +258,16 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		// We want reconcile option here. There may be accounts that are in wrong activation state.
 		// We will not notice that unless we go with reconcile.
 		LensContext<UserType> lensContext = contextFactory.createRecomputeContext(user, ModelExecuteOptions.createReconcile(), workerTask, result);
-		if (isNotifyAction(workerTask)) {
-			EvaluatedPolicyRule policyRule = new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), null);
-			EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType>(PolicyConstraintKindType.TIME_VALIDITY, getValidityPolicyConstraint(workerTask), "Applying time validity constraint for focus");
+		if (hasNotifyAction(workerTask)) {
+			EvaluatedPolicyRule policyRule = new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), null, prismContext);
+			TimeValidityPolicyConstraintType constraint = getValidityPolicyConstraint(workerTask);
+			EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedTimeValidityTrigger(
+					Boolean.TRUE.equals(constraint.isAssignment()) ? PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY : PolicyConstraintKindType.OBJECT_TIME_VALIDITY,
+					constraint, LocalizableMessageBuilder.buildFallbackMessage("Applying time validity constraint for focus"));
 			policyRule.getTriggers().add(evaluatedTrigger);
 			lensContext.getFocusContext().addPolicyRule(policyRule);
 		}
-		LOGGER.trace("Recomputing of user {}: context:\n{}", user, lensContext.debugDump());
+		LOGGER.trace("Recomputing of user {}: context:\n{}", user, lensContext.debugDumpLazily());
 		clockwork.run(lensContext, workerTask, result);
 		LOGGER.trace("Recomputing of user {}: {}", user, result.getStatus());
 	}
@@ -290,7 +283,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 			return null;
 		}
 
-		List<TimeValidityPolicyConstraintType> timeValidityContstraints = policyRule.getPolicyConstraints().getTimeValidity();
+		List<TimeValidityPolicyConstraintType> timeValidityContstraints = policyRule.getPolicyConstraints().getObjectTimeValidity();
 		if (CollectionUtils.isEmpty(timeValidityContstraints)){
 			return null;
 		}
@@ -299,22 +292,22 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 
 	}
 
-	private NotificationPolicyActionType getAction(Task coordinatorTask){
+	private List<NotificationPolicyActionType> getNotificationActions(Task coordinatorTask){
 		PolicyRuleType policyRule = coordinatorTask.getPolicyRule();
 
 		if (policyRule == null) {
-			return null;
+			return Collections.emptyList();
 		}
 
 		if (policyRule.getPolicyActions() == null) {
-			return null;
+			return Collections.emptyList();
 		}
 
 		return policyRule.getPolicyActions().getNotification();
 	}
 
-	private boolean isNotifyAction(Task coordinatorTask) {
-		return getAction(coordinatorTask) != null;
+	private boolean hasNotifyAction(Task coordinatorTask) {
+		return !getNotificationActions(coordinatorTask).isEmpty();
 	}
 
 	private boolean isTimeValidityConstraint(Task coordinatorTask){

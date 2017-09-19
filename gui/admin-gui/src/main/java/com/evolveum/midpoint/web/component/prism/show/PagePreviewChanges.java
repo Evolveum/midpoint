@@ -23,7 +23,6 @@ import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -41,11 +40,11 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.wf.ApprovalProcessesPreviewPanel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.workflow.InformationPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.EvaluatedTriggerGroupListPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutionInformationDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerHookPreviewOutputType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -81,7 +80,7 @@ public class PagePreviewChanges extends PageAdmin {
 
 	private IModel<SceneDto> primaryDeltasModel;
 	private IModel<SceneDto> secondaryDeltasModel;
-	private IModel<InformationType> policyViolationsModel;
+	private IModel<List<EvaluatedTriggerGroupDto>> policyViolationsModel;
 	private IModel<List<ApprovalProcessExecutionInformationDto>> approvalsModel;
 
 	public PagePreviewChanges(ModelContext<? extends ObjectType> modelContext, ModelInteractionService modelInteractionService) {
@@ -138,9 +137,10 @@ public class PagePreviewChanges extends PageAdmin {
 		PolicyRuleEnforcerHookPreviewOutputType enforcements = modelContext != null
 				? modelContext.getHookPreviewResult(PolicyRuleEnforcerHookPreviewOutputType.class)
 				: null;
-		List<String> violations = enforcements != null ? enforcements.getExceptionMessage() : Collections.emptyList();
-		InformationType information = MiscSchemaUtil.createInformationType(violations);
-		policyViolationsModel = Model.of(information);
+		List<EvaluatedTriggerGroupDto> triggerGroups = enforcements != null
+				? Collections.singletonList(EvaluatedTriggerGroupDto.createFrom(enforcements.getRule(), false, null))
+				: Collections.emptyList();
+		policyViolationsModel = Model.ofList(triggerGroups);
 
 		List<ApprovalSchemaExecutionInformationType> approvalsExecutionList = modelContext != null
 				? modelContext.getHookPreviewResults(ApprovalSchemaExecutionInformationType.class)
@@ -183,8 +183,8 @@ public class PagePreviewChanges extends PageAdmin {
 		mainForm.add(new ScenePanel(ID_SECONDARY_DELTAS_SCENE, secondaryDeltasModel));
 
 		WebMarkupContainer policyViolationsContainer = new WebMarkupContainer(ID_POLICY_VIOLATIONS_CONTAINER);
-		policyViolationsContainer.add(new VisibleBehaviour(() -> !policyViolationsModel.getObject().getPart().isEmpty()));
-		policyViolationsContainer.add(new InformationPanel(ID_POLICY_VIOLATIONS, policyViolationsModel));
+		policyViolationsContainer.add(new VisibleBehaviour(() -> !policyViolationsModel.getObject().isEmpty()));
+		policyViolationsContainer.add(new EvaluatedTriggerGroupListPanel(ID_POLICY_VIOLATIONS, policyViolationsModel));
 		mainForm.add(policyViolationsContainer);
 
 		WebMarkupContainer approvalsContainer = new WebMarkupContainer(ID_APPROVALS_CONTAINER);

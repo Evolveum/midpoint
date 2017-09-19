@@ -15,16 +15,17 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleTriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 
 /**
@@ -32,13 +33,13 @@ import java.util.Objects;
  *
  * @author semancik
  */
-public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType> implements DebugDumpable {
+public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType> implements DebugDumpable {
 
 	@NotNull private final PolicyConstraintKindType constraintKind;
 	@NotNull private final CT constraint;
-	private final String message;
+	private final LocalizableMessage message;
 
-	public EvaluatedPolicyRuleTrigger(@NotNull PolicyConstraintKindType constraintKind, @NotNull CT constraint, String message) {
+	public EvaluatedPolicyRuleTrigger(@NotNull PolicyConstraintKindType constraintKind, @NotNull CT constraint, LocalizableMessage message) {
 		this.constraintKind = constraintKind;
 		this.constraint = constraint;
 		this.message = message;
@@ -63,7 +64,7 @@ public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType>
 	 * in the logs, as an error message, in the audit trail
 	 * and so on.
 	 */
-	public String getMessage() {
+	public LocalizableMessage getMessage() {
 		return message;
 	}
 
@@ -86,7 +87,9 @@ public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType>
 
 	@Override
 	public String toString() {
-		return "EvaluatedPolicyRuleTrigger(" + constraintKind + ": " + message + ")";
+		return "EvaluatedPolicyRuleTrigger(" +
+				(constraint.getName() != null ? "[" + constraint.getName() + "] " : "") +
+				constraintKind + ": " + message + ")";
 	}
 
 	@Override
@@ -99,9 +102,26 @@ public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType>
 	}
 
 	private void debugDumpCommon(StringBuilder sb, int indent) {
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraintName", constraint.getName(), indent);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraintKind", constraintKind, indent);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "constraint", constraint, indent);
-		DebugUtil.debugDumpWithLabelLn(sb, "message", message, indent);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "message", message, indent);
+		if (isFinal()) {
+			DebugUtil.debugDumpWithLabelToStringLn(sb, "final", true, indent);
+		}
+		if (isHidden()) {
+			DebugUtil.debugDumpWithLabelToStringLn(sb, "hidden", true, indent);
+		}
+	}
+
+	public boolean isHidden() {
+		PolicyConstraintPresentationType presentation = constraint.getPresentation();
+		return presentation != null && Boolean.TRUE.equals(presentation.isHidden());
+	}
+
+	public boolean isFinal() {
+		PolicyConstraintPresentationType presentation = constraint.getPresentation();
+		return presentation != null && Boolean.TRUE.equals(presentation.isFinal());
 	}
 
 	protected void debugDumpSpecific(StringBuilder sb, int indent) {
@@ -111,7 +131,8 @@ public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType>
 		return PolicyRuleTypeUtil.toDiagShortcut(constraintKind);
 	}
 
-	public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule) {
+	public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule,
+			boolean respectFinalFlag) {
 		EvaluatedPolicyRuleTriggerType rv = new EvaluatedPolicyRuleTriggerType();
 		fillCommonContent(rv, owningRule);
 		return rv;
@@ -120,8 +141,8 @@ public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType>
 	protected void fillCommonContent(EvaluatedPolicyRuleTriggerType tt, EvaluatedPolicyRule owningRule) {
 		tt.setRuleName(owningRule.getName());
 		tt.setConstraintKind(constraintKind);
-		tt.setConstraint(constraint);
-		tt.setMessage(message);
+		//tt.setConstraint(constraint);
+		tt.setMessage(LocalizationUtil.createLocalizableMessageType(message));
 		if (owningRule.getAssignmentPath() != null) {
 			tt.setAssignmentPath(owningRule.getAssignmentPath().toAssignmentPathType());
 		}
@@ -130,5 +151,15 @@ public class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstraintType>
 			tt.setDirectOwnerRef(ObjectTypeUtil.createObjectRef(directOwner));
 			tt.setDirectOwnerDisplayName(ObjectTypeUtil.getDisplayName(directOwner));
 		}
+		PolicyConstraintPresentationType presentation = constraint.getPresentation();
+		if (presentation != null) {
+			tt.setFinal(presentation.isFinal());
+			tt.setHidden(presentation.isHidden());
+		}
 	}
+
+	public Collection<EvaluatedPolicyRuleTrigger<?>> getInnerTriggers() {
+		return Collections.emptySet();
+	}
+
 }

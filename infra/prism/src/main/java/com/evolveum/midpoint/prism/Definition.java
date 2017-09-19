@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.IdentityHashMap;
 
 /**
  * @author mederly
@@ -164,4 +165,8 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 
 	@NotNull
 	Definition clone();
+
+	default String debugDump(int indent, IdentityHashMap<Definition,Object> seen) {
+		return debugDump(indent);
+	}
 }

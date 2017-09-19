@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.menu;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -28,6 +29,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -62,8 +64,20 @@ public class SideBarMenuPanel extends SimplePanel<List<SideBarMenuItem>> {
 
                     @Override
                     protected void onEvent(AjaxRequestTarget target) {
-                        SideBarMenuItem menuItem = item.getModelObject();
-                        menuItem.setExpanded(!menuItem.isExpanded());
+                        SideBarMenuItem mainMenu = item.getModelObject();
+
+                        SessionStorage storage = getPageBase().getSessionStorage();
+                        Map<String, Boolean> menuState = storage.getMainMenuState();
+
+                        String menuLabel = mainMenu.getName().getObject();
+                        // we'll use menu label as key
+                        Boolean expanded = menuState.get(menuLabel);
+
+                        if (expanded == null) {
+                            expanded = true;
+                        }
+
+                        menuState.put(menuLabel, !expanded);
 
                         target.add(sidebar);
                     }
@@ -77,7 +91,7 @@ public class SideBarMenuPanel extends SimplePanel<List<SideBarMenuItem>> {
                     public boolean isVisible() {
                         SideBarMenuItem mainMenu = item.getModelObject();
 
-                        return !mainMenu.isExpanded();
+                        return !isMenuExpanded(mainMenu);
                     }
                 });
                 item.add(icon);
@@ -141,12 +155,22 @@ public class SideBarMenuPanel extends SimplePanel<List<SideBarMenuItem>> {
                     @Override
                     public boolean isVisible() {
                         SideBarMenuItem mainMenu = item.getModelObject();
-
-                        return mainMenu.isExpanded();
+                        return isMenuExpanded(mainMenu);
                     }
                 });
             }
         };
         sidebar.add(menuItems);
+    }
+
+    private boolean isMenuExpanded(SideBarMenuItem mainMenu) {
+        SessionStorage storage = getPageBase().getSessionStorage();
+        Map<String, Boolean> menuState = storage.getMainMenuState();
+
+        String menuLabel = mainMenu.getName().getObject();
+        // we'll use menu label as key
+        Boolean expanded = menuState.get(menuLabel);
+
+        return expanded != null ? expanded : true;
     }
 }

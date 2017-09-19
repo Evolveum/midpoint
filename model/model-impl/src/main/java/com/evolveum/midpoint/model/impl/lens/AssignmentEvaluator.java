@@ -538,7 +538,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		LOGGER.trace("Collecting {} policy rule '{}' in {}", focusRule ? "focus" : "target", policyRuleType.getName(), segment.source);
 		
-		EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(policyRuleType, ctx.assignmentPath.clone());
+		EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(policyRuleType, ctx.assignmentPath.clone(), prismContext);
 
 		if (focusRule) {
 			ctx.evalAssignment.addFocusPolicyRule(policyRule);
@@ -673,12 +673,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 		boolean isTargetValid = LensUtil.isFocusValid(targetType, now, activationComputer);
 		if (!isTargetValid) {
-			if (!segment.isValidityOverride()) {
-				LOGGER.trace("Skipping evaluation of {} because it is not valid and validityOverride is not set", targetType);
-				return;
-			} else {
-				isValid = false;
-			}
+			isValid = false;
 		}
 		
 		LOGGER.debug("Evaluating RBAC [{}]", ctx.assignmentPath.shortDumpLazily());
@@ -720,15 +715,16 @@ public class AssignmentEvaluator<F extends FocusType> {
 		ctx.evalAssignment.addRole(evalAssignmentTarget, relativeMode);
 
 		// we need to evaluate assignments also for disabled targets, because of target policy rules
-		for (AssignmentType roleAssignment : targetType.getAssignment()) {
-			evaluateAssignment(segment, relativeMode, isValid, ctx, targetType, relation, roleAssignment);
+		// ... but only for direct ones!
+		if (isTargetValid || ctx.assignmentPath.size() == 1) {
+			for (AssignmentType roleAssignment : targetType.getAssignment()) {
+				evaluateAssignment(segment, relativeMode, isValid, ctx, targetType, relation, roleAssignment);
+			}
 		}
 
+		// we need to collect membership also for disabled targets (provided the assignment itself is enabled): MID-4127
 		if ((isNonNegative(relativeMode)) && segment.isProcessMembership()) {
-			if (isTargetValid || !ObjectTypeUtil.isMembershipRelation(relation)) {
-				// we want to collect approver/owner/whatever-non-membership relations also for disabled targets (MID-3942)
-				collectMembership(targetType, relation, ctx);
-			}
+			collectMembership(targetType, relation, ctx);
 		}
 
 		if (!isTargetValid) {
@@ -758,7 +754,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 			PolicyConstraintsType policyConstraints = ((AbstractRoleType)targetType).getPolicyConstraints();
 			if (policyConstraints != null) {
-				ctx.evalAssignment.addLegacyPolicyConstraints(policyConstraints, ctx.assignmentPath.clone(), targetType);
+				ctx.evalAssignment.addLegacyPolicyConstraints(policyConstraints, ctx.assignmentPath.clone(), targetType, prismContext);
 			}
 		}
 		

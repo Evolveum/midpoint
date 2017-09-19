@@ -93,7 +93,7 @@ public class GenericHandlerDto extends HandlerDto {
 				clonedDefinition = CloneUtil.clone((PrismPropertyDefinitionImpl) prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(item.name));
 			}
 			if (clonedDefinition == null) {
-				System.out.println("Definition-less property " + item.name);
+				System.out.println("Definition-less property " + item.name);        // TODO
 			} else {
 				clonedDefinition.setCanAdd(false);
 				clonedDefinition.setCanModify(false);

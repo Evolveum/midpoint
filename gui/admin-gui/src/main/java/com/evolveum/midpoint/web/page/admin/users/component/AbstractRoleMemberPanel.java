@@ -70,7 +70,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
@@ -104,38 +103,42 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	protected static final String ID_MEMBER_TABLE = "memberTable";
 
 	protected List<RelationTypes> relations = new ArrayList<>();
+	private TableId tableId;
 
-	public AbstractRoleMemberPanel(String id, TableId tableId, IModel<T> model, PageBase parentPage) {
-		super(id, model);
-		setParent(parentPage);
-		initLayout(tableId, parentPage);
+	public AbstractRoleMemberPanel(String id, TableId tableId, IModel<T> model) {
+		this(id, tableId, model, new ArrayList<>());
 	}
 
 	public AbstractRoleMemberPanel(String id, TableId tableId, IModel<T> model,
-								   List<RelationTypes> relations, PageBase parentPage) {
+								   List<RelationTypes> relations) {
 		super(id, model);
 		this.relations = relations;
-		setParent(parentPage);
-		initLayout(tableId, parentPage);
+		this.tableId = tableId;
 	}
 
-	private void initLayout(TableId tableId, ModelServiceLocator serviceLocator) {
+	@Override
+	protected void onInitialize(){
+		super.onInitialize();
+		initLayout();
+	}
+
+	private void initLayout() {
 		Form form = new Form(ID_FORM);
 		form.setOutputMarkupId(true);
 		add(form);
 
 		initSearch(form);
 
-		initMemberTable(tableId, form);
+		initMemberTable(form);
 
-		initCustomLayout(form, serviceLocator);
+		initCustomLayout(form, getPageBase());
 	}
 
 	protected abstract void initCustomLayout(Form form, ModelServiceLocator serviceLocator);
 
 	protected abstract void initSearch(Form form);
 
-	private void initMemberTable(TableId tableId, Form form) {
+	private void initMemberTable(Form form) {
 		WebMarkupContainer memberContainer = new WebMarkupContainer(ID_CONTAINER_MEMBER);
 		memberContainer.setOutputMarkupId(true);
 		memberContainer.setOutputMarkupPlaceholderTag(true);

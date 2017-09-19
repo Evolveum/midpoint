@@ -42,17 +42,22 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.SubscriptionType;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
-import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.Page;
-import org.apache.wicket.PageReference;
-import org.apache.wicket.Session;
+import org.apache.wicket.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -73,6 +78,7 @@ import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -133,11 +139,6 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -333,6 +334,46 @@ public final class WebComponentUtil {
             }
         });
     }
+
+	public static String resolveLocalizableMessage(LocalizableMessageType localizableMessage, Component component) {
+		if (localizableMessage == null) {
+			return null;
+		}
+		return resolveLocalizableMessage(LocalizationUtil.parseLocalizableMessageType(localizableMessage), component);
+	}
+
+	public static String resolveLocalizableMessage(LocalizableMessage localizableMessage, Component component) {
+		if (localizableMessage == null) {
+			return null;
+		}
+		while (localizableMessage.getFallbackLocalizableMessage() != null) {
+			if (localizableMessage.getKey() != null) {
+				Localizer localizer = Application.get().getResourceSettings().getLocalizer();
+				if (localizer.getStringIgnoreSettings(localizableMessage.getKey(), component, null, null) != null) {
+					break; // the key exists => we can use the current localizableMessage
+				}
+			}
+			localizableMessage = localizableMessage.getFallbackLocalizableMessage();
+		}
+		String key = localizableMessage.getKey() != null ? localizableMessage.getKey() : localizableMessage.getFallbackMessage();
+		StringResourceModel stringResourceModel = new StringResourceModel(key, component)
+				.setModel(new Model<String>())
+				.setDefaultValue(localizableMessage.getFallbackMessage())
+				.setParameters(resolveArguments(localizableMessage.getArgs(), component));
+		return stringResourceModel.getString();
+	}
+
+	private static Object[] resolveArguments(Object[] args, Component component) {
+		Object[] rv = new Object[args.length];
+		for (int i = 0; i < args.length; i++) {
+			if (args[i] instanceof LocalizableMessage) {
+				rv[i] = resolveLocalizableMessage(((LocalizableMessage) args[i]), component);
+			} else {
+				rv[i] = args[i];
+			}
+		}
+		return rv;
+	}
 
 	public enum Channel {
 		// TODO: move this to schema component

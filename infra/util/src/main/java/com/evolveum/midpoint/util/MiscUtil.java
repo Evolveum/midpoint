@@ -571,6 +571,19 @@ public class MiscUtil {
 		}
 	}
 
+	// similar to the above ... todo deduplicate
+	public static <T> T getSingleValue(Collection<T> values, T defaultValue, String contextDescription) {
+		if (values.size() == 0) {
+			return defaultValue;
+		} else if (values.size() > 1) {
+			throw new IllegalStateException("Expected exactly one value; got "
+					+ values.size() + " ones in " + contextDescription);
+		} else {
+			T value = values.iterator().next();
+			return value != null ? value : defaultValue;
+		}
+	}
+
 	public static boolean isCollectionOf(Object object, @NotNull Class<?> memberClass) {
 		return object instanceof Collection
 				&& ((Collection<?>) object).stream().allMatch(member -> member != null && memberClass.isAssignableFrom(member.getClass()));
@@ -628,5 +641,15 @@ public class MiscUtil {
 		return t != null
 				? t.getMessage() + " [" + t.getClass().getSimpleName() + "]"
 				: null;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T extends Throwable> void throwException(Throwable exception) throws T
+	{
+		throw (T) exception;
+	}
+
+	public static void throwExceptionAsUnchecked(Throwable t) {
+		MiscUtil.throwException(t);
 	}
 }

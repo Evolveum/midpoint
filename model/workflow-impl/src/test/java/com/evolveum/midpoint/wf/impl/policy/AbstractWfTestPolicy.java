@@ -973,12 +973,16 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 //		}
 //	}
 
-	protected void assertNoObject(ObjectType object) throws SchemaException, com.evolveum.midpoint.util.exception.ObjectNotFoundException, com.evolveum.midpoint.util.exception.SecurityViolationException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException, ExpressionEvaluationException {
+	protected void assertNoObject(ObjectType object) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		assertNull("Object was created but it shouldn't be",
 				searchObjectByName(object.getClass(), object.getName().getOrig()));
 	}
 
-	protected <T extends ObjectType> void assertObject(T object) throws SchemaException, com.evolveum.midpoint.util.exception.ObjectNotFoundException, com.evolveum.midpoint.util.exception.SecurityViolationException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException, ExpressionEvaluationException {
+	protected void assertNoObject(PrismObject<? extends ObjectType> object) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		assertNoObject(object.asObjectable());
+	}
+
+	protected <T extends ObjectType> void assertObject(T object) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<T> objectFromRepo = searchObjectByName((Class<T>) object.getClass(), object.getName().getOrig());
 		assertNotNull("Object " + object + " was not created", object);
 		objectFromRepo.removeItem(new ItemPath(ObjectType.F_METADATA), Item.class);

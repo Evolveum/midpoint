@@ -21,13 +21,16 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wf.SwitchableApprovalProcessPreviewsPanel;
 import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.workflow.EvaluatedTriggerGroupListPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.ProcessInstancesPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -55,6 +58,8 @@ public class TaskWfChildPanel extends Panel {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_CHANGES = "changes";
+	private static final String ID_TRIGGERS_CONTAINER = "triggersContainer";
+	private static final String ID_TRIGGERS = "triggers";
 	private static final String ID_HISTORY = "history";
 	private static final String ID_HISTORY_HELP = "approvalHistoryHelp";
 	private static final String ID_CURRENT_WORK_ITEMS_CONTAINER = "currentWorkItemsContainer";
@@ -85,6 +90,13 @@ public class TaskWfChildPanel extends Panel {
 		TaskChangesPanel changesPanel = new TaskChangesPanel(ID_CHANGES, changesModel);
 		changesPanel.setOutputMarkupId(true);
 		add(changesPanel);
+
+		WebMarkupContainer triggersContainer = new WebMarkupContainer(ID_TRIGGERS_CONTAINER);
+		PropertyModel<List<EvaluatedTriggerGroupDto>> triggersModel = new PropertyModel<>(taskDtoModel, TaskDto.F_TRIGGERS);
+		WebMarkupContainer triggers = new EvaluatedTriggerGroupListPanel(ID_TRIGGERS, triggersModel);
+		triggersContainer.add(triggers);
+		triggersContainer.add(new VisibleBehaviour(() -> !triggersModel.getObject().isEmpty()));
+		add(triggersContainer);
 
 		final ItemApprovalHistoryPanel history = new ItemApprovalHistoryPanel(ID_HISTORY,
 				new PropertyModel<>(taskDtoModel, TaskDto.F_WORKFLOW_CONTEXT),

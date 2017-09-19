@@ -527,6 +527,15 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
         return findItem(containerName, PrismContainer.class);
     }
 
+    public <I extends Item<?,?>> List<I> getItems(Class<I> type) {
+		return getValue().getItems(type);
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<PrismContainer<?>> getContainers() {
+	    return (List) getItems(PrismContainer.class);
+    }
+
     public <T> PrismProperty<T> findProperty(ItemPath path) {
         return findItem(path, PrismProperty.class);
     }

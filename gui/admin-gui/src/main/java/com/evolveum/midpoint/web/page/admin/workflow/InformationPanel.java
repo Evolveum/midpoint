@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.util.LocalizableMessageModel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationPartType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationType;
@@ -41,7 +43,7 @@ public class InformationPanel extends BasePanel<InformationType> {
 	}
 
 	private void initLayout() {
-		Label titleLabel = new Label(ID_TITLE, new PropertyModel<>(getModel(), InformationType.F_TITLE.getLocalPart()));
+		Label titleLabel = new Label(ID_TITLE, new LocalizableMessageModel(new PropertyModel<>(getModel(), InformationType.F_TITLE.getLocalPart()), this));
 		titleLabel.add(new VisibleBehaviour(() -> getModelObject().getTitle() != null));
 		add(titleLabel);
 
@@ -50,7 +52,7 @@ public class InformationPanel extends BasePanel<InformationType> {
 			@Override
 			protected void populateItem(ListItem<InformationPartType> item) {
 				InformationPartType part = item.getModelObject();
-				Label label = new Label(ID_PART, part.getText());
+				Label label = new Label(ID_PART, WebComponentUtil.resolveLocalizableMessage(part.getText(), InformationPanel.this));
 				if (Boolean.TRUE.equals(part.isHasMarkup())) {
 					label.setEscapeModelStrings(false);
 				}

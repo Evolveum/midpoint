@@ -32,6 +32,7 @@ public class ExpressionConstants {
 	public static final QName VAR_PROJECTION = new QName(SchemaConstants.NS_C, "projection");
 	public static final QName VAR_SOURCE = new QName(SchemaConstants.NS_C, "source");
 	public static final QName VAR_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
+	public static final QName VAR_EVALUATED_ASSIGNMENT = new QName(SchemaConstants.NS_C, "evaluatedAssignment");
 	public static final QName VAR_ASSIGNMENT_PATH = new QName(SchemaConstants.NS_C, "assignmentPath");
 	public static final QName VAR_IMMEDIATE_ASSIGNMENT = new QName(SchemaConstants.NS_C, "immediateAssignment");
 	public static final QName VAR_THIS_ASSIGNMENT = new QName(SchemaConstants.NS_C, "thisAssignment");

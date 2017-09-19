@@ -21,7 +21,38 @@
 <wicket:extend>
     <form wicket:id="mainForm" class="form-horizontal">
         <div class="main-form-panel">
-            <div wicket:id="mainPanel"/>
+            <div class="row" wicket:id="headerPanel">
+                <div class="col-md-2">
+                    <select class="form-control input-sm col-md-2" wicket:id="viewTypeSelect"/>
+                </div>
+
+                <div class="col-md-2" wicket:id="targetUserPanel" />
+                <div class="col-md-2" wicket:id="sourceUserPanel" />
+
+                <form class="col-md-5 search-form" wicket:id="searchForm">
+                    <div wicket:id="search"/>
+                </form>
+
+                <div class="col-md-1 pull-right">
+                    <a wicket:id="cartButton">
+                        <i class="fa fa-shopping-cart fa-2x"></i>
+                        <span wicket:id="itemsCount" class="badge bg-red" style="position: absolute; top: -1px; left: 30px;"></span>
+                    </a>
+                </div>
+            </div>
+
+            <div wicket:id="contentPanel" class="row">
+                <div wicket:id="treePanelContainer" class="col-md-3" style="margin-top: 10px;">
+                    <div wicket:id="treePanel"/>
+                </div>
+                <div wicket:id="noCatalogRefDefinedLabel" class="col-md-12"/>
+
+                <div wicket:id="catalogItemsPanelContainer">
+                    <div class="h3 col-md-12" wicket:id="assignmentsOwnerName"/>
+                    <div wicket:id="catalogItemsGridPanel"/>
+
+                </div>
+            </div>
         </div>
     </form>
 </wicket:extend>

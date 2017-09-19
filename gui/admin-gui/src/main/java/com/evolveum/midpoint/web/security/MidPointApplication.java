@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.security;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -27,7 +28,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -45,7 +45,7 @@ import com.evolveum.midpoint.web.page.error.*;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.web.util.Utf8BundleStringResourceLoader;
+import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import org.apache.commons.configuration.Configuration;
@@ -169,6 +169,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient SecurityEnforcer securityEnforcer;
     @Autowired
     transient SystemObjectCache systemObjectCache;
+    @Autowired
+    transient LocalizationService localizationService;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -211,10 +213,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         ClassLoader classLoader = new URLClassLoader(new URL[]{url});
 
         List<IStringResourceLoader> resourceLoaders = resourceSettings.getStringResourceLoaders();
-        resourceLoaders.add(0, new Utf8BundleStringResourceLoader("Midpoint", classLoader));
-        resourceLoaders.add(1, new Utf8BundleStringResourceLoader(SchemaConstants.BUNDLE_NAME, classLoader));
-        resourceLoaders.add(2, new Utf8BundleStringResourceLoader("localization/Midpoint"));
-        resourceLoaders.add(3, new Utf8BundleStringResourceLoader(SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH));
+        resourceLoaders.add(0, new MidPointStringResourceLoader(localizationService));
 
         resourceSettings.setThrowExceptionOnMissingResource(false);
         getMarkupSettings().setStripWicketTags(true);

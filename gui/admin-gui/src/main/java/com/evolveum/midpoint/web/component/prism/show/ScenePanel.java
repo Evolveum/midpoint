@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -326,7 +327,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 				return "";
 			}
 			if (def instanceof PrismObjectDefinition) {
-				return PageBase.createStringResourceStatic(ScenePanel.this, "ObjectType." +def.getTypeName().getLocalPart()).getObject();
+				return PageBase.createStringResourceStatic(ScenePanel.this, SchemaConstants.OBJECT_TYPE_KEY_PREFIX +def.getTypeName().getLocalPart()).getObject();
 			} else {
 				return "";
 			}

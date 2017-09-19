@@ -188,7 +188,7 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
 	@NotNull
 	@Override
-	RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap);
+	RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath);
 	//endregion
 
 	LayerRefinedObjectClassDefinition forLayer(@NotNull LayerType layerType);
