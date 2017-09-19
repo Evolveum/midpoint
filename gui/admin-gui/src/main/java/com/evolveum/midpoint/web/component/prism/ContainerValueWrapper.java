@@ -421,7 +421,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	private ItemDelta computePropertyDeltas(PropertyWrapper propertyWrapper, ItemPath containerPath) {
 		ItemDefinition itemDef = propertyWrapper.getItemDefinition();
-		ItemDelta pDelta = itemDef.createEmptyDelta(containerPath.subPath(itemDef.getName()));
+		ItemDelta pDelta = itemDef.createEmptyDelta(propertyWrapper.getItem().getPath());
 		addItemDelta(propertyWrapper, pDelta, itemDef, containerPath);
 		return pDelta;
 	}
@@ -556,6 +556,10 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			return false;
 		}
 		
+		if (def.getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
+			return isShowMetadata();
+		}
+		
 		//TODO: emphasized
 		switch (status) {
 			case NOT_CHANGED :
@@ -568,7 +572,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	}
 	
 	private boolean isNotEmptyAndCanReadAndModify(PrismContainerDefinition<C> def) {
-		return def.canRead() && def.canModify() && !getContainerValue().isEmpty();
+		return def.canRead() && def.canModify();
 	}
 	
 	private boolean showEmptyCanReadAndModify(PrismContainerDefinition<C> def) {
@@ -576,7 +580,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	}
 
 	private boolean showEmptyAndCanAdd(PrismContainerDefinition<C> def) {
-		return def.canAdd() && isShowEmpty();
+		return def.canAdd();
 	}
 	
 	private boolean emphasizedAndCanAdd(PrismContainerDefinition<C> def) {
@@ -590,6 +594,17 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			item.setShowEmpty(showEmpty);
 		});
 	}
+	
+	@Override
+	public void setShowMetadata(boolean showMetadata) {
+		super.setShowMetadata(showMetadata);
+		getItems().forEach(value -> {
+			if (value instanceof ContainerWrapper) {
+				((ContainerWrapper<C>) value).setShowMetadata(showMetadata);
+			}
+		});
+	}
+
 	
 //	@Override
 	public boolean checkRequired(PageBase pageBase) {
@@ -626,7 +641,19 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
         		return containerWrapper;
         	}
         	
-            return ((ContainerWrapper<C>)wrapper).findContainerWrapper(path);
+//            return ((ContainerWrapper<C>)wrapper).findContainerWrapper(path);
+         
+        }
+        return null;
+    }
+	
+	public ContainerValueWrapper<C> findContainerValueWrapper(ItemPath path) {
+        Validate.notNull(path, "QName must not be null.");
+        for (ItemWrapper wrapper : getItems()) {
+        	if (!(wrapper instanceof ContainerValueWrapper)) {
+        		continue;
+        	}
+            return ((ContainerValueWrapper<C>)wrapper).findContainerValueWrapper(path);
          
         }
         return null;

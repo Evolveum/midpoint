@@ -25,9 +25,14 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+
 import org.apache.wicket.model.PropertyModel;
 
 /**
@@ -47,8 +52,8 @@ public class PolicyRuleDetailsPanel extends AbstractAssignmentDetailsPanel {
 			hiddenItems.add(ID_PROPERTIES_PANEL);
 	};
 
-    public PolicyRuleDetailsPanel(String id, Form<?> form, IModel<AssignmentDto> model, PageBase pageBase){
-        super(id, form, model, pageBase);
+    public PolicyRuleDetailsPanel(String id, Form<?> form, IModel<AssignmentDto> model){
+        super(id, form, model);
     }
 
    @Override
@@ -56,21 +61,39 @@ protected List getHiddenItems() {
 	return hiddenItems;
 }
 
-   @Override
-protected void initPropertiesPanel(WebMarkupContainer propertiesPanel) {
-	   PolicyRulePropertiesPanel policyDetails = new PolicyRulePropertiesPanel(ID_POLICY_RULE,
-			   new PropertyModel<>(getModel(), pageBase.createPropertyModelExpression(AssignmentDto.F_VALUE, AssignmentType.F_POLICY_RULE.getLocalPart())), pageBase);
-		policyDetails.setOutputMarkupId(true);
-		policyDetails.add(new VisibleEnableBehaviour() {
+   protected boolean getVisibilityModel(ItemPath itemToBeFound, ItemPath parentAssignmentPath) {
+//		AssignmentType assignment = getModelObject().getAssignment();
+//		ObjectReferenceType targetRef = assignment.getTargetRef();
+		List<ItemPath> pathsToHide = new ArrayList<>();
+		
+		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_TARGET_REF));
+		
+			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_TENANT_REF));
+			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_ORG_REF));
+		
+			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION));
+		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_PERSONA_CONSTRUCTION));
+//		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_POLICY_RULE));
+		
+		return !WebComponentUtil.isItemVisible(pathsToHide, itemToBeFound);
+	}
 
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isVisible() {
-				return PolicyRuleDetailsPanel.this.isVisible(AssignmentType.F_POLICY_RULE);
-			}
-		});
-		propertiesPanel.add(policyDetails);
-}
+   
+//   @Override
+//protected void initPropertiesPanel(WebMarkupContainer propertiesPanel) {
+//	   PolicyRulePropertiesPanel policyDetails = new PolicyRulePropertiesPanel(ID_POLICY_RULE,
+//			   new PropertyModel<>(getModel(), getPageBase().createPropertyModelExpression(AssignmentDto.F_VALUE, AssignmentType.F_POLICY_RULE.getLocalPart())));
+//		policyDetails.setOutputMarkupId(true);
+//		policyDetails.add(new VisibleEnableBehaviour() {
+//
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public boolean isVisible() {
+//				return PolicyRuleDetailsPanel.this.isVisible(AssignmentType.F_POLICY_RULE);
+//			}
+//		});
+//		propertiesPanel.add(policyDetails);
+//}
 
 }

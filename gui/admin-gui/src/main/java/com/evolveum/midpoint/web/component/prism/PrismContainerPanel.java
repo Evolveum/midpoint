@@ -49,7 +49,7 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
 
     private PageBase pageBase;
 
-    public PrismContainerPanel(String id, final IModel<ContainerWrapper<C>> model, boolean showHeader, Form form, PageBase pageBase) {
+    public PrismContainerPanel(String id, final IModel<ContainerWrapper<C>> model, boolean showHeader, Form form, ItemVisibilityHandler isPanelVisible, PageBase pageBase) {
         super(id);
         setOutputMarkupId(true); 
 		this.pageBase = pageBase;
@@ -61,22 +61,25 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
         	
         	@Override
         	public boolean isVisible() {
+        		if (isPanelVisible!= null && !isPanelVisible.isVisible(model.getObject())) {
+        			return false;
+        		}
         		return model.getObject() !=null && model.getObject().isVisible();
         	}
         });
         
-        initLayout(model, form, showHeader);
+        initLayout(model, form, isPanelVisible, showHeader);
         
     }
 
-    private void initLayout(final IModel<ContainerWrapper<C>> model, final Form form, boolean showHeader) {
+    private void initLayout(final IModel<ContainerWrapper<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean showHeader) {
     	PrismContainerHeaderPanel header = new PrismContainerHeaderPanel(ID_HEADER, model) {
 			private static final long serialVersionUID = 1L;
 			
 			@Override
 			protected void onButtonClick(AjaxRequestTarget target) {
-				addOrReplaceProperties(model, form, true);
-				target.add(PrismContainerPanel.this.findParent(PrismObjectPanel.class));
+				addOrReplaceProperties(model, form, isPanelVisible, true);
+				target.add(PrismContainerPanel.this.findParent(PrismPanel.class));
 			}
 			
 
@@ -84,7 +87,7 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
         header.setOutputMarkupId(true);
         add(header);
 
-        addOrReplaceProperties(model, form, false);
+        addOrReplaceProperties(model, form, isPanelVisible, false);
     }
 
     public PageBase getPageBase(){
@@ -103,7 +106,7 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
         };
     }
 
-    private void addOrReplaceProperties(IModel<ContainerWrapper<C>> model, final Form form, boolean isToBeReplaced){
+    private void addOrReplaceProperties(IModel<ContainerWrapper<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean isToBeReplaced){
     	
     	
     	ListView<ContainerValueWrapper<C>> values = new ListView<ContainerValueWrapper<C>>("values", new PropertyModel<List<ContainerValueWrapper<C>>>(model, "values")) {
@@ -112,7 +115,7 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
 
 			@Override
 			protected void populateItem(ListItem<ContainerValueWrapper<C>> item) {
-				ContainerValuePanel<C> containerPanel = new ContainerValuePanel<C>("value", item.getModel(), true, form, pageBase);
+				ContainerValuePanel<C> containerPanel = new ContainerValuePanel<C>("value", item.getModel(), true, form, isPanelVisible, pageBase);
 				containerPanel.setOutputMarkupId(true);
 				item.add(containerPanel);
 				

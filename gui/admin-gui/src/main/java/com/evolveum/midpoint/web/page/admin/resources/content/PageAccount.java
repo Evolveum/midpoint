@@ -20,8 +20,10 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -36,9 +38,10 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
+import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
@@ -58,7 +61,9 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -136,11 +141,16 @@ public class PageAccount extends PageAdminResources {
         });
         mainForm.add(protectedMessage);
 
-        PrismObjectPanel<ShadowType> userForm = new PrismObjectPanel<ShadowType>("account", accountModel, new PackageResourceReference(
-                ImgResources.class, ImgResources.HDD_PRISM), mainForm, this);
+        PrismPanel<ShadowType> userForm = new PrismPanel<ShadowType>("account", new ContainerWrapperListFromObjectWrapperModel<>(accountModel, getItemsToShow()), new PackageResourceReference(
+                ImgResources.class, ImgResources.HDD_PRISM), mainForm, 
+        		null, this);
         mainForm.add(userForm);
-
+        
         initButtons(mainForm);
+    }
+    
+    private List<ItemPath> getItemsToShow() {
+    	return Arrays.asList(new ItemPath(ShadowType.F_ATTRIBUTES), SchemaConstants.PATH_ACTIVATION, SchemaConstants.PATH_PASSWORD);
     }
 
     private void initButtons(Form mainForm) {

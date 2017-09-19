@@ -339,7 +339,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 		loadParentOrgs(wrapper, task, result);
 
-//		wrapper.setShowEmpty(!isEditingFocus());
+		wrapper.setShowEmpty(!isEditingFocus());
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Loaded focus wrapper:\n{}", wrapper.debugDump());

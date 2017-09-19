@@ -386,6 +386,11 @@ public final class WebComponentUtil {
 
         return validator;
     }
+	
+	public static boolean isItemVisible(List<ItemPath> visibleItems, ItemPath itemToBeFound) {
+			return ItemPath.containsSubpathOrEquivalent(visibleItems, itemToBeFound);
+	
+	}
 
 	public static Class<?> qnameToClass(PrismContext prismContext, QName type) {
 		return prismContext.getSchemaRegistry().determineCompileTimeClass(type);

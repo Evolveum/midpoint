@@ -28,15 +28,23 @@ import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.prism.ContainerValuePanel;
+import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
+import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
+import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * Created by honchar
  */
-public abstract class AbstractAssignmentDetailsPanel extends BasePanel<AssignmentDto>{
+public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extends BasePanel<AssignmentDto>{
     private static final long serialVersionUID = 1L;
 
     private final static String ID_DISPLAY_NAME = "displayName";
@@ -56,15 +64,19 @@ public abstract class AbstractAssignmentDetailsPanel extends BasePanel<Assignmen
 
 //	private static final String ID_POLICY_RULE = "policyRule";
 
-    protected PageBase pageBase;
-
-    public AbstractAssignmentDetailsPanel(String id, Form<?> form, IModel<AssignmentDto> assignmentModel, PageBase pageBase){
+    public AbstractAssignmentDetailsPanel(String id, Form<?> form, IModel<AssignmentDto> assignmentModel){
         super(id, assignmentModel);
-        this.pageBase= pageBase;
-        initLayout(form);
+        
+        
+    }
+    
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout();
     }
 
-    protected <C extends Containerable> void initLayout(Form form){
+    protected <C extends Containerable> void initLayout(){
 
     	DisplayNamePanel<C> displayNamePanel = new DisplayNamePanel<C>(ID_DISPLAY_NAME, new AbstractReadOnlyModel<C>() {
 
@@ -74,9 +86,9 @@ public abstract class AbstractAssignmentDetailsPanel extends BasePanel<Assignmen
     		public C getObject() {
     			AssignmentDto assignemtn = getModelObject();
     			if (assignemtn.isAssignableObject()) {
-    				Task task = AbstractAssignmentDetailsPanel.this.pageBase.createSimpleTask("Load target");
+    				Task task = getPageBase().createSimpleTask("Load target");
     				com.evolveum.midpoint.schema.result.OperationResult result = task.getResult();
-    				return (C) WebModelServiceUtils.loadObject(getModelObject().getAssignment().getTargetRef(), AbstractAssignmentDetailsPanel.this.pageBase, task, result).asObjectable();
+    				return (C) WebModelServiceUtils.loadObject(getModelObject().getAssignment().getTargetRef(), getPageBase(), task, result).asObjectable();
     			}
     			AssignmentType assignmentType = assignemtn.getAssignment();
     			if (assignmentType.getConstruction() != null) {
@@ -97,28 +109,37 @@ public abstract class AbstractAssignmentDetailsPanel extends BasePanel<Assignmen
     	displayNamePanel.setOutputMarkupId(true);
     	add(displayNamePanel);
 
-
-        WebMarkupContainer properties = new WebMarkupContainer(ID_PROPERTIES_PANEL);
-		add(properties);
-		properties.setOutputMarkupId(true);
-
-		initPropertiesPanel(properties);
-
-
-        AssignmentActivationPopupablePanel activationPanel = new AssignmentActivationPopupablePanel(ID_ACTIVATION_PANEL, new PropertyModel<ActivationType>(getModel(), AssignmentDto.F_VALUE + "." + AssignmentType.F_ACTIVATION.getLocalPart())){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected boolean getButtonsPanelVisibility() {
-                return false;
-            }
-        };
-        activationPanel.setOutputMarkupId(true);
-        add(activationPanel);
-
+		
+		PageAdminObjectDetails<F> pageBase = (PageAdminObjectDetails<F>)getPageBase();
+		
+		ItemPath assignmentPath = getModel().getObject().getAssignment().asPrismContainerValue().getPath();
+		ContainerValueWrapperFromObjectWrapperModel<AssignmentType, F> assignmentModel = 
+				new ContainerValueWrapperFromObjectWrapperModel<AssignmentType, F>(pageBase.getObjectModel(), assignmentPath);
+		
+		Form form = new Form<>("form");
+		
+		ContainerValuePanel<AssignmentType> assignmentPanel = new ContainerValuePanel("basic", assignmentModel, true, form, itemWrapper -> PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()), pageBase);
+		add(assignmentPanel);
+		
+		ContainerWrapperFromObjectWrapperModel<ActivationType, F> activationModel = new ContainerWrapperFromObjectWrapperModel<ActivationType, F>(pageBase.getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
+		PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<>(ID_ACTIVATION_PANEL, activationModel, false, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath), pageBase);
+		add(acitvationContainer);
+		
     }
+    
+    protected abstract boolean getVisibilityModel(ItemPath pathToBeFound, ItemPath parentPath);
 
-
+    private boolean getActivationVisibileItems(ItemPath pathToCheck, ItemPath assignmentPath) {
+    	if (assignmentPath.subPath(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)).equivalent(pathToCheck)){
+    		return false;
+    	}
+    	
+    	if (assignmentPath.subPath(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)).equivalent(pathToCheck)){
+    		return false;
+    	}
+    	
+    	return true;
+    }
 
 
     protected IModel<String> getAdditionalNameLabelStyleClass(){
@@ -131,6 +152,6 @@ public abstract class AbstractAssignmentDetailsPanel extends BasePanel<Assignmen
 
     protected abstract List getHiddenItems();
 
-    protected abstract void initPropertiesPanel(WebMarkupContainer propertiesPanel);
+//    protected abstract void initPropertiesPanel(WebMarkupContainer propertiesPanel);
 
 }

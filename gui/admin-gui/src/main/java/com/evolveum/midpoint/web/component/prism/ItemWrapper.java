@@ -25,6 +25,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Revivable;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 /**
@@ -39,6 +40,8 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> exten
     void setDisplayName(String name);
 
     I getItem();
+    
+    ItemPath getPath();
 
     /**
      * Item definition.

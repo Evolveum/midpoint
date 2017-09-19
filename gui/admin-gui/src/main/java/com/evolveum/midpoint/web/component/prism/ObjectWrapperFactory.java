@@ -68,6 +68,7 @@ public class ObjectWrapperFactory {
     		    OperationExecutionType.COMPLEX_TYPE,
     		    ApprovalSchemaType.COMPLEX_TYPE,
     		    PasswordHistoryEntryType.COMPLEX_TYPE,
+    		    SecurityQuestionsCredentialsType.COMPLEX_TYPE,
     		    NonceType.COMPLEX_TYPE);
 
     private ModelServiceLocator modelServiceLocator;
@@ -144,12 +145,12 @@ public class ObjectWrapperFactory {
         	object.setDefinition(objectDefinitionForEditing);
         }
         
-                ObjectWrapper<O> objectWrapper = new ObjectWrapper<>(displayName, description, object,
-                objectClassDefinitionForEditing, status);
+		ObjectWrapper<O> objectWrapper = new ObjectWrapper<>(displayName, description, object, objectClassDefinitionForEditing,
+				status);
 
-        List<ContainerWrapper<? extends Containerable>> containerWrappers = createContainerWrappers(objectWrapper, object,
+		List<ContainerWrapper<? extends Containerable>> containerWrappers = createContainerWrappers(objectWrapper, object,
 				objectDefinitionForEditing, status, this.result);
-        objectWrapper.setContainers(containerWrappers);
+		objectWrapper.setContainers(containerWrappers);
 
         this.result.computeStatusIfUnknown();
 
@@ -178,7 +179,7 @@ public class ObjectWrapperFactory {
             } else if (ReportType.class.isAssignableFrom(clazz)) {
                 addReportContainers(containerWrappers, oWrapper, object, result);
             } else {
-                ContainerWrapper mainContainerWrapper = cwf.createContainerWrapper(object, cStatus, null);
+                ContainerWrapper mainContainerWrapper = cwf.createContainerWrapper(object, cStatus, ItemPath.EMPTY_PATH);
                 mainContainerWrapper.setDisplayName("prismContainer.mainPanelDisplayName");
                 result.addSubresult(cwf.getResult());
                 containerWrappers.add(mainContainerWrapper);

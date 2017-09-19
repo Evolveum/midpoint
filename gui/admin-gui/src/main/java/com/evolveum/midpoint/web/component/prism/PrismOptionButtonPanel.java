@@ -89,7 +89,7 @@ public class PrismOptionButtonPanel extends Panel {
 //                    return new PackageResourceReference(PrismObjectPanel.class,
 //                            "ShowEmptyFalse.png");
 //                }
-                return new PackageResourceReference(PrismObjectPanel.class,
+                return new PackageResourceReference(PrismPanel.class,
                         "ShowEmptyTrue.png");
             }
         });
@@ -123,11 +123,11 @@ public class PrismOptionButtonPanel extends Panel {
             public Object getObject() {
                 ObjectWrapper wrapper = model.getObject();
                 if (wrapper.isMinimalized()) {
-                    return new PackageResourceReference(PrismObjectPanel.class,
+                    return new PackageResourceReference(PrismPanel.class,
                             "Maximize.png");
                 }
 
-                return new PackageResourceReference(PrismObjectPanel.class,
+                return new PackageResourceReference(PrismPanel.class,
                         "Minimize.png");
             }
         });

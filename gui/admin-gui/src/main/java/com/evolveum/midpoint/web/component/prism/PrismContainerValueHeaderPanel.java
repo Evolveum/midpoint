@@ -9,15 +9,15 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 public class PrismContainerValueHeaderPanel<C extends Containerable> extends PrismHeaderPanel<ContainerValueWrapper<C>> {
 
 	private static final long serialVersionUID = 1L;
 
-	
-	private static final String ID_SHOW_EMPTY_FIELDS = "showEmptyFields";
-    private static final String ID_SORT_PROPERTIES = "sortProperties";
+	private static final String ID_SORT_PROPERTIES = "sortProperties";
     private static final String ID_SHOW_METADATA = "showMetadata";
+    private static final String ID_SHOW_EMPTY_FIELDS = "showEmptyFields";
 	
 	
 	public PrismContainerValueHeaderPanel(String id, IModel<ContainerValueWrapper<C>> model) {
@@ -41,10 +41,8 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 			@Override
             public void onClick(AjaxRequestTarget target) {
-//				ObjectWrapper objectWrapper = getObjectWrapper(model);
-//				PrismWrapper wrapper = PrismHeaderPanel.this.getModelObject();
-//				wrapper.setShowMetadata(wrapper.isShowMetadata());
-//                objectWrapper.setShowMetadata(!objectWrapper.isShowMetadata());
+				ContainerValueWrapper<C> wrapper = PrismContainerValueHeaderPanel.this.getModelObject();
+				wrapper.setShowMetadata(!wrapper.isShowMetadata());
 				onButtonClick(target);
             }
 
@@ -62,7 +60,19 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 						createStringResource("PrismObjectPanel.showMetadata").getString());
 			}
 		}));
-		showMetadataButton.add(buttonsVisibleBehaviour);
+		showMetadataButton.add(new VisibleEnableBehaviour() {
+			
+			@Override
+			public boolean isVisible() {
+				for (ItemWrapper wrapper : getModelObject().getItems()) {
+					if (MetadataType.COMPLEX_TYPE.equals(wrapper.getItemDefinition().getTypeName())) {
+						return true;
+					}
+				}
+				return false;
+			}
+			
+		});
 		add(showMetadataButton);
 
 		ToggleIconButton showEmptyFieldsButton = new ToggleIconButton(ID_SHOW_EMPTY_FIELDS,
@@ -108,6 +118,11 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
         sortPropertiesButton.add(buttonsVisibleBehaviour);
         add(sortPropertiesButton);
 		
+	}
+	
+	@Override
+	protected String getLabel() {
+		return getModel().getObject().getDisplayName();
 	}
 
 }

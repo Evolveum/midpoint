@@ -301,9 +301,8 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	}
 
 	@Override
-	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<AssignmentDto> model,
-			PageBase parentPage) {
-		return new AbstractRoleAssignmentDetailsPanel(ID_ASSIGNMENT_DETAILS, form, model, getParentPage());
+	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<AssignmentDto> model) {
+		return new AbstractRoleAssignmentDetailsPanel(ID_ASSIGNMENT_DETAILS, form, model);
 	}
 
 	protected boolean isRelationVisible() {

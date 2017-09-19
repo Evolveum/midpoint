@@ -65,6 +65,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
@@ -127,9 +128,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				if (dto.isLoadedOK()) {
 					packageRef = new PackageResourceReference(ImgResources.class, ImgResources.HDD_PRISM);
 
-					shadowPanel = new PrismObjectPanel<F>(ID_SHADOW,
-							new PropertyModel<ObjectWrapper<F>>(item.getModel(), "object"), packageRef,
-							getMainForm(), getPageBase());
+					shadowPanel = new PrismPanel<F>(ID_SHADOW,
+							new ContainerWrapperListFromObjectWrapperModel<>(objectWrapperModel, null), packageRef,
+							getMainForm(), null, getPageBase());
 				} else {
 					shadowPanel = new SimpleErrorPanel<ShadowType>(ID_SHADOW, item.getModel()) {
 						private static final long serialVersionUID = 1L;

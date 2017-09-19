@@ -52,6 +52,11 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHea
 	private boolean isContainerMultivalue(){
 		return getModelObject().isVisible() && getModelObject().getItemDefinition().isMultiValue();
 	}
+	
+	@Override
+	protected String getLabel() {
+		return getModelObject().getDisplayName();
+	}
 		
 
 	

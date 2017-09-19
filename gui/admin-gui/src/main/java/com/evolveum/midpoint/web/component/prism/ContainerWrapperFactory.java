@@ -314,9 +314,9 @@ public class ContainerWrapperFactory {
             		if (itemDef.isIgnored() || skipProperty(itemDef)) {
             			return;
             		}
-            		if (!cWrapper.isShowInheritedObjectAttributes() && INHERITED_OBJECT_ATTRIBUTES.contains(itemDef.getName())) {
-            			return;
-            		}
+//            		if (!cWrapper.isShowInheritedObjectAttributes() && INHERITED_OBJECT_ATTRIBUTES.contains(itemDef.getName())) {
+//            			return;
+//            		}
             		
             		createPropertyOrReferenceWrapper(itemDef, cWrapper, propertyOrReferenceWrappers);
             		createContainerWrapper(itemDef, cWrapper, containerWrappers);
@@ -347,7 +347,7 @@ public class ContainerWrapperFactory {
 //			return;
 //		}
     	
-    	PrismContainerValue<C> containerValue = cWrapper.getContainerValue();
+//    	PrismContainerValue<C> containerValue = cWrapper.getContainerValue();
     	
     	 //TODO temporary decision to hide adminGuiConfiguration attribute (MID-3305)
 //    	if (itemDef != null && itemDef.getName() != null && itemDef.getName().getLocalPart() != null &&
@@ -366,14 +366,14 @@ public class ContainerWrapperFactory {
     
     private <C extends Containerable> void createContainerWrapper(ItemDefinition itemDef, ContainerValueWrapper<C> cWrapper, List<ContainerWrapper<C>> properties) {
     	
-    	if (itemDef.isIgnored() || skipProperty(itemDef)) {
-			return;
-		}
-		if (!cWrapper.isShowInheritedObjectAttributes() && INHERITED_OBJECT_ATTRIBUTES.contains(itemDef.getName())) {
-			return;
-		}
+//    	if (itemDef.isIgnored() || skipProperty(itemDef)) {
+//			return;
+//		}
+//		if (!cWrapper.isShowInheritedObjectAttributes() && INHERITED_OBJECT_ATTRIBUTES.contains(itemDef.getName())) {
+//			return;
+//		}
     	
-    	PrismContainerValue<C> containerValue = cWrapper.getContainerValue();
+//    	PrismContainerValue<C> containerValue = cWrapper.getContainerValue();
     	
     	 //TODO temporary decision to hide adminGuiConfiguration attribute (MID-3305)
 //    	if (itemDef != null && itemDef.getName() != null && itemDef.getName().getLocalPart() != null &&
@@ -383,7 +383,7 @@ public class ContainerWrapperFactory {
         
     	if (itemDef instanceof PrismContainerDefinition) {
         	
-        	if (cWrapper.isMain() && !ObjectType.F_EXTENSION.equals(itemDef.getName())) {
+        	if (cWrapper.isMain() && !ObjectType.F_EXTENSION.equals(itemDef.getName()) && !ObjectType.F_METADATA.equals(itemDef.getName())) {
         		return;
         	}
         	
@@ -464,10 +464,10 @@ public class ContainerWrapperFactory {
 	private <C extends Containerable> boolean isItemReadOnly(ItemDefinition def, ContainerValueWrapper<C> cWrapper) {
 		if (cWrapper == null || cWrapper.getStatus() == ValueStatus.NOT_CHANGED) {
 
-			return cWrapper.isReadonly() || !def.canModify();
+			return MetadataType.COMPLEX_TYPE.equals(cWrapper.getDefinition().getName()) || cWrapper.isReadonly() || !def.canModify();
 		}
 			
-		return cWrapper.isReadonly() || !def.canAdd();
+		return MetadataType.COMPLEX_TYPE.equals(cWrapper.getDefinition().getName()) || cWrapper.isReadonly() || !def.canAdd();
 		
 	}
 

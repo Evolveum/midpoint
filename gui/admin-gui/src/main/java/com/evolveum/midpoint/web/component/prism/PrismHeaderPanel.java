@@ -16,19 +16,15 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
-import org.apache.wicket.AttributeModifier;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author semancik
@@ -56,32 +52,37 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
 		
 		initButtons();
 
-        IModel<String> headerLabelModel = new AbstractReadOnlyModel<String>() {
-        	private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getObject() {
-
-				PrismWrapper wrapper = getModelObject();
-				String displayName = "displayName.not.set";
-				if (wrapper instanceof ContainerValueWrapper) {
-					displayName = ((ContainerValueWrapper) wrapper).getDisplayName();
-				} else if (wrapper instanceof ContainerWrapper) {
-		    		displayName = ((ContainerWrapper)wrapper).getDisplayName();
-		    	} else if (wrapper instanceof ObjectWrapper) {
-		    		// HACK HACK HACK
-			        // If we would display label for the object itself, display label for main container instead
-			        // the "object label" is actually displayed in front of main container
-					ContainerWrapper mainContainerWrapper = ((ObjectWrapper) wrapper).findMainContainerWrapper();
-					if (mainContainerWrapper != null) {
-						displayName = mainContainerWrapper.getDisplayName();
-					} else {
-						displayName = ((ObjectWrapper) wrapper).getDisplayName();		// e.g. resource wizard needs this
-					}
-		    	}
-		    	return getString(displayName, null, displayName);
-			}
-		};
+		String displayName = getLabel();
+		if (StringUtils.isEmpty(displayName)) {
+			displayName = "displayName.not.set";
+		}
+		StringResourceModel headerLabelModel = createStringResource(displayName);
+//        IModel<String> headerLabelModel = new AbstractReadOnlyModel<String>() {
+//        	private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public String getObject() {
+//
+//				PrismWrapper wrapper = getModelObject();
+//				String displayName = "displayName.not.set";
+//				if (wrapper instanceof ContainerValueWrapper) {
+//					displayName = ((ContainerValueWrapper) wrapper).getDisplayName();
+//				} else if (wrapper instanceof ContainerWrapper) {
+//		    		displayName = ((ContainerWrapper)wrapper).getDisplayName();
+//		    	} else if (wrapper instanceof ObjectWrapper) {
+//		    		// HACK HACK HACK
+//			        // If we would display label for the object itself, display label for main container instead
+//			        // the "object label" is actually displayed in front of main container
+//					ContainerWrapper mainContainerWrapper = ((ObjectWrapper) wrapper).findMainContainerWrapper();
+//					if (mainContainerWrapper != null) {
+//						displayName = mainContainerWrapper.getDisplayName();
+//					} else {
+//						displayName = ((ObjectWrapper) wrapper).getDisplayName();		// e.g. resource wizard needs this
+//					}
+//		    	}
+//		    	return getString(displayName, null, displayName);
+//			}
+//		};
 
         add(new Label(ID_LABEL, headerLabelModel));
     }
@@ -92,6 +93,8 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
     protected void onButtonClick(AjaxRequestTarget target) {
 
     }
+    
+    protected abstract String getLabel();
 
     public boolean isButtonsVisible() {
     	return true;

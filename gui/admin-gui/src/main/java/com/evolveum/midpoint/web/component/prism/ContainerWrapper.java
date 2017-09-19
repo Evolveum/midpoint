@@ -164,6 +164,22 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
         }
         return null;
     }
+    
+    public ContainerValueWrapper<C> findContainerValueWrapper(ItemPath path) {
+        Validate.notNull(path, "QName must not be null.");
+        for (ContainerValueWrapper<C> wrapper : getValues()) {
+        	
+        	if (path.equivalent(wrapper.getPath())) {
+        		return wrapper;
+        	}
+        	
+        	ContainerValueWrapper<C> containerWrapper = wrapper.findContainerValueWrapper(path);
+            if (containerWrapper != null) {
+            	return containerWrapper;
+            }
+        }
+        return null;
+    }
 
     public void computeStripes() {
     	int visibleProperties = 0;
@@ -622,6 +638,12 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		super.setShowEmpty(showEmpty);
 		getValues().forEach(value -> value.setShowEmpty(showEmpty));
 	}
+	
+	@Override
+	public void setShowMetadata(boolean showMetadata) {
+		super.setShowMetadata(showMetadata);
+		getValues().forEach(value -> value.setShowMetadata(showMetadata));
+	}
 
 	@Override
 	public boolean isEnforceRequiredFields() {
@@ -638,11 +660,10 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	public boolean isVisible() {
 		PrismContainerDefinition<C> def = getItemDefinition();
 		
-		if (def.isIgnored() || (def.isOperational() && !def.getTypeName().equals(MetadataType.COMPLEX_TYPE))) {
+		if (def.isIgnored() || (def.isOperational()) && (!def.getTypeName().equals(MetadataType.COMPLEX_TYPE))) {
 			return false;
 		}
 		
-		//TODO: emphasized
 		switch (status) {
 			case MODIFYING :
 				return  isNotEmptyAndCanReadAndModify(def) || showEmptyCanReadAndModify(def);
@@ -654,7 +675,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	}
 	
 	private boolean isNotEmptyAndCanReadAndModify(PrismContainerDefinition<C> def) {
-		return def.canRead() && def.canModify() && !getItem().isEmpty();
+		return def.canRead() && def.canModify();
 	}
 	
 	private boolean showEmptyCanReadAndModify(PrismContainerDefinition<C> def) {
@@ -662,7 +683,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	}
 
 	private boolean showEmptyAndCanAdd(PrismContainerDefinition<C> def) {
-		return def.canAdd() && isShowEmpty();
+		return def.canAdd();
 	}
 	
 	private boolean emphasizedAndCanAdd(PrismContainerDefinition<C> def) {

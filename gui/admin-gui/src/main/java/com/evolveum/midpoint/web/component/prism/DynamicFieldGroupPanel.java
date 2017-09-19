@@ -91,7 +91,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 
 			if (itemWrapper instanceof ContainerWrapper) {
 				PrismContainerPanel containerPanel = new PrismContainerPanel(itemView.newChildId(),
-						Model.of((ContainerWrapper) itemWrapper), true, mainForm, getPageBase());
+						Model.of((ContainerWrapper) itemWrapper), true, mainForm, w -> {return true;}, getPageBase());
 					containerPanel.setOutputMarkupId(true);
 					itemView.add(containerPanel);
 			} else {

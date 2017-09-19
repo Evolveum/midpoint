@@ -202,47 +202,6 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
         return description;
     }
 
-//    @Override
-//    public boolean isMinimalized() {
-//        return minimalized;
-//    }
-//
-//    @Override
-//    public void setMinimalized(boolean minimalized) {
-//        this.minimalized = minimalized;
-//    }
-//
-//    @Override
-//    public boolean isSorted() {
-//        return sorted;
-//    }
-//
-//    @Override
-//    public void setSorted(boolean sorted) {
-//        this.sorted = sorted;
-//    }
-//
-//    @Override
-//    public boolean isShowMetadata() {
-//        return showMetadata;
-//    }
-//
-//    @Override
-//    public void setShowMetadata(boolean showMetadata) {
-//        this.showMetadata = showMetadata;
-//    }
-//
-//    @Override
-//    public boolean isShowEmpty() {
-//        return showEmpty;
-//    }
-//
-//    @Override
-//    public void setShowEmpty(boolean showEmpty) {
-//        this.showEmpty = showEmpty;
-//        computeStripes();
-//    }
-
     public boolean isSelectable() {
         return selectable;
     }
@@ -259,7 +218,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
         this.selected = selected;
     }
 
-    public List<ContainerWrapper<? extends Containerable>> getContainers() {
+    public <C extends Containerable> List<ContainerWrapper<? extends Containerable>> getContainers() {
         if (containers == null) {
             containers = new ArrayList<>();
         }
@@ -286,6 +245,24 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
     	}
     	
         return containerWrapper.findContainerWrapper(path);
+
+    }
+    
+    public <C extends Containerable> ContainerValueWrapper<C> findContainerValueWrapper(ItemPath path) {
+    	if (path == null || path.isEmpty()) {
+    		ContainerWrapper<C> mainContainer =  (ContainerWrapper<C>) findMainContainerWrapper();
+    		if (mainContainer == null) {
+    			return null;
+    		}
+    		return mainContainer.getValues().iterator().next();
+    	}
+    	
+    	ContainerWrapper<C> containerWrapper = findContainerWrapper(path.head());
+    	if (containerWrapper == null) {
+    		return null;
+    	}
+    	
+        return containerWrapper.findContainerValueWrapper(path);
 
     }
 
@@ -575,7 +552,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
     @Override
     public void setShowEmpty(boolean showEmpty) {
     	super.setShowEmpty(showEmpty);
-    	getContainers().forEach(container -> container.setShowEmpty(true));
+    	getContainers().forEach(container -> container.setShowEmpty(showEmpty));
     }
     
     public boolean isReadonly() {

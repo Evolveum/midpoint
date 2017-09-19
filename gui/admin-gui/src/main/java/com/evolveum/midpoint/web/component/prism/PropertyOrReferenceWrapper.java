@@ -18,7 +18,10 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -84,7 +87,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 
 	public boolean isVisible() {
 		
-        if (getItemDefinition().isOperational()) {			// TODO ...or use itemDefinition instead?
+        if (getItemDefinition().isOperational() && !isMetadataContainer()) {			// TODO ...or use itemDefinition instead?
 			return false;
 		} 
         switch (status) {
@@ -193,14 +196,27 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 
 		return false;
 	}
+	private boolean isMetadataContainer() {
+		return getParent().getItemDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE);
+	}
 
 	@Override
 	public boolean isReadonly() {
+		//TODO this is probably not good idea
+		if (isMetadataContainer()) {
+			return true;
+		}
+		
 		return readonly;
 	}
 
 	public void setReadonly(boolean readonly) {
 		this.readonly = readonly;
+	}
+	
+	@Override
+	public ItemPath getPath() {
+		return item.getPath();
 	}
 
 	@Override
