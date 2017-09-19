@@ -36,10 +36,10 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.emptyMap;
 
 /**
  * Data that are passed between individual scripting actions.
@@ -74,12 +74,16 @@ public class PipelineData implements DebugDumpable {
     }
 
     public static PipelineData create(PrismValue value) {
+        return create(value, emptyMap());
+    }
+
+    public static PipelineData create(PrismValue value, Map<String, Object> variables) {
         PipelineData d = createEmpty();
-        d.add(new PipelineItem(value, newOperationResult()));
+        d.add(new PipelineItem(value, newOperationResult(), variables));
         return d;
     }
 
-    private static OperationResult newOperationResult() {
+    public static OperationResult newOperationResult() {
         return new OperationResult(ITEM_OPERATION_NAME);
     }
 
@@ -97,16 +101,14 @@ public class PipelineData implements DebugDumpable {
         }
     }
 
-    public void addValue(PrismValue value) {
-		addValue(value, null);
+    public void addValue(PrismValue value, Map<String, Object> variables) {
+		addValue(value, null, variables);
     }
 
-    public void addValue(PrismValue value, OperationResult result) {
-		data.add(new PipelineItem(value, result != null ? result : newOperationResult()));
-    }
-
-    public void addValues(@NotNull List<? extends PrismValue> values, OperationResult result) {
-        values.forEach((v) -> addValue(v, result));
+    public void addValue(PrismValue value, OperationResult result, Map<String, Object> variables) {
+		data.add(new PipelineItem(value,
+				result != null ? result : newOperationResult(),
+				variables != null ? variables : emptyMap()));
     }
 
     public String getDataAsSingleString() throws ScriptExecutionException {
@@ -121,55 +123,10 @@ public class PipelineData implements DebugDumpable {
         }
     }
 
-    static PipelineData createItem(PrismValue value) throws SchemaException {
+    static PipelineData createItem(@NotNull PrismValue value, Map<String, Object> variables) throws SchemaException {
         PipelineData data = createEmpty();
-        if (value != null) {
-            data.addValue(value);
-        }
-        return data;
-//        // TODO fix this temporary solution (haven't we somewhere universal method to do this?)
-//        if (value instanceof PrismReferenceValue) {
-//            PrismReference ref = new PrismReference(new QName("reference"));
-//            ref.add((PrismReferenceValue) value);
-//            return create(ref);
-//        } else if (value instanceof PrismContainerValue) {
-//            PrismContainerValue pcv = (PrismContainerValue) value;
-//            return create(pcv.asSingleValuedContainer(new QName("container")));
-//        } else if (value instanceof PrismPropertyValue) {
-//            if (value.isRaw()) {
-//                throw new IllegalArgumentException("Value cannot be raw at this point: " + value);
-//            }
-//            Class<?> clazz = value.getRealClass();
-//            assert clazz != null;
-//            PrismPropertyDefinition<?> propertyDefinition;
-//            List<PrismPropertyDefinition> defs = prismContext.getSchemaRegistry()
-//                    .findItemDefinitionsByCompileTimeClass(clazz, PrismPropertyDefinition.class);
-//            if (defs.size() == 1) {
-//                propertyDefinition = defs.get(0);
-//            } else if (String.class.isAssignableFrom(clazz)) {
-//                propertyDefinition = new PrismPropertyDefinitionImpl<>(PLAIN_STRING_ELEMENT_NAME, DOMUtil.XSD_STRING, prismContext);
-//            } else if (ObjectDeltaType.class.isAssignableFrom(clazz)) {
-//                propertyDefinition = new PrismPropertyDefinitionImpl<>(SchemaConstants.T_OBJECT_DELTA, SchemaConstants.T_OBJECT_DELTA_TYPE, prismContext);
-//            } else if (EventHandlerType.class.isAssignableFrom(clazz)) {
-//                propertyDefinition = new PrismPropertyDefinitionImpl<>(SchemaConstants.C_EVENT_HANDLER, EventHandlerType.COMPLEX_TYPE, prismContext);
-//            } else {
-//                // maybe determine type from class would be sufficient
-//                TypeDefinition td = prismContext.getSchemaRegistry().findTypeDefinitionByCompileTimeClass(clazz, TypeDefinition.class);
-//                if (td != null) {
-//                    propertyDefinition = new PrismPropertyDefinitionImpl<>(SchemaConstants.C_VALUE, td.getTypeName(), prismContext);
-//                } else {
-//                    throw new IllegalStateException(
-//                            "Unsupported data class (to be put into scripting data as property): " + clazz);
-//                }
-//            }
-//            PrismProperty<?> property = propertyDefinition.instantiate();
-//            property.add((PrismPropertyValue) value);
-//            return create(property);
-//        } else if (value == null) {
-//            return createEmpty();
-//        } else {
-//            throw new IllegalArgumentException("Unsupported prism value: " + value);
-//        }
+	    data.addValue(value, variables);
+	    return data;
     }
 
     public Collection<ObjectReferenceType> getDataAsReferences(QName defaultTargetType, Class<? extends ObjectType> typeForQuery,
@@ -224,7 +181,8 @@ public class PipelineData implements DebugDumpable {
 		return objects.stream().map(o -> ObjectTypeUtil.createObjectRef(o)).collect(Collectors.toList());
 	}
 
-	static PipelineData parseFrom(ValueListType input, PrismContext prismContext) {
+	static PipelineData parseFrom(ValueListType input, Map<String, Object> initialVariables,
+			PrismContext prismContext) {
 		PipelineData rv = new PipelineData();
 		if (input != null) {
 			for (Object o : input.getValue()) {
@@ -233,22 +191,28 @@ public class PipelineData implements DebugDumpable {
 					RawType raw = (RawType) o;
 					PrismValue prismValue = raw.getAlreadyParsedValue();
 					if (prismValue != null) {
-						rv.addValue(prismValue);
+						rv.addValue(prismValue, initialVariables);
 					} else {
 						throw new IllegalArgumentException("Raw value in the input data: " + DebugUtil.debugDump(raw.getXnode()));
 						// TODO attempt to parse it somehow (e.g. by passing to the pipeline and then parsing based on expected type)
 					}
 				} else {
 					if (o instanceof Containerable) {
-						rv.addValue(((Containerable) o).asPrismContainerValue());
+						rv.addValue(((Containerable) o).asPrismContainerValue(), initialVariables);
 					} else if (o instanceof Referencable) {
-						rv.addValue(((Referencable) o).asReferenceValue());
+						rv.addValue(((Referencable) o).asReferenceValue(), initialVariables);
 					} else {
-						rv.addValue(new PrismPropertyValue<>(o, prismContext));
+						rv.addValue(new PrismPropertyValue<>(o, prismContext), initialVariables);
 					}
 				}
 			}
 		}
+		return rv;
+	}
+
+	public PipelineData cloneMutableState() {
+		PipelineData rv = new PipelineData();
+		data.forEach(d -> rv.add(d.cloneMutableState()));
 		return rv;
 	}
 }
