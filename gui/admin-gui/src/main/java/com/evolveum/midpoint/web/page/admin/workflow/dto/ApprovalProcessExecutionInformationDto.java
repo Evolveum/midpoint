@@ -76,7 +76,7 @@ public class ApprovalProcessExecutionInformationDto implements Serializable {
 		String targetName = WfContextUtil.getTargetName(info);
 		WfContextType wfc = WfContextUtil.getWorkflowContext(info);
 		boolean running = wfc != null && wfc.getEndTimestamp() == null;
-		EvaluatedTriggerGroupDto triggers = EvaluatedTriggerGroupDto.create(WfContextUtil.getAllRules(info.getPolicyRules()));
+		EvaluatedTriggerGroupDto triggers = EvaluatedTriggerGroupDto.createFrom(WfContextUtil.getAllRules(info.getPolicyRules()), false, new ArrayList<>());
 		ApprovalProcessExecutionInformationDto rv =
 				new ApprovalProcessExecutionInformationDto(wholeProcess, currentStageNumber, numberOfStages, processName,
 						targetName, triggers, running);
