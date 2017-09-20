@@ -33,10 +33,13 @@ public class EvaluatedTriggerDto implements Serializable {
 	public static final String F_CHILDREN = "children";
 
 	@NotNull private final EvaluatedPolicyRuleTriggerType trigger;
-	@NotNull private final EvaluatedTriggerGroupDto children = new EvaluatedTriggerGroupDto(null);
+	@NotNull private final EvaluatedTriggerGroupDto children;
+	private boolean highlighted;
 
-	public EvaluatedTriggerDto(@NotNull EvaluatedPolicyRuleTriggerType trigger) {
+	private EvaluatedTriggerDto(@NotNull EvaluatedPolicyRuleTriggerType trigger, boolean highlighted) {
 		this.trigger = trigger;
+		this.children = new EvaluatedTriggerGroupDto(null);
+		this.highlighted = highlighted;
 	}
 
 	@NotNull
@@ -54,19 +57,37 @@ public class EvaluatedTriggerDto implements Serializable {
 	}
 
 	// copies logic from EvaluatedPolicyRuleImpl.createMessageTreeNode
-	public static void create(List<EvaluatedTriggerDto> resultList, EvaluatedPolicyRuleTriggerType trigger) {
+	public static void create(List<EvaluatedTriggerDto> resultList, EvaluatedPolicyRuleTriggerType trigger, boolean highlighted,
+			List<AlreadyShownTriggerRecord> triggersAlreadyShown) {
 		boolean hidden = Boolean.TRUE.equals(trigger.isHidden());
 		boolean isFinal = Boolean.TRUE.equals(trigger.isFinal());
 		if (!hidden) {
-			EvaluatedTriggerDto newTriggerDto = new EvaluatedTriggerDto(trigger);
+			EvaluatedTriggerDto newTriggerDto = new EvaluatedTriggerDto(trigger, highlighted);
+			if (triggersAlreadyShown != null && alreadyShown(triggersAlreadyShown, newTriggerDto)) {
+				return;
+			}
 			resultList.add(newTriggerDto);
 			resultList = newTriggerDto.getChildren().getTriggers();
 		}
 		if (!isFinal) { // it's possible that this was pre-filtered e.g. by policy enforcer hook
 			for (EvaluatedPolicyRuleTriggerType innerTrigger : getChildTriggers(trigger)) {
-				create(resultList, innerTrigger);
+				create(resultList, innerTrigger, highlighted, triggersAlreadyShown);
 			}
 		}
+	}
+
+	private static boolean alreadyShown(List<AlreadyShownTriggerRecord> triggersAlreadyShown, EvaluatedTriggerDto newTriggerDto) {
+		EvaluatedPolicyRuleTriggerType anonymizedTrigger = newTriggerDto.trigger.clone().ruleName(null);
+		for (AlreadyShownTriggerRecord alreadyShown : triggersAlreadyShown) {
+			if (alreadyShown.anonymizedTrigger.equals(anonymizedTrigger)) {
+				if (newTriggerDto.highlighted) {
+					alreadyShown.originalTriggerDto.highlighted = true;
+				}
+				return true;
+			}
+		}
+		triggersAlreadyShown.add(new AlreadyShownTriggerRecord(newTriggerDto, anonymizedTrigger));
+		return false;
 	}
 
 	private static List<EvaluatedPolicyRuleTriggerType> getChildTriggers(EvaluatedPolicyRuleTriggerType trigger) {
@@ -81,5 +102,9 @@ public class EvaluatedTriggerDto implements Serializable {
 		} else {
 			return Collections.emptyList();
 		}
+	}
+
+	public boolean isHighlighted() {
+		return highlighted;
 	}
 }

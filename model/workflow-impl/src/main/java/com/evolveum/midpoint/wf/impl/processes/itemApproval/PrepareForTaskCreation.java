@@ -84,7 +84,7 @@ public class PrepareForTaskCreation implements JavaDelegate {
         		throw new SystemException("Couldn't evaluate additional information expression in " + execution, t);
 			}
 		} else {
-        	additionalInformation = new AdditionalInformationGenerator().getDefaultAdditionalInformation(wfTask, stageDef.getNumber());
+        	additionalInformation = Collections.emptyList();
 		}
 		if (!additionalInformation.isEmpty()) {
 			execution.setVariableLocal(CommonProcessVariableNames.ADDITIONAL_INFORMATION,

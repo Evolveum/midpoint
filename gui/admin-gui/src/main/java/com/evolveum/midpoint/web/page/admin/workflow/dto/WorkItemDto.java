@@ -80,6 +80,7 @@ public class WorkItemDto extends Selectable {
     public static final String F_ESCALATION_LEVEL_INFO = "escalationLevelInfo";
 	public static final String F_ESCALATION_LEVEL_NUMBER = "escalationLevelNumber";
 	public static final String F_ADDITIONAL_INFORMATION = "additionalInformation";
+	public static final String F_TRIGGERS = "triggers";
 
 	public static final String F_OTHER_WORK_ITEMS = "otherWorkItems";
 	public static final String F_RELATED_WORKFLOW_REQUESTS = "relatedWorkflowRequests";
@@ -105,12 +106,13 @@ public class WorkItemDto extends Selectable {
     //
     // Depending on expected use (work item list vs. work item details)
 
-    private WorkItemType workItem;
+    private final WorkItemType workItem;
 	private TaskType taskType;
 	private List<TaskType> relatedTasks;
 	@Deprecated private SceneDto deltas;
 	private TaskChangesDto changes;
 	private String approverComment;
+	private List<EvaluatedTriggerGroupDto> triggers;            // initialized on demand
 
     private ObjectType focus;
 
@@ -368,6 +370,29 @@ public class WorkItemDto extends Selectable {
 	public Integer getEscalationLevelNumber() {
 		int number = WfContextUtil.getEscalationLevelNumber(workItem);
 		return number > 0 ? number : null;
+	}
+
+	public List<EvaluatedTriggerGroupDto> getTriggers() {
+    	if (triggers == null) {
+    		triggers = computeTriggers(getWorkflowContext());
+	    }
+	    return triggers;
+	}
+
+	public static List<EvaluatedTriggerGroupDto> computeTriggers(WfContextType wfc) {
+		List<EvaluatedTriggerGroupDto> triggers = new ArrayList<>();
+		if (wfc == null) {
+			return triggers;
+		}
+		List<AlreadyShownTriggerRecord> triggersAlreadyShown = new ArrayList<>();
+		List<List<EvaluatedPolicyRuleType>> rulesPerStageList = WfContextUtil.getRulesPerStage(wfc);
+		for (int i = 0; i < rulesPerStageList.size(); i++) {
+			Integer stageNumber = i + 1;
+			boolean highlighted = stageNumber.equals(wfc.getStageNumber());
+			EvaluatedTriggerGroupDto group = EvaluatedTriggerGroupDto.createFrom(rulesPerStageList.get(i), highlighted, triggersAlreadyShown);
+			triggers.add(group);
+		}
+		return triggers;
 	}
 
 	public List<InformationType> getAdditionalInformation() {
