@@ -58,9 +58,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author mederly
@@ -428,13 +426,21 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	}
 
 	private boolean isEditable(ItemDefinition<?> definition) {
+		return isEditable(definition, new HashSet<>());
+	}
+
+	private boolean isEditable(ItemDefinition<?> definition, Set<ItemDefinition<?>> seen) {
 		if (definition.canModify()) {
 			return true;
 		} else if (definition instanceof PrismContainerDefinition) {
 			for (ItemDefinition<?> subdef : ((PrismContainerDefinition<?>) definition).getDefinitions()) {
-				if (isEditable(subdef)) {
+				if (seen.contains(subdef)) {
+					return false;
+				}
+				if (isEditable(subdef, seen)) {
 					return true;
 				}
+				seen.add(subdef);
 			}
 		}
 		return false;
