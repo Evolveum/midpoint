@@ -175,11 +175,5 @@
 			<version>3.6.1-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-test-util</artifactId>
-			<version>3.6.1-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
     </dependencies>
 </project>

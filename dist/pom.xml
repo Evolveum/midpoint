@@ -117,7 +117,7 @@
 		          <descriptors>
 		            <descriptor>src/main/assembly/dist.xml</descriptor>
 		          </descriptors>
-		          <finalName>midpoint-${version}</finalName>
+		          <finalName>midpoint-${project.version}</finalName>
 		        </configuration>
 		        <executions>
 		          <execution>
