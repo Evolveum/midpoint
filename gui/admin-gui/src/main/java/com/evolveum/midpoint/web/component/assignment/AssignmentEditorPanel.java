@@ -1145,11 +1145,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			operationObject = ((PageAdminFocus)pageBase).getObjectWrapper().getObject();
 		} else if ((pageBase instanceof PageAssignmentDetails || pageBase instanceof PageAssignmentsList) //shopping cart assignment details panels
 				&& !pageBase.getSessionStorage().getRoleCatalog().isMultiUserRequest()){
-			List<PrismObject<UserType>> targetUserList = pageBase.getSessionStorage().getRoleCatalog().getTargetUserList();
+			List<UserType> targetUserList = pageBase.getSessionStorage().getRoleCatalog().getTargetUserList();
 			if (targetUserList == null || targetUserList.size() == 0){
 				operationObject = pageBase.loadUserSelf();
 			} else {
-				operationObject = targetUserList.get(0);
+				operationObject = targetUserList.get(0).asPrismObject();
 			}
 		}
 		if (operationObject == null){

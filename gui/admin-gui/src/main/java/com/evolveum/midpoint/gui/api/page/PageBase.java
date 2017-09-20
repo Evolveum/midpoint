@@ -66,6 +66,7 @@ import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.*;
+import com.evolveum.midpoint.web.component.menu.MenuItem;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -92,6 +93,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicies;
+import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicy;
 import com.evolveum.midpoint.web.page.admin.workflow.*;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.*;
@@ -109,6 +111,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.*;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -145,8 +148,10 @@ import org.w3c.dom.Node;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
+import java.awt.*;
 import java.io.Serializable;
 import java.util.*;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -1418,10 +1423,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private MainMenuItem createValuePolicieItems(){
         MainMenuItem item = new MainMenuItem("fa fa-asterisk", createStringResource("PageAdmin.menu.top.valuePolicies"),null);
-        List<MenuItem> submenu = item.getItems();
+       // List<MenuItem> submenu = item.getItems();
 
-        MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.valuePolicies.list"), PageValuePolicies.class);
-        submenu.add(list);
+      //  MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.valuePolicies.list"), PageValuePolicies.class);
+        addMenuItem(item, "PageAdmin.menu.top.valuePolicies.list", PageValuePolicies.class);
+        addMenuItem(item,"PageAdmin.menu.top.valuePolicies.new", PageValuePolicy.class);
+        // submenu.add(list);
 
         return item;
     }

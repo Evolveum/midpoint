@@ -28,7 +28,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
-import com.evolveum.midpoint.web.component.assignment.TargetUserSelectorComponent;
+import com.evolveum.midpoint.web.component.assignment.UserSelectionButton;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -42,10 +42,12 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -127,7 +129,37 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         };
         mainForm.add(panel);
 
-        WebMarkupContainer targetUserPanel = new TargetUserSelectorComponent(ID_TARGET_USER_PANEL, PageAssignmentsList.this);
+        UserSelectionButton targetUserPanel = new UserSelectionButton(ID_TARGET_USER_PANEL,
+                new AbstractReadOnlyModel<List<UserType>>() {
+                    @Override
+                    public List<UserType> getObject() {
+                        return getSessionStorage().getRoleCatalog().getTargetUserList();
+                    }
+                },
+                true, createStringResource("AssignmentCatalogPanel.selectTargetUser")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String getUserButtonLabel(){
+                return getTargetUserSelectionButtonLabel(getModelObject());
+            }
+
+            @Override
+            protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target){
+                super.onDeleteSelectedUsersPerformed(target);
+                getSessionStorage().getRoleCatalog().setTargetUserList(new ArrayList<>());
+
+                target.add(getTargetUserSelectionButton());
+            }
+
+            @Override
+            protected void multipleUsersSelectionPerformed(AjaxRequestTarget target, List<UserType> usersList){
+                getSessionStorage().getRoleCatalog().setTargetUserList(usersList);
+                target.add(getTargetUserSelectionButton());
+            }
+
+        };
+
         targetUserPanel.setOutputMarkupId(true);
         mainForm.add(targetUserPanel);
 
@@ -495,13 +527,15 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     }
 
     private ObjectQuery getTaskQuery(){
-        List<PrismObject<UserType>> userList = getSessionStorage().getRoleCatalog().getTargetUserList();
+        List<UserType> userList;
         if (getSessionStorage().getRoleCatalog().isSelfRequest()){
             userList = new ArrayList<>();
-            userList.add(loadUserSelf());
+            userList.add(loadUserSelf().asObjectable());
+        } else {
+            userList = getSessionStorage().getRoleCatalog().getTargetUserList();
         }
         Set<String> oids = new HashSet<>();
-        for (PrismObject<UserType> user : userList){
+        for (UserType user : userList){
             oids.add(user.getOid());
         }
         return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
@@ -557,9 +591,9 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     }
 
     private PrismObject<UserType> getTargetUser() throws SchemaException {
-        List<PrismObject<UserType>> usersList = getSessionStorage().getRoleCatalog().getTargetUserList();
+        List<UserType> usersList = getSessionStorage().getRoleCatalog().getTargetUserList();
         PrismObject<UserType> user = getSessionStorage().getRoleCatalog().isSelfRequest() ?
-                loadUserSelf() : usersList.get(0);
+                loadUserSelf() : usersList.get(0).asPrismObject();
         getPrismContext().adopt(user);
         return user;
     }
@@ -575,5 +609,21 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             return true;
         }
         return false;
+    }
+
+    private Component getTargetUserSelectionButton(){
+        return get(ID_FORM).get(ID_TARGET_USER_PANEL);
+    }
+
+    private String getTargetUserSelectionButtonLabel(List<UserType> usersList){
+        if (usersList == null || usersList.size() == 0){
+            return createStringResource("AssignmentCatalogPanel.requestForMe").getString();
+        } else if (usersList.size() == 1){
+            String name = usersList.get(0).getName().getOrig();
+            return createStringResource("AssignmentCatalogPanel.requestFor", name).getString();
+        } else {
+            return createStringResource("AssignmentCatalogPanel.requestForMultiple",
+                    usersList.size()).getString();
+        }
     }
 }
