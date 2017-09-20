@@ -193,6 +193,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>model-impl</artifactId>
+            <version>3.6.1-SNAPSHOT</version>
+<!--             <scope>test</scope> -->
+        </dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <artifactId>provisioning-impl</artifactId>
             <version>3.6.1-SNAPSHOT</version>
