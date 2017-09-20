@@ -260,21 +260,23 @@ public class LoggingConfigurationManager {
 	private static void prepareFileAppenderConfiguration(StringBuilder sb, FileAppenderConfigurationType appender, LoggingConfigurationType config) {
 		String fileName = appender.getFileName();
 		String filePattern = appender.getFilePattern();
+		boolean isPrudent = Boolean.TRUE.equals(appender.isPrudent());
+		boolean isAppend = Boolean.TRUE.equals(appender.isAppend());
 
 		boolean isRolling = false;
 		String appenderClass = "ch.qos.logback.core.FileAppender";
-		if (filePattern != null || appender.getMaxHistory() > 0 || !StringUtils.isEmpty(appender.getMaxFileSize()) ) {
+		if (filePattern != null || (appender.getMaxHistory() != null && appender.getMaxHistory() > 0) || !StringUtils.isEmpty(appender.getMaxFileSize()) ) {
 			isRolling = true;
 			appenderClass = "ch.qos.logback.core.rolling.RollingFileAppender"; 
 		}
 		
 		prepareCommonAppenderHeader(sb, appender, config, appenderClass);
 
-		if(!appender.isPrudent()){
+		if (!isPrudent) {
 			appendProp(sb, "file", fileName);
-			appendProp(sb, "append", appender.isAppend());
-		}else{
-			appendProp(sb, "prudent", appender.isPrudent());
+			appendProp(sb, "append", isAppend);
+		} else {
+			appendProp(sb, "prudent", true);
 		}
 
 		if (isRolling) {
@@ -283,7 +285,7 @@ public class LoggingConfigurationManager {
 			sb.append("\t\t\t<fileNamePattern>");
 			sb.append(filePattern);
 			sb.append("</fileNamePattern>\n");
-			if (appender.getMaxHistory() > 0) {
+			if (appender.getMaxHistory() != null && appender.getMaxHistory() > 0) {
 				sb.append("\t\t\t<maxHistory>");
 				sb.append(appender.getMaxHistory());
 				sb.append("</maxHistory>\n");

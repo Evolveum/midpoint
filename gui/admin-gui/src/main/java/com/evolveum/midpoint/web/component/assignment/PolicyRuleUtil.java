@@ -17,14 +17,12 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 
 import javax.xml.namespace.QName;
-import java.time.Duration;
 import java.util.List;
 
 /**
@@ -97,18 +95,18 @@ public class PolicyRuleUtil {
         }
         if (policyConstraints.getAssignment() != null){
             addNewLineIfNotEmpty(policyConstraintsString);
-            for (AssignmentPolicyConstraintType assignment : policyConstraints.getAssignment()){
+            for (AssignmentModificationPolicyConstraintType assignment : policyConstraints.getAssignment()){
                 policyConstraintsString.append(getAssignmentAsString(assignment));
                 if (policyConstraints.getAssignment().indexOf(assignment) < policyConstraints.getAssignment().size() - 1){
                     policyConstraintsString.append("\n");
                 }
             }
         }
-        if (policyConstraints.getTimeValidity() != null){
+        if (policyConstraints.getObjectTimeValidity() != null){
             addNewLineIfNotEmpty(policyConstraintsString);
-            for (TimeValidityPolicyConstraintType timeValidity : policyConstraints.getTimeValidity()){
+            for (TimeValidityPolicyConstraintType timeValidity : policyConstraints.getObjectTimeValidity()){
                 policyConstraintsString.append(getTimeValidityAsString(timeValidity));
-                if (policyConstraints.getTimeValidity().indexOf(timeValidity) < policyConstraints.getTimeValidity().size() - 1){
+                if (policyConstraints.getObjectTimeValidity().indexOf(timeValidity) < policyConstraints.getObjectTimeValidity().size() - 1){
                     policyConstraintsString.append("\n");
                 }
             }
@@ -145,7 +143,8 @@ public class PolicyRuleUtil {
         if (timeValidity == null){
             return null;
         }
-        StringBuilder sb = new StringBuilder(PolicyConstraintsType.F_TIME_VALIDITY.getLocalPart());
+        // TODO assignment time validity
+        StringBuilder sb = new StringBuilder(PolicyConstraintsType.F_OBJECT_TIME_VALIDITY.getLocalPart());
         if (timeValidity.getItem() != null){
             sb.append(" " + TimeValidityPolicyConstraintType.F_ITEM.getLocalPart() + ": " + timeValidity.getItem().toString() + ";");
         }
@@ -161,14 +160,14 @@ public class PolicyRuleUtil {
         return sb.toString();
     }
 
-    public static String getAssignmentAsString(AssignmentPolicyConstraintType assignment){
+    public static String getAssignmentAsString(AssignmentModificationPolicyConstraintType assignment){
         if (assignment == null){
             return "";
         }
         StringBuilder sb = new StringBuilder(PolicyConstraintsType.F_ASSIGNMENT.getLocalPart());
         if (assignment.getOperation() != null){
-            sb.append(" " + AssignmentPolicyConstraintType.F_OPERATION.getLocalPart() + ":");
-            for (ModificationTypeType type : assignment.getOperation()){
+            sb.append(" " + AssignmentModificationPolicyConstraintType.F_OPERATION.getLocalPart() + ":");
+            for (ChangeTypeType type : assignment.getOperation()){
                 sb.append(" " + type.value());
                 if (assignment.getOperation().indexOf(type) < assignment.getOperation().size() - 1){
                     sb.append(", ");
@@ -254,7 +253,7 @@ public class PolicyRuleUtil {
         if (policyActions.getEnforcement() != null){
             sb.append(PolicyActionsType.F_ENFORCEMENT.getLocalPart());
         }
-        if (policyActions.getApproval() != null){
+        if (!policyActions.getApproval().isEmpty()) {
             sb.append(sb.length() > 0 ? ", " : "").append(PolicyActionsType.F_APPROVAL.getLocalPart());
         }
         if (policyActions.getRemediation() != null){
@@ -266,7 +265,7 @@ public class PolicyRuleUtil {
         if (policyActions.getCertification() != null){
             sb.append(sb.length() > 0 ? ", " : "").append(PolicyActionsType.F_CERTIFICATION.getLocalPart());
         }
-        if (policyActions.getNotification() != null){
+        if (!policyActions.getNotification().isEmpty()) {
             sb.append(sb.length() > 0 ? ", " : "").append(PolicyActionsType.F_NOTIFICATION.getLocalPart());
         }
         return sb.toString();

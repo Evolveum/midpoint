@@ -29,12 +29,12 @@ public class FileAppenderConfig extends AppenderConfiguration<FileAppenderConfig
 
     @Override
     public boolean isAppending() {
-        return getConfig().isAppend();
+        return Boolean.TRUE.equals(getConfig().isAppend());
     }
 
     @Override
     public boolean isPrudent() {
-        return getConfig().isPrudent();
+        return Boolean.TRUE.equals(getConfig().isPrudent());
     }
 
     @Override

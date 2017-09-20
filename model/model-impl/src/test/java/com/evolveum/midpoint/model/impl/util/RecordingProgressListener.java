@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.model.intest;
+package com.evolveum.midpoint.model.impl.util;
 
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
@@ -23,28 +23,20 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 /**
  * @author mederly
  */
-public class DelayingProgressListener implements ProgressListener {
-
-	private final long delayMin, delayMax;
-
-	public DelayingProgressListener(long delayMin, long delayMax) {
-		this.delayMin = delayMin;
-		this.delayMax = delayMax;
-	}
+public class RecordingProgressListener implements ProgressListener {
+	private ModelContext modelContext;
 
 	@Override
 	public void onProgressAchieved(ModelContext modelContext, ProgressInformation progressInformation) {
-		try {
-			long delay = (long) (delayMin + Math.random() * (delayMax - delayMin));
-			System.out.println("[" + Thread.currentThread().getName() + "] Delaying execution by " + delay + " ms for " + progressInformation);
-			Thread.sleep(delay);
-		} catch (InterruptedException e) {
-			// ignore
-		}
+		this.modelContext = modelContext;
 	}
 
 	@Override
 	public boolean isAbortRequested() {
 		return false;
+	}
+
+	public ModelContext getModelContext() {
+		return modelContext;
 	}
 }

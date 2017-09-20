@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.util;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -24,31 +26,46 @@ import java.util.List;
 public class LocalizableMessageBuilder {
 
 	private String key;
-	private Object[] args;
+	private final List<Object> args = new ArrayList<>();
 	private String fallbackMessage;
+	private LocalizableMessage fallbackLocalizableMessage;
 
 	public LocalizableMessageBuilder() {
 		super();
 	}
 
-	public void key(String key) {
+	public LocalizableMessageBuilder key(String key) {
 		this.key = key;
+		return this;
 	}
 
 	public static LocalizableMessage buildKey(String key) {
-		return new LocalizableMessage(key, null, null);
+		return new LocalizableMessage(key, null, (LocalizableMessage) null);
 	}
 
-	public void args(Object... args) {
-		this.args = args;
+	public LocalizableMessageBuilder args(Object... args) {
+		Collections.addAll(this.args, args);
+		return this;
 	}
 
-	public void args(List<Object> args) {
-		this.args = args.toArray();
+	public LocalizableMessageBuilder args(List<Object> args) {
+		this.args.addAll(args);
+		return this;
 	}
 
-	public void fallbackMessage(String fallbackMessage) {
+	public LocalizableMessageBuilder arg(Object arg) {
+		this.args.add(arg);
+		return this;
+	}
+
+	public LocalizableMessageBuilder fallbackMessage(String fallbackMessage) {
 		this.fallbackMessage = fallbackMessage;
+		return this;
+	}
+
+	public LocalizableMessageBuilder fallbackLocalizableMessage(LocalizableMessage fallbackLocalizableMessage) {
+		this.fallbackLocalizableMessage = fallbackLocalizableMessage;
+		return this;
 	}
 
 	public static LocalizableMessage buildFallbackMessage(String fallbackMessage) {
@@ -56,6 +73,13 @@ public class LocalizableMessageBuilder {
 	}
 
 	public LocalizableMessage build() {
-		return new LocalizableMessage(key, args, fallbackMessage);
+		if (fallbackMessage != null) {
+			if (fallbackLocalizableMessage != null) {
+				throw new IllegalStateException("fallbackMessage and fallbackLocalizableMessage cannot be both set");
+			}
+			return new LocalizableMessage(key, args.toArray(), fallbackMessage);
+		} else {
+			return new LocalizableMessage(key, args.toArray(), fallbackLocalizableMessage);
+		}
 	}
 }

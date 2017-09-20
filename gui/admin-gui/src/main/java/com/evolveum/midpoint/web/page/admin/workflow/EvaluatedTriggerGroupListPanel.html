@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2017 Evolveum
   ~
@@ -13,21 +14,14 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:wicket="http://wicket.apache.org">
-<body>
-<wicket:panel>
-    <div class="row shopping-cart-item-table" wicket:id="multiButtonTable"/>
-    <div wicket:id="footer"/>
-</wicket:panel>
 
-<wicket:fragment wicket:id="pagingFooter">
-    <div class="boxed-table-footer">
-        <div class="boxed-table-footer-paging-center" align="center" wicket:id="footerContainer">
-            <div class="dataTables_info" wicket:id="count"/>
-            <div class="paging_bootstrap" wicket:id="paging" />
-        </div>
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div wicket:id="triggerGroupList">
+        <div wicket:id="triggerGroup"/>
     </div>
-</wicket:fragment>
-</body>
+
+</wicket:panel>
 </html>

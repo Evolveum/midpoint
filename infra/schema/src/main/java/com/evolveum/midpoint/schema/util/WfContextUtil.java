@@ -747,4 +747,35 @@ public class WfContextUtil {
 		WfContextType wfc = getWorkflowContext(info);
 		return wfc != null ? wfc.getOutcome() : null;
 	}
+
+	public static List<EvaluatedPolicyRuleType> getAllRules(SchemaAttachedPolicyRulesType policyRules) {
+		List<EvaluatedPolicyRuleType> rv = new ArrayList<>();
+		for (SchemaAttachedPolicyRuleType entry : policyRules.getEntry()) {
+			if (!rv.contains(entry.getRule())) {
+				rv.add(entry.getRule());
+			}
+		}
+		return rv;
+	}
+
+	public static List<List<EvaluatedPolicyRuleType>> getRulesPerStage(WfContextType wfc) {
+		List<List<EvaluatedPolicyRuleType>> rv = new ArrayList<>();
+		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(wfc);
+		if (info == null || info.getPolicyRules() == null) {
+			return rv;
+		}
+		List<SchemaAttachedPolicyRuleType> entries = info.getPolicyRules().getEntry();
+		for (int i = 0; i < info.getApprovalSchema().getStage().size(); i++) {
+			int stageNumber = i+1;
+			List<EvaluatedPolicyRuleType> rulesForStage = new ArrayList<>();
+			for (SchemaAttachedPolicyRuleType entry : entries) {
+				if (entry.getStageMin() != null && stageNumber >= entry.getStageMin()
+						&& entry.getStageMax() != null && stageNumber <= entry.getStageMax()) {
+					rulesForStage.add(entry.getRule());
+				}
+			}
+			rv.add(rulesForStage);
+		}
+		return rv;
+	}
 }

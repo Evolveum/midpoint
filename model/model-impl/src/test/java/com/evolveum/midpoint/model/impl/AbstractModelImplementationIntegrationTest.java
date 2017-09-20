@@ -111,6 +111,13 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 		focusContext.setPrimaryDelta(userDelta);
 	}
 
+	protected <F extends FocusType> void fillContextWithAddDelta(LensContext<F> context, PrismObject<F> object) throws SchemaException, EncryptionException {
+		CryptoUtil.encryptValues(protector, object);
+		ObjectDelta<F> addDelta = ObjectDelta.createAddDelta(object);
+		LensFocusContext<F> focusContext = context.getOrCreateFocusContext();
+		focusContext.setPrimaryDelta(addDelta);
+	}
+
 	protected LensProjectionContext fillContextWithAccount(LensContext<UserType> context, String accountOid, Task task, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         PrismObject<ShadowType> account = repositoryService.getObject(ShadowType.class, accountOid, null, result);

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -46,7 +47,6 @@ import org.jvnet.jaxb2_commons.lang.Equals;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 /**
@@ -619,7 +619,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 				if (!wasIndent) {
 					DebugUtil.indentDebugDump(sb, indent);
 				}
-				debugDumpValue(sb, indent, value, prismContext);
+				PrismPrettyPrinter.debugDumpValue(sb, indent, value, prismContext, null, null);
         	}
         } else if (expression != null) {
         	if (!wasIndent) {
@@ -637,21 +637,6 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 
         return sb.toString();
     }
-
-	public static void debugDumpValue(StringBuilder sb, int indent, Object value, PrismContext prismContext) {
-		String formatted;
-		if (DebugUtil.getPrettyPrintBeansAs() != null && value != null && !(value instanceof Enum) && prismContext != null
-				&& value.getClass().getAnnotation(XmlType.class) != null) {
-			try {
-				formatted = prismContext.serializerFor(DebugUtil.getPrettyPrintBeansAs()).serializeRealValue(value, new QName("value"));
-			} catch (SchemaException e) {
-				formatted = PrettyPrinter.prettyPrint(value);
-			}
-		} else {
-			formatted = PrettyPrinter.prettyPrint(value);
-		}
-		sb.append(DebugUtil.fixIndentInMultiline(indent, DebugDumpable.INDENT_STRING, formatted));
-	}
 
 	@Override
 	public String toString() {

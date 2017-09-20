@@ -53,6 +53,12 @@ public class SessionStorage implements Serializable, DebugDumpable {
     private static final String KEY_TASKS = "tasks";
 
     /**
+     * Contains state for first level menu items. Key is menu label text, value if true then
+     * menu is expanded, if false menu is minimized.
+     */
+    private Map<String, Boolean> mainMenuState = new HashMap<>();
+
+    /**
     *   Store session information for user preferences about paging size in midPoint GUI
     * */
     private UserProfileStorage userProfile;
@@ -65,6 +71,10 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public Map<String, PageStorage> getPageStorageMap() {
 		return pageStorageMap;
 	}
+
+    public Map<String, Boolean> getMainMenuState() {
+        return mainMenuState;
+    }
 
     public ConfigurationStorage getConfiguration() {
         if (pageStorageMap.get(KEY_CONFIGURATION) == null) {

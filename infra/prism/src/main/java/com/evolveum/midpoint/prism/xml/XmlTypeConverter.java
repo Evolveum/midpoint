@@ -525,6 +525,12 @@ public class XmlTypeConverter {
 		return xmlCal != null ? new Date(xmlCal.toGregorianCalendar().getTimeInMillis()) : null;
 	}
 
+	public static XMLGregorianCalendar fromNow(Duration duration) {
+		XMLGregorianCalendar rv = createXMLGregorianCalendar(System.currentTimeMillis());
+		rv.add(duration);
+		return rv;
+	}
+
     public static Duration createDuration(long durationInMilliSeconds) {
     	return getDatatypeFactory().newDuration(durationInMilliSeconds);
     }

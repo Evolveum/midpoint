@@ -19,6 +19,7 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -83,7 +84,7 @@ public class PrepareForTaskCreation implements JavaDelegate {
         		throw new SystemException("Couldn't evaluate additional information expression in " + execution, t);
 			}
 		} else {
-        	additionalInformation = new AdditionalInformationGenerator().getDefaultAdditionalInformation(wfTask, stageDef.getNumber());
+        	additionalInformation = Collections.emptyList();
 		}
 		if (!additionalInformation.isEmpty()) {
 			execution.setVariableLocal(CommonProcessVariableNames.ADDITIONAL_INFORMATION,
@@ -95,13 +96,14 @@ public class PrepareForTaskCreation implements JavaDelegate {
 				assignee, candidateGroups, additionalInformation);
     }
 
+	// TODO localizable
 	@SuppressWarnings("unchecked")
 	private List<InformationType> wrapAdditionalInformationIfNeeded(List<?> data) {		// data is not empty
 		if (data.stream().allMatch(o -> o instanceof String)) {
 			InformationType info = new InformationType();
 			for (Object o : data) {
 				InformationPartType part = new InformationPartType();
-				part.setText((String) o);
+				part.setText(LocalizationUtil.createForFallbackMessage((String) o));
 				info.getPart().add(part);
 			}
 			return Collections.singletonList(info);

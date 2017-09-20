@@ -113,10 +113,9 @@ public class PrismIdentifierGenerator {
             CollectionUtils.addIgnoreNull(containers, parent.findContainer(AbstractRoleType.F_INDUCEMENT));
             CollectionUtils.addIgnoreNull(containers, parent.findContainer(AbstractRoleType.F_EXCLUSION));
             CollectionUtils.addIgnoreNull(containers, parent.findContainer(AbstractRoleType.F_AUTHORIZATION));
-            PrismContainer policyConstraints = parent.findContainer(AbstractRoleType.F_POLICY_CONSTRAINTS);
-            if (policyConstraints != null){
-                CollectionUtils.addIgnoreNull(containers, policyConstraints.findContainer(PolicyConstraintsType.F_MAX_ASSIGNEES));
-                CollectionUtils.addIgnoreNull(containers, policyConstraints.findContainer(PolicyConstraintsType.F_MIN_ASSIGNEES));
+            PrismContainer<?> policyConstraints = parent.findContainer(AbstractRoleType.F_POLICY_CONSTRAINTS);
+            if (policyConstraints != null) {
+                containers.addAll(policyConstraints.getContainers());
             }
         }
 

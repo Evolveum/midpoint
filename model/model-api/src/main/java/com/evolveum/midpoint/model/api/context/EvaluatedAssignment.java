@@ -100,5 +100,7 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 
 	Collection<String> getPolicySituations();
 
-	void triggerConstraint(@Nullable EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException;
+	void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers);
+
+	void triggerConstraintLegacy(EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException;
 }

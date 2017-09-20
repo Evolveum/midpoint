@@ -1218,6 +1218,10 @@ public class BeanUnmarshaller {
 	private ProtectedStringType unmarshalProtectedString(MapXNode map, Class beanClass, ParsingContext pc) throws SchemaException {
 		ProtectedStringType protectedType = new ProtectedStringType();
 		XNodeProcessorUtil.parseProtectedType(protectedType, map, prismContext, pc);
+		if (protectedType.isEmpty()) {
+			// E.g. in case when the xmap is empty or if there are is just an expression
+			return null;
+		}
 		return protectedType;
 	}
 

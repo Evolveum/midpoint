@@ -18,12 +18,11 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
 import java.util.Collection;
-import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,12 +31,9 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
@@ -45,9 +41,7 @@ import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -84,23 +78,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModificationPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -318,7 +305,7 @@ public class FocusProcessor {
 		        // focus deltas so we can properly trigger the rules.
 
 		        LensUtil.partialExecute("focusPolicyRules",
-						() -> evaluateFocusPolicyRules(context, activityDescription, now, task, result),
+						() -> policyRuleProcessor.evaluateObjectPolicyRules(context, activityDescription, now, task, result),
 						partialProcessingOptions::getFocusPolicyRules);
 
 		        // Processing done, check for success
@@ -359,7 +346,7 @@ public class FocusProcessor {
 		        if (checker.isSatisfiesConstraints()) {
 		        	LOGGER.trace("Current focus satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
 		        	ExpressionVariables variablesPostIteration = Utils.getDefaultExpressionVariables(focusContext.getObjectNew(),
-		        			null, null, null, context.getSystemConfiguration(), focusContext);		
+		        			null, null, null, context.getSystemConfiguration(), focusContext);
 		        	if (LensUtil.evaluateIterationCondition(context, focusContext,
 		        			iterationSpecificationType, iteration, iterationToken, false, expressionFactory, variablesPostIteration,
 		        			task, result)) {
@@ -398,112 +385,6 @@ public class FocusProcessor {
 		addIterationTokenDeltas(focusContext, iteration, iterationToken);
 		if (consistencyChecks) context.checkConsistence();
 
-	}
-
-	private <F extends FocusType> void evaluateFocusPolicyRules(LensContext<F> context, String activityDescription,
-			XMLGregorianCalendar now, Task task, OperationResult result) throws PolicyViolationException, SchemaException {
-		triggerAssignmentFocusPolicyRules(context, activityDescription, now, task, result);
-		triggerGlobalRules(context);
-	}
-
-	// TODO: should we really do this? Focus policy rules (e.g. forbidden modifications) are irrelevant in this situation,
-	// TODO: i.e. if we are assigning the object into some other object [med]
-	private <F extends FocusType> void triggerAssignmentFocusPolicyRules(LensContext<F> context, String activityDescription,
-			XMLGregorianCalendar now, Task task, OperationResult result) throws PolicyViolationException, SchemaException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
-		DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
-		if (evaluatedAssignmentTriple == null) {
-			return;
-		}
-		for (EvaluatedAssignmentImpl<?> evaluatedAssignment: evaluatedAssignmentTriple.getNonNegativeValues()) {
-			Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getFocusPolicyRules();
-			for (EvaluatedPolicyRule policyRule: policyRules) {
-				triggerRule(focusContext, policyRule);
-			}
-		}
-	}
-
-	private <F extends FocusType> void triggerGlobalRules(LensContext<F> context) throws SchemaException, PolicyViolationException {
-		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
-		if (systemConfiguration == null) {
-			return;
-		}
-		LensFocusContext<F> focusContext = context.getFocusContext();
-
-		// We need to consider object before modification here. We need to prohibit the modification, so we
-		// cannot look at modified object.
-		PrismObject<F> focus = focusContext.getObjectCurrent();
-		if (focus == null) {
-			focus = focusContext.getObjectNew();
-		}
-
-		for (GlobalPolicyRuleType globalPolicyRule: systemConfiguration.asObjectable().getGlobalPolicyRule()) {
-			ObjectSelectorType focusSelector = globalPolicyRule.getFocusSelector();
-			if (cacheRepositoryService.selectorMatches(focusSelector, focus, LOGGER, "Global policy rule "+globalPolicyRule.getName()+": ")) {
-				EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule, null);
-				triggerRule(focusContext, evaluatedRule);
-			}
-		}
-	}
-
-	private <F extends FocusType> void triggerRule(LensFocusContext<F> focusContext, EvaluatedPolicyRule policyRule)
-			throws PolicyViolationException, SchemaException {
-		PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
-		if (policyConstraints == null) {
-			return;
-		}
-		for (ModificationPolicyConstraintType modificationConstraintType: policyConstraints.getModification()) {
-			focusContext.addPolicyRule(policyRule);
-			if (modificationConstraintMatches(focusContext, policyRule, modificationConstraintType)) {
-				EvaluatedPolicyRuleTrigger<?> trigger = new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.MODIFICATION,
-						modificationConstraintType, "Focus "+focusContext.getHumanReadableName()+" was modified");
-				focusContext.triggerConstraint(policyRule, trigger);
-			}
-		}
-	}
-
-	private <F extends FocusType> boolean modificationConstraintMatches(LensFocusContext<F> focusContext, EvaluatedPolicyRule policyRule,
-			ModificationPolicyConstraintType modificationConstraintType) throws SchemaException {
-		if (!operationMatches(focusContext, modificationConstraintType.getOperation())) {
-			LOGGER.trace("Rule {} operation not applicable", policyRule.getName());
-			return false;
-		}
-		if (modificationConstraintType.getItem().isEmpty()) {
-			return focusContext.hasAnyDelta();
-		}
-		ObjectDelta<?> summaryDelta = ObjectDelta.union(focusContext.getPrimaryDelta(), focusContext.getSecondaryDelta());
-		if (summaryDelta == null) {
-			return false;
-		}
-		for (ItemPathType path : modificationConstraintType.getItem()) {
-			if (!pathMatches(focusContext.getObjectOld(), summaryDelta, path.getItemPath())) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private <F extends FocusType> boolean pathMatches(PrismObject<F> objectOld, ObjectDelta<?> delta, ItemPath path)
-			throws SchemaException {
-		if (delta.isAdd()) {
-			return delta.getObjectToAdd().containsItem(path, false);
-		} else if (delta.isDelete()) {
-			return objectOld != null && objectOld.containsItem(path, false);
-		} else {
-			return delta.findItemDelta(path) != null;
-		}
-	}
-
-	private <F extends FocusType> boolean operationMatches(LensFocusContext<F> focusContext, List<ChangeTypeType> operations) {
-		if (operations.isEmpty()) {
-			return true;
-		}
-		for (ChangeTypeType operation: operations) {
-			if (focusContext.operationMatches(operation)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private <F extends FocusType> void applyObjectPolicyConstraints(LensFocusContext<F> focusContext, ObjectPolicyConfigurationType objectPolicyConfigurationType) throws SchemaException {

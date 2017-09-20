@@ -67,10 +67,10 @@ public class PurgeSchemaExecutor extends BaseActionExecutor {
                     if (delta != null) {
                         operationsHelper.applyDelta(delta, ModelExecuteOptions.createRaw(), context, result);
                         context.println("Purged schema information from " + resourceTypePrismObject);
-                        output.addValue(operationsHelper.getObject(ResourceType.class, resourceTypePrismObject.getOid(), true, context, result).getValue(), item.getResult());
+                        output.addValue(operationsHelper.getObject(ResourceType.class, resourceTypePrismObject.getOid(), true, context, result).getValue(), item.getResult(), item.getVariables());
                     } else {
                         context.println("There's no schema information to be purged in " + value);
-                        output.addValue(resourceTypePrismObject.getValue(), item.getResult());
+                        output.addValue(resourceTypePrismObject.getValue(), item.getResult(), item.getVariables());
                     }
                     operationsHelper.recordEnd(context, resourceType, started, null);
                 } catch (Throwable ex) {

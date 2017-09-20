@@ -44,9 +44,23 @@
 		<icfc:configurationProperties>
 			<icfcldap:port>10389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
-			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
-			<icfcldap:bindDn>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:bindDn>
-			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+			<icfcldap:baseContext>
+				<expression>
+					<const>baseDn</const>
+				</expression>
+			</icfcldap:baseContext>
+			<icfcldap:bindDn>
+				<expression>
+					<script>
+						<code>'uid=idm,ou=Administrators,' + midpoint.getConst('baseDn')</code>
+					</script>
+				</expression>
+			</icfcldap:bindDn>
+			<icfcldap:bindPassword>
+				<expression>
+					<const>passwordClear</const>
+				</expression>
+			</icfcldap:bindPassword>
 			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
  			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>

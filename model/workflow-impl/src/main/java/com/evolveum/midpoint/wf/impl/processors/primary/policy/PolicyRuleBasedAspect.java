@@ -186,7 +186,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 	private List<EvaluatedPolicyRule> getApprovalActionRules(Collection<EvaluatedPolicyRule> rules) {
 		return rules.stream()
-					.filter(r -> !r.getTriggers().isEmpty() && r.getActions() != null && r.getActions().getApproval() != null)
+					.filter(r -> r.isTriggered() && r.getActions() != null && !r.getActions().getApproval().isEmpty())
 					.collect(Collectors.toList());
 	}
 
@@ -229,8 +229,9 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 		// (3) actions from triggered rules
 		for (EvaluatedPolicyRule approvalRule : triggeredApprovalRules) {
-			ApprovalPolicyActionType approvalAction = approvalRule.getActions().getApproval();
-			builder.add(getSchemaFromAction(approvalAction), approvalAction.getCompositionStrategy(), targetObject, approvalRule);
+			for (ApprovalPolicyActionType approvalAction : approvalRule.getActions().getApproval()) {
+				builder.add(getSchemaFromAction(approvalAction), approvalAction.getCompositionStrategy(), targetObject, approvalRule);
+			}
 		}
 		return builder.buildSchema(ctx, result);
 	}
@@ -260,7 +261,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 					plusMinusZero == PlusMinusZero.PLUS ? "added" : "deleted",
 					newAssignment, newAssignment.getThisTargetPolicyRules().size(), triggeredApprovalActionRules.size());
 			for (EvaluatedPolicyRule t : triggeredApprovalActionRules) {
-				LOGGER.debug(" - Approval action: {}", t.getActions().getApproval());
+				LOGGER.debug(" - Approval actions: {}", t.getActions().getApproval());
 				for (EvaluatedPolicyRuleTrigger trigger : t.getTriggers()) {
 					LOGGER.debug("   - {}", trigger);
 				}
@@ -281,23 +282,24 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		List<EvaluatedPolicyRule> approvalActionRules = getApprovalActionRules(focusContext.getPolicyRules());
 		LOGGER.trace("extractObjectBasedInstructions: approvalActionRules:\n{}", DebugUtil.debugDumpLazily(approvalActionRules));
 		for (EvaluatedPolicyRule rule : approvalActionRules) {
-			Set<ItemPath> key;
-			if (focusDelta.isAdd() || focusDelta.isDelete()) {
-				key = Collections.emptySet();
-			} else {
-				Set<ItemPath> items = getAffectedItems(rule.getTriggers());
-				Set<ItemPath> affectedItems;
-				if (!items.isEmpty()) {
-					affectedItems = items;				// all items in triggered constraints were modified (that's how the constraints work)
-				} else {
-					affectedItems = new HashSet<>(focusDelta.getModifiedItems());        // whole object
-				}
-				key = affectedItems;
-			}
+			Set<ItemPath> key = Collections.emptySet();;
+//			if (focusDelta.isAdd() || focusDelta.isDelete()) {
+//				key = Collections.emptySet();
+//			} else {
+//				Set<ItemPath> items = getAffectedItems(rule.getTriggers());
+//				Set<ItemPath> affectedItems;
+//				if (!items.isEmpty()) {
+//					affectedItems = items;				// all items in triggered constraints were modified (that's how the constraints work)
+//				} else {
+//					affectedItems = new HashSet<>(focusDelta.getModifiedItems());        // whole object
+//				}
+//				key = affectedItems;
+//			}
 			ApprovalSchemaBuilder builder = schemaBuilders.computeIfAbsent(key, k -> new ApprovalSchemaBuilder(this,
 					approvalSchemaHelper));
-			ApprovalPolicyActionType approvalAction = rule.getActions().getApproval();
-			builder.add(getSchemaFromAction(approvalAction), approvalAction.getCompositionStrategy(), object, rule);
+			for (ApprovalPolicyActionType approvalAction : rule.getActions().getApproval()) {
+				builder.add(getSchemaFromAction(approvalAction), approvalAction.getCompositionStrategy(), object, rule);
+			}
 		}
 		// default rule
 		if (approvalActionRules.isEmpty()

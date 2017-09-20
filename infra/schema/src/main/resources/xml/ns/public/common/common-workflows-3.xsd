@@ -278,6 +278,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="policyRules" type="tns:SchemaAttachedPolicyRulesType"/>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -1376,13 +1377,13 @@
     <xsd:complexType name="InformationType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO Replace by forms before 3.6 release.
+				TODO Replace by forms eventually
 				TEMPORARY
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element name="order" type="xsd:int" minOccurs="0" />
-			<xsd:element name="title" type="xsd:string" minOccurs="0" />
+			<xsd:element name="title" type="tns:LocalizableMessageType" minOccurs="0" />
 			<xsd:element name="part" type="tns:InformationPartType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
     </xsd:complexType>
@@ -1395,7 +1396,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="text" type="xsd:string" minOccurs="0" />
+			<xsd:element name="text" type="tns:LocalizableMessageType" minOccurs="0" />
 			<xsd:element name="hasMarkup" type="xsd:boolean" minOccurs="0" />
 		</xsd:sequence>
 	</xsd:complexType>

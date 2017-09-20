@@ -276,6 +276,12 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 			baseContextsProp.applyDefinition(new PrismPropertyDefinitionImpl<>(new QName("whatever","baseContexts"), DOMUtil.XSD_STRING, prismContext));
 			assertNotRaw(baseContextsProp);
 			assertExpression(baseContextsProp, "script");
+			
+			PrismProperty<ProtectedStringType> credentialsProp = findProp(ldapConfigPropItems, "credentials");
+			assertRaw(credentialsProp);
+			credentialsProp.applyDefinition(new PrismPropertyDefinitionImpl<>(new QName("whatever","credentials"), ProtectedStringType.COMPLEX_TYPE, prismContext));
+			assertNotRaw(credentialsProp);
+			assertExpression(credentialsProp, "const");
 		}
 
 		PrismContainer<Containerable> schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
@@ -370,28 +376,28 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 
 	}
 
-	private void assertRaw(PrismProperty<String> prop) {
+	private <T> void assertRaw(PrismProperty<T> prop) {
 		assertTrue("Prop "+prop+" no raw", prop.isRaw());
 	}
 
-	private void assertNotRaw(PrismProperty<String> prop) {
+	private <T> void assertNotRaw(PrismProperty<T> prop) {
 		assertFalse("Prop "+prop+" raw (unexpected)", prop.isRaw());
 	}
 
-	private PrismProperty<String> findProp(List<Item<?, ?>> items, String local) {
+	private <T> PrismProperty<T> findProp(List<Item<?, ?>> items, String local) {
 		for (Item<?, ?> item: items) {
 			if (local.equals(item.getElementName().getLocalPart())) {
-				return (PrismProperty<String>) item;
+				return (PrismProperty<T>) item;
 			}
 		}
 		fail("No item "+local);
 		return null; // not reached
 	}
 
-	private void assertExpression(PrismProperty<String> prop, String evaluatorName) {
+	private <T> void assertExpression(PrismProperty<T> prop, String evaluatorName) {
 		System.out.println("Prop:");
 		System.out.println(prop.debugDump(1));
-		PrismPropertyValue<String> pval = prop.getValue();
+		PrismPropertyValue<T> pval = prop.getValue();
 		ExpressionWrapper expressionWrapper = pval.getExpression();
 		assertNotNull("No expression wrapper in "+prop, expressionWrapper);
 		Object expressionObj = expressionWrapper.getExpression();

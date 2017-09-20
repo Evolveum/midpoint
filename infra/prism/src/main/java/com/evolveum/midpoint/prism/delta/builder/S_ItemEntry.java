@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism.delta.builder;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -36,6 +37,13 @@ public interface S_ItemEntry {
 
     List<ObjectDelta<?>> asObjectDeltas(String oid);
     ObjectDelta<?> asObjectDelta(String oid);
+
+    // TEMPORARY HACK
+    @SuppressWarnings("unchecked")
+    default <X extends Objectable> ObjectDelta<X> asObjectDeltaCast(String oid) {
+        return (ObjectDelta<X>) asObjectDelta(oid);
+    }
+
     ItemDelta<?,?> asItemDelta();
     List<ItemDelta<?,?>> asItemDeltas();
 

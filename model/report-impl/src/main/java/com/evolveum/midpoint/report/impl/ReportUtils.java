@@ -757,6 +757,6 @@ public class ReportUtils {
         if (typeName == null) {
             return null;
         }
-        return getPropertyString("ObjectType." + typeName.getLocalPart(), typeName.getLocalPart());
+        return getPropertyString(SchemaConstants.OBJECT_TYPE_KEY_PREFIX + typeName.getLocalPart(), typeName.getLocalPart());
     }
 }

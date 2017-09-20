@@ -490,15 +490,108 @@
             <xsd:element name="ref" type="xsd:int" minOccurs="0" />
             <xsd:element name="triggerId" type="xsd:int" minOccurs="0" />       <!-- not 'id' to avoid collisions with container identifiers -->
             <xsd:element name="ruleName" type="xsd:string" minOccurs="0" />
+            <xsd:element name="constraintName" type="xsd:string" minOccurs="0" />
             <xsd:element name="constraintKind" type="tns:PolicyConstraintKindType" minOccurs="0" />
-            <xsd:element name="constraint" type="tns:AbstractPolicyConstraintType" minOccurs="0" />
-            <xsd:element name="message" type="xsd:string" minOccurs="0" />
+            <xsd:element name="constraint" type="tns:AbstractPolicyConstraintType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        DEPRECATED. DO NOT USE.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>3.7</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0" />
+            <xsd:element name="final" type="xsd:boolean" minOccurs="0" />
+            <xsd:element name="hidden" type="xsd:boolean" minOccurs="0" />
 			<xsd:element name="assignmentPath" type="tns:AssignmentPathType" minOccurs="0" />
 			<xsd:element name="directOwnerRef" type="c:ObjectReferenceType" minOccurs="0" />
 			<xsd:element name="directOwnerDisplayName" type="t:PolyStringType" minOccurs="0" />
 		</xsd:sequence>
     </xsd:complexType>
 	<xsd:element name="evaluatedPolicyRuleTrigger" type="tns:EvaluatedPolicyRuleTriggerType" />
+
+	<xsd:complexType name="EvaluatedStateTriggerType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+				<xsd:sequence>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="evaluatedStateTrigger" type="tns:EvaluatedStateTriggerType" />
+
+	<xsd:complexType name="EvaluatedHasAssignmentTriggerType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+				<xsd:sequence>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="evaluatedHasAssignmentTrigger" type="tns:EvaluatedHasAssignmentTriggerType" />
+
+	<xsd:complexType name="EvaluatedMultiplicityTriggerType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+				<xsd:sequence>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="evaluatedMultiplicityTrigger" type="tns:EvaluatedMultiplicityTriggerType" />
+
+	<xsd:complexType name="EvaluatedTimeValidityTriggerType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+				<xsd:sequence>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="evaluatedTimeValidityTrigger" type="tns:EvaluatedTimeValidityTriggerType" />
+
+	<xsd:complexType name="EvaluatedModificationTriggerType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+				<xsd:sequence>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="evaluatedModificationTrigger" type="tns:EvaluatedModificationTriggerType" />
+
+	<xsd:complexType name="EvaluatedEmbeddingTriggerType">  <!-- TODO name -->
+		<xsd:complexContent>
+			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+				<xsd:sequence>
+                    <xsd:element name="embedded" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="EvaluatedTransitionTriggerType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:EvaluatedEmbeddingTriggerType">
+				<xsd:sequence>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="evaluatedTransitionTrigger" type="tns:EvaluatedTransitionTriggerType" />
+
+	<xsd:complexType name="EvaluatedLogicalTriggerType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:EvaluatedEmbeddingTriggerType">
+				<xsd:sequence>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="evaluatedLogicalTrigger" type="tns:EvaluatedLogicalTriggerType" />
 
 	<xsd:complexType name="EvaluatedExclusionTriggerType">
 		<xsd:complexContent>
@@ -533,10 +626,15 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						DO NOT USE
+
 						Keeping only because some "pre-3.6" code stored some data here. So we're not deleting
 						it to avoid schema exceptions.
 						Will be replaced by something more compact in the future (something like a reference to the rule).
 					</xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>3.6</a:deprecatedSince>
+                    </xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded" />

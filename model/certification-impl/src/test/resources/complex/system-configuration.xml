@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>SystemConfiguration</name>
+    <logging>
+        <classLogger>
+	        <level>TRACE</level>
+	        <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
+      	</classLogger>
+        <appender xsi:type="c:FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+            <fileName>target/test.log</fileName>
+            <append>true</append>
+        </appender>
+		<rootLoggerAppender>File Appender</rootLoggerAppender>
+		<rootLoggerLevel>INFO</rootLoggerLevel>
+    </logging>
+	<notificationConfiguration>
+		<handler>
+			<simpleReviewerNotifier>
+				<recipientExpression>
+					<value>recipient@evolveum.com</value>
+				</recipientExpression>
+				<transport>dummy:simpleReviewerNotifier</transport>
+			</simpleReviewerNotifier>
+		</handler>
+		<mail>
+			<redirectToFile>target/mail-notifications.log</redirectToFile>
+		</mail>
+	</notificationConfiguration>
+	<globalPolicyRule>
+		<name>basic-constraints-definitions</name>
+		<description>
+			This is no-action disabled rule that is used to define basic constraints:
+			what is an incomplete role (as per C1 to C4), what is a role activation, etc.
+			To keep constraints in the logical order we must enclose each in separate "and"
+			element. Otherwise the IDE would issue a lot of XSD validation errors
+			(because of the ordering prescribed in PolicyConstraintsType definition).
+		</description>
+		<policyConstraints>
+			<and>
+				<objectState>
+					<name>c1-no-risk-level</name>
+					<!-- presentation is not needed, as default key of PolicyConstraint.c1-no-risk-level is used -->
+					<filter>
+						<q:equal>
+							<q:path>riskLevel</q:path>
+						</q:equal>
+					</filter>
+				</objectState>
+			</and>
+			<and>
+				<objectState>
+					<!-- could be implemented also as a conjunction of two filter-based objectState constraints -->
+					<name>c2-no-description-for-high-risk-role</name>
+					<!-- presentation is not needed, as default key of PolicyConstraint.c2-no-description-for-high-risk-role is used -->
+					<expression>
+						<script>
+							<code>object.riskLevel == 'high' &amp;&amp; object.description == null</code>
+						</script>
+					</expression>
+				</objectState>
+			</and>
+			<and>
+				<name>c3-less-than-2-approvers-for-high-risk-role</name>
+				<!-- message definition is not needed, as default key of PolicyConstraint.c3-less-than-2-approvers-for-high-risk-role is used -->
+				<presentation>
+					<final>true</final>		<!-- we don't need to show further details -->
+				</presentation>
+				<objectState>
+					<name>high-risk-role</name>
+					<filter>
+						<q:equal>
+							<q:path>riskLevel</q:path>
+							<q:value>high</q:value>
+						</q:equal>
+					</filter>
+				</objectState>
+				<objectMinAssigneesViolation>
+					<multiplicity>2</multiplicity>
+					<relation>approver</relation>
+				</objectMinAssigneesViolation>
+			</and>
+			<and>
+				<name>c3-less-than-1-approver-for-non-high-risk-role</name>
+				<!-- message definition is not needed, as default key of PolicyConstraint.c3-less-than-1-approver-for-non-high-risk-role is used -->
+				<presentation>
+					<final>true</final>
+				</presentation>
+				<objectState>
+					<name>not-high-risk-role</name>
+					<filter>
+						<q:not>
+							<q:equal>
+								<q:path>riskLevel</q:path>
+								<q:value>high</q:value>
+							</q:equal>
+						</q:not>
+					</filter>
+				</objectState>
+				<objectMinAssigneesViolation>
+					<multiplicity>1</multiplicity>
+					<relation>approver</relation>
+				</objectMinAssigneesViolation>
+			</and>
+			<and>
+				<objectMinAssigneesViolation>
+					<name>c4-no-role-owner</name>
+					<!-- PolicyConstraint.c4-no-role-owner is intentionally not defined, to demonstrate the use of the built-in message -->
+					<multiplicity>1</multiplicity>
+					<relation>owner</relation>
+				</objectMinAssigneesViolation>
+			</and>
+			<and>
+				<objectState>
+					<name>c5-no-identifier</name>
+					<!-- no message definition is needed: a key of PolicyConstraint.c5-no-identifier is used -->
+					<!-- situation and expectedUse are set for "active role with no identifier" because that's what we want to certify and report -->
+					<presentation>
+						<hidden>true</hidden>
+					</presentation>
+					<filter>
+						<q:equal>
+							<q:path>identifier</q:path>
+						</q:equal>
+					</filter>
+				</objectState>
+			</and>
+			<and>
+				<objectState>
+					<name>role-active</name>
+					<filter>
+						<q:or>
+							<q:equal>
+								<q:path>lifecycleState</q:path>
+								<q:value>active</q:value>
+							</q:equal>
+							<q:equal>
+								<q:path>lifecycleState</q:path>
+							</q:equal>
+						</q:or>
+					</filter>
+				</objectState>
+			</and>
+			<and>
+				<objectState>
+					<name>validity-not-limited</name>
+					<presentation>
+						<message>
+							<keyExpression>
+								<script>
+									<code>
+										import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+
+										if (object.activation == null) {
+											'PolicyConstraint.validity-not-limited.validToNull'
+										} else if (object.activation.administrativeStatus == ActivationStatusType.ENABLED) {
+										 	'PolicyConstraint.validity-not-limited.enabled'
+										} else if (object.activation.validTo == null) {
+											'PolicyConstraint.validity-not-limited.validToNull'
+										} else {
+											'PolicyConstraint.validity-not-limited.validToNotNull'
+										}
+									</code>
+								</script>
+							</keyExpression>
+							<argumentExpression>
+								<script>
+									<code>
+										object.activation?.validTo
+									</code>
+								</script>
+							</argumentExpression>
+						</message>
+					</presentation>
+					<expression>
+						<script>
+							<code>
+								import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+								import com.evolveum.midpoint.prism.xml.XmlTypeConverter
+
+								if (object.activation == null) {
+									return true
+								}
+								def state = object.activation.administrativeStatus
+								if (state == ActivationStatusType.ENABLED) {
+									return true
+								} else if (state != null) {
+									return false
+								}
+								def validTo = object.activation.validTo
+								if (validTo == null) {
+									return true
+								}
+								def nowPlus180 = XmlTypeConverter.fromNow(XmlTypeConverter.createDuration("P180D"))
+								return validTo.toGregorianCalendar().compareTo(nowPlus180.toGregorianCalendar()) &gt; 0
+							</code>
+						</script>
+					</expression>
+				</objectState>
+			</and>
+			<and>
+				<name>active-role-with-no-identifier</name>
+				<!-- presentation is not needed, as default key of PolicyConstraint.active-role-with-no-identifier is used -->
+				<presentation>
+					<final>true</final>
+				</presentation>
+				<policySituation>http://sample.org/situations#active-role-with-no-identifier</policySituation>
+				<expectedUse>certification</expectedUse> <!-- R4 -->
+				<expectedUse>fullReport</expectedUse>	<!-- RE2 -->
+				<ref>
+					<name>role-active</name>
+				</ref>
+				<ref>
+					<name>c5-no-identifier</name>
+				</ref>
+			</and>
+			<and>
+				<or>
+					<name>incomplete-role-c1-to-c4</name>
+					<!-- message definition is not needed, as the default key of PolicyConstraint.incomplete-role-c1-to-c4 is used -->
+					<presentation>
+						<hidden>true</hidden>
+					</presentation>
+					<policySituation>http://sample.org/situations#incomplete-role-c1-to-c4</policySituation>
+					<expectedUse>fullReport</expectedUse>	<!-- RE1 -->
+					<ref>
+						<name>c1-no-risk-level</name>
+					</ref>
+					<ref>
+						<name>c2-no-description-for-high-risk-role</name>
+					</ref>
+					<ref>
+						<name>c3-less-than-1-approver-for-non-high-risk-role</name>
+					</ref>
+					<ref>
+						<name>c3-less-than-2-approvers-for-high-risk-role</name>
+					</ref>
+					<ref>
+						<name>c4-no-role-owner</name>
+					</ref>
+				</or>
+			</and>
+			<and>
+				<transition>
+					<name>role-activation</name>
+					<presentation>
+						<final>true</final>
+						<hidden>true</hidden>
+					</presentation>
+					<stateBefore>false</stateBefore>
+					<stateAfter>true</stateAfter>
+					<constraints>
+						<ref>
+							<name>role-active</name>
+						</ref>
+					</constraints>
+				</transition>
+			</and>
+		</policyConstraints>
+		<condition>
+			<!-- This rule serves as a container for constraints definitions. It is not to be evaluated directly. -->
+			<expression>
+				<value>false</value>
+			</expression>
+		</condition>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>r1-no-activation-of-incomplete-roles</name>
+		<description>R1: No role that does not meet C1-C4 might be activated i.e. switched to lifecycleState of active.</description>
+		<policyConstraints>
+			<name>r1-no-activation-of-incomplete-roles</name>
+			<!-- presentation uses PolicyConstraint.r1-no-activation-of-incomplete-roles -->
+			<!-- Note: situation is not defined here, as this is a transition-related rule.
+			     Situation marking incomplete rules is defined in incomplete-role-c1-to-c4 constraint. -->
+			<ref>
+				<name>incomplete-role-c1-to-c4</name>
+			</ref>
+			<ref>
+				<name>role-activation</name>
+			</ref>
+		</policyConstraints>
+		<policyActions>
+			<enforcement/>
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>r2-role-activation-approval</name>
+		<description>R2: Activation of a role must be approved by its owner.</description>
+		<policyConstraints>
+			<name>r2-role-activation-approval</name>
+			<presentation>
+				<final>true</final>
+			</presentation>
+			<ref>
+				<name>role-activation</name>
+			</ref>
+		</policyConstraints>
+		<policyActions>
+			<approval>
+				<compositionStrategy>
+					<order>10</order>
+				</compositionStrategy>
+				<approvalSchema>
+					<stage>
+						<approverRelation>owner</approverRelation>
+					</stage>
+				</approvalSchema>
+			</approval>
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>r3-no-identifier-role-activation-approval</name>
+		<description>R3: Activation of a role without identifier is subject to an approval by Security Administrators.</description>
+		<policyConstraints>
+			<name>r3-no-identifier-role-activation-approval</name>
+			<presentation>
+				<final>true</final>
+			</presentation>
+			<ref>
+				<name>role-activation</name>
+			</ref>
+			<ref>
+				<name>c5-no-identifier</name>
+			</ref>
+		</policyConstraints>
+		<policyActions>
+			<approval>
+				<compositionStrategy>
+					<order>10</order>
+				</compositionStrategy>
+				<approvalSchema>
+					<stage>
+						<approverRef oid="a14afc10-e4a2-48a4-abfd-e8a2399f98d3" type="c:OrgType"/> <!-- Security Administrators -->
+					</stage>
+				</approvalSchema>
+			</approval>
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>r5-validity-limitation-for-active-role</name>
+		<description>R5: Validity of an active role without identifier must be limited to 180 days at most.</description>
+		<policyConstraints>
+			<name>r5-validity-limitation-for-active-role</name>
+			<and>
+				<presentation>
+					<final>true</final>
+					<hidden>true</hidden>
+				</presentation>
+				<ref>
+					<name>active-role-with-no-identifier</name>
+				</ref>
+			</and>
+			<ref>
+				<name>validity-not-limited</name>
+			</ref>
+		</policyConstraints>
+		<policyActions>
+			<enforcement/>
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>test-primary</name>
+		<policyConstraints>
+			<objectState>
+				<filter>
+					<q:equal>
+						<q:path>name</q:path>
+						<q:value>correct</q:value>
+					</q:equal>
+				</filter>
+			</objectState>
+			<objectState>
+				<name>temp.always-true</name>
+				<expression>
+					<value>true</value>
+				</expression>
+			</objectState>
+		</policyConstraints>
+		<policySituation>http://test/complete</policySituation>
+		<policyActions>
+			<!-- nothing: just to mark the situation -->
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>test-secondary</name>
+		<policyConstraints>
+			<situation>
+				<situation>http://test/complete</situation>
+			</situation>
+		</policyConstraints>
+		<policyActions>
+			<!-- nothing: just to test -->
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>test2-primary</name>
+		<policyConstraints>
+			<objectState>
+				<filter>
+					<q:equal>
+						<q:path>name</q:path>
+						<q:value>correct</q:value>
+					</q:equal>
+				</filter>
+			</objectState>
+			<objectState>
+				<name>temp.always-true.2</name>
+				<presentation>
+					<hidden>true</hidden>	<!-- to pass only state filter message out -->
+				</presentation>
+				<expression>
+					<value>true</value>
+				</expression>
+			</objectState>
+		</policyConstraints>
+		<policySituation>http://test/complete2</policySituation>
+		<policyActions>
+			<!-- nothing: just to mark the situation -->
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>test2-secondary</name>
+		<policyConstraints>
+			<situation>
+				<situation>http://test/complete2</situation>
+			</situation>
+		</policyConstraints>
+		<policyActions>
+			<!-- nothing: just to test -->
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
+</systemConfiguration>

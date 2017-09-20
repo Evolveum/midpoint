@@ -56,6 +56,10 @@ public class DebugUtil {
 		return prettyPrintBeansAs;
 	}
 
+	public static String getPrettyPrintBeansAs(String defaultLanguage) {
+		return prettyPrintBeansAs != null ? prettyPrintBeansAs : defaultLanguage;
+	}
+
 	// Experimental. To be used e.g. in tests, for dumps to be easier to read. YAML looks like a good option here.
 	// (It would be nice to serialize it with some 'no namespaces' option.)
 	public static void setPrettyPrintBeansAs(String language) {
@@ -163,7 +167,7 @@ public class DebugUtil {
     public static String debugDump(DebugDumpable dd, int indent) {
 		if (dd == null) {
 			StringBuilder sb = new StringBuilder();
-			indentDebugDump(sb, indent + 1);
+			indentDebugDump(sb, indent);
 			sb.append("null");
 			return sb.toString();
 		} else {

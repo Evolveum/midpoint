@@ -41,8 +41,8 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
     private static final String ID_MENU_ITEM_BODY = "menuItemBody";
     private static final String ID_MENU_BUTTON_CONTAINER = "menuButtonContainer";
 
-    public MenuMultiButtonPanel(String id, int buttonsNumber, IModel<T> model, IModel<List<InlineMenuItem>> menuItemsModel) {
-        super(id, buttonsNumber, model, menuItemsModel);
+    public MenuMultiButtonPanel(String id, int buttonsCount, IModel<T> model, IModel<List<InlineMenuItem>> menuItemsModel) {
+        super(id, buttonsCount, model, menuItemsModel);
     }
 
     @Override

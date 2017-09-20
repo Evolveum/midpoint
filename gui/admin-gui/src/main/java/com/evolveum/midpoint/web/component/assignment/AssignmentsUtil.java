@@ -5,6 +5,9 @@ import java.util.function.Function;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -25,14 +28,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 
 /**
  * Created by honchar.
@@ -314,5 +309,22 @@ public class AssignmentsUtil {
 
 	}
 
+    public static boolean isAssignmentRelevant(AssignmentType assignment) {
+        return assignment.getTargetRef() == null ||
+                !UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType());
+    }
+
+    public static boolean isPolicyRuleAssignment(AssignmentType assignment) {
+        return assignment.asPrismContainerValue() != null
+                && assignment.asPrismContainerValue().findContainer(AssignmentType.F_POLICY_RULE) != null;
+    }
+
+    public static boolean isConsentAssignment(AssignmentType assignment) {
+        if (assignment.getTargetRef() == null) {
+            return false;
+        }
+
+        return QNameUtil.match(assignment.getTargetRef().getRelation(), SchemaConstants.ORG_CONSENT);
+    }
 
 }

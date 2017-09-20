@@ -231,7 +231,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
     }
 
-    protected abstract Iterator<? extends T> internalIterator(long first, long count);
+    public abstract Iterator<? extends T> internalIterator(long first, long count);
 
     @Override
     public long size() {

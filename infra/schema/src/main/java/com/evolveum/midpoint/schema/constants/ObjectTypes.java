@@ -338,7 +338,7 @@ public enum ObjectTypes {
 		ResourceBundle bundle = ResourceBundle.getBundle(
 				SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH,
 				locale != null ? locale : Locale.getDefault());
-		String key = "ObjectType." + name.getLocalPart();
+		String key = SchemaConstants.OBJECT_TYPE_KEY_PREFIX + name.getLocalPart();
 		if (bundle.containsKey(key)) {
 			return bundle.getString(key);
 		} else {

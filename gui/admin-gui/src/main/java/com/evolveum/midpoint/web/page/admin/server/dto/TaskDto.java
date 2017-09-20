@@ -53,6 +53,7 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.server.handlers.HandlerDtoFactory;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.HandlerDto;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.ResourceRelatedHandlerDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -74,6 +75,7 @@ import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+import static com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto.computeTriggers;
 
 /**
  * @author lazyman
@@ -128,6 +130,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	public static final long RUNS_CONTINUALLY = -1L;
 	public static final long ALREADY_PASSED = -2L;
 	public static final long NOW = 0L;
+	public static final String F_TRIGGERS = "triggers";
 
 	@NotNull private final TaskType taskType;
 
@@ -157,6 +160,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	// other
 	private List<InlineMenuItem> menuItems;
 	private HandlerDto handlerDto;
+	private List<EvaluatedTriggerGroupDto> triggers;            // initialized on demand
 
     //region Construction
     public TaskDto(@NotNull TaskType taskType, ModelService modelService, TaskService taskService, ModelInteractionService modelInteractionService,
@@ -1133,4 +1137,12 @@ public class TaskDto extends Selectable implements InlineMenuable {
 				.collect(Collectors.joining(", "));
 		return n.isEmpty() ? "-" : n;
 	}
+
+	public List<EvaluatedTriggerGroupDto> getTriggers() {
+		if (triggers == null) {
+			triggers = computeTriggers(getWorkflowContext());
+		}
+		return triggers;
+	}
+
 }

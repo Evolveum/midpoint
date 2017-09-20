@@ -49,7 +49,9 @@
             </baseContexts>
             <principal>cn=directory manager</principal>
             <credentials>
-                <clearValue>secret</clearValue>
+                <expression>
+            		<const>password</const>
+            	</expression>
             </credentials>
             <vlvSortAttribute>uid</vlvSortAttribute>
             <accountOperationalAttributes>ds-pwp-account-disabled</accountOperationalAttributes>

@@ -140,7 +140,7 @@ public interface ItemDefinition<I extends Item> extends Definition {
 
 	ItemDefinition<I> deepClone(boolean ultraDeep);
 
-	ItemDefinition<I> deepClone(Map<QName, ComplexTypeDefinition> ctdMap);
+	ItemDefinition<I> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath);
 
 	@Override
 	void revive(PrismContext prismContext);

@@ -16,6 +16,7 @@
 <role oid="12345111-1111-2222-1111-121212111111"
 	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
 	  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -56,6 +57,68 @@
 			</policyConstraints>
 			<policyActions>
 				<approval/>
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<assignment>
+		<policyRule>
+			<name>all-assignment-additions-on-jack</name>
+			<policyConstraints>
+				<assignment>
+					<operation>add</operation>
+				</assignment>
+				<objectState>
+					<filter>
+						<q:equal>
+							<q:path>name</q:path>
+							<q:value>jack</q:value>
+						</q:equal>
+					</filter>
+				</objectState>
+			</policyConstraints>
+			<policyActions>
+				<certification/>
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<assignment>
+		<policyRule>
+			<name>all-assignment-operations-on-elaine</name>
+			<policyConstraints>
+				<assignment/>
+				<objectState>
+					<filter>
+						<q:equal>
+							<q:path>name</q:path>
+							<q:value>elaine</q:value>
+						</q:equal>
+					</filter>
+				</objectState>
+			</policyConstraints>
+			<policyActions>
+				<certification/>
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<assignment>
+		<policyRule>
+			<name>all-assignment-additions-on-jack-via-script</name>
+			<policyConstraints>
+				<assignment>
+					<operation>add</operation>
+				</assignment>
+				<objectState>
+					<expression>
+						<script>
+							<code>
+								basic.stringify(focus.name) == 'jack'
+							</code>
+						</script>
+					</expression>
+				</objectState>
+			</policyConstraints>
+			<policyActions>
+				<certification/>
 			</policyActions>
 		</policyRule>
 	</assignment>

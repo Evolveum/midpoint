@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Evolveum
+ * Copyright (c) 2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,53 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.web.component.data;
+package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
+import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingKart;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created honchar.
+ * Created by honchar.
  */
-public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
-	private static final long serialVersionUID = 1L;
+public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_ROW = "row";
-    private static final String ID_CELL = "cell";
     private static final String ID_ITEM_BUTTON_CONTAINER = "itemButtonContainer";
     private static final String ID_INNER = "inner";
     private static final String ID_INNER_LABEL = "innerLabel";
@@ -73,66 +59,30 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     private static final String ID_DETAILS_LINK_LABEL = "detailsLinkLabel";
     private static final String ID_DETAILS_LINK_ICON = "detailsLinkIcon";
 
-    private static final String DOT_CLASS = AssignmentCatalogPanel.class.getName();
-    private static final Trace LOGGER = TraceManager.getTrace(AssignmentCatalogPanel.class);
-    private static final String OPERATION_LOAD_TARGET_OBJECT = DOT_CLASS + "." + "loadTargetObject";
-
-    private long itemsCount = 0;
-    private long itemsPerRow = 0;
-    private PageBase pageBase;
-
     private boolean plusIconClicked = false;
 
-    public MultiButtonTable (String id, long itemsPerRow, IModel<List<AssignmentEditorDto>> model, PageBase pageBase){
+    public RoleCatalogItemButton(String id, IModel<AssignmentEditorDto> model){
         super(id, model);
-        this.itemsPerRow = itemsPerRow;
-        this.pageBase = pageBase;
+    }
 
-         initLayout();
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
+        initLayout();
     }
 
     private void initLayout(){
+        WebMarkupContainer itemButtonContainer = new WebMarkupContainer(ID_ITEM_BUTTON_CONTAINER);
+        itemButtonContainer.setOutputMarkupId(true);
+        itemButtonContainer.add(new AttributeAppender("class", getBackgroundClass(getModelObject())));
+        add(itemButtonContainer);
 
-        itemsCount = getModel() != null ? (getModel().getObject() != null ? getModel().getObject().size() : 0) : 0;
-        RepeatingView rows = new RepeatingView(ID_ROW);
-        rows.setOutputMarkupId(true);
-        if (itemsCount > 0 && itemsPerRow > 0){
-            int index = 0;
-            List<AssignmentEditorDto> assignmentsList = getModelObject();
-            long rowCount = itemsCount % itemsPerRow == 0 ? (itemsCount / itemsPerRow) : (itemsCount / itemsPerRow + 1);
-            for (int rowNumber = 0; rowNumber < rowCount; rowNumber++){
-                WebMarkupContainer rowContainer = new WebMarkupContainer(rows.newChildId());
-                rows.add(rowContainer);
-                RepeatingView columns = new RepeatingView(ID_CELL);
-                columns.setOutputMarkupId(true);
-                rowContainer.add(columns);
-                for (int colNumber = 0; colNumber < itemsPerRow; colNumber++){
-                    WebMarkupContainer colContainer = new WebMarkupContainer(columns.newChildId());
-                    columns.add(colContainer);
-
-                    WebMarkupContainer itemButtonContainer = new WebMarkupContainer(ID_ITEM_BUTTON_CONTAINER);
-                    itemButtonContainer.setOutputMarkupId(true);
-                    itemButtonContainer.add(new AttributeAppender("class", getBackgroundClass(assignmentsList.get(index))));
-                    colContainer.add(itemButtonContainer);
-                    populateCell(itemButtonContainer, assignmentsList.get(index));
-                    index++;
-                    if (index >= assignmentsList.size()){
-                        break;
-                    }
-
-                }
-            }
-        }
-        add(rows);
-    }
-
-    protected void populateCell(WebMarkupContainer cellContainer, final AssignmentEditorDto assignment){
         AjaxLink inner = new AjaxLink(ID_INNER) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                targetObjectDetailsPerformed(assignment, ajaxRequestTarget);
+                targetObjectDetailsPerformed(RoleCatalogItemButton.this.getModelObject(), ajaxRequestTarget);
             }
         };
         inner.add(new VisibleEnableBehaviour(){
@@ -140,24 +90,26 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public boolean isEnabled(){
-                return isMultiUserRequest() || canAssign(assignment);
+                return isMultiUserRequest() || canAssign(RoleCatalogItemButton.this.getModelObject());
             }
         });
-        inner.add(new AttributeAppender("title", assignment.getName()));
-        cellContainer.add(inner);
+        inner.add(new AttributeAppender("title", getModelObject().getName()));
+        itemButtonContainer.add(inner);
 
-        Label nameLabel = new Label(ID_INNER_LABEL, assignment.getName());
+        Label nameLabel = new Label(ID_INNER_LABEL, getModelObject().getName());
         inner.add(nameLabel);
 
-        Label descriptionLabel = new Label(ID_INNER_DESCRIPTION, assignment.getTargetRef() != null ?
-                assignment.getTargetRef().getDescription() : "");
+        Label descriptionLabel = new Label(ID_INNER_DESCRIPTION, getModelObject().getTargetRef() != null ?
+                getModelObject().getTargetRef().getDescription() : "");
         descriptionLabel.setOutputMarkupId(true);
         inner.add(descriptionLabel);
 
         AjaxLink detailsLink = new AjaxLink(ID_DETAILS_LINK) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                assignmentDetailsPerformed(assignment, ajaxRequestTarget);
+                assignmentDetailsPerformed(RoleCatalogItemButton.this.getModelObject(), ajaxRequestTarget);
             }
         };
         detailsLink.add(new VisibleEnableBehaviour(){
@@ -165,21 +117,21 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public boolean isEnabled(){
-                return isMultiUserRequest() || canAssign(assignment);
+                return isMultiUserRequest() || canAssign(getModelObject());
             }
         });
-        cellContainer.add(detailsLink);
+        itemButtonContainer.add(detailsLink);
 
-        Label detailsLinkLabel = new Label(ID_DETAILS_LINK_LABEL, pageBase.createStringResource("MultiButtonPanel.detailsLink"));
+        Label detailsLinkLabel = new Label(ID_DETAILS_LINK_LABEL, createStringResource("MultiButtonPanel.detailsLink"));
         detailsLinkLabel.setRenderBodyOnly(true);
         detailsLink.add(detailsLinkLabel);
 
         AjaxLink detailsLinkIcon = new AjaxLink(ID_DETAILS_LINK_ICON) {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-			}
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+            }
 
         };
         detailsLinkIcon.add(new VisibleEnableBehaviour(){
@@ -187,15 +139,17 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public boolean isEnabled(){
-                return isMultiUserRequest() || canAssign(assignment);
+                return isMultiUserRequest() || canAssign(getModelObject());
             }
         });
         detailsLink.add(detailsLinkIcon);
 
         AjaxLink addToCartLink = new AjaxLink(ID_ADD_TO_CART_LINK) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                addAssignmentPerformed(assignment, ajaxRequestTarget);
+                addAssignmentPerformed(RoleCatalogItemButton.this.getModelObject(), ajaxRequestTarget);
             }
         };
         addToCartLink.add(new VisibleEnableBehaviour(){
@@ -203,10 +157,10 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public boolean isEnabled(){
-                return isMultiUserRequest() || canAssign(assignment);
+                return isMultiUserRequest() || canAssign(getModelObject());
             }
         });
-        cellContainer.add(addToCartLink);
+        itemButtonContainer.add(addToCartLink);
 
         AjaxLink addToCartLinkIcon = new AjaxLink(ID_ADD_TO_CART_LINK_ICON) {
             private static final long serialVersionUID = 1L;
@@ -221,31 +175,47 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public boolean isEnabled(){
-                return isMultiUserRequest() || canAssign(assignment);
+                return isMultiUserRequest() || canAssign(getModelObject());
             }
         });
         addToCartLink.add(addToCartLinkIcon);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_TYPE_ICON);
-        icon.add(new AttributeAppender("class", getIconClass(assignment.getType())));
-        cellContainer.add(icon);
+        icon.add(new AttributeAppender("class", WebComponentUtil.createDefaultBlackIcon(getModelObject().getType().getQname())));
+        itemButtonContainer.add(icon);
 
         WebMarkupContainer alreadyAssignedIcon = new WebMarkupContainer(ID_ALREADY_ASSIGNED_ICON);
-        alreadyAssignedIcon.add(new AttributeAppender("title", getAlreadyAssignedIconTitleModel(assignment)));
+        alreadyAssignedIcon.add(new AttributeAppender("title", getAlreadyAssignedIconTitleModel(getModelObject())));
         alreadyAssignedIcon.add(new VisibleEnableBehaviour(){
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible(){
-                return !isMultiUserRequest() && assignment.isAlreadyAssigned();
+                return !isMultiUserRequest() && getModelObject().isAlreadyAssigned();
             }
         });
-        cellContainer.add(alreadyAssignedIcon);
+        itemButtonContainer.add(alreadyAssignedIcon);
 
+    }
+
+    private String getBackgroundClass(AssignmentEditorDto dto){
+        if (!isMultiUserRequest() && !canAssign(dto)){
+            return GuiStyleConstants.CLASS_DISABLED_OBJECT_ROLE_BG;
+        } else if (AssignmentEditorDtoType.ROLE.equals(dto.getType())){
+            return GuiStyleConstants.CLASS_OBJECT_ROLE_BG;
+        }else if (AssignmentEditorDtoType.SERVICE.equals(dto.getType())){
+            return GuiStyleConstants.CLASS_OBJECT_SERVICE_BG;
+        }else if (AssignmentEditorDtoType.ORG_UNIT.equals(dto.getType())){
+            return GuiStyleConstants.CLASS_OBJECT_ORG_BG;
+        } else {
+            return "";
+        }
     }
 
     private IModel<String> getAlreadyAssignedIconTitleModel(AssignmentEditorDto dto) {
         return new LoadableModel<String>(false) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected String load() {
                 List<RelationTypes> assignedRelations = dto.getAssignedRelationsList();
@@ -267,21 +237,17 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         };
     }
 
-    private boolean canAssign(final AssignmentEditorDto assignment) {
-    	return assignment.isAssignable();
-    }
-
-    private void assignmentDetailsPerformed(final AssignmentEditorDto assignment, AjaxRequestTarget target){
+    private void assignmentDetailsPerformed(AssignmentEditorDto assignment, AjaxRequestTarget target){
         if (!plusIconClicked) {
             assignment.setMinimized(false);
             assignment.setSimpleView(true);
-            pageBase.navigateToNext(new PageAssignmentDetails(Model.of(assignment)));
+            getPageBase().navigateToNext(new PageAssignmentDetails(Model.of(assignment)));
         } else {
             plusIconClicked = false;
         }
     }
 
-    private void targetObjectDetailsPerformed(final AssignmentEditorDto assignment, AjaxRequestTarget target){
+    private void targetObjectDetailsPerformed(AssignmentEditorDto assignment, AjaxRequestTarget target){
         if (assignment.getTargetRef() == null || assignment.getTargetRef().getOid() == null){
             return;
         }
@@ -301,48 +267,27 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         }
     }
 
-    private String getIconClass(AssignmentEditorDtoType type){
-    	// TODO: switch to icon constants
-        if (AssignmentEditorDtoType.ROLE.equals(type)){
-            return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
-        }else if (AssignmentEditorDtoType.SERVICE.equals(type)){
-            return GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON;
-        }else if (AssignmentEditorDtoType.ORG_UNIT.equals(type)){
-            return GuiStyleConstants.CLASS_OBJECT_ORG_ICON;
-        } else {
-            return "";
-        }
+    private boolean isMultiUserRequest(){
+        return getPageBase().getSessionStorage().getRoleCatalog().isMultiUserRequest();
     }
 
-    private String getBackgroundClass(AssignmentEditorDto dto){
-        if (!isMultiUserRequest() && !canAssign(dto)){
-            return GuiStyleConstants.CLASS_DISABLED_OBJECT_ROLE_BG;
-        } else if (AssignmentEditorDtoType.ROLE.equals(dto.getType())){
-            return GuiStyleConstants.CLASS_OBJECT_ROLE_BG;
-        }else if (AssignmentEditorDtoType.SERVICE.equals(dto.getType())){
-            return GuiStyleConstants.CLASS_OBJECT_SERVICE_BG;
-        }else if (AssignmentEditorDtoType.ORG_UNIT.equals(dto.getType())){
-            return GuiStyleConstants.CLASS_OBJECT_ORG_BG;
-        } else {
-            return "";
-        }
+    private boolean canAssign(AssignmentEditorDto assignment) {
+        return assignment.isAssignable();
     }
 
     private void addAssignmentPerformed(AssignmentEditorDto assignment, AjaxRequestTarget target){
         plusIconClicked = true;
-        RoleCatalogStorage storage = pageBase.getSessionStorage().getRoleCatalog();
+        RoleCatalogStorage storage = getPageBase().getSessionStorage().getRoleCatalog();
         if (storage.getAssignmentShoppingCart() == null){
             storage.setAssignmentShoppingCart(new ArrayList<AssignmentEditorDto>());
         }
         AssignmentEditorDto dto = assignment.clone();
         dto.setDefaultRelation();
         storage.getAssignmentShoppingCart().add(dto);
-        AssignmentCatalogPanel parent = MultiButtonTable.this.findParent(AssignmentCatalogPanel.class);
-        parent.reloadCartButton(target);
 
+        assignmentAddedToShoppingCartPerformed(target);
     }
 
-    private boolean isMultiUserRequest(){
-        return pageBase.getSessionStorage().getRoleCatalog().isMultiUserRequest();
+    protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
     }
 }
