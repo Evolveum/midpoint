@@ -548,11 +548,16 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
     public void setShowAssignments(boolean showAssignments) {
         this.showAssignments = showAssignments;
     }
-
+    
     @Override
+    public void setShowEmpty(boolean showEmpty, boolean recursive) {
+    	super.setShowEmpty(showEmpty, recursive);
+    }
+
+    
     public void setShowEmpty(boolean showEmpty) {
-    	super.setShowEmpty(showEmpty);
-    	getContainers().forEach(container -> container.setShowEmpty(showEmpty));
+    	super.setShowEmpty(showEmpty, false);
+    	getContainers().forEach(container -> container.setShowEmpty(showEmpty, true));
     }
     
     public boolean isReadonly() {

@@ -587,12 +587,16 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return def.canAdd() && def.isEmphasized();
 	}
 	
+	
 	@Override
-	public void setShowEmpty(boolean showEmpty) {
-		super.setShowEmpty(showEmpty);
-		getItems().forEach(item -> {
-			item.setShowEmpty(showEmpty);
-		});
+	public void setShowEmpty(boolean showEmpty, boolean recursive) {
+		super.setShowEmpty(showEmpty, recursive);
+		if (recursive) {
+			getItems().forEach(item -> {
+				item.setShowEmpty(showEmpty, recursive);
+			});
+		}
+		
 	}
 	
 	@Override

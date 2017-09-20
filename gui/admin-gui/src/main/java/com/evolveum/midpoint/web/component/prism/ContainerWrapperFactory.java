@@ -311,13 +311,17 @@ public class ContainerWrapperFactory {
             	List<ContainerWrapper<C>> containerWrappers = new ArrayList<>();
             	propertyDefinitions.forEach( itemDef -> {
             	
+            		
             		if (itemDef.isIgnored() || skipProperty(itemDef)) {
-            			return;
+            			LOGGER.info("Skipping creating wrapper for: {}", itemDef);
+            			return; 
             		}
 //            		if (!cWrapper.isShowInheritedObjectAttributes() && INHERITED_OBJECT_ATTRIBUTES.contains(itemDef.getName())) {
 //            			return;
 //            		}
             		
+            		
+            		LOGGER.info("Creating wrapper for {}", itemDef);
             		createPropertyOrReferenceWrapper(itemDef, cWrapper, propertyOrReferenceWrappers);
             		createContainerWrapper(itemDef, cWrapper, containerWrappers);
             		
@@ -366,21 +370,6 @@ public class ContainerWrapperFactory {
     
     private <C extends Containerable> void createContainerWrapper(ItemDefinition itemDef, ContainerValueWrapper<C> cWrapper, List<ContainerWrapper<C>> properties) {
     	
-//    	if (itemDef.isIgnored() || skipProperty(itemDef)) {
-//			return;
-//		}
-//		if (!cWrapper.isShowInheritedObjectAttributes() && INHERITED_OBJECT_ATTRIBUTES.contains(itemDef.getName())) {
-//			return;
-//		}
-    	
-//    	PrismContainerValue<C> containerValue = cWrapper.getContainerValue();
-    	
-    	 //TODO temporary decision to hide adminGuiConfiguration attribute (MID-3305)
-//    	if (itemDef != null && itemDef.getName() != null && itemDef.getName().getLocalPart() != null &&
-//                itemDef.getName().getLocalPart().equals("adminGuiConfiguration")){
-//            continue;
-//        }
-        
     	if (itemDef instanceof PrismContainerDefinition) {
         	
         	if (cWrapper.isMain() && !ObjectType.F_EXTENSION.equals(itemDef.getName()) && !ObjectType.F_METADATA.equals(itemDef.getName())) {
@@ -388,6 +377,11 @@ public class ContainerWrapperFactory {
         	}
         	
         	ContainerWrapper<C> subContainerWrapper = createContainerWrapper((PrismContainerDefinition<C>) itemDef, cWrapper);
+        	
+        	
+        	if (subContainerWrapper == null) {
+        		return;
+        	}
         	
         	if (ObjectType.F_EXTENSION.equals(itemDef.getName())) {
         		properties.addAll(((ContainerValueWrapper)subContainerWrapper.getValues().iterator().next()).getItems());
@@ -440,13 +434,16 @@ public class ContainerWrapperFactory {
 	private <C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismContainerDefinition<C> def, ContainerValueWrapper<C> cWrapper) {
 		
 		PrismContainerValue<C> containerValue = cWrapper.getContainerValue();
-//    	PrismContainer container = containerValue.findContainer(def.getName());
+
+		PrismContainer<C> container = containerValue.findContainer(def.getName());
     	
-    	PrismContainer container = containerValue.findContainer(def.getName());
-    	
-    	ContainerWrapper subContainerWrapper = null; 
+    	//TODO: hack, temporary because of recurcive dependecies
+    	if (container == null && 
+    			(PolicyConstraintPresentationType.COMPLEX_TYPE.equals(def.getTypeName()) || PolicyConstraintsType.COMPLEX_TYPE.equals(def.getTypeName()))) {
+    		return null;
+    	}
     	if (container == null) {
-    		PrismContainer newContainer;
+    		PrismContainer<C> newContainer;
 			try {
 				newContainer = (PrismContainer) def.instantiate();
 			} catch (SchemaException e) {

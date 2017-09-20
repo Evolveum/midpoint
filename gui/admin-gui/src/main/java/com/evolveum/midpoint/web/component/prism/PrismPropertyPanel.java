@@ -63,7 +63,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
     private boolean labelContainerVisible = true;
 
-    public PrismPropertyPanel(String id, final IModel<IW> model, Form form, PageBase pageBase) {
+    public PrismPropertyPanel(String id, final IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler, PageBase pageBase) {
         super(id);
         Validate.notNull(model, "no model");
         this.pageBase = pageBase;
@@ -77,6 +77,10 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
             @Override
             public boolean isVisible() {
             	IW propertyWrapper = model.getObject();
+            	
+            	if (visibilityHandler != null && !visibilityHandler.isVisible(propertyWrapper)) {
+            		return false;
+            	}
                 boolean visible = propertyWrapper.isVisible();
                 LOGGER.trace("isVisible: {}: {}", propertyWrapper, visible);
                 return visible;

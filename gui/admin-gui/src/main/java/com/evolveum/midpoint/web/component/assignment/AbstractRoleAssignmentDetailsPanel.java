@@ -3,41 +3,14 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.namespace.QName;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.prism.ContainerValuePanel;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
 
 public class AbstractRoleAssignmentDetailsPanel<F extends FocusType> extends AbstractAssignmentDetailsPanel<F> {
 
@@ -68,28 +41,42 @@ public class AbstractRoleAssignmentDetailsPanel<F extends FocusType> extends Abs
 		return hiddenItems;
 	}
 	
+	@Override
+	protected List<ItemPath> collectContainersToShow() {
+		List<ItemPath> pathsToShow = new ArrayList<>();
+		if (ConstructionType.COMPLEX_TYPE.equals(getModelObject().getTargetType())) {
+			pathsToShow.add(getAssignmentPath().append(AssignmentType.F_CONSTRUCTION));
+		}
+		
+		if (PersonaConstructionType.COMPLEX_TYPE.equals(getModelObject().getTargetType())) {
+			pathsToShow.add(getAssignmentPath().append(AssignmentType.F_PERSONA_CONSTRUCTION));
+		}
+		return pathsToShow;
+	}
+	
 	protected boolean getVisibilityModel(ItemPath itemToBeFound, ItemPath parentAssignmentPath) {
-		AssignmentType assignment = getModelObject().getAssignment();
-		ObjectReferenceType targetRef = assignment.getTargetRef();
-		List<ItemPath> pathsToHide = new ArrayList<>();
-		QName targetType = null;
-		if (targetRef != null) {
-			targetType = targetRef.getType();
-		}
-		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_TARGET_REF));
-		
-		if (OrgType.COMPLEX_TYPE.equals(targetType)) {
-			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_TENANT_REF));
-			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_ORG_REF));
-		}
-		
-		if (assignment.getConstruction() == null) {
-			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION));
-		}
-		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_PERSONA_CONSTRUCTION));
-		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_POLICY_RULE));
-		
-		return !WebComponentUtil.isItemVisible(pathsToHide, itemToBeFound);
+		return true;
+//		AssignmentType assignment = getModelObject().getAssignment();
+//		ObjectReferenceType targetRef = assignment.getTargetRef();
+//		List<ItemPath> pathsToHide = new ArrayList<>();
+//		QName targetType = null;
+//		if (targetRef != null) {
+//			targetType = targetRef.getType();
+//		}
+//		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_TARGET_REF));
+//		
+//		if (OrgType.COMPLEX_TYPE.equals(targetType)) {
+//			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_TENANT_REF));
+//			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_ORG_REF));
+//		}
+//		
+//		if (assignment.getConstruction() == null) {
+//			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION));
+//		}
+//		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_PERSONA_CONSTRUCTION));
+//		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_POLICY_RULE));
+//		
+//		return !WebComponentUtil.isItemVisible(pathsToHide, itemToBeFound);
 	}
 
 //	 private ChooseTypePanel<OrgType> createParameterChooserPanel(String id, ObjectReferenceType ref, boolean isTenant){

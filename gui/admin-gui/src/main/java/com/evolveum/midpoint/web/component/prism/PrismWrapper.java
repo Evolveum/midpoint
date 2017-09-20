@@ -36,7 +36,7 @@ public abstract class PrismWrapper {
 	        return showEmpty;
 	    }
 
-	    public void setShowEmpty(boolean showEmpty) {
+	    public void setShowEmpty(boolean showEmpty, boolean recursive) {
 	        this.showEmpty = showEmpty;
 	        computeStripes();
 	    }

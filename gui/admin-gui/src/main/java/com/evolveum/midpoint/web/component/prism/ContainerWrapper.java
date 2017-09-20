@@ -335,7 +335,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
     public ContainerValueWrapper<C> createItem(boolean showEmpty) {
     	PrismContainerValue<C> pcv = container.createNewValue();
         ContainerValueWrapper<C> wrapper = new ContainerValueWrapper<C>(this, pcv, ValueStatus.ADDED, pcv.getPath());
-        wrapper.setShowEmpty(showEmpty);
+        wrapper.setShowEmpty(showEmpty, true);
         return wrapper;
     }
 
@@ -634,9 +634,12 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	}
 	
 	@Override
-	public void setShowEmpty(boolean showEmpty) {
-		super.setShowEmpty(showEmpty);
-		getValues().forEach(value -> value.setShowEmpty(showEmpty));
+	public void setShowEmpty(boolean showEmpty, boolean recursive) {
+		super.setShowEmpty(showEmpty, recursive);
+		if (recursive) {
+			getValues().forEach(value -> value.setShowEmpty(showEmpty, recursive));
+		}
+		
 	}
 	
 	@Override
@@ -683,7 +686,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	}
 
 	private boolean showEmptyAndCanAdd(PrismContainerDefinition<C> def) {
-		return def.canAdd();
+		return def.canAdd() && isShowEmpty();
 	}
 	
 	private boolean emphasizedAndCanAdd(PrismContainerDefinition<C> def) {

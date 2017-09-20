@@ -82,7 +82,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 			@Override
             public void onClick(AjaxRequestTarget target) {
 				ContainerValueWrapper<C> wrapper = PrismContainerValueHeaderPanel.this.getModelObject();
-				wrapper.setShowEmpty(!wrapper.isShowEmpty());
+				wrapper.setShowEmpty(!wrapper.isShowEmpty(), true);
 
 				onButtonClick(target);
             }

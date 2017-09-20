@@ -161,7 +161,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		return showEmpty;
 	}
 	
-	public void setShowEmpty(boolean showEmpty) {
+	public void setShowEmpty(boolean showEmpty, boolean recursive) {
 		this.showEmpty = showEmpty;
 	}
 

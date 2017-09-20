@@ -122,7 +122,7 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 					return;
 				}
 				
-				PrismPropertyPanel propertyPanel = new PrismPropertyPanel("property", item.getModel(), form, pageBase);
+				PrismPropertyPanel propertyPanel = new PrismPropertyPanel("property", item.getModel(), form, isPanaleVisible, pageBase);
 				propertyPanel.setOutputMarkupId(true);
                 item.add(propertyPanel);
                 item.add(AttributeModifier.append("class", createStyleClassModel((IModel<ItemWrapper>) item.getModel())));

@@ -68,6 +68,7 @@ public class ContainerWrapperListFromObjectWrapperModel<C extends Containerable,
 		for (ItemPath path : paths) {
 			ContainerWrapper<C> containerWrapper = getWrapper().findContainerWrapper(path);
 			if (containerWrapper != null) {
+				containerWrapper.setShowEmpty(true, false);
 				wrappers.add(containerWrapper);
 			}
 		}

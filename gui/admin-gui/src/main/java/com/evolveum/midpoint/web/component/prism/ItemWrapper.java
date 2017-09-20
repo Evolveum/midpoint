@@ -91,5 +91,5 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> exten
 	
 	boolean isShowEmpty();
 	
-	void setShowEmpty(boolean isShowEmpty);
+	void setShowEmpty(boolean isShowEmpty, boolean recursive);
 }
