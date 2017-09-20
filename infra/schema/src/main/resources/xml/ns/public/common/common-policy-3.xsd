@@ -23,6 +23,7 @@
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+			xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             elementFormDefault="qualified"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
@@ -39,6 +40,7 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"/>
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
 
@@ -792,6 +794,13 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Expression that is to be used to determine the state.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="executeScript" type="s:ExecuteScriptType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Scripting expression (bulk action) to be used to determine the state.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

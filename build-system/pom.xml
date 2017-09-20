@@ -311,7 +311,8 @@
                 <groupId>com.sun.xsom</groupId>
                 <artifactId>xsom</artifactId>
                 <!-- <version>20100725</version> -->
-                <version>20110809</version>
+                <!--<version>20110809</version>-->
+                <version>20140925</version>
             </dependency>
             <dependency>
                 <groupId>commons-validator</groupId>

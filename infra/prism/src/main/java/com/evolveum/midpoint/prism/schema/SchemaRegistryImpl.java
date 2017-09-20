@@ -393,11 +393,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	}
 
 	private void parsePrismSchemas() throws SchemaException {
-		for (SchemaDescription schemaDescription : schemaDescriptions) {
-			if (schemaDescription.isPrismSchema()) {
-				parsePrismSchema(schemaDescription, true);
-			}
-		}
+		parsePrismSchemas(schemaDescriptions, true);
 		applySchemaExtensions();
 		for (SchemaDescription schemaDescription : schemaDescriptions) {
 			if (schemaDescription.getSchema() != null) {
@@ -418,6 +414,8 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		}
 	}
 
+	// only in exceptional situations
+	// may not work for schemas with circular references
 	private void parsePrismSchema(SchemaDescription schemaDescription, boolean allowDelayedItemDefinitions) throws SchemaException {
 		String namespace = schemaDescription.getNamespace();
 
@@ -435,6 +433,34 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 				schemaDescription.getSourceDescription(), namespace, isRuntime, System.currentTimeMillis()-started);
 		schemaDescription.setSchema(schema);
 		detectExtensionSchema(schema);
+	}
+
+	private void parsePrismSchemas(List<SchemaDescription> schemaDescriptions, boolean allowDelayedItemDefinitions) throws SchemaException {
+		List<SchemaDescription> prismSchemaDescriptions = schemaDescriptions.stream()
+				.filter(sd -> sd.isPrismSchema())
+				.collect(Collectors.toList());
+		Element schemaElement = DOMUtil.createElement(DOMUtil.XSD_SCHEMA_ELEMENT);
+		schemaElement.setAttribute("targetNamespace", "http://dummy/");
+		schemaElement.setAttribute("elementFormDefault", "qualified");
+		for (SchemaDescription description : prismSchemaDescriptions) {
+			Element importElement = DOMUtil.createSubElement(schemaElement, DOMUtil.XSD_IMPORT_ELEMENT);
+			importElement.setAttribute(DOMUtil.XSD_ATTR_NAMESPACE.getLocalPart(), description.getNamespace());
+			PrismSchemaImpl schemaImpl = new PrismSchemaImpl(prismContext);
+			description.setSchema(schemaImpl);
+		}
+		//String xml = DOMUtil.serializeDOMToString(schemaElement);
+		//System.out.println("Wrapper XSD:\n" + xml);
+
+		long started = System.currentTimeMillis();
+		LOGGER.trace("Parsing {} schemas", prismSchemaDescriptions.size());
+		PrismSchemaImpl.parseSchemas(schemaElement, entityResolver,
+				prismSchemaDescriptions, allowDelayedItemDefinitions, getPrismContext());
+		LOGGER.trace("Parsed {} schemas in {} ms",
+				prismSchemaDescriptions.size(), System.currentTimeMillis()-started);
+
+		for (SchemaDescription description : prismSchemaDescriptions) {
+			detectExtensionSchema(description.getSchema());
+		}
 	}
 
 	private void detectExtensionSchema(PrismSchema schema) throws SchemaException {
