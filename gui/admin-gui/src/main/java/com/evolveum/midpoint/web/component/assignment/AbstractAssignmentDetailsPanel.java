@@ -62,19 +62,6 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
     private final static String ID_DISPLAY_NAME = "displayName";
     private final static String ID_ACTIVATION_PANEL = "activationPanel";
     private final static String ID_CONTAINERS = "otherContainers";
-//    private final static String ID_DONE_BUTTON = "doneButton";
-
-//    private static final String ID_RELATION_CONTAINER = "relationContainer";
-//    private static final String ID_RELATION = "relation";
-//
-//	private static final String ID_TENANT_CONTAINER = "tenantContainer";
-//	private static final String ID_TENANT = "tenant";
-//	private static final String ID_PROJECT_CONTAINER = "projectContainer";
-//	private static final String ID_PROJECT = "project";
-//	private static final String ID_POLICY_SITUATIONS = "policySituations";
-//	private static final String ID_POLICY_SITUATION = "policySituation";
-
-//	private static final String ID_POLICY_RULE = "policyRule";
 
     public AbstractAssignmentDetailsPanel(String id, Form<?> form, IModel<AssignmentDto> assignmentModel){
         super(id, assignmentModel);
@@ -176,7 +163,6 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
     	return PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath()); 
     }
     
-    protected abstract boolean getVisibilityModel(ItemPath pathToBeFound, ItemPath parentPath);
 
     private boolean getActivationVisibileItems(ItemPath pathToCheck, ItemPath assignmentPath) {
     	if (assignmentPath.subPath(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)).equivalent(pathToCheck)){
@@ -195,12 +181,6 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
         return Model.of("");
     }
 
-    protected boolean isVisible(Object path) {
-    	return !getHiddenItems().contains(path);
-    }
-
-    protected abstract List getHiddenItems();
-
-//    protected abstract void initPropertiesPanel(WebMarkupContainer propertiesPanel);
+   
 
 }

@@ -47,16 +47,5 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
 		return containersToShow;
 	}
 
-	@Override
-	protected boolean getVisibilityModel(ItemPath pathToBeFound, ItemPath parentPath) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	protected List getHiddenItems() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 }

@@ -36,10 +36,6 @@ public class AbstractRoleAssignmentDetailsPanel<F extends FocusType> extends Abs
 		super(id, form, assignmentModel);
 	}
 
-	@Override
-	protected List getHiddenItems() {
-		return hiddenItems;
-	}
 	
 	@Override
 	protected List<ItemPath> collectContainersToShow() {
