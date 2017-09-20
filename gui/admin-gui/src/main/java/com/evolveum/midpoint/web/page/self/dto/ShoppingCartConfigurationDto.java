@@ -31,14 +31,16 @@ import java.util.List;
 public class ShoppingCartConfigurationDto implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    AssignmentViewType defaultViewType;
-    List<AssignmentViewType> viewTypeList;
-    String roleCatalogOid = null;
-    AssignmentConstraintsType defaultAssignmentConstraints;
+    private AssignmentViewType defaultViewType;
+    private List<AssignmentViewType> viewTypeList;
+    private String roleCatalogOid = null;
+    private AssignmentConstraintsType defaultAssignmentConstraints;
+    private boolean isUserAssignmentsViewAllowed = false;
 
     public void initShoppingCartConfigurationDto(RoleManagementConfigurationType roleManagementConfiguration) {
         if (roleManagementConfiguration == null){
             viewTypeList = new ArrayList<>(Arrays.asList(AssignmentViewType.values()));
+            viewTypeList.remove(AssignmentViewType.USER_TYPE);
             defaultViewType = AssignmentViewType.ROLE_TYPE;
             return;
         }
@@ -90,6 +92,10 @@ public class ShoppingCartConfigurationDto implements Serializable {
             //use default views list if nothing is configured
             viewTypeList = new ArrayList<>(Arrays.asList(AssignmentViewType.values()));
         }
+        if (viewTypeList.contains(AssignmentViewType.USER_TYPE)){
+            viewTypeList.remove(AssignmentViewType.USER_TYPE);
+            isUserAssignmentsViewAllowed = true;
+        }
     }
 
     private void initRoleCatalogOid(RoleManagementConfigurationType roleManagementConfiguration){
@@ -119,6 +125,14 @@ public class ShoppingCartConfigurationDto implements Serializable {
             }
             defaultViewType = viewTypeList.get(0);
         }
+    }
+
+    public boolean isUserAssignmentsViewAllowed() {
+        return isUserAssignmentsViewAllowed;
+    }
+
+    public void setUserAssignmentsViewAllowed(boolean userAssignmentsViewAllowed) {
+        isUserAssignmentsViewAllowed = userAssignmentsViewAllowed;
     }
 
     public AssignmentViewType getDefaultViewType() {
