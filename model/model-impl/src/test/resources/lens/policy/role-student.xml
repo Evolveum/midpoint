@@ -439,32 +439,46 @@
 		<policyRule>
 			<name>no-task-for-this-object</name>
 			<policyConstraints>
-				<!--<not>-->
 				<objectState>
 					<name>task-for-this-object-exists</name>
+					<presentation>
+						<message>
+							<fallbackMessage>Approval task(s) related to this object exist(s)</fallbackMessage>
+						</message>
+					</presentation>
 					<executeScript>
 						<s:search>
 							<s:type>TaskType</s:type>
 							<s:query>
 								<q:filter>
-									<q:ref>
-										<q:path>objectRef</q:path>
-										<expression>
-											<script>
-												<code>
-													log.info('=== Variables ===')
-													this.binding.variables.each {k,v -> log.info('{} = {}', k, v}
-													object.oid
-												</code>
-											</script>
-										</expression>
-									</q:ref>
+									<q:and>
+										<q:ref>
+											<q:path>objectRef</q:path>
+											<expression>
+												<script>
+													<code>
+														import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+														// log.info('=== Variables ===')
+														// this.binding.variables.each {k,v -> log.info('{} = {}', k, v)}
+														new ObjectReferenceType().oid(object.oid)
+													</code>
+												</script>
+											</expression>
+										</q:ref>
+										<q:equal>
+											<q:path>executionStatus</q:path>
+											<q:value>waiting</q:value>
+										</q:equal>
+										<q:equal>
+											<q:path>category</q:path>
+											<q:value>Workflow</q:value>	<!-- note uppercase 'W' here -->
+										</q:equal>
+									</q:and>
 								</q:filter>
 							</s:query>
 						</s:search>
 					</executeScript>
 				</objectState>
-				<!--</not>-->
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->

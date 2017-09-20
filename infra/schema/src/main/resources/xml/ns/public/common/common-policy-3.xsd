@@ -786,21 +786,21 @@
                     <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Filter that is to be used to determine the state.
+                                Filter that is to be used to determine the state. Mutually exclusive with expression and executeScript.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Expression that is to be used to determine the state.
+                                Expression that is to be used to determine the state. Mutually exclusive with filter and executeScript.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="executeScript" type="s:ExecuteScriptType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Scripting expression (bulk action) to be used to determine the state.
+                                Scripting expression (bulk action) to be used to determine the state. Mutually exclusive with filter and expression.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

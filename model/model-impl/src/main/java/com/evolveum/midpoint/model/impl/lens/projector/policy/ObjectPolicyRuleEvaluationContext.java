@@ -54,4 +54,11 @@ public class ObjectPolicyRuleEvaluationContext<F extends FocusType> extends Poli
 	public String getShortDescription() {
 		return ObjectTypeUtil.toShortString(focusContext.getObjectAny()) + " / " + state;
 	}
+
+	@SuppressWarnings({ "CloneDoesntDeclareCloneNotSupportedException", "MethodDoesntCallSuperMethod" })
+	@Override
+	public ObjectPolicyRuleEvaluationContext<F> clone() {
+		return new ObjectPolicyRuleEvaluationContext<>(policyRule, lensContext, task);
+	}
+
 }
