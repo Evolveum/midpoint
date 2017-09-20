@@ -18,7 +18,10 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -34,26 +37,25 @@ import java.util.List;
  *
  * @author mederly
  */
-public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismValue, ID>, ID extends ItemDefinition> implements ItemWrapper<I, ID>, Serializable {
+public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismValue, ID>, ID extends ItemDefinition<I>> implements ItemWrapper<I, ID, ValueWrapper>, Serializable {
 
 	private static final long serialVersionUID = -179218652752175177L;
 
-	protected ContainerWrapper container;
+	protected ContainerValueWrapper container;
 	protected I item;
-	protected ID itemDefinition;
 	protected ValueStatus status;
 	protected List<ValueWrapper> values;
 	protected String displayName;
 	protected boolean readonly;
 	private boolean isStripe;
+	private boolean showEmpty;
 
-	public PropertyOrReferenceWrapper(@Nullable ContainerWrapper container, I item, boolean readonly, ValueStatus status) {
+	public PropertyOrReferenceWrapper(@Nullable ContainerValueWrapper containerValue, I item, boolean readonly, ValueStatus status) {
 		Validate.notNull(item, "Item must not be null.");
 		Validate.notNull(status, "Item status must not be null.");
 
-		this.container = container;
+		this.container = containerValue;
 		this.item = item;
-		this.itemDefinition = getItemDefinition();
 		this.status = status;
 		this.readonly = readonly;
 	}
@@ -68,30 +70,54 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 			getItem().revive(prismContext);
 		}
 		if (getItemDefinition() != null) {
-			itemDefinition.revive(prismContext);
+			getItemDefinition().revive(prismContext);
 		}
 	}
 
 	@Override
 	public ID getItemDefinition() {
-		ID definition = null;
-		if (container != null && container.getItemDefinition() != null) {
-			definition = (ID) container.getItemDefinition().findItemDefinition(item.getDefinition().getName());
-		}
-		if (definition == null) {
-			definition = item.getDefinition();
-		}
-		return definition;
+		return item.getDefinition();
+		
+	}
+	
+	@Override
+	public ContainerWrapper getParent() {
+		return container.getContainer();
 	}
 
 	public boolean isVisible() {
-        if (item.getDefinition().isOperational()) {			// TODO ...or use itemDefinition instead?
+		
+        if (getItemDefinition().isOperational() && !isMetadataContainer()) {			// TODO ...or use itemDefinition instead?
 			return false;
-		} else if (container != null) {
-			return container.isItemVisible(this);
-		} else {
+		} 
+        switch (status) {
+        	case ADDED : 
+        		return canAddDefault() || canAddAndShowEmpty();
+        	case NOT_CHANGED :
+        		return canReadOrModifyAndNonEmpty() || canReadOrModifyAndShowEmpty();
+        }
+//        if (getItem().isEmpty() && isS)
+//        else if (container != null) {
+//			return container.isItemVisible(this);
+//		} else {
 			return true;
-		}
+//		}
+	}
+	
+	private boolean canAddAndShowEmpty() {
+		return getItemDefinition().canAdd() && isShowEmpty();
+	}
+	
+	private boolean canAddDefault() {
+		return getItemDefinition().canAdd() && getItemDefinition().isEmphasized();
+	}
+	
+	private boolean canReadOrModifyAndNonEmpty() {
+		return (getItemDefinition().canModify() || getItemDefinition().canRead()) && !getItem().isEmpty();
+	}
+	
+	private boolean canReadOrModifyAndShowEmpty() {
+		return (getItemDefinition().canModify() || getItemDefinition().canRead()) && isShowEmpty();
 	}
 
 	public boolean isStripe() {
@@ -102,7 +128,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		this.isStripe = isStripe;
 	}
 
-	public ContainerWrapper getContainer() {
+	public ContainerValueWrapper getContainerValue() {
 	        return container;
 	    }
 
@@ -130,8 +156,17 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	public List<ValueWrapper> getValues() {
 		return values;
 	}
+	
+	public boolean isShowEmpty() {
+		return showEmpty;
+	}
+	
+	public void setShowEmpty(boolean showEmpty, boolean recursive) {
+		this.showEmpty = showEmpty;
+	}
 
-	public void addValue() {
+	public void addValue(boolean showEmpty) {
+		this.showEmpty = showEmpty;
 		getValues().add(createAddedValue());
 	}
 
@@ -161,14 +196,27 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 
 		return false;
 	}
+	private boolean isMetadataContainer() {
+		return getParent().getItemDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE);
+	}
 
 	@Override
 	public boolean isReadonly() {
+		//TODO this is probably not good idea
+		if (isMetadataContainer()) {
+			return true;
+		}
+		
 		return readonly;
 	}
 
 	public void setReadonly(boolean readonly) {
 		this.readonly = readonly;
+	}
+	
+	@Override
+	public ItemPath getPath() {
+		return item.getPath();
 	}
 
 	@Override
@@ -195,7 +243,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 
 	@Override
 	public boolean checkRequired(PageBase pageBase) {
-		if (itemDefinition == null || !itemDefinition.isMandatory()) {
+		if (getItemDefinition() == null || !getItemDefinition().isMandatory()) {
 			return true;
 		}
 		for (ValueWrapper valueWrapper : CollectionUtils.emptyIfNull(getValues())) {

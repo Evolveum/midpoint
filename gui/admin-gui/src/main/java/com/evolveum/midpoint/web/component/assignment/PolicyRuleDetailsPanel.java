@@ -18,59 +18,45 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import org.apache.wicket.model.PropertyModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * Created by honchar.
  */
-public class PolicyRuleDetailsPanel extends AbstractAssignmentDetailsPanel {
+public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignmentDetailsPanel<F> {
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_POLICY_RULE = "policyRule";
 
-    private static List hiddenItems = new ArrayList<>();
-
-    static  {
-			hiddenItems.add(AssignmentType.F_TENANT_REF);
-			hiddenItems.add(AssignmentType.F_ORG_REF);
-			hiddenItems.add(AssignmentType.F_FOCUS_TYPE);
-			hiddenItems.add(ID_PROPERTIES_PANEL);
-	};
-
-    public PolicyRuleDetailsPanel(String id, Form<?> form, IModel<AssignmentDto> model, PageBase pageBase){
-        super(id, form, model, pageBase);
+    
+    public PolicyRuleDetailsPanel(String id, Form<?> form, IModel<AssignmentDto> model){
+        super(id, form, model);
     }
 
-   @Override
-protected List getHiddenItems() {
-	return hiddenItems;
-}
+	@Override
+	protected List<ItemPath> collectContainersToShow() {
+		List<ItemPath> containersToShow = new ArrayList<>();
+		containersToShow.add(getAssignmentPath().append(AssignmentType.F_POLICY_RULE));
+		
+		containersToShow.add(getAssignmentPath().append(AssignmentType.F_POLICY_EXCEPTION));
+		
+		return containersToShow;
+	}
 
-   @Override
-protected void initPropertiesPanel(WebMarkupContainer propertiesPanel) {
-	   PolicyRulePropertiesPanel policyDetails = new PolicyRulePropertiesPanel(ID_POLICY_RULE,
-			   new PropertyModel<>(getModel(), pageBase.createPropertyModelExpression(AssignmentDto.F_VALUE, AssignmentType.F_POLICY_RULE.getLocalPart())), pageBase);
-		policyDetails.setOutputMarkupId(true);
-		policyDetails.add(new VisibleEnableBehaviour() {
+	@Override
+	protected boolean getVisibilityModel(ItemPath pathToBeFound, ItemPath parentPath) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isVisible() {
-				return PolicyRuleDetailsPanel.this.isVisible(AssignmentType.F_POLICY_RULE);
-			}
-		});
-		propertiesPanel.add(policyDetails);
-}
+	@Override
+	protected List getHiddenItems() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

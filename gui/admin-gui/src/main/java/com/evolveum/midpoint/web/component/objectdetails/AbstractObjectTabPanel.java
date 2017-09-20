@@ -142,6 +142,6 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 		parentComponent.add(
 				new PrismPropertyPanel(id,
 						new PropertyWrapperFromObjectWrapperModel<PolyString,O>(getObjectWrapperModel(), propertyPath),
-						mainForm, pageBase));
+						mainForm, null, pageBase));
 	}
 }
