@@ -41,6 +41,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
     * */
     public enum TableId {
         TABLE_ROLES,
+        TABLE_CASES,
         TABLE_USERS,
         TABLE_SERVICES,
         TABLE_RESOURCES,

@@ -25,7 +25,7 @@ import com.evolveum.midpoint.util.QNameUtil;
  *
  */
 public class AuthorizationConstants {
-	
+
 	public static final String NS_SECURITY_PREFIX = SchemaConstants.NS_MIDPOINT_PUBLIC_PREFIX + "security/";
 	public static final String NS_AUTHORIZATION = NS_SECURITY_PREFIX + "authorization-3";
 	public static final String NS_AUTHORIZATION_UI = NS_SECURITY_PREFIX + "authorization-ui-3";
@@ -254,6 +254,22 @@ public class AuthorizationConstants {
 
 	public static final QName AUTZ_UI_REPORTS_REPORT_CREATE_QNAME = new QName(NS_AUTHORIZATION_UI, "reportCreate");
 	public static final String AUTZ_UI_REPORTS_REPORT_CREATE_URL = NS_AUTHORIZATION_UI + "#reportCreate";
+
+
+    //Cases
+    public static final QName AUTZ_UI_CASES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "casesAll");
+    public static final String AUTZ_UI_CASES_ALL_URL = NS_AUTHORIZATION_UI + "#casesAll";
+
+    public static final QName AUTZ_UI_CASES_QNAME = new QName(NS_AUTHORIZATION_UI, "cases");
+    public static final String AUTZ_UI_CASES_URL = NS_AUTHORIZATION_UI + "#cases";
+
+    public static final QName AUTZ_UI_CASE_QNAME = new QName(NS_AUTHORIZATION_UI, "case");
+    public static final String AUTZ_UI_CASE_URL = NS_AUTHORIZATION_UI + "#case";
+
+    public static final QName AUTZ_UI_CASE_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "caseDetails");
+    public static final String AUTZ_UI_CASE_DETAILS_URL = NS_AUTHORIZATION_UI + "#caseDetails";
+
+
 
     //Certification
 	public static final String AUTZ_UI_CERTIFICATION_DEFINITIONS_URL = NS_AUTHORIZATION_UI + "#certificationDefinitions";

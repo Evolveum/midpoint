@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.menu.*;
+import com.evolveum.midpoint.web.page.admin.cases.PageCases;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.reports.*;
 import com.evolveum.midpoint.web.page.self.*;
@@ -1166,6 +1167,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			items.add(createHomeItems());
 		}
 
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CASE_URL,
+                AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+            items.add(createCaseItems());
+        }
+
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL,
 				AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
 				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
@@ -1384,6 +1392,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 		return item;
 	}
+
+    private MainMenuItem createCaseItems(){
+           	MainMenuItem item = new MainMenuItem("fa fa-asterisk", createStringResource("PageAdmin.menu.top.cases"),null);
+        List<MenuItem> submenu = item.getItems();
+                MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.cases.list"), PageCases.class);
+        submenu.add(list);
+        return item;
+    }
 
 	private MainMenuItem createConfigurationItems() {
 		MainMenuItem item = new MainMenuItem("fa fa-cog", createStringResource("PageAdmin.menu.top.configuration"),
