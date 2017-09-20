@@ -69,7 +69,7 @@ public class PageValuePolicies extends PageAdminValuePolicies {
         initLayout();
     }
 
-    private void initLayout() {
+    protected void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
