@@ -415,4 +415,38 @@
 			</policyActions>
 		</policyRule>
 	</inducement>
+	<inducement>
+		<policyRule>
+			<name>no-task-for-this-object</name>
+			<policyConstraints>
+				<not>
+					<objectState>
+						<name>task-for-this-object-exists</name>
+						<executeScript>
+							<search>
+								<type>TaskType</type>
+								<query>
+									<q:filter>
+										<q:ref>
+											<q:path>objectRef</q:path>
+											<expression>
+												<script>
+													<code>
+
+													</code>
+												</script>
+											</expression>
+										</q:ref>
+									</q:filter>
+								</query>
+							</search>
+						</executeScript>
+					</objectState>
+				</not>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
 </role>

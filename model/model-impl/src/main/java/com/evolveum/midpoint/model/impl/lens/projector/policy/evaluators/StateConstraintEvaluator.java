@@ -106,6 +106,9 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 				match = false;
 			}
 		}
+		if (match && constraint.getExecuteScript() != null) {
+
+		}
 		if (match && constraint.getExpression() != null) {
 			match = evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx),
 					"expression in object state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result);
