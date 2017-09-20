@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="0c17ae95-d96d-4c9f-b40d-d1cdb1417c55"
+      version="4">
+   <name>Box Group</name>
+   <metadata>
+      <requestTimestamp>2017-07-25T14:40:01.460+02:00</requestTimestamp>
+      <requestorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                    oid="00000000-0000-0000-0000-000000000002"
+                    relation="org:default"
+                    type="c:UserType"><!-- administrator --></requestorRef>
+      <createTimestamp>2017-07-25T14:40:01.489+02:00</createTimestamp>
+      <creatorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                  oid="00000000-0000-0000-0000-000000000002"
+                  relation="org:default"
+                  type="c:UserType"><!-- administrator --></creatorRef>
+      <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+      <modifyTimestamp>2017-07-25T14:40:16.734+02:00</modifyTimestamp>
+      <modifierRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                   xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                   oid="00000000-0000-0000-0000-000000000002"
+                   relation="org:default"
+                   type="tns:UserType"><!-- administrator --></modifierRef>
+      <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</modifyChannel>
+   </metadata>
+   <activation>
+      <effectiveStatus>enabled</effectiveStatus>
+      <enableTimestamp>2017-07-25T14:40:01.476+02:00</enableTimestamp>
+   </activation>
+   <iteration>0</iteration>
+   <iterationToken/>
+   <inducement id="1">
+      <construction>
+         <resourceRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                      oid="e8146ed1-5e67-40ba-9e99-45ae01f69642"
+                      relation="org:default"
+                      type="c:ResourceType"><!-- BoxConnector --></resourceRef>
+         <kind>entitlement</kind>
+         <intent>Groups</intent>
+      </construction>
+   </inducement>
+</role>
+</objects>

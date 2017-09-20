@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                oid="83cc1d77-dedc-4269-a051-b006821a9c79"
+                version="33">
+   <name>Folders Template</name>
+   <metadata>
+      <createTimestamp>2017-07-25T14:38:13.517+02:00</createTimestamp>
+      <creatorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                  oid="00000000-0000-0000-0000-000000000002"
+                  relation="org:default"
+                  type="c:UserType"><!-- administrator --></creatorRef>
+      <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
+   </metadata>
+   <mapping>
+      <name>Assign Basic role to Box Folders</name>
+      <authoritative>true</authoritative>
+      <strength>strong</strength>
+      <expression>
+         <assignmentTargetSearch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xsi:type="c:SearchObjectRefExpressionEvaluatorType">
+            <targetType>RoleType</targetType>
+            <filter>
+               <q:equal>
+                  <q:path>name</q:path>
+                  <q:value>Box Folder</q:value>
+               </q:equal>
+            </filter>
+         </assignmentTargetSearch>
+      </expression>
+      <target>
+         <c:path>assignment</c:path>
+      </target>
+   </mapping>
+   <mapping>
+      <name>Host to box</name>
+      <authoritative>true</authoritative>
+      <strength>strong</strength>
+      <source>
+         <name>hostname</name>
+         <c:path>extension/parent.name</c:path>
+      </source>
+      <expression>
+         <assignmentTargetSearch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xsi:type="c:SearchObjectRefExpressionEvaluatorType">
+            <targetType>c:OrgType</targetType>
+            <filter>
+               <q:equal>
+                  <q:path>c:name</q:path>
+                  <expression>
+                     <script>
+                        <code>
+									parent = hostname
+									if (parent.equals("All Files")) {
+										return "Folders";
+									} else {
+										return parent;
+									}
+								</code>
+                     </script>
+                  </expression>
+               </q:equal>
+            </filter>
+            <createOnDemand>true</createOnDemand>
+            <populateObject>
+               <populateItem>
+                  <expression>
+                     <script xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+									hostname
+								</code>
+                     </script>
+                  </expression>
+                  <target>
+                     <c:path>name</c:path>
+                  </target>
+               </populateItem>
+               <populateItem>
+                  <expression>
+                     <assignmentTargetSearch xsi:type="c:SearchObjectRefExpressionEvaluatorType">
+                        <targetType>c:OrgType</targetType>
+                        <filter>
+                           <q:equal>
+                              <q:path>c:name</q:path>
+                              <expression>
+                                 <value>Folders</value>
+                              </expression>
+                           </q:equal>
+                        </filter>
+                     </assignmentTargetSearch>
+                  </expression>
+                  <target>
+                     <c:path>assignment</c:path>
+                  </target>
+               </populateItem>
+            </populateObject>
+         </assignmentTargetSearch>
+      </expression>
+      <target>
+         <c:path>assignment</c:path>
+      </target>
+      <range>
+         <isInSetExpression>
+            <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:type="c:ScriptExpressionEvaluatorType">
+               <code>
+      import com.evolveum.midpoint.schema.constants.*
+      import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType
+      leader = midpoint.searchObjectByName(OrgType.class, "Folders");
+      value.targetRef != null &amp;&amp; value.targetRef.type == OrgType.COMPLEX_TYPE &amp;&amp; (value.targetRef.getOid().equals(leader.getOid()))
+     </code>
+            </script>
+         </isInSetExpression>
+      </range>
+   </mapping>
+</objectTemplate>
+</objects>
