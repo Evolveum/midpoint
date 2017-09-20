@@ -40,52 +40,54 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author lazyman
  * @author semancik
  */
-public class PrismContainerPanel<C extends Containerable> extends Panel {
+public class ContainerValuePanel<C extends Containerable> extends Panel {
 	private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(PrismContainerPanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ContainerValuePanel.class);
     private static final String ID_HEADER = "header";
     private static final String STRIPED_CLASS = "striped";
 
     private PageBase pageBase;
 
-    public PrismContainerPanel(String id, final IModel<ContainerWrapper<C>> model, boolean showHeader, Form form, ItemVisibilityHandler isPanelVisible, PageBase pageBase) {
-        super(id);
-        setOutputMarkupId(true); 
+    public ContainerValuePanel(String id, final IModel<ContainerValueWrapper<C>> model, boolean showHeader, Form form, ItemVisibilityHandler isPanelVisible, PageBase pageBase) {
+        super(id, model);
+        setOutputMarkupId(true);
 		this.pageBase = pageBase;
+		
+		add(new VisibleEnableBehaviour() {
+
+			@Override
+			public boolean isVisible() {
+				return model.getObject().isVisible();
+			}
+		});
 
         LOGGER.trace("Creating container panel for {}", model.getObject());
 
-        //TODO: visible behaviour??
-        add( new VisibleEnableBehaviour() {
-        	
-        	@Override
-        	public boolean isVisible() {
-        		if (isPanelVisible!= null && !isPanelVisible.isVisible(model.getObject())) {
-        			return false;
-        		}
-        		return model.getObject() !=null && model.getObject().isVisible();
-        	}
-        });
-        
         initLayout(model, form, isPanelVisible, showHeader);
-        
     }
 
-    private void initLayout(final IModel<ContainerWrapper<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean showHeader) {
-    	PrismContainerHeaderPanel header = new PrismContainerHeaderPanel(ID_HEADER, model) {
+    private void initLayout(final IModel<ContainerValueWrapper<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean showHeader) {
+    	PrismContainerValueHeaderPanel<C> header = new PrismContainerValueHeaderPanel<C>(ID_HEADER, model) {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			protected void onButtonClick(AjaxRequestTarget target) {
 				addOrReplaceProperties(model, form, isPanelVisible, true);
-				target.add(PrismContainerPanel.this.findParent(PrismPanel.class));
+				target.add(ContainerValuePanel.this);
 			}
-			
 
     	};
-        header.setOutputMarkupId(true);
+        header.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return showHeader;// && !model.getObject().isMain();
+            }
+        });
         add(header);
+        header.setOutputMarkupId(true);
 
         addOrReplaceProperties(model, form, isPanelVisible, false);
     }
@@ -106,29 +108,32 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
         };
     }
 
-    private void addOrReplaceProperties(IModel<ContainerWrapper<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean isToBeReplaced){
-    	
-    	
-    	ListView<ContainerValueWrapper<C>> values = new ListView<ContainerValueWrapper<C>>("values", new PropertyModel<List<ContainerValueWrapper<C>>>(model, "values")) {
-			
+    private <IW extends ItemWrapper> void addOrReplaceProperties(IModel<ContainerValueWrapper<C>> model, final Form form, ItemVisibilityHandler isPanaleVisible, boolean isToBeReplaced){
+        ListView<IW> properties = new ListView<IW>("properties",
+                new PropertyModel<List<IW>>(model, "properties")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(ListItem<ContainerValueWrapper<C>> item) {
-				ContainerValuePanel<C> containerPanel = new ContainerValuePanel<C>("value", item.getModel(), true, form, isPanelVisible, pageBase);
-				containerPanel.setOutputMarkupId(true);
-				item.add(containerPanel);
+            protected void populateItem(final ListItem<IW> item) {
+				if (item.getModel().getObject() instanceof ContainerWrapper) {
+					PrismContainerPanel<C> containerPanel = new PrismContainerPanel("property", (IModel<ContainerWrapper<C>>) item.getModel(), true, form, isPanaleVisible, pageBase);
+					containerPanel.setOutputMarkupId(true);
+					item.add(containerPanel);
+					return;
+				}
 				
-				
-			}
-			
-		};
-    	
-    	values.setReuseItems(true);
+				PrismPropertyPanel propertyPanel = new PrismPropertyPanel("property", item.getModel(), form, isPanaleVisible, pageBase);
+				propertyPanel.setOutputMarkupId(true);
+                item.add(propertyPanel);
+                item.add(AttributeModifier.append("class", createStyleClassModel((IModel<ItemWrapper>) item.getModel())));
+               
+            }
+        };
+        properties.setReuseItems(true);
         if (isToBeReplaced) {
-            replace(values);
+            replace(properties);
         } else {
-            add(values);
+            add(properties);
         }
     }
 }

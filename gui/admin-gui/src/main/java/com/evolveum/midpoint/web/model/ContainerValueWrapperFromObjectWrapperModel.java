@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
@@ -33,24 +34,22 @@ import javax.xml.namespace.QName;
 /**
  * Model that returns property real values. This implementation works on ObjectWrapper models (not PrismObject).
  *
- * Simple implementation, now it can't handle multivalue properties.
- *
- * @author lazyman
- * @author semancik
+ * @author katkav
+ * 
  */
-public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O extends ObjectType> extends AbstractWrapperModel<ContainerWrapper<C> ,O> {
+public class ContainerValueWrapperFromObjectWrapperModel<C extends Containerable,O extends ObjectType> extends AbstractWrapperModel<ContainerValueWrapper<C> ,O> {
 
    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapperFromObjectWrapperModel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ContainerValueWrapperFromObjectWrapperModel.class);
 
     private ItemPath path;
 
-    public ContainerWrapperFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, QName item) {
+    public ContainerValueWrapperFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, QName item) {
         this(model, new ItemPath(item));
     }
 
-    public ContainerWrapperFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, ItemPath path) {
+    public ContainerValueWrapperFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, ItemPath path) {
     	super(model);
         Validate.notNull(path, "Item path must not be null.");
         this.path = path;
@@ -62,13 +61,13 @@ public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O ex
     }
 
 	@Override
-	public ContainerWrapper<C> getObject() {
-		ContainerWrapper<C> containerWrapper = getWrapper().findContainerWrapper(path);
+	public ContainerValueWrapper<C> getObject() {
+		ContainerValueWrapper<C> containerWrapper = getWrapper().findContainerValueWrapper(path);
 		return containerWrapper;
 	}
 
 	@Override
-	public void setObject(ContainerWrapper<C> arg0) {
+	public void setObject(ContainerValueWrapper<C> arg0) {
 		throw new UnsupportedOperationException("ContainerWrapperFromObjectWrapperModel.setObject called");
 
 	}

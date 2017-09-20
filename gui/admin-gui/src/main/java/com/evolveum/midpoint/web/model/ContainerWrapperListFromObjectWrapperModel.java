@@ -28,32 +28,30 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.model.IModel;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.namespace.QName;
 
 /**
  * Model that returns property real values. This implementation works on ObjectWrapper models (not PrismObject).
  *
- * Simple implementation, now it can't handle multivalue properties.
  *
- * @author lazyman
- * @author semancik
+ * @author katkav
  */
-public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O extends ObjectType> extends AbstractWrapperModel<ContainerWrapper<C> ,O> {
+public class ContainerWrapperListFromObjectWrapperModel<C extends Containerable,O extends ObjectType> extends AbstractWrapperModel<List<ContainerWrapper<C>> ,O> {
 
    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapperFromObjectWrapperModel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapperListFromObjectWrapperModel.class);
 
-    private ItemPath path;
+    private List<ItemPath> paths;
 
-    public ContainerWrapperFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, QName item) {
-        this(model, new ItemPath(item));
-    }
-
-    public ContainerWrapperFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, ItemPath path) {
+   
+    public ContainerWrapperListFromObjectWrapperModel(IModel<ObjectWrapper<O>> model, List<ItemPath> paths) {
     	super(model);
-        Validate.notNull(path, "Item path must not be null.");
-        this.path = path;
+//        Validate.notNull(paths, "Item path must not be null.");
+        this.paths = paths;
     }
 
 
@@ -62,13 +60,23 @@ public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O ex
     }
 
 	@Override
-	public ContainerWrapper<C> getObject() {
-		ContainerWrapper<C> containerWrapper = getWrapper().findContainerWrapper(path);
-		return containerWrapper;
+	public List<ContainerWrapper<C>> getObject() {
+		List<ContainerWrapper<C>> wrappers = new ArrayList<>();
+		if (paths == null) {
+			return (List) getWrapper().getContainers();
+		}
+		for (ItemPath path : paths) {
+			ContainerWrapper<C> containerWrapper = getWrapper().findContainerWrapper(path);
+			if (containerWrapper != null) {
+				containerWrapper.setShowEmpty(true, false);
+				wrappers.add(containerWrapper);
+			}
+		}
+		return wrappers;
 	}
 
 	@Override
-	public void setObject(ContainerWrapper<C> arg0) {
+	public void setObject(List<ContainerWrapper<C>> arg0) {
 		throw new UnsupportedOperationException("ContainerWrapperFromObjectWrapperModel.setObject called");
 
 	}

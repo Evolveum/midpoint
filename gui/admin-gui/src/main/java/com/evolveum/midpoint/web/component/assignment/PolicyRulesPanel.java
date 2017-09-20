@@ -160,9 +160,8 @@ public class PolicyRulesPanel extends AssignmentPanel {
 	}
 
 	@Override
-	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<AssignmentDto> model,
-			PageBase parentPage) {
-		return new PolicyRuleDetailsPanel(idAssignmentDetails, form, model, parentPage);
+	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<AssignmentDto> model) {
+		return new PolicyRuleDetailsPanel(idAssignmentDetails, form, model);
 	}
 
 }
