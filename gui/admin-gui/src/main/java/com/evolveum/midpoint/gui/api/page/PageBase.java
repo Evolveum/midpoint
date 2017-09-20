@@ -1394,7 +1394,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
     private MainMenuItem createCaseItems(){
-           	MainMenuItem item = new MainMenuItem("fa fa-asterisk", createStringResource("PageAdmin.menu.top.cases"),null);
+           	MainMenuItem item = new MainMenuItem("fa fa-list", createStringResource("PageAdmin.menu.top.cases"),null);
         List<MenuItem> submenu = item.getItems();
                 MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.cases.list"), PageCases.class);
         submenu.add(list);

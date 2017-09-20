@@ -3,6 +3,8 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
@@ -12,11 +14,9 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -29,8 +29,9 @@ import java.util.List;
 /**
  * Created by acope on 9/14/17.
  */
-
-@PageDescriptor(url = "/admin/cases", action = {
+@PageDescriptor(urls = {
+        @Url(mountUrl = "/admin/cases", matchUrlForSecurity = "/admin/cases")
+}, action = {
         @AuthorizationAction(actionUri = PageAdminCases.AUTH_CASES_ALL_LABEL,
                 label = PageAdminCases.AUTH_CASES_ALL_LABEL,
                 description = PageAdminCases.AUTH_CASES_ALL_DESCRIPTION),
@@ -39,15 +40,28 @@ import java.util.List;
                 description = "PageCases.auth.cases.description")})
 public class PageCases extends PageAdminCases {
 
-    public static final String ID_MAIN_FORM = "mainForm";
+    private static final Trace LOGGER = TraceManager.getTrace(PageCases.class);
 
-    public static final String ID_CASES_TABLE = "casesTable";
+    private static final String DOT_CLASS = PageCases.class.getName() + ".";
 
     private static final long serialVersionUID = 1L;
+
+    public static final String ID_MAIN_FORM = "mainForm";
+    public static final String ID_CASES_TABLE = "table";
+
+
+    public PageCases() {
+        this(true);
+    }
+
+    public PageCases(boolean clearPagingInSession) {
+        initLayout();
+    }
 
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
+
         MainObjectListPanel<CaseType> casePanel = new MainObjectListPanel<CaseType>(
                 ID_CASES_TABLE,
                 CaseType.class,
@@ -89,8 +103,8 @@ public class PageCases extends PageAdminCases {
 
     private void caseDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
         PageParameters pageParameters = new PageParameters();
-                pageParameters.add(OnePageParameterEncoder.PARAMETER, caseInstance.getOid());
-                navigateToNext(PageCases.class, pageParameters);
+        pageParameters.add(OnePageParameterEncoder.PARAMETER, caseInstance.getOid());
+        navigateToNext(PageCases.class, pageParameters);
     }
 
     private List<IColumn<SelectableBean<CaseType>, String>> initColumns() {
