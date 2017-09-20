@@ -25,7 +25,9 @@
 		<policyRule>
 			<name>rule-A</name>
 			<policyConstraints>
-				<ref>unresolvable</ref>
+				<ref>
+					<name>unresolvable</name>
+				</ref>
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->

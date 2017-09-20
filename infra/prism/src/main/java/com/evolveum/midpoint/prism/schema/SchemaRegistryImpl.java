@@ -435,6 +435,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		detectExtensionSchema(schema);
 	}
 
+	// see https://stackoverflow.com/questions/14837293/xsd-circular-import
 	private void parsePrismSchemas(List<SchemaDescription> schemaDescriptions, boolean allowDelayedItemDefinitions) throws SchemaException {
 		List<SchemaDescription> prismSchemaDescriptions = schemaDescriptions.stream()
 				.filter(sd -> sd.isPrismSchema())

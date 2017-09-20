@@ -72,7 +72,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	protected static final File ROLE_AMBIGUOUS_REFERENCE_FILE = new File(TEST_DIR, "role-ambiguous-reference.xml");
 
 	private static final int STUDENT_TARGET_RULES = 5;          // one is global
-	private static final int STUDENT_FOCUS_RULES = 20;
+	private static final int STUDENT_FOCUS_RULES = 21;
 
 	private static final String ACTIVITY_DESCRIPTION = "PROJECTOR (test)";
 
