@@ -178,12 +178,12 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	}
 	
 	@Override
-	public OperationResultStatus queryOperationStatus(String asyncronousOperationReference, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	public OperationResultStatus queryOperationStatus(String asynchronousOperationReference, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.createMinorSubresult(OPERATION_QUERY_CASE);
 		
 		PrismObject<CaseType> acase;
 		try {
-			acase = repositoryService.getObject(CaseType.class, asyncronousOperationReference, null, result);
+			acase = repositoryService.getObject(CaseType.class, asynchronousOperationReference, null, result);
 		} catch (ObjectNotFoundException | SchemaException e) {
 			result.recordFatalError(e);
 			throw e;
