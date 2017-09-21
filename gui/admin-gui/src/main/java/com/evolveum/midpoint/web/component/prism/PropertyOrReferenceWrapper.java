@@ -49,8 +49,9 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	protected boolean readonly;
 	private boolean isStripe;
 	private boolean showEmpty;
+	private ItemPath path;
 
-	public PropertyOrReferenceWrapper(@Nullable ContainerValueWrapper containerValue, I item, boolean readonly, ValueStatus status) {
+	public PropertyOrReferenceWrapper(@Nullable ContainerValueWrapper containerValue, I item, boolean readonly, ValueStatus status, ItemPath path) {
 		Validate.notNull(item, "Item must not be null.");
 		Validate.notNull(status, "Item status must not be null.");
 
@@ -58,6 +59,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		this.item = item;
 		this.status = status;
 		this.readonly = readonly;
+		this.path = path;
 	}
 
 	@Override
@@ -216,7 +218,10 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	
 	@Override
 	public ItemPath getPath() {
-		return item.getPath();
+		if (path == null) {
+			path = item.getPath();
+		}
+		return path;
 	}
 
 	@Override

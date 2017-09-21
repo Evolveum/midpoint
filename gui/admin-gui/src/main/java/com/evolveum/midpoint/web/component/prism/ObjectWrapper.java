@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -64,6 +65,8 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
     private String displayName;
     private String description;
     private List<ContainerWrapper<? extends Containerable>> containers;
+    
+    private ContainerWrapperFactory factory;
 
 //    private boolean showEmpty;
 //    private boolean minimalized;
@@ -93,12 +96,12 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
     // a refined definition of an resource object class that reflects its editability; applicable for shadows only
     private RefinedObjectClassDefinition objectClassDefinitionForEditing;
 
-    public ObjectWrapper(String displayName, String description, PrismObject object, ContainerStatus status) {
-        this(displayName, description, object, null, status);
-    }
+//    public ObjectWrapper(PrismObject<O> object, ContainerStatus status, ContainerWrapperFactory factory) {
+//        this(object, null, status);
+//    }
 
-    public ObjectWrapper(String displayName, String description, PrismObject object,
-			RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status) {
+    public ObjectWrapper(String dispayName, String descritpion, PrismObject<O> object,
+			ContainerStatus status) {
         Validate.notNull(object, "Object must not be null.");
         Validate.notNull(status, "Container status must not be null.");
 
@@ -107,7 +110,8 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
         this.object = object;
         this.objectOld = object.clone();
         this.status = status;
-        this.objectClassDefinitionForEditing = objectClassDefinitionForEditing;
+        
+//        this.objectClassDefinitionForEditing = objectClassDefinitionForEditing;
     }
 
 //    public void initializeContainers(PageBase pageBase) {
@@ -232,14 +236,34 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
     public <C extends Containerable> ContainerWrapper<C> findContainerWrapper(ItemPath path) {
     	if (path == null || path.isEmpty()) {
     		return (ContainerWrapper<C>) findMainContainerWrapper();
+//    		ContainerWrapper<C> mainContainer = (ContainerWrapper<C>) findMainContainerWrapper();
+//    		if (mainContainer == null) {
+//    			mainContainer = factory.createContainerWrapper(object, ContainerStatus.ADDING, ItemPath.EMPTY_PATH);
+//    			containers.add(mainContainer);
+//    			return mainContainer;
+//    		}
+    		
     	}
     	
     	if (path.size() == 1) {
-    		return (ContainerWrapper<C>) getContainers().stream().filter(wrapper -> path.equivalent(wrapper.getPath())).findFirst().orElse(null);    		
+    		return (ContainerWrapper<C>) getContainers().stream().filter(wrapper -> path.equivalent(wrapper.getPath())).findFirst().orElse(null);
+//    		ContainerWrapper<C> containerWrapper = (ContainerWrapper<C>) getContainers().stream().filter(wrapper -> path.equivalent(wrapper.getPath())).findFirst().orElse(null);
+//    		if (containerWrapper == null) {
+//    			PrismContainer<C> container;
+//				try {
+//					container = object.findOrCreateContainer(path);
+//				} catch (SchemaException e) {
+//					LoggingUtils.logException(LOGGER, "Cannot create container " + path, e);
+//					return null;
+//				}
+//    			containerWrapper = factory.createContainerWrapper(container, ContainerStatus.ADDING, path);
+//    			containers.add(containerWrapper);
+//    			return containerWrapper;
+//    		}
     	} 
 
     	
-    		ContainerWrapper<C> containerWrapper = findContainerWrapper(path.head());
+    	ContainerWrapper<C> containerWrapper = findContainerWrapper(path.head());
     	if (containerWrapper == null) {
     		return null;
     	}

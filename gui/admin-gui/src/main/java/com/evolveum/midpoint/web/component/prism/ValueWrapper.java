@@ -22,6 +22,7 @@ import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -138,7 +139,12 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
     }
 
     public boolean hasValueChanged() {
-        return oldValue != null ? !oldValue.equals(value) : value != null;
+    	if (value instanceof PrismPropertyValue) {
+    		return oldValue != null ? !oldValue.equals(value) : value != null;
+    	} else {
+    		return oldValue != null ? !oldValue.equals(value) : value != null && !value.isEmpty();
+    	}
+        
     }
 
     public boolean isReadonly() {

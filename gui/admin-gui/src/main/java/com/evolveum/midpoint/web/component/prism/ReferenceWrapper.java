@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
@@ -30,7 +31,11 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 	private static final long serialVersionUID = 3132143219403214903L;
 
 	public ReferenceWrapper(ContainerValueWrapper container, PrismReference reference, boolean readonly, ValueStatus status) {
-		super(container, reference, readonly, status);
+		super(container, reference, readonly, status, null);
+	}
+	
+	public ReferenceWrapper(ContainerValueWrapper container, PrismReference reference, boolean readonly, ValueStatus status, ItemPath path) {
+		super(container, reference, readonly, status, path);
 	}
 
 	public List<ValueWrapper> getValues() {

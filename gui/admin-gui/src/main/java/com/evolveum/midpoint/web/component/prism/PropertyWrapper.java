@@ -40,12 +40,13 @@ public class PropertyWrapper<T> extends PropertyOrReferenceWrapper<PrismProperty
 	private static final long serialVersionUID = -6347026284758253783L;
 
 	public PropertyWrapper(@Nullable ContainerValueWrapper container, PrismProperty<T> property, boolean readonly, ValueStatus status) {
-		super(container, property, readonly, status);
+		super(container, property, readonly, status, null);
 
-        if (container != null && SchemaConstants.PATH_PASSWORD.equivalent(container.getPath())
-                && PasswordType.F_VALUE.equals(property.getElementName())) {
-			super.setDisplayName("prismPropertyPanel.name.credentials.password");
-		}
+        values = createValues();
+    }
+	
+	public PropertyWrapper(@Nullable ContainerValueWrapper container, PrismProperty<T> property, boolean readonly, ValueStatus status, ItemPath path) {
+		super(container, property, readonly, status, path);
 
         values = createValues();
     }
