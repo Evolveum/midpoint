@@ -97,7 +97,7 @@ public enum ObjectTypes {
     SERVICE(ServiceType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SERVICE, ServiceType.class, ObjectManager.MODEL,
             "services"),
 
-    CASE(CaseType.COMPLEX_TYPE, SchemaConstantsGenerated.C_CASE, CaseType.class, ObjectManager.MODEL,
+    CASE(CaseType.COMPLEX_TYPE, SchemaConstantsGenerated.C_CASE, CaseType.class, ObjectManager.EMULATED,
             "cases"),
 
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
@@ -118,7 +118,7 @@ public enum ObjectTypes {
 	}
 
 	public enum ObjectManager {
-        PROVISIONING, TASK_MANAGER, MODEL, WORKFLOW, REPOSITORY
+        PROVISIONING, TASK_MANAGER, MODEL, WORKFLOW, REPOSITORY, EMULATED
     }
 
     private QName type;
