@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.misc;
 
+import com.evolveum.midpoint.model.api.CaseManagementService;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
@@ -23,10 +24,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -39,6 +42,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author mederly
@@ -59,6 +63,7 @@ public class TestCaseManagement extends AbstractInternalModelIntegrationTest {
 	@Autowired protected Projector projector;
 	@Autowired protected Clockwork clockwork;
 	@Autowired protected TaskManager taskManager;
+	@Autowired protected CaseManagementService caseManagementService;
 
 	private PrismObject<UserType> user1, user2;
 	private PrismObject<CaseType> case1, case2, case3;
@@ -192,6 +197,33 @@ public class TestCaseManagement extends AbstractInternalModelIntegrationTest {
 		SearchResultList<CaseWorkItemType> workItems = controller.searchContainers(CaseWorkItemType.class, query, null, task, result);
 		display("objects", workItems);
 		assertEquals(4, workItems.size());
+	}
+
+	@Test
+	public void test200CompleteWorkItem() throws Exception {
+		final String TEST_NAME = "test200CompleteWorkItem";
+
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		login(userAdministrator);
+
+		Long workItemId = case2.asObjectable().getWorkItem().get(0).getId();
+		AbstractWorkItemOutputType output = new AbstractWorkItemOutputType()
+				.comment("hi")
+				.outcome("outcome");
+		caseManagementService.completeWorkItem(case2.getOid(), workItemId, output, task, result);
+		result.computeStatus();
+		assertSuccess(result);
+
+		case2 = modelService.getObject(CaseType.class, case2.getOid(), null, task, result);
+
+		display("case after completion", case2);
+		assertEquals(SchemaConstants.CASE_STATE_CLOSED, case2.asObjectable().getState());
+		assertNotNull(case2.asObjectable().getCloseTimestamp());
+		case2.asObjectable().getWorkItem().forEach(wi -> assertNotNull(wi.getCloseTimestamp()));
+		CaseWorkItemType workItemAfter = (CaseWorkItemType) case2.findContainer(CaseType.F_WORK_ITEM).findValue(workItemId).asContainerable();
+		assertEquals(output, workItemAfter.getOutput());
 	}
 
 }
