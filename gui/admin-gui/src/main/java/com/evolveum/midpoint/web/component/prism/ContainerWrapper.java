@@ -73,28 +73,25 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
     private List<ContainerValueWrapper<C>> values;
 
     private boolean readonly;
-    private boolean showInheritedObjectAttributes;
-
-
+//    private boolean showInheritedObjectAttributes;
+    
+   
 	ContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path) {
 		Validate.notNull(container, "container must not be null.");
 		Validate.notNull(status, "Container status must not be null.");
+		Validate.notNull(container.getDefinition(), "container definition must not be null.");
 
 		this.container = container;
 		this.status = status;
 		this.path = path;
+		
 	}
 
-	ContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readOnly, boolean showInheritedObjectAttributes) {
-        Validate.notNull(container, "container must not be null.");
-        Validate.notNull(container.getDefinition(), "container definition must not be null.");
-        Validate.notNull(status, "Container status must not be null.");
-
-        this.container = container;
-        this.status = status;
-        this.path = path;
-        this.readonly = readOnly;
-        this.showInheritedObjectAttributes = showInheritedObjectAttributes;
+	ContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readOnly) {
+        this(container, status, path);
+		this.readonly = readOnly;
+        
+//        this.showInheritedObjectAttributes = showInheritedObjectAttributes;
     }
 
     public void revive(PrismContext prismContext) throws SchemaException {
@@ -196,9 +193,9 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
     	}
     }
 
-	public boolean isShowInheritedObjectAttributes() {
-		return showInheritedObjectAttributes;
-	}
+//	public boolean isShowInheritedObjectAttributes() {
+//		return showInheritedObjectAttributes;
+//	}
 
     @Override
     public String getDisplayName() {
@@ -412,8 +409,8 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "readonly", readonly, indent + 1);
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "showInheritedObjectAttributes", showInheritedObjectAttributes, indent + 1);
-        sb.append("\n");
+//        DebugUtil.debugDumpWithLabel(sb, "showInheritedObjectAttributes", showInheritedObjectAttributes, indent + 1);
+//        sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "path", path == null ? null : path.toString(), indent + 1);
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "containerDefinition", getItemDefinition() == null ? null : getItemDefinition().toString(), indent + 1);
@@ -467,12 +464,31 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 				return;
 			}
 
-			for (ContainerValueWrapper<C> itemWrapper : getValues()) {
-				if (!itemWrapper.hasChanged()) {
-					continue;
-				}
+		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
+			if (!itemWrapper.hasChanged()) {
+				continue;
+			}
+
+			switch (itemWrapper.getStatus()) {
+				case ADDED:
+					PrismContainerValue<C> valueToAdd = itemWrapper.createContainerValueAddDelta();
+					if (getItemDefinition().isMultiValue()) {
+						delta.addModificationAddContainer(getPath(), valueToAdd);
+						break;
+					}
+
+					delta.addModificationReplaceContainer(getPath(), valueToAdd);
+					break;
+				case NOT_CHANGED:
+					itemWrapper.collectModifications(delta);
+					break;
+				case DELETED:
+					delta.addModificationDeleteContainer(itemWrapper.getPath(), itemWrapper.getContainerValue().clone());
+					break;
+
+			}
 				
-				itemWrapper.collectModifications(delta);
+				
 //				ItemPath containerPath = getPath() != null ? getPath() : ItemPath.EMPTY_PATH;
 //				
 //				if (itemWrapper instanceof PropertyWrapper) {

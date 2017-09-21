@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.web.component.prism;
 
+import java.util.List;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -81,12 +83,10 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 			@Override
             public void onClick(AjaxRequestTarget target) {
-				ContainerValueWrapper<C> wrapper = PrismContainerValueHeaderPanel.this.getModelObject();
-				wrapper.setShowEmpty(!wrapper.isShowEmpty(), true);
-
-				onButtonClick(target);
+				onShowEmptyClick(target);
             }
 
+			
 			@Override
 			public boolean isOn() {
 				return PrismContainerValueHeaderPanel.this.getModelObject().isShowEmpty();
@@ -124,5 +124,15 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 	protected String getLabel() {
 		return getModel().getObject().getDisplayName();
 	}
+	
+	private void onShowEmptyClick(AjaxRequestTarget target) {
+		
+		ContainerValueWrapper<C> wrapper = PrismContainerValueHeaderPanel.this.getModelObject();
+		wrapper.setShowEmpty(!wrapper.isShowEmpty(), false);
+			
+		onButtonClick(target);
+		
+	}
+
 
 }

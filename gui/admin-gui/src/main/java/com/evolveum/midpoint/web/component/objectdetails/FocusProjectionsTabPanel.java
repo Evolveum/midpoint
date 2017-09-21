@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -129,7 +130,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 					packageRef = new PackageResourceReference(ImgResources.class, ImgResources.HDD_PRISM);
 
 					shadowPanel = new PrismPanel<F>(ID_SHADOW,
-							new ContainerWrapperListFromObjectWrapperModel<>(objectWrapperModel, null), packageRef,
+							new ContainerWrapperListFromObjectWrapperModel(objectWrapperModel, Arrays.asList(new ItemPath(ShadowType.F_ATTRIBUTES), SchemaConstants.PATH_ACTIVATION, SchemaConstants.PATH_PASSWORD)), packageRef,
 							getMainForm(), null, getPageBase());
 				} else {
 					shadowPanel = new SimpleErrorPanel<ShadowType>(ID_SHADOW, item.getModel()) {

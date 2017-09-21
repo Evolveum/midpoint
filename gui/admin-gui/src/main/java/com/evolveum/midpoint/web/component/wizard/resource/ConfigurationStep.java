@@ -142,6 +142,7 @@ public class ConfigurationStep extends WizardStep {
 			} else {
 				container = containerDef.instantiate();
 				containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.ADDING, containerPath, parentPage.isReadOnly());
+				containerWrapper.setShowEmpty(true, true);
 			}
 			containerWrappers.add(containerWrapper);
 		}

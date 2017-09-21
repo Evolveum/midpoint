@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.cxf.annotations.Logging;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -50,6 +52,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -78,35 +81,40 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
     private List<ItemWrapper> properties;
 
     private boolean readonly;
-    private boolean showInheritedObjectAttributes;
+//    private boolean showInheritedObjectAttributes;
 
+    
 //    private PrismContainerDefinition<C> containerDefinition;
 
   
     ContainerValueWrapper(ContainerWrapper<C> containerWrapper, PrismContainerValue<C> containerValue, ValueStatus status, ItemPath path) {
     	Validate.notNull(status, "Container status must not be null.");
+    	 Validate.notNull(containerValue.getParent().getDefinition(), "container definition must not be null.");
+         Validate.notNull(status, "Container status must not be null.");
 
 		this.containerWrapper = containerWrapper;
 		this.containerValue = containerValue;
 		this.status = status;
 		this.path = path;
-		this.readonly = containerWrapper.isReadonly(); // [pm] this is quite questionable
-		this.showInheritedObjectAttributes = containerWrapper.isShowInheritedObjectAttributes();
+//		this.readonly = containerWrapper.isReadonly(); // [pm] this is quite questionable
+//		this.showInheritedObjectAttributes = containerWrapper.isShowInheritedObjectAttributes();
+	
 
 	}
 
-	ContainerValueWrapper(PrismContainerValue<C> container, ValueStatus status, ItemPath path, boolean readOnly, boolean showInheritedObjectAttributes) {
+	ContainerValueWrapper(PrismContainerValue<C> containerValue, ValueStatus status, ItemPath path, boolean readOnly) {
+		this(null, containerValue, status, path);
 //		super(null, container);
-        Validate.notNull(container, "container must not be null.");
-        Validate.notNull(container.getParent().getDefinition(), "container definition must not be null.");
-        Validate.notNull(status, "Container status must not be null.");
-
-        this.containerValue = container;
+//        Validate.notNull(container, "container must not be null.");
+//        Validate.notNull(container.getParent().getDefinition(), "container definition must not be null.");
+//        Validate.notNull(status, "Container status must not be null.");
+//
+//        this.containerValue = container;
 //		this.containerDefinition = container.getParent().getDefinition();
-        this.status = status;
-        this.path = path;
+//        this.status = status;
+//        this.path = path;
         this.readonly = readOnly;
-        this.showInheritedObjectAttributes = showInheritedObjectAttributes;
+//        this.showInheritedObjectAttributes = showInheritedObjectAttributes;
     }
 	
 	public PrismContainerDefinition<C> getDefinition() {
@@ -162,6 +170,13 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
         }
         return properties;
     }
+    
+  
+    public void addEmptyProperties(List<ItemWrapper> emptyProperties) {
+    	emptyProperties.forEach(empty -> { 
+    		if (!properties.contains(empty)) properties.add(empty);
+    	});
+    }
 
     public void setProperties(List<ItemWrapper> properties) {
         this.properties = properties;
@@ -185,9 +200,9 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
     	}
     }
 
-	public boolean isShowInheritedObjectAttributes() {
-		return showInheritedObjectAttributes;
-	}
+//	public boolean isShowInheritedObjectAttributes() {
+//		return showInheritedObjectAttributes;
+//	}
 
     public boolean isMain() {
         return path==null || path.isEmpty();
@@ -346,8 +361,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "readonly", readonly, indent + 1);
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "showInheritedObjectAttributes", showInheritedObjectAttributes, indent + 1);
-        sb.append("\n");
+//        DebugUtil.debugDumpWithLabel(sb, "showInheritedObjectAttributes", showInheritedObjectAttributes, indent + 1);
+//        sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "path", path == null ? null : path.toString(), indent + 1);
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "containerDefinition", getDefinition() == null ? null : getDefinition().toString(), indent + 1);
@@ -358,6 +373,34 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
         sb.append("\n");
         DebugUtil.debugDump(sb, properties, indent + 2, false);
         return sb.toString();
+    }
+    
+    public PrismContainerValue<C> createContainerValueAddDelta() {
+    	if (!hasChanged()) {
+    		return null;
+    	}
+    	
+    	if (getStatus() != ValueStatus.ADDED) {
+    		return null;
+    	}
+    	
+    	PrismContainerValue<C> newValue = containerValue.clone();
+    	
+    	getItems().forEach(item -> {
+    		
+    		if (item instanceof ContainerWrapper) {
+    			return;
+    		}
+    		
+    		PropertyOrReferenceWrapper propOrRef = (PropertyOrReferenceWrapper) item;
+    		try {
+				newValue.add(createItem(propOrRef, propOrRef.getItemDefinition()));
+			} catch (SchemaException e) {
+				LoggingUtils.logException(LOGGER, "Could not add item " + propOrRef.getItem(), e);
+			}
+    		
+    	});
+    	return newValue;
     }
 
 	public <O extends ObjectType> void collectModifications(ObjectDelta<O> delta) throws SchemaException {
@@ -389,7 +432,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			if (!hasChanged()) {
 				return;
 			}
-
+			
+			
 			for (ItemWrapper itemWrapper : getItems()) {
 				if (!itemWrapper.hasChanged()) {
 					continue;
@@ -412,6 +456,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 					if (!pDelta.isEmpty()) {
 						delta.addModification(pDelta);
 					}
+				} else if (itemWrapper instanceof ContainerWrapper) {
+					((ContainerWrapper) itemWrapper).collectModifications(delta);
 				} else {
 					LOGGER.trace("Delta from wrapper: ignoring {}", itemWrapper);
 				}
@@ -421,7 +467,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	private ItemDelta computePropertyDeltas(PropertyWrapper propertyWrapper, ItemPath containerPath) {
 		ItemDefinition itemDef = propertyWrapper.getItemDefinition();
-		ItemDelta pDelta = itemDef.createEmptyDelta(propertyWrapper.getItem().getPath());
+		ItemDelta pDelta = itemDef.createEmptyDelta(propertyWrapper.getPath());
 		addItemDelta(propertyWrapper, pDelta, itemDef, containerPath);
 		return pDelta;
 	}
@@ -548,6 +594,37 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 	}
 	
+	private Item createItem(PropertyOrReferenceWrapper itemWrapper, ItemDefinition propertyDef) {
+		List<PrismValue> prismValues = new ArrayList<>();
+		for (Object vWrapper : itemWrapper.getValues()) {
+			if (!(vWrapper instanceof ValueWrapper)) {
+				continue;
+			} 
+			
+			ValueWrapper valueWrapper = (ValueWrapper) vWrapper;
+			
+			valueWrapper.normalize(propertyDef.getPrismContext());
+			ValueStatus valueStatus = valueWrapper.getStatus();
+			if (!valueWrapper.hasValueChanged()
+					&& (ValueStatus.NOT_CHANGED.equals(valueStatus) || ValueStatus.ADDED.equals(valueStatus))) {
+				continue;
+			}
+			
+			prismValues.add(valueWrapper.getValue().clone());
+			
+		}
+		
+		Item item = itemWrapper.getItem().clone();
+		try {
+			item.addAll(prismValues);
+		} catch (SchemaException e) {
+			LoggingUtils.logException(LOGGER, "could not crate delta for " + itemWrapper.getItem(), e);
+			return null;
+		}
+		return item;
+		
+	}
+	
 	//TODO: unify with other isVisibleMethods
 	public boolean isVisible() {
 		PrismContainerDefinition<C> def = getDefinition();
@@ -591,11 +668,9 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	@Override
 	public void setShowEmpty(boolean showEmpty, boolean recursive) {
 		super.setShowEmpty(showEmpty, recursive);
-		if (recursive) {
-			getItems().forEach(item -> {
+	  		getItems().forEach(item -> {
 				item.setShowEmpty(showEmpty, recursive);
 			});
-		}
 		
 	}
 	

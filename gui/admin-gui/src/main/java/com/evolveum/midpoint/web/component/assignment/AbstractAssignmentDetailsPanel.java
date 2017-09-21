@@ -165,11 +165,11 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
     
 
     private boolean getActivationVisibileItems(ItemPath pathToCheck, ItemPath assignmentPath) {
-    	if (assignmentPath.subPath(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)).equivalent(pathToCheck)){
+    	if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)).equivalent(pathToCheck)){
     		return false;
     	}
     	
-    	if (assignmentPath.subPath(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)).equivalent(pathToCheck)){
+    	if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)).equivalent(pathToCheck)){
     		return false;
     	}
     	
