@@ -18,11 +18,9 @@ package com.evolveum.midpoint.model.impl.controller;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -36,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -117,11 +116,12 @@ public class EmulatedSearchProvider {
 				PrismContainerValue pcv1 = pcvExtractor.apply(o1);
 				PrismContainerValue pcv2 = pcvExtractor.apply(o2);
 				for (ObjectOrdering ordering : paging.getOrderingInstructions()) {
+					boolean desc = ordering.getDirection() == OrderDirection.DESCENDING;
 					Comparable<Object> c1 = getComparable(pcv1.find(ordering.getOrderBy()));
 					Comparable<Object> c2 = getComparable(pcv2.find(ordering.getOrderBy()));
 					int result = c1 == null
 							? (c2 == null ? 0 : 1)
-							: (c2 == null ? -1 : c1.compareTo(c2));
+							: (c2 == null ? -1 : (desc ? -1 : 1) * c1.compareTo(c2));
 					if (result != 0) {
 						return result;
 					}
@@ -155,6 +155,9 @@ public class EmulatedSearchProvider {
 		}
 		if (o instanceof Comparable) {
 			return (Comparable<Object>) o;
+		}
+		if (o instanceof XMLGregorianCalendar) {
+			return (Comparable) XmlTypeConverter.toDate((XMLGregorianCalendar) o);
 		}
 		return null;
 	}

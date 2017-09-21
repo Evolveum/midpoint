@@ -20,6 +20,8 @@ import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -73,7 +75,7 @@ public class TestCaseManagement extends AbstractInternalModelIntegrationTest {
 
 	@Test
 	public void test100SearchCases() throws Exception {
-		final String TEST_NAME = "test100CreateCase";
+		final String TEST_NAME = "test100SearchCases";
 
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -81,10 +83,115 @@ public class TestCaseManagement extends AbstractInternalModelIntegrationTest {
 		login(userAdministrator);
 
 		SearchResultList<PrismObject<CaseType>> cases = controller.searchObjects(CaseType.class, null, null, task, result);
+		display("objects", cases);
 		assertEquals(3, cases.size());
-		SearchResultList<CaseWorkItemType> workItems = controller.searchContainers(CaseWorkItemType.class, null, null, task, result);
-		assertEquals(4, workItems.size());
+	}
 
+	@Test
+	public void test110SearchWorkItems() throws Exception {
+		final String TEST_NAME = "test110SearchWorkItems";
+
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		login(userAdministrator);
+
+		SearchResultList<CaseWorkItemType> workItems = controller.searchContainers(CaseWorkItemType.class, null, null, task, result);
+		display("objects", workItems);
+		assertEquals(4, workItems.size());
+	}
+
+	@Test
+	public void test120SearchCasesFiltered() throws Exception {
+		final String TEST_NAME = "test120SearchCasesFiltered";
+
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		login(userAdministrator);
+
+		ObjectQuery query = QueryBuilder.queryFor(CaseType.class, prismContext)
+				.item(CaseType.F_OBJECT_REF).ref(userAdministrator.getOid())
+				.build();
+		SearchResultList<PrismObject<CaseType>> cases = controller.searchObjects(CaseType.class, query, null, task, result);
+		display("objects", cases);
+		assertEquals(1, cases.size());
+	}
+
+	@Test
+	public void test130SearchWorkItemsFiltered() throws Exception {
+		final String TEST_NAME = "test130SearchWorkItemsFiltered";
+
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		login(userAdministrator);
+
+		ObjectQuery query = QueryBuilder.queryFor(CaseWorkItemType.class, prismContext)
+				.item(CaseWorkItemType.F_ASSIGNEE_REF).ref(user1.getOid())
+				.build();
+
+		SearchResultList<CaseWorkItemType> workItems = controller.searchContainers(CaseWorkItemType.class, query, null, task, result);
+		display("objects", workItems);
+		assertEquals(2, workItems.size());
+	}
+
+	@Test
+	public void test140SearchCasesSortedPaged() throws Exception {
+		final String TEST_NAME = "test140SearchCasesSortedPaged";
+
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		login(userAdministrator);
+
+		ObjectQuery query = QueryBuilder.queryFor(CaseType.class, prismContext)
+				.desc(CaseType.F_NAME)
+				.offset(1)
+				.maxSize(1)
+				.build();
+		SearchResultList<PrismObject<CaseType>> cases = controller.searchObjects(CaseType.class, query, null, task, result);
+		display("objects", cases);
+		assertEquals(1, cases.size());
+		assertEquals(case2, cases.get(0));
+	}
+
+	@Test
+	public void test150SearchWorkItemsSortedPaged() throws Exception {
+		final String TEST_NAME = "test150SearchWorkItemsSortedPaged";
+
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		login(userAdministrator);
+
+		ObjectQuery query = QueryBuilder.queryFor(CaseWorkItemType.class, prismContext)
+				.desc(CaseWorkItemType.F_DEADLINE)
+				.maxSize(1)
+				.build();
+
+		SearchResultList<CaseWorkItemType> workItems = controller.searchContainers(CaseWorkItemType.class, query, null, task, result);
+		display("objects", workItems);
+		assertEquals(1, workItems.size());
+		assertEquals(2, workItems.get(0).getId().longValue());
+	}
+
+	@Test
+	public void test160SearchWorkItemsSorted() throws Exception {
+		final String TEST_NAME = "test160SearchWorkItemsSorted";
+
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		login(userAdministrator);
+
+		ObjectQuery query = QueryBuilder.queryFor(CaseWorkItemType.class, prismContext)
+				.desc(CaseWorkItemType.F_DEADLINE)
+				.build();
+
+		SearchResultList<CaseWorkItemType> workItems = controller.searchContainers(CaseWorkItemType.class, query, null, task, result);
+		display("objects", workItems);
+		assertEquals(4, workItems.size());
 	}
 
 }

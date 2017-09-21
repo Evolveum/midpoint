@@ -20,6 +20,7 @@
 	<name>case1</name>
 	<objectRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>		<!-- administrator -->
 	<workItem id="1">
+		<deadline>2017-03-17T23:45:58.689+01:00</deadline>
 		<assigneeRef oid="401f0190-f6f4-4493-bbaa-165e5dd4f9df" type="UserType"/>		<!-- user1 -->
 	</workItem>
 </case>
