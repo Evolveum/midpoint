@@ -41,7 +41,6 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -97,13 +96,13 @@ public class TestExtraSchema {
 		System.out.println(reg.debugDump());
 
 		// Try midpoint schemas by parsing a XML file
-		PrismSchema schema = reg.getSchema(NS_FOO);
+		PrismSchema schema = reg.getPrismSchema(NS_FOO);
 		System.out.println("Parsed foo schema:");
 		System.out.println(schema.debugDump());
 
 		// TODO: assert user
 
-		schema = reg.getSchema(NS_USER_EXT);
+		schema = reg.getPrismSchema(NS_USER_EXT);
 		System.out.println("Parsed user ext schema:");
 		System.out.println(schema.debugDump());
 
@@ -223,7 +222,7 @@ public class TestExtraSchema {
 		reg.registerPrismSchemasFromDirectory(EXTRA_SCHEMA_DIR);
 		context.initialize();
 
-		PrismSchema schema = reg.getSchema(NS_ROOT);
+		PrismSchema schema = reg.getPrismSchema(NS_ROOT);
 		System.out.println("Parsed root schema:");
 		System.out.println(schema.debugDump());
 
