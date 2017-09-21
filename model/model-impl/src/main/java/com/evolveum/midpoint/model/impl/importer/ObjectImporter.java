@@ -544,32 +544,33 @@ public class ObjectImporter {
      * @param elementRef      the "correct" name of the root element
      * @param dynamicSchema   dynamic schema
      */
+    // UNUSED
     private PrismContainer validateDynamicSchema(List<Object> contentElements, QName elementRef,
                                                     XmlSchemaType dynamicSchema, String schemaName, OperationResult objectResult) {
-        OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".validate" + StringUtils.capitalize(schemaName) + "Schema");
-
-        Element xsdElement = ObjectTypeUtil.findXsdElement(dynamicSchema);
-        if (xsdElement == null) {
-        	result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No "+schemaName+" schema present");
-        	return null;
-        }
-
-        com.evolveum.midpoint.prism.schema.PrismSchema schema;
-        try {
-            schema = com.evolveum.midpoint.prism.schema.PrismSchemaImpl.parse(xsdElement, true, schemaName, prismContext);
-        } catch (SchemaException e) {
-            result.recordFatalError("Error during " + schemaName + " schema parsing: " + e.getMessage(), e);
-            LOGGER.trace("Validation error: {}" + e.getMessage());
-            return null;
-        }
-
-        PrismContainerDefinition containerDefinition = schema.findItemDefinition(elementRef, PrismContainerDefinition.class);
-
-        PrismContainer propertyContainer = null;
-
-        result.recordSuccess();
-        return propertyContainer;
-
+//        OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".validate" + StringUtils.capitalize(schemaName) + "Schema");
+//
+//        Element xsdElement = ObjectTypeUtil.findXsdElement(dynamicSchema);
+//        if (xsdElement == null) {
+//        	result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No "+schemaName+" schema present");
+//        	return null;
+//        }
+//
+//        com.evolveum.midpoint.prism.schema.PrismSchema schema;
+//        try {
+//            schema = com.evolveum.midpoint.prism.schema.PrismSchemaImpl.parse(xsdElement, true, schemaName, prismContext);
+//        } catch (SchemaException e) {
+//            result.recordFatalError("Error during " + schemaName + " schema parsing: " + e.getMessage(), e);
+//            LOGGER.trace("Validation error: {}" + e.getMessage());
+//            return null;
+//        }
+//
+//        PrismContainerDefinition containerDefinition = schema.findItemDefinition(elementRef, PrismContainerDefinition.class);
+//
+//        PrismContainer propertyContainer = null;
+//
+//        result.recordSuccess();
+//        return propertyContainer;
+	    return null;
     }
 
     private <T extends ObjectType> void generateIdentifiers(PrismObject<T> object, RepositoryService repository,

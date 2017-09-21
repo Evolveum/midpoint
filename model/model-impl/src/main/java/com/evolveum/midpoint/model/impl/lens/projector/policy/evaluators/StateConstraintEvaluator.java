@@ -16,10 +16,15 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
+import com.evolveum.midpoint.model.api.PipelineItem;
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedStateTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
+import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
+import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -33,6 +38,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -44,11 +50,12 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
+import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_OBJECT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.ASSIGNMENT_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.OBJECT_STATE;
+import static java.util.Collections.emptyList;
 
 /**
  * @author mederly
@@ -67,6 +74,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
 	@Autowired protected ExpressionFactory expressionFactory;
 	@Autowired protected ConstraintEvaluatorHelper evaluatorHelper;
+	@Autowired protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
 	@Override
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluate(JAXBElement<StatePolicyConstraintType> constraint,
@@ -90,31 +98,54 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 			PolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
-		if (constraint.getFilter() == null && constraint.getExpression() == null) {
-			return null;        // shouldn't occur
+		int count =
+				(constraint.getFilter() != null ? 1 : 0)
+				+ (constraint.getExpression() != null ? 1 : 0)
+				+ (constraint.getExecuteScript() != null ? 1 : 0);
+
+		if (count != 1) {
+			throw new SchemaException("Exactly one of filter, expression, executeScript element must be present.");
 		}
 
 		PrismObject<F> object = ctx.getObject();
 		if (object == null) {
 			return null;
 		}
-		boolean match = true;
 		if (constraint.getFilter() != null) {
 			ObjectFilter filter = QueryConvertor
 					.parseFilter(constraint.getFilter(), object.asObjectable().getClass(), prismContext);
 			if (!filter.match(object.getValue(), matchingRuleRegistry)) {
-				match = false;
+				return null;
 			}
 		}
-		if (match && constraint.getExpression() != null) {
-			match = evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx),
-					"expression in object state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result);
+		if (constraint.getExecuteScript() != null) {
+			Map<String, Object> variables = new HashMap<>();
+			variables.put(VAR_OBJECT.getLocalPart(), object);
+			variables.put("ruleEvaluationContext", ctx);
+			ExecutionContext resultingContext;
+			try {
+				resultingContext = scriptingExpressionEvaluator.evaluateExpression(constraint.getExecuteScript(), variables, ctx.task, result);
+			} catch (ScriptExecutionException e) {
+				throw new SystemException(e);       // TODO
+			}
+			PipelineData output = resultingContext.getFinalOutput();
+			LOGGER.trace("Scripting expression returned {} item(s); console output is:\n{}",
+					output != null ? output.getData().size() : null, resultingContext.getConsoleOutput());
+			List<PipelineItem> items = output != null ? output.getData() : emptyList();
+			if (items.isEmpty()) {
+				return null;
+			}
+			// TODO retrieve localization messages from output
+		}
+		if (constraint.getExpression() != null) {
+			if (!evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx),
+					"expression in object state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result)) {
+				return null;
+			}
+			// TODO retrieve localization messages from return (it should be Object then, not Boolean)
 		}
 
-		if (match) {
-			return new EvaluatedStateTrigger(OBJECT_STATE, constraint, createMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result));
-		}
-		return null;
+		return new EvaluatedStateTrigger(OBJECT_STATE, constraint, createMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result));
 	}
 
 	private <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluateForAssignment(StatePolicyConstraintType constraint,

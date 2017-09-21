@@ -30,7 +30,7 @@ import java.util.Collection;
 /**
  * @author mederly
  */
-public abstract class PolicyRuleEvaluationContext<F extends FocusType> {
+public abstract class PolicyRuleEvaluationContext<F extends FocusType> implements Cloneable {
 
 	@NotNull public final EvaluatedPolicyRule policyRule;
 	@NotNull public final LensContext<F> lensContext;

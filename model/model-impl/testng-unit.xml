@@ -71,6 +71,7 @@
             <class name="com.evolveum.midpoint.model.impl.lens.TestPasswordPolicyProcessor"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestPasswordPolicy"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestPolicyRules"/>
+            <class name="com.evolveum.midpoint.model.impl.lens.TestPolicyRules2"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestPolicyMetadata"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestProjectorPersona"/>
         </classes>

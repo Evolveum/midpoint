@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -122,7 +123,7 @@ public abstract class UserSelectionButton extends BasePanel<List<UserType>> {
         supportedTypes.add(pageBase.getPrismContext().getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(UserType.class).getTypeName());
         ObjectBrowserPanel<UserType> focusBrowser = new ObjectBrowserPanel<UserType>(pageBase.getMainPopupBodyId(),
-                UserType.class, supportedTypes, isMultiSelection, pageBase, null, getModelObject()) {
+                UserType.class, supportedTypes, isMultiSelection, pageBase, getUserQueryFilter(), getModelObject()) {
 
             @Override
             protected void onSelectPerformed(AjaxRequestTarget target, UserType object) {
@@ -178,5 +179,9 @@ public abstract class UserSelectionButton extends BasePanel<List<UserType>> {
             return sb.toString();
         }
         return titleModel.getString();
+    }
+
+    protected ObjectFilter getUserQueryFilter(){
+        return null;
     }
 }

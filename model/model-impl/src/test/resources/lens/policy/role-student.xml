@@ -19,7 +19,7 @@
 	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
 	  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	  xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
     <name>Student</name>
 	<assignment>
 		<!-- this is just to test when the assignment constraint is triggered and when not -->
@@ -59,7 +59,9 @@
 			<!-- but evaluationTarget=assignment ensures it will trigger only on assignment of Student role -->
 			<name>ambivalent-rule-manually-resolved-to-assignment</name>
 			<policyConstraints>
-				<ref>always-true</ref>
+				<ref>
+					<name>always-true</name>
+				</ref>
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->
@@ -73,7 +75,9 @@
 			<!-- but evaluationTarget=focus ensures it will trigger only on Student role itself -->
 			<name>ambivalent-rule-manually-resolved-to-focus</name>
 			<policyConstraints>
-				<ref>always-true</ref>
+				<ref>
+					<name>always-true</name>
+				</ref>
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->
@@ -123,7 +127,9 @@
 					<stateBefore>true</stateBefore>
 					<stateAfter>true</stateAfter>
 					<constraints>
-						<ref>cc-1900</ref>
+						<ref>
+							<name>cc-1900</name>
+						</ref>
 					</constraints>
 				</transition>
 		    </policyConstraints>
@@ -140,7 +146,9 @@
 					<stateBefore>false</stateBefore>
 					<stateAfter>true</stateAfter>
 					<constraints>
-						<ref>cc-1900</ref>
+						<ref>
+							<name>cc-1900</name>
+						</ref>
 					</constraints>
 				</transition>
 			</policyConstraints>
@@ -157,7 +165,9 @@
 					<stateBefore>true</stateBefore>
 					<stateAfter>false</stateAfter>
 					<constraints>
-						<ref>cc-1900</ref>
+						<ref>
+							<name>cc-1900</name>
+						</ref>
 					</constraints>
 				</transition>
 			</policyConstraints>
@@ -173,7 +183,9 @@
 				<transition>
 					<stateBefore>true</stateBefore>
 					<constraints>
-						<ref>cc-1900</ref>
+						<ref>
+							<name>cc-1900</name>
+						</ref>
 					</constraints>
 				</transition>
 			</policyConstraints>
@@ -205,7 +217,9 @@
 					<stateBefore>true</stateBefore>
 					<stateAfter>true</stateAfter>
 					<constraints>
-						<ref>student-assignment</ref>
+						<ref>
+							<name>student-assignment</name>
+						</ref>
 					</constraints>
 				</transition>
 			</policyConstraints>
@@ -222,7 +236,9 @@
 					<stateBefore>false</stateBefore>
 					<stateAfter>true</stateAfter>
 					<constraints>
-						<ref>student-assignment</ref>
+						<ref>
+							<name>student-assignment</name>
+						</ref>
 					</constraints>
 				</transition>
 			</policyConstraints>
@@ -239,7 +255,9 @@
 					<stateBefore>true</stateBefore>
 					<stateAfter>false</stateAfter>
 					<constraints>
-						<ref>student-assignment</ref>
+						<ref>
+							<name>student-assignment</name>
+						</ref>
 					</constraints>
 				</transition>
 			</policyConstraints>
@@ -255,7 +273,9 @@
 				<transition>
 					<stateBefore>false</stateBefore>
 					<constraints>
-						<ref>student-assignment</ref>
+						<ref>
+							<name>student-assignment</name>
+						</ref>
 					</constraints>
 				</transition>
 			</policyConstraints>
@@ -409,6 +429,56 @@
 						<targetName>abc</targetName>
 					</targetRef>
 				</hasNoAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>no-task-for-this-object</name>
+			<policyConstraints>
+				<objectState>
+					<name>task-for-this-object-exists</name>
+					<presentation>
+						<message>
+							<fallbackMessage>Approval task(s) related to this object exist(s)</fallbackMessage>
+						</message>
+					</presentation>
+					<executeScript>
+						<s:search>
+							<s:type>TaskType</s:type>
+							<s:query>
+								<q:filter>
+									<q:and>
+										<q:ref>
+											<q:path>objectRef</q:path>
+											<expression>
+												<script>
+													<code>
+														import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+														// log.info('=== Variables ===')
+														// this.binding.variables.each {k,v -> log.info('{} = {}', k, v)}
+														new ObjectReferenceType().oid(object.oid)
+													</code>
+												</script>
+											</expression>
+										</q:ref>
+										<q:equal>
+											<q:path>executionStatus</q:path>
+											<q:value>waiting</q:value>
+										</q:equal>
+										<q:equal>
+											<q:path>category</q:path>
+											<q:value>Workflow</q:value>	<!-- note uppercase 'W' here -->
+										</q:equal>
+									</q:and>
+								</q:filter>
+							</s:query>
+						</s:search>
+					</executeScript>
+				</objectState>
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->
