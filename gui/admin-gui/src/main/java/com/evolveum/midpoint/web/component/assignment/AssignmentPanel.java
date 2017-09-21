@@ -338,8 +338,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 			@Override
 			protected void populateItem(ListItem<AssignmentDto> item) {
 				Form form = this.findParent(Form.class);
-				AbstractAssignmentDetailsPanel details = createDetailsPanel(ID_ASSIGNMENT_DETAILS, form, item.getModel(),
-						getParentPage());
+				AbstractAssignmentDetailsPanel details = createDetailsPanel(ID_ASSIGNMENT_DETAILS, form, item.getModel());
 				item.add(details);
 				details.setOutputMarkupId(true);
 
@@ -385,8 +384,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 		return (BoxedTablePanel<AssignmentDto>) get(createComponentPath(ID_ASSIGNMENTS, ID_ASSIGNMENTS_TABLE));
 	}
 
-	protected abstract AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<AssignmentDto> model,
-			PageBase parentPage);
+	protected abstract AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<AssignmentDto> model);
 
 	private List<AssignmentDto> getSelectedAssignments() {
 		BoxedTablePanel<AssignmentDto> assignemntTable = getAssignmentTable();

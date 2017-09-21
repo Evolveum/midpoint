@@ -154,8 +154,10 @@ public class OperationsHelper {
     public OperationResult createActionResult(PipelineItem item, ActionExecutor executor, ExecutionContext context,
             OperationResult globalResult) {
         OperationResult result = new OperationResult(executor.getClass().getName() + "." + "execute");
-        result.addParam("value", String.valueOf(item.getValue()));
-        item.getResult().addSubresult(result);
+        if (item != null) {
+            result.addParam("value", String.valueOf(item.getValue()));
+            item.getResult().addSubresult(result);
+        }
         return result;
     }
 

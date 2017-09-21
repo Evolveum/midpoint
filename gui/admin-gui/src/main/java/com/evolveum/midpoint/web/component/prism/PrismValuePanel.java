@@ -218,13 +218,13 @@ public class PrismValuePanel extends Panel {
                 public boolean isEnabled() {
                     ValueWrapper wrapper = valueWrapperModel.getObject();
                     ItemWrapper itemWrapper = wrapper.getItem();
-					if (valueWrapperModel.getObject().isReadonly()) {
+					if (wrapper.isReadonly()) {
 						return false;
 					}
-                    if (itemWrapper.getContainer() == null) {
-                        return true;        // TODO
-                    }
-                    ObjectWrapper object = itemWrapper.getContainer().getObject();
+//					  if (itemWrapper.getParent() == null) {
+//                        return true;        // TODO
+//                    }
+                    ContainerWrapper object = itemWrapper.getParent();
                     ItemDefinition def = itemWrapper.getItem().getDefinition();
 
                     return object == null || isAccessible(def, object.getStatus());
@@ -233,7 +233,7 @@ public class PrismValuePanel extends Panel {
         }
     }
 
-    private int countUsableValues(ItemWrapper<? extends Item, ? extends ItemDefinition> property) {
+    private int countUsableValues(PropertyOrReferenceWrapper<? extends Item, ? extends ItemDefinition> property) {
         int count = 0;
         for (ValueWrapper value : property.getValues()) {
             value.normalize(property.getItemDefinition().getPrismContext());
@@ -251,7 +251,7 @@ public class PrismValuePanel extends Panel {
         return count;
     }
 
-    private List<ValueWrapper> getUsableValues(ItemWrapper<? extends Item, ? extends ItemDefinition> property) {
+    private List<ValueWrapper> getUsableValues(PropertyOrReferenceWrapper<? extends Item, ? extends ItemDefinition> property) {
         List<ValueWrapper> values = new ArrayList<>();
         for (ValueWrapper value : property.getValues()) {
             value.normalize(property.getItemDefinition().getPrismContext());
@@ -264,7 +264,7 @@ public class PrismValuePanel extends Panel {
         return values;
     }
 
-    private int countNonDeletedValues(ItemWrapper<? extends Item, ? extends ItemDefinition> property) {
+    private int countNonDeletedValues(PropertyOrReferenceWrapper<? extends Item, ? extends ItemDefinition> property) {
         int count = 0;
         for (ValueWrapper value : property.getValues()) {
             value.normalize(property.getItemDefinition().getPrismContext());
@@ -276,7 +276,7 @@ public class PrismValuePanel extends Panel {
         return count;
     }
 
-    private boolean hasEmptyPlaceholder(ItemWrapper<? extends Item, ? extends ItemDefinition> property) {
+    private boolean hasEmptyPlaceholder(PropertyOrReferenceWrapper<? extends Item, ? extends ItemDefinition> property) {
         for (ValueWrapper value : property.getValues()) {
             value.normalize(property.getItemDefinition().getPrismContext());
             if (ValueStatus.ADDED.equals(value.getStatus()) && !value.hasValueChanged()) {
@@ -298,7 +298,7 @@ public class PrismValuePanel extends Panel {
             return true;
         }
 
-        ItemWrapper propertyWrapper = valueWrapper.getItem();
+        PropertyOrReferenceWrapper propertyWrapper = (PropertyOrReferenceWrapper) valueWrapper.getItem();
         ItemDefinition definition = propertyWrapper.getItem().getDefinition();
         int min = definition.getMinOccurs();
 
@@ -307,7 +307,7 @@ public class PrismValuePanel extends Panel {
             return false;
         }
 
-        if (propertyWrapper.getContainer() == null) {
+        if (propertyWrapper.getParent() == null) {
             return true;        // TODO
         }
 
@@ -315,7 +315,7 @@ public class PrismValuePanel extends Panel {
     }
 
 	private ContainerStatus getContainerStatus(ItemWrapper propertyWrapper) {
-		final ObjectWrapper objectWrapper = propertyWrapper.getContainer().getObject();
+		final ContainerWrapper<Containerable> objectWrapper = propertyWrapper.getParent();
 		return objectWrapper != null ? objectWrapper.getStatus() : ContainerStatus.MODIFYING;
 	}
 
@@ -327,7 +327,7 @@ public class PrismValuePanel extends Panel {
             return false;
         }
 
-        ItemWrapper propertyWrapper = valueWrapper.getItem();
+        PropertyOrReferenceWrapper propertyWrapper = (PropertyOrReferenceWrapper) valueWrapper.getItem();
         Item property = propertyWrapper.getItem();
 
         ItemDefinition definition = property.getDefinition();
@@ -345,7 +345,7 @@ public class PrismValuePanel extends Panel {
             return false;
         }
 
-        if (propertyWrapper.getContainer() == null) {
+        if (propertyWrapper.getParent() == null) {
             return true;            // TODO
         }
         return isAccessible(definition, getContainerStatus(propertyWrapper));
@@ -353,9 +353,9 @@ public class PrismValuePanel extends Panel {
 
     private Panel createInputComponent(String id, IModel<String> labelModel, Form form) {
         ValueWrapper valueWrapper = valueWrapperModel.getObject();
-        ObjectWrapper objectWrapper = null;
-        if (valueWrapper.getItem().getContainer() != null) {
-            objectWrapper = valueWrapper.getItem().getContainer().getObject();
+        ContainerWrapper objectWrapper = null;
+        if (valueWrapper.getItem().getParent() != null) {
+            objectWrapper = valueWrapper.getItem().getParent();
         }
         Item property = valueWrapper.getItem().getItem();
 		ItemDefinition definition = valueWrapper.getItem().getItemDefinition();
@@ -663,46 +663,47 @@ public class PrismValuePanel extends Panel {
     				new PropertyModel<>(valueWrapperModel, "value"), item.getValues(), false, typeClasses);
 
         } else if (item instanceof PrismContainer<?>) {
-        	AssociationWrapper itemWrapper = (AssociationWrapper) valueWrapperModel.getObject().getItem();
-        	final PrismContainer container = (PrismContainer) item;
-        	PrismContainerDefinition definition = container.getDefinition();
-            QName valueType = definition.getTypeName();
-
-            if (ShadowAssociationType.COMPLEX_TYPE.equals(valueType)) {
-
-	            PrismContext prismContext = item.getPrismContext();
-	            if (prismContext == null) {
-	                prismContext = pageBase.getPrismContext();
-	            }
-
-	            ShadowType shadowType = ((ShadowType)itemWrapper.getContainer().getObject().getObject().asObjectable());
-	            PrismObject<ResourceType> resource = shadowType.getResource().asPrismObject();
-	            // HACK. The revive should not be here. Revive is no good. The next use of the resource will
-	            // cause parsing of resource schema. We need some centralized place to maintain live cached copies
-	            // of resources.
-	            try {
-					resource.revive(prismContext);
-				} catch (SchemaException e) {
-					throw new SystemException(e.getMessage(), e);
-				}
-	            RefinedResourceSchema refinedSchema;
-	            CompositeRefinedObjectClassDefinition rOcDef;
-	            try {
-					refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-					rOcDef = refinedSchema.determineCompositeObjectClassDefinition(shadowType.asPrismObject());
-				} catch (SchemaException e) {
-					throw new SystemException(e.getMessage(),e);
-				}
-	            RefinedAssociationDefinition assocDef = itemWrapper.getRefinedAssociationDefinition();
-	            RefinedObjectClassDefinition assocTargetDef = assocDef.getAssociationTarget();
-
-	            ObjectQuery query = getAssociationsSearchQuery(prismContext, resource,
-	            		assocTargetDef.getTypeName(), assocTargetDef.getKind());
-
-	            List values = item.getValues();
-	            return new AssociationValueChoicePanel(id, valueWrapperModel, values, false, ShadowType.class,
-	            		query, assocTargetDef);
-            }
+//        	AssociationWrapper itemWrapper = (AssociationWrapper) valueWrapperModel.getObject().getItem();
+//        	final PrismContainer container = (PrismContainer) item;
+//        	PrismContainerDefinition definition = container.getDefinition();
+//            QName valueType = definition.getTypeName();
+//
+//            if (ShadowAssociationType.COMPLEX_TYPE.equals(valueType)) {
+//
+//	            PrismContext prismContext = item.getPrismContext();
+//	            if (prismContext == null) {
+//	                prismContext = pageBase.getPrismContext();
+//	            }
+//
+//	            ContainerWrapper<Containerable>itemWrapper.getParent();
+//	            ShadowType shadowType = ((ShadowType)itemWrapper.getParent().asObjectable());
+//	            PrismObject<ResourceType> resource = shadowType.getResource().asPrismObject();
+//	            // HACK. The revive should not be here. Revive is no good. The next use of the resource will
+//	            // cause parsing of resource schema. We need some centralized place to maintain live cached copies
+//	            // of resources.
+//	            try {
+//					resource.revive(prismContext);
+//				} catch (SchemaException e) {
+//					throw new SystemException(e.getMessage(), e);
+//				}
+//	            RefinedResourceSchema refinedSchema;
+//	            CompositeRefinedObjectClassDefinition rOcDef;
+//	            try {
+//					refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+//					rOcDef = refinedSchema.determineCompositeObjectClassDefinition(shadowType.asPrismObject());
+//				} catch (SchemaException e) {
+//					throw new SystemException(e.getMessage(),e);
+//				}
+//	            RefinedAssociationDefinition assocDef = itemWrapper.getRefinedAssociationDefinition();
+//	            RefinedObjectClassDefinition assocTargetDef = assocDef.getAssociationTarget();
+//
+//	            ObjectQuery query = getAssociationsSearchQuery(prismContext, resource,
+//	            		assocTargetDef.getTypeName(), assocTargetDef.getKind());
+//
+//	            List values = item.getValues();
+//	            return new AssociationValueChoicePanel(id, valueWrapperModel, values, false, ShadowType.class,
+//	            		query, assocTargetDef);
+//            }
         }
 
         return panel;
@@ -806,14 +807,14 @@ public class PrismValuePanel extends Panel {
         ValueWrapper wrapper = valueWrapperModel.getObject();
         ItemWrapper propertyWrapper = wrapper.getItem();
         LOGGER.debug("Adding value of {}", propertyWrapper);
-        propertyWrapper.addValue();
+        propertyWrapper.addValue(true);
         ListView parent = findParent(ListView.class);
         target.add(parent.getParent());
     }
 
     private void removeValue(AjaxRequestTarget target) {
         ValueWrapper wrapper = valueWrapperModel.getObject();
-        ItemWrapper propertyWrapper = wrapper.getItem();
+        PropertyOrReferenceWrapper propertyWrapper = (PropertyOrReferenceWrapper) wrapper.getItem();
         LOGGER.debug("Removing value of {}", propertyWrapper);
 
         List<ValueWrapper> values = propertyWrapper.getValues();

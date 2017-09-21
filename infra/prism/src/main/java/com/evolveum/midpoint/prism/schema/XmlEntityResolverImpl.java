@@ -17,16 +17,14 @@
 package com.evolveum.midpoint.prism.schema;
 
 import com.evolveum.midpoint.prism.XmlEntityResolver;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.w3c.dom.ls.LSInput;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
+import java.io.*;
 
 /**
  * @author semancik
@@ -116,19 +114,22 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
 		if (namespaceURI != null) {
 			if (schemaRegistry.getParsedSchemas().containsKey(namespaceURI)) {
 				SchemaDescription schemaDescription = schemaRegistry.getParsedSchemas().get(namespaceURI);
+				InputStream inputStream;
 				if (schemaDescription.canInputStream()) {
-					InputStream inputStream = schemaDescription.openInputStream();
-					InputSource source = new InputSource();
-					source.setByteStream(inputStream);
-					//source.setSystemId(schemaDescription.getPath());
-					// Make sure that both publicId and systemId are always set to schema namespace
-					// this helps to avoid double processing of the schemas
-					source.setSystemId(namespaceURI);
-					source.setPublicId(namespaceURI);
-					return source;
+					inputStream = schemaDescription.openInputStream();
 				} else {
-					throw new IllegalStateException("Requested resolution of schema "+schemaDescription.getSourceDescription()+" that does not support input stream");
+					DOMUtil.fixNamespaceDeclarations(schemaDescription.getDomElement());
+					String xml = DOMUtil.serializeDOMToString(schemaDescription.getDomElement());
+					inputStream = new ByteArrayInputStream(xml.getBytes());
 				}
+				InputSource source = new InputSource();
+				source.setByteStream(inputStream);
+				//source.setSystemId(schemaDescription.getPath());
+				// Make sure that both publicId and systemId are always set to schema namespace
+				// this helps to avoid double processing of the schemas
+				source.setSystemId(namespaceURI);
+				source.setPublicId(namespaceURI);
+				return source;
 			}
 		}
 		return null;
@@ -141,10 +142,8 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
 			// we first try to use traditional pair of publicId + systemId
 			// the use of namespaceUri can be misleading in case of schema fragments:
 			// e.g. when xsd:including common-model-context-3 the publicId=null, systemId=.../common-model-context-3 but nsUri=.../common-3
-			if (inputSource == null) {
-				inputSource = schemaRegistry.getBuiltinSchemaResolver().resolveEntity(publicId, systemId);
-				LOGGER.trace("...... Result of using builtin resolver by publicId + systemId: {}", inputSource);
-			}
+			inputSource = schemaRegistry.getBuiltinSchemaResolver().resolveEntity(publicId, systemId);
+			LOGGER.trace("...... Result of using builtin resolver by publicId + systemId: {}", inputSource);
 			// in some weird cases (e.g. when publicId=null, systemId=xml.xsd) we go with namespaceUri (e.g. http://www.w3.org/XML/1998/namespace)
 			// it's a kind of unfortunate magic here
 			if (inputSource == null && namespaceURI != null) {

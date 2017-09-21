@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism.schema;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.collections4.CollectionUtils;
@@ -120,16 +121,31 @@ public class PrismSchemaImpl implements PrismSchema {
 
 	//region XSD parsing and serialization
 	// TODO: cleanup this chaos
+	// used for report, connector, resource schemas
 	public static PrismSchema parse(Element element, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
 		return parse(element, prismContext.getEntityResolver(), new PrismSchemaImpl(prismContext), isRuntime, shortDescription,
 				false, prismContext);
 	}
 
+	// used for parsing prism schemas; only in exceptional cases
 	public static PrismSchema parse(Element element, EntityResolver resolver, boolean isRuntime, String shortDescription,
 			boolean allowDelayedItemDefinitions, PrismContext prismContext) throws SchemaException {
 		return parse(element, resolver, new PrismSchemaImpl(prismContext), isRuntime, shortDescription, allowDelayedItemDefinitions, prismContext);
 	}
 
+	// main entry point for parsing standard prism schemas
+	public static void parseSchemas(Element wrapperElement, XmlEntityResolver resolver,
+			List<SchemaDescription> schemaDescriptions,
+			boolean allowDelayedItemDefinitions, PrismContext prismContext) throws SchemaException {
+
+		for (SchemaDescription schemaDescription : schemaDescriptions) {
+			setSchemaNamespace((PrismSchemaImpl) schemaDescription.getSchema(), schemaDescription.getDomElement());
+		}
+		DomToSchemaProcessor processor = new DomToSchemaProcessor(resolver, prismContext);
+		processor.parseSchemas(schemaDescriptions, wrapperElement, allowDelayedItemDefinitions, "multiple schemas");
+	}
+
+	// used for connector and resource schemas
 	protected static PrismSchema parse(Element element, PrismSchemaImpl schema, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
 		return parse(element, prismContext.getEntityResolver(), schema, isRuntime, shortDescription, false, prismContext);
 	}
@@ -139,15 +155,19 @@ public class PrismSchemaImpl implements PrismSchema {
 		if (element == null) {
 			throw new IllegalArgumentException("Schema element must not be null in "+shortDescription);
 		}
+		setSchemaNamespace(schema, element);
 
-		DomToSchemaProcessor processor = new DomToSchemaProcessor();
-		processor.setEntityResolver(resolver);
-		processor.setPrismContext(prismContext);
-		processor.setShortDescription(shortDescription);
-		processor.setRuntime(isRuntime);
-		processor.setAllowDelayedItemDefinitions(allowDelayedItemDefinitions);
-		processor.parseDom(schema, element);
+		DomToSchemaProcessor processor = new DomToSchemaProcessor(resolver, prismContext);
+		processor.parseSchema(schema, element, isRuntime, allowDelayedItemDefinitions, shortDescription);
 		return schema;
+	}
+
+	private static void setSchemaNamespace(PrismSchemaImpl prismSchema, Element xsdSchema) throws SchemaException {
+		String targetNamespace = DOMUtil.getAttribute(xsdSchema, DOMUtil.XSD_ATTR_TARGET_NAMESPACE);
+		if (StringUtils.isEmpty(targetNamespace)) {
+			throw new SchemaException("Schema does not have targetNamespace specification");
+		}
+		prismSchema.setNamespace(targetNamespace);
 	}
 
 	@NotNull
@@ -454,7 +474,6 @@ public class PrismSchemaImpl implements PrismSchema {
 		}
 		return null;
 	}
-
 
 	//endregion
 }

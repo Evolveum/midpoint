@@ -141,17 +141,17 @@ public class AssociationValueChoicePanel<C extends ObjectType> extends BasePanel
         ShadowType shadowType = (ShadowType) object;
         ValueWrapper<PrismContainerValue<ShadowAssociationType>> oldCValueWrapper = model.getObject();
         AssociationWrapper associationWrapper = (AssociationWrapper) oldCValueWrapper.getItem();
-        PrismContainer<ShadowAssociationType> container = (PrismContainer<ShadowAssociationType>) associationWrapper.getItem();
-        container.remove((PrismContainerValue)oldCValueWrapper.getValue());
-        PrismContainerValue<ShadowAssociationType> newValue = container.createNewValue();
-        ShadowAssociationType assocType = newValue.asContainerable();
-        ObjectReferenceType shadowRef = new ObjectReferenceType();
-        shadowRef.setOid(shadowType.getOid());
-        shadowRef.asReferenceValue().setObject(shadowType.asPrismObject());
-		assocType.setShadowRef(shadowRef);
-		assocType.setName(model.getObject().getItem().getName());
-        getModel().setObject(newValue);
-        LOGGER.trace("Replaced value of {} with {} ({})", this, newValue, assocType);
+//        PrismContainer<ShadowAssociationType> container = (PrismContainer<ShadowAssociationType>) associationWrapper.getItem();
+//        container.remove((PrismContainerValue)oldCValueWrapper.getValue());
+//        PrismContainerValue<ShadowAssociationType> newValue = container.createNewValue();
+//        ShadowAssociationType assocType = newValue.asContainerable();
+//        ObjectReferenceType shadowRef = new ObjectReferenceType();
+//        shadowRef.setOid(shadowType.getOid());
+//        shadowRef.asReferenceValue().setObject(shadowType.asPrismObject());
+//		assocType.setShadowRef(shadowRef);
+//		assocType.setName(model.getObject().getItem().getName());
+//        getModel().setObject(newValue);
+//        LOGGER.trace("Replaced value of {} with {} ({})", this, newValue, assocType);
     }
 
     protected void initDialog(final Class<C> type, List<PrismPropertyValue> values) {

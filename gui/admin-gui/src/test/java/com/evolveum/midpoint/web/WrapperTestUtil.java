@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -47,7 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class WrapperTestUtil {
 
-	public static <C extends Containerable,T> void assertPropertyWrapper(ContainerWrapper<C> containerWrapper, QName itemName, T... expectedValues) {
+	public static <C extends Containerable,T> void assertPropertyWrapper(ContainerValueWrapper<C> containerWrapper, QName itemName, T... expectedValues) {
 		ItemWrapper itemWrapper = containerWrapper.findPropertyWrapper(itemName);
 		assertNotNull("No item wrapper "+itemName+" in "+containerWrapper, itemWrapper);
 		List<ValueWrapper> valueWrappers = itemWrapper.getValues();

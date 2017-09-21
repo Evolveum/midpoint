@@ -25,7 +25,9 @@
 		<policyRule>
 			<name>rule1</name>
 			<policyConstraints>
-				<ref>mod-description-and-riskLevel-and-inducement</ref>
+				<ref>
+					<name>mod-description-and-riskLevel-and-inducement</name>
+				</ref>
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->
@@ -40,7 +42,9 @@
 				<modification>
 					<item>description</item>
 				</modification>
-				<ref>mod-riskLevel-and-inducement</ref>
+				<ref>
+					<name>mod-riskLevel-and-inducement</name>
+				</ref>
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->
@@ -55,7 +59,9 @@
 				<modification>
 					<item>riskLevel</item>
 				</modification>
-				<ref>mod-inducement</ref>
+				<ref>
+					<name>mod-inducement</name>
+				</ref>
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->
