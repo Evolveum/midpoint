@@ -892,7 +892,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			} else //noinspection ConstantConditions
 				if (isCaseMgmtWorkItem) {
 				refinedQuery = query;           // TODO
-				manager = ObjectTypes.ObjectManager.EMULATED;
+				manager = ObjectTypes.ObjectManager.REPOSITORY;
 			} else {
 				throw new IllegalStateException();
 			}

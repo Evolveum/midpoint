@@ -97,7 +97,7 @@ public enum ObjectTypes {
     SERVICE(ServiceType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SERVICE, ServiceType.class, ObjectManager.MODEL,
             "services"),
 
-    CASE(CaseType.COMPLEX_TYPE, SchemaConstantsGenerated.C_CASE, CaseType.class, ObjectManager.EMULATED,
+    CASE(CaseType.COMPLEX_TYPE, SchemaConstantsGenerated.C_CASE, CaseType.class, ObjectManager.MODEL,
             "cases"),
 
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
