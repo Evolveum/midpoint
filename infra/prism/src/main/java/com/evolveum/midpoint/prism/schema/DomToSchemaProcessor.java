@@ -73,7 +73,7 @@ class DomToSchemaProcessor {
 		if (xsSchemaSet == null) {
 			return;
 		}
-		DomToSchemaPostProcessor postProcessor = new DomToSchemaPostProcessor(xsSchemaSet, entityResolver, prismContext);
+		DomToSchemaPostProcessor postProcessor = new DomToSchemaPostProcessor(xsSchemaSet, prismContext);
 		postProcessor.postprocessSchema(prismSchema, isRuntime, allowDelayedItemDefinitions, shortDescription);
 	}
 
@@ -89,7 +89,7 @@ class DomToSchemaProcessor {
 			return;
 		}
 		for (SchemaDescription schemaDescription : schemaDescriptions) {
-			DomToSchemaPostProcessor postProcessor = new DomToSchemaPostProcessor(xsSchemaSet, entityResolver, prismContext);
+			DomToSchemaPostProcessor postProcessor = new DomToSchemaPostProcessor(xsSchemaSet, prismContext);
 			PrismSchemaImpl prismSchema = (PrismSchemaImpl) schemaDescription.getSchema();
 			boolean isRuntime = schemaDescription.getCompileTimeClassesPackage() == null;
 			String schemaShortDescription = schemaDescription.getSourceDescription() + " in " + shortDescription;

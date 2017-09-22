@@ -25,6 +25,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import java.io.*;
+import java.util.Collection;
 
 /**
  * @author semancik
@@ -91,10 +92,10 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
 			inputSource = resolveResourceUsingBuiltinResolver(type, namespaceURI, publicId, systemId, baseURI);
 		}
 		if (inputSource == null) {
-			LOGGER.error("Unable to resolve resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI});
+			LOGGER.error("Unable to resolve resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}", type, namespaceURI, publicId, systemId, baseURI);
 			return null;
 		}
-		LOGGER.trace("==> Resolved resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {} : {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI, inputSource});
+		LOGGER.trace("==> Resolved resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {} : {}", type, namespaceURI, publicId, systemId, baseURI, inputSource);
 		return new Input(publicId, systemId, inputSource.getByteStream());
 	}
 
@@ -112,8 +113,9 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
 
 	private InputSource resolveResourceFromRegisteredSchemasByNamespace(String namespaceURI) {
 		if (namespaceURI != null) {
-			if (schemaRegistry.getParsedSchemas().containsKey(namespaceURI)) {
-				SchemaDescription schemaDescription = schemaRegistry.getParsedSchemas().get(namespaceURI);
+			Collection<SchemaDescription> schemaDescriptions = schemaRegistry.getParsedSchemas().get(namespaceURI);
+			if (schemaDescriptions.size() == 1) {
+				SchemaDescription schemaDescription = schemaDescriptions.iterator().next();
 				InputStream inputStream;
 				if (schemaDescription.canInputStream()) {
 					inputStream = schemaDescription.openInputStream();
@@ -130,6 +132,8 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
 				source.setSystemId(namespaceURI);
 				source.setPublicId(namespaceURI);
 				return source;
+			} else {
+				return null;            // none or ambiguous namespace
 			}
 		}
 		return null;
@@ -137,7 +141,7 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
 
 	public InputSource resolveResourceUsingBuiltinResolver(String type, String namespaceURI, String publicId, String systemId,
 			String baseURI) {
-		InputSource inputSource = null;
+		InputSource inputSource;
 		try {
 			// we first try to use traditional pair of publicId + systemId
 			// the use of namespaceUri can be misleading in case of schema fragments:
@@ -151,11 +155,11 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
 				LOGGER.trace("...... Result of using builtin resolver by namespaceURI + systemId: {}", inputSource);
 			}
 		} catch (SAXException e) {
-			LOGGER.error("XML parser error resolving reference of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}: {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI, e.getMessage(), e});
+			LOGGER.error("XML parser error resolving reference of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}: {}", type, namespaceURI, publicId, systemId, baseURI, e.getMessage(), e);
 			// TODO: better error handling
 			return null;
 		} catch (IOException e) {
-			LOGGER.error("IO error resolving reference of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}: {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI, e.getMessage(), e});
+			LOGGER.error("IO error resolving reference of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}: {}", type, namespaceURI, publicId, systemId, baseURI, e.getMessage(), e);
 			// TODO: better error handling
 			return null;
 		}

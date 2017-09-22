@@ -29,7 +29,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.xml.sax.EntityResolver;
 
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.namespace.QName;
@@ -58,17 +57,14 @@ class DomToSchemaPostProcessor {
 	private static final Trace LOGGER = TraceManager.getTrace(DomToSchemaPostProcessor.class);
 
 	private final XSSchemaSet xsSchemaSet;
-	private final EntityResolver entityResolver;
 	private final PrismContext prismContext;
 	private PrismSchemaImpl schema;
 	private String shortDescription;
 	private boolean isRuntime;
 	private boolean allowDelayedItemDefinitions;
 
-	DomToSchemaPostProcessor(XSSchemaSet xsSchemaSet, EntityResolver entityResolver,
-			PrismContext prismContext) {
+	DomToSchemaPostProcessor(XSSchemaSet xsSchemaSet, PrismContext prismContext) {
 		this.xsSchemaSet = xsSchemaSet;
-		this.entityResolver = entityResolver;
 		this.prismContext = prismContext;
 	}
 
@@ -126,6 +122,7 @@ class DomToSchemaPostProcessor {
 		while (iterator.hasNext()) {
 			XSComplexType complexType = iterator.next();
 			if (complexType.getTargetNamespace().equals(schema.getNamespace())) {
+				LOGGER.trace("### processing CTD {} into {} [{}]", complexType, schema, shortDescription);
 				processComplexTypeDefinition(complexType);
 			}
 		}
@@ -260,6 +257,7 @@ class DomToSchemaPostProcessor {
 		while (iterator.hasNext()) {
 			XSSimpleType simpleType = iterator.next();
 			if (simpleType.getTargetNamespace().equals(schema.getNamespace())) {
+				LOGGER.trace("### processing STD {} into {} [{}]", simpleType, schema, shortDescription);
 				processSimpleTypeDefinition(simpleType);
 			}
 		}
@@ -532,6 +530,7 @@ class DomToSchemaPostProcessor {
 			if (xsElementDecl.getTargetNamespace().equals(schema.getNamespace())) {
 
 				QName elementName = new QName(xsElementDecl.getTargetNamespace(), xsElementDecl.getName());
+				LOGGER.trace("### processing item {} into {} [{}]", elementName, schema, shortDescription);
 				XSType xsType = xsElementDecl.getType();
 				if (xsType == null) {
 					throw new SchemaException("Found element " + elementName + " without type definition");
