@@ -429,8 +429,12 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	if (checkUniqueness && containsEquivalentValue(newValue)) {
     		return false;
     	}
-    	if (getDefinition() != null) {
-    		newValue.applyDefinition(getDefinition(), false);
+	    D definition = getDefinition();
+	    if (definition != null) {
+		    if (!isEmpty() && definition.isSingleValue()) {
+			    throw new SchemaException("Attempt to put more than one value to single-valued item " + this + "; newly added value: " + newValue);
+		    }
+    		newValue.applyDefinition(definition, false);
     	}
     	return values.add(newValue);
     }
