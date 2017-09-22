@@ -466,13 +466,15 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     public void addAllReplaceExisting(Collection<? extends Item<?,?>> itemsToAdd) throws SchemaException {
 		checkMutability();
         // Check for conflicts, remove conflicting values
+//		itemsToAdd.forEach(itemToAdd -> addReplaceExisting(itemToAdd));
         for (Item<?,?> item : itemsToAdd) {
-            Item<?,?> existingItem = findItem(item.getElementName(), Item.class);
-            if (existingItem != null && items != null) {
-                items.remove(existingItem);
-            }
+        	addReplaceExisting(item);
+//            Item<?,?> existingItem = findItem(item.getElementName(), Item.class);
+//            if (existingItem != null && items != null) {
+//                items.remove(existingItem);
+//            }
         }
-        addAll(itemsToAdd);
+//        addAll(itemsToAdd);
     }
 
 	public <IV extends PrismValue,ID extends ItemDefinition> void replace(Item<IV,ID> oldItem, Item<IV,ID> newItem) throws SchemaException {

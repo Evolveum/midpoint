@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.prism;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -36,9 +37,11 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -52,6 +55,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -375,7 +379,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
         return sb.toString();
     }
     
-    public PrismContainerValue<C> createContainerValueAddDelta() {
+    public PrismContainerValue<C> createContainerValueAddDelta() throws SchemaException{
     	if (!hasChanged()) {
     		return null;
     	}
@@ -385,24 +389,57 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
     	}
     	
     	PrismContainerValue<C> newValue = containerValue.clone();
+    	try {
+			newValue.addAllReplaceExisting((Collection) getUpdatedContainerValueItems(containerValue.getPrismContext()));
+		} catch (TunnelException e) {
+			throw new SchemaException();
+		}
     	
-    	getItems().forEach(item -> {
-    		
-    		if (item instanceof ContainerWrapper) {
-    			return;
-    		}
-    		
-    		PropertyOrReferenceWrapper propOrRef = (PropertyOrReferenceWrapper) item;
-    		try {
-				newValue.add(createItem(propOrRef, propOrRef.getItemDefinition()));
-			} catch (SchemaException e) {
-				LoggingUtils.logException(LOGGER, "Could not add item " + propOrRef.getItem(), e);
-			}
-    		
-    	});
     	return newValue;
     }
 
+    public Collection<Item> getUpdatedContainerValueItems(PrismContext prismContext) throws SchemaException{
+    	Collection<Item> updatedItems = new ArrayList<>();
+		getItems().stream().forEach(item -> {
+			try {
+			if (!item.hasChanged()) {
+				return;
+			}
+
+			if (item instanceof ContainerWrapper) {
+				PrismContainer containerToAdd = ((ContainerWrapper) item).createContainerAddDelta();
+				updatedItems.add(containerToAdd);
+			} else {
+
+				PropertyOrReferenceWrapper propOrRef = (PropertyOrReferenceWrapper) item;
+				Item updatedItem = propOrRef.getUpdatedItem(prismContext);
+
+				if (item.getPath().containsName(ObjectType.F_EXTENSION)) {
+					PrismContainer extensionContainer;
+					try {
+						extensionContainer = containerValue.findOrCreateContainer(ObjectType.F_EXTENSION);
+					} catch (SchemaException e) {
+						LoggingUtils.logException(LOGGER, "Could not handle extension deltas item " + item.getItem(), e);
+						return;
+					}
+					if (extensionContainer == null) {
+						return;
+					}
+					extensionContainer.getValue().addReplaceExisting(updatedItem);
+					updatedItems.add(extensionContainer.clone());
+				} else {
+					updatedItems.add(updatedItem);
+				}
+
+			}
+			} catch (SchemaException ex) {
+				throw new TunnelException("Cannot create add delta for container value: " + containerValue);
+			}
+		}
+			);
+    	return updatedItems;
+    }
+    
 	public <O extends ObjectType> void collectModifications(ObjectDelta<O> delta) throws SchemaException {
 //		if (getItemDefinition().getName().equals(ShadowType.F_ASSOCIATION)) {
 //			//create ContainerDelta for association container

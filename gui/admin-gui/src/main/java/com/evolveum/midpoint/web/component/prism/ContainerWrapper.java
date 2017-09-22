@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -433,7 +434,29 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	public void setStripe(boolean isStripe) {
 		// Does not make much sense, but it is given by the interface
 	}
+	
+	public PrismContainer createContainerAddDelta() throws SchemaException {
+		 
+		 PrismContainer containerAdd = container.clone();
 
+         for (ContainerValueWrapper<C> itemWrapper : getValues()) {
+             if (!itemWrapper.hasChanged()) {
+                 continue;
+             }
+             
+             if (itemWrapper.isMain()) {
+            	 containerAdd.setValue(itemWrapper.createContainerValueAddDelta());
+             	continue;
+             }
+             
+//             PrismContainer childContainer = containerAdd.findOrCreateContainer(itemWrapper.getContainerValue().getPath());
+             containerAdd.add(itemWrapper.createContainerValueAddDelta());
+         }
+         
+         return containerAdd;
+	}
+	
+	
 	public <O extends ObjectType> void collectModifications(ObjectDelta<O> delta) throws SchemaException {
 //		if (getItemDefinition().getName().equals(ShadowType.F_ASSOCIATION)) {
 //			//create ContainerDelta for association container

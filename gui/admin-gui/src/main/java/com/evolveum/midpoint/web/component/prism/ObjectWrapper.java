@@ -426,55 +426,19 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 
         for (ContainerWrapper containerWrapper : getContainers()) {
 
-//            if (containerWrapper.getItemDefinition().getName().equals(ShadowType.F_ASSOCIATION)) {
-//                PrismContainer associationContainer = object.findOrCreateContainer(ShadowType.F_ASSOCIATION);
-//                List<AssociationWrapper> associationItemWrappers = (List<AssociationWrapper>) containerWrapper.getItems();
-//                for (AssociationWrapper associationItemWrapper : associationItemWrappers) {
-//                    List<ValueWrapper> assocValueWrappers = associationItemWrapper.getValues();
-//                    for (ValueWrapper assocValueWrapper : assocValueWrappers) {
-//                        PrismContainerValue<ShadowAssociationType> assocValue = (PrismContainerValue<ShadowAssociationType>) assocValueWrapper.getValue();
-//                        associationContainer.add(assocValue.clone());
-//                    }
-//                }
-//                continue;
-//            }
-
-            if (!containerWrapper.hasChanged()) {
+        	if (!containerWrapper.hasChanged()) {
                 continue;
             }
-
-            PrismContainer container = containerWrapper.getItem();
-            ItemPath path = containerWrapper.getPath();
-            if (containerWrapper.getPath() != null) {
-                container = container.clone();
-                if (path.size() > 1) {
-                    ItemPath parentPath = path.allExceptLast();
-                    PrismContainer parent = object.findOrCreateContainer(parentPath);
-                    parent.add(container);
-                } else {
-                    PrismContainer existing = object.findContainer(container.getElementName());
-                    if (existing == null) {
-                        object.add(container);
-                    } else {
-                        continue;
-                    }
-                }
-            } else {
-                container = object;
-            }
-
-//            for (ContainerValueWrapper itemWrapper : (List<ContainerValueWrapper>) containerWrapper.getValues()) {
-//                if (!itemWrapper.hasChanged()) {
-//                    continue;
-//                }
-//                if (container.findItem(itemWrapper.getName()) != null) {
-//                    continue;
-//                }
-//                Item updatedItem = ((PropertyOrReferenceWrapper) itemWrapper).getUpdatedItem(object.getPrismContext());
-//                if (!updatedItem.isEmpty()) {
-//                    container.add(updatedItem);
-//                }
-//            }
+   		 
+        	PrismContainer containerToAdd = containerWrapper.createContainerAddDelta();
+        	if (containerWrapper.isMain()) {
+        		object = (PrismObject) containerToAdd;
+        		continue;
+        	}
+        	
+        	object.getValue().addReplaceExisting(containerToAdd);
+        	
+        	
         }
 
         // cleanup empty containers
