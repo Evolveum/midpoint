@@ -70,7 +70,7 @@ public class ScriptExecutor extends BaseActionExecutor {
     @Override
     public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
 
-		checkRootAuthorization(globalResult, NAME);
+		checkRootAuthorization(context, globalResult, NAME);
 
 		ScriptExpressionEvaluatorType script = expressionHelper.getSingleArgumentValue(expression.getParameter(), PARAM_SCRIPT, true, true,
 				NAME, input, context, ScriptExpressionEvaluatorType.class, globalResult);

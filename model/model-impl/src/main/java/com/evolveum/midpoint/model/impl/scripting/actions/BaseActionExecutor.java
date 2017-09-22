@@ -133,7 +133,11 @@ public abstract class BaseActionExecutor implements ActionExecutor {
 		}
 	}
 
-	protected void checkRootAuthorization(OperationResult globalResult, String actionName) throws ScriptExecutionException {
+	protected void checkRootAuthorization(ExecutionContext context,
+			OperationResult globalResult, String actionName) throws ScriptExecutionException {
+		if (context.isPrivileged()) {
+			return;
+		}
 		try {
 			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, globalResult);
 		} catch (SecurityViolationException |SchemaException e) {

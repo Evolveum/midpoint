@@ -124,7 +124,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 			variables.put("ruleEvaluationContext", ctx);
 			ExecutionContext resultingContext;
 			try {
-				resultingContext = scriptingExpressionEvaluator.evaluateExpression(constraint.getExecuteScript(), variables, ctx.task, result);
+				resultingContext = scriptingExpressionEvaluator.evaluateExpressionPrivileged(constraint.getExecuteScript(), variables, ctx.task, result);
 			} catch (ScriptExecutionException e) {
 				throw new SystemException(e);       // TODO
 			}
