@@ -314,10 +314,11 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 	}
 
 	public void sort(PageBase pageBase) {
-		ContainerWrapper main = findMainContainerWrapper();
-		if (main != null) {
-			main.sort(pageBase);
-		}
+		getContainers().forEach(ContainerWrapper -> ContainerWrapper.sort(pageBase));
+//		ContainerWrapper main = findMainContainerWrapper();
+//		if (main != null) {
+//			main.sort(pageBase);
+//		}
 		computeStripes();
 	}
 

@@ -260,7 +260,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	}
 
 	public void sort(final PageBase pageBase) {
-		if (containerWrapper.isSorted()) {
+		if (isSorted()) {
 			Collections.sort(properties, new Comparator<ItemWrapper>() {
 				@Override
 				public int compare(ItemWrapper pw1, ItemWrapper pw2) {
