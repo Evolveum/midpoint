@@ -38,6 +38,7 @@ import java.util.Map;
 public class ExecutionContext {
     private static final Trace LOGGER = TraceManager.getTrace(ExecutionContext.class);
 
+    private boolean privileged;
     private final ScriptingExpressionEvaluationOptionsType options;
     private final Task task;
     private final ScriptingExpressionEvaluator scriptingExpressionEvaluator;
@@ -138,4 +139,12 @@ public class ExecutionContext {
 	public PrismContext getPrismContext() {
 		return scriptingExpressionEvaluator.getPrismContext();
 	}
+
+    public boolean isPrivileged() {
+        return privileged;
+    }
+
+    public void setPrivileged(boolean privileged) {
+        this.privileged = privileged;
+    }
 }

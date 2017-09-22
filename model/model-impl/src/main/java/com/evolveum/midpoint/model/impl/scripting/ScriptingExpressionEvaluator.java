@@ -160,6 +160,16 @@ public class ScriptingExpressionEvaluator {
         return context;
     }
 
+    // VERY TEMPORARY!
+	public ExecutionContext evaluateExpressionPrivileged(@NotNull ExecuteScriptType executeScript, @NotNull Map<String, Object> initialVariables, Task task, OperationResult result) throws ScriptExecutionException {
+		Validate.notNull(executeScript.getScriptingExpression(), "Scripting expression must be present");
+        ExecutionContext context = evaluateExpression(executeScript.getScriptingExpression().getValue(),
+                PipelineData.parseFrom(executeScript.getInput(), initialVariables, prismContext), executeScript.getOptions(), initialVariables, task, result);
+        context.setPrivileged(true);
+        context.computeResults();
+        return context;
+    }
+
     // main entry point from the outside
 	private ExecutionContext evaluateExpression(ScriptingExpressionType expression, PipelineData data,
             ScriptingExpressionEvaluationOptionsType options, Map<String, Object> initialVariables,
