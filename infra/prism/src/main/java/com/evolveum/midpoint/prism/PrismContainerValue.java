@@ -1183,10 +1183,22 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
 	public void applyDefinition(@NotNull PrismContainerDefinition<C> containerDef, boolean force) throws SchemaException {
 		checkMutability();
-		if (complexTypeDefinition != null && !force) {
-			return;                // there's a definition already
+		ComplexTypeDefinition definitionToUse = containerDef.getComplexTypeDefinition();
+		if (complexTypeDefinition != null) {
+			if (!force) {
+				return;                // there's a definition already
+			}
+			if (!complexTypeDefinition.getTypeName().equals(containerDef.getTypeName())) {
+				// this is the case in which we are going to overwrite a specific definition
+				// (e.g. WfPrimaryChangeProcessorStateType) with a generic one (e.g. WfProcessorSpecificStateType)
+				// --> we should either skip this, or fetch the fresh definition from the prism context
+				ComplexTypeDefinition freshCtd = prismContext.getSchemaRegistry().findComplexTypeDefinitionByType(complexTypeDefinition.getTypeName());
+				if (freshCtd != null) {
+					definitionToUse = freshCtd;
+				}
+			}
 		}
-		replaceComplexTypeDefinition(containerDef.getComplexTypeDefinition());
+		replaceComplexTypeDefinition(definitionToUse);
 		// we need to continue even if CTD is null or 'any' - e.g. to resolve definitions within object extension
 		if (items != null) {
 			for (Item item : items) {
@@ -1209,6 +1221,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	 * This method can both return null and throws exception. It returns null in case there is no definition
 	 * but it is OK (e.g. runtime schema). It throws exception if there is no definition and it is not OK.
 	 */
+	@SuppressWarnings("unchecked")
 	private <ID extends ItemDefinition> ID determineItemDefinition(QName itemName, @Nullable ComplexTypeDefinition ctd) throws SchemaException {
 		ID itemDefinition = ctd != null ? ctd.findItemDefinition(itemName) : null;
 		if (itemDefinition != null) {
