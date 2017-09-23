@@ -155,11 +155,6 @@ public class ChangeExecutor {
 			}
 			focusContext.clearPendingPolicySituationModifications();
 
-			if (!focusContext.isDelete()) {
-				focusDelta = policySituationUpdater.applyAssignmentSituation(context, focusDelta);
-				policySituationUpdater.storeFocusPolicySituation(context);
-			}
-
 			if (focusDelta != null) {
 
 				ObjectPolicyConfigurationType objectPolicyConfigurationType = focusContext

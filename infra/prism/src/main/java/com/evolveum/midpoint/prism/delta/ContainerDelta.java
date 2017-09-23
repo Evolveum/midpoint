@@ -27,6 +27,8 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import org.apache.commons.collections4.CollectionUtils;
 
 public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismContainerValue<V>,PrismContainerDefinition<V>> implements PrismContainerable<V> {
 
@@ -183,19 +185,21 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 	 * Post processing of delta to expand missing values from the object. E.g. a delete deltas may
 	 * be "id-only" so they contain only id of the value to delete. In such case locate the full value
 	 * in the object and fill it into the delta.
-	 * This method may even delete in-only values that are no longer present in the object.
+	 * This method may even delete id-only values that are no longer present in the object.
+	 *
+	 * It also fills-in IDs for values to be added/replaced/deleted.
 	 */
-	public <O extends Objectable> void expand(PrismObject<O> object) throws SchemaException {
+	public <O extends Objectable> void expand(PrismObject<O> object, Trace logger) throws SchemaException {
+		PrismContainer<Containerable> container = null;
+		ItemPath path = this.getPath();
+		if (object != null) {
+			container = object.findContainer(path);
+		}
 		if (valuesToDelete != null) {
-			ItemPath path = this.getPath();
-			PrismContainer<Containerable> container = null;
-			if (object != null) {
-				container = object.findContainer(path);
-			}
 			Iterator<PrismContainerValue<V>> iterator = valuesToDelete.iterator();
 			while (iterator.hasNext()) {
 				PrismContainerValue<V> deltaCVal = iterator.next();
-				if ((deltaCVal.getItems() == null || deltaCVal.getItems().isEmpty())) {
+				if (CollectionUtils.isEmpty(deltaCVal.getItems())) {
 					Long id = deltaCVal.getId();
 					if (id == null) {
 						throw new IllegalArgumentException("No id and no items in value "+deltaCVal+" in delete set in "+this);
@@ -206,17 +210,65 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 							for (Item<?,?> containerItem: containerCVal.getItems()) {
 								deltaCVal.add(containerItem.clone());
 							}
-							continue;
 						}
 					}
 					// id-only value with ID that is not in the object any more: delete the value from delta
 					iterator.remove();
+				} else if (deltaCVal.getId() == null) {
+					if (container != null) {
+						@SuppressWarnings("unchecked")
+						List<PrismContainerValue<Containerable>> containerCVals =
+								(List<PrismContainerValue<Containerable>>)
+										container.findValuesIgnoreMetadata(deltaCVal);
+						if (containerCVals.size() > 1) {
+							logger.warn("More values to be deleted are matched by a single value in delete delta: values={}, delta value={}",
+									containerCVals, deltaCVal);
+						} else if (containerCVals.size() == 1) {
+							deltaCVal.setId(containerCVals.get(0).getId());
+						}
+						// for the time being let's keep non-existent values in the delta
+					}
 				}
+			}
+		}
+		if (valuesToAdd != null) {
+			assert valuesToReplace == null;
+			long maxId = getMaxId(container);
+			processIdentifiers(maxId, valuesToAdd);
+		}
+		if (valuesToReplace != null) {
+			assert valuesToAdd == null;
+			processIdentifiers(0, valuesToReplace);
+		}
+	}
+
+	private void processIdentifiers(long maxId, Collection<PrismContainerValue<V>> values) {
+		for (PrismContainerValue<V> value : values) {
+			if (value.getId() != null && value.getId() > maxId) {
+				maxId = value.getId();
+			}
+		}
+		for (PrismContainerValue<V> value : values) {
+			if (value.getId() == null) {
+				value.setId(++maxId);
 			}
 		}
 	}
 
-    @Override
+	private long getMaxId(PrismContainer<?> container) {
+		if (container == null) {
+			return 0;
+		}
+		long max = 0;
+		for (PrismContainerValue<?> value : container.getValues()) {
+			if (value.getId() != null && value.getId() > max) {
+				max = value.getId();
+			}
+		}
+		return max;
+	}
+
+	@Override
 	protected boolean isValueEquivalent(PrismContainerValue<V> a, PrismContainerValue<V> b) {
 		if (!super.isValueEquivalent(a, b)) {
 			return false;

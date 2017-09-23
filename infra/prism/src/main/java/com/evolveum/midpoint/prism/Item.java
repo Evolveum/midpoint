@@ -32,6 +32,7 @@ import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Item is a common abstraction of Property and PropertyContainer.
@@ -310,6 +311,12 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
             }
         }
         return null;
+    }
+
+    public List<? extends PrismValue> findValuesIgnoreMetadata(PrismValue value) {
+    	return getValues().stream()
+			    .filter(v -> v.equalsComplex(value, true, false))
+			    .collect(Collectors.toList());
     }
 
     /**

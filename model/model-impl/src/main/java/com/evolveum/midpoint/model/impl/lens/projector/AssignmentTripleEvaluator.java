@@ -140,7 +140,13 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 		ObjectDelta<F> focusDelta = focusContext.getDelta();
 
 		ContainerDelta<AssignmentType> assignmentDelta = getExecutionWaveAssignmentDelta(focusContext);
-        assignmentDelta.expand(focusContext.getObjectCurrent());
+        assignmentDelta.expand(focusContext.getObjectCurrent(), LOGGER);
+
+        // Now we should have IDs for all assignments except for some borderline ones used in delete deltas
+		// (if the value to be deleted is not in object or if the value is ambiguous). This could have some negative
+		// impact on policy rules; namely, if there are some policy situations determined for such assignments,
+		// and the processing ends prematurely, it is possible that these situations will not be recorded.
+		// TODO determine if it's really this case
 
         LOGGER.trace("Assignment delta:\n{}", assignmentDelta.debugDump());
 
