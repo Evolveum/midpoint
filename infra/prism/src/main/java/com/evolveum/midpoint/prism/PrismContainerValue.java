@@ -1189,12 +1189,16 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 				return;                // there's a definition already
 			}
 			if (!complexTypeDefinition.getTypeName().equals(containerDef.getTypeName())) {
-				// this is the case in which we are going to overwrite a specific definition
-				// (e.g. WfPrimaryChangeProcessorStateType) with a generic one (e.g. WfProcessorSpecificStateType)
-				// --> we should either skip this, or fetch the fresh definition from the prism context
-				ComplexTypeDefinition freshCtd = prismContext.getSchemaRegistry().findComplexTypeDefinitionByType(complexTypeDefinition.getTypeName());
-				if (freshCtd != null) {
-					definitionToUse = freshCtd;
+				if (!definitionToUse.isRuntimeSchema()) {
+					// this is the case in which we are going to overwrite a specific definition
+					// (e.g. WfPrimaryChangeProcessorStateType) with a generic one (e.g. WfProcessorSpecificStateType)
+					// --> we should either skip this, or fetch the fresh definition from the prism context
+					ComplexTypeDefinition freshCtd = prismContext.getSchemaRegistry().findComplexTypeDefinitionByType(complexTypeDefinition.getTypeName());
+					if (freshCtd != null) {
+						definitionToUse = freshCtd;
+					}
+				} else {
+					// we are probably applying a dynamic definition over static one -- so, let's proceed
 				}
 			}
 		}
