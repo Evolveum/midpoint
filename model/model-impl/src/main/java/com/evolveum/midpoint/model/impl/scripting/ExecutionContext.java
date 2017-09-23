@@ -38,7 +38,7 @@ import java.util.Map;
 public class ExecutionContext {
     private static final Trace LOGGER = TraceManager.getTrace(ExecutionContext.class);
 
-    private boolean privileged;
+    private final boolean privileged;
     private final ScriptingExpressionEvaluationOptionsType options;
     private final Task task;
     private final ScriptingExpressionEvaluator scriptingExpressionEvaluator;
@@ -49,10 +49,11 @@ public class ExecutionContext {
 
     public ExecutionContext(ScriptingExpressionEvaluationOptionsType options, Task task,
             ScriptingExpressionEvaluator scriptingExpressionEvaluator,
-            Map<String, Object> initialVariables) {
+            boolean privileged, Map<String, Object> initialVariables) {
         this.options = options;
         this.task = task;
         this.scriptingExpressionEvaluator = scriptingExpressionEvaluator;
+        this.privileged = privileged;
         this.initialVariables = initialVariables;
     }
 
@@ -142,9 +143,5 @@ public class ExecutionContext {
 
     public boolean isPrivileged() {
         return privileged;
-    }
-
-    public void setPrivileged(boolean privileged) {
-        this.privileged = privileged;
     }
 }
