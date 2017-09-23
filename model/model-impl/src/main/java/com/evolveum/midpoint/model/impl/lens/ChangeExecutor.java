@@ -110,38 +110,17 @@ public class ChangeExecutor {
 	private static final String OPERATION_UPDATE_SITUATION_ACCOUNT = ChangeExecutor.class.getName()
 			+ ".updateSituationInShadow";
 
-	@Autowired
-	private transient TaskManager taskManager;
-
-	@Autowired
-	@Qualifier("cacheRepositoryService")
-	private transient RepositoryService cacheRepositoryService;
-
-	@Autowired
-	private ProvisioningService provisioning;
-
-	@Autowired
-	private PrismContext prismContext;
-
-	@Autowired
-	private ExpressionFactory expressionFactory;
-
-	@Autowired
-	private SecurityEnforcer securityEnforcer;
-
-	@Autowired
-	private Clock clock;
-
-	@Autowired
-	private ModelObjectResolver objectResolver;
-
-	@Autowired
-	private OperationalDataManager metadataManager;
-
-	@Autowired
-	private PolicySituationUpdater policySituationUpdater;
-	@Autowired
-	private CredentialsProcessor credentialsProcessor;
+	@Autowired private transient TaskManager taskManager;
+	@Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
+	@Autowired private ProvisioningService provisioning;
+	@Autowired private PrismContext prismContext;
+	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private SecurityEnforcer securityEnforcer;
+	@Autowired private Clock clock;
+	@Autowired private ModelObjectResolver objectResolver;
+	@Autowired private OperationalDataManager metadataManager;
+	@Autowired private PolicySituationUpdater policySituationUpdater;
+	@Autowired private CredentialsProcessor credentialsProcessor;
 
 	private PrismObjectDefinition<UserType> userDefinition = null;
 	private PrismObjectDefinition<ShadowType> shadowDefinition = null;
@@ -170,6 +149,11 @@ public class ChangeExecutor {
 		LensFocusContext<O> focusContext = context.getFocusContext();
 		if (focusContext != null) {
 			ObjectDelta<O> focusDelta = focusContext.getWaveExecutableDelta(context.getExecutionWave());
+
+			for (ItemDelta<?, ?> itemDelta : focusContext.getPendingPolicySituationModifications()) {
+				focusContext.swallowToSecondaryDelta(itemDelta);
+			}
+			focusContext.clearPendingPolicySituationModifications();
 
 			if (!focusContext.isDelete()) {
 				focusDelta = policySituationUpdater.applyAssignmentSituation(context, focusDelta);

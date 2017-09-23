@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
@@ -70,7 +69,7 @@ public class PolicyRuleProcessor {
 	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 	@Autowired private MappingFactory mappingFactory;
 	@Autowired private MappingEvaluator mappingEvaluator;
-	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
+	@Autowired private PolicySituationUpdater situationUpdater;
 
 	@Autowired private AssignmentConstraintEvaluator assignmentConstraintEvaluator;
 	@Autowired private HasAssignmentConstraintEvaluator hasAssignmentConstraintEvaluator;
@@ -98,6 +97,8 @@ public class PolicyRuleProcessor {
 			throws PolicyViolationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
 		for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.union()) {
+			RulesEvaluationContext globalCtx = new RulesEvaluationContext();
+
 			boolean inPlus = evaluatedAssignmentTriple.presentInPlusSet(evaluatedAssignment);
 			boolean inMinus = evaluatedAssignmentTriple.presentInMinusSet(evaluatedAssignment);
 			boolean inZero = evaluatedAssignmentTriple.presentInZeroSet(evaluatedAssignment);
@@ -116,7 +117,8 @@ public class PolicyRuleProcessor {
 				if (!hasSituationConstraint(policyRule)) {
 					if (checkApplicabilityToAssignment(policyRule)) {
 						evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-										evaluatedAssignment, inPlus, inZero, inMinus, true, context, evaluatedAssignmentTriple, task), result);
+								evaluatedAssignment, inPlus, inZero, inMinus, true, context,
+								evaluatedAssignmentTriple, task, globalCtx), result);
 					}
 				}
 			}
@@ -124,7 +126,8 @@ public class PolicyRuleProcessor {
 				if (!hasSituationConstraint(policyRule)) {
 					if (checkApplicabilityToAssignment(policyRule)) {
 						evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-										evaluatedAssignment, inPlus, inZero, inMinus, false, context, evaluatedAssignmentTriple, task), result);
+								evaluatedAssignment, inPlus, inZero, inMinus, false, context,
+								evaluatedAssignmentTriple, task, globalCtx), result);
 					}
 				}
 			}
@@ -132,7 +135,8 @@ public class PolicyRuleProcessor {
 				if (hasSituationConstraint(policyRule)) {
 					if (checkApplicabilityToAssignment(policyRule)) {
 						evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-										evaluatedAssignment, inPlus, inZero, inMinus, true, context, evaluatedAssignmentTriple, task), result);
+								evaluatedAssignment, inPlus, inZero, inMinus, true, context,
+								evaluatedAssignmentTriple, task, globalCtx), result);
 					}
 				}
 			}
@@ -140,10 +144,12 @@ public class PolicyRuleProcessor {
 				if (hasSituationConstraint(policyRule)) {
 					if (checkApplicabilityToAssignment(policyRule)) {
 						evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-										evaluatedAssignment, inPlus, inZero, inMinus, false, context, evaluatedAssignmentTriple, task), result);
+								evaluatedAssignment, inPlus, inZero, inMinus, false, context,
+								evaluatedAssignmentTriple, task, globalCtx), result);
 					}
 				}
 			}
+			situationUpdater.applyAssignmentSituation(context, evaluatedAssignment, globalCtx.rulesToRecord);
 		}
 
 		exclusionConstraintEvaluator.checkExclusionsLegacy(context, evaluatedAssignmentTriple.getPlusSet(),
@@ -176,6 +182,8 @@ public class PolicyRuleProcessor {
 			return;
 		}
 
+		RulesEvaluationContext globalCtx = new RulesEvaluationContext();
+
 		List<EvaluatedPolicyRule> rules = new ArrayList<>();
 		collectFocusRulesFromAssignments(rules, context);
 		collectGlobalObjectRules(rules, context, task, result);
@@ -201,11 +209,12 @@ public class PolicyRuleProcessor {
 		}
 
 		for (EvaluatedPolicyRule rule : nonSituationRules) {
-			evaluateFocusRule(rule, context, task, result);
+			evaluateFocusRule(rule, context, globalCtx, task, result);
 		}
 		for (EvaluatedPolicyRule rule : situationRules) {
-			evaluateFocusRule(rule, context, task, result);
+			evaluateFocusRule(rule, context, globalCtx, task, result);
 		}
+		situationUpdater.applyObjectSituation(context, globalCtx.rulesToRecord);
 	}
 
 	private <F extends FocusType> Collection<? extends PolicyRuleType> getAllGlobalRules(LensContext<F> context) {
@@ -214,9 +223,10 @@ public class PolicyRuleProcessor {
 				: Collections.emptyList();
 	}
 
-	private <F extends FocusType> void evaluateFocusRule(EvaluatedPolicyRule rule, LensContext<F> context, Task task, OperationResult result)
+	private <F extends FocusType> void evaluateFocusRule(EvaluatedPolicyRule rule, LensContext<F> context,
+			RulesEvaluationContext globalCtx, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		evaluateRule(new ObjectPolicyRuleEvaluationContext<>(rule, context, task), result);
+		evaluateRule(new ObjectPolicyRuleEvaluationContext<>(rule, globalCtx, context, task), result);
 	}
 
 	private <F extends FocusType> void collectFocusRulesFromAssignments(List<EvaluatedPolicyRule> rules, LensContext<F> context) {
@@ -309,8 +319,20 @@ public class PolicyRuleProcessor {
 			}
 			ctx.triggerRule(triggers);
 		}
+		if (ctx.policyRule.getActions() != null && ctx.policyRule.getActions().getRecordSituation() != null) {
+			ctx.record();
+		}
 		traceRuleEvaluationResult(ctx.policyRule, ctx);
 	}
+
+//	private <F extends FocusType> void prepareSituationDeltas(PolicyRuleEvaluationContext<F> ctx,
+//			RecordSituationPolicyActionType recordAction) {
+//		if (ctx instanceof AssignmentPolicyRuleEvaluationContext) {
+//			situationUpdater.prepareAssignmentSituationDeltas();
+//		} else {
+//			situationUpdater.prepareObjectSituationDeltas(ctx.lensContext, recordAction);
+//		}
+//	}
 
 	// returns non-empty list if the constraints evaluated to true (if allMustApply, all of the constraints must apply; otherwise, at least one must apply)
 	@SuppressWarnings("unchecked")

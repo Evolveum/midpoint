@@ -276,4 +276,13 @@ public class PolicySituationUpdater {
 		return triggersDelta;
 	}
 
+	public <F extends FocusType> void applyAssignmentSituation(LensContext<F> context,
+			EvaluatedAssignmentImpl<F> evaluatedAssignment,
+			List<EvaluatedPolicyRule> rulesToRecord) {
+		// TODO
+	}
+
+	public <F extends FocusType> void applyObjectSituation(LensContext<F> context, List<EvaluatedPolicyRule> rulesToRecord) {
+
+	}
 }

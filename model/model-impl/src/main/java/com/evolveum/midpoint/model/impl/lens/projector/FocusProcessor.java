@@ -260,7 +260,9 @@ public class FocusProcessor {
 
 		        // ASSIGNMENTS
 
-		        LensUtil.partialExecute("assignments",
+				focusContext.clearPendingPolicySituationModifications();
+
+				LensUtil.partialExecute("assignments",
 						() -> assignmentProcessor.processAssignmentsProjections(context, now, task, result),
 						partialProcessingOptions::getAssignments);
 

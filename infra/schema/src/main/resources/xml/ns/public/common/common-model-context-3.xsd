@@ -506,10 +506,40 @@
             <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0" />
             <xsd:element name="final" type="xsd:boolean" minOccurs="0" />
             <xsd:element name="hidden" type="xsd:boolean" minOccurs="0" />
-			<xsd:element name="assignmentPath" type="tns:AssignmentPathType" minOccurs="0" />
-			<xsd:element name="directOwnerRef" type="c:ObjectReferenceType" minOccurs="0" />
-			<xsd:element name="directOwnerDisplayName" type="t:PolyStringType" minOccurs="0" />
-		</xsd:sequence>
+			<xsd:element name="assignmentPath" type="tns:AssignmentPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        DEPRECATED. Moved to EvaluatedPolicyRuleType. DO NOT USE.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>3.7</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+			<xsd:element name="directOwnerRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        DEPRECATED. Moved to EvaluatedPolicyRuleType. DO NOT USE.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>3.7</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="directOwnerDisplayName" type="t:PolyStringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        DEPRECATED. Moved to EvaluatedPolicyRuleType. DO NOT USE.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>3.7</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 	<xsd:element name="evaluatedPolicyRuleTrigger" type="tns:EvaluatedPolicyRuleTriggerType" />
 
@@ -637,7 +667,47 @@
                     </xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="ruleName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="assignmentPath" type="tns:AssignmentPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="directOwnerRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="directOwnerDisplayName" type="t:PolyStringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
 	</xsd:complexType>
 	<xsd:element name="evaluatedPolicyRule" type="tns:EvaluatedPolicyRuleType" />

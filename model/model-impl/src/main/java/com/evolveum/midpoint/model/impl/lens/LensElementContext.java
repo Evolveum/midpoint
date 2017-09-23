@@ -73,6 +73,14 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	private int iteration;
     private String iterationToken;
 
+	/**
+	 * These are policy situation modifications that should be applied regardless of how the clockwork is exited
+	 * (e.g. in primary state, in final state, with an exception).
+	 *
+	 * Currently implemented only for focus, not for projections.
+	 */
+	@NotNull private transient final List<ItemDelta<?,?>> pendingPolicySituationModifications = new ArrayList<>();
+
     /**
      * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the
      * context.
@@ -249,6 +257,18 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
 	public abstract void swallowToSecondaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException;
+
+	public List<ItemDelta<?, ?>> getPendingPolicySituationModifications() {
+		return pendingPolicySituationModifications;
+	}
+
+	public void clearPendingPolicySituationModifications() {
+		pendingPolicySituationModifications.clear();
+	}
+
+	public void addToPendingPolicySituationModifications(ItemDelta<?, ?> modification) {
+		pendingPolicySituationModifications.add(modification);
+	}
 
 	public boolean isAdd() {
 		if (ObjectDelta.isAdd(getPrimaryDelta())) {

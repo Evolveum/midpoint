@@ -300,43 +300,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="policySituation" type="xsd:anyURI" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Policy situation that is the result when this constraint is triggered.
-						TODO specify the relation to policySituation defined at the level of policy rule.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:since>3.7</a:since>
-						<a:experimental>true</a:experimental>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="expectedUse" type="tns:PolicyConstraintExpectedUseType" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						How is this constraint to be used? E.g. also for reporting or for certification? This determines
-						if its triggers and/or related policy situation should be stored into repository.
-						EXPERIMENTAL
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:since>3.7</a:since>
-						<a:experimental>true</a:experimental>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-            <xsd:element name="storageCompaction" type="tns:PolicyTriggerStorageCompactionType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						If triggers are to be stored, what level of details should be preserved?
-						EXPERIMENTAL
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:since>3.7</a:since>
-						<a:experimental>true</a:experimental>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
             <xsd:element name="enforcement" type="tns:PolicyConstraintEnforcementType" minOccurs="0" default="enforce">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -449,7 +412,7 @@
 		</xsd:restriction>
 	</xsd:simpleType>
 
-	<xsd:simpleType name="PolicyTriggerStorageCompactionType">
+	<xsd:simpleType name="PolicyTriggerStorageStrategyType">
 		<xsd:annotation>
 			<xsd:documentation>
 				If triggers are to be stored, what level of details should be preserved?
@@ -461,33 +424,33 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="full">
-				<xsd:annotation>
-					<xsd:documentation>
-						Only message and short message will be stored.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="FULL"/>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:enumeration>
-			<xsd:enumeration value="normal">
-				<xsd:annotation>
-					<xsd:documentation>
-						Whole triggers will be stored. (But only those that are directly marked with expectedUse property.)
-					</xsd:documentation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="NORMAL"/>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:enumeration>
 			<xsd:enumeration value="none">
 				<xsd:annotation>
 					<xsd:documentation>
-						Whole triggers will be stored, including subtriggers.
+						Triggers will not be stored.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="NONE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="messageOnly">
+				<xsd:annotation>
+					<xsd:documentation>
+						Only message and short message for each trigger will be stored. Hidden and final presentation settings are respected.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="MESSAGE_ONLY"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="full">
+				<xsd:annotation>
+					<xsd:documentation>
+						The triggers for the rule will be stored (including subtriggers). Hidden and final presentation settings are respected.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="FULL"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -1051,6 +1014,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="recordSituation" type="tns:RecordSituationPolicyActionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Record action. The operation will proceed. Policy situation will be recorded for
+						given object or assignment. It can be reported on or certified later on.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
@@ -1400,6 +1371,38 @@
                 <xsd:sequence>
                     <!-- TODO -->
                 </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="RecordSituationPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PolicyActionType">
+                <xsd:sequence>
+					<xsd:element name="triggerStorageStrategy" type="tns:PolicyTriggerStorageStrategyType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								How should be triggers stored?
+								EXPERIMENTAL
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+								<a:experimental>true</a:experimental>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+
+				</xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
