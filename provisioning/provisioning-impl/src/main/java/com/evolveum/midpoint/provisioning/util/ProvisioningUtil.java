@@ -135,8 +135,10 @@ public class ProvisioningUtil {
 			ProvisioningScriptType scriptType, String desc, PrismContext prismContext) throws SchemaException {
 		ExecuteProvisioningScriptOperation scriptOperation = new ExecuteProvisioningScriptOperation();
 
-		PrismPropertyDefinition scriptArgumentDefinition = new PrismPropertyDefinitionImpl(
+		PrismPropertyDefinitionImpl scriptArgumentDefinition = new PrismPropertyDefinitionImpl(
 				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+		scriptArgumentDefinition.setMinOccurs(0);
+		scriptArgumentDefinition.setMaxOccurs(-1);
 
 		for (ProvisioningScriptArgumentType argument : scriptType.getArgument()) {
 			ExecuteScriptArgument arg = new ExecuteScriptArgument(argument.getName(),
