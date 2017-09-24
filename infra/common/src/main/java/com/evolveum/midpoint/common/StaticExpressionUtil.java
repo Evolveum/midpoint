@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionReturnMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -67,9 +68,10 @@ public class StaticExpressionUtil {
 				default: throw new IllegalStateException("Unknown return type "+multiplicity);
 			}
 		} else {
+			Collection<?> realValues = output.getRealValues();
 			switch (multiplicity) {
-				case MULTI: return output.getRealValues();
-				case SINGLE: return output.getRealValue();
+				case MULTI: return realValues;
+				case SINGLE: return MiscUtil.extractSingleton(realValues);
 				default: throw new IllegalStateException("Unknown return type "+multiplicity);
 			}
 		}
