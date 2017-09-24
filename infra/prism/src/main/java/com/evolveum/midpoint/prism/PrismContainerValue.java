@@ -1189,12 +1189,16 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 				return;                // there's a definition already
 			}
 			if (!complexTypeDefinition.getTypeName().equals(containerDef.getTypeName())) {
-				if (!definitionToUse.isRuntimeSchema()) {
+				// the second condition is a hack because e.g.
+				// {http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector}ConfigurationType
+				// is clearly a runtime schema but it is _not_ marked as such (why?) -- see TestUcfDummy
+				if (!definitionToUse.isRuntimeSchema() && definitionToUse.getCompileTimeClass() != null) {
 					// this is the case in which we are going to overwrite a specific definition
 					// (e.g. WfPrimaryChangeProcessorStateType) with a generic one (e.g. WfProcessorSpecificStateType)
 					// --> we should either skip this, or fetch the fresh definition from the prism context
 					ComplexTypeDefinition freshCtd = prismContext.getSchemaRegistry().findComplexTypeDefinitionByType(complexTypeDefinition.getTypeName());
 					if (freshCtd != null) {
+						System.out.println("Using " + freshCtd + " instead of " + definitionToUse);
 						definitionToUse = freshCtd;
 					}
 				} else {
