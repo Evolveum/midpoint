@@ -69,7 +69,7 @@ public class PolicyRuleProcessor {
 	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 	@Autowired private MappingFactory mappingFactory;
 	@Autowired private MappingEvaluator mappingEvaluator;
-	@Autowired private PolicySituationUpdater situationUpdater;
+	@Autowired private PolicyStateUpdater policyStateUpdater;
 
 	@Autowired private AssignmentConstraintEvaluator assignmentConstraintEvaluator;
 	@Autowired private HasAssignmentConstraintEvaluator hasAssignmentConstraintEvaluator;
@@ -149,7 +149,7 @@ public class PolicyRuleProcessor {
 					}
 				}
 			}
-			situationUpdater.applyAssignmentSituation(context, evaluatedAssignment, globalCtx.rulesToRecord);
+			policyStateUpdater.applyAssignmentState(context, evaluatedAssignment, globalCtx.rulesToRecord);
 		}
 
 		exclusionConstraintEvaluator.checkExclusionsLegacy(context, evaluatedAssignmentTriple.getPlusSet(),
@@ -214,7 +214,7 @@ public class PolicyRuleProcessor {
 		for (EvaluatedPolicyRule rule : situationRules) {
 			evaluateFocusRule(rule, context, globalCtx, task, result);
 		}
-		situationUpdater.applyObjectSituation(context, globalCtx.rulesToRecord);
+		policyStateUpdater.applyObjectState(context, globalCtx.rulesToRecord);
 	}
 
 	private <F extends FocusType> Collection<? extends PolicyRuleType> getAllGlobalRules(LensContext<F> context) {
@@ -319,20 +319,11 @@ public class PolicyRuleProcessor {
 			}
 			ctx.triggerRule(triggers);
 		}
-		if (ctx.policyRule.getActions() != null && ctx.policyRule.getActions().getRecordSituation() != null) {
+		if (ctx.policyRule.isTriggered() && ctx.policyRule.getActions() != null && ctx.policyRule.getActions().getRecordSituation() != null) {
 			ctx.record();
 		}
 		traceRuleEvaluationResult(ctx.policyRule, ctx);
 	}
-
-//	private <F extends FocusType> void prepareSituationDeltas(PolicyRuleEvaluationContext<F> ctx,
-//			RecordSituationPolicyActionType recordAction) {
-//		if (ctx instanceof AssignmentPolicyRuleEvaluationContext) {
-//			situationUpdater.prepareAssignmentSituationDeltas();
-//		} else {
-//			situationUpdater.prepareObjectSituationDeltas(ctx.lensContext, recordAction);
-//		}
-//	}
 
 	// returns non-empty list if the constraints evaluated to true (if allMustApply, all of the constraints must apply; otherwise, at least one must apply)
 	@SuppressWarnings("unchecked")

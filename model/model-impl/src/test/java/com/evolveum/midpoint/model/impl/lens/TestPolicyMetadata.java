@@ -90,7 +90,7 @@ public class TestPolicyMetadata extends AbstractLensTest {
 		assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
 		assertEquals("Wrong # of assignments", 1, jack.getAssignment().size());
 		assertEquals("Wrong policy situations",
-				Collections.singletonList(SchemaConstants.MODEL_POLICY_SITUATION_ASSIGNMENT_MODIFIED),
+				Collections.emptyList(),
 				jack.getAssignment().get(0).getPolicySituation());
 	}
 

@@ -77,16 +77,18 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 	}
 
 	@Override
-	public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule,
+	public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType(boolean includeAssignmentsContent,
 			boolean respectFinalFlag) {
 		EvaluatedExclusionTriggerType rv = new EvaluatedExclusionTriggerType();
-		fillCommonContent(rv, owningRule);
+		fillCommonContent(rv);
 		rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget));
 		rv.setConflictingObjectDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
 		if (conflictingPath != null) {
-			rv.setConflictingObjectPath(conflictingPath.toAssignmentPathType());
+			rv.setConflictingObjectPath(conflictingPath.toAssignmentPathType(includeAssignmentsContent));
 		}
-		rv.setConflictingAssignment(conflictingAssignment.getAssignmentType());
+		if (includeAssignmentsContent && conflictingAssignment.getAssignmentType() != null) {
+			rv.setConflictingAssignment(conflictingAssignment.getAssignmentType().clone());
+		}
 		return rv;
 	}
 }

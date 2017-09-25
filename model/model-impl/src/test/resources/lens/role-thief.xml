@@ -26,7 +26,10 @@
 			    	<targetRef oid="12345111-1111-2222-1111-121212111111" type="RoleType"/> <!-- Judge -->
 		    	</exclusion>
 		    </policyConstraints>
-		    <!-- no policy action -->
+			<policyActions>
+				<!-- no enforcement -->
+				<recordSituation/>
+			</policyActions>
     	</policyRule>
     </assignment>
 	<assignment>

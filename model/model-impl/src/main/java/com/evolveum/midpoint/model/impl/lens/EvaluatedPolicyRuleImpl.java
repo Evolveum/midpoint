@@ -312,10 +312,18 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	 */
 
 	@Override
-	public EvaluatedPolicyRuleType toEvaluatedPolicyRuleType(boolean respectFinalFlag) {
+	public EvaluatedPolicyRuleType toEvaluatedPolicyRuleType(boolean includeAssignmentsContent, boolean respectFinalFlag) {
 		EvaluatedPolicyRuleType rv = new EvaluatedPolicyRuleType();
 		//rv.setPolicyRule(policyRuleType);			// DO NOT use this, in order to avoid large data in assignments
-		triggers.forEach(t -> rv.getTrigger().add(t.toEvaluatedPolicyRuleTriggerType(this, respectFinalFlag)));
+		rv.setRuleName(getName());
+		if (assignmentPath != null) {
+			rv.setAssignmentPath(assignmentPath.toAssignmentPathType(includeAssignmentsContent));
+		}
+		if (directOwner != null) {
+			rv.setDirectOwnerRef(ObjectTypeUtil.createObjectRef(directOwner));
+			rv.setDirectOwnerDisplayName(ObjectTypeUtil.getDisplayName(directOwner));
+		}
+		triggers.forEach(t -> rv.getTrigger().add(t.toEvaluatedPolicyRuleTriggerType(includeAssignmentsContent, respectFinalFlag)));
 		return rv;
 	}
 

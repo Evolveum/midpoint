@@ -650,7 +650,7 @@
 	<xsd:element name="evaluatedSituationTrigger" type="tns:EvaluatedSituationTriggerType" />
 
 	<xsd:complexType name="EvaluatedPolicyRuleType">
-		<xsd:sequence>
+        <xsd:sequence>
             <!-- TODO use some kind of pointer here (otherwise it produces very long data e.g. in trigger info in assignments) -->
 			<xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0">
 				<xsd:annotation>

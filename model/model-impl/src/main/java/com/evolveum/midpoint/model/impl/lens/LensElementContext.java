@@ -15,12 +15,11 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -74,12 +73,17 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     private String iterationToken;
 
 	/**
-	 * These are policy situation modifications that should be applied regardless of how the clockwork is exited
+	 * These are policy state modifications that should be applied regardless of how the clockwork is exited
 	 * (e.g. in primary state, in final state, with an exception).
 	 *
 	 * Currently implemented only for focus, not for projections.
 	 */
-	@NotNull private transient final List<ItemDelta<?,?>> pendingPolicySituationModifications = new ArrayList<>();
+	@NotNull private transient final List<ItemDelta<?,?>> pendingObjectPolicyStateModifications = new ArrayList<>();
+
+	/**
+	 * Policy state modifications for assignments.
+	 */
+	@NotNull private transient final Map<AssignmentSpec, List<ItemDelta<?,?>>> pendingAssignmentPolicyStateModifications = new HashMap<>();
 
     /**
      * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the
@@ -258,16 +262,43 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
 	public abstract void swallowToSecondaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException;
 
-	public List<ItemDelta<?, ?>> getPendingPolicySituationModifications() {
-		return pendingPolicySituationModifications;
+	// TODO deduplicate with swallowToSecondaryDelta in LensFocusContext
+	public ObjectDelta<O> swallowToDelta(ObjectDelta<O> originalDelta, ItemDelta<?,?> propDelta) throws SchemaException {
+		if (originalDelta == null) {
+			originalDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
+			originalDelta.setOid(getOid());
+		} else if (originalDelta.containsModification(propDelta, true, true)) {
+			return originalDelta;
+		}
+		originalDelta.swallow(propDelta);
+		return originalDelta;
 	}
 
-	public void clearPendingPolicySituationModifications() {
-		pendingPolicySituationModifications.clear();
+	@NotNull
+	public List<ItemDelta<?, ?>> getPendingObjectPolicyStateModifications() {
+		return pendingObjectPolicyStateModifications;
 	}
 
-	public void addToPendingPolicySituationModifications(ItemDelta<?, ?> modification) {
-		pendingPolicySituationModifications.add(modification);
+	public void clearPendingObjectPolicyStateModifications() {
+		pendingObjectPolicyStateModifications.clear();
+	}
+
+	public void addToPendingObjectPolicyStateModifications(ItemDelta<?, ?> modification) {
+		pendingObjectPolicyStateModifications.add(modification);
+	}
+
+	@NotNull
+	public Map<AssignmentSpec, List<ItemDelta<?, ?>>> getPendingAssignmentPolicyStateModifications() {
+		return pendingAssignmentPolicyStateModifications;
+	}
+
+	public void clearPendingAssignmentPolicyStateModifications() {
+		pendingAssignmentPolicyStateModifications.clear();
+	}
+
+	public void addToPendingAssignmentPolicyStateModifications(@NotNull AssignmentType assignment, @NotNull PlusMinusZero mode, @NotNull ItemDelta<?, ?> modification) {
+		AssignmentSpec spec = new AssignmentSpec(assignment, mode);
+		pendingAssignmentPolicyStateModifications.computeIfAbsent(spec, k -> new ArrayList<>()).add(modification);
 	}
 
 	public boolean isAdd() {

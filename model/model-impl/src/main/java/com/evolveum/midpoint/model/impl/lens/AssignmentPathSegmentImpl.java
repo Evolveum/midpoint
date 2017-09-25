@@ -595,11 +595,13 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 
 	@NotNull
 	@Override
-	public AssignmentPathSegmentType toAssignmentPathSegmentType() {
+	public AssignmentPathSegmentType toAssignmentPathSegmentType(boolean includeAssignmentsContent) {
 		AssignmentPathSegmentType rv = new AssignmentPathSegmentType();
 		AssignmentType assignment = getAssignment(evaluatedForOld);			// a bit of hack, but probably ok for now
 		if (assignment != null) {
-			rv.setAssignment(assignment);
+			if (includeAssignmentsContent) {
+				rv.setAssignment(assignment.clone());
+			}
 			rv.setAssignmentId(assignment.getId());
 		}
 		if (source != null) {

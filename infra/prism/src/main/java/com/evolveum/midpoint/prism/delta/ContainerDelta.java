@@ -187,7 +187,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 	 * in the object and fill it into the delta.
 	 * This method may even delete id-only values that are no longer present in the object.
 	 *
-	 * It also fills-in IDs for values to be added/replaced/deleted.
+	 * It also fills-in IDs for values to be deleted.
 	 */
 	public <O extends Objectable> void expand(PrismObject<O> object, Trace logger) throws SchemaException {
 		PrismContainer<Containerable> container = null;
@@ -231,41 +231,6 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 				}
 			}
 		}
-		if (valuesToAdd != null) {
-			assert valuesToReplace == null;
-			long maxId = getMaxId(container);
-			processIdentifiers(maxId, valuesToAdd);
-		}
-		if (valuesToReplace != null) {
-			assert valuesToAdd == null;
-			processIdentifiers(0, valuesToReplace);
-		}
-	}
-
-	private void processIdentifiers(long maxId, Collection<PrismContainerValue<V>> values) {
-		for (PrismContainerValue<V> value : values) {
-			if (value.getId() != null && value.getId() > maxId) {
-				maxId = value.getId();
-			}
-		}
-		for (PrismContainerValue<V> value : values) {
-			if (value.getId() == null) {
-				value.setId(++maxId);
-			}
-		}
-	}
-
-	private long getMaxId(PrismContainer<?> container) {
-		if (container == null) {
-			return 0;
-		}
-		long max = 0;
-		for (PrismContainerValue<?> value : container.getValues()) {
-			if (value.getId() != null && value.getId() > max) {
-				max = value.getId();
-			}
-		}
-		return max;
 	}
 
 	@Override

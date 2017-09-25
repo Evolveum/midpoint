@@ -512,9 +512,9 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	public String toHumanReadableString() {
 		if (target != null) {
 			return "EvaluatedAssignment(" + target + ")";
-		} else if (constructionTriple != null && !constructionTriple.isEmpty()) {
+		} else if (!constructionTriple.isEmpty()) {
 			return "EvaluatedAssignment(" + constructionTriple + ")";
-		} else if (personaConstructionTriple != null && !personaConstructionTriple.isEmpty()) {
+		} else if (!personaConstructionTriple.isEmpty()) {
 			return "EvaluatedAssignment(" + personaConstructionTriple + ")";
 		} else {
 			return toString();
@@ -526,5 +526,16 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		rv.addAll(roles.getZeroSet());
 		rv.addAll(roles.getPlusSet());
 		return rv;
+	}
+
+	@NotNull
+	public PlusMinusZero getMode() {
+		if (assignmentIdi.getItemOld() == null) {
+			return PlusMinusZero.PLUS;
+		} else if (assignmentIdi.getItemNew() == null) {
+			return PlusMinusZero.MINUS;
+		} else {
+			return PlusMinusZero.ZERO;
+		}
 	}
 }

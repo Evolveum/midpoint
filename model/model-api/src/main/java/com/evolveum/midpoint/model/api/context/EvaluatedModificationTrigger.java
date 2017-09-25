@@ -31,10 +31,10 @@ public class EvaluatedModificationTrigger extends EvaluatedPolicyRuleTrigger<Mod
 	}
 
 	@Override
-	public EvaluatedModificationTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule,
+	public EvaluatedModificationTriggerType toEvaluatedPolicyRuleTriggerType(boolean includeAssignmentsContent,
 			boolean respectFinalFlag) {
 		EvaluatedModificationTriggerType rv = new EvaluatedModificationTriggerType();
-		fillCommonContent(rv, owningRule);
+		fillCommonContent(rv);
 		return rv;
 	}
 }

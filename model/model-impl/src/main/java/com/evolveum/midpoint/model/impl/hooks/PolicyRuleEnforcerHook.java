@@ -135,7 +135,8 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 				continue;
 			}
 
-			evalCtx.rules.add(policyRule.toEvaluatedPolicyRuleType(true));
+			// TODO really include assignments content?
+			evalCtx.rules.add(policyRule.toEvaluatedPolicyRuleType(true, true));
 
 			for (EvaluatedPolicyRuleTrigger trigger: triggers) {
 				if (trigger.getMessage() != null) {
