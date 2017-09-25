@@ -28,6 +28,7 @@
 				</exclusion>
 			</policyConstraints>
 			<policyActions>
+				<record/>
 			</policyActions>
 		</policyRule>
 	</assignment>
@@ -39,6 +40,7 @@
 				</exclusion>
 			</policyConstraints>
 			<policyActions>
+				<record/>
 			</policyActions>
 		</policyRule>
 	</assignment>

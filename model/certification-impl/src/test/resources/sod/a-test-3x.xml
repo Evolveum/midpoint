@@ -28,6 +28,7 @@
 				</exclusion>
 			</policyConstraints>
 			<policyActions>
+				<record/>
 			</policyActions>
 		</policyRule>
 	</assignment>
