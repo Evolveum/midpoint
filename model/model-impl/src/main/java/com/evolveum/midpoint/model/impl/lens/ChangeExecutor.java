@@ -187,7 +187,7 @@ public class ChangeExecutor {
 
 				try {
 					// Will remove credential deltas or hash them
-					focusDelta = credentialsProcessor.transformFocusExectionDelta(context, focusDelta);
+					focusDelta = credentialsProcessor.transformFocusExecutionDelta(context, focusDelta);
 				} catch (EncryptionException e) {
 					recordFatalError(subResult, result, null, e);
 					result.computeStatus();
