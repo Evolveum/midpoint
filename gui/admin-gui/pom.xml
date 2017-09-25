@@ -47,6 +47,7 @@
                 <directory>src/main/resources</directory>
                 <includes>
                     <include>localization/Midpoint*.properties</include>
+                    <include>banner.txt</include>
                 </includes>
             </resource>
             <!--  ICF LOGGING CONFIGURATION -->

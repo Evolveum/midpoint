@@ -7,6 +7,6 @@
 
   Licensed under the Apache License, Version 2.0 see: http://www.apache.org/licenses/LICENSE-2.0
   Version :  ${project.version}
-  Sources :  {project.scm.connection}  branch:  ${git.branch}
+  Sources :  ${project.scm.connection}  branch:  ${git.branch}
   Bug reporting system : ${project.issueManagement.url}
   Product information : http://wiki.evolveum.com/display/midPoint
