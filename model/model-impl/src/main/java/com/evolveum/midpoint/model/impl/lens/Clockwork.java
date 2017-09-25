@@ -1428,6 +1428,7 @@ public class Clockwork {
 							assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1));
 				}
 				securityEnforcer.failAuthorization("with assignment", getRequestAuthorizationPhase(context), object, null, null, result);
+				assert false;    // just to keep static checkers happy
 			}
 			// We do not worry about performance here too much. The target was already evaluated. This will be retrieved from repo cache anyway.
 			PrismObject<ObjectType> target = objectResolver.resolve(targetRef.asReferenceValue(), "resolving assignment target", task, result);

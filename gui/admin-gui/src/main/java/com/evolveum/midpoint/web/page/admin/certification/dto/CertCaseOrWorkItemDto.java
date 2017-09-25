@@ -208,19 +208,21 @@ public class CertCaseOrWorkItemDto extends Selectable {
 			return "";
 		}
 		Set<String> exclusions = new TreeSet<>();
-		for (EvaluatedPolicyRuleTriggerType trigger : assignmentCase.getAssignment().getTrigger()) {
-			if (!(trigger instanceof EvaluatedExclusionTriggerType)) {
-				continue;
-			}
-			EvaluatedExclusionTriggerType exclusionTrigger = (EvaluatedExclusionTriggerType) trigger;
-			ObjectReferenceType conflicting = exclusionTrigger.getConflictingObjectRef();
-			if (conflicting == null) {
-				continue;
-			}
-			if (conflicting.getTargetName() != null) {
-				exclusions.add(conflicting.getTargetName().getOrig());
-			} else {
-				exclusions.add(conflicting.getOid());			// TODO try to resolve?
+		for (EvaluatedPolicyRuleType rule : assignmentCase.getAssignment().getTriggeredPolicyRule()) {
+			for (EvaluatedPolicyRuleTriggerType trigger : rule.getTrigger()) {
+				if (!(trigger instanceof EvaluatedExclusionTriggerType)) {
+					continue;
+				}
+				EvaluatedExclusionTriggerType exclusionTrigger = (EvaluatedExclusionTriggerType) trigger;
+				ObjectReferenceType conflicting = exclusionTrigger.getConflictingObjectRef();
+				if (conflicting == null) {
+					continue;
+				}
+				if (conflicting.getTargetName() != null) {
+					exclusions.add(conflicting.getTargetName().getOrig());
+				} else {
+					exclusions.add(conflicting.getOid());			// TODO try to resolve?
+				}
 			}
 		}
 		return StringUtils.join(exclusions, ", ");

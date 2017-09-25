@@ -128,23 +128,25 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
 	private void assertPacked(AssignmentType assignment, int exclusionExpected, int situationExpected) {
 		int exclusion = 0, situation = 0;
-		for (EvaluatedPolicyRuleTriggerType trigger : assignment.getTrigger()) {
-			assertNotNull("Identifier not null in base trigger: " + trigger, trigger.getTriggerId());
-			if (trigger instanceof EvaluatedSituationTriggerType) {
-				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
-				int sourceTriggers = 0;
-				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
-					for (EvaluatedPolicyRuleTriggerType sourceTrigger : sourceRule.getTrigger()) {
-						sourceTriggers++;
-						assertNotNull("Ref not null in situation source trigger: " + sourceTrigger, sourceTrigger.getRef());
+		for (EvaluatedPolicyRuleType rule : assignment.getTriggeredPolicyRule()) {
+			for (EvaluatedPolicyRuleTriggerType trigger : rule.getTrigger()) {
+				assertNotNull("Identifier not null in base trigger: " + trigger, trigger.getTriggerId());
+				if (trigger instanceof EvaluatedSituationTriggerType) {
+					EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
+					int sourceTriggers = 0;
+					for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
+						for (EvaluatedPolicyRuleTriggerType sourceTrigger : sourceRule.getTrigger()) {
+							sourceTriggers++;
+							assertNotNull("Ref not null in situation source trigger: " + sourceTrigger, sourceTrigger.getRef());
+						}
 					}
+					assertEquals("Wrong # of exclusion triggers in situation trigger", exclusionExpected, sourceTriggers);
+					situation++;
+				} else if (trigger instanceof EvaluatedExclusionTriggerType) {
+					exclusion++;
+				} else {
+					fail("Unexpected trigger: " + trigger);
 				}
-				assertEquals("Wrong # of exclusion triggers in situation trigger", exclusionExpected, sourceTriggers);
-				situation++;
-			} else if (trigger instanceof EvaluatedExclusionTriggerType) {
-				exclusion++;
-			} else {
-				fail("Unexpected trigger: " + trigger);
 			}
 		}
 		assertEquals("Wrong # of exclusion triggers", exclusionExpected, exclusion);
