@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -107,7 +108,10 @@ public class PolicyStateUpdater {
 		ComputationResult cr = new ComputationResult();
 		for (EvaluatedPolicyRule rule : rulesToRecord) {
 			cr.newPolicySituations.add(rule.getPolicySituation());
-			cr.newTriggeredRules.add(rule.toEvaluatedPolicyRuleType(false, true));
+			RecordPolicyActionType recordAction = rule.getActions().getRecord();
+			if (recordAction.getTriggerStorageStrategy() != PolicyTriggerStorageStrategyType.NONE) {
+				cr.newTriggeredRules.add(rule.toEvaluatedPolicyRuleType(new PolicyRuleExternalizationOptions(recordAction.getTriggerStorageStrategy(), false, true)));
+			}
 		}
 		cr.oldPolicySituations.addAll(existingPolicySituation);
 		cr.oldTriggeredRules.addAll(existingTriggeredPolicyRule);

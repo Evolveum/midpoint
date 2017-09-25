@@ -31,7 +31,9 @@
 			</policyConstraints>
 			<policyActions>
 				<!-- no enforcement here -->
-				<record/>
+				<record>
+					<triggerStorageStrategy>messageOnly</triggerStorageStrategy>
+				</record>
 			</policyActions>
 		</policyRule>
 	</assignment>

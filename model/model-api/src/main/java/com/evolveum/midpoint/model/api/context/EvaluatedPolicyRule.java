@@ -66,7 +66,7 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 
 	Collection<PolicyExceptionType> getPolicyExceptions();
 
-	EvaluatedPolicyRuleType toEvaluatedPolicyRuleType(boolean includeAssignmentsContent, boolean respectFinalFlag);
+	EvaluatedPolicyRuleType toEvaluatedPolicyRuleType(PolicyRuleExternalizationOptions options);
 
 	boolean isGlobal();
 

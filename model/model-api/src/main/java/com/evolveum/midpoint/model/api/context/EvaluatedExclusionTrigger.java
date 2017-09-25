@@ -24,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyTriggerStorageStrategyType.FULL;
+
 /**
  * @author mederly
  */
@@ -77,17 +79,18 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 	}
 
 	@Override
-	public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType(boolean includeAssignmentsContent,
-			boolean respectFinalFlag) {
+	public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options) {
 		EvaluatedExclusionTriggerType rv = new EvaluatedExclusionTriggerType();
 		fillCommonContent(rv);
-		rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget));
-		rv.setConflictingObjectDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
-		if (conflictingPath != null) {
-			rv.setConflictingObjectPath(conflictingPath.toAssignmentPathType(includeAssignmentsContent));
-		}
-		if (includeAssignmentsContent && conflictingAssignment.getAssignmentType() != null) {
-			rv.setConflictingAssignment(conflictingAssignment.getAssignmentType().clone());
+		if (options.getTriggerStorageStrategy() == FULL) {
+			rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget));
+			rv.setConflictingObjectDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
+			if (conflictingPath != null) {
+				rv.setConflictingObjectPath(conflictingPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
+			}
+			if (options.isIncludeAssignmentsContent() && conflictingAssignment.getAssignmentType() != null) {
+				rv.setConflictingAssignment(conflictingAssignment.getAssignmentType().clone());
+			}
 		}
 		return rv;
 	}

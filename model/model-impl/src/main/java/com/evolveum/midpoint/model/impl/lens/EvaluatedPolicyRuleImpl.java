@@ -31,6 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyTriggerStorageStrategyType.FULL;
+
 /**
  * @author semancik
  *
@@ -309,21 +311,22 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 
 	/**
 	 * Honors "final" but not "hidden" flag.
+	 * @param options
 	 */
 
 	@Override
-	public EvaluatedPolicyRuleType toEvaluatedPolicyRuleType(boolean includeAssignmentsContent, boolean respectFinalFlag) {
+	public EvaluatedPolicyRuleType toEvaluatedPolicyRuleType(PolicyRuleExternalizationOptions options) {
 		EvaluatedPolicyRuleType rv = new EvaluatedPolicyRuleType();
-		//rv.setPolicyRule(policyRuleType);			// DO NOT use this, in order to avoid large data in assignments
 		rv.setRuleName(getName());
-		if (assignmentPath != null) {
-			rv.setAssignmentPath(assignmentPath.toAssignmentPathType(includeAssignmentsContent));
+		boolean isFull = options.getTriggerStorageStrategy() == FULL;
+		if (isFull && assignmentPath != null) {
+			rv.setAssignmentPath(assignmentPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
 		}
-		if (directOwner != null) {
+		if (isFull && directOwner != null) {
 			rv.setDirectOwnerRef(ObjectTypeUtil.createObjectRef(directOwner));
 			rv.setDirectOwnerDisplayName(ObjectTypeUtil.getDisplayName(directOwner));
 		}
-		triggers.forEach(t -> rv.getTrigger().add(t.toEvaluatedPolicyRuleTriggerType(includeAssignmentsContent, respectFinalFlag)));
+		triggers.forEach(t -> rv.getTrigger().add(t.toEvaluatedPolicyRuleTriggerType(options)));
 		return rv;
 	}
 

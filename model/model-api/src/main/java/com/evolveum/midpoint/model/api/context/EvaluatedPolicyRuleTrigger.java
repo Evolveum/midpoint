@@ -130,8 +130,7 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 		return PolicyRuleTypeUtil.toDiagShortcut(constraintKind);
 	}
 
-	public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerType(boolean includeAssignmentsContent,
-			boolean respectFinalFlag) {
+	public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options) {
 		EvaluatedPolicyRuleTriggerType rv = new EvaluatedPolicyRuleTriggerType();
 		fillCommonContent(rv);
 		return rv;
@@ -139,7 +138,6 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 
 	protected void fillCommonContent(EvaluatedPolicyRuleTriggerType tt) {
 		tt.setConstraintKind(constraintKind);
-		//tt.setConstraint(constraint);
 		tt.setMessage(LocalizationUtil.createLocalizableMessageType(message));
 		PolicyConstraintPresentationType presentation = constraint.getPresentation();
 		if (presentation != null) {

@@ -103,12 +103,11 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
 	}
 
 	@Override
-	public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerType(boolean includeAssignmentsContent,
-			boolean respectFinalFlag) {
+	public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options) {
 		EvaluatedSituationTriggerType rv = new EvaluatedSituationTriggerType();
 		fillCommonContent(rv);
-		if (!respectFinalFlag || !isFinal()) {
-			sourceRules.forEach(r -> rv.getSourceRule().add(r.toEvaluatedPolicyRuleType(false, false)));
+		if (!options.isRespectFinalFlag() || !isFinal()) {
+			sourceRules.forEach(r -> rv.getSourceRule().add(r.toEvaluatedPolicyRuleType(options)));
 		}
 		return rv;
 	}
