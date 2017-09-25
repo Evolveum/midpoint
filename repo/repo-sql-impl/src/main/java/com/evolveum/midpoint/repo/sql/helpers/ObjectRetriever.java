@@ -573,10 +573,14 @@ public class ObjectRetriever {
             if (item.getDefinition() == null) {
                 RValueType rValType = (RValueType) value[2];
                 if (rValType == RValueType.PROPERTY) {
-                    PrismPropertyDefinition<Object> def = new PrismPropertyDefinitionImpl<>(name, type, object.getPrismContext());
+                    PrismPropertyDefinitionImpl<Object> def = new PrismPropertyDefinitionImpl<>(name, type, object.getPrismContext());
+                    def.setMinOccurs(0);
+                    def.setMaxOccurs(-1);
                     item.applyDefinition(def, true);
                 } else if (rValType == RValueType.REFERENCE) {
-                    PrismReferenceDefinition def = new PrismReferenceDefinitionImpl(name, type, object.getPrismContext());
+                    PrismReferenceDefinitionImpl def = new PrismReferenceDefinitionImpl(name, type, object.getPrismContext());
+	                def.setMinOccurs(0);
+	                def.setMaxOccurs(-1);
                     item.applyDefinition(def, true);
                 } else {
                     throw new UnsupportedOperationException("Unsupported value type " + rValType);

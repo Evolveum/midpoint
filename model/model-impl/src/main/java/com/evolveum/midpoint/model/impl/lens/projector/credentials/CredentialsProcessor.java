@@ -22,14 +22,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
-import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
-import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -55,7 +52,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -153,7 +149,7 @@ public class CredentialsProcessor {
 	/**
 	 * Called from ChangeExecutor. Will modify the execution deltas to hash or remove credentials if needed.
 	 */
-	public <O extends ObjectType> ObjectDelta<O> transformFocusExectionDelta(LensContext<O> context, ObjectDelta<O> focusDelta) throws SchemaException, EncryptionException {
+	public <O extends ObjectType> ObjectDelta<O> transformFocusExecutionDelta(LensContext<O> context, ObjectDelta<O> focusDelta) throws SchemaException, EncryptionException {
 		LensFocusContext<O> focusContext = context.getFocusContext();
 		SecurityPolicyType securityPolicy = focusContext.getSecurityPolicy();
 		if (securityPolicy == null) {
@@ -164,13 +160,13 @@ public class CredentialsProcessor {
 			return focusDelta;
 		}
 		ObjectDelta<O> transformedDelta = focusDelta.clone();
-		transformFocusExectionDeltaCredential(context, credsType, credsType.getPassword(), SchemaConstants.PATH_PASSWORD_VALUE, transformedDelta);
+		transformFocusExecutionDeltaCredential(context, credsType, credsType.getPassword(), SchemaConstants.PATH_PASSWORD_VALUE, transformedDelta);
 		// TODO: nonce and others
 
 		return transformedDelta;
 	}
 
-	private <O extends ObjectType> void transformFocusExectionDeltaCredential(LensContext<O> context,
+	private <O extends ObjectType> void transformFocusExecutionDeltaCredential(LensContext<O> context,
 			CredentialsPolicyType credsType, CredentialPolicyType credPolicyType,
 			ItemPath valuePropertyPath, ObjectDelta<O> delta) throws SchemaException, EncryptionException {
 		if (delta.isDelete()) {
@@ -186,10 +182,11 @@ public class CredentialsProcessor {
 		if (storageType == null || storageType == CredentialsStorageTypeType.ENCRYPTION) {
 			return;
 		} else if (storageType == CredentialsStorageTypeType.HASHING) {
-			PrismPropertyValue<ProtectedStringType> pval = null;
 			if (delta.isAdd()) {
 				PrismProperty<ProtectedStringType> prop = delta.getObjectToAdd().findProperty(valuePropertyPath);
-				hashValues(prop.getValues(), storageMethod);
+				if (prop != null) {
+					hashValues(prop.getValues(), storageMethod);
+				}
 			} else {
 				PropertyDelta<ProtectedStringType> propDelta = delta.findPropertyDelta(valuePropertyPath);
 				if (propDelta != null) {
@@ -209,9 +206,8 @@ public class CredentialsProcessor {
 				}
 			}
 		} else {
-			throw new SchemaException("Unkwnon storage type "+storageType);
+			throw new SchemaException("Unknown storage type "+storageType);
 		}
-
 	}
 
 	private void hashValues(Collection<PrismPropertyValue<ProtectedStringType>> values,

@@ -57,6 +57,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
@@ -278,8 +279,15 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	}
 
 	protected ObjectQuery createObjectQuery() {
-		return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext()).item(new ItemPath(AssignmentType.F_TARGET_REF))
-				.ref(getRelation())
+		return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+				.block()
+					.not()
+						.item(new ItemPath(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF))
+							.isNull()
+				.endBlock()
+					.or()
+						.item(new ItemPath(AssignmentType.F_TARGET_REF))
+							.ref(getRelation())
 				.build();
 	};
 

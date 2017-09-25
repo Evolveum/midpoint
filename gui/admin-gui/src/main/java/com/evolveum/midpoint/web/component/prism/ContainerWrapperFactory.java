@@ -160,11 +160,11 @@ public class ContainerWrapperFactory {
 		propertyDefinitions.forEach(itemDef -> {
 
 			if (itemDef.isIgnored() || skipProperty(itemDef)) {
-				LOGGER.info("Skipping creating wrapper for: {}", itemDef);
+				LOGGER.trace("Skipping creating wrapper for: {}", itemDef);
 				return;
 			}
 
-			LOGGER.info("Creating wrapper for {}", itemDef);
+			LOGGER.trace("Creating wrapper for {}", itemDef);
 			createPropertyOrReferenceWrapper(itemDef, cWrapper, propertyOrReferenceWrappers, onlyEmpty, cWrapper.getPath());
 			createContainerWrapper(itemDef, cWrapper, containerWrappers, onlyEmpty);
 

@@ -62,4 +62,13 @@
 	<objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="c:ResourceType"/>
 	<recurrence>single</recurrence>
 	<!-- No schedule - will execute immediately -->
+
+	<workflowContext>
+		<processInstanceId>1</processInstanceId>
+		<processName>abc</processName>
+		<processInstanceName>def</processInstanceName>
+		<processorSpecificState xsi:type="WfPrimaryChangeProcessorStateType">
+			<changeAspect>aspect</changeAspect>
+		</processorSpecificState>
+	</workflowContext>
 </task>

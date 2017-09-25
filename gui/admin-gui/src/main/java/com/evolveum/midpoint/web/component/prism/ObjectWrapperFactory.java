@@ -111,7 +111,7 @@ public class ObjectWrapperFactory {
                 objectClassDefinitionForEditing = modelServiceLocator.getModelInteractionService().getEditObjectClassDefinition(
                         (PrismObject<ShadowType>) object, resource, authorizationPhase);
                 if (objectClassDefinitionForEditing != null) {
-                	object.findContainer(ShadowType.F_ATTRIBUTES).applyDefinition((PrismContainerDefinition) objectClassDefinitionForEditing.toResourceAttributeContainerDefinition());;
+                	object.findOrCreateContainer(ShadowType.F_ATTRIBUTES).applyDefinition((PrismContainerDefinition) objectClassDefinitionForEditing.toResourceAttributeContainerDefinition());;
                 }
                 
             }
