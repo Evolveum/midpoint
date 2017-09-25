@@ -93,12 +93,12 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 				GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException;
 	
 	protected abstract String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
-			Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes,
+			Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
 			OperationResult result) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
 			ObjectAlreadyExistsException, ConfigurationException;
 	
 	protected abstract String createTicketDelete(ObjectClassComplexTypeDefinition objectClass,
-			Collection<? extends ResourceAttribute<?>> identifiers, OperationResult result) 
+			Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, OperationResult result)
 					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
 						ConfigurationException;
 	
@@ -145,7 +145,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		
 		try {
 			
-			ticketIdentifier = createTicketModify(objectClass, identifiers, changes, result);
+			ticketIdentifier = createTicketModify(objectClass, identifiers, reporter.getResourceOid(), changes, result);
 			
 		} catch (ObjectNotFoundException | CommunicationException | GenericFrameworkException | SchemaException |
 				ObjectAlreadyExistsException | ConfigurationException | RuntimeException | Error e) {
@@ -171,11 +171,11 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
 		OperationResult result = parentResult.createSubresult(OPERATION_DELETE);
 		
-		String ticketIdentifier = null;
+		String ticketIdentifier;
 		
 		try {
 			
-			ticketIdentifier = createTicketDelete(objectClass, identifiers, result);
+			ticketIdentifier = createTicketDelete(objectClass, identifiers, reporter.getResourceOid(), result);
 			
 		} catch (ObjectNotFoundException | CommunicationException | GenericFrameworkException | SchemaException |
 				ConfigurationException | RuntimeException | Error e) {

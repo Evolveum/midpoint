@@ -750,7 +750,7 @@ public class ResourceObjectConverter {
 			List<Collection<Operation>> operationsWaves = sortOperationsIntoWaves(operations, objectClassDefinition);
 			LOGGER.trace("Operation waves: {}", operationsWaves.size());
 			boolean inProgress = false;
-			String asyncronousOperationReference = null;
+			String asynchronousOperationReference = null;
 			for (Collection<Operation> operationsWave : operationsWaves) {
 				Collection<RefinedAttributeDefinition> readReplaceAttributes = determineReadReplace(operationsWave, objectClassDefinition);
 				LOGGER.trace("Read+Replace attributes: {}", readReplaceAttributes);
@@ -774,7 +774,7 @@ public class ResourceObjectConverter {
 					}
 					if (ret.isInProgress()) {
 						inProgress = true;
-						asyncronousOperationReference = ret.getOperationResult().getAsynchronousOperationReference();
+						asynchronousOperationReference = ret.getOperationResult().getAsynchronousOperationReference();
 					}
 				}
 			}
@@ -785,7 +785,7 @@ public class ResourceObjectConverter {
 			
 			if (inProgress) {
 				parentResult.recordInProgress();
-				parentResult.setAsynchronousOperationReference(asyncronousOperationReference);
+				parentResult.setAsynchronousOperationReference(asynchronousOperationReference);
 			}
 
 		} catch (ObjectNotFoundException ex) {

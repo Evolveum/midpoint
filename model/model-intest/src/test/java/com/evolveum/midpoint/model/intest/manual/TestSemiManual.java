@@ -256,7 +256,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		assertShadowName(shadowModelFuture, USER_JACK_USERNAME);
 		assertUnassignedFuture(shadowModelFuture, true);
 		
-		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_OPEN, getResourceOid());
 	}
 	
 	/**
@@ -318,7 +318,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		assertShadowName(shadowModelFuture, USER_JACK_USERNAME);
 		assertUnassignedFuture(shadowModelFuture, false);
 		
-		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED, getResourceOid());
 	}
 	
 	/**
@@ -348,7 +348,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		display("User after", userAfter);
 		assertDeprovisionedTimedOutUser(userAfter, accountJackOid);
 		
-		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED, getResourceOid());
 	}
 	
 	/**

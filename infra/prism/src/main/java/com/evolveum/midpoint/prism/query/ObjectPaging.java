@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism.query;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -31,7 +32,7 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	
 	private Integer offset;
 	private Integer maxSize;
-	private List<ObjectOrdering> ordering = new ArrayList<>();
+	@NotNull private final List<ObjectOrdering> ordering = new ArrayList<>();
 	private String cookie;
 	
 	protected ObjectPaging() {
@@ -108,11 +109,11 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	}
 
 	public boolean hasOrdering() {
-		return ordering != null && !ordering.isEmpty();			// first is just for sure
+		return !ordering.isEmpty();
 	}
 
 	public void setOrdering(ItemPath orderBy, OrderDirection direction) {
-		this.ordering = new ArrayList<>();
+		this.ordering.clear();
 		addOrderingInstruction(orderBy, direction);
 	}
 
@@ -124,12 +125,19 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		addOrderingInstruction(new ItemPath(orderBy), direction);
 	}
 
+	@SuppressWarnings("NullableProblems")
 	public void setOrdering(ObjectOrdering... orderings) {
-		this.ordering = new ArrayList<>(Arrays.asList(orderings));
+		this.ordering.clear();
+		if (orderings != null) {
+			this.ordering.addAll(Arrays.asList(orderings));
+		}
 	}
 
 	public void setOrdering(Collection<ObjectOrdering> orderings) {
-		this.ordering = orderings != null ? new ArrayList<>(orderings) : new ArrayList<>();
+		this.ordering.clear();
+		if (orderings != null) {
+			this.ordering.addAll(orderings);
+		}
 	}
 
 	public Integer getOffset() {
@@ -187,11 +195,8 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	protected void copyTo(ObjectPaging clone) {
 		clone.offset = this.offset;
 		clone.maxSize = this.maxSize;
-		if (this.ordering != null) {
-			clone.ordering = new ArrayList<>(this.ordering);
-		} else {
-			clone.ordering = null;
-		}
+		clone.ordering.clear();
+		clone.ordering.addAll(this.ordering);
 		clone.cookie = this.cookie;
 	}
 
@@ -231,10 +236,6 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("PAGING: ");
-		if (this == null){
-			sb.append("null");
-			return sb.toString();
-		}
 		if (getOffset() != null){
 			sb.append("O: ");
 			sb.append(getOffset());
@@ -258,6 +259,7 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		return sb.toString();
 	}
 
+	@SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
 	@Override
 	public boolean equals(Object o) {
 		return equals(o, true);
@@ -275,19 +277,14 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 			return false;
 		if (maxSize != null ? !maxSize.equals(that.maxSize) : that.maxSize != null)
 			return false;
-		if ((ordering != null && that.ordering == null) || (ordering == null && that.ordering != null)) {
+		if (ordering.size() != that.ordering.size()) {
 			return false;
 		}
-		if (ordering != null) {
-			if (ordering.size() != that.ordering.size()) {
+		for (int i = 0; i < ordering.size(); i++) {
+			ObjectOrdering oo1 = this.ordering.get(i);
+			ObjectOrdering oo2 = that.ordering.get(i);
+			if (!oo1.equals(oo2, exact)) {
 				return false;
-			}
-			for (int i = 0; i < ordering.size(); i++) {
-				ObjectOrdering oo1 = this.ordering.get(i);
-				ObjectOrdering oo2 = that.ordering.get(i);
-				if (!oo1.equals(oo2, exact)) {
-					return false;
-				}
 			}
 		}
 		return cookie != null ? cookie.equals(that.cookie) : that.cookie == null;
@@ -297,7 +294,7 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	public int hashCode() {
 		int result = offset != null ? offset.hashCode() : 0;
 		result = 31 * result + (maxSize != null ? maxSize.hashCode() : 0);
-		result = 31 * result + (ordering != null ? ordering.hashCode() : 0);
+		result = 31 * result + ordering.hashCode();
 		result = 31 * result + (cookie != null ? cookie.hashCode() : 0);
 		return result;
 	}

@@ -57,6 +57,19 @@
                 <xsd:sequence>
                     <!-- TODO payload -->
 
+                    <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Object that the case is associated with. It might be e.g. resource, if the case
+                                deals with creation of an account on that resource.
+                                EXPERIMENTAL. May change in future.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.7</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="state" type="xsd:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>

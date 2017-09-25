@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.OidUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -45,9 +46,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -101,13 +100,13 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
 		LOGGER.debug("Creating case to add account\n{}", object.debugDump(1));
 		String description = "Please create account "+object;
-		PrismObject<CaseType> acase = addCase(description, result);
+		PrismObject<CaseType> acase = addCase(description, ShadowUtil.getResourceOid(object.asObjectable()), result);
 		return acase.getOid();
 	}
 
 	@Override
 	protected String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
-			Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes,
+			Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
 			OperationResult result) throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
 		LOGGER.debug("Creating case to modify account {}:\n{}", identifiers, DebugUtil.debugDump(changes, 1));
@@ -117,20 +116,20 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 			}
 		}
 		String description = "Please modify account "+identifiers+": "+changes;
-		PrismObject<CaseType> acase = addCase(description, result);
+		PrismObject<CaseType> acase = addCase(description, resourceOid, result);
 		return acase.getOid();
 	}
 
 	@Override
 	protected String createTicketDelete(ObjectClassComplexTypeDefinition objectClass,
-			Collection<? extends ResourceAttribute<?>> identifiers, OperationResult result)
+			Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, OperationResult result)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
 			SchemaException, ConfigurationException {
 		LOGGER.debug("Creating case to delete account {}", identifiers);
 		String description = "Please delete account "+identifiers;
 		PrismObject<CaseType> acase;
 		try {
-			acase = addCase(description, result);
+			acase = addCase(description, resourceOid, result);
 		} catch (ObjectAlreadyExistsException e) {
 			// should not happen
 			throw new SystemException(e.getMessage(), e);
@@ -138,8 +137,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		return acase.getOid();
 	}
 	
-	private PrismObject<CaseType> addCase(String description, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
-		PrismObject<CaseType> acase = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(CaseType.class).instantiate();
+	private PrismObject<CaseType> addCase(String description, String resourceOid, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
+		PrismObject<CaseType> acase = getPrismContext().createObject(CaseType.class);
 		CaseType caseType = acase.asObjectable();
 		
 		if (randomDelayRange != 0) {
@@ -163,7 +162,9 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		
 		// subtype
 		caseType.setState(SchemaConstants.CASE_STATE_OPEN);
-		
+
+		caseType.setObjectRef(new ObjectReferenceType().oid(resourceOid).type(ResourceType.COMPLEX_TYPE));
+
 		// TODO: case payload
 		// TODO: a lot of other things
 		
@@ -178,12 +179,12 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	}
 	
 	@Override
-	public OperationResultStatus queryOperationStatus(String asyncronousOperationReference, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	public OperationResultStatus queryOperationStatus(String asynchronousOperationReference, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.createMinorSubresult(OPERATION_QUERY_CASE);
 		
 		PrismObject<CaseType> acase;
 		try {
-			acase = repositoryService.getObject(CaseType.class, asyncronousOperationReference, null, result);
+			acase = repositoryService.getObject(CaseType.class, asynchronousOperationReference, null, result);
 		} catch (ObjectNotFoundException | SchemaException e) {
 			result.recordFatalError(e);
 			throw e;

@@ -44,6 +44,7 @@ import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -74,6 +75,7 @@ public class ObjectRetriever {
 
     @Autowired private LookupTableHelper lookupTableHelper;
 	@Autowired private CertificationCaseHelper caseHelper;
+	@Autowired private CaseManagementHelper caseManagementHelper;
 	@Autowired private BaseHelper baseHelper;
 	@Autowired private NameResolutionHelper nameResolutionHelper;
 	@Autowired private PrismContext prismContext;
@@ -330,8 +332,9 @@ public class ObjectRetriever {
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
 		boolean cases = AccessCertificationCaseType.class.equals(type);
 		boolean workItems = AccessCertificationWorkItemType.class.equals(type);
-		if (!cases && !workItems) {
-			throw new UnsupportedOperationException("Only AccessCertificationCaseType or AccessCertificationWorkItemType is supported here now.");
+		boolean caseWorkItems = AccessCertificationWorkItemType.class.equals(type);
+		if (!cases && !workItems && !caseWorkItems) {
+			throw new UnsupportedOperationException("Only AccessCertificationCaseType or AccessCertificationWorkItemType or CaseWorkItemType is supported here now.");
 		}
 
 		LOGGER_PERFORMANCE.debug("> count containers {}", type.getSimpleName());
@@ -416,8 +419,9 @@ public class ObjectRetriever {
 
     	boolean cases = AccessCertificationCaseType.class.equals(type);
     	boolean workItems = AccessCertificationWorkItemType.class.equals(type);
-        if (!cases && !workItems) {
-            throw new UnsupportedOperationException("Only AccessCertificationCaseType or AccessCertificationWorkItemType is supported here now.");
+    	boolean caseWorkItems = CaseWorkItemType.class.equals(type);
+        if (!cases && !workItems && !caseWorkItems) {
+            throw new UnsupportedOperationException("Only AccessCertificationCaseType or AccessCertificationWorkItemType or CaseWorkItemType is supported here now.");
         }
 
         LOGGER_PERFORMANCE.debug("> search containers {}", type.getSimpleName());
@@ -439,8 +443,7 @@ public class ObjectRetriever {
 					C value = (C) caseHelper.updateLoadedCertificationCase(item, campaignsCache, options, session, result);
 					list.add(value);
 				}
-			} else {
-            	assert workItems;
+			} else if (workItems) {
             	@SuppressWarnings({"unchecked", "raw"})
 				List<GetCertificationWorkItemResult> items = rQuery.list();
 				LOGGER.trace("Found {} work items, translating to JAXB.", items.size());
@@ -452,7 +455,23 @@ public class ObjectRetriever {
 					C value = (C) caseHelper.updateLoadedCertificationWorkItem(item, casesCache, campaignsCache, options, engine, session, result);
 					list.add(value);
 				}
-			}
+			} else {
+	            assert caseWorkItems;
+	            @SuppressWarnings({"unchecked", "raw"})
+	            List<GetContainerableIdOnlyResult> items = rQuery.list();
+	            LOGGER.trace("Found {} items (case work items), translating to JAXB.", items.size());
+	            Map<String,PrismObject<CaseType>> casesCache = new HashMap<>();
+
+	            for (GetContainerableIdOnlyResult item : items) {
+		            try {
+			            @SuppressWarnings({ "raw", "unchecked" })
+			            C value = (C) caseManagementHelper.updateLoadedCaseWorkItem(item, casesCache, options, session, result);
+			            list.add(value);
+		            } catch (ObjectNotFoundException|DtoTranslationException e) {
+			            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve case work item for {}", e, item);
+		            }
+	            }
+            }
 
 			nameResolutionHelper.resolveNamesIfRequested(session, PrismContainerValue.asPrismContainerValues(list), options);
 

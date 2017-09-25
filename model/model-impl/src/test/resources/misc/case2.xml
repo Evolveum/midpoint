@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<case xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		oid="4fb91911-c64d-4c18-8a3e-b3f987408578">
+	<name>case2</name>
+	<workItem id="1">
+		<deadline>2017-05-17T23:45:58.689+02:00</deadline>
+		<assigneeRef oid="401f0190-f6f4-4493-bbaa-165e5dd4f9df" type="UserType"/>		<!-- user1 -->
+	</workItem>
+	<workItem id="2">
+		<deadline>2017-09-17T23:45:58.689+02:00</deadline>
+		<assigneeRef oid="45210a47-a70b-4d55-8148-12899f9ebf55" type="UserType"/>		<!-- user2 -->
+	</workItem>
+	<workItem id="3">
+		<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>		<!-- administrator -->
+	</workItem>
+</case>

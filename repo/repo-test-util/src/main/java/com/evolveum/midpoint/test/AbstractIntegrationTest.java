@@ -1811,12 +1811,21 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertEquals("Wroung number of pending operations in "+shadow, 0, pendingOperations.size());
 	}
 	
-	protected void assertCase(String oid, String expectedState) throws ObjectNotFoundException, SchemaException {
+	protected CaseType assertCase(String oid, String expectedState, String expectedResourceOid) throws ObjectNotFoundException, SchemaException {
+		CaseType aCase = assertCase(oid, expectedState);
+		assertNotNull("Missing objectRef in " + aCase, aCase.getObjectRef());
+		assertEquals("Wrong objectRef type in " + aCase, ResourceType.COMPLEX_TYPE, aCase.getObjectRef().getType());
+		assertEquals("Wrong resource OID in " + aCase, expectedResourceOid, aCase.getObjectRef().getOid());
+		return aCase;
+	}
+
+	protected CaseType assertCase(String oid, String expectedState) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("assertCase");
 		PrismObject<CaseType> acase = repositoryService.getObject(CaseType.class, oid, null, result);
 		display("Case", acase);
 		CaseType caseType = acase.asObjectable();
-		assertEquals("Wrong state of "+acase, expectedState ,caseType.getState());
+		assertEquals("Wrong state of "+acase, expectedState, caseType.getState());
+		return caseType;
 	}
 	
 	protected void closeCase(String caseOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {

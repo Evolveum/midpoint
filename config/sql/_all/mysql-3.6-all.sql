@@ -395,8 +395,39 @@ CREATE TABLE m_audit_ref_value (
 CREATE TABLE m_case (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
+  objectRef_relation  VARCHAR(157),
+  objectRef_targetOid VARCHAR(36),
+  objectRef_type      INTEGER,
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE TABLE m_case_wi (
+  id                     INTEGER     NOT NULL,
+  owner_oid              VARCHAR(36) NOT NULL,
+  closeTimestamp         DATETIME(6),
+  deadline               DATETIME(6),
+  outcome                VARCHAR(255),
+  performerRef_relation  VARCHAR(157),
+  performerRef_targetOid VARCHAR(36),
+  performerRef_type      INTEGER,
+  stageNumber            INTEGER,
+  PRIMARY KEY (id, owner_oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE TABLE m_case_wi_reference (
+  owner_id        INTEGER      NOT NULL,
+  owner_owner_oid VARCHAR(36)  NOT NULL,
+  relation        VARCHAR(157) NOT NULL,
+  targetOid       VARCHAR(36)  NOT NULL,
+  targetType      INTEGER,
+  PRIMARY KEY (owner_id, owner_owner_oid, relation, targetOid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
@@ -1068,6 +1099,9 @@ CREATE INDEX iAuditRefValRecordId
 ALTER TABLE m_case
   ADD CONSTRAINT uc_case_name UNIQUE (name_norm);
 
+CREATE INDEX iCaseWorkItemRefTargetOid
+  ON m_case_wi_reference (targetOid);
+
 ALTER TABLE m_connector_host
 ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
 
@@ -1135,6 +1169,9 @@ CREATE INDEX iOpExecInitiatorOid
 
 CREATE INDEX iOpExecStatus
   ON m_operation_execution (status);
+
+CREATE INDEX iOpExecOwnerOid
+  ON m_operation_execution (owner_oid);
 
 ALTER TABLE m_org
 ADD CONSTRAINT uc_org_name UNIQUE (name_norm);
@@ -1318,6 +1355,16 @@ ALTER TABLE m_case
   ADD CONSTRAINT fk_case
 FOREIGN KEY (oid)
 REFERENCES m_object (oid);
+
+ALTER TABLE m_case_wi
+  ADD CONSTRAINT fk_case_wi_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_case (oid);
+
+ALTER TABLE m_case_wi_reference
+  ADD CONSTRAINT fk_case_wi_reference_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_case_wi (id, owner_oid);
 
 ALTER TABLE m_connector
 ADD CONSTRAINT fk_connector
