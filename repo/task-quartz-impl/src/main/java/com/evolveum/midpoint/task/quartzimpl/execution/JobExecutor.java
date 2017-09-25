@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.quartz.*;
+import org.springframework.security.core.Authentication;
 
 import javax.xml.datatype.Duration;
 import java.util.ArrayList;
@@ -167,6 +168,8 @@ public class JobExecutor implements InterruptableJob {
 			// Setup Spring Security context
 			PrismObject<UserType> taskOwner = task.getOwner();
 			try {
+				// just to be sure we won't run the owner-setting login with any garbage security context (see MID-4160)
+				taskManagerImpl.getSecurityEnforcer().setupPreAuthenticatedSecurityContext((Authentication) null);
 				taskManagerImpl.getSecurityEnforcer().setupPreAuthenticatedSecurityContext(taskOwner);
 			} catch (SchemaException e) {
 	            LoggingUtils.logUnexpectedException(LOGGER, "Task with OID {} cannot be executed: error setting security context", e, oid);
@@ -184,17 +187,23 @@ public class JobExecutor implements InterruptableJob {
 			}
 		
 		} finally {
-            waitForTransientChildrenAndCloseThem(executionResult);              // this is only a safety net; because we've waited for children just after executing a handler
 
-            taskManagerImpl.unregisterRunningTask(task);
-            executingThread = null;
+			try {
+				waitForTransientChildrenAndCloseThem(executionResult);              // this is only a safety net; because we've waited for children just after executing a handler
 
-            if (!task.canRun()) {
-                processTaskStop(executionResult);
-            }
+				taskManagerImpl.unregisterRunningTask(task);
+				executingThread = null;
 
-			logThreadRunFinish(handler);
-            taskManagerImpl.notifyTaskThreadFinish(task);
+				if (!task.canRun()) {
+					processTaskStop(executionResult);
+				}
+
+				logThreadRunFinish(handler);
+				taskManagerImpl.notifyTaskThreadFinish(task);
+			} finally {
+				// "logout" this thread
+				taskManagerImpl.getSecurityEnforcer().setupPreAuthenticatedSecurityContext((Authentication) null);
+			}
 		}
 
 	}
