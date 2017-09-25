@@ -43,7 +43,7 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestPolicyMetadata extends AbstractLensTest {
+public class TestPolicyState extends AbstractLensTest {
 
 	private static final String ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME = "criminal exclusion";
 
@@ -73,7 +73,7 @@ public class TestPolicyMetadata extends AbstractLensTest {
 		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicyMetadata.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestPolicyState.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN
@@ -100,7 +100,7 @@ public class TestPolicyMetadata extends AbstractLensTest {
 		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicyMetadata.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestPolicyState.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN
@@ -130,7 +130,7 @@ public class TestPolicyMetadata extends AbstractLensTest {
 		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicyMetadata.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestPolicyState.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN

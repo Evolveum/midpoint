@@ -1014,7 +1014,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="recordSituation" type="tns:RecordSituationPolicyActionType" minOccurs="0">
+            <xsd:element name="record" type="tns:RecordPolicyActionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Record action. The operation will proceed. Policy situation will be recorded for
@@ -1375,7 +1375,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="RecordSituationPolicyActionType">
+    <xsd:complexType name="RecordPolicyActionType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO

@@ -30,7 +30,7 @@
 		    </policyConstraints>
 		    <policyActions>
 				<!-- no enforcement here -->
-				<recordSituation/>
+				<record/>
 			</policyActions>
     	</policyRule>
     </assignment>

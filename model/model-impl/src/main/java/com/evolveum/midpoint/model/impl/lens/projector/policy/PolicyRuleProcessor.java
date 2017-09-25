@@ -319,7 +319,7 @@ public class PolicyRuleProcessor {
 			}
 			ctx.triggerRule(triggers);
 		}
-		if (ctx.policyRule.isTriggered() && ctx.policyRule.getActions() != null && ctx.policyRule.getActions().getRecordSituation() != null) {
+		if (ctx.policyRule.isTriggered() && ctx.policyRule.getActions() != null && ctx.policyRule.getActions().getRecord() != null) {
 			ctx.record();
 		}
 		traceRuleEvaluationResult(ctx.policyRule, ctx);

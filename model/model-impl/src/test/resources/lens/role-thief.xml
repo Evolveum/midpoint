@@ -28,7 +28,7 @@
 		    </policyConstraints>
 			<policyActions>
 				<!-- no enforcement -->
-				<recordSituation/>
+				<record/>
 			</policyActions>
     	</policyRule>
     </assignment>
