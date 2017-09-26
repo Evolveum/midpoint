@@ -25,6 +25,13 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.criterion.MatchMode;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
+
 /**
  * @author mederly
  */
@@ -37,16 +44,29 @@ public class FullTextRestriction extends Restriction<FullTextFilter> {
 
     @Override
     public Condition interpret() throws QueryException {
-		String textInfoItemsAlias = getItemPathResolver().addTextInfoJoin(getBaseHqlEntity().getHqlPath());
-		String textPath = textInfoItemsAlias + "." + RObjectTextInfo.F_TEXT;
-
 	    // TODO implement multiple values
 	    if (filter.getValues().size() != 1) {
 		    throw new QueryException("FullText filter currently supports only a single string");
 	    }
 	    String text = filter.getValues().iterator().next();
 	    String normalized = getContext().getPrismContext().getDefaultPolyStringNormalizer().normalize(text);
-		normalized = StringUtils.normalizeSpace(normalized);
-		return getContext().getHibernateQuery().createLike(textPath, normalized, MatchMode.ANYWHERE, false);
+	    String[] words = StringUtils.split(normalized);
+	    List<Condition> conditions = new ArrayList<>(words.length);
+	    for (String word : words) {
+		    conditions.add(createWordQuery(word));
+	    }
+	    if (conditions.isEmpty()) {
+	    	return createWordQuery("");                     // original behavior -> match all records (TODO return something like 'empty condition')
+	    } else if (conditions.size() == 1) {
+	    	return conditions.get(0);
+	    } else {
+	    	return getContext().getHibernateQuery().createAnd(conditions);
+	    }
     }
+
+	private Condition createWordQuery(String word) throws QueryException {
+		String textInfoItemsAlias = getItemPathResolver().addTextInfoJoin(getBaseHqlEntity().getHqlPath());
+		String textPath = textInfoItemsAlias + "." + RObjectTextInfo.F_TEXT;
+		return getContext().getHibernateQuery().createLike(textPath, word, MatchMode.ANYWHERE, false);
+	}
 }
