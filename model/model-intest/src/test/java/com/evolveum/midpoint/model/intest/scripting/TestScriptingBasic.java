@@ -52,10 +52,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.testng.AssertJUnit.*;
 
@@ -71,6 +69,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final String DOT_CLASS = TestScriptingBasic.class.getName() + ".";
     private static final File LOG_FILE = new File(TEST_DIR, "log.xml");
     private static final File SEARCH_FOR_USERS_FILE = new File(TEST_DIR, "search-for-users.xml");
+    private static final File SEARCH_FOR_USERS_WITH_EXPRESSIONS_FILE = new File(TEST_DIR, "search-for-users-with-expressions.xml");
     private static final File SEARCH_FOR_USERS_RESOLVE_NAMES_FOR_ROLE_MEMBERSHIP_REF_FILE = new File(TEST_DIR, "search-for-users-resolve-names-for-roleMembershipRef.xml");
     private static final File SEARCH_FOR_USERS_RESOLVE_ROLE_MEMBERSHIP_REF_FILE = new File(TEST_DIR, "search-for-users-resolve-roleMembershipRef.xml");
     private static final File SEARCH_FOR_SHADOWS_FILE = new File(TEST_DIR, "search-for-shadows.xml");
@@ -226,6 +225,33 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         TestUtil.assertSuccess(result);
         assertEquals(2, output.getFinalOutput().getData().size());
         //assertEquals("administrator", ((PrismObject<UserType>) output.getData().get(0)).asObjectable().getName().getOrig());
+    }
+
+    @Test
+    public void test202SearchUserWithExpressions() throws Exception {
+    	final String TEST_NAME = "test202SearchUserWithExpressions";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+
+        // GIVEN
+		Task task = createTask(DOT_CLASS + TEST_NAME);
+		OperationResult result = task.getResult();
+	    ExecuteScriptType executeScript = prismContext.parserFor(SEARCH_FOR_USERS_WITH_EXPRESSIONS_FILE).parseRealValue();
+	    Map<String, Object> variables = new HashMap<>();
+	    variables.put("value1", "administrator");
+	    variables.put("value2", "jack");
+
+        // WHEN
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, variables, task, result);
+
+        // THEN
+        dumpOutput(output, result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        assertEquals(2, output.getFinalOutput().getData().size());
+        assertEquals(new HashSet<>(Arrays.asList("administrator", "jack")),
+                output.getFinalOutput().getData().stream()
+		                .map(i -> ((PrismObjectValue) i.getValue()).getName().getOrig())
+		                .collect(Collectors.toSet()));
     }
 
     @Test

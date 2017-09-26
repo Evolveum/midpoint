@@ -4442,12 +4442,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void transplantGlobalPolicyRulesAdd(File configWithGlobalRulesFile, Task task, OperationResult parentResult) throws SchemaException, IOException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		// copy rules from the file into live system config object
 		PrismObject<SystemConfigurationType> rules = prismContext.parserFor(configWithGlobalRulesFile).parse();
-		ObjectDelta<SystemConfigurationType> delta = (ObjectDelta<SystemConfigurationType>) DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
+		ObjectDelta<SystemConfigurationType> delta = DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
 				.item(SystemConfigurationType.F_GLOBAL_POLICY_RULE).add(
 					rules.asObjectable().getGlobalPolicyRule().stream()
 							.map(r -> r.clone().asPrismContainerValue())
 							.collect(Collectors.toList()))
-				.asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value());
+				.asObjectDeltaCast(SystemObjectsType.SYSTEM_CONFIGURATION.value());
 		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, parentResult);
 	}
 

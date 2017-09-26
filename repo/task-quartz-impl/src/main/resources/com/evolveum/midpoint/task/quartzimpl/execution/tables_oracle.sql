@@ -10,20 +10,17 @@
 
 
 -- there are two semicolons at the end of each of the following lines to work around a bug/feature of ScriptRunner we use
-BEGIN
-BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_calendars';           EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;
-BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_fired_triggers';      EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;
-BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_blob_triggers';       EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;
-BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_cron_triggers';       EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;
-BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_simple_triggers';     EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;
-BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_simprop_triggers';    EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;
-BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_triggers';            EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;
-BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_job_details';         EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;
-BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_paused_trigger_grps'; EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;
-BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_locks';               EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;
-BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_scheduler_state';     EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;
-END;
-/
+BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_calendars';           EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;;
+BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_fired_triggers';      EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;;
+BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_blob_triggers';       EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;;
+BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_cron_triggers';       EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;;
+BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_simple_triggers';     EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;;
+BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_simprop_triggers';    EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;;
+BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_triggers';            EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;;
+BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_job_details';         EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;;
+BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_paused_trigger_grps'; EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;;
+BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_locks';               EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;;
+BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_scheduler_state';     EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;;
 
 CREATE TABLE qrtz_job_details
   (

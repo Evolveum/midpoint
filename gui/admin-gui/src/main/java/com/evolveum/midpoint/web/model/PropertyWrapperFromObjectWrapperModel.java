@@ -37,7 +37,7 @@ import javax.xml.namespace.QName;
  * @author lazyman
  * @author semancik
  */
-public class PropertyWrapperFromObjectWrapperModel<T,O extends ObjectType> extends AbstractWrapperModel<PropertyWrapper<PrismProperty<T>,PrismPropertyDefinition<T>>,O> {
+public class PropertyWrapperFromObjectWrapperModel<T,O extends ObjectType> extends AbstractWrapperModel<PropertyWrapper<T>,O> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PropertyWrapperFromObjectWrapperModel.class);
 
@@ -54,12 +54,12 @@ public class PropertyWrapperFromObjectWrapperModel<T,O extends ObjectType> exten
     }
 
     @Override
-    public PropertyWrapper<PrismProperty<T>, PrismPropertyDefinition<T>> getObject() {
-    	PropertyWrapper<PrismProperty<T>, PrismPropertyDefinition<T>> propertyWrapper = getWrapper().findPropertyWrapper(path);
+    public PropertyWrapper<T> getObject() {
+    	PropertyWrapper<T> propertyWrapper = getWrapper().findPropertyWrapper(path);
         return propertyWrapper;
     }
 
-    @Override public void setObject(PropertyWrapper<PrismProperty<T>, PrismPropertyDefinition<T>> prismPropertyPropertyWrapper) {
+    @Override public void setObject(PropertyWrapper<T> prismPropertyPropertyWrapper) {
         throw new UnsupportedOperationException("PropertyWrapperFromObjectWrapperModel.setObject called");
     }
 

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.TaskChangesPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -89,6 +90,8 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
     private static final String ID_RELATED_REQUESTS_CONTAINER = "relatedRequestsContainer";
     private static final String ID_RELATED_REQUESTS = "relatedRequests";
     private static final String ID_RELATED_REQUESTS_HELP = "relatedRequestsHelp";
+    private static final String ID_TRIGGERS_CONTAINER = "triggersContainer";
+    private static final String ID_TRIGGERS = "triggers";
     private static final String ID_ADDITIONAL_INFORMATION = "additionalInformation";
     private static final String ID_CUSTOM_FORM = "customForm";
     private static final String ID_APPROVER_COMMENT = "approverComment";
@@ -215,6 +218,13 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 			}
 		});
 		add(WebComponentUtil.createHelp(ID_SHOW_REQUEST_HELP));
+
+		WebMarkupContainer triggersContainer = new WebMarkupContainer(ID_TRIGGERS_CONTAINER);
+	    PropertyModel<List<EvaluatedTriggerGroupDto>> triggersModel = new PropertyModel<>(getModel(), WorkItemDto.F_TRIGGERS);
+	    WebMarkupContainer triggers = new EvaluatedTriggerGroupListPanel(ID_TRIGGERS, triggersModel);
+		triggersContainer.add(triggers);
+		triggersContainer.add(new VisibleBehaviour(() -> !triggersModel.getObject().isEmpty()));
+		add(triggersContainer);
 
 		WebMarkupContainer additionalInformation = new InformationListPanel(ID_ADDITIONAL_INFORMATION,
 				new PropertyModel<>(getModel(), WorkItemDto.F_ADDITIONAL_INFORMATION));

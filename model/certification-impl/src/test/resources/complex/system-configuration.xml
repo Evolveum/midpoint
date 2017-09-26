@@ -226,8 +226,12 @@
 				<policySituation>http://sample.org/situations#active-role-with-no-identifier</policySituation>
 				<expectedUse>certification</expectedUse> <!-- R4 -->
 				<expectedUse>fullReport</expectedUse>	<!-- RE2 -->
-				<ref>role-active</ref>
-				<ref>c5-no-identifier</ref>
+				<ref>
+					<name>role-active</name>
+				</ref>
+				<ref>
+					<name>c5-no-identifier</name>
+				</ref>
 			</and>
 			<and>
 				<or>
@@ -238,11 +242,21 @@
 					</presentation>
 					<policySituation>http://sample.org/situations#incomplete-role-c1-to-c4</policySituation>
 					<expectedUse>fullReport</expectedUse>	<!-- RE1 -->
-					<ref>c1-no-risk-level</ref>
-					<ref>c2-no-description-for-high-risk-role</ref>
-					<ref>c3-less-than-1-approver-for-non-high-risk-role</ref>
-					<ref>c3-less-than-2-approvers-for-high-risk-role</ref>
-					<ref>c4-no-role-owner</ref>
+					<ref>
+						<name>c1-no-risk-level</name>
+					</ref>
+					<ref>
+						<name>c2-no-description-for-high-risk-role</name>
+					</ref>
+					<ref>
+						<name>c3-less-than-1-approver-for-non-high-risk-role</name>
+					</ref>
+					<ref>
+						<name>c3-less-than-2-approvers-for-high-risk-role</name>
+					</ref>
+					<ref>
+						<name>c4-no-role-owner</name>
+					</ref>
 				</or>
 			</and>
 			<and>
@@ -255,7 +269,9 @@
 					<stateBefore>false</stateBefore>
 					<stateAfter>true</stateAfter>
 					<constraints>
-						<ref>role-active</ref>
+						<ref>
+							<name>role-active</name>
+						</ref>
 					</constraints>
 				</transition>
 			</and>
@@ -275,8 +291,12 @@
 			<!-- presentation uses PolicyConstraint.r1-no-activation-of-incomplete-roles -->
 			<!-- Note: situation is not defined here, as this is a transition-related rule.
 			     Situation marking incomplete rules is defined in incomplete-role-c1-to-c4 constraint. -->
-			<ref>incomplete-role-c1-to-c4</ref>
-			<ref>role-activation</ref>
+			<ref>
+				<name>incomplete-role-c1-to-c4</name>
+			</ref>
+			<ref>
+				<name>role-activation</name>
+			</ref>
 		</policyConstraints>
 		<policyActions>
 			<enforcement/>
@@ -293,7 +313,9 @@
 			<presentation>
 				<final>true</final>
 			</presentation>
-			<ref>role-activation</ref>
+			<ref>
+				<name>role-activation</name>
+			</ref>
 		</policyConstraints>
 		<policyActions>
 			<approval>
@@ -319,8 +341,12 @@
 			<presentation>
 				<final>true</final>
 			</presentation>
-			<ref>role-activation</ref>
-			<ref>c5-no-identifier</ref>
+			<ref>
+				<name>role-activation</name>
+			</ref>
+			<ref>
+				<name>c5-no-identifier</name>
+			</ref>
 		</policyConstraints>
 		<policyActions>
 			<approval>
@@ -348,9 +374,13 @@
 					<final>true</final>
 					<hidden>true</hidden>
 				</presentation>
-				<ref>active-role-with-no-identifier</ref>
+				<ref>
+					<name>active-role-with-no-identifier</name>
+				</ref>
 			</and>
-			<ref>validity-not-limited</ref>
+			<ref>
+				<name>validity-not-limited</name>
+			</ref>
 		</policyConstraints>
 		<policyActions>
 			<enforcement/>

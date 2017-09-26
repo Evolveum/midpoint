@@ -43,7 +43,10 @@ import org.springframework.stereotype.Component;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static java.util.Collections.emptyMap;
 
 /**
  * Main entry point for evaluating scripting expressions.
@@ -138,24 +141,39 @@ public class ScriptingExpressionEvaluator {
      */
 
     public ExecutionContext evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException {
-        ExecutionContext context = evaluateExpression(expression, PipelineData.createEmpty(), null, task, result);
+        ExecutionContext context = evaluateExpression(expression, PipelineData.createEmpty(), null, emptyMap(), false, task, result);
         context.computeResults();
         return context;
     }
 
 
 	public ExecutionContext evaluateExpression(@NotNull ExecuteScriptType executeScript, Task task, OperationResult result) throws ScriptExecutionException {
+        return evaluateExpression(executeScript, emptyMap(), task, result);
+    }
+
+    // TEMPORARY!
+	public ExecutionContext evaluateExpression(@NotNull ExecuteScriptType executeScript, @NotNull Map<String, Object> initialVariables, Task task, OperationResult result) throws ScriptExecutionException {
 		Validate.notNull(executeScript.getScriptingExpression(), "Scripting expression must be present");
         ExecutionContext context = evaluateExpression(executeScript.getScriptingExpression().getValue(),
-                PipelineData.parseFrom(executeScript.getInput(), prismContext), executeScript.getOptions(), task, result);
+                PipelineData.parseFrom(executeScript.getInput(), initialVariables, prismContext), executeScript.getOptions(), initialVariables, false, task, result);
+        context.computeResults();
+        return context;
+    }
+
+    // VERY TEMPORARY!
+	public ExecutionContext evaluateExpressionPrivileged(@NotNull ExecuteScriptType executeScript, @NotNull Map<String, Object> initialVariables, Task task, OperationResult result) throws ScriptExecutionException {
+		Validate.notNull(executeScript.getScriptingExpression(), "Scripting expression must be present");
+        ExecutionContext context = evaluateExpression(executeScript.getScriptingExpression().getValue(),
+                PipelineData.parseFrom(executeScript.getInput(), initialVariables, prismContext), executeScript.getOptions(), initialVariables, true, task, result);
         context.computeResults();
         return context;
     }
 
     // main entry point from the outside
 	private ExecutionContext evaluateExpression(ScriptingExpressionType expression, PipelineData data,
-			ScriptingExpressionEvaluationOptionsType options, Task task, OperationResult result) throws ScriptExecutionException {
-		ExecutionContext context = new ExecutionContext(options, task, this);
+            ScriptingExpressionEvaluationOptionsType options, Map<String, Object> initialVariables,
+            boolean privileged, Task task, OperationResult result) throws ScriptExecutionException {
+		ExecutionContext context = new ExecutionContext(options, task, this, privileged, initialVariables);
 		PipelineData output;
 		try {
 			output = evaluateExpression(expression, data, context, result);
@@ -226,8 +244,11 @@ public class ScriptingExpressionEvaluator {
 
     private PipelineData executeSequence(ExpressionSequenceType sequence, PipelineData input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         PipelineData lastOutput = null;
-        for (JAXBElement<? extends ScriptingExpressionType> expressionType : sequence.getScriptingExpression()) {
-            lastOutput = evaluateExpression(expressionType, input, context, result);
+        List<JAXBElement<? extends ScriptingExpressionType>> scriptingExpression = sequence.getScriptingExpression();
+        for (int i = 0; i < scriptingExpression.size(); i++) {
+            JAXBElement<? extends ScriptingExpressionType> expressionType = scriptingExpression.get(i);
+            PipelineData branchInput = i < scriptingExpression.size() - 1 ? input.cloneMutableState() : input;
+            lastOutput = evaluateExpression(expressionType, branchInput, context, result);
         }
         return lastOutput;
     }
@@ -252,7 +273,7 @@ public class ScriptingExpressionEvaluator {
             if (value.isRaw()) {
                 throw new IllegalStateException("Raw value while " + desc + ": " + value + ". Please specify type of the value.");
             }
-            return PipelineData.createItem(value);
+            return PipelineData.createItem(value, context.getInitialVariables());
         } catch (SchemaException e) {
             throw new ScriptExecutionException(e.getMessage(), e);
         }
@@ -261,7 +282,7 @@ public class ScriptingExpressionEvaluator {
     public PipelineData evaluateConstantStringExpression(RawType constant, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         try {
             String value = constant.getParsedRealValue(String.class);
-            return PipelineData.createItem(new PrismPropertyValue<>(value));
+            return PipelineData.createItem(new PrismPropertyValue<>(value), context.getInitialVariables());
         } catch (SchemaException e) {
             throw new ScriptExecutionException(e.getMessage(), e);
         }

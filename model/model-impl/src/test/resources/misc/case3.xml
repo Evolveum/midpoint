@@ -1,5 +1,6 @@
+<?xml version="1.0" ?>
 <!--
-  ~ Copyright (c) 2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,12 +15,7 @@
   ~ limitations under the License.
   -->
 
-<!DOCTYPE html>
-<html xmlns:wicket="http://wicket.apache.org">
-<wicket:panel>
-        <a wicket:id="targetUserButton">
-            <span wicket:id="targetUserLabel"/>
-            <i wicket:id="deleteTargetUserButton" class="fa fa-times-circle fa-lg text-danger" style="margin-left: 10px;"/>
-        </a>
-</wicket:panel>
-</html>
+<case xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		oid="2a6e174a-15bc-4b58-bcc7-041d2831272d">
+	<name>case3</name>
+</case>

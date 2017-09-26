@@ -46,6 +46,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getSchemaRegistry;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -79,6 +80,10 @@ public class TestParseTask {
 		System.out.println(task.debugDump());
 
 		assertTask(task);
+
+		PrismObjectDefinition<TaskType> taskDef = getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
+		task.applyDefinition(taskDef);
+		task.getValue().applyDefinition(taskDef);
 	}
 
 	@Test

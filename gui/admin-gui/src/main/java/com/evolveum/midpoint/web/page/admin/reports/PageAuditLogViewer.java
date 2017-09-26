@@ -23,7 +23,7 @@ public class PageAuditLogViewer extends PageBase {
 	}
 
     private void initLayout(){
-        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_PANEL, PageAuditLogViewer.this);
+        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_PANEL, null);
         panel.setOutputMarkupId(true);
         add(panel);
     }

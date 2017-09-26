@@ -48,7 +48,7 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 
 	javax.xml.validation.Schema getJavaxSchema();
 
-	PrismSchema getSchema(String namespace);
+	PrismSchema getPrismSchema(String namespace);
 
 	Collection<PrismSchema> getSchemas();
 

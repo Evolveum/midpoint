@@ -222,10 +222,12 @@ public class PrismUnmarshaller {
             if (prim.isEmpty()) {
                 return containerDef.createValue();
             } else {
-                throw new IllegalArgumentException("Cannot parse container value from (non-empty) " + node);
+                pc.warnOrThrow(LOGGER, "Cannot parse container value from (non-empty) " + node);
+                return containerDef.createValue();
             }
         } else {
-            throw new IllegalArgumentException("Cannot parse container value from " + node);
+            pc.warnOrThrow(LOGGER, "Cannot parse container value from " + node);
+            return containerDef.createValue();
         }
     }
 

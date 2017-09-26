@@ -25,12 +25,13 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Revivable;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 /**
  * @author lazyman
  */
-public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends Revivable, DebugDumpable, Serializable {
+public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> extends Revivable, DebugDumpable, Serializable {
 
 	QName getName();
 
@@ -39,6 +40,8 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends 
     void setDisplayName(String name);
 
     I getItem();
+    
+    ItemPath getPath();
 
     /**
      * Item definition.
@@ -57,7 +60,7 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends 
 
     boolean hasChanged();
 
-    List<ValueWrapper> getValues();
+    List<V> getValues();
 
     /**
      * Visibility flag. This is NOT an override, it defines whether the item
@@ -72,15 +75,21 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends 
 
     void setStripe(boolean isStripe);
 
-    ContainerWrapper getContainer();
+//    ContainerValueWrapper getContainerValue();
 
-    void addValue();
+    void addValue(boolean showEmpty);
 
 	boolean checkRequired(PageBase pageBase);
 
 	// are required fields enforced by wicket?
 	default boolean isEnforceRequiredFields() {
-	    ContainerWrapper cw = getContainer();
+	    ContainerWrapper cw = getParent();
 	    return cw == null || cw.isEnforceRequiredFields();
     }
+	
+	ContainerWrapper getParent();
+	
+	boolean isShowEmpty();
+	
+	void setShowEmpty(boolean isShowEmpty, boolean recursive);
 }

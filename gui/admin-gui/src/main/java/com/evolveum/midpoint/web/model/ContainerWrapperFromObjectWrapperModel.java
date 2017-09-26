@@ -63,7 +63,7 @@ public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O ex
 
 	@Override
 	public ContainerWrapper<C> getObject() {
-		ContainerWrapper<C> containerWrapper = getWrapper().findPropertyWrapper(path);
+		ContainerWrapper<C> containerWrapper = getWrapper().findContainerWrapper(path);
 		return containerWrapper;
 	}
 

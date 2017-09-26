@@ -38,18 +38,23 @@ import java.util.Map;
 public class ExecutionContext {
     private static final Trace LOGGER = TraceManager.getTrace(ExecutionContext.class);
 
+    private final boolean privileged;
     private final ScriptingExpressionEvaluationOptionsType options;
     private final Task task;
     private final ScriptingExpressionEvaluator scriptingExpressionEvaluator;
     private final StringBuilder consoleOutput = new StringBuilder();
-    private final Map<String, PipelineData> variables = new HashMap<>();
+    private final Map<String, PipelineData> globalVariables = new HashMap<>();      // will probably remain unused
+    private final Map<String, Object> initialVariables;                             // used e.g. when there are no data in a pipeline
     private PipelineData finalOutput;                                        // used only when passing result to external clients (TODO do this more cleanly)
 
     public ExecutionContext(ScriptingExpressionEvaluationOptionsType options, Task task,
-            ScriptingExpressionEvaluator scriptingExpressionEvaluator) {
+            ScriptingExpressionEvaluator scriptingExpressionEvaluator,
+            boolean privileged, Map<String, Object> initialVariables) {
         this.options = options;
         this.task = task;
         this.scriptingExpressionEvaluator = scriptingExpressionEvaluator;
+        this.privileged = privileged;
+        this.initialVariables = initialVariables;
     }
 
     public Task getTask() {
@@ -68,12 +73,16 @@ public class ExecutionContext {
         return options != null && Boolean.TRUE.equals(options.isHideOperationResults());
     }
 
-	public PipelineData getVariable(String variableName) {
-        return variables.get(variableName);
+	public PipelineData getGlobalVariable(String name) {
+        return globalVariables.get(name);
     }
 
-    public void setVariable(String variableName, PipelineData value) {
-        variables.put(variableName, value);
+    public void setGlobalVariable(String name, PipelineData value) {
+        globalVariables.put(name, value);
+    }
+
+    public Map<String, Object> getInitialVariables() {
+        return initialVariables;
     }
 
     public String getConsoleOutput() {
@@ -131,4 +140,8 @@ public class ExecutionContext {
 	public PrismContext getPrismContext() {
 		return scriptingExpressionEvaluator.getPrismContext();
 	}
+
+    public boolean isPrivileged() {
+        return privileged;
+    }
 }

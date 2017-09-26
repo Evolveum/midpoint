@@ -63,7 +63,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
     private boolean labelContainerVisible = true;
 
-    public PrismPropertyPanel(String id, final IModel<IW> model, Form form, PageBase pageBase) {
+    public PrismPropertyPanel(String id, final IModel<IW> model, Form form, ItemVisibilityHandler visibilityHandler, PageBase pageBase) {
         super(id);
         Validate.notNull(model, "no model");
         this.pageBase = pageBase;
@@ -77,6 +77,10 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
             @Override
             public boolean isVisible() {
             	IW propertyWrapper = model.getObject();
+            	
+            	if (visibilityHandler != null && !visibilityHandler.isVisible(propertyWrapper)) {
+            		return false;
+            	}
                 boolean visible = propertyWrapper.isVisible();
                 LOGGER.trace("isVisible: {}: {}", propertyWrapper, visible);
                 return visible;
@@ -258,16 +262,15 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
     private boolean hasPendingModification(IModel<IW> model) {
         ItemWrapper propertyWrapper = model.getObject();
-        ContainerWrapper containerWrapper = propertyWrapper.getContainer();
+        ContainerWrapper containerWrapper = propertyWrapper.getParent();
         if (containerWrapper == null) {
             return false;           // TODO - ok?
         }
-        ObjectWrapper objectWrapper = containerWrapper.getObject();
-
-		if (objectWrapper == null) {
-			return false;
-		}
-        PrismObject prismObject = objectWrapper.getObject();
+        if (!containerWrapper.isMain()) {
+        	return false;
+        }
+        
+        PrismObject prismObject = (PrismObject) containerWrapper.getItem();
         if (!ShadowType.class.isAssignableFrom(prismObject.getCompileTimeClass())) {
             return false;
         }

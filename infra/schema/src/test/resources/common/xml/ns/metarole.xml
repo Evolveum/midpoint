@@ -38,6 +38,13 @@
         <policyRule>
             <policyConstraints>
                 <!-- applies to all assignment operations of this metarole-bearer as the target -->
+                <objectState>
+                    <executeScript>
+                        <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+                            <s:type>UserType</s:type>
+                        </s:search>
+                    </executeScript>
+                </objectState>
                 <assignment>
                     <!-- intentionally empty -->
                 </assignment>

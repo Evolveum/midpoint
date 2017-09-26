@@ -23,6 +23,7 @@
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+			xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             elementFormDefault="qualified"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
@@ -39,6 +40,7 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"/>
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
 
@@ -218,10 +220,10 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="ref" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+					<xsd:element name="ref" type="tns:PolicyConstraintReferenceType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
-								References another policy constraint by its name.
+								References another policy constraint e.g. by its name.
 								The referenced constraint must be present as part of policy rules gathered for a given
 								assignment or object. Also, all declared global constraints are available for referencing,
 								regardless of which objects they are attached to or whether they are active or not.
@@ -235,6 +237,29 @@
 			</xsd:extension>
 		</xsd:complexContent>
         <!--<xsd:attribute name="id" type="xsd:long"/>--> <!-- already present in the abstract constraint -->
+    </xsd:complexType>
+
+    <xsd:complexType name="PolicyConstraintReferenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                References another policy constraint.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+				<a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the constraint referenced.
+                    </xsd:documentation>
+                </xsd:annotation>
+				<!-- parameters, if the referenced constraint is a parametrized one -->
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AbstractPolicyConstraintType">
@@ -357,6 +382,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<!-- todo something like GUI component id/type -->
 			<xsd:element name="final" type="xsd:boolean" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -760,14 +786,21 @@
                     <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Filter that is to be used to determine the state.
+                                Filter that is to be used to determine the state. Mutually exclusive with expression and executeScript.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Expression that is to be used to determine the state.
+                                Expression that is to be used to determine the state. Mutually exclusive with filter and executeScript.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="executeScript" type="s:ExecuteScriptType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Scripting expression (bulk action) to be used to determine the state. Mutually exclusive with filter and expression.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

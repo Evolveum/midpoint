@@ -50,11 +50,11 @@ public class EvaluatedTriggerGroupDto implements Serializable {
 		return triggers;
 	}
 
-	public static EvaluatedTriggerGroupDto create(List<EvaluatedPolicyRuleType> rules) {
+	public static EvaluatedTriggerGroupDto createFrom(List<EvaluatedPolicyRuleType> rules, boolean highlighted, List<AlreadyShownTriggerRecord> triggersAlreadyShown) {
 		EvaluatedTriggerGroupDto group = new EvaluatedTriggerGroupDto(null);
 		for (EvaluatedPolicyRuleType rule : rules) {
 			for (EvaluatedPolicyRuleTriggerType trigger : rule.getTrigger()) {
-				EvaluatedTriggerDto.create(group.getTriggers(), trigger);
+				EvaluatedTriggerDto.create(group.getTriggers(), trigger, highlighted, triggersAlreadyShown);
 			}
 		}
 		return group;

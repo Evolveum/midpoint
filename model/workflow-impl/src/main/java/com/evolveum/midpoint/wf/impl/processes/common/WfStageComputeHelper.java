@@ -97,6 +97,8 @@ public class WfStageComputeHelper {
 		variables.addVariableDefinition(SchemaConstants.T_OBJECT_DELTA, objectDelta);
 
 		variables.addVariableDefinition(ExpressionConstants.VAR_CHANNEL, requestChannel);
+
+		variables.addVariableDefinition(ExpressionConstants.VAR_WORKFLOW_CONTEXT, wfContext);
 		// todo other variables?
 
 		return variables;

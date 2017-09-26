@@ -17,16 +17,15 @@
 package com.evolveum.midpoint.prism.schema;
 
 import com.evolveum.midpoint.prism.XmlEntityResolver;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.w3c.dom.ls.LSInput;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
+import java.io.*;
+import java.util.Collection;
 
 /**
  * @author semancik
@@ -93,10 +92,10 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
 			inputSource = resolveResourceUsingBuiltinResolver(type, namespaceURI, publicId, systemId, baseURI);
 		}
 		if (inputSource == null) {
-			LOGGER.error("Unable to resolve resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI});
+			LOGGER.error("Unable to resolve resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}", type, namespaceURI, publicId, systemId, baseURI);
 			return null;
 		}
-		LOGGER.trace("==> Resolved resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {} : {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI, inputSource});
+		LOGGER.trace("==> Resolved resource of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {} : {}", type, namespaceURI, publicId, systemId, baseURI, inputSource);
 		return new Input(publicId, systemId, inputSource.getByteStream());
 	}
 
@@ -114,21 +113,27 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
 
 	private InputSource resolveResourceFromRegisteredSchemasByNamespace(String namespaceURI) {
 		if (namespaceURI != null) {
-			if (schemaRegistry.getParsedSchemas().containsKey(namespaceURI)) {
-				SchemaDescription schemaDescription = schemaRegistry.getParsedSchemas().get(namespaceURI);
+			Collection<SchemaDescription> schemaDescriptions = schemaRegistry.getParsedSchemas().get(namespaceURI);
+			if (schemaDescriptions.size() == 1) {
+				SchemaDescription schemaDescription = schemaDescriptions.iterator().next();
+				InputStream inputStream;
 				if (schemaDescription.canInputStream()) {
-					InputStream inputStream = schemaDescription.openInputStream();
-					InputSource source = new InputSource();
-					source.setByteStream(inputStream);
-					//source.setSystemId(schemaDescription.getPath());
-					// Make sure that both publicId and systemId are always set to schema namespace
-					// this helps to avoid double processing of the schemas
-					source.setSystemId(namespaceURI);
-					source.setPublicId(namespaceURI);
-					return source;
+					inputStream = schemaDescription.openInputStream();
 				} else {
-					throw new IllegalStateException("Requested resolution of schema "+schemaDescription.getSourceDescription()+" that does not support input stream");
+					DOMUtil.fixNamespaceDeclarations(schemaDescription.getDomElement());
+					String xml = DOMUtil.serializeDOMToString(schemaDescription.getDomElement());
+					inputStream = new ByteArrayInputStream(xml.getBytes());
 				}
+				InputSource source = new InputSource();
+				source.setByteStream(inputStream);
+				//source.setSystemId(schemaDescription.getPath());
+				// Make sure that both publicId and systemId are always set to schema namespace
+				// this helps to avoid double processing of the schemas
+				source.setSystemId(namespaceURI);
+				source.setPublicId(namespaceURI);
+				return source;
+			} else {
+				return null;            // none or ambiguous namespace
 			}
 		}
 		return null;
@@ -136,15 +141,13 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
 
 	public InputSource resolveResourceUsingBuiltinResolver(String type, String namespaceURI, String publicId, String systemId,
 			String baseURI) {
-		InputSource inputSource = null;
+		InputSource inputSource;
 		try {
 			// we first try to use traditional pair of publicId + systemId
 			// the use of namespaceUri can be misleading in case of schema fragments:
 			// e.g. when xsd:including common-model-context-3 the publicId=null, systemId=.../common-model-context-3 but nsUri=.../common-3
-			if (inputSource == null) {
-				inputSource = schemaRegistry.getBuiltinSchemaResolver().resolveEntity(publicId, systemId);
-				LOGGER.trace("...... Result of using builtin resolver by publicId + systemId: {}", inputSource);
-			}
+			inputSource = schemaRegistry.getBuiltinSchemaResolver().resolveEntity(publicId, systemId);
+			LOGGER.trace("...... Result of using builtin resolver by publicId + systemId: {}", inputSource);
 			// in some weird cases (e.g. when publicId=null, systemId=xml.xsd) we go with namespaceUri (e.g. http://www.w3.org/XML/1998/namespace)
 			// it's a kind of unfortunate magic here
 			if (inputSource == null && namespaceURI != null) {
@@ -152,11 +155,11 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
 				LOGGER.trace("...... Result of using builtin resolver by namespaceURI + systemId: {}", inputSource);
 			}
 		} catch (SAXException e) {
-			LOGGER.error("XML parser error resolving reference of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}: {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI, e.getMessage(), e});
+			LOGGER.error("XML parser error resolving reference of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}: {}", type, namespaceURI, publicId, systemId, baseURI, e.getMessage(), e);
 			// TODO: better error handling
 			return null;
 		} catch (IOException e) {
-			LOGGER.error("IO error resolving reference of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}: {}",new Object[]{type, namespaceURI, publicId, systemId, baseURI, e.getMessage(), e});
+			LOGGER.error("IO error resolving reference of type {}, namespaceURI: {}, publicID: {}, systemID: {}, baseURI: {}: {}", type, namespaceURI, publicId, systemId, baseURI, e.getMessage(), e);
 			// TODO: better error handling
 			return null;
 		}

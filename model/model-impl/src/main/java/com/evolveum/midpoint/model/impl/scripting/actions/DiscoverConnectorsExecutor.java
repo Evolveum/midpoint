@@ -91,7 +91,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                 context.println((exception != null ? "Attempted to discover " : "Discovered " + newConnectors.size())
 						+ " new connector(s) from " + connectorHostTypePrismObject + exceptionSuffix(exception));
                 for (ConnectorType connectorType : newConnectors) {
-                    output.addValue(connectorType.asPrismObject().getValue(), item.getResult());
+                    output.addValue(connectorType.asPrismObject().getValue(), item.getResult(), item.getVariables());
                 }
                 try {
 					if (rebind) {

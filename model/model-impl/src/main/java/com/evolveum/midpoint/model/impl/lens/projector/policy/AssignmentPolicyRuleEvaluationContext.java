@@ -93,4 +93,11 @@ public class AssignmentPolicyRuleEvaluationContext<F extends FocusType> extends 
 				(isDirect ? "directly":"indirectly") +
 				" in " + ObjectTypeUtil.toShortString(focusContext.getObjectAny()) + " / " + state;
 	}
+
+	@SuppressWarnings({ "CloneDoesntDeclareCloneNotSupportedException", "MethodDoesntCallSuperMethod" })
+	@Override
+	public AssignmentPolicyRuleEvaluationContext<F> clone() {
+		return new AssignmentPolicyRuleEvaluationContext<>(policyRule, evaluatedAssignment, inPlus, inZero, inMinus,
+				isDirect, lensContext, evaluatedAssignmentTriple, task);
+	}
 }

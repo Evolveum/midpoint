@@ -62,7 +62,7 @@ public class LocalizationUtil {
 					messageArgument = new LocalizableMessageArgumentType()
 								.localizable(createLocalizableMessageType(((LocalizableMessage) argument)));
 				} else {
-					messageArgument = new LocalizableMessageArgumentType().value(argument != null ? String.valueOf(argument) : null);
+					messageArgument = new LocalizableMessageArgumentType().value(argument != null ? argument.toString() : null);
 				}
 				rv.getArgument().add(messageArgument);
 			}
