@@ -51,14 +51,13 @@ public class FullTextRestriction extends Restriction<FullTextFilter> {
 	    String text = filter.getValues().iterator().next();
 	    String normalized = getContext().getPrismContext().getDefaultPolyStringNormalizer().normalize(text);
 	    String[] words = StringUtils.split(normalized);
-	    if (words.length == 0) {
-	    	throw new QueryException("No words to query for using full-text search filter");
-	    }
 	    List<Condition> conditions = new ArrayList<>(words.length);
 	    for (String word : words) {
 		    conditions.add(createWordQuery(word));
 	    }
-	    if (conditions.size() == 1) {
+	    if (conditions.isEmpty()) {
+	    	return createWordQuery("");                     // original behavior -> match all records (TODO return something like 'empty condition')
+	    } else if (conditions.size() == 1) {
 	    	return conditions.get(0);
 	    } else {
 	    	return getContext().getHibernateQuery().createAnd(conditions);
