@@ -23,6 +23,9 @@
 		<policyRule>
 			<policyConstraints>
 				<situation>
+					<presentation>
+						<hidden>true</hidden>
+					</presentation>
 					<situation>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#exclusionViolation</situation>
 				</situation>
 			</policyConstraints>

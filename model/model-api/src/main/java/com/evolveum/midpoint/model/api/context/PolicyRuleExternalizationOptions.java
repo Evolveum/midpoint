@@ -16,19 +16,19 @@
 
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyTriggerStorageStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyTriggerStorageStrategyType.FULL;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 
 /**
  * @author mederly
  */
 public class PolicyRuleExternalizationOptions implements Serializable {
 
-	@NotNull private PolicyTriggerStorageStrategyType triggerStorageStrategy;
+	@NotNull private TriggeredPolicyRulesStorageStrategyType triggeredRulesStorageStrategy;
 	private boolean includeAssignmentsContent;
 	private boolean respectFinalFlag;
 
@@ -36,16 +36,16 @@ public class PolicyRuleExternalizationOptions implements Serializable {
 		this(FULL, false, true);
 	}
 
-	public PolicyRuleExternalizationOptions(PolicyTriggerStorageStrategyType triggerStorageStrategy,
+	public PolicyRuleExternalizationOptions(TriggeredPolicyRulesStorageStrategyType triggeredRulesStorageStrategy,
 			boolean includeAssignmentsContent, boolean respectFinalFlag) {
-		this.triggerStorageStrategy = triggerStorageStrategy != null ? triggerStorageStrategy : FULL;
+		this.triggeredRulesStorageStrategy = triggeredRulesStorageStrategy != null ? triggeredRulesStorageStrategy : FULL;
 		this.includeAssignmentsContent = includeAssignmentsContent;
 		this.respectFinalFlag = respectFinalFlag;
 	}
 
 	@NotNull
-	public PolicyTriggerStorageStrategyType getTriggerStorageStrategy() {
-		return triggerStorageStrategy;
+	public TriggeredPolicyRulesStorageStrategyType getTriggeredRulesStorageStrategy() {
+		return triggeredRulesStorageStrategy;
 	}
 
 	public boolean isIncludeAssignmentsContent() {

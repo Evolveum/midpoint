@@ -395,7 +395,7 @@
 		<policySituation>http://sample.org/situations#incomplete-role-c1-to-c4</policySituation>
 		<policyActions>
 			<record>
-				<triggerStorageStrategy>full</triggerStorageStrategy>
+				<policyRules>full</policyRules>
 			</record>
 		</policyActions>
 		<focusSelector>
@@ -413,7 +413,7 @@
 		<policySituation>http://sample.org/situations#active-role-with-no-identifier</policySituation>
 		<policyActions>
 			<record>
-				<triggerStorageStrategy>none</triggerStorageStrategy>
+				<policyRules>none</policyRules>
 			</record>
 		</policyActions>
 		<focusSelector>

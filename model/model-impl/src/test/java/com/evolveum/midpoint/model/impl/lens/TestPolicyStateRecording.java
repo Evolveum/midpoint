@@ -36,6 +36,8 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.util.Collections;
 
+import static com.evolveum.midpoint.model.api.ModelExecuteOptions.createReconcile;
+import static com.evolveum.midpoint.prism.delta.ObjectDelta.createEmptyModifyDelta;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -98,82 +100,79 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
 	}
 
+
 	@Test
 	public void test100JackAssignRoleJudge() throws Exception {
-		final String TEST_NAME = "test100JackAssignRoleJudge";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		TestCtx t = createContext(this, "test100JackAssignRoleJudge");
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicyStateRecording.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+		t.displayWhen();
+		assignRole(USER_JACK_OID, ROLE_JUDGE_OID, t.task, t.result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		t.displayThen();
 		UserType jack = getUser(USER_JACK_OID).asObjectable();
 		display("jack", jack);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		t.result.computeStatus();
+		TestUtil.assertSuccess(t.result);
 
-		assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+		assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, t.task, t.result);
 		assertEquals("Wrong # of assignments", 1, jack.getAssignment().size());
 		assertEquals("Wrong policy situations",
 				Collections.emptyList(),
 				jack.getAssignment().get(0).getPolicySituation());
+
+		display("Audit", dummyAuditService);
+		dummyAuditService.assertExecutionRecords(1);
 	}
 
 	@Test
 	public void test110JackAssignRolePirate() throws Exception {
-		final String TEST_NAME = "test110JackAssignRolePirate";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-
-		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicyStateRecording.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
+		TestCtx t = createContext(this, "test110JackAssignRolePirate");
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+		t.displayWhen();
+		assignRole(USER_JACK_OID, ROLE_PIRATE_OID, t.task, t.result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		t.displayThen();
 		UserType jack = getUser(USER_JACK_OID).asObjectable();
 		display("jack", jack);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		t.result.computeStatus();
+		TestUtil.assertSuccess(t.result);
 
-		assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+		assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, t.task, t.result);
 		assertEquals("Wrong # of assignments", 2, jack.getAssignment().size());
 		for (AssignmentType assignment : jack.getAssignment()) {
 			assertEquals("Wrong policy situations",
 					Collections.singletonList(SchemaConstants.MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION),
 					assignment.getPolicySituation());
 		}
+
+		display("Audit", dummyAuditService);
+		dummyAuditService.assertExecutionRecords(2);            // rules without IDs, with IDs
 	}
 
 	// should keep the situation for both assignments
 	@Test
 	public void test120RecomputeJack() throws Exception {
-		final String TEST_NAME = "test120RecomputeJack";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		TestCtx t = createContext(this, "test120RecomputeJack");
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicyStateRecording.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		recomputeUser(USER_JACK_OID, task, result);
+		t.displayWhen();
+		executeChanges(createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext), createReconcile(), t.task, t.result);
+		//recomputeUser(USER_JACK_OID, t.task, t.result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		t.displayThen();
 		UserType jack = getUser(USER_JACK_OID).asObjectable();
 		display("jack", jack);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		t.result.computeStatus();
+		TestUtil.assertSuccess(t.result);
 
 		// TODO test that assignment IDs are filled in correctly (currently they are not)
 		assertEquals("Wrong # of assignments", 2, jack.getAssignment().size());
@@ -182,35 +181,36 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 					Collections.singletonList(SchemaConstants.MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION),
 					assignment.getPolicySituation());
 		}
+
+		display("Audit", dummyAuditService);
+		dummyAuditService.assertExecutionRecords(1);
+		dummyAuditService.assertExecutionDeltas(0);
 	}
 
 	@Test
 	public void test200BobAssign2a3a() throws Exception {
-		final String TEST_NAME = "test200BobAssign2a3a";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		TestCtx t = createContext(this, "test200BobAssign2a3a");
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicyStateRecording.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		t.displayWhen();
 		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT)
 						.add(createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE, prismContext),
 								createAssignmentTo(roleATest3aOid, ObjectTypes.ROLE, prismContext))
 				.asObjectDeltaCast(userBobOid);
-		executeChangesAssertSuccess(delta, null, task, result);
+		executeChangesAssertSuccess(delta, null, t.task, t.result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		t.displayThen();
 		UserType bob = getUser(userBobOid).asObjectable();
 		display("bob", bob);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		t.result.computeStatus();
+		TestUtil.assertSuccess(t.result);
 
-		assertAssignedRole(userBobOid, roleATest2aOid, task, result);
-		assertAssignedRole(userBobOid, roleATest3aOid, task, result);
+		assertAssignedRole(userBobOid, roleATest2aOid, t.task, t.result);
+		assertAssignedRole(userBobOid, roleATest3aOid, t.task, t.result);
 		assertEquals("Wrong # of assignments", 2, bob.getAssignment().size());
 		assertEquals("Wrong policy situations for assignment 1",
 				Collections.emptyList(),
@@ -218,39 +218,41 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		assertEquals("Wrong policy situations for assignment 2",
 				Collections.emptyList(),
 				bob.getAssignment().get(1).getPolicySituation());
+
+		display("Audit", dummyAuditService);
+		dummyAuditService.assertExecutionRecords(1);            // no policy state update
 	}
 
 	@Test
 	public void test200BobAssign2b3b() throws Exception {
-		final String TEST_NAME = "test200BobAssign2b3b";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		TestCtx t = createContext(this, "test200BobAssign2b3b");
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestPolicyStateRecording.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		t.displayWhen();
 		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT)
 				.add(createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE, prismContext),
 						createAssignmentTo(roleATest3bOid, ObjectTypes.ROLE, prismContext))
 				.asObjectDeltaCast(userBobOid);
-		executeChangesAssertSuccess(delta, null, task, result);
+		executeChangesAssertSuccess(delta, null, t.task, t.result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		t.displayThen();
 		UserType bob = getUser(userBobOid).asObjectable();
 		display("bob", bob);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		t.result.computeStatus();
+		TestUtil.assertSuccess(t.result);
 
-		assertAssignedRole(userBobOid, roleATest2aOid, task, result);
-		assertAssignedRole(userBobOid, roleATest2bOid, task, result);
-		assertAssignedRole(userBobOid, roleATest3aOid, task, result);
-		assertAssignedRole(userBobOid, roleATest3bOid, task, result);
+		assertAssignedRole(userBobOid, roleATest2aOid, t.task, t.result);
+		assertAssignedRole(userBobOid, roleATest2bOid, t.task, t.result);
+		assertAssignedRole(userBobOid, roleATest3aOid, t.task, t.result);
+		assertAssignedRole(userBobOid, roleATest3bOid, t.task, t.result);
 		assertEquals("Wrong # of assignments", 4, bob.getAssignment().size());
 
+		display("Audit", dummyAuditService);
+		dummyAuditService.assertExecutionRecords(2);            // rules without IDs, with IDs
 		// TODO policy state
 	}
 

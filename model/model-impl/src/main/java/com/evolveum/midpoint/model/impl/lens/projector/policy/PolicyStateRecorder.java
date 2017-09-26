@@ -43,9 +43,9 @@ import java.util.Objects;
  * @author mederly
  */
 @Component
-public class PolicyStateUpdater {
+public class PolicyStateRecorder {
 
-	private static final Trace LOGGER = TraceManager.getTrace(PolicyStateUpdater.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PolicyStateRecorder.class);
 
 	@Autowired private PrismContext prismContext;
 
@@ -110,14 +110,16 @@ public class PolicyStateUpdater {
 		for (EvaluatedPolicyRule rule : rulesToRecord) {
 			cr.newPolicySituations.add(rule.getPolicySituation());
 			RecordPolicyActionType recordAction = rule.getActions().getRecord();
-			if (recordAction.getTriggerStorageStrategy() != PolicyTriggerStorageStrategyType.NONE) {
-				cr.newTriggeredRules.add(rule.toEvaluatedPolicyRuleType(new PolicyRuleExternalizationOptions(recordAction.getTriggerStorageStrategy(), false, true)));
+			if (recordAction.getPolicyRules() != TriggeredPolicyRulesStorageStrategyType.NONE) {
+				PolicyRuleExternalizationOptions externalizationOptions = new PolicyRuleExternalizationOptions(
+						recordAction.getPolicyRules(), false, true);
+				rule.addToEvaluatedPolicyRuleTypes(cr.newTriggeredRules, externalizationOptions);
 			}
 		}
 		cr.oldPolicySituations.addAll(existingPolicySituation);
 		cr.oldTriggeredRules.addAll(existingTriggeredPolicyRule);
 		cr.situationsNeedUpdate = !Objects.equals(cr.oldPolicySituations, cr.newPolicySituations);
-		// we do not use this, because it uses hashCode, that is (for some reason) wrongly computed
+		// we do not use Objects.equal, because it uses hashCode, that is (for some reason) wrongly computed
 		//cr.rulesNeedUpdate = !Objects.equals(cr.oldTriggeredRules, cr.newTriggeredRules);
 		cr.rulesNeedUpdate = !MiscUtil.unorderedCollectionEquals(cr.oldTriggeredRules, cr.newTriggeredRules);
 		return cr;

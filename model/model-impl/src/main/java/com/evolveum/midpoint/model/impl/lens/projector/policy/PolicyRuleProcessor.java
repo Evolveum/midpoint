@@ -69,7 +69,7 @@ public class PolicyRuleProcessor {
 	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 	@Autowired private MappingFactory mappingFactory;
 	@Autowired private MappingEvaluator mappingEvaluator;
-	@Autowired private PolicyStateUpdater policyStateUpdater;
+	@Autowired private PolicyStateRecorder policyStateRecorder;
 
 	@Autowired private AssignmentConstraintEvaluator assignmentConstraintEvaluator;
 	@Autowired private HasAssignmentConstraintEvaluator hasAssignmentConstraintEvaluator;
@@ -149,7 +149,7 @@ public class PolicyRuleProcessor {
 					}
 				}
 			}
-			policyStateUpdater.applyAssignmentState(context, evaluatedAssignment, globalCtx.rulesToRecord);
+			policyStateRecorder.applyAssignmentState(context, evaluatedAssignment, globalCtx.rulesToRecord);
 		}
 
 		exclusionConstraintEvaluator.checkExclusionsLegacy(context, evaluatedAssignmentTriple.getPlusSet(),
@@ -214,7 +214,7 @@ public class PolicyRuleProcessor {
 		for (EvaluatedPolicyRule rule : situationRules) {
 			evaluateFocusRule(rule, context, globalCtx, task, result);
 		}
-		policyStateUpdater.applyObjectState(context, globalCtx.rulesToRecord);
+		policyStateRecorder.applyObjectState(context, globalCtx.rulesToRecord);
 	}
 
 	private <F extends FocusType> Collection<? extends PolicyRuleType> getAllGlobalRules(LensContext<F> context) {

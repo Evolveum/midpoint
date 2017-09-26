@@ -15,10 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.*;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
@@ -31,7 +27,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyTriggerStorageStrategyType.FULL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 
 /**
  * @author semancik
@@ -315,10 +317,10 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	 */
 
 	@Override
-	public EvaluatedPolicyRuleType toEvaluatedPolicyRuleType(PolicyRuleExternalizationOptions options) {
+	public void addToEvaluatedPolicyRuleTypes(Collection<EvaluatedPolicyRuleType> rules, PolicyRuleExternalizationOptions options) {
 		EvaluatedPolicyRuleType rv = new EvaluatedPolicyRuleType();
 		rv.setRuleName(getName());
-		boolean isFull = options.getTriggerStorageStrategy() == FULL;
+		boolean isFull = options.getTriggeredRulesStorageStrategy() == FULL;
 		if (isFull && assignmentPath != null) {
 			rv.setAssignmentPath(assignmentPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
 		}
@@ -326,8 +328,19 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 			rv.setDirectOwnerRef(ObjectTypeUtil.createObjectRef(directOwner));
 			rv.setDirectOwnerDisplayName(ObjectTypeUtil.getDisplayName(directOwner));
 		}
-		triggers.forEach(t -> rv.getTrigger().add(t.toEvaluatedPolicyRuleTriggerType(options)));
-		return rv;
+		for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+			if (trigger instanceof EvaluatedSituationTrigger && trigger.isHidden()) {
+				for (EvaluatedPolicyRule sourceRule : ((EvaluatedSituationTrigger) trigger).getSourceRules()) {
+					sourceRule.addToEvaluatedPolicyRuleTypes(rules, options);
+				}
+			} else {
+				rv.getTrigger().add(trigger.toEvaluatedPolicyRuleTriggerType(options));
+			}
+		}
+		if (rv.getTrigger().isEmpty()) {
+			// skip empty situation rule
+		} else {
+			rules.add(rv);
+		}
 	}
-
 }

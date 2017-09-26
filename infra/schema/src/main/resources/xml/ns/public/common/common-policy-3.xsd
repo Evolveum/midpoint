@@ -412,10 +412,10 @@
 		</xsd:restriction>
 	</xsd:simpleType>
 
-	<xsd:simpleType name="PolicyTriggerStorageStrategyType">
+	<xsd:simpleType name="TriggeredPolicyRulesStorageStrategyType">
 		<xsd:annotation>
 			<xsd:documentation>
-				If triggers are to be stored, what level of details should be preserved?
+				How much information about triggered policy rules should be stored?
 				EXPERIMENTAL
 			</xsd:documentation>
 			<xsd:appinfo>
@@ -427,7 +427,7 @@
 			<xsd:enumeration value="none">
 				<xsd:annotation>
 					<xsd:documentation>
-						Triggers will not be stored.
+						Triggered policy rules will not be stored.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="NONE"/>
@@ -447,7 +447,8 @@
 			<xsd:enumeration value="full">
 				<xsd:annotation>
 					<xsd:documentation>
-						The triggers for the rule will be stored (including subtriggers). Hidden and final presentation settings are respected.
+						The triggers and other information for the rule will be stored (including subtriggers).
+						Hidden and final presentation settings are respected.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="FULL"/>
@@ -456,6 +457,41 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
+
+	<!--<xsd:simpleType name="SituationConstraintsStorageStrategyType">-->
+		<!--<xsd:annotation>-->
+			<!--<xsd:documentation>-->
+				<!--Should triggers for situation constraints be stored "as is" or should referenced rules be unwrapped?-->
+				<!--EXPERIMENTAL-->
+			<!--</xsd:documentation>-->
+			<!--<xsd:appinfo>-->
+				<!--<jaxb:typesafeEnumClass/>-->
+				<!--<a:deprecated>true</a:deprecated>-->
+			<!--</xsd:appinfo>-->
+		<!--</xsd:annotation>-->
+		<!--<xsd:restriction base="xsd:string">-->
+			<!--<xsd:enumeration value="asIs">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--Triggers for situation constraints should be stored "as is".-->
+					<!--</xsd:documentation>-->
+					<!--<xsd:appinfo>-->
+						<!--<jaxb:typesafeEnumMember name="AS_IS"/>-->
+					<!--</xsd:appinfo>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:enumeration>-->
+			<!--<xsd:enumeration value="unwrapped">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--Rules referenced from situation constraints should be unwrapped.-->
+					<!--</xsd:documentation>-->
+					<!--<xsd:appinfo>-->
+						<!--<jaxb:typesafeEnumMember name="UNWRAPPED"/>-->
+					<!--</xsd:appinfo>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:enumeration>-->
+		<!--</xsd:restriction>-->
+	<!--</xsd:simpleType>-->
 
     <xsd:complexType name="ExclusionPolicyConstraintType">
         <xsd:annotation>
@@ -1389,18 +1425,22 @@
         <xsd:complexContent>
             <xsd:extension base="tns:PolicyActionType">
                 <xsd:sequence>
-					<xsd:element name="triggerStorageStrategy" type="tns:PolicyTriggerStorageStrategyType" minOccurs="0">
+					<xsd:element name="policyRules" type="tns:TriggeredPolicyRulesStorageStrategyType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
-								How should be triggers stored?
+								How much information about triggered policy rules should be stored?
 								EXPERIMENTAL
 							</xsd:documentation>
-							<xsd:appinfo>
-								<a:since>3.7</a:since>
-								<a:experimental>true</a:experimental>
-							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
+					<!--<xsd:element name="situationConstraints" type="tns:SituationConstraintsStorageStrategyType" minOccurs="0">-->
+						<!--<xsd:annotation>-->
+							<!--<xsd:documentation>-->
+								<!--Should triggers for situation constraints be stored "as is" or should referenced rules be unwrapped?-->
+								<!--EXPERIMENTAL-->
+							<!--</xsd:documentation>-->
+						<!--</xsd:annotation>-->
+					<!--</xsd:element>-->
 
 				</xsd:sequence>
             </xsd:extension>

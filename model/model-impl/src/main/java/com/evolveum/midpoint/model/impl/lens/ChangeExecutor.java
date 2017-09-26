@@ -24,7 +24,7 @@ import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistency
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyStateUpdater;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyStateRecorder;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.common.expression.Expression;
@@ -116,7 +116,6 @@ public class ChangeExecutor {
 	@Autowired private Clock clock;
 	@Autowired private ModelObjectResolver objectResolver;
 	@Autowired private OperationalDataManager metadataManager;
-	@Autowired private PolicyStateUpdater policyStateUpdater;
 	@Autowired private CredentialsProcessor credentialsProcessor;
 
 	private PrismObjectDefinition<UserType> userDefinition = null;

@@ -32,7 +32,7 @@
 			<policyActions>
 				<!-- no enforcement here -->
 				<record>
-					<triggerStorageStrategy>messageOnly</triggerStorageStrategy>
+					<policyRules>messageOnly</policyRules>
 				</record>
 			</policyActions>
 		</policyRule>

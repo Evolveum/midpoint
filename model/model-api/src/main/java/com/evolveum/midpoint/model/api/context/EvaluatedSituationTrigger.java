@@ -107,7 +107,7 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
 		EvaluatedSituationTriggerType rv = new EvaluatedSituationTriggerType();
 		fillCommonContent(rv);
 		if (!options.isRespectFinalFlag() || !isFinal()) {
-			sourceRules.forEach(r -> rv.getSourceRule().add(r.toEvaluatedPolicyRuleType(options)));
+			sourceRules.forEach(r -> r.addToEvaluatedPolicyRuleTypes(rv.getSourceRule(), options));
 		}
 		return rv;
 	}
