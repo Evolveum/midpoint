@@ -148,7 +148,7 @@ public class ChangeExecutor {
 			ObjectDelta<O> focusDelta = focusContext.getWaveExecutableDelta(context.getExecutionWave());
 
 			focusDelta = applyPendingObjectPolicyStateModifications(focusContext, focusDelta);
-			applyPendingAssignmentPolicyStateModifications(focusContext, focusDelta);
+			focusDelta = applyPendingAssignmentPolicyStateModifications(focusContext, focusDelta);
 
 			if (focusDelta != null) {
 
@@ -375,57 +375,57 @@ public class ChangeExecutor {
 		return focusDelta;
 	}
 
-	private <O extends ObjectType> void applyPendingAssignmentPolicyStateModifications(LensFocusContext<O> focusContext, ObjectDelta<O> focusDelta)
+	private <O extends ObjectType> ObjectDelta<O> applyPendingAssignmentPolicyStateModifications(LensFocusContext<O> focusContext, ObjectDelta<O> focusDelta)
 			throws SchemaException {
-		if (focusDelta != null) {
-			for (Map.Entry<AssignmentSpec, List<ItemDelta<?, ?>>> entry : focusContext
-					.getPendingAssignmentPolicyStateModifications().entrySet()) {
-				PlusMinusZero mode = entry.getKey().mode;
-				if (mode == PlusMinusZero.MINUS) {
-					continue;       // this assignment is being thrown out anyway, so let's ignore it
+		for (Map.Entry<AssignmentSpec, List<ItemDelta<?, ?>>> entry : focusContext
+				.getPendingAssignmentPolicyStateModifications().entrySet()) {
+			PlusMinusZero mode = entry.getKey().mode;
+			if (mode == PlusMinusZero.MINUS) {
+				continue;       // this assignment is being thrown out anyway, so let's ignore it
+			}
+			AssignmentType assignmentToFind = entry.getKey().assignment;
+			List<ItemDelta<?, ?>> modifications = entry.getValue();
+			if (modifications.isEmpty()) {
+				continue;
+			}
+			LOGGER.trace("Applying policy state modifications for {} ({}):\n{}", assignmentToFind, mode,
+					DebugUtil.debugDumpLazily(modifications));
+			if (mode == PlusMinusZero.ZERO) {
+				if (assignmentToFind.getId() == null) {
+					throw new IllegalStateException("Existing assignment with null id: " + assignmentToFind);
 				}
-				AssignmentType assignmentToFind = entry.getKey().assignment;
-				List<ItemDelta<?, ?>> modifications = entry.getValue();
-				if (modifications.isEmpty()) {
-					continue;
+				for (ItemDelta<?, ?> modification : modifications) {
+					focusDelta = focusContext.swallowToDelta(focusDelta, modification);
 				}
-				LOGGER.trace("Applying policy state modifications for {} ({}):\n{}", assignmentToFind, mode,
-						DebugUtil.debugDumpLazily(modifications));
-				if (mode == PlusMinusZero.ZERO) {
-					if (assignmentToFind.getId() == null) {
-						throw new IllegalStateException("Existing assignment with null id: " + assignmentToFind);
-					}
-					for (ItemDelta<?, ?> modification : modifications) {
-						focusContext.swallowToDelta(focusDelta, modification);
-					}
+			} else {
+				assert mode == PlusMinusZero.PLUS;
+				if (focusDelta != null && focusDelta.isAdd()) {
+					swallowIntoValues(((FocusType) focusDelta.getObjectToAdd().asObjectable()).getAssignment(),
+							assignmentToFind, modifications);
 				} else {
-					assert mode == PlusMinusZero.PLUS;
-					if (focusDelta.isAdd()) {
-						swallowIntoValues(((FocusType) focusDelta.getObjectToAdd().asObjectable()).getAssignment(),
-								assignmentToFind, modifications);
+					ContainerDelta<AssignmentType> assignmentDelta = focusDelta != null ?
+							focusDelta.findContainerDelta(FocusType.F_ASSIGNMENT) : null;
+					if (assignmentDelta == null) {
+						throw new IllegalStateException(
+								"We have 'plus' assignment to modify but there's no assignment delta. Assignment="
+										+ assignmentToFind + ", objectDelta=" + focusDelta);
+					}
+					if (assignmentDelta.isReplace()) {
+						swallowIntoValues(asContainerables(assignmentDelta.getValuesToReplace()), assignmentToFind,
+								modifications);
+					} else if (assignmentDelta.isAdd()) {
+						swallowIntoValues(asContainerables(assignmentDelta.getValuesToAdd()), assignmentToFind,
+								modifications);
 					} else {
-						ContainerDelta<AssignmentType> assignmentDelta = focusDelta.findContainerDelta(FocusType.F_ASSIGNMENT);
-						if (assignmentDelta == null) {
-							throw new IllegalStateException(
-									"We have 'plus' assignment to modify but there's no assignment delta. Assignment="
-											+ assignmentToFind + ", objectDelta=" + focusDelta);
-						}
-						if (assignmentDelta.isReplace()) {
-							swallowIntoValues(asContainerables(assignmentDelta.getValuesToReplace()), assignmentToFind,
-									modifications);
-						} else if (assignmentDelta.isAdd()) {
-							swallowIntoValues(asContainerables(assignmentDelta.getValuesToAdd()), assignmentToFind,
-									modifications);
-						} else {
-							throw new IllegalStateException(
-									"We have 'plus' assignment to modify but there're no values to add or replace in assignment delta. Assignment="
-											+ assignmentToFind + ", objectDelta=" + focusDelta);
-						}
+						throw new IllegalStateException(
+								"We have 'plus' assignment to modify but there're no values to add or replace in assignment delta. Assignment="
+										+ assignmentToFind + ", objectDelta=" + focusDelta);
 					}
 				}
 			}
 		}
 		focusContext.clearPendingAssignmentPolicyStateModifications();
+		return focusDelta;
 	}
 
 	private void swallowIntoValues(Collection<AssignmentType> assignments, AssignmentType assignmentToFind, List<ItemDelta<?, ?>> modifications)

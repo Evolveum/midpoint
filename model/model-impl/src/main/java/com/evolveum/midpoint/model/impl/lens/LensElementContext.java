@@ -73,15 +73,23 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     private String iterationToken;
 
 	/**
-	 * These are policy state modifications that should be applied regardless of how the clockwork is exited
-	 * (e.g. in primary state, in final state, with an exception).
+	 * These are policy state modifications that should be applied.
+	 * Currently we apply them in ChangeExecutor.executeChanges only.
 	 *
-	 * Currently implemented only for focus, not for projections.
+	 * In the future we plan to be able to apply some state modifications even
+	 * if the clockwork is exited in non-standard way (e.g. in primary state or with an exception).
+	 * But we must be sure what policy state to store, because some constraints might be triggered
+	 * because of expectation of future state (like conflicting assignment is added etc.)
+	 * ---
+	 * Although placed in LensElementContext, support for this data is currently implemented only for focus, not for projections.
 	 */
 	@NotNull private transient final List<ItemDelta<?,?>> pendingObjectPolicyStateModifications = new ArrayList<>();
 
 	/**
 	 * Policy state modifications for assignments.
+	 *
+	 * Although we put here also deltas for assignments that are to be deleted, we do not execute these
+	 * (because we implement execution only for the standard exit-path from the clockwork).
 	 */
 	@NotNull private transient final Map<AssignmentSpec, List<ItemDelta<?,?>>> pendingAssignmentPolicyStateModifications = new HashMap<>();
 

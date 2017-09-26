@@ -77,8 +77,8 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 		super.initSystem(initTask, initResult);
 		setDefaultUserTemplate(USER_TEMPLATE_OID);
 
-		addObject(ROLE_PIRATE_SITUATION_ONLY_FILE);
-		addObject(ROLE_JUDGE_SITUATION_ONLY_FILE);
+		addObject(ROLE_PIRATE_RECORD_ONLY_FILE);
+		addObject(ROLE_JUDGE_RECORD_ONLY_FILE);
 
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 

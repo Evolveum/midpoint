@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -116,7 +117,9 @@ public class PolicyStateUpdater {
 		cr.oldPolicySituations.addAll(existingPolicySituation);
 		cr.oldTriggeredRules.addAll(existingTriggeredPolicyRule);
 		cr.situationsNeedUpdate = !Objects.equals(cr.oldPolicySituations, cr.newPolicySituations);
-		cr.rulesNeedUpdate = !Objects.equals(cr.oldTriggeredRules, cr.newTriggeredRules);
+		// we do not use this, because it uses hashCode, that is (for some reason) wrongly computed
+		//cr.rulesNeedUpdate = !Objects.equals(cr.oldTriggeredRules, cr.newTriggeredRules);
+		cr.rulesNeedUpdate = !MiscUtil.unorderedCollectionEquals(cr.oldTriggeredRules, cr.newTriggeredRules);
 		return cr;
 	}
 

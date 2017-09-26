@@ -31,7 +31,7 @@ import java.util.Objects;
 public class AssignmentSpec implements Serializable {
 
 	@NotNull public final AssignmentType assignment;
-	@NotNull public final PlusMinusZero mode;
+	@NotNull public final PlusMinusZero mode;               // regarding the current object state (not the old one)
 
 	public AssignmentSpec(@NotNull AssignmentType assignment, @NotNull PlusMinusZero mode) {
 		this.assignment = assignment;

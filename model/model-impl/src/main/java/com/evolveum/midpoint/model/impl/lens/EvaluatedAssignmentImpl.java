@@ -44,6 +44,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
+import static com.evolveum.midpoint.prism.delta.PlusMinusZero.MINUS;
+import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
+import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
 
 /**
  * Evaluated assignment that contains all constructions and authorizations from the assignment
@@ -528,14 +531,17 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		return rv;
 	}
 
+	/**
+	 * @return mode (adding, deleting, keeping) with respect to the *current* object (not the old one)
+	 */
 	@NotNull
 	public PlusMinusZero getMode() {
-		if (assignmentIdi.getItemOld() == null) {
-			return PlusMinusZero.PLUS;
-		} else if (assignmentIdi.getItemNew() == null) {
-			return PlusMinusZero.MINUS;
+		if (assignmentIdi.getItemNew() == null) {
+			return MINUS;
+		} else if (presentInCurrentObject) {
+			return ZERO;
 		} else {
-			return PlusMinusZero.ZERO;
+			return PLUS;
 		}
 	}
 }
