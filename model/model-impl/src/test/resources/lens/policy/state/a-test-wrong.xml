@@ -1,0 +1,25 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role oid="95ab9e4b-7a35-40a9-86e6-9af1e529c335"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	<name>a-test-wrong</name>
+	<assignment>
+		<targetRef oid="6bc73701-f1db-4fef-b644-8bfd7b64d97b" type="RoleType"/>	  <!-- common-rules -->
+	</assignment>
+</role>

@@ -34,4 +34,27 @@
 			</policyActions>
 		</policyRule>
 	</inducement>
+	<inducement>
+		<policyRule>
+			<policyConstraints>
+				<objectState>
+					<presentation>
+						<message>
+							<fallbackMessage>The role is in wrong state.</fallbackMessage>
+						</message>
+					</presentation>
+					<filter>
+						<q:equal>
+							<q:path>description</q:path>
+							<q:value>wrong</q:value>
+						</q:equal>
+					</filter>
+				</objectState>
+			</policyConstraints>
+			<policySituation>http://test.org/wrong</policySituation>
+			<policyActions>
+				<record/>
+			</policyActions>
+		</policyRule>
+	</inducement>
 </role>
