@@ -89,6 +89,8 @@
         <jackson.version>2.8.9</jackson.version>
         <snakeyaml.version>1.15</snakeyaml.version>
         <surefire.version>2.20</surefire.version>
+        <reflections.version>0.9.11</reflections.version>
+        <guava.version>20.0</guava.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -99,6 +101,12 @@
                 <version>${spring.boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.reflections</groupId>
+                <artifactId>reflections</artifactId>
+                <version>${reflections.version}</version>
             </dependency>
 
             <!-- WICKET -->
@@ -614,8 +622,17 @@
                         <groupId>org.bouncycastle</groupId>
                         <artifactId>bcprov-jdk15on</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
                 </exclusions>
 	        </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
 	        <dependency>
 	            <groupId>org.apache.wss4j</groupId>
 	            <artifactId>wss4j-ws-security-dom</artifactId>

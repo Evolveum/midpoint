@@ -17,10 +17,10 @@
 package com.evolveum.midpoint.web.boot;
 
 import com.evolveum.midpoint.gui.impl.util.ReportPeerQueryInterceptor;
+import com.evolveum.midpoint.prism.schema.CatalogImpl;
 import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
 import org.apache.cxf.transport.servlet.CXFServlet;
 import org.apache.wicket.protocol.http.WicketFilter;
-import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -37,11 +37,9 @@ import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.filter.DelegatingFilterProxy;
-import ro.isdc.wro.http.ConfigurableWroFilter;
 import ro.isdc.wro.http.WroFilter;
 
 import javax.servlet.DispatcherType;
@@ -86,6 +84,8 @@ import java.io.IOException;
 public class MidPointSpringApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
+        System.setProperty("xml.catalog.className", CatalogImpl.class.getName());
+
         SpringApplication.run(MidPointSpringApplication.class, args);
     }
 
