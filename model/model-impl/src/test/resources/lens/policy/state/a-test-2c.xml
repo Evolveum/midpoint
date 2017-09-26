@@ -14,19 +14,31 @@
   ~ limitations under the License.
   -->
 
-<role oid="d3767689-cf26-4e2f-8a1e-5cd139fc4401"
+<role oid="dc9beda4-9bb1-40da-8530-c67da19f2b5e"
 	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-	<name>a-test-3x</name>
-	<c:description>Embedded role, conflicting with 3y</c:description>
+	<name>a-test-2c</name>
+	<c:description>Exclusive with test-2a/2b</c:description>
 	<assignment>
 		<policyRule>
 			<policyConstraints>
 				<exclusion>
-					<targetRef oid="1e422483-997c-4808-bebd-0151d18a391e" type="RoleType"/>		<!--  test-3y -->
+					<targetRef oid="fa636d6a-f016-491c-8cd5-cdcbfd516be5" type="RoleType"/>		<!--  test-2a -->
 				</exclusion>
 			</policyConstraints>
 		</policyRule>
+	</assignment>
+	<assignment>
+		<policyRule>
+			<policyConstraints>
+				<exclusion>
+					<targetRef oid="ecb9287d-5852-4bec-9926-4ab1de518e26" type="RoleType"/>		<!--  test-2b -->
+				</exclusion>
+			</policyConstraints>
+		</policyRule>
+	</assignment>
+	<assignment>
+		<targetRef oid="6bc73701-f1db-4fef-b644-8bfd7b64d97b" type="RoleType"/>	  <!-- common-rules -->
 	</assignment>
 </role>

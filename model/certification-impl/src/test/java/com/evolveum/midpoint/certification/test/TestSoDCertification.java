@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -149,8 +150,13 @@ public class TestSoDCertification extends AbstractCertificationTest {
 				}
 			}
 		}
-		assertEquals("Wrong # of exclusion triggers", exclusionExpected, exclusion);
+		assertEquals("Wrong # of exclusion triggers", 0, exclusion);
 		assertEquals("Wrong # of situation triggers", situationExpected, situation);
+
+		List<EvaluatedExclusionTriggerType> exclusionTriggers = PolicyRuleTypeUtil
+				.getAllExclusionTriggers(assignment.getTriggeredPolicyRule());
+		display("Exclusion triggers for " + assignment, exclusionTriggers);
+		assertEquals("Wrong # of extracted exclusion triggers", exclusionExpected, exclusionTriggers.size());
 	}
 
 	@Test

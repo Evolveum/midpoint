@@ -27,9 +27,6 @@
 					<targetRef oid="d3767689-cf26-4e2f-8a1e-5cd139fc4401" type="RoleType"/>		<!--  test-3x -->
 				</exclusion>
 			</policyConstraints>
-			<policyActions>
-				<record/>
-			</policyActions>
 		</policyRule>
 	</assignment>
 </role>

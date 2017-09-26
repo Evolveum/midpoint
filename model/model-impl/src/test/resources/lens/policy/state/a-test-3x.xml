@@ -29,4 +29,7 @@
 			</policyConstraints>
 		</policyRule>
 	</assignment>
+	<assignment>
+		<targetRef oid="6bc73701-f1db-4fef-b644-8bfd7b64d97b" type="RoleType"/>	  <!-- common-rules -->
+	</assignment>
 </role>

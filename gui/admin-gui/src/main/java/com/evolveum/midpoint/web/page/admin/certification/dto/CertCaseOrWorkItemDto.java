@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -208,21 +209,18 @@ public class CertCaseOrWorkItemDto extends Selectable {
 			return "";
 		}
 		Set<String> exclusions = new TreeSet<>();
-		for (EvaluatedPolicyRuleType rule : assignmentCase.getAssignment().getTriggeredPolicyRule()) {
-			for (EvaluatedPolicyRuleTriggerType trigger : rule.getTrigger()) {
-				if (!(trigger instanceof EvaluatedExclusionTriggerType)) {
-					continue;
-				}
-				EvaluatedExclusionTriggerType exclusionTrigger = (EvaluatedExclusionTriggerType) trigger;
-				ObjectReferenceType conflicting = exclusionTrigger.getConflictingObjectRef();
-				if (conflicting == null) {
-					continue;
-				}
-				if (conflicting.getTargetName() != null) {
-					exclusions.add(conflicting.getTargetName().getOrig());
-				} else {
-					exclusions.add(conflicting.getOid());			// TODO try to resolve?
-				}
+		List<EvaluatedExclusionTriggerType> allExclusionTriggers = PolicyRuleTypeUtil
+				.getAllExclusionTriggers(assignmentCase.getAssignment().getTriggeredPolicyRule());
+
+		for (EvaluatedExclusionTriggerType trigger : allExclusionTriggers) {
+			ObjectReferenceType conflicting = trigger.getConflictingObjectRef();
+			if (conflicting == null) {
+				continue;
+			}
+			if (conflicting.getTargetName() != null) {
+				exclusions.add(conflicting.getTargetName().getOrig());
+			} else {
+				exclusions.add(conflicting.getOid());			// TODO try to resolve?
 			}
 		}
 		return StringUtils.join(exclusions, ", ");

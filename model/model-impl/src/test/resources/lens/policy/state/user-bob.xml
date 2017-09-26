@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <!--
   ~ Copyright (c) 2010-2017 Evolveum
   ~
@@ -14,19 +15,9 @@
   ~ limitations under the License.
   -->
 
-<role oid="d3767689-cf26-4e2f-8a1e-5cd139fc4401"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-	<name>a-test-3x</name>
-	<c:description>Embedded role, conflicting with 3y</c:description>
-	<assignment>
-		<policyRule>
-			<policyConstraints>
-				<exclusion>
-					<targetRef oid="1e422483-997c-4808-bebd-0151d18a391e" type="RoleType"/>		<!--  test-3y -->
-				</exclusion>
-			</policyConstraints>
-		</policyRule>
-	</assignment>
-</role>
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  oid="e590baf0-f029-4569-90cf-2e7345751913">
+	<name>bob</name>
+	<givenName>Bob</givenName>
+	<familyName>Bobovic</familyName>
+</user>
