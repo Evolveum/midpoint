@@ -140,7 +140,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 		ObjectDelta<F> focusDelta = focusContext.getDelta();
 
 		ContainerDelta<AssignmentType> assignmentDelta = getExecutionWaveAssignmentDelta(focusContext);
-        assignmentDelta.expand(focusContext.getObjectCurrent());
+        assignmentDelta.expand(focusContext.getObjectCurrent(), LOGGER);
 
         LOGGER.trace("Assignment delta:\n{}", assignmentDelta.debugDump());
 

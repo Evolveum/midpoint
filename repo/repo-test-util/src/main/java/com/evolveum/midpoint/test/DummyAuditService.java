@@ -148,6 +148,11 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 				" but was "+records.size();
 	}
 
+	public void assertExecutionRecords(int expectedNumber) {
+		List<AuditEventRecord> executionRecords = getExecutionRecords();
+		assertEquals("Wrong # of execution records", expectedNumber, executionRecords.size());
+	}
+
     public List<AuditEventRecord> getRecordsOfType(AuditEventType type) {
         List<AuditEventRecord> retval = new ArrayList<AuditEventRecord>();
         for (AuditEventRecord record : records) {

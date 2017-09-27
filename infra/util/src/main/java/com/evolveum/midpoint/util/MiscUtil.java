@@ -610,7 +610,7 @@ public class MiscUtil {
 	}
 
 	/**
-	 * Returns true if the collection contains at leat one pair of equals elements.
+	 * Returns true if the collection contains at least one pair of equals elements.
 	 */
 	public static <T> boolean hasDuplicates(Collection<T> collection) {
 		Set<T> set = new HashSet<>();

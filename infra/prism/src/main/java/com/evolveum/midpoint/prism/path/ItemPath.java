@@ -72,19 +72,21 @@ public class ItemPath implements Serializable, Cloneable {
         }
     }
 
-	public ItemPath(Object... namesOrIds) {
-		this.segments = new ArrayList<>(namesOrIds.length);
-		for (Object nameOrId : namesOrIds) {
-			if (nameOrId instanceof QName) {
-				add((QName) nameOrId);
-			} else if (nameOrId instanceof String) {
-				add(stringToQName((String) nameOrId));
-			} else if (nameOrId instanceof Long) {
-				this.segments.add(new IdItemPathSegment((Long) nameOrId));
-			} else if (nameOrId instanceof Integer) {
-				this.segments.add(new IdItemPathSegment(((Integer) nameOrId).longValue()));
+	public ItemPath(Object... namesOrIdsOrSegments) {
+		this.segments = new ArrayList<>(namesOrIdsOrSegments.length);
+		for (Object nameOrIdOrSegment : namesOrIdsOrSegments) {
+			if (nameOrIdOrSegment instanceof ItemPathSegment) {
+				add((ItemPathSegment) nameOrIdOrSegment);
+			} else if (nameOrIdOrSegment instanceof QName) {
+				add((QName) nameOrIdOrSegment);
+			} else if (nameOrIdOrSegment instanceof String) {
+				add(stringToQName((String) nameOrIdOrSegment));
+			} else if (nameOrIdOrSegment instanceof Long) {
+				this.segments.add(new IdItemPathSegment((Long) nameOrIdOrSegment));
+			} else if (nameOrIdOrSegment instanceof Integer) {
+				this.segments.add(new IdItemPathSegment(((Integer) nameOrIdOrSegment).longValue()));
 			} else {
-				throw new IllegalArgumentException("Invalid item path segment value: " + nameOrId);
+				throw new IllegalArgumentException("Invalid item path segment value: " + nameOrIdOrSegment);
 			}
 		}
 	}

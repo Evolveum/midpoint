@@ -42,5 +42,8 @@ public interface S_ValuesEntry {
     S_ItemEntry replaceRealValues(Collection<?> realValues);
     S_ItemEntry replace(PrismValue... values);
     S_ItemEntry replace(Collection<? extends PrismValue> values);
-
+    S_ValuesEntry old(Object... realValues);
+    S_ValuesEntry oldRealValues(Collection<?> realValues);
+    S_ValuesEntry old(PrismValue... values);
+    S_ValuesEntry old(Collection<? extends PrismValue> values);
 }

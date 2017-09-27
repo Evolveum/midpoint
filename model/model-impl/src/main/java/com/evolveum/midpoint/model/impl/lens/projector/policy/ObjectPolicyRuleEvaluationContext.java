@@ -31,18 +31,18 @@ import java.util.Collection;
  */
 public class ObjectPolicyRuleEvaluationContext<F extends FocusType> extends PolicyRuleEvaluationContext<F> {
 
-	public ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, LensContext<F> context, Task task) {
-		this(policyRule, context, task, ObjectState.AFTER);
+	public ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, RulesEvaluationContext globalCtx, LensContext<F> context, Task task) {
+		this(policyRule, globalCtx, context, task, ObjectState.AFTER);
 	}
 
-	public ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, LensContext<F> context, Task task,
+	public ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, RulesEvaluationContext globalCtx, LensContext<F> context, Task task,
 			ObjectState state) {
-		super(policyRule, context, task, state);
+		super(policyRule, context, task, globalCtx, state);
 	}
 
 	@Override
 	public PolicyRuleEvaluationContext<F> cloneWithStateConstraints(ObjectState state) {
-		return new ObjectPolicyRuleEvaluationContext<>(policyRule, lensContext, task, state);
+		return new ObjectPolicyRuleEvaluationContext<>(policyRule, globalCtx, lensContext, task, state);
 	}
 
 	@Override
@@ -58,7 +58,6 @@ public class ObjectPolicyRuleEvaluationContext<F extends FocusType> extends Poli
 	@SuppressWarnings({ "CloneDoesntDeclareCloneNotSupportedException", "MethodDoesntCallSuperMethod" })
 	@Override
 	public ObjectPolicyRuleEvaluationContext<F> clone() {
-		return new ObjectPolicyRuleEvaluationContext<>(policyRule, lensContext, task);
+		return new ObjectPolicyRuleEvaluationContext<>(policyRule, globalCtx, lensContext, task);
 	}
-
 }

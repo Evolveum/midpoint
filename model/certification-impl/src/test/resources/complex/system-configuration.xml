@@ -223,9 +223,6 @@
 				<presentation>
 					<final>true</final>
 				</presentation>
-				<policySituation>http://sample.org/situations#active-role-with-no-identifier</policySituation>
-				<expectedUse>certification</expectedUse> <!-- R4 -->
-				<expectedUse>fullReport</expectedUse>	<!-- RE2 -->
 				<ref>
 					<name>role-active</name>
 				</ref>
@@ -240,8 +237,6 @@
 					<presentation>
 						<hidden>true</hidden>
 					</presentation>
-					<policySituation>http://sample.org/situations#incomplete-role-c1-to-c4</policySituation>
-					<expectedUse>fullReport</expectedUse>	<!-- RE1 -->
 					<ref>
 						<name>c1-no-risk-level</name>
 					</ref>
@@ -384,6 +379,42 @@
 		</policyConstraints>
 		<policyActions>
 			<enforcement/>
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>re1-report-draft-roles-violating-c1-c4</name>
+		<description>RE1: See all draft roles that do not meet constraints C1-C4.</description>
+		<policyConstraints>
+			<ref>
+				<name>incomplete-role-c1-to-c4</name>
+			</ref>
+		</policyConstraints>
+		<policySituation>http://sample.org/situations#incomplete-role-c1-to-c4</policySituation>
+		<policyActions>
+			<record>
+				<policyRules>full</policyRules>
+			</record>
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>re2-report-active-roles-violating-c5</name>
+		<description>RE2: See all active roles that do not meet constraint C5.</description>
+		<policyConstraints>
+			<ref>
+				<name>active-role-with-no-identifier</name>
+			</ref>
+		</policyConstraints>
+		<policySituation>http://sample.org/situations#active-role-with-no-identifier</policySituation>
+		<policyActions>
+			<record>
+				<policyRules>none</policyRules>
+			</record>
 		</policyActions>
 		<focusSelector>
 			<type>RoleType</type>

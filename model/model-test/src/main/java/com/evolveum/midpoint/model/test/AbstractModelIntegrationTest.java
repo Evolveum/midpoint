@@ -4551,4 +4551,33 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			return rv.get(0);
 		}
 	}
+
+	// highly experimental
+	public class TestCtx {
+		public final String name;
+
+		public final Task task;
+		public final OperationResult result;
+
+		TestCtx(Object testCase, String name) {
+			this.name = name;
+			TestUtil.displayTestTitle(testCase, name);
+			task = taskManager.createTaskInstance(testCase.getClass().getName() + "." + name);
+			result = task.getResult();
+			dummyAuditService.clear();
+		}
+
+		public void displayWhen() {
+			TestUtil.displayWhen(name);
+		}
+
+		public void displayThen() {
+			TestUtil.displayThen(name);
+		}
+	}
+
+	protected TestCtx createContext(Object testCase, String testName) {
+		return new TestCtx(testCase, testName);
+	}
+
 }

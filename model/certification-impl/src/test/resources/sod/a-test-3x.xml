@@ -27,8 +27,6 @@
 					<targetRef oid="1e422483-997c-4808-bebd-0151d18a391e" type="RoleType"/>		<!--  test-3y -->
 				</exclusion>
 			</policyConstraints>
-			<policyActions>
-			</policyActions>
 		</policyRule>
 	</assignment>
 </role>

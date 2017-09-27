@@ -40,6 +40,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
+
 /**
  * Hook used to enforce the policy rules that have the enforce action.
  *
@@ -135,7 +137,8 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 				continue;
 			}
 
-			evalCtx.rules.add(policyRule.toEvaluatedPolicyRuleType(true));
+			// TODO really include assignments content?
+			policyRule.addToEvaluatedPolicyRuleTypes(evalCtx.rules, new PolicyRuleExternalizationOptions(FULL, true, true));
 
 			for (EvaluatedPolicyRuleTrigger trigger: triggers) {
 				if (trigger.getMessage() != null) {

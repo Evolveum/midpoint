@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.impl.processors.primary.policy;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -33,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.*;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 import static java.util.Comparator.naturalOrder;
 
 /**
@@ -205,11 +207,16 @@ class ApprovalSchemaBuilder {
 			resultingSchemaType.getStage().add(stageDef);
 		}
 		if (firstFragment.policyRule != null) {
-			SchemaAttachedPolicyRuleType attachedRule = new SchemaAttachedPolicyRuleType();
-			attachedRule.setStageMin(from);
-			attachedRule.setStageMax(i - 1);
-			attachedRule.setRule(firstFragment.policyRule.toEvaluatedPolicyRuleType(false));
-			attachedRules.getEntry().add(attachedRule);
+			List<EvaluatedPolicyRuleType> rules = new ArrayList<>();
+			firstFragment.policyRule.addToEvaluatedPolicyRuleTypes(rules, new PolicyRuleExternalizationOptions(FULL,
+					false, true));
+			for (EvaluatedPolicyRuleType rule : rules) {
+				SchemaAttachedPolicyRuleType attachedRule = new SchemaAttachedPolicyRuleType();
+				attachedRule.setStageMin(from);
+				attachedRule.setStageMax(i - 1);
+				attachedRule.setRule(rule);
+				attachedRules.getEntry().add(attachedRule);
+			}
 		}
 	}
 

@@ -43,15 +43,18 @@ public class AssignmentPolicyRuleEvaluationContext<F extends FocusType> extends 
 	public AssignmentPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule,
 			@NotNull EvaluatedAssignmentImpl<F> evaluatedAssignment, boolean inPlus, boolean inZero,
 			boolean inMinus, boolean isDirect, LensContext<F> context,
-			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task) {
-		this(policyRule, evaluatedAssignment, inPlus, inZero, inMinus, isDirect, context, evaluatedAssignmentTriple, task, ObjectState.AFTER);
+			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task,
+			RulesEvaluationContext globalCtx) {
+		this(policyRule, evaluatedAssignment, inPlus, inZero, inMinus, isDirect, context, evaluatedAssignmentTriple,
+				task, ObjectState.AFTER, globalCtx);
 	}
 
 	public AssignmentPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule,
 			@NotNull EvaluatedAssignmentImpl<F> evaluatedAssignment, boolean inPlus, boolean inZero,
 			boolean inMinus, boolean isDirect, LensContext<F> context,
-			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, ObjectState state) {
-		super(policyRule, context, task, state);
+			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, ObjectState state,
+			RulesEvaluationContext globalCtx) {
+		super(policyRule, context, task, globalCtx, state);
 		this.evaluatedAssignment = evaluatedAssignment;
 		this.inPlus = inPlus;
 		this.inZero = inZero;
@@ -62,7 +65,8 @@ public class AssignmentPolicyRuleEvaluationContext<F extends FocusType> extends 
 
 	@Override
 	public AssignmentPolicyRuleEvaluationContext<F> cloneWithStateConstraints(ObjectState state) {
-		return new AssignmentPolicyRuleEvaluationContext<>(policyRule, evaluatedAssignment, inPlus, inZero, inMinus, isDirect, lensContext, evaluatedAssignmentTriple, task, state);
+		return new AssignmentPolicyRuleEvaluationContext<>(policyRule, evaluatedAssignment, inPlus, inZero, inMinus, isDirect, lensContext, evaluatedAssignmentTriple, task, state,
+				globalCtx);
 	}
 
 	@Override
@@ -98,6 +102,6 @@ public class AssignmentPolicyRuleEvaluationContext<F extends FocusType> extends 
 	@Override
 	public AssignmentPolicyRuleEvaluationContext<F> clone() {
 		return new AssignmentPolicyRuleEvaluationContext<>(policyRule, evaluatedAssignment, inPlus, inZero, inMinus,
-				isDirect, lensContext, evaluatedAssignmentTriple, task);
+				isDirect, lensContext, evaluatedAssignmentTriple, task, globalCtx);
 	}
 }

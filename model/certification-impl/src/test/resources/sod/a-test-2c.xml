@@ -27,8 +27,6 @@
 					<targetRef oid="fa636d6a-f016-491c-8cd5-cdcbfd516be5" type="RoleType"/>		<!--  test-2a -->
 				</exclusion>
 			</policyConstraints>
-			<policyActions>
-			</policyActions>
 		</policyRule>
 	</assignment>
 	<assignment>
@@ -38,8 +36,6 @@
 					<targetRef oid="ecb9287d-5852-4bec-9926-4ab1de518e26" type="RoleType"/>		<!--  test-2b -->
 				</exclusion>
 			</policyConstraints>
-			<policyActions>
-			</policyActions>
 		</policyRule>
 	</assignment>
 </role>

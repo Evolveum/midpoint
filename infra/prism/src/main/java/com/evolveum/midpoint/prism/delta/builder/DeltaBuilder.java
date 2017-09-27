@@ -186,6 +186,41 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
     }
 
     @Override
+    public S_ValuesEntry old(Object... realValues) {
+        return oldRealValues(Arrays.asList(realValues));
+    }
+
+    @Override
+    public S_ValuesEntry oldRealValues(Collection<?> realValues) {
+        for (Object v : realValues) {
+            if (v != null) {
+                currentDelta.addEstimatedOldValue(toPrismValue(currentDelta, v));
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public S_ValuesEntry old(PrismValue... values) {
+        for (PrismValue v : values) {
+            if (v != null) {
+                currentDelta.addEstimatedOldValue(v);
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public S_ValuesEntry old(Collection<? extends PrismValue> values) {
+        for (PrismValue v : values) {
+            if (v != null) {
+                currentDelta.addEstimatedOldValue(v);
+            }
+        }
+        return this;
+    }
+
+    @Override
     public S_ItemEntry delete(Object... realValues) {
         return deleteRealValues(Arrays.asList(realValues));
     }

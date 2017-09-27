@@ -633,4 +633,32 @@ public class PolicyRuleTypeUtil {
 		};
 	}
 
+	@NotNull
+	public static List<EvaluatedExclusionTriggerType> getAllExclusionTriggers(List<EvaluatedPolicyRuleType> rules) {
+		List<EvaluatedExclusionTriggerType> rv = new ArrayList<>();
+		getExclusionTriggersFromRules(rv, rules);
+		return rv;
+	}
+
+	private static void getExclusionTriggersFromRules(List<EvaluatedExclusionTriggerType> rv, List<EvaluatedPolicyRuleType> rules) {
+		for (EvaluatedPolicyRuleType rule : rules) {
+			getExclusionTriggersFromRule(rv, rule);
+		}
+	}
+
+	private static void getExclusionTriggersFromRule(List<EvaluatedExclusionTriggerType> rv, EvaluatedPolicyRuleType rule) {
+		getExclusionTriggersFromTriggers(rv, rule.getTrigger());
+	}
+
+	private static void getExclusionTriggersFromTriggers(List<EvaluatedExclusionTriggerType> rv, List<EvaluatedPolicyRuleTriggerType> triggers) {
+		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
+			if (trigger instanceof EvaluatedExclusionTriggerType) {
+				rv.add((EvaluatedExclusionTriggerType) trigger);
+			} else if (trigger instanceof EvaluatedEmbeddingTriggerType) {
+				getExclusionTriggersFromTriggers(rv, ((EvaluatedEmbeddingTriggerType) trigger).getEmbedded());
+			} else if (trigger instanceof EvaluatedSituationTriggerType) {
+				getExclusionTriggersFromRules(rv, ((EvaluatedSituationTriggerType) trigger).getSourceRule());
+			}
+		}
+	}
 }

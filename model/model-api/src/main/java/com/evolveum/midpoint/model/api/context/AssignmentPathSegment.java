@@ -74,5 +74,5 @@ public interface AssignmentPathSegment extends DebugDumpable, ShortDumpable {
 	boolean isDelegation();
 
 	@NotNull
-	AssignmentPathSegmentType toAssignmentPathSegmentType();
+	AssignmentPathSegmentType toAssignmentPathSegmentType(boolean includeAssignmentsContent);
 }
