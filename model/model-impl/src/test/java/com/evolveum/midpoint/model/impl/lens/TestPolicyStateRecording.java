@@ -196,7 +196,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
 		// GIVEN
 		UserType jack = getUser(USER_JACK_OID).asObjectable();
-		AssignmentType pirateAssignment = findAssignmentByTarget(jack.asPrismObject(), ROLE_PIRATE_OID).get();
+		AssignmentType pirateAssignment = findAssignmentByTargetRequired(jack.asPrismObject(), ROLE_PIRATE_OID);
 
 		// WHEN
 		t.displayWhen();
