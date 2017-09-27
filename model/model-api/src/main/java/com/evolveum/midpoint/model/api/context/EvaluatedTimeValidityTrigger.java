@@ -31,10 +31,9 @@ public class EvaluatedTimeValidityTrigger extends EvaluatedPolicyRuleTrigger<Tim
 	}
 
 	@Override
-	public EvaluatedTimeValidityTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule,
-			boolean respectFinalFlag) {
+	public EvaluatedTimeValidityTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options) {
 		EvaluatedTimeValidityTriggerType rv = new EvaluatedTimeValidityTriggerType();
-		fillCommonContent(rv, owningRule);
+		fillCommonContent(rv);
 		return rv;
 	}
 }

@@ -1671,6 +1671,10 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		return pcvs.stream().map(c -> c.asContainerable()).collect(Collectors.toList());
 	}
 
+	public static <C extends Containerable> Collection<C> asContainerables(Collection<PrismContainerValue<C>> pcvs) {
+		return pcvs.stream().map(c -> c.asContainerable()).collect(Collectors.toList());
+	}
+
 	/**
 	 * Set origin type to all values and subvalues
 	 */

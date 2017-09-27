@@ -68,5 +68,5 @@ public interface AssignmentPath extends DebugDumpable, ShortDumpable {
 	@NotNull
 	List<ObjectType> getFirstOrderChain();
 
-	AssignmentPathType toAssignmentPathType();
+	AssignmentPathType toAssignmentPathType(boolean includeAssignmentsContent);
 }

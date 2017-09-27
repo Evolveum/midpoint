@@ -363,8 +363,50 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-                        
-        </xsd:sequence>
+
+			<xsd:element name="policySituation" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						The policy situation(s) of this object. The situations are result of
+						evaluation of the policy rules. This property is recorded for each object
+						and can be used for reporting, diagnostics, target selection in certification
+						campaigns, etc.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.5</a:since>
+						<a:operational>true</a:operational>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+
+			<xsd:element name="triggeredPolicyRule" type="tns:EvaluatedPolicyRuleType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Triggered policy rules for this assignment. (Not necessarily complete; subject to specified storage strategy.)
+						This is EXPERIMENTAL functionality. It is possibly to change in the near future.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+						<a:operational>true</a:operational>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+
+			<xsd:element name="policyException" type="tns:PolicyExceptionType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Recorded exception from a policy rule. The exceptions that are approved are
+						recoded here to avoid re-evaluating and re-approving them all the time.
+						This is EXPERIMENTAL functionality. It is likely to change in the near future.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.5</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+
+		</xsd:sequence>
                
         <xsd:attribute name="oid" type="xsd:string" use="optional">
             <xsd:annotation>
@@ -2400,22 +2442,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     
-                    <xsd:element name="policySituation" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
-		                <xsd:annotation>
-		                    <xsd:documentation>
-		                        The policy situation(s) of this object. The situations are result of
-		                        evaluation of the policy rules. This property is recorded for each object
-		                        and can be used for reporting, diagnostics, target selection in certification
-		                        campaigns, etc.
-		                    </xsd:documentation>
-		                    <xsd:appinfo>
-		                    	<a:since>3.5</a:since>
-								<a:operational>true</a:operational>
-		                    </xsd:appinfo>
-		                </xsd:annotation>
-		            </xsd:element>
-
-                </xsd:sequence>
+				</xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -3493,12 +3520,25 @@
             <xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-						Fired policy rule triggers for this assignment. (Some fields of the triggers might be zeroed out
-						in order to save space. This is yet to be decided.)
-						This is EXPERIMENTAL functionality. It is likely to change in the near future.
+						DEPRECATED. DO NOT USE.
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:since>3.6</a:since>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>3.7</a:deprecatedSince>
+						<a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="triggeredPolicyRule" type="tns:EvaluatedPolicyRuleType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+						Triggered policy rules for this assignment. (Not necessarily complete; subject to specified storage strategy.)
+						This is EXPERIMENTAL functionality. It is possibly to change in the near future.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>3.7</a:since>
 						<a:operational>true</a:operational>
                     </xsd:appinfo>
                 </xsd:annotation>

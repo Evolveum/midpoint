@@ -23,7 +23,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -205,9 +204,9 @@ public class AssignmentPathImpl implements AssignmentPath {
 	}
 
 	@Override
-	public AssignmentPathType toAssignmentPathType() {
+	public AssignmentPathType toAssignmentPathType(boolean includeAssignmentsContent) {
 		AssignmentPathType rv = new AssignmentPathType();
-		segments.forEach(seg -> rv.getSegment().add(seg.toAssignmentPathSegmentType()));
+		segments.forEach(seg -> rv.getSegment().add(seg.toAssignmentPathSegmentType(includeAssignmentsContent)));
 		return rv;
 	}
 }

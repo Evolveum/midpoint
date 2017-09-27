@@ -16,6 +16,8 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.Objectable;
@@ -367,6 +369,29 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             sb.append("\n");
             sb.append(secondaryDeltas.debugDump(indent + 2));
         }
+
+        // pending policy state modifications (object + assignments)
+        sb.append("\n");
+        DebugUtil.indentDebugDump(sb, indent + 1);
+        sb.append(getDebugDumpTitle("pending object policy state modifications")).append(":");
+        if (getPendingObjectPolicyStateModifications().isEmpty()) {
+            sb.append(" empty");
+        } else {
+            sb.append("\n");
+            sb.append(DebugUtil.debugDump(getPendingObjectPolicyStateModifications(), indent + 2));
+        }
+
+	    for (Map.Entry<AssignmentSpec, List<ItemDelta<?, ?>>> entry : getPendingAssignmentPolicyStateModifications().entrySet()) {
+		    sb.append("\n");
+		    DebugUtil.indentDebugDump(sb, indent + 1);
+		    sb.append(getDebugDumpTitle("pending assignment policy state modifications for ")).append(entry.getKey()).append(":");
+		    if (entry.getValue().isEmpty()) {
+			    sb.append(" empty");
+		    } else {
+			    sb.append("\n");
+			    sb.append(DebugUtil.debugDump(entry.getValue(), indent + 2));
+		    }
+	    }
 
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("executed deltas"), getExecutedDeltas(), indent+1);

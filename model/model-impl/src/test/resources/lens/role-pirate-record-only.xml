@@ -31,6 +31,9 @@
 			</policyConstraints>
 			<policyActions>
 				<!-- no enforcement here -->
+				<record>
+					<policyRules>messageOnly</policyRules>
+				</record>
 			</policyActions>
 		</policyRule>
 	</assignment>

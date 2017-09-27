@@ -19,11 +19,13 @@ package com.evolveum.midpoint.model.impl.lens;
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.FOCUS_OPERATION;
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
+import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerables;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicySituationUpdater;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyStateRecorder;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -42,12 +44,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsPr
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -88,6 +84,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBElement;
@@ -110,38 +107,16 @@ public class ChangeExecutor {
 	private static final String OPERATION_UPDATE_SITUATION_ACCOUNT = ChangeExecutor.class.getName()
 			+ ".updateSituationInShadow";
 
-	@Autowired
-	private transient TaskManager taskManager;
-
-	@Autowired
-	@Qualifier("cacheRepositoryService")
-	private transient RepositoryService cacheRepositoryService;
-
-	@Autowired
-	private ProvisioningService provisioning;
-
-	@Autowired
-	private PrismContext prismContext;
-
-	@Autowired
-	private ExpressionFactory expressionFactory;
-
-	@Autowired
-	private SecurityEnforcer securityEnforcer;
-
-	@Autowired
-	private Clock clock;
-
-	@Autowired
-	private ModelObjectResolver objectResolver;
-
-	@Autowired
-	private OperationalDataManager metadataManager;
-
-	@Autowired
-	private PolicySituationUpdater policySituationUpdater;
-	@Autowired
-	private CredentialsProcessor credentialsProcessor;
+	@Autowired private transient TaskManager taskManager;
+	@Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
+	@Autowired private ProvisioningService provisioning;
+	@Autowired private PrismContext prismContext;
+	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private SecurityEnforcer securityEnforcer;
+	@Autowired private Clock clock;
+	@Autowired private ModelObjectResolver objectResolver;
+	@Autowired private OperationalDataManager metadataManager;
+	@Autowired private CredentialsProcessor credentialsProcessor;
 
 	private PrismObjectDefinition<UserType> userDefinition = null;
 	private PrismObjectDefinition<ShadowType> shadowDefinition = null;
@@ -171,10 +146,8 @@ public class ChangeExecutor {
 		if (focusContext != null) {
 			ObjectDelta<O> focusDelta = focusContext.getWaveExecutableDelta(context.getExecutionWave());
 
-			if (!focusContext.isDelete()) {
-				focusDelta = policySituationUpdater.applyAssignmentSituation(context, focusDelta);
-				policySituationUpdater.storeFocusPolicySituation(context);
-			}
+			focusDelta = applyPendingObjectPolicyStateModifications(focusContext, focusDelta);
+			focusDelta = applyPendingAssignmentPolicyStateModifications(focusContext, focusDelta);
 
 			if (focusDelta != null) {
 
@@ -390,6 +363,87 @@ public class ChangeExecutor {
 		result.computeStatusComposite();
 		return restartRequested;
 
+	}
+
+	private <O extends ObjectType> ObjectDelta<O> applyPendingObjectPolicyStateModifications(LensFocusContext<O> focusContext,
+			ObjectDelta<O> focusDelta) throws SchemaException {
+		for (ItemDelta<?, ?> itemDelta : focusContext.getPendingObjectPolicyStateModifications()) {
+			focusDelta = focusContext.swallowToDelta(focusDelta, itemDelta);
+		}
+		focusContext.clearPendingObjectPolicyStateModifications();
+		return focusDelta;
+	}
+
+	private <O extends ObjectType> ObjectDelta<O> applyPendingAssignmentPolicyStateModifications(LensFocusContext<O> focusContext, ObjectDelta<O> focusDelta)
+			throws SchemaException {
+		for (Map.Entry<AssignmentSpec, List<ItemDelta<?, ?>>> entry : focusContext
+				.getPendingAssignmentPolicyStateModifications().entrySet()) {
+			PlusMinusZero mode = entry.getKey().mode;
+			if (mode == PlusMinusZero.MINUS) {
+				continue;       // this assignment is being thrown out anyway, so let's ignore it (at least for now)
+			}
+			AssignmentType assignmentToFind = entry.getKey().assignment;
+			List<ItemDelta<?, ?>> modifications = entry.getValue();
+			if (modifications.isEmpty()) {
+				continue;
+			}
+			LOGGER.trace("Applying policy state modifications for {} ({}):\n{}", assignmentToFind, mode,
+					DebugUtil.debugDumpLazily(modifications));
+			if (mode == PlusMinusZero.ZERO) {
+				if (assignmentToFind.getId() == null) {
+					throw new IllegalStateException("Existing assignment with null id: " + assignmentToFind);
+				}
+				for (ItemDelta<?, ?> modification : modifications) {
+					focusDelta = focusContext.swallowToDelta(focusDelta, modification);
+				}
+			} else {
+				assert mode == PlusMinusZero.PLUS;
+				if (focusDelta != null && focusDelta.isAdd()) {
+					swallowIntoValues(((FocusType) focusDelta.getObjectToAdd().asObjectable()).getAssignment(),
+							assignmentToFind, modifications);
+				} else {
+					ContainerDelta<AssignmentType> assignmentDelta = focusDelta != null ?
+							focusDelta.findContainerDelta(FocusType.F_ASSIGNMENT) : null;
+					if (assignmentDelta == null) {
+						throw new IllegalStateException(
+								"We have 'plus' assignment to modify but there's no assignment delta. Assignment="
+										+ assignmentToFind + ", objectDelta=" + focusDelta);
+					}
+					if (assignmentDelta.isReplace()) {
+						swallowIntoValues(asContainerables(assignmentDelta.getValuesToReplace()), assignmentToFind,
+								modifications);
+					} else if (assignmentDelta.isAdd()) {
+						swallowIntoValues(asContainerables(assignmentDelta.getValuesToAdd()), assignmentToFind,
+								modifications);
+					} else {
+						throw new IllegalStateException(
+								"We have 'plus' assignment to modify but there're no values to add or replace in assignment delta. Assignment="
+										+ assignmentToFind + ", objectDelta=" + focusDelta);
+					}
+				}
+			}
+		}
+		focusContext.clearPendingAssignmentPolicyStateModifications();
+		return focusDelta;
+	}
+
+	private void swallowIntoValues(Collection<AssignmentType> assignments, AssignmentType assignmentToFind, List<ItemDelta<?, ?>> modifications)
+			throws SchemaException {
+		for (AssignmentType assignment : assignments) {
+			PrismContainerValue<?> pcv = assignment.asPrismContainerValue();
+			PrismContainerValue<?> pcvToFind = assignmentToFind.asPrismContainerValue();
+			if (pcv.representsSameValue(pcvToFind, false) || pcv.equalsRealValue(pcvToFind)) {
+				// TODO what if ID of the assignment being added is changed in repo? Hopefully it will be not.
+				for (ItemDelta<?, ?> modification : modifications) {
+					ItemPath newParentPath = modification.getParentPath().rest().rest();        // killing assignment + ID
+					ItemDelta<?, ?> pathRelativeModification = modification.cloneWithChangedParentPath(newParentPath);
+					pathRelativeModification.applyTo(pcv);
+				}
+				return;
+			}
+		}
+		// TODO change to warning
+		throw new IllegalStateException("We have 'plus' assignment to modify but it couldn't be found in assignment delta. Assignment=" + assignmentToFind + ", new assignments=" + assignments);
 	}
 
 	private boolean shouldBeDeleted(ObjectDelta<ShadowType> accDelta, LensProjectionContext accCtx) {
