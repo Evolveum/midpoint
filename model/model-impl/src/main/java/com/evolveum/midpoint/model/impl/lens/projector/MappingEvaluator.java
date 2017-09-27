@@ -175,15 +175,13 @@ public class MappingEvaluator {
 				return builder;
 			};
 
-		MappingLoader<ShadowType> loader = new ProjectionMappingLoader<>(context, projCtx, contextLoader);
-
 		MappingEvaluatorParams<PrismPropertyValue<T>, PrismPropertyDefinition<T>, ShadowType, F> params = new MappingEvaluatorParams<>();
 		params.setMappingTypes(outboundMappings);
 		params.setMappingDesc(desc + " in projection " + projCtxDesc);
 		params.setNow(now);
 		params.setInitializer(internalInitializer);
 		params.setProcessor(processor);
-		params.setTargetLoader(loader);
+		params.setTargetLoader(new ProjectionMappingLoader<>(context, projCtx, contextLoader));
 		params.setAPrioriTargetObject(shadowNew);
 		params.setAPrioriTargetDelta(LensUtil.findAPrioriDelta(context, projCtx));
 		params.setTargetContext(projCtx);
@@ -198,7 +196,7 @@ public class MappingEvaluator {
 		evaluateMappingSetProjection(params, task, result);
     }
 
-	public <V extends PrismValue, D extends ItemDefinition, T extends ObjectType, F extends FocusType> void evaluateMappingSetProjection(
+	public <V extends PrismValue, D extends ItemDefinition, T extends ObjectType, F extends FocusType> Map<ItemPath,MappingOutputStruct<V>> evaluateMappingSetProjection(
 			MappingEvaluatorParams<V,D,T,F> params,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -285,7 +283,7 @@ public class MappingEvaluator {
 		        	}
 		        }
 			}
-
+			
 			evaluateMapping(mapping, params.getContext(), task, result);
 
 			PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
@@ -305,13 +303,13 @@ public class MappingEvaluator {
                 if (mapping.getStrength() == MappingStrengthType.STRONG) {
                 	mappingOutputStruct.setStrongMappingWasUsed(true);
 
-//                	if (!hasFullTargetObject && params.getTargetLoader() != null) {
-//    					if (!params.getTargetLoader().isLoaded()) {
-//    						aPrioriTargetObject = params.getTargetLoader().load(task, result);
-//    						LOGGER.trace("Loaded object because of strong mapping: {}", aPrioriTargetObject);
-//    						hasFullTargetObject = true;
-//    					}
-//    				}
+                	if (!hasFullTargetObject && params.getTargetLoader() != null) {
+    					if (!params.getTargetLoader().isLoaded()) {
+    						aPrioriTargetObject = params.getTargetLoader().load("strong mapping", task, result);
+    						LOGGER.trace("Loaded object because of strong mapping: {}", aPrioriTargetObject);
+    						hasFullTargetObject = true;
+    					}
+    				}
                 }
 
                 PrismValueDeltaSetTriple<V> outputTriple = mappingOutputStruct.getOutputTriple();
@@ -545,6 +543,8 @@ public class MappingEvaluator {
 				targetContext.swallowToSecondaryDelta(triggerDelta);
 			}
 		}
+		
+		return outputTripleMap;
 	}
 
     private <V extends PrismValue> boolean isMeaningful(PrismValueDeltaSetTriple<V> mappingOutputTriple) {

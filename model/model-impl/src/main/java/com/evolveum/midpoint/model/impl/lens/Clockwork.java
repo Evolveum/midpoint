@@ -22,6 +22,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -240,6 +241,7 @@ public class Clockwork {
 			return HookOperationMode.FOREGROUND;
 		}
 		PrismObject<F> focusObject = context.getFocusContext() != null ? context.getFocusContext().getObjectAny() : null;
+		ModelExecuteOptions options = null;
 		switch (resolutionPolicy.getAction()) {
 			case FAIL: throw new SystemException("Conflict detected while updating " + focusObject);
 			case LOG:
@@ -247,11 +249,15 @@ public class Clockwork {
 				return HookOperationMode.FOREGROUND;
 			case RECOMPUTE:
 				break;
+			case RECONCILE:
+				options = ModelExecuteOptions.createReconcile();
+				break;
 			default:
 				throw new IllegalStateException("Unsupported conflict resolution action: " + resolutionPolicy.getAction());
 		}
 
 		// so, recompute is the action
+		LOGGER.debug("Conflict detected while updating {}, recomputing (options={})", focusObject, options);
 
 		if (context.getFocusContext() == null) {
 			LOGGER.warn("No focus context, not possible to resolve conflict by focus recomputation");       // should really never occur
@@ -274,9 +280,13 @@ public class Clockwork {
 			LOGGER.warn("Focus is not of FocusType (it is {}); not possible to resolve conflict by focus recomputation", focusClass.getName());
 			return HookOperationMode.FOREGROUND;
 		}
+		
+		ConflictResolutionType focusConflictResolution = new ConflictResolutionType();
+		focusConflictResolution.setAction(ConflictResolutionActionType.RESTART);
+		options.setFocusConflictResolution(focusConflictResolution);
 
 		PrismObject<F> focus = repositoryService.getObject(focusClass, oid, null, result);
-		LensContext<FocusType> contextNew = contextFactory.createRecomputeContext(focus, null, task, result);
+		LensContext<FocusType> contextNew = contextFactory.createRecomputeContext(focus, options, task, result);
 				contextNew.setProgressListeners(new ArrayList<>(emptyIfNull(context.getProgressListeners())));
 		int attemptOld = context.getConflictResolutionAttemptNumber();
 		int attemptNew = attemptOld + 1;
@@ -579,7 +589,15 @@ public class Clockwork {
 
 		LensUtil.partialExecute("execution",
 				() -> {
-					boolean restartRequested = changeExecutor.executeChanges(context, task, result);
+					boolean restartRequested;
+					try {
+						
+						restartRequested = changeExecutor.executeChanges(context, task, result);
+						
+					} catch (PreconditionViolationException e) {
+						LOGGER.debug("Precondition violation, will restart");
+						restartRequested = true;
+					}
 					restartRequestedHolder.setValue(restartRequested);
 				},
 				context.getPartialProcessingOptions()::getExecution);

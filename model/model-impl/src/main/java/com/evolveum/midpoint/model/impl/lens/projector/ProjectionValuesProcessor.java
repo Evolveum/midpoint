@@ -57,6 +57,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -67,6 +68,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -242,7 +244,7 @@ public class ProjectionValuesProcessor {
 		        	wasResetIterationCounter = true;
 		        	iteration = 0;
 		    		iterationToken = null;
-		    		cleanupContext(projContext);
+		    		cleanupContext(projContext, null);
 		    		LOGGER.trace("Resetting iteration counter and token because we have rename");
 			        if (consistencyChecks) context.checkConsistence();
 		    		continue;
@@ -307,7 +309,7 @@ public class ProjectionValuesProcessor {
 				        		if (focus != null && focus.getOid().equals(context.getFocusContext().getOid())) {
 				        			LOGGER.trace("Conflicting projection already linked to the current focus, no recompute needed, continue processing with conflicting projection.");
 			//	        			accountContext.setSecondaryDelta(null);
-				        			cleanupContext(projContext);
+				        			cleanupContext(projContext, fullConflictingShadow);
 				        			projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
 				        			projContext.setObjectOld(fullConflictingShadow.clone());
 				        			projContext.setObjectCurrent(fullConflictingShadow);
@@ -376,7 +378,7 @@ public class ProjectionValuesProcessor {
 											}
 
 											//found shadow belongs to the current user..need to link it and replace current shadow with the found shadow..
-											cleanupContext(projContext);
+											cleanupContext(projContext, fullConflictingShadow);
 											projContext.setObjectOld(fullConflictingShadow.clone());
 											projContext.setObjectCurrent(fullConflictingShadow);
 											projContext.setFullShadow(true);
@@ -422,7 +424,7 @@ public class ProjectionValuesProcessor {
 	        iterationToken = null;
 			LensUtil.checkMaxIterations(iteration, maxIterations, conflictMessage, projContext.getHumanReadableName());
 
-			cleanupContext(projContext);
+			cleanupContext(projContext, null);
 	        if (consistencyChecks) context.checkConsistence();
 
 		}
@@ -570,18 +572,45 @@ public class ProjectionValuesProcessor {
 	/**
 	 * Remove the intermediate results of values processing such as secondary deltas.
 	 */
-	private void cleanupContext(LensProjectionContext accountContext) throws SchemaException {
-		// We must NOT clean up activation computation. This has happened before, it will not happen again
-		// and it does not depend on iteration
+	private void cleanupContext(LensProjectionContext accountContext, PrismObject<ShadowType> fullConflictingShadow) throws SchemaException {
+		// We must NOT clean up activation computation here. This has happened before, it will not happen again
+		// and it does not depend on iteration. But, in fact we want to cleaup up activation changes if they
+		// are already applied to the new shadow.
 		ObjectDelta<ShadowType> secondaryDelta = accountContext.getSecondaryDelta();
 		if (secondaryDelta != null) {
+			boolean administrativeStatusDeltaRemoved = false;
 			Collection<? extends ItemDelta> modifications = secondaryDelta.getModifications();
 			if (modifications != null) {
 				Iterator<? extends ItemDelta> iterator = modifications.iterator();
 				while (iterator.hasNext()) {
 					ItemDelta modification = iterator.next();
-					if (! new ItemPath(FocusType.F_ACTIVATION).equivalent(modification.getParentPath())) {
+					if (SchemaConstants.PATH_ACTIVATION.equivalent(modification.getParentPath())) {
+						if (fullConflictingShadow != null) {
+							if (QNameUtil.match(ActivationType.F_ADMINISTRATIVE_STATUS,modification.getElementName())) {
+								if (modification.isRedundant(fullConflictingShadow)) {
+									LOGGER.trace("Removing redundant secondary activation delta: {}", modification);
+									iterator.remove();
+								}
+								administrativeStatusDeltaRemoved = true;
+							}
+						}
+					} else {
 						iterator.remove();
+					}
+				}
+				if (administrativeStatusDeltaRemoved) {
+					iterator = modifications.iterator();
+					while (iterator.hasNext()) {
+						ItemDelta modification = iterator.next();
+						if (SchemaConstants.PATH_ACTIVATION.equivalent(modification.getParentPath())) {
+							if (QNameUtil.match(ActivationType.F_ENABLE_TIMESTAMP, modification.getElementName()) ||
+									QNameUtil.match(ActivationType.F_DISABLE_TIMESTAMP, modification.getElementName()) ||
+									QNameUtil.match(ActivationType.F_DISABLE_REASON, modification.getElementName()) ||
+									QNameUtil.match(ActivationType.F_ARCHIVE_TIMESTAMP, modification.getElementName())) {
+								LOGGER.trace("Removing secondary activation delta because redundant delta was removed before: {}", modification);
+								iterator.remove();
+							}
+						}
 					}
 				}
 			}
@@ -592,6 +621,7 @@ public class ProjectionValuesProcessor {
 		accountContext.clearIntermediateResults();
 		accountContext.recompute();
 	}
+	
 
 	/**
 	 * Adds deltas for iteration and iterationToken to the shadow if needed.
