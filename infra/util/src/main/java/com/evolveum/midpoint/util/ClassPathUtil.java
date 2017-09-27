@@ -21,24 +21,21 @@ package com.evolveum.midpoint.util;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.reflections.Reflections;
-import org.reflections.Store;
 import org.reflections.scanners.SubTypesScanner;
-import org.reflections.scanners.TypeElementsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
-import org.reflections.vfs.SystemDir;
-import org.reflections.vfs.Vfs;
 
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLDecoder;
-import java.util.*;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -46,14 +43,11 @@ import java.util.jar.JarFile;
 /**
  * @author Peter Prochazka
  * @author Radovan Semancik
+ * @author Viliam Repan (lazyman)
  */
 public class ClassPathUtil {
 
     public static Trace LOGGER = TraceManager.getTrace(ClassPathUtil.class);
-
-//    static {
-//        Vfs.setDefaultURLTypes(getUrlTypes());
-//    }
 
     public static Set<Class> listClasses(Package pkg) {
         return listClasses(pkg.getName());
@@ -104,33 +98,6 @@ public class ClassPathUtil {
                 LOGGER.error("Error during loading class {}. ", type);
             }
         }
-
-//		String path = packageName.replace('.', '/');
-//		Enumeration<URL> resources = null;
-//		// HACK this is not available use LOGGER
-//		ClassLoader classLoader = LOGGER.getClass().getClassLoader();
-//		LOGGER.trace("Classloader: {} : {}", classLoader, classLoader.getClass());
-//		try {
-//			resources = classLoader.getResources(path);
-//		} catch (IOException e) {
-//			LOGGER.error("Classloader scaning error for " + path, e);
-//		}
-//
-//		while (resources.hasMoreElements()) {
-//			URL candidateUrl = resources.nextElement();
-//			LOGGER.trace("Candidates from: " + candidateUrl);
-//
-//			// test if it is a directory or JAR
-//            String protocol = candidateUrl.getProtocol();
-//            if ("file".contentEquals(protocol)) {
-//            	getFromDirectory(candidateUrl, packageName, consumer);
-//            } else if ("jar".contentEquals(protocol) || "zip".contentEquals(protocol)) {
-//            	getFromJar(candidateUrl, packageName, consumer);
-//            } else {
-//                LOGGER.warn("Unsupported protocol for candidate URL {}", candidateUrl);
-//            }
-//        }
-
     }
 
     /**
@@ -270,247 +237,5 @@ public class ClassPathUtil {
             }
         }
         return true;
-    }
-
-    /**
-     * Get clasess from JAR
-     *
-     * @param srcUrl
-     * @param packageName
-     * @return
-     */
-    @SuppressWarnings("rawtypes")
-    private static void getFromJar(URL srcUrl, String packageName, Consumer<Class> consumer) {
-        // sample:
-        // file:/C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar!/test-data/opendj.template
-        // output:
-        // file/C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar
-        String srcName = srcUrl.getPath().split("!/")[0];
-
-        //solution to make it work in Weblogic, because we have to make the path absolute, that means with scheme, that means basically with prefix file:/
-        //in Tomcat the form is jar:file:/
-        //in Weblogic the form is only zip:/
-        LOGGER.trace("srcUrl.getProtocol(): {}", srcUrl.getProtocol());
-
-        if ("zip".equals(srcUrl.getProtocol())) {
-            srcName = "file:" + srcName;
-        }
-        LOGGER.trace("srcName: {}", srcName);
-
-        // Probably hepls fix error in windows with URI
-        File jarTmp = null;
-        try {
-            jarTmp = new File(new URI(srcName));
-        } catch (URISyntaxException ex) {
-            LOGGER.error("Error converting jar " + srcName + " name to URI:", ex);
-            return;
-        }
-
-        if (!jarTmp.isFile()) {
-            LOGGER.error("Is {} not a file.", srcName);
-        }
-
-        JarFile jar = null;
-        try {
-            jar = new JarFile(jarTmp);
-        } catch (IOException ex) {
-            LOGGER.error("Error during open JAR " + srcName, ex);
-            return;
-        }
-        String path = packageName.replace('.', '/');
-        Enumeration<JarEntry> entries = jar.entries();
-        LOGGER.trace("PATH:" + path);
-
-        JarEntry e;
-        while (entries.hasMoreElements()) {
-            e = entries.nextElement();
-            // get name and replace inner class
-            String name = e.getName().replace('$', '/');
-            // NOTICE: inner class are seperated and anonymous are part of the
-            // listing !!
-
-            // skip other files in other packas and skip non class files
-            if (!name.contains(path) || !name.contains(".class")) {
-                continue;
-            }
-            // Skip all that are not in package
-            if (name.matches(path + "/.+/.*.class")) {
-                continue;
-            }
-
-            LOGGER.trace("JAR Candidate: {}", name);
-            try {// to create class
-
-                // Convert name back to package
-                Class clazz = Class.forName(name.replace('/', '.').replace(".class", ""));
-                consumer.accept(clazz);
-            } catch (ClassNotFoundException ex) {
-                LOGGER.error("Error during loading class {} from {}. ", name, jar.getName());
-            }
-        }
-
-        try {
-            jar.close();
-        } catch (IOException ex) {
-            LOGGER.error("Error during close JAR {} " + srcName, ex);
-            return;
-        }
-
-    }
-
-    /**
-     * get classes from directory
-     *
-     * @param candidateUrl
-     * @param packageName
-     * @return
-     */
-    @SuppressWarnings("rawtypes")
-    private static void getFromDirectory(URL candidateUrl, String packageName, Consumer<Class> consumer) {
-
-        // Directory preparation
-        File dir = null;
-        try {
-            dir = new File(candidateUrl.toURI());
-        } catch (URISyntaxException e) {
-            LOGGER.error("NEVER HAPPEND -- Wrong URI: " + candidateUrl.getPath(), e);
-            return;
-        }
-
-        // Skip if it is directory
-        if (!dir.isDirectory()) {
-            LOGGER.warn("   Skip: {} is not a directory", candidateUrl.getPath());
-            return;
-        }
-
-        // List directory
-        String[] dirList = dir.list();
-        for (int i = 0; i < dirList.length; i++) {
-            // skip directories
-            if (!dirList[i].contains(".class")) {
-                continue;
-            }
-            try {// to create class
-                LOGGER.trace("DIR Candidate: {}", dirList[i]);
-                Class<?> clazz = Class.forName(packageName + "." + dirList[i].replace(".class", ""));
-                consumer.accept(clazz);
-            } catch (ClassNotFoundException e) {
-                LOGGER.error("Error during loading class {} from {}. ", dirList[i], dir.getAbsolutePath());
-            }
-        }
-    }
-
-    private static List<Vfs.UrlType> getUrlTypes() {
-        final List<Vfs.UrlType> urlTypes = Lists.newArrayList();
-        urlTypes.add(new EmptyIfFileEndingsUrlType(".pom", ".jnilib", "QTJava.zip"));
-        urlTypes.add(new JettyConsoleUrlType());
-        urlTypes.addAll(Arrays.asList(Vfs.DefaultUrlTypes.values()));
-
-        return urlTypes;
-    }
-
-    private static class EmptyIfFileEndingsUrlType implements Vfs.UrlType {
-
-        private final List<String> fileEndings;
-
-        private EmptyIfFileEndingsUrlType(final String... fileEndings) {
-            this.fileEndings = Lists.newArrayList(fileEndings);
-        }
-
-        public boolean matches(URL url) {
-            final String protocol = url.getProtocol();
-            final String externalForm = url.toExternalForm();
-            if (!protocol.equals("file")) {
-                return false;
-            }
-            for (String fileEnding : fileEndings) {
-                if (externalForm.endsWith(fileEnding))
-                    return true;
-            }
-            return false;
-        }
-
-        public Vfs.Dir createDir(final URL url) throws Exception {
-            return emptyVfsDir(url);
-        }
-
-        private static Vfs.Dir emptyVfsDir(final URL url) {
-            return new Vfs.Dir() {
-                @Override
-                public String getPath() {
-                    return url.toExternalForm();
-                }
-
-                @Override
-                public Iterable<Vfs.File> getFiles() {
-                    return Collections.emptyList();
-                }
-
-                @Override
-                public void close() {
-                    //
-                }
-            };
-        }
-    }
-
-    public static class JettyConsoleUrlType implements Vfs.UrlType {
-
-        public boolean matches(URL url) {
-            final String protocol = url.getProtocol();
-            final String externalForm = url.toExternalForm();
-
-            final boolean matches = protocol.equals("file")
-                    && externalForm.contains("jetty-console")
-                    && externalForm.contains("-any-")
-                    && externalForm.endsWith("webapp/WEB-INF/classes/");
-
-            return matches;
-        }
-
-        public Vfs.Dir createDir(final URL url) throws Exception {
-            return new SystemDir(getFile(url));
-        }
-
-        /**
-         * try to get {@link java.io.File} from url
-         * <p>
-         * <p>
-         * Copied from {@link org.reflections.vfs.Vfs} (not publicly accessible)
-         * </p>
-         */
-        static java.io.File getFile(URL url) {
-            java.io.File file;
-            String path;
-
-            try {
-                path = url.toURI().getSchemeSpecificPart();
-                if ((file = new java.io.File(path)).exists()) return file;
-            } catch (URISyntaxException e) {
-            }
-
-            try {
-                path = URLDecoder.decode(url.getPath(), "UTF-8");
-                if (path.contains(".jar!")) path = path.substring(0, path.lastIndexOf(".jar!") + ".jar".length());
-                if ((file = new java.io.File(path)).exists()) return file;
-
-            } catch (UnsupportedEncodingException e) {
-            }
-
-            try {
-                path = url.toExternalForm();
-                if (path.startsWith("jar:")) path = path.substring("jar:".length());
-                if (path.startsWith("file:")) path = path.substring("file:".length());
-                if (path.contains(".jar!")) path = path.substring(0, path.indexOf(".jar!") + ".jar".length());
-                if ((file = new java.io.File(path)).exists()) return file;
-
-                path = path.replace("%20", " ");
-                if ((file = new java.io.File(path)).exists()) return file;
-
-            } catch (Exception e) {
-            }
-
-            return null;
-        }
     }
 }
