@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.impl.ModelWebService;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
+import com.evolveum.midpoint.model.impl.scripting.ScriptExecutionTaskHandler;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -48,6 +49,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 import org.testng.collections.Sets;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
@@ -91,12 +93,14 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File NOTIFICATION_ABOUT_JACK_FILE = new File(TEST_DIR, "notification-about-jack.xml");
     private static final File NOTIFICATION_ABOUT_JACK_TYPE2_FILE = new File(TEST_DIR, "notification-about-jack-type2.xml");
 	private static final File SCRIPTING_USERS_FILE = new File(TEST_DIR, "scripting-users.xml");
+	private static final File SCRIPTING_USERS_IN_BACKGROUND_FILE = new File(TEST_DIR, "scripting-users-in-background.xml");
 	private static final File GENERATE_PASSWORDS_FILE = new File(TEST_DIR, "generate-passwords.xml");
 	private static final File GENERATE_PASSWORDS_2_FILE = new File(TEST_DIR, "generate-passwords-2.xml");
 	private static final File GENERATE_PASSWORDS_3_FILE = new File(TEST_DIR, "generate-passwords-3.xml");
 	private static final File ECHO_FILE = new File(TEST_DIR, "echo.xml");
+	private static final QName USER_NAME_TASK_EXTENSION_PROPERTY = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "userName");
 
-    @Autowired
+	@Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
     @Override
@@ -734,6 +738,39 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		assertEquals("Unexpected OIDs in output",
 				Sets.newHashSet(Arrays.asList(USER_ADMINISTRATOR_OID, USER_JACK_OID, USER_BARBOSSA_OID, USER_GUYBRUSH_OID, USER_ELAINE_OID)),
 				realOids);
+	}
+
+    @Test
+	public void test505ScriptingUsersInBackground() throws Exception {
+		final String TEST_NAME = "test505ScriptingUsersInBackground";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(DOT_CLASS + TEST_NAME);
+	    task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+		OperationResult result = task.getResult();
+		JAXBElement<ScriptingExpressionType> expression = prismContext.parserFor(SCRIPTING_USERS_IN_BACKGROUND_FILE).parseRealValueToJaxbElement();
+
+		// WHEN
+
+	    ExecuteScriptType exec = new ExecuteScriptType().scriptingExpression(expression);
+	    task.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, exec);
+	    task.getTaskPrismObject()
+			    .findContainer(TaskType.F_EXTENSION)
+			    .findOrCreateProperty(USER_NAME_TASK_EXTENSION_PROPERTY)
+			    .addRealValue("jack");
+	    task.setHandlerUri(ScriptExecutionTaskHandler.HANDLER_URI);
+	    taskManager.switchToBackground(task, result);
+
+	    waitForTaskFinish(task.getOid(), false);
+	    task.refresh(result);
+
+	    // THEN
+	    display(task.getResult());
+	    TestUtil.assertSuccess(task.getResult());
+	    PrismObject<UserType> jack = getUser(USER_JACK_OID);
+	    display("jack after creation", jack);
+	    assertEquals("Wrong description", task.getName().getOrig(), jack.asObjectable().getDescription());
 	}
 
     @Test
