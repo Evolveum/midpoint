@@ -47,7 +47,7 @@
 	<logger name="com.evolveum.midpoint.model.impl.lens.Clockwork" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.projector" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="TRACE" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ContextLoader" level="DEBUG" />
+ 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ContextLoader" level="TRACE" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.projector.FocusProcessor" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.projector.InboundProcessor" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.projector.FocusProcessor" level="DEBUG" />
@@ -55,14 +55,14 @@
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.FocusPolicyProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.PasswordPolicyProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ObjectTemplateProcessor" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.lens.projector.AssignmentProcessor" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.projector.AssignmentProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.AssignmentTripleEvaluator" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor" level="TRACE" />
-    <logger name="com.evolveum.midpoint.model.impl.lens.projector.ProjectionValuesProcessor" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.projector.ProjectionValuesProcessor" level="TRACE" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.OutboundProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ConsolidationProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ReconciliationProcessor" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor" level="TRACE" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor" level="DEBUG" />

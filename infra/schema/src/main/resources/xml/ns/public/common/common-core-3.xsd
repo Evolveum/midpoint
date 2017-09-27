@@ -880,6 +880,30 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
+    		<xsd:element name="lastProvisioningTimestamp" type="xsd:dateTime" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					<p>
+    						The timestamp last provisioning operation that was based on this object.
+    						E.g. the timestamp of last modificaiton od any account based on the
+    						data from the user. This valus is only updated if there was any
+    						real change in the resource.
+    					</p>
+    					<p>
+    						This meta-datum is used as an informational property that tells when
+    						the data were last synchronized in outbound direction. But it has another
+    						imporatant role. It is used indirectly to trigger optimistic locking
+    						conflicts that are used to detect a "clean" recompute (i.e. recompute
+    						that is processing data without any outside interaction).
+    					</p>
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    					<a:since>3.6.1</a:since>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		
             <!-- The following certification-related items might be enabled in the future.
 
             <xsd:element name="certificationStartedTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -11661,6 +11685,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6.1</a:since>
+						<a:experimental>true</a:experimental>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -11675,6 +11700,7 @@
 			<xsd:appinfo>
 				<a:container/>
 				<a:since>3.6.1</a:since>
+				<a:experimental>true</a:experimental>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -11713,6 +11739,7 @@
 			<xsd:appinfo>
 				<jaxb:typesafeEnumClass/>
 				<a:since>3.6.1</a:since>
+				<a:experimental>true</a:experimental>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
@@ -11736,6 +11763,16 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
+			<xsd:enumeration value="restart">
+				<xsd:annotation>
+					<xsd:documentation>
+						Operation should be restarted.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="RESTART"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
 			<xsd:enumeration value="recompute">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -11743,6 +11780,16 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="RECOMPUTE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="reconcile">
+				<xsd:annotation>
+					<xsd:documentation>
+						The focus object should be recomputed and all projections reconciled.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="RECONCILE"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -14082,6 +14129,21 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="focusConflictResolution" type="tns:ConflictResolutionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						A method to resolve conflicts on focus objects. This specifies how will the 
+						processors handle optimistic locking conflicts - and whether they even try
+						to detect them. The default value is null, which means that there is no reaction
+						to conflicts and that the conflicts are not even detected.
+						Note that different default conflict resolution may be specified in system configuration.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6.1</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="modelExecuteOptions" type="tns:ModelExecuteOptionsType"/>

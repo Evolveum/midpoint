@@ -131,7 +131,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		final String TEST_NAME = "test050GetUserJack";
         displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -154,7 +154,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		final String TEST_NAME = "test051GetUserBarbossa";
         displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -252,21 +252,21 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result);
 		
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		// Check accountRef
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User jack after", userJack);
-        assertUserJack(userJack);
-        UserType userJackType = userJack.asObjectable();
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User jack after", userAfter);
+        assertUserJack(userAfter);
+        UserType userJackType = userAfter.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
         ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
         accountJackOid = accountRefType.getOid();
@@ -286,9 +286,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         // Check account in dummy resource
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
-                
-        assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
-        
+
+        assertDummyScriptsAdd(userAfter, accountModel, getDummyResourceType());
+
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -333,7 +333,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -738,7 +738,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -751,11 +751,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result, 2);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
@@ -1128,27 +1128,28 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                   
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 		
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 66); 
-        
-		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		display("User after change execution", userJack);
-		assertUserJack(userJack);
-		AssignmentType assignmentType = assertAssignedAccount(userJack, RESOURCE_DUMMY_OID);
-        assertAssignments(userJack, 1);
-        assertModifyMetadata(userJack, startTime, endTime);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 66);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after change execution", userAfter);
+		assertUserJack(userAfter);
+		AssignmentType assignmentType = assertAssignedAccount(userAfter, RESOURCE_DUMMY_OID);
+        assertAssignments(userAfter, 1);
+        assertModifyMetadata(userAfter, startTime, endTime);
         assertCreateMetadata(assignmentType, startTime, endTime);
-        
-        accountJackOid = getSingleLinkOid(userJack);
-        
+        assertLastProvisioningTimestamp(userAfter, startTime, endTime);
+
+        accountJackOid = getSingleLinkOid(userAfter);
+
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
@@ -1161,9 +1162,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         // Check account in dummy resource
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
-        
-        assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
-        
+
+        assertDummyScriptsAdd(userAfter, accountModel, getDummyResourceType());
+
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -1198,7 +1199,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
         
@@ -1214,8 +1215,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		assertSuccess(result);
         // There is strong mapping. Complete account is fetched.
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         
@@ -1291,19 +1291,18 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 		
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
-        
+		displayThen(TEST_NAME);
+		assertSuccess("executeChanges result", result);
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
@@ -1349,12 +1348,72 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 	
 	@Test
+    public void test136JackRecomputeNoChange() throws Exception {
+		final String TEST_NAME="test136JackRecomputeNoChange";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+        
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after change execution", userAfter);
+		assertUserJack(userAfter);
+		assertAssignedAccount(userAfter, RESOURCE_DUMMY_OID);
+        assertAssignments(userAfter, 1);
+        assertLastProvisioningTimestamp(userAfter, null, startTime);
+
+        String accountJackOidAfter = getSingleLinkOid(userAfter);
+        assertEquals("Account OID changed", accountJackOid, accountJackOidAfter);
+
+		// Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
+
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
+        assertDummyAccountShadowModel(accountModel, accountJackOid, "jack", "Cpt. Jack Sparrow");
+
+        // Check account in dummy resource
+        assertDefaultDummyAccount("jack", "Cpt. Jack Sparrow", true);
+
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(0);
+        dummyAuditService.assertSimpleRecordSanity();
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 0);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+        assertSteadyResources();
+    }
+
+	@Test
     public void test139ModifyUserJackUnassignAccount() throws Exception {
 		final String TEST_NAME = "test139ModifyUserJackUnassignAccount";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
         
@@ -1417,7 +1476,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -1521,11 +1580,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         // There is strong mapping. Complete account is fetched.
@@ -1591,7 +1650,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -1661,7 +1720,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
         
@@ -1803,7 +1862,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.NONE);
         
@@ -1866,7 +1925,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.NONE);
         
@@ -2013,7 +2072,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.NONE);
         
@@ -2080,7 +2139,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
         
@@ -2141,7 +2200,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -2357,7 +2416,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
@@ -2415,11 +2474,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         display("Deltas to execute execution", deltas);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
 
@@ -2471,17 +2530,17 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
-        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, 
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
         		PrismTestUtil.createPolyString("Magnificent Captain Jack Sparrow"));
 		
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         // Strong mappings
@@ -2544,7 +2603,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -2608,7 +2667,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
                
@@ -2854,11 +2913,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
@@ -2926,16 +2985,16 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
                 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_MORGAN_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString("sirhenry"));
 		
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         // Strong mappings
@@ -2971,9 +3030,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         ObjectDeltaOperation<ShadowType> auditShadowDelta = dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
-        
-        assertEquals("Unexpected number of modifications in shadow audit delta: "+auditShadowDelta.debugDump(), 3, auditShadowDelta.getObjectDelta().getModifications().size());
-        
+
+        assertEquals("Unexpected number of modifications in shadow audit delta: "+auditShadowDelta.debugDump(), 5, auditShadowDelta.getObjectDelta().getModifications().size());
+
         dummyAuditService.assertOldValue(ChangeType.MODIFY, UserType.class,
         		UserType.F_NAME, PrismTestUtil.createPolyString("morgan"));
         dummyAuditService.assertOldValue(ChangeType.MODIFY, ShadowType.class, 
@@ -3012,7 +3071,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -3057,7 +3116,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -3068,8 +3127,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		modelService.executeChanges(deltas, ModelExecuteOptions.createRaw(), task, result);
 		
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		assertSuccess(result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
         PrismObject<UserType> userAfter = findUserByUsername("charles");
@@ -3118,8 +3176,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		assertSuccess(result);
 		
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
-        
+        // Weak activation mapping means account load
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+
 		PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
 		display("User after change execution", userJackAfter);
 		assertUserJack(userJackAfter);

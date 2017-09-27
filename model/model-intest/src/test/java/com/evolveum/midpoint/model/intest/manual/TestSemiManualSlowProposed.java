@@ -118,11 +118,12 @@ public class TestSemiManualSlowProposed extends TestSemiManual {
 
 	// Make the test fast ...
 	@Override
-	protected int getConcurrentTestRandomStartDelayRange() {
+	protected int getConcurrentTestRandomStartDelayRangeAssign() {
 		return 300;
 	}
-	
-	protected int getConcurrentTestRandomStartDelayRangeDelete() {
+
+	@Override
+	protected int getConcurrentTestRandomStartDelayRangeUnassign() {
 		return 3;
 	}
 
@@ -131,166 +132,14 @@ public class TestSemiManualSlowProposed extends TestSemiManual {
 	protected int getConcurrentTestNumberOfThreads() {
 		return 10;
 	}
-	
-	// TODO: .. and make the resource slow.
-	private void initManualConnector() {
+
+	// .. and make the resource slow.
+	protected void initManualConnector() {
 		ManualConnectorInstance.setRandomDelayRange(1000);
 	}
 
-	/**
-	 * Set up roles used in parallel tests.
-	 */
-	@Test
-	public void test900SetUpRoles() throws Exception {
-		final String TEST_NAME = "test900SetUpRoles";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-		
-		SystemConfigurationType systemConfiguration = getSystemConfiguration();
-		display("System config", systemConfiguration);
-		assertEquals("Wrong conflict resolution", ConflictResolutionActionType.RECOMPUTE, systemConfiguration.getDefaultObjectPolicyConfiguration().get(0).getConflictResolution().getAction());
-		
-		for (int i = 0; i < getConcurrentTestNumberOfThreads(); i++) {
-			PrismObject<RoleType> role = parseObject(getRoleOneFile());
-			role.setOid(getRoleOid(i));
-			role.asObjectable().setName(createPolyStringType(getRoleName(i)));
-			List<ResourceAttributeDefinitionType> outboundAttributes = role.asObjectable().getInducement().get(0).getConstruction().getAttribute();
-			if (hasMultivalueInterests()) {
-				ExpressionType outboundExpression = outboundAttributes.get(0).getOutbound().getExpression();
-				JAXBElement jaxbElement = outboundExpression.getExpressionEvaluator().get(0);
-				jaxbElement.setValue(getRoleInterest(i));
-			} else {
-				outboundAttributes.remove(0);
-			}
-			addObject(role);
-		}
-	}
-	
-	private String getRoleOid(int i) {
-		return String.format("f363260a-8d7a-11e7-bd67-%012d", i);
-	}
-	
-	private String getRoleName(int i) {
-		return String.format("role-%012d", i);
-	}
-	
-	private String getRoleInterest(int i) {
-		return String.format("i%012d", i);
-	}
-	
-	// MID-4047, MID-4112
-	@Test
-	public void test910ConcurrentRolesAssign() throws Exception {
-		final String TEST_NAME = "test910ConcurrentRolesAssign";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-		
-		int numberOfCasesBefore = getObjectCount(CaseType.class);
-		PrismObject<UserType> userBefore = getUser(USER_BARBOSSA_OID);
-		display("user before", userBefore);
-
-		final long TIMEOUT = 60000L;
-
-		// WHEN
-		displayWhen(TEST_NAME);
-		
-		ParallelTestThread[] threads = multithread(TEST_NAME, 
-				(i) -> {
-					login(userAdministrator);
-					Task localTask = createTask(TEST_NAME + ".local");
-					
-					assignRole(USER_BARBOSSA_OID, getRoleOid(i), localTask, localTask.getResult());
-					
-				}, getConcurrentTestNumberOfThreads(), getConcurrentTestRandomStartDelayRange());
-		
-		// THEN
-		displayThen(TEST_NAME);
-		waitForThreads(threads, TIMEOUT);
-
-		PrismObject<UserType> userAfter = getUser(USER_BARBOSSA_OID);
-		display("user after", userAfter);
-		assertAssignments(userAfter, getConcurrentTestNumberOfThreads());
-		assertEquals("Wrong # of links", 1, userAfter.asObjectable().getLinkRef().size());
-		accountBarbossaOid = userAfter.asObjectable().getLinkRef().get(0).getOid();
-		
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountBarbossaOid, null, result);
-		display("Repo shadow", shadowRepo);
-		assertShadowNotDead(shadowRepo);
-		
-		Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
-		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class, accountBarbossaOid, options, task, result);
-		display("Shadow after (model, future)", shadowModel);
-		
-//		assertObjects(CaseType.class, numberOfCasesBefore + getConcurrentTestNumberOfThreads());
-	}
-	
-	// MID-4112
-	@Test
-	public void test919ConcurrentRoleUnassign() throws Exception {
-		final String TEST_NAME = "test919ConcurrentRoleUnassign";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-		
-		int numberOfCasesBefore = getObjectCount(CaseType.class);
-		PrismObject<UserType> userBefore = getUser(USER_BARBOSSA_OID);
-		display("user before", userBefore);
-		assertAssignments(userBefore, getConcurrentTestNumberOfThreads());
-
-		final long TIMEOUT = 60000L;
-
-		// WHEN
-		displayWhen(TEST_NAME);
-		
-		ParallelTestThread[] threads = multithread(TEST_NAME, 
-				(i) -> {
-					display("Thread "+Thread.currentThread().getName()+" START");
-					login(userAdministrator);
-					Task localTask = createTask(TEST_NAME + ".local");
-					OperationResult localResult = localTask.getResult();
-					
-					unassignRole(USER_BARBOSSA_OID, getRoleOid(i), localTask, localResult);
-					
-					localResult.computeStatus();
-					
-					display("Thread "+Thread.currentThread().getName()+" DONE, result", localResult);
-					
-				}, getConcurrentTestNumberOfThreads(), getConcurrentTestRandomStartDelayRangeDelete());
-		
-		// THEN
-		displayThen(TEST_NAME);
-		waitForThreads(threads, TIMEOUT);
-
-		PrismObject<UserType> userAfter = getUser(USER_BARBOSSA_OID);
-		display("user after", userAfter);
-		assertAssignments(userAfter, 0);
-		assertEquals("Wrong # of links", 1, userAfter.asObjectable().getLinkRef().size());
-		
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountBarbossaOid, null, result);
-		display("Repo shadow", shadowRepo);
-		
-		ObjectDeltaType deletePendingDelta = null;
-		for (PendingOperationType pendingOperation: shadowRepo.asObjectable().getPendingOperation()) {
-			ObjectDeltaType delta = pendingOperation.getDelta();
-			if (delta.getChangeType() == ChangeTypeType.DELETE) {
-				if (deletePendingDelta != null) {
-					fail("More than one delete pending delta found:\n"+deletePendingDelta+"\n"+delta);
-				}
-				deletePendingDelta = delta;
-			}
-		}
-		assertNotNull("No delete pending delta", deletePendingDelta);
-		
-		Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class, accountBarbossaOid, options, task, result);
-		display("Shadow after (model, future)", shadowModelFuture);
-		assertShadowDead(shadowModelFuture);
-		
-//		assertObjects(CaseType.class, numberOfCasesBefore + getConcurrentTestNumberOfThreads() + 1);
+	@Override
+	protected boolean are9xxTestsEnabled() {
+		return true;
 	}
 }

@@ -191,6 +191,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
@@ -2412,6 +2413,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		
 	}
 	
+	protected void setConflictResolutionAction(QName objectType, String subType, ConflictResolutionActionType conflictResolutionAction, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		ConflictResolutionType conflictResolutionType = new ConflictResolutionType();
+		conflictResolutionType.action(conflictResolutionAction);
+		setConflictResolution(objectType, subType, conflictResolutionType, parentResult);
+	}
+
 	protected void setGlobalSecurityPolicy(String securityPolicyOid, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 

@@ -778,11 +778,11 @@ public class ShadowManager {
 		
 		PrismObject<ShadowType> repoShadow = createRepositoryShadow(ctx, shadow);
 		repoShadow.asObjectable().setLifecycleState(SchemaConstants.LIFECYCLE_PROPOSED);
-		addPendingOperationAdd(repoShadow, shadow, task.getTaskIdentifier());
+		addPendingOperationAdd(repoShadow, shadow, null, task.getTaskIdentifier());
 		
 		ConstraintsChecker.onShadowAddOperation(repoShadow.asObjectable());
 		String oid = repositoryService.addObject(repoShadow, null, result);
-		LOGGER.trace("Draft shadow added to the repository: {}", repoShadow);
+		LOGGER.trace("Proposed shadow added to the repository: {}", repoShadow);
 		return oid;
 	}
 	
@@ -805,13 +805,13 @@ public class ShadowManager {
 	// Used after ADD operation on resource
 	public String addNewActiveRepositoryShadow(ProvisioningContext ctx, String existingShadowOid, AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 		if (existingShadowOid != null) {
-			// We know that we have draft shadow
+			// We know that we have proposed shadow
 			updateProposedShadowAfterAdd(ctx, existingShadowOid, addResult, parentResult);
 			return existingShadowOid;
 		}
 		
-		//	TODO: check for proposed Shadow. There may be a draft shadow even if we do not have explicit draft shadow OID
-		// (e.g. in case that the add operation failed). If draft shadow is present do modify instead of add.
+		//	TODO: check for proposed Shadow. There may be a proposed shadow even if we do not have explicit proposed shadow OID
+		// (e.g. in case that the add operation failed). If proposed shadow is present do modify instead of add.
 		
 		PrismObject<ShadowType> resourceShadow = addResult.getReturnValue();
 		
@@ -858,16 +858,14 @@ public class ShadowManager {
 	@SuppressWarnings("unchecked")
 	private void updateProposedShadowAfterAdd(ProvisioningContext ctx, String existingShadowOid, AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 		PrismObject<ShadowType> resourceShadow = addResult.getReturnValue();
-		LOGGER.info("AAAAA resource:\n{}", resourceShadow.debugDumpLazily(1));
 		
 		PrismObject<ShadowType> proposedShadow = repositoryService.getObject(ShadowType.class, existingShadowOid, null, parentResult);
-		LOGGER.info("AAAAA repo:\n{}", proposedShadow.debugDumpLazily(1));
 
 		if (proposedShadow == null) {
 			parentResult
-					.recordFatalError("Error while creating account shadow object to save in the reposiotory. Draft shadow is gone.");
+					.recordFatalError("Error while creating account shadow object to save in the reposiotory. Proposed shadow is gone.");
 			throw new IllegalStateException(
-					"Error while creating account shadow object to save in the reposiotory. Draft shadow is gone.");
+					"Error while creating account shadow object to save in the reposiotory. Proposed shadow is gone.");
 		}
 
 		Collection<ItemDelta> shadowChanges = new ArrayList<>();
@@ -886,7 +884,8 @@ public class ShadowManager {
 			
 			PrismContainerDefinition<PendingOperationType> containerDefinition = proposedShadow.getDefinition().findContainerDefinition(ShadowType.F_PENDING_OPERATION);
 			ContainerDelta<PendingOperationType> pendingOperationDelta =containerDefinition.createEmptyDelta(new ItemPath(ShadowType.F_PENDING_OPERATION));
-			pendingOperationDelta.addValuesToAdd(createPendingOperationAdd(proposedShadow, resourceShadow, addResult.getOperationResult().getAsynchronousOperationReference()).asPrismContainerValue());
+			pendingOperationDelta.addValuesToAdd(createPendingOperationAdd(proposedShadow, resourceShadow, 
+					OperationResultStatusType.IN_PROGRESS, addResult.getOperationResult().getAsynchronousOperationReference()).asPrismContainerValue());
 			shadowChanges.add(pendingOperationDelta);
 						
 		}
@@ -899,12 +898,12 @@ public class ShadowManager {
 		computeUpdateShadowAttributeChanges(ctx, shadowChanges, resourceShadow, proposedShadow);
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Updading draft repository shadow\n{}", DebugUtil.debugDump(shadowChanges, 1));
+			LOGGER.trace("Updading proposed repository shadow\n{}", DebugUtil.debugDump(shadowChanges, 1));
 		}
 
 		repositoryService.modifyObject(ShadowType.class, proposedShadow.getOid(), shadowChanges, parentResult);
 
-		LOGGER.trace("Draft shadow updated");
+		LOGGER.trace("Proposed shadow updated");
 
 		parentResult.recordSuccess();
 	}
@@ -915,22 +914,23 @@ public class ShadowManager {
 			return;
 		}
 		PrismObject<ShadowType> resourceShadow = addResult.getReturnValue();
-		addPendingOperationAdd(repoShadow, resourceShadow, addResult.getOperationResult().getAsynchronousOperationReference());
+		addPendingOperationAdd(repoShadow, resourceShadow, 
+				OperationResultStatusType.IN_PROGRESS, addResult.getOperationResult().getAsynchronousOperationReference());
 	}
 	
-	private void addPendingOperationAdd(PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceShadow, String asyncOperationReference) throws SchemaException {
+	private void addPendingOperationAdd(PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceShadow, OperationResultStatusType status, String asyncOperationReference) throws SchemaException {
 		ShadowType repoShadowType = repoShadow.asObjectable();
-		repoShadowType.getPendingOperation().add(createPendingOperationAdd(repoShadow, resourceShadow, asyncOperationReference));
+		repoShadowType.getPendingOperation().add(createPendingOperationAdd(repoShadow, resourceShadow, status, asyncOperationReference));
 		repoShadowType.setExists(false);
 	}
 	
-	private PendingOperationType createPendingOperationAdd(PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceShadow, String asyncOperationReference) throws SchemaException {
+	private PendingOperationType createPendingOperationAdd(PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceShadow, OperationResultStatusType status, String asyncOperationReference) throws SchemaException {
 		ObjectDelta<ShadowType> addDelta = resourceShadow.createAddDelta();
 		ObjectDeltaType addDeltaType = DeltaConvertor.toObjectDeltaType(addDelta);
 		PendingOperationType pendingOperation = new PendingOperationType();
 		pendingOperation.setDelta(addDeltaType);
 		pendingOperation.setRequestTimestamp(clock.currentTimeXMLGregorianCalendar());
-		pendingOperation.setResultStatus(OperationResultStatusType.IN_PROGRESS);
+		pendingOperation.setResultStatus(status);
 		if (asyncOperationReference != null) {
 			pendingOperation.setAsynchronousOperationReference(asyncOperationReference);
 		}

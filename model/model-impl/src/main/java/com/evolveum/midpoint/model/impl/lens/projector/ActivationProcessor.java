@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -71,8 +73,12 @@ import org.springframework.stereotype.Component;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * The processor that takes care of user activation mapping to an account (outbound direction).
@@ -88,18 +94,14 @@ public class ActivationProcessor {
 	private static final QName LEGAL_PROPERTY_NAME = new QName(SchemaConstants.NS_C, "legal");
     private static final QName ASSIGNED_PROPERTY_NAME = new QName(SchemaConstants.NS_C, "assigned");
 	private static final QName FOCUS_EXISTS_PROPERTY_NAME = new QName(SchemaConstants.NS_C, "focusExists");
+
+	@Autowired private ContextLoader contextLoader;
+    @Autowired private PrismContext prismContext;
+    @Autowired private MappingEvaluator mappingEvaluator;
+    @Autowired private MidpointFunctions midpointFunctions;
 	
 	private PrismObjectDefinition<UserType> userDefinition;
 	private PrismContainerDefinition<ActivationType> activationDefinition;
-
-    @Autowired(required=true)
-    private PrismContext prismContext;
-
-    @Autowired(required=true)
-    private MappingEvaluator mappingEvaluator;
-    
-    @Autowired(required=true)
-    private MidpointFunctions midpointFunctions;
 
     public <O extends ObjectType, F extends FocusType> void processActivation(LensContext<O> context,
     		LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -355,7 +357,7 @@ public class ActivationProcessor {
             ActivationStatusType statusNew = statusPropNew.getRealValue();
 
             if (statusNew == statusOld) {
-                LOGGER.trace("Administrative status not changed ({}), timestamp and/or reason will be recorded", statusNew);
+                LOGGER.trace("Administrative status not changed ({}), timestamp and/or reason will not be recorded", statusNew);
             } else {
                 // timestamps
                 PropertyDelta<XMLGregorianCalendar> timestampDelta = LensUtil.createActivationTimestampDelta(statusNew,
@@ -667,7 +669,7 @@ public class ActivationProcessor {
 		params.setMappingDesc(desc + " in projection " + projCtxDesc);
 		params.setNow(now);
 		params.setInitializer(internalInitializer);
-		// do NOT set loader here. We do not want loading at this stage. we do not yet know whether we care at all.
+		params.setTargetLoader(new ProjectionMappingLoader<>(context, projCtx, contextLoader));
 		params.setAPrioriTargetObject(shadowNew);
 		params.setAPrioriTargetDelta(LensUtil.findAPrioriDelta(context, projCtx));
 		if (context.getFocusContext() != null) {
@@ -679,9 +681,99 @@ public class ActivationProcessor {
 		params.setEvaluateWeak(true);
 		params.setContext(context);
 		params.setHasFullTargetObject(projCtx.hasFullShadow());
-		mappingEvaluator.evaluateMappingSetProjection(params, task, result);
+		
+		Map<ItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap = mappingEvaluator.evaluateMappingSetProjection(params, task, result);
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Mapping processing output after {}:\n{}", desc, DebugUtil.debugDump(outputTripleMap, 1));
+		}
+		
+		if (projCtx.isDoReconciliation()) {
+			reconcileOutboundValue(context, projCtx, outputTripleMap, desc);			
+		}
 
 	}
+
+	/**
+	 * TODO: can we align this with ReconciliationProcessor?
+	 */
+	private <T, F extends FocusType> void reconcileOutboundValue(LensContext<F> context, LensProjectionContext projCtx,
+			Map<ItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap, String desc) throws SchemaException {
+		
+		// TODO: check for full shadow?
+		
+		for (Entry<ItemPath,MappingOutputStruct<PrismPropertyValue<T>>> entry: outputTripleMap.entrySet()) {
+			ItemPath mappingOutputPath = entry.getKey();
+			MappingOutputStruct<PrismPropertyValue<T>> mappingOutputStruct = entry.getValue();
+			if (mappingOutputStruct.isWeakMappingWasUsed()) {
+				// Thing to do. All deltas should already be in context
+				LOGGER.trace("Skip reconciliation of {} in {} because of weak", mappingOutputPath, desc);
+				continue;
+			}
+			if (!mappingOutputStruct.isStrongMappingWasUsed()) {
+				// Normal mappings are not processed for reconciliation
+				LOGGER.trace("Skip reconciliation of {} in {} because not strong", mappingOutputPath, desc);
+				continue;
+			}
+			LOGGER.trace("reconciliation of {} for {}", mappingOutputPath, desc);
+			
+			PrismObjectDefinition<ShadowType> targetObjectDefinition = projCtx.getObjectDefinition();
+			PrismPropertyDefinition<T> targetItemDefinition = targetObjectDefinition.findPropertyDefinition(mappingOutputPath);
+			if (targetItemDefinition == null) {
+				throw new SchemaException("No definition for item "+mappingOutputPath+" in "+targetObjectDefinition);
+			}
+			PropertyDelta<T> targetItemDelta = targetItemDefinition.createEmptyDelta(mappingOutputPath);
+			
+			PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mappingOutputStruct.getOutputTriple();
+			
+			PrismProperty<T> currentTargetItem = null;
+			PrismObject<ShadowType> shadowCurrent = projCtx.getObjectCurrent();
+			if (shadowCurrent != null) {
+				currentTargetItem = shadowCurrent.findProperty(mappingOutputPath);
+			}
+			Collection<PrismPropertyValue<T>> hasValues = new ArrayList<>();
+			if (currentTargetItem != null) {
+				hasValues.addAll(currentTargetItem.getValues());
+			}
+			
+			Collection<PrismPropertyValue<T>> shouldHaveValues = outputTriple.getNonNegativeValues();
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Reconciliation of {}:\n  hasValues:\n{}\n  shouldHaveValues\n{}", 
+						mappingOutputPath, DebugUtil.debugDump(hasValues, 2), DebugUtil.debugDump(shouldHaveValues, 2));
+			}
+			
+			for (PrismPropertyValue<T> shouldHaveValue: shouldHaveValues) {
+				if (!PrismPropertyValue.containsRealValue(hasValues, shouldHaveValue)) {
+					if (targetItemDefinition.isSingleValue()) {
+						targetItemDelta.setValueToReplace(shouldHaveValue.clone());
+					} else {
+						targetItemDelta.addValueToAdd(shouldHaveValue.clone());
+					}
+				}
+			}
+			
+			if (targetItemDefinition.isSingleValue()) {
+				if (!targetItemDelta.isReplace() && shouldHaveValues.isEmpty()) {
+					targetItemDelta.setValueToReplace();
+				}
+			} else {
+				for (PrismPropertyValue<T> hasValue: hasValues) {
+					if (!PrismPropertyValue.containsRealValue(shouldHaveValues, hasValue)) {
+						targetItemDelta.addValueToDelete(hasValue.clone());
+					}
+				}
+			}
+			
+			if (!targetItemDelta.isEmpty()) {
+				LOGGER.trace("Reconciliation delta:\n{}", targetItemDelta.debugDumpLazily(1));
+				projCtx.swallowToSecondaryDelta(targetItemDelta);
+			}
+		}
+		
+	}
+
+
 
 	private ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> getLegalIdi(LensProjectionContext accCtx) throws SchemaException {
 		Boolean legal = accCtx.isLegal();
