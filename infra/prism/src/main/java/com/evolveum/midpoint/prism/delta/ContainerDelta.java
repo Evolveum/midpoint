@@ -186,16 +186,14 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 	 * be "id-only" so they contain only id of the value to delete. In such case locate the full value
 	 * in the object and fill it into the delta.
 	 * This method may even delete id-only values that are no longer present in the object.
-	 *
-	 * It also fills-in IDs for values to be deleted.
 	 */
 	public <O extends Objectable> void expand(PrismObject<O> object, Trace logger) throws SchemaException {
-		PrismContainer<Containerable> container = null;
-		ItemPath path = this.getPath();
-		if (object != null) {
-			container = object.findContainer(path);
-		}
 		if (valuesToDelete != null) {
+			ItemPath path = this.getPath();
+			PrismContainer<Containerable> container = null;
+			if (object != null) {
+				container = object.findContainer(path);
+			}
 			Iterator<PrismContainerValue<V>> iterator = valuesToDelete.iterator();
 			while (iterator.hasNext()) {
 				PrismContainerValue<V> deltaCVal = iterator.next();
@@ -210,24 +208,11 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 							for (Item<?,?> containerItem: containerCVal.getItems()) {
 								deltaCVal.add(containerItem.clone());
 							}
+							continue;
 						}
 					}
 					// id-only value with ID that is not in the object any more: delete the value from delta
 					iterator.remove();
-				} else if (deltaCVal.getId() == null) {
-					if (container != null) {
-						@SuppressWarnings("unchecked")
-						List<PrismContainerValue<Containerable>> containerCVals =
-								(List<PrismContainerValue<Containerable>>)
-										container.findValuesIgnoreMetadata(deltaCVal);
-						if (containerCVals.size() > 1) {
-							logger.warn("More values to be deleted are matched by a single value in delete delta: values={}, delta value={}",
-									containerCVals, deltaCVal);
-						} else if (containerCVals.size() == 1) {
-							deltaCVal.setId(containerCVals.get(0).getId());
-						}
-						// for the time being let's keep non-existent values in the delta
-					}
 				}
 			}
 		}

@@ -53,6 +53,9 @@ public class PolicyStateRecorder {
 		// compute policySituation and triggeredPolicyRules and compare it with the expected state
 		// note that we use the new state for the comparison, because if values match we do not need to do anything
 		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext.isDelete()) {
+			return;
+		}
 		F objectNew = focusContext.getObjectNew().asObjectable();
 		ComputationResult cr = compute(rulesToRecord, objectNew.getPolicySituation(), objectNew.getTriggeredPolicyRule());
 		if (cr.situationsNeedUpdate) {
@@ -72,8 +75,11 @@ public class PolicyStateRecorder {
 	}
 
 	public <F extends FocusType> void applyAssignmentState(LensContext<F> context,
-			EvaluatedAssignmentImpl<F> evaluatedAssignment, List<EvaluatedPolicyRule> rulesToRecord) throws SchemaException {
+			EvaluatedAssignmentImpl<F> evaluatedAssignment, PlusMinusZero mode, List<EvaluatedPolicyRule> rulesToRecord) throws SchemaException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext.isDelete()) {
+			return;
+		}
 		AssignmentType assignmentNew = evaluatedAssignment.getAssignmentType(false);
 		AssignmentType assignmentOld = evaluatedAssignment.getAssignmentType(true);
 		if (assignmentOld == null && assignmentNew == null) {
@@ -84,19 +90,20 @@ public class PolicyStateRecorder {
 		@NotNull AssignmentType assignmentToMatch = assignmentOld != null ? assignmentOld : assignmentNew;
 		// this value is used to compute policy situation/rules modifications
 		@NotNull AssignmentType assignmentToCompute = assignmentNew != null ? assignmentNew : assignmentOld;
-		@NotNull PlusMinusZero mode = evaluatedAssignment.getMode();
 
 		Long id = assignmentToMatch.getId();
 		ComputationResult cr = compute(rulesToRecord, assignmentToCompute.getPolicySituation(), assignmentToCompute.getTriggeredPolicyRule());
 		if (cr.situationsNeedUpdate) {
-			focusContext.addToPendingAssignmentPolicyStateModifications(assignmentToMatch, mode, DeltaBuilder.deltaFor(FocusType.class, prismContext)
+			focusContext.addToPendingAssignmentPolicyStateModifications(assignmentToMatch,
+					mode, DeltaBuilder.deltaFor(FocusType.class, prismContext)
 					.item(FocusType.F_ASSIGNMENT, new IdItemPathSegment(id), AssignmentType.F_POLICY_SITUATION)
 					.oldRealValues(cr.oldPolicySituations)
 					.replaceRealValues(cr.newPolicySituations)
 					.asItemDelta());
 		}
 		if (cr.rulesNeedUpdate) {
-			focusContext.addToPendingAssignmentPolicyStateModifications(assignmentToMatch, mode, DeltaBuilder.deltaFor(FocusType.class, prismContext)
+			focusContext.addToPendingAssignmentPolicyStateModifications(assignmentToMatch,
+					mode, DeltaBuilder.deltaFor(FocusType.class, prismContext)
 					.item(FocusType.F_ASSIGNMENT, new IdItemPathSegment(id), AssignmentType.F_TRIGGERED_POLICY_RULE)
 					.oldRealValues(cr.oldTriggeredRules)
 					.replaceRealValues(cr.newTriggeredRules)

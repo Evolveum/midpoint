@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -149,7 +150,9 @@ public class PolicyRuleProcessor {
 					}
 				}
 			}
-			policyStateRecorder.applyAssignmentState(context, evaluatedAssignment, globalCtx.rulesToRecord);
+			// a bit of hack, but hopefully it will work
+			PlusMinusZero mode = inMinus ? PlusMinusZero.MINUS : evaluatedAssignment.getMode();
+			policyStateRecorder.applyAssignmentState(context, evaluatedAssignment, mode, globalCtx.rulesToRecord);
 		}
 
 		exclusionConstraintEvaluator.checkExclusionsLegacy(context, evaluatedAssignmentTriple.getPlusSet(),

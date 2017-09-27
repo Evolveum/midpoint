@@ -380,7 +380,7 @@ public class ChangeExecutor {
 				.getPendingAssignmentPolicyStateModifications().entrySet()) {
 			PlusMinusZero mode = entry.getKey().mode;
 			if (mode == PlusMinusZero.MINUS) {
-				continue;       // this assignment is being thrown out anyway, so let's ignore it
+				continue;       // this assignment is being thrown out anyway, so let's ignore it (at least for now)
 			}
 			AssignmentType assignmentToFind = entry.getKey().assignment;
 			List<ItemDelta<?, ?>> modifications = entry.getValue();

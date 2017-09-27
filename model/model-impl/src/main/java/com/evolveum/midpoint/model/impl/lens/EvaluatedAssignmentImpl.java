@@ -536,7 +536,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	 */
 	@NotNull
 	public PlusMinusZero getMode() {
-		if (assignmentIdi.getItemNew() == null) {
+		if (assignmentIdi.getItemNew() == null || assignmentIdi.getItemNew().isEmpty()) {
 			return MINUS;
 		} else if (presentInCurrentObject) {
 			return ZERO;

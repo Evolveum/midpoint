@@ -99,7 +99,6 @@ public class TestSoDCertification extends AbstractCertificationTest {
 		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
 	}
 
-	// TODO move a test like this into model-intest
 	@Test
 	public void test001Triggers() throws Exception {
 		final String TEST_NAME = "test001Triggers";

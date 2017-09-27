@@ -191,6 +191,39 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 	}
 
 	@Test
+	public void test130JackUnassignRolePirate() throws Exception {
+		TestCtx t = createContext(this, "test130JackUnassignRolePirate");
+
+		// GIVEN
+		UserType jack = getUser(USER_JACK_OID).asObjectable();
+		AssignmentType pirateAssignment = findAssignmentByTarget(jack.asPrismObject(), ROLE_PIRATE_OID).get();
+
+		// WHEN
+		t.displayWhen();
+		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT)
+				.delete(pirateAssignment.clone())
+				.asObjectDeltaCast(USER_JACK_OID);
+		executeChangesAssertSuccess(delta, null, t.task, t.result);
+
+		// THEN
+		t.displayThen();
+		jack = getUser(USER_JACK_OID).asObjectable();
+		display("jack", jack);
+		t.result.computeStatus();
+		TestUtil.assertSuccess(t.result);
+
+		assertNotAssignedRole(jack.asPrismObject(), ROLE_PIRATE_OID);
+		assertEquals("Wrong # of assignments", 1, jack.getAssignment().size());
+		assertEquals("Wrong policy situations",
+				Collections.emptyList(),
+				jack.getAssignment().get(0).getPolicySituation());
+
+		display("Audit", dummyAuditService);
+		dummyAuditService.assertExecutionRecords(1);            // executed in one shot
+	}
+
+	@Test
 	public void test200BobAssign2a3a() throws Exception {
 		TestCtx t = createContext(this, "test200BobAssign2a3a");
 
