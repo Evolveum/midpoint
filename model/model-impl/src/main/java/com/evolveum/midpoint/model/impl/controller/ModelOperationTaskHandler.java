@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -122,7 +123,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
                     result.computeStatus();
                 }
                 runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
-            } catch (RuntimeException|CommonException e) {
+            } catch (CommonException | PreconditionViolationException | RuntimeException | Error e) {
                 String message = "An exception occurred within model operation, in task " + task;
                 LoggingUtils.logUnexpectedException(LOGGER, message, e);
                 result.recordPartialError(message, e);

@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -238,7 +239,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		AbstractScannerResultHandler<UserType> handler = new AbstractScannerResultHandler<UserType>(
 				coordinatorTask, FocusValidityScannerTaskHandler.class.getName(), "recompute", "recompute task", taskManager) {
 			@Override
-			protected boolean handleObject(PrismObject<UserType> object, Task workerTask, OperationResult result) throws CommonException {
+			protected boolean handleObject(PrismObject<UserType> object, Task workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
 				if (oidAlreadySeen(coordinatorTask, object.getOid())) {
 					LOGGER.trace("Recomputation already executed for {}", ObjectTypeUtil.toShortString(object));
 				} else {
@@ -253,7 +254,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 
 	private void reconcileUser(PrismObject<UserType> user, Task workerTask, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
-			ConfigurationException, PolicyViolationException, SecurityViolationException {
+			ConfigurationException, PolicyViolationException, SecurityViolationException, PreconditionViolationException {
 		LOGGER.trace("Recomputing user {}", user);
 		// We want reconcile option here. There may be accounts that are in wrong activation state.
 		// We will not notice that unless we go with reconcile.

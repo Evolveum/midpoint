@@ -1342,12 +1342,12 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
+		accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
+		
 		closeCase(willLastCaseOid);
 
 		PrismObject<ShadowType> shadowBefore = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 		display("Shadow before", shadowBefore);
-
-		accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -1678,18 +1678,18 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	}
 
 	/**
-	 * ff 10min. Refresh. Oldest delta should expire.
+	 * ff 7min. Refresh. Oldest delta should expire.
 	 */
 	@Test
-	public void test270RefreshAccountWillAfter10min() throws Exception {
-		final String TEST_NAME = "test130RefreshAccountWillAfter10min";
+	public void test270RefreshAccountWillAfter7min() throws Exception {
+		final String TEST_NAME = "test130RefreshAccountWillAfter7min";
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		clock.overrideDuration("PT10M");
+		clock.overrideDuration("PT7M");
 
 		PrismObject<ShadowType> shadowBefore = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 		display("Shadow before", shadowBefore);
@@ -2128,12 +2128,12 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
+		accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
+		
 		closeCase(willLastCaseOid);
 
 		PrismObject<ShadowType> shadowBefore = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 		display("Shadow before", shadowBefore);
-
-		accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
 		displayWhen(TEST_NAME);

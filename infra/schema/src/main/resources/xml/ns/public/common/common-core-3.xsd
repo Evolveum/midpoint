@@ -11880,6 +11880,18 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
+			<xsd:enumeration value="error">
+				<xsd:annotation>
+					<xsd:documentation>
+						Operation should be end with an error. 
+						This is a recoverable error (precondition failed).
+						TODO: align with "fail"
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ERROR"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
 			<xsd:enumeration value="restart">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -11915,6 +11927,8 @@
 					<xsd:documentation>
 						The whole operation should fail. This is to be used mainly for testing purposes,
 						to check if conflict detection algorithm does not yield false positive results.
+						This fails with a system error. This is a definitive, non-recoverable fauilure.
+						TODO: align with "error"
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="FAIL"/>

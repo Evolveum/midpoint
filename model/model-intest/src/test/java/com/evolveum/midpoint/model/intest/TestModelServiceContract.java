@@ -258,8 +258,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 		// THEN
         displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
@@ -295,7 +294,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertExecutionDeltas(3); // lastProvisioningTimestamp, add account, link
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
@@ -358,8 +357,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
         assertDummyAccountShadowModel(account, accountJackOid, "jack", "Jack Sparrow");
 
-        result.computeStatus();
-        TestUtil.assertSuccess("getObject result", result);
+        assertSuccess("getObject result", result);
 
         account.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
 
@@ -414,8 +412,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
         assertDummyAccountShadowRepo(account, accountJackOid, "jack");
 
-        result.computeStatus();
-        TestUtil.assertSuccess("getObject result", result);
+        assertSuccess("getObject result", result);
 
         assertSteadyResources();
 	}
@@ -442,8 +439,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
         assertDummyAccountShadowRepo(account, accountJackOid, "jack");
 
-        result.computeStatus();
-        TestUtil.assertSuccess("getObject result", result);
+        assertSuccess("getObject result", result);
 
         assertSteadyResources();
 	}
@@ -785,7 +781,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertExecutionDeltas(3); // lastProvisioningTimestamp, delete account, unlink
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
@@ -898,8 +894,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		assertSuccess(result);
 
         // There is strong mapping. Complete account is fetched.
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
@@ -924,7 +919,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertExecutionDeltas(3); // lastProvisioningTimestamp, modify account, link
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
@@ -1256,7 +1251,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(3);
         dummyAuditService.assertAnyRequestDeltas();
 
-        dummyAuditService.assertExecutionDeltas(0, 1);
+        dummyAuditService.assertExecutionDeltas(0, 2); // lastProvisioningTimestamp, modify account
+        dummyAuditService.assertHasDelta(0, ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(0, ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertOldValue(0, ChangeType.MODIFY, ShadowType.class,
         		dummyResourceCtl.getAttributeFullnamePath(), "Jack Sparrow");
@@ -1669,8 +1665,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		assertSuccess(result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1691,7 +1686,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertExecutionDeltas(3); // lastProvisioningTimestamp, delete account, unlink
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
@@ -1949,8 +1944,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
@@ -1979,7 +1973,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertExecutionDeltas(3); // lastProvisioningTimestamp, add account, link
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
@@ -2091,8 +2085,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		assertSuccess(result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -2113,7 +2106,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertExecutionDeltas(3); // lastProvisioningTimestamp, delete account, unlink
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
@@ -3242,8 +3235,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		modelService.executeChanges(deltas, options, task, result);
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		assertSuccess(result);
         // Not sure why 2 ... but this is not a big problem now
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
 
@@ -3271,7 +3263,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
 
-        dummyAuditService.assertExecutionDeltas(0, 1);
+        dummyAuditService.assertExecutionDeltas(0, 2); // lastProvisioningTimestamp, modify account
+        dummyAuditService.assertHasDelta(0, ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(0, ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertOldValue(0, ChangeType.MODIFY, ShadowType.class,
         		getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributeFullnamePath(), "Jack Sparrow");

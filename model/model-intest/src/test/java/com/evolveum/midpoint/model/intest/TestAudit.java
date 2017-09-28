@@ -105,7 +105,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         assertTrue(modelAuditService.supportsRetrieval());
 
@@ -122,7 +122,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test010SanityJack() throws Exception {
 		final String TEST_NAME = "test010SanityJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // WHEN
         List<AuditEventRecord> auditRecords = getObjectAuditRecords(USER_JACK_OID);
@@ -136,20 +136,20 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100ModifyUserJackKid() throws Exception {
 		final String TEST_NAME = "test100ModifyUserJackKid";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         initialTs = getTimeSafely();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result, createPolyString("Kid"));
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -165,9 +165,9 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test105CreateUserHerman() throws Exception {
 		final String TEST_NAME = "test105CreateUserHerman";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userHermanBefore = PrismTestUtil.parseObject(USER_HERMAN_FILE);
@@ -177,12 +177,12 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         hermanInitialTs = getTimeSafely();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         addObject(userHermanBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -197,9 +197,9 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test110ModifyUserJackSailor() throws Exception {
 		final String TEST_NAME = "test110ModifyUserJackSailor";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
 
@@ -210,12 +210,12 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         		ActivationStatusType.DISABLED);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
 		modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -230,9 +230,9 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test115ModifyUserHermanMarooned() throws Exception {
 		final String TEST_NAME = "test115ModifyUserHermanMarooned";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_HERMAN_OID, UserType.F_TITLE,
@@ -241,14 +241,13 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         objectDelta.addModification(createAssignmentModification(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, true));
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
 		modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_HERMAN_OID);
         display("Herman (marooned)", user);
@@ -262,9 +261,9 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test120ModifyUserJackCaptain() throws Exception {
 		final String TEST_NAME = "test120ModifyUserJackCaptain";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_TITLE,
@@ -274,14 +273,13 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         		ActivationStatusType.ENABLED);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
 		modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         jackCaptainTs = getTimeSafely();
         jackCaptainEid = assertObjectAuditRecords(USER_JACK_OID, 6);
@@ -294,9 +292,9 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test125ModifyUserHermanHermit() throws Exception {
 		final String TEST_NAME = "test125ModifyUserHermanHermit";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_HERMAN_OID, UserType.F_TITLE,
@@ -311,15 +309,14 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         		null, null, null, true));
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
 		modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
 
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_HERMAN_OID);
         display("Herman (hermit)", user);
@@ -332,9 +329,9 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test135ModifyUserHermanCivilisedHermit() throws Exception {
 		final String TEST_NAME = "test135ModifyUserHermanCivilisedHermit";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_HERMAN_OID, UserType.F_TITLE,
@@ -344,30 +341,29 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         		null, null, null, false));
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
 		modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
 
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_HERMAN_OID);
         display("Herman (civilised hermit)", user);
 
         hermanCivilisedHermitTs = getTimeSafely();
-        hermanCivilisedHermitEid = assertObjectAuditRecords(USER_HERMAN_OID, 8);
-        assertRecordsFromInitial(hermanCivilisedHermitTs, 14);
+        hermanCivilisedHermitEid = assertObjectAuditRecords(USER_HERMAN_OID, 9);
+        assertRecordsFromInitial(hermanCivilisedHermitTs, 15);
     }
 
     @Test
     public void test200ReconstructJackSailor() throws Exception {
 		final String TEST_NAME = "test200ReconstructJackSailor";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -376,15 +372,14 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(userBefore, UserType.F_TITLE, createPolyString("Captain"));
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         PrismObject<UserType> jackReconstructed = modelAuditService.reconstructObject(UserType.class, USER_JACK_OID,
         		jackSailorEid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         display("Reconstructed jack", jackReconstructed);
 
@@ -397,9 +392,9 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test210ReconstructJackKid() throws Exception {
 		final String TEST_NAME = "test210ReconstructJackKid";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -408,15 +403,14 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(userBefore, UserType.F_TITLE, createPolyString("Captain"));
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         PrismObject<UserType> jackReconstructed = modelAuditService.reconstructObject(UserType.class, USER_JACK_OID,
         		jackKidEid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         display("Reconstructed jack", jackReconstructed);
 
@@ -431,9 +425,9 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test250ReconstructHermanCreated() throws Exception {
 		final String TEST_NAME = "test250ReconstructHermanCreated";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_HERMAN_OID);
@@ -445,15 +439,14 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 1);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         PrismObject<UserType> hermanReconstructed = modelAuditService.reconstructObject(UserType.class, USER_HERMAN_OID,
         		hermanCreatedEid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         display("Reconstructed herman", hermanReconstructed);
 
@@ -472,21 +465,20 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test252ReconstructHermanMarooned() throws Exception {
 		final String TEST_NAME = "test252ReconstructHermanMarooned";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         PrismObject<UserType> hermanReconstructed = modelAuditService.reconstructObject(UserType.class, USER_HERMAN_OID,
         		hermanMaroonedEid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         display("Reconstructed herman", hermanReconstructed);
 
@@ -506,21 +498,20 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test254ReconstructHermanHermit() throws Exception {
 		final String TEST_NAME = "test254ReconstructHermanHermit";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         PrismObject<UserType> hermanReconstructed = modelAuditService.reconstructObject(UserType.class, USER_HERMAN_OID,
         		hermanHermitEid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         display("Reconstructed herman", hermanReconstructed);
 
@@ -588,7 +579,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 			Thread thread = new Thread(() -> {
 				try {
 					login(userAdministrator);
-					Task threadTask = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+					Task threadTask = createTask(TEST_NAME);
 					OperationResult threadResult = threadTask.getResult();
 					for (int iteration = 0; iteration < ITERATIONS; iteration++) {
 						display("Executing iteration " + iteration + " on user " + index);
@@ -659,7 +650,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 			Thread thread = new Thread(() -> {
 				try {
 					login(userAdministrator);
-					Task threadTask = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
+					Task threadTask = createTask(TEST_NAME);
 					OperationResult threadResult = threadTask.getResult();
 					for (int iteration = 0; iteration < ITERATIONS; iteration++) {
 						display("Executing iteration " + iteration + " in worker " + index);

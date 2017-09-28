@@ -709,9 +709,12 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	public abstract String getHumanReadableName();
 	
 	public String getObjectReadVersion() {
-		if (getObjectCurrent() != null) {
-			return getObjectCurrent().getVersion();
-		}
+		// Do NOT use version from object current.
+		// Current object may be re-read, but the computation
+		// might be based on older data (objectOld).
+//		if (getObjectCurrent() != null) {
+//			return getObjectCurrent().getVersion();
+//		}
 		if (getObjectOld() != null) {
 			return getObjectOld().getVersion();
 		}
