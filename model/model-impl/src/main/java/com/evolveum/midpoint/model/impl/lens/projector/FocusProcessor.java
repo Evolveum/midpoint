@@ -63,6 +63,7 @@ import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -127,9 +128,6 @@ public class FocusProcessor {
 	private ObjectTemplateProcessor objectTemplateProcessor;
 	
 	@Autowired
-	private MappingFactory mappingFactory;
-
-	@Autowired
 	private PrismContext prismContext;
 
 	@Autowired
@@ -158,8 +156,9 @@ public class FocusProcessor {
 	private PolicyRuleProcessor policyRuleProcessor;
 
 	<O extends ObjectType, F extends FocusType> void processFocus(LensContext<O> context, String activityDescription,
-			XMLGregorianCalendar now, Task task, OperationResult result) throws ObjectNotFoundException,
-            SchemaException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+			XMLGregorianCalendar now, Task task, OperationResult result) 
+					throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException,
+					ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
 
 		LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext == null) {
@@ -176,8 +175,8 @@ public class FocusProcessor {
 	
 	private <F extends FocusType> void processFocusFocus(LensContext<F> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result)
-					throws ObjectNotFoundException,
-		            SchemaException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+					throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException,
+					ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		ObjectTemplateType objectTemplate = context.getFocusTemplate();
 		PartialProcessingOptionsType partialProcessingOptions = context.getPartialProcessingOptions();

@@ -181,7 +181,13 @@ public class ChangeExecutor {
 				focusDelta = policyRuleProcessor.applyAssignmentSituation(context, focusDelta);
 			}
 
-			if (focusDelta != null) {
+			if (focusDelta == null && !context.hasProjectionChange()) {
+				LOGGER.trace("Skipping focus change execute, because user delta is null");
+			} else {
+				
+				if (focusDelta == null) {
+					focusDelta = focusContext.getObjectAny().createModifyDelta();
+				}
 
 				ObjectPolicyConfigurationType objectPolicyConfigurationType = focusContext
 						.getObjectPolicyConfigurationType();
@@ -221,6 +227,9 @@ public class ChangeExecutor {
 					
 				} catch (PreconditionViolationException e) {
 					
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug("Modification precondition failed for {}: {}", focusContext.getHumanReadableName(), e.getMessage());
+					}
 //					TODO: fatal error if the conflict resolution is "error" (later)
 					result.recordHandledError(e);
 					throw e;
@@ -235,8 +244,6 @@ public class ChangeExecutor {
 				} finally {
 					context.reportProgress(new ProgressInformation(FOCUS_OPERATION, subResult));
 				}
-			} else {
-				LOGGER.trace("Skipping focus change execute, because user delta is null");
 			}
 		}
 
@@ -254,7 +261,7 @@ public class ChangeExecutor {
 			if (!projCtx.isCanProject()) {
 				continue;
 			}
-
+			
 			// we should not get here, but just to be sure
 			if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
 				LOGGER.trace("Skipping ignored projection context {}", projCtx.toHumanReadableString());
@@ -318,7 +325,7 @@ public class ChangeExecutor {
 						subResult.computeStatus();
 						subResult.recordNotApplicableIfUnknown();
 						continue;
-
+						
 					} else if (projDelta.isDelete() && projCtx.getResourceShadowDiscriminator() != null
 							&& projCtx.getResourceShadowDiscriminator().getOrder() > 0) {
 						// HACK ... for higher-order context check if this was
@@ -377,26 +384,12 @@ public class ChangeExecutor {
 				restartRequested = true;
 				break; // we will process remaining projections when retrying
 						// the wave
-			} catch (CommunicationException e) {
+				
+			} catch (CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
 				recordProjectionExecutionException(e, projCtx, subResult,
 						SynchronizationPolicyDecision.BROKEN);
 				continue;
-			} catch (ConfigurationException e) {
-				recordProjectionExecutionException(e, projCtx, subResult,
-						SynchronizationPolicyDecision.BROKEN);
-				continue;
-			} catch (SecurityViolationException e) {
-				recordProjectionExecutionException(e, projCtx, subResult,
-						SynchronizationPolicyDecision.BROKEN);
-				continue;
-			} catch (ExpressionEvaluationException e) {
-				recordProjectionExecutionException(e, projCtx, subResult,
-						SynchronizationPolicyDecision.BROKEN);
-				continue;
-			} catch (RuntimeException e) {
-				recordProjectionExecutionException(e, projCtx, subResult,
-						SynchronizationPolicyDecision.BROKEN);
-				continue;
+				
 			} finally {
 				context.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION,
 						projCtx.getResourceShadowDiscriminator(), subResult));
@@ -410,18 +403,7 @@ public class ChangeExecutor {
 	}
 
 	private <O extends ObjectType> void applyLastProvisioningTimestamp(LensContext<O> context, ObjectDelta<O> focusDelta) throws SchemaException {
-		Collection<LensProjectionContext> projectionContexts = context.getProjectionContexts();
-		if (projectionContexts == null) {
-			return;
-		}
-		boolean hasProjectionChange = false;
-		for (LensProjectionContext projectionContext: projectionContexts) {
-			if (projectionContext.hasPrimaryDelta() || projectionContext.hasSecondaryDelta()) {
-				hasProjectionChange = true;
-				break;
-			}
-		}
-		if (!hasProjectionChange) {
+		if (!context.hasProjectionChange()) {
 			return;
 		}
 		if (focusDelta.isAdd()) {
@@ -520,7 +502,7 @@ public class ChangeExecutor {
 		}
 	}
 
-	private <P extends ObjectType> void recordProjectionExecutionException(Exception e,
+	private <P extends ObjectType> void recordProjectionExecutionException(Throwable e,
 			LensProjectionContext accCtx, OperationResult subResult, SynchronizationPolicyDecision decision) {
 		subResult.recordFatalError(e);
 		LOGGER.error("Error executing changes for {}: {}",
@@ -584,7 +566,7 @@ public class ChangeExecutor {
 									// Already linked, nothing to do, only be sure, the
 									// situation is set with the good value
 									LOGGER.trace("Updating situation in already linked shadow.");
-									updateSituationInShadow(task, SynchronizationSituationType.LINKED, focusObjectContext,
+									updateSituationInShadow(task, SynchronizationSituationType.LINKED, null, focusObjectContext,
 											projCtx, result);
 									return;
 								}
@@ -594,7 +576,7 @@ public class ChangeExecutor {
 						linkShadow(focusContext.getOid(), projOid, focusObjectContext, projCtx, task, result);
 						// be sure, that the situation is set correctly
 						LOGGER.trace("Updating situation after shadow was linked.");
-						updateSituationInShadow(task, SynchronizationSituationType.LINKED, focusObjectContext, projCtx,
+						updateSituationInShadow(task, SynchronizationSituationType.LINKED, null, focusObjectContext, projCtx,
 								result);
 		} else {
 			// Link should NOT exist
@@ -621,7 +603,7 @@ public class ChangeExecutor {
 				LOGGER.trace("Resource object {} deleted, updating also situation in shadow.", projOid);
 				// HACK HACK?
 				try {
-					updateSituationInShadow(task, SynchronizationSituationType.DELETED, focusObjectContext,
+					updateSituationInShadow(task, SynchronizationSituationType.DELETED, true, focusObjectContext,
 							projCtx, result);
 				} catch (ObjectNotFoundException e) {
 					// HACK HACK?
@@ -635,7 +617,7 @@ public class ChangeExecutor {
 				// situation here. Reflect that in the shadow.
 				LOGGER.trace("Resource object {} unlinked from the user, updating also situation in shadow.",
 						projOid);
-				updateSituationInShadow(task, null, focusObjectContext, projCtx, result);
+				updateSituationInShadow(task, null, null, focusObjectContext, projCtx, result);
 			}
 			// Not linked, that's OK
 		}
@@ -760,7 +742,7 @@ public class ChangeExecutor {
 	}
 
 	private <F extends ObjectType> void updateSituationInShadow(Task task,
-			SynchronizationSituationType situation, LensFocusContext<F> focusContext,
+			SynchronizationSituationType situation, Boolean dead, LensFocusContext<F> focusContext,
 			LensProjectionContext projectionCtx, OperationResult parentResult)
 					throws ObjectNotFoundException, SchemaException {
 
@@ -783,6 +765,11 @@ public class ChangeExecutor {
 		List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils
 				.createSynchronizationSituationAndDescriptionDelta(account, situation, task.getChannel(),
 						projectionCtx.hasFullShadow());
+		
+		if (dead != null) {
+			PropertyDelta<Boolean> deadDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_DEAD, account.getDefinition(), dead);
+			syncSituationDeltas.add(deadDelta);
+		}
 
 		try {
 			Utils.setRequestee(task, focusContext);
@@ -1337,7 +1324,8 @@ public class ChangeExecutor {
 				if (conflictResolution != null) {
 					String readVersion = objectContext.getObjectReadVersion();
 					if (readVersion != null) {
-						precondition = new VersionPrecondition<>(readVersion);
+						LOGGER.trace("Modification with precondition, readVersion={}", readVersion);
+						precondition = new VersionPrecondition<>(readVersion);						
 					} else {
 						LOGGER.warn("Requested careful modification of {}, but there is no read version", objectContext.getHumanReadableName());
 					}

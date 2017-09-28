@@ -63,6 +63,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -1236,14 +1237,14 @@ public class LensUtil {
 	
 	public static void partialExecute(String componentName, ProjectorComponentRunnable runnable, Supplier<PartialProcessingTypeType> optionSupplier)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
 		partialExecute(componentName, runnable, optionSupplier, null);
 	}
 	
 	public static void partialExecute(String componentName, ProjectorComponentRunnable runnable, 
 			Supplier<PartialProcessingTypeType> optionSupplier, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
 		PartialProcessingTypeType option = optionSupplier.get();
 		if (option == PartialProcessingTypeType.SKIP) {
 			LOGGER.debug("Skipping projector component {} because partial execution option is set to {}", componentName, option);
@@ -1253,7 +1254,7 @@ public class LensUtil {
 				runnable.run();
 				LOGGER.trace("Projector component finished: {}", componentName);
 			} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
-					| PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | RuntimeException | Error e) {
+					| PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | PreconditionViolationException | RuntimeException | Error e) {
 				LOGGER.trace("Projector component error: {}: {}: {}", componentName, e.getClass().getSimpleName(), e.getMessage());
 				if (result != null) {
 					result.recordFatalError(e);

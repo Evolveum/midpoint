@@ -313,6 +313,7 @@ public class ProjectionValuesProcessor {
 				        			projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
 				        			projContext.setObjectOld(fullConflictingShadow.clone());
 				        			projContext.setObjectCurrent(fullConflictingShadow);
+				        			projContext.setOid(fullConflictingShadow.getOid());
 				        			projContext.setFullShadow(true);
 				        			ObjectDelta<ShadowType> secondaryDelta = projContext.getSecondaryDelta();
 				        			if (secondaryDelta != null && projContext.getOid() != null) {
@@ -381,6 +382,7 @@ public class ProjectionValuesProcessor {
 											cleanupContext(projContext, fullConflictingShadow);
 											projContext.setObjectOld(fullConflictingShadow.clone());
 											projContext.setObjectCurrent(fullConflictingShadow);
+											projContext.setOid(fullConflictingShadow.getOid());
 											projContext.setFullShadow(true);
 											projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
 											ObjectDelta<ShadowType> secondaryDelta = projContext.getSecondaryDelta();

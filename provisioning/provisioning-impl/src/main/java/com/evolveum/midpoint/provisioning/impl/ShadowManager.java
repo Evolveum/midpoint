@@ -1319,7 +1319,7 @@ public class ShadowManager {
 		Collection<? extends ItemDelta> shadowChanges = extractRepoShadowChanges(ctx, shadow, modifications);
 		if (shadowChanges != null && !shadowChanges.isEmpty()) {
 			LOGGER.trace(
-					"Detected shadow changes. Start to modify shadow in the repository, applying modifications {}",
+					"There are repository shadow changes, applying modifications {}",
 					DebugUtil.debugDump(shadowChanges));
 			try {
 				ConstraintsChecker.onShadowModifyOperation(shadowChanges);

@@ -302,7 +302,7 @@ public class MappingEvaluator {
                 if (mapping.getStrength() == MappingStrengthType.STRONG) {
                 	mappingOutputStruct.setStrongMappingWasUsed(true);
 
-                	if (!hasFullTargetObject && params.getTargetLoader() != null) {
+                	if (!hasFullTargetObject && params.getTargetLoader() != null && aPrioriTargetObject != null && aPrioriTargetObject.getOid() != null) {
     					if (!params.getTargetLoader().isLoaded()) {
     						aPrioriTargetObject = params.getTargetLoader().load("strong mapping", task, result);
     						LOGGER.trace("Loaded object because of strong mapping: {}", aPrioriTargetObject);
@@ -372,7 +372,7 @@ public class MappingEvaluator {
 						// But the mapping may not be activated (e.g. condition is false). And in that
 						// case we really do not want to trigger object loading.
 						// This is all not right. See MID-3847
-						if (!hasFullTargetObject && params.getTargetLoader() != null) {
+						if (!hasFullTargetObject && params.getTargetLoader() != null && aPrioriTargetObject != null && aPrioriTargetObject.getOid() != null) {
 							if (!params.getTargetLoader().isLoaded()) {
 								aPrioriTargetObject = params.getTargetLoader().load("weak mapping", task, result);
 								LOGGER.trace("Loaded object because of weak mapping: {}", aPrioriTargetObject);

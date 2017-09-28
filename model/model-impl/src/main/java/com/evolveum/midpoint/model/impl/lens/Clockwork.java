@@ -122,6 +122,7 @@ public class Clockwork {
 
 	private static final int DEFAULT_MAX_CONFLICT_RESOLUTION_ATTEMPTS = 1;          // synchronize with common-core-3.xsd
 	private static final int DEFAULT_CONFLICT_RESOLUTION_DELAY_UNIT = 5000;          // synchronize with common-core-3.xsd
+	private static final int MAX_PRECONDITION_CONFLICT_RESOLUTION_ATTEMPTS = 3;
 
 	private static final Trace LOGGER = TraceManager.getTrace(Clockwork.class);
 	
@@ -163,7 +164,9 @@ public class Clockwork {
 
 	private static final int DEFAULT_MAX_CLICKS = 200;
 
-	public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult result) 
+			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, 
+			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
 		LOGGER.trace("Running clockwork for context {}", context);
 		if (InternalsConfig.consistencyChecks) {
 			context.checkConsistence();
@@ -257,7 +260,7 @@ public class Clockwork {
 		}
 
 		// so, recompute is the action
-		LOGGER.debug("Conflict detected while updating {}, recomputing (options={})", focusObject, options);
+		LOGGER.debug("CONFLICT: Conflict detected while updating {}, recomputing (options={})", focusObject, options);
 
 		if (context.getFocusContext() == null) {
 			LOGGER.warn("No focus context, not possible to resolve conflict by focus recomputation");       // should really never occur
@@ -282,37 +285,69 @@ public class Clockwork {
 		}
 		
 		ConflictResolutionType focusConflictResolution = new ConflictResolutionType();
-		focusConflictResolution.setAction(ConflictResolutionActionType.RESTART);
+		focusConflictResolution.setAction(ConflictResolutionActionType.ERROR);
 		options.setFocusConflictResolution(focusConflictResolution);
 
-		PrismObject<F> focus = repositoryService.getObject(focusClass, oid, null, result);
-		LensContext<FocusType> contextNew = contextFactory.createRecomputeContext(focus, options, task, result);
-				contextNew.setProgressListeners(new ArrayList<>(emptyIfNull(context.getProgressListeners())));
-		int attemptOld = context.getConflictResolutionAttemptNumber();
-		int attemptNew = attemptOld + 1;
-		boolean shouldExecuteAttempt = shouldExecuteAttempt(resolutionPolicy, attemptNew, context);
-		if (shouldExecuteAttempt) {
+		int preconditionAttempts = 0;
+		while (true) {
+			
+			PrismObject<F> focus = repositoryService.getObject(focusClass, oid, null, result);
+			LensContext<FocusType> contextNew = contextFactory.createRecomputeContext(focus, options, task, result);
+					contextNew.setProgressListeners(new ArrayList<>(emptyIfNull(context.getProgressListeners())));
+			
+					int attemptOld = context.getConflictResolutionAttemptNumber();
+			int attemptNew = attemptOld + 1;
+			boolean shouldExecuteAttempt = shouldExecuteAttempt(context, resolutionPolicy, attemptNew);
+			if (!shouldExecuteAttempt) {
+				LOGGER.warn("CONFLICT: Couldn't resolve conflict even after {} resolution attempt(s), giving up.", attemptOld);
+				return HookOperationMode.FOREGROUND;
+			}
 			contextNew.setConflictResolutionAttemptNumber(attemptNew);
 			// this is a recursion; but limited to max attempts which should not be a large number
-			return run(contextNew, task, result);
-		} else {
-			LOGGER.warn("Couldn't resolve conflict even after {} resolution attempt(s), giving up.", attemptOld);
-			return HookOperationMode.FOREGROUND;
+			
+			delay(context, resolutionPolicy, attemptNew + preconditionAttempts);
+			
+			LOGGER.debug("CONFLICT: Recomputing {} as reaction to conflict (options={}, attempts={},{})",
+					context.getFocusContext().getHumanReadableName(), attemptNew, preconditionAttempts);
+			
+			try {
+				
+				HookOperationMode hookOperationMode = run(contextNew, task, result);
+				
+				// This may be in fact a giveup after recompute that was not able to cleanly proceed.
+				LOGGER.debug("CONFLICT: Clean recompute (or giveup) of {} achieved (options={}, attempts={},{})",
+						context.getFocusContext().getHumanReadableName(), options, attemptNew, preconditionAttempts);
+				
+				return hookOperationMode;
+				
+			} catch (PreconditionViolationException e) {
+				preconditionAttempts++;
+				LOGGER.debug("CONFLICT: Recompute precondition failed (attempt {}, precondition attempt {}), trying again", attemptNew, preconditionAttempts);
+				if (preconditionAttempts < MAX_PRECONDITION_CONFLICT_RESOLUTION_ATTEMPTS) {
+					continue;
+				}
+				LOGGER.warn("CONFLICT: Couldn't resolve conflict even after {} resolution attempt(s) and {} precondition attempts, giving up.", 
+						attemptOld, preconditionAttempts);
+				return HookOperationMode.FOREGROUND;
+			}
 		}
 	}
 
-	private <F extends ObjectType> boolean shouldExecuteAttempt(@NotNull ConflictResolutionType resolutionPolicy, int attemptNew,
-			LensContext<F> context) {
+	private <F extends ObjectType> boolean shouldExecuteAttempt(LensContext<F> context, @NotNull ConflictResolutionType resolutionPolicy, int attemptNew) {
 		int maxAttempts = defaultIfNull(resolutionPolicy.getMaxAttempts(), DEFAULT_MAX_CONFLICT_RESOLUTION_ATTEMPTS);
 		if (attemptNew > maxAttempts) {
 			return false;
 		}
+		return true;
+	}
+	
+	private <F extends ObjectType> void delay(LensContext<F> context, @NotNull ConflictResolutionType resolutionPolicy, int attempts) {
 		long delayUnit = defaultIfNull(resolutionPolicy.getDelayUnit(), DEFAULT_CONFLICT_RESOLUTION_DELAY_UNIT);
-		for (int i = 0; i < attemptNew; i++) {
+		for (int i = 0; i < attempts; i++) {
 			delayUnit *= 2;
 		}
 		long delay = (long) (Math.random() * delayUnit);
-		String message = "Waiting "+delay+" milliseconds before starting conflict resolution attempt "+attemptNew+" of "+maxAttempts;
+		String message = "CONFLICT: Waiting "+delay+" milliseconds before starting conflict resolution (delay exponent: "+attempts+")";
 		// TODO convey information about waiting time after some GUI mechanism for displaying it is available
 		// (showing text messages is currently really ugly)
 		context.reportProgress(new ProgressInformation(WAITING, EXITING));
@@ -323,7 +358,6 @@ public class Clockwork {
 			// ignore
 		}
 		context.reportProgress(new ProgressInformation(WAITING, EXITING));
-		return true;
 	}
 
 	private void enterAssociationSearchExpressionEvaluatorCache() {
@@ -357,8 +391,10 @@ public class Clockwork {
 		}
 	}
 
-	public <F extends ObjectType> HookOperationMode click(LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-		
+	public <F extends ObjectType> HookOperationMode click(LensContext<F> context, Task task, OperationResult result) 
+			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, 
+			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
+
 		// DO NOT CHECK CONSISTENCY of the context here. The context may not be fresh and consistent yet. Project will fix
 		// that. Check consistency afterwards (and it is also checked inside projector several times).
 		
@@ -450,7 +486,7 @@ public class Clockwork {
 			
 		} catch (CommunicationException | ConfigurationException | ExpressionEvaluationException | ObjectNotFoundException |
 				PolicyViolationException | SchemaException | SecurityViolationException | RuntimeException |
-				ObjectAlreadyExistsException e) {
+				ObjectAlreadyExistsException | PreconditionViolationException e) {
 			processClockworkException(context, e, task, result);
 			throw e;
 		}
@@ -578,8 +614,10 @@ public class Clockwork {
 		// Nothing to do now. The context is already recomputed.
 		context.setState(ModelState.SECONDARY);
 	}
-	
-	private <F extends ObjectType> void processSecondary(LensContext<F> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+
+	private <F extends ObjectType> void processSecondary(LensContext<F> context, Task task, OperationResult result) 
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
+			SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
 		if (context.getExecutionWave() > context.getMaxWave() + 1) {
 			context.setState(ModelState.FINAL);
 			return;
@@ -588,16 +626,8 @@ public class Clockwork {
 		Holder<Boolean> restartRequestedHolder = new Holder<>();
 		
 		LensUtil.partialExecute("execution",
-				() -> {
-					boolean restartRequested;
-					try {
-						
-						restartRequested = changeExecutor.executeChanges(context, task, result);
-						
-					} catch (PreconditionViolationException e) {
-						LOGGER.debug("Precondition violation, will restart");
-						restartRequested = true;
-					}
+				() -> {	
+					boolean restartRequested = changeExecutor.executeChanges(context, task, result);
 					restartRequestedHolder.setValue(restartRequested);
 				}, 
 				context.getPartialProcessingOptions()::getExecution);
@@ -696,8 +726,10 @@ public class Clockwork {
 		}
 		return false;
 	}
-	
-	private <F extends ObjectType> HookOperationMode processFinal(LensContext<F> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+
+	private <F extends ObjectType> HookOperationMode processFinal(LensContext<F> context, Task task, OperationResult result) 
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
 		auditFinalExecution(context, task, result);
 		logFinalReadable(context, task, result);
 		recordOperationExecution(context, null, task, result);

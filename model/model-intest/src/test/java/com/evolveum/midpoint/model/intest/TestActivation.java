@@ -1912,9 +1912,15 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
+<<<<<<< HEAD
 	 * Delete assignment from repo. Model should not notice. 
 	 * The change should be NOT applied after recompute.
 	 * Accounts are not retrieved, therefore the change is not noticed.
+=======
+	 * Delete assignment from repo. Model should not notice.
+	 * The change should be applied after recompute, because RED resource has
+	 * strong mappings, which trigger account to be loaded.
+>>>>>>> e3b79c0... More parallelism improvements, bugfixies and test improvements (MID-4154) ... but still work in progress
 	 */
 	@Test
     public void test230JackUnassignRepoRecompute() throws Exception {
@@ -1940,14 +1946,12 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
-        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        assertSuccess(result);
+
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
 	}
 
 	/**
-	 * Deleted assignment from the repo (previous test). Model haven't noticed.
 	 * Now recompute with reconcile. The change should be applied after recompute.
 	 */
 	@Test
@@ -1965,9 +1969,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
+        assertSuccess(result);
+
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
 	}
 

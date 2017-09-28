@@ -36,6 +36,7 @@ import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -111,7 +112,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Foc
 		AbstractSearchIterativeResultHandler<FocusType> handler = new AbstractSearchIterativeResultHandler<FocusType>(
 				coordinatorTask, RecomputeTaskHandler.class.getName(), "recompute", "recompute task", taskManager) {
 			@Override
-			protected boolean handleObject(PrismObject<FocusType> object, Task workerTask, OperationResult result) throws CommonException {
+			protected boolean handleObject(PrismObject<FocusType> object, Task workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
 				recompute(object, getOptions(coordinatorTask), workerTask, result);
 				return true;
 			}
@@ -133,8 +134,8 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Foc
 	}
 	
 	private void recompute(PrismObject<FocusType> focalObject, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException,
-			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
-			ConfigurationException, PolicyViolationException, SecurityViolationException {
+			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
+			ConfigurationException, PolicyViolationException, SecurityViolationException, PreconditionViolationException {
 		LOGGER.trace("Recomputing object {}", focalObject);
 
 		LensContext<FocusType> syncContext = contextFactory.createRecomputeContext(focalObject, options, task, result);

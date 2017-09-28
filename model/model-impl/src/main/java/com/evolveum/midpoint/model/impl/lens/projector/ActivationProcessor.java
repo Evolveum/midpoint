@@ -122,9 +122,20 @@ public class ActivationProcessor {
     		processActivationMetadata(context, projectionContext, now, result);
     		return;
     	}
-    	processActivationUserCurrent(context, projectionContext, now, task, result);
-    	processActivationMetadata(context, projectionContext, now, result);
-    	processActivationUserFuture(context, projectionContext, now, task, result);
+    	try {
+    		
+	    	processActivationUserCurrent(context, projectionContext, now, task, result);
+	    	processActivationMetadata(context, projectionContext, now, result);
+	    	processActivationUserFuture(context, projectionContext, now, task, result);
+	    	
+    	} catch (ObjectNotFoundException e) {
+    		if (projectionContext.isThombstone()) {
+    			// This is not critical. The projection is marked as thombstone and we can go on with processing
+    			// No extra action is needed.
+    		} else {
+    			throw e;
+    		}
+    	}
     }
 
     public <F extends FocusType> void processActivationUserCurrent(LensContext<F> context, LensProjectionContext projCtx, 
