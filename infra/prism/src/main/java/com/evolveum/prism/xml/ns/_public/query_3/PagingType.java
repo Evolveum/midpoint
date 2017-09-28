@@ -45,6 +45,7 @@ import org.w3c.dom.Element;
  *         &lt;element name="orderDirection" type="{http://prism.evolveum.com/xml/ns/public/query-2}OrderDirectionType" minOccurs="0"/>
  *         &lt;element name="offset" type="{http://www.w3.org/2001/XMLSchema}int" minOccurs="0"/>
  *         &lt;element name="maxSize" type="{http://www.w3.org/2001/XMLSchema}int" minOccurs="0"/>
+ *         &lt;element name="groupBy" type="{http://prism.evolveum.com/xml/ns/public/types-3}XPathType" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -58,7 +59,8 @@ import org.w3c.dom.Element;
     "orderBy",
     "orderDirection",
     "offset",
-    "maxSize"
+    "maxSize",
+    "groupBy"
 })
 public class PagingType implements Serializable, Cloneable, Equals, HashCode
 {
@@ -71,6 +73,8 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
     protected Integer offset;
     @XmlElement(defaultValue = "2147483647")
     protected Integer maxSize;
+    protected ItemPathType groupBy;
+
     public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "PagingType");
     public final static QName F_ORDER_DIRECTION = new QName(PrismConstants.NS_QUERY, "orderDirection");
     public final static QName F_OFFSET = new QName(PrismConstants.NS_QUERY, "offset");
@@ -107,6 +111,7 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
         this.offset = ((o.offset == null)?null:o.getOffset());
         // CBuiltinLeafInfo: java.lang.Integer
         this.maxSize = ((o.maxSize == null)?null:o.getMaxSize());
+        this.groupBy = (o.groupBy == null)?null:o.groupBy.clone();
     }
 
     /**
@@ -206,6 +211,30 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
     }
 
     /**
+     * Gets the value of the groupBy property.
+     *
+     * @return
+     *     possible object is
+     *     {@link Element }
+     *
+     */
+    public ItemPathType getGroupBy() {
+        return groupBy;
+    }
+
+    /**
+     * Sets the value of the orderBy property.
+     *
+     * @param value
+     *     allowed object is
+     *     {@link Element }
+     *
+     */
+    public void setGroupBy(ItemPathType value) {
+        this.groupBy = value;
+    }
+
+    /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
      * 
@@ -236,6 +265,11 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
             Integer theMaxSize;
             theMaxSize = this.getMaxSize();
             currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "maxSize", theMaxSize), currentHashCode, theMaxSize);
+        }
+        {
+            ItemPathType theGroupBy;
+            theGroupBy = this.getGroupBy();
+            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "groupBy", theGroupBy), currentHashCode, theGroupBy);
         }
         return currentHashCode;
     }
@@ -289,6 +323,15 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
                 return false;
             }
         }
+        {
+            ItemPathType lhsGroupBy;
+            lhsGroupBy = this.getGroupBy();
+            ItemPathType rhsGroupBy;
+            rhsGroupBy = that.getOrderBy();
+            if (!strategy.equals(LocatorUtils.property(thisLocator, "groupBy", lhsGroupBy), LocatorUtils.property(thatLocator, "groupBy", rhsGroupBy), lhsGroupBy, rhsGroupBy)) {
+                return false;
+            }
+        }
         return true;
     }
 
@@ -318,6 +361,8 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
                 clone.offset = ((this.offset == null)?null:this.getOffset());
                 // CBuiltinLeafInfo: java.lang.Integer
                 clone.maxSize = ((this.maxSize == null)?null:this.getMaxSize());
+                // CWildcardTypeInfo: org.w3c.dom.Element
+                clone.groupBy = ((this.groupBy == null)?null:((this.getGroupBy() == null)?null:(this.getGroupBy().clone())));
                 return clone;
             }
         } catch (CloneNotSupportedException e) {
