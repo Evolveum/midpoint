@@ -103,6 +103,11 @@
 			<artifactId>model-impl</artifactId>
 			<version>3.6.1-SNAPSHOT</version>
 		</dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>workflow-api</artifactId>
+            <version>3.6.1-SNAPSHOT</version>
+        </dependency>
 
 		<dependency>
 			<groupId>org.jetbrains</groupId>
