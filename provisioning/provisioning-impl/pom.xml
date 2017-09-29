@@ -99,7 +99,10 @@
 			<artifactId>repo-common</artifactId>
 			<version>3.7-SNAPSHOT</version>
 		</dependency>
-		
+        <dependency>
+            <groupId>net.tirasa.connid</groupId>
+            <artifactId>connector-framework</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
