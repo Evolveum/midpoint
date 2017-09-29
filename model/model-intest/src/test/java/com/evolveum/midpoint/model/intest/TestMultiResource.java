@@ -273,7 +273,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		getDummyResource().resetBreakMode();
 		// Clean up user
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 		modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
 
@@ -292,7 +292,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		getDummyResource().resetBreakMode();
 		// Clean up user
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		String accountJackDummyOid = getLinkRefOid(userJack, RESOURCE_DUMMY_OID);
@@ -333,7 +333,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test200JackAssignDummyIvory";
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -367,7 +367,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test209JackUnAssignDummyIvory";
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -397,10 +397,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test210JackAssignDummyBeige() throws Exception {
 		final String TEST_NAME = "test210JackAssignDummyBeige";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -408,11 +408,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_OID, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -435,10 +435,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test219JackUnAssignDummyBeige() throws Exception {
 		final String TEST_NAME = "test219JackUnAssignDummyBeige";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -446,11 +446,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_OID, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -470,10 +470,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test220JackAssignDummyBeigeAndDefault() throws Exception {
 		final String TEST_NAME = "test220JackAssignDummyBeigeAndDefault";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -484,11 +484,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		userDelta.addModification(createAssignmentModification(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, true));
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		executeChanges(userDelta, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -510,18 +510,18 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test221JackRecompute() throws Exception {
 		final String TEST_NAME = "test221JackRecompute";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		recomputeUser(USER_JACK_OID, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -539,27 +539,27 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 	/**
 	 * Delete account on default dummy resource (but keep it assigned and keep the shadow).
-	 * The recompute the user. The account should be re-created.
+	 * Then recompute the user. The account should be re-created.
 	 * MID-2134, MID-3093
 	 */
 	@Test
     public void test223JackKillDefaultDummyAccounAndRecompute() throws Exception {
 		final String TEST_NAME = "test223JackKillDefaultDummyAccounAndRecompute";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         getDummyResource().deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         display("dummy resource before", getDummyResource());
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		recomputeUser(USER_JACK_OID, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -586,21 +586,21 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test224JackKillBeigeAccounAndRecompute() throws Exception {
 		final String TEST_NAME = "test224JackKillBeigeAccounAndRecompute";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         dummyResourceBeige.deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         display("beige dummy resource before", dummyResourceBeige);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -620,16 +620,16 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 	/**
 	 * Delete both accounts on beige and default dummy resource (but keep it assigned and keep the shadows).
-	 * The recompute the user. The accounts should be re-created.
+	 * Then recompute the user. The accounts should be re-created.
 	 * MID-2134, MID-3093
 	 */
 	@Test
     public void test225JackKillBothAccounsAndRecompute() throws Exception {
 		final String TEST_NAME = "test225JackKillBothAccounsAndRecompute";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         getDummyResource().deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -639,13 +639,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         display("beige dummy resource before", dummyResourceBeige);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertLinks(userJack, 2);
@@ -671,7 +670,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test227ModifyUserJackDefaultDummyBrokenSchemaViolation() throws Exception {
 		final String TEST_NAME = "test227ModifyUserJackDefaultDummyBrokenSchemaViolation";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiResource.class.getName() + "." + TEST_NAME);
@@ -681,12 +680,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         getDummyResource().setModifyBreakMode(BreakMode.SCHEMA);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
         		new PolyString("Cpt. Jack Sparrow", null));
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 		result.computeStatus();
 		display("Result", result);
 		TestUtil.assertPartialError(result);
@@ -715,7 +714,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test228ModifyUserJackDefaultDummyNoError() throws Exception {
 		final String TEST_NAME = "test228ModifyUserJackDefaultDummyNoError";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiResource.class.getName() + "." + TEST_NAME);
@@ -724,12 +723,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         getDummyResource().resetBreakMode();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
         		new PolyString(USER_JACK_FULL_NAME, null));
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 		result.computeStatus();
 		display("Result", result);
 		TestUtil.assertSuccess(result);
@@ -756,10 +755,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test229JackUnassignDummyBeigeAndDefault() throws Exception {
 		final String TEST_NAME = "test229JackUnassignDummyBeigeAndDefault";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         getDummyResource().resetBreakMode();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -768,11 +767,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		userDelta.addModification(createAssignmentModification(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, false));
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		executeChanges(userDelta, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -792,10 +791,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test250JackAssignDummyLavender() throws Exception {
 		final String TEST_NAME = "test250JackAssignDummyLavender";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -829,9 +828,9 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	 * resource through the user to the other resource. If dependency does not work then no value is propagated.
 	 */
     public void jackAssignRoleDummies(final String TEST_NAME) throws Exception {
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         clearJackOrganizationalUnit(task, result);
 
@@ -874,9 +873,9 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
 
     public void jackRename(final String TEST_NAME) throws Exception {
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         jackRename(TEST_NAME, "jackie", "Jackie Sparrow", task, result);
@@ -891,11 +890,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 
         // WHEN
-    	TestUtil.displayWhen(TEST_NAME);
+    	displayWhen(TEST_NAME);
     	modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-    	TestUtil.displayThen(TEST_NAME);
+    	displayThen(TEST_NAME);
         result.computeStatus();
     	TestUtil.assertSuccess(result);
 
@@ -932,9 +931,9 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
 
     public void jackUnAssignRoleDummies(final String TEST_NAME) throws Exception {
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -962,9 +961,9 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	 */
     public void jackAssignRoleDummiesError(final String TEST_NAME, String roleOid, String dummyResourceName,
     		boolean expectAccount) throws Exception {
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         clearJackOrganizationalUnit(task, result);
 
@@ -1003,17 +1002,17 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
 
 	public void jackUnAssignRoleDummiesError(final String TEST_NAME, String roleOid) throws Exception {
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, roleOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         display(result);
 		// there is a failure while reading dummy account - it was not created
@@ -1038,10 +1037,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test300AddAndAssignRelative() throws Exception {
 		final String TEST_NAME = "test300AddAndAssignRelative";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         // Add default dummy account to jack without assigning it.
@@ -1064,11 +1063,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1096,18 +1095,18 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test310AddedAccountAndUnassignRelative() throws Exception {
 		final String TEST_NAME = "test310AddedAccountAndUnassignRelative";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1137,18 +1136,18 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test319UnassignDummyRelative() throws Exception {
 		final String TEST_NAME = "test319UnassignDummyRelative";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1173,17 +1172,17 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test350AddAccountLavender() throws Exception {
 		final String TEST_NAME = "test350AddAccountLavender";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyLavender);
 
         // WHEN
         try {
-	        TestUtil.displayWhen(TEST_NAME);
+	        displayWhen(TEST_NAME);
 	        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
 	        AssertJUnit.fail("Unexpected success");
@@ -1193,7 +1192,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         }
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertFailure(result);
 
@@ -1204,20 +1203,20 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test352AddAccountIvory() throws Exception {
 		final String TEST_NAME = "test352AddAccountIvory";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyIvory);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1228,20 +1227,20 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test354AddAccountBeige() throws Exception {
 		final String TEST_NAME = "test354AddAccountBeige";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyBeige);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1252,20 +1251,20 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test360AddAccountDummy() throws Exception {
 		final String TEST_NAME = "test360AddAccountDummy";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, getDummyResourceObject());
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1279,20 +1278,20 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test362AddAccountLavender() throws Exception {
 		final String TEST_NAME = "test362AddAccountLavender";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyLavender);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1306,17 +1305,17 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test370DeleteAccountDummy() throws Exception {
 		final String TEST_NAME = "test370DeleteAccountDummy";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, getDummyResourceObject());
 
         // WHEN
         try {
-	        TestUtil.displayWhen(TEST_NAME);
+	        displayWhen(TEST_NAME);
 	        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
 	        AssertJUnit.fail("Unexpected success");
@@ -1326,7 +1325,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         }
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertFailure(result);
 
@@ -1343,17 +1342,17 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test372UnlinkAccountDummy() throws Exception {
 		final String TEST_NAME = "test372UnlinkAccountDummy";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserUnlinkAccount(USER_JACK_OID, getDummyResourceObject());
 
         // WHEN
         try {
-	        TestUtil.displayWhen(TEST_NAME);
+	        displayWhen(TEST_NAME);
 	        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
 	        AssertJUnit.fail("Unexpected success");
@@ -1363,9 +1362,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         }
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertFailure(result);
+        displayThen(TEST_NAME);
+        assertFailure(result);
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAccount(user, RESOURCE_DUMMY_OID);
@@ -1377,21 +1375,20 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test374DeleteAccountLavender() throws Exception {
 		final String TEST_NAME = "test374DeleteAccountLavender";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummyLavender);
 
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAccount(user, RESOURCE_DUMMY_OID);
@@ -1407,21 +1404,20 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test376DeleteAccountDummy() throws Exception {
 		final String TEST_NAME = "test376DeleteAccountDummy";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, getDummyResourceObject());
 
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME);
@@ -1434,21 +1430,20 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test378DeleteAccountBeige() throws Exception {
 		final String TEST_NAME = "test378DeleteAccountBeige";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummyBeige);
 
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -1462,21 +1457,20 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test379DeleteAccountIvory() throws Exception {
 		final String TEST_NAME = "test379DeleteAccountIvory";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummyIvory);
 
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -1491,26 +1485,25 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test380AddAccountPeru() throws Exception {
 		final String TEST_NAME = "test380AddAccountPeru";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		getDummyResource().resetBreakMode();
 
 		// precondition
 		assertEncryptedUserPassword(USER_JACK_OID, USER_JACK_PASSWORD);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyPeru);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertDummyAccount(RESOURCE_DUMMY_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyPassword(RESOURCE_DUMMY_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_PASSWORD);
@@ -1519,22 +1512,21 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test382AddAccountYellow() throws Exception {
 		final String TEST_NAME = "test382AddAccountYellow";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, getDummyResourceObject(RESOURCE_DUMMY_YELLOW_NAME));
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1556,7 +1548,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test385ModifyUserJackPasswordA() throws Exception {
 		final String TEST_NAME = "test385ModifyUserJackPasswordA";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
@@ -1567,8 +1559,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_A_CLEAR, task, result);
 
 		// THEN
-		result.computeStatus();
-		TestUtil.assertPartialError(result);
+		assertPartialError(result);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1590,21 +1581,20 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test389DeleteAccountPeru() throws Exception {
 		final String TEST_NAME = "test389DeleteAccountPeru";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummyPeru);
 
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertNoDummyAccount(RESOURCE_DUMMY_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 
@@ -1618,12 +1608,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test400DavidAndGoliathAssignRole() throws Exception {
 		final String TEST_NAME = "test400DavidAndGoliathAssignRole";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
@@ -1633,13 +1623,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
 		assertDavidGoliath(userBefore.getOid(), "stone", USER_WORLD_NAME, true, true, true);
 
@@ -1663,7 +1652,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(2, ChangeType.MODIFY, ShadowType.class);
         ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
         display("Last execution delta", executionDelta);
-        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 2);
+        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 4);
 	}
 
     private void assertDavidGoliath(String userOid, String ou, String name, boolean userEnabled, boolean davidEnabled, boolean goliathEnabled) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
@@ -1705,25 +1694,24 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test401DavidAndGoliathModifyOu() throws Exception {
 		final String TEST_NAME = "test401DavidAndGoliathModifyOu";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
         dummyAuditService.clear();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(userBefore.getOid(), UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("rock"));
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, true, true, true);
 
@@ -1747,18 +1735,18 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(2, ChangeType.MODIFY, ShadowType.class);
         ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
         display("Last execution delta", executionDelta);
-        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 2);
+        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 4);
 	}
 
     @Test
     public void test403DavidAndGoliathDisableUser() throws Exception {
 		final String TEST_NAME = "test403DavidAndGoliathDisableUser";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
@@ -1766,13 +1754,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(userBefore.getOid(), ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, false, false, false);
 
@@ -1784,7 +1771,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionDeltas(0,2);
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
-		dummyAuditService.assertExecutionDeltas(1,1);			// user is again disabled here
+		dummyAuditService.assertExecutionDeltas(1,2);			// user is again disabled here
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class); // lastProvisioningTimestamp
         dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
@@ -1792,25 +1780,24 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test404DavidAndGoliathEnableUser() throws Exception {
 		final String TEST_NAME = "test404DavidAndGoliathEnableUser";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
         dummyAuditService.clear();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(userBefore.getOid(), ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, true, true, true);
 
@@ -1822,7 +1809,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionDeltas(0,2);
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
-        dummyAuditService.assertExecutionDeltas(1,1);			// user is again disabled here
+        dummyAuditService.assertExecutionDeltas(1,2);			// user is again disabled here
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class); // lastProvisioningTimestamp
         dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
@@ -1830,12 +1818,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test405DavidAndGoliathDisableAccountDavid() throws Exception {
 		final String TEST_NAME = "test405DavidAndGoliathDisableAccountDavid";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
@@ -1844,13 +1832,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyAccountShadowReplace(accountDavidOid, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, true, false, true);
 
@@ -1859,7 +1846,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0,1);
+        dummyAuditService.assertExecutionDeltas(0,2);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class); // lastProvisioningTimestamp
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
@@ -1870,12 +1858,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test406DavidAndGoliathRecompute() throws Exception {
 		final String TEST_NAME = "test406DavidAndGoliathRecompute";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
@@ -1883,13 +1871,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         recomputeUser(userBefore.getOid(), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, true, false, true);
 
@@ -1901,12 +1888,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test408DavidAndGoliathEnableAccountDavid() throws Exception {
 		final String TEST_NAME = "test408DavidAndGoliathEnableAccountDavid";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
@@ -1915,13 +1902,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyAccountShadowReplace(accountDavidOid, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "rock", USER_WORLD_NAME, true, true, true);
 
@@ -1930,7 +1916,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0,1);
+        dummyAuditService.assertExecutionDeltas(0,2);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class); // lastProvisioningTimestamp
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
@@ -1938,25 +1925,24 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test410DavidAndGoliathRename() throws Exception {
 		final String TEST_NAME = "test410DavidAndGoliathRename";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
         dummyAuditService.clear();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(userBefore.getOid(), UserType.F_NAME, task, result, PrismTestUtil.createPolyString(USER_FIELD_NAME));
 
-     // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertDavidGoliath(userBefore.getOid(), "rock", USER_FIELD_NAME, true, true, true);
 
@@ -1980,29 +1966,29 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(2, ChangeType.MODIFY, ShadowType.class);
         ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
         display("Last execution delta", executionDelta);
-        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 2);
+        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 4);
 	}
 
     @Test
     public void test419DavidAndGoliathUnassignRole() throws Exception {
 		final String TEST_NAME = "test419DavidAndGoliathUnassignRole";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
         dummyAuditService.clear();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         unassignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result, 2);
 
@@ -2032,12 +2018,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test420DavidAndGoliathAssignRoleGoliathDown() throws Exception {
 		final String TEST_NAME = "test420DavidAndGoliathAssignRoleGoliathDown";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
@@ -2056,11 +2042,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         // Inner errors are expected
         TestUtil.assertPartialError(result);
@@ -2100,12 +2086,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test(enabled=false)
     public void test422DavidAndGoliathAssignRoleGoliathUpRecompute() throws Exception {
 		final String TEST_NAME = "test422DavidAndGoliathAssignRoleGoliathUpRecompute";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
@@ -2116,7 +2102,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         recomputeUser(userBefore.getOid(), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2143,23 +2129,23 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test429DavidAndGoliathUnassignRole() throws Exception {
 		final String TEST_NAME = "test429DavidAndGoliathUnassignRole";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
         dummyAuditService.clear();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         unassignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
 //        TestUtil.assertSuccess(result, 2);
 
@@ -2191,12 +2177,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test430DavidAndGoliathAssignRoleDavidDown() throws Exception {
 		final String TEST_NAME = "test430DavidAndGoliathAssignRoleDavidDown";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
@@ -2216,11 +2202,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         // Inner errors are expected
         TestUtil.assertPartialError(result);
@@ -2256,12 +2242,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test440DavidAndGoliathAssignRoleAndCreateUserInOneStep() throws Exception {
 		final String TEST_NAME = "test440DavidAndGoliathAssignRoleAndCreateUserInOneStep";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		dummyResourceGoliath.setBreakMode(BreakMode.NONE);
         dummyResourceDavid.setBreakMode(BreakMode.NONE);
 		try{
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 		// delete user and his roles which were added before
 
@@ -2306,11 +2292,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 //        assignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

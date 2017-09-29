@@ -17,12 +17,14 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 
 /**
  * @author semancik
  *
  */
-public class MappingOutputStruct<V extends PrismValue> {
+public class MappingOutputStruct<V extends PrismValue> implements DebugDumpable {
 
 	private PrismValueDeltaSetTriple<V> outputTriple = null;
 	private boolean strongMappingWasUsed = false;
@@ -50,6 +52,15 @@ public class MappingOutputStruct<V extends PrismValue> {
 
 	public void setWeakMappingWasUsed(boolean weakMappingWasUsed) {
 		this.weakMappingWasUsed = weakMappingWasUsed;
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(MappingOutputStruct.class, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "outputTriple", outputTriple, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "strongMappingWasUsed", strongMappingWasUsed, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "weakMappingWasUsed", weakMappingWasUsed, indent + 1);
+		return sb.toString();
 	}
 
 }

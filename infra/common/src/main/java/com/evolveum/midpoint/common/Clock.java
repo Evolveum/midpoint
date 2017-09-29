@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,13 +37,19 @@ public class Clock {
 	private static final Trace LOGGER = TraceManager.getTrace(Clock.class);
 
 	private Long override = null;
-	// TODO: more sophisticated functions
+	private Long overrideOffset = null;
 
 	public long currentTimeMillis() {
-		if (override != null) {
-			return override;
+		long time;
+		if (override == null) {
+			time = System.currentTimeMillis();
+		} else {
+			time = override;
 		}
-		return System.currentTimeMillis();
+		if (overrideOffset != null) {
+			time = time + overrideOffset;
+		}
+		return time;
 	}
 
 	public XMLGregorianCalendar currentTimeXMLGregorianCalendar() {
@@ -80,19 +86,43 @@ public class Clock {
 		override(XmlTypeConverter.toMillis(overrideTimestamp));
 	}
 
+	/**
+	 * Extends offset on top of existing offset.
+	 */
 	public void overrideDuration(String durationString) {
 		overrideDuration(XmlTypeConverter.createDuration(durationString));
 	}
 
+	/**
+	 * Extends offset on top of existing offset.
+	 */
 	public void overrideDuration(Duration duration) {
-		XMLGregorianCalendar time = currentTimeXMLGregorianCalendar();
+		long millis = currentTimeMillis();
+		XMLGregorianCalendar time = XmlTypeConverter.createXMLGregorianCalendar(millis);
 		time.add(duration);
-		override(time);
+		long offset = XmlTypeConverter.toMillis(time) - millis;
+		overrideDuration(offset);
+	}
+	
+	/**
+	 * Extends offset on top of existing offset.
+	 */
+	public void overrideDuration(Long offsetMillis) {
+		if (overrideOffset == null) {
+			overrideOffset = offsetMillis;
+		} else {
+			overrideOffset = overrideOffset + offsetMillis;
+		}
+	}
+	
+	public void overrideOffset(Long offsetMillis) {
+		this.overrideOffset = offsetMillis;
 	}
 
 	public void resetOverride() {
 		LOGGER.info("Clock override reset");
 		this.override = null;
+		this.overrideOffset = null;
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Clock current time: {}", currentTimeXMLGregorianCalendar());
 		}
