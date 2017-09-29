@@ -26,7 +26,6 @@ import com.evolveum.midpoint.model.impl.rest.PATCH;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -66,10 +65,10 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.net.URI;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -843,11 +842,11 @@ public class ModelRestService {
 		Response response;
 		try {
 			if (Boolean.TRUE.equals(asynchronous)) {
-				scriptingService.evaluateExpression(command, task, result);
+				scriptingService.evaluateExpressionInBackground(command, task, result);
 				URI resourceUri = uriInfo.getAbsolutePathBuilder().path(task.getOid()).build(task.getOid());
 				response = RestServiceUtil.createResponse(Response.Status.CREATED, resourceUri, result);
 			} else {
-				ScriptExecutionResult executionResult = scriptingService.evaluateExpression(command, task, result);
+				ScriptExecutionResult executionResult = scriptingService.evaluateExpression(command, Collections.emptyMap(), task, result);
 				ExecuteScriptResponseType responseData = new ExecuteScriptResponseType()
 						.result(result.createOperationResultType())
 						.output(new ExecuteScriptOutputType()

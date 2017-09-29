@@ -105,7 +105,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	@Autowired		// TODO does this work?
 	private PrismContext prismContext;
 
-	private static final Trace LOGGER = TraceManager.getTrace(SchemaRegistry.class);
+	private static final Trace LOGGER = TraceManager.getTrace(SchemaRegistryImpl.class);
 
 	@Override
 	public DynamicNamespacePrefixMapper getNamespacePrefixMapper() {
@@ -985,7 +985,8 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 				return def;
 			}
 		}
-		if (complexTypeDefinition == null || complexTypeDefinition.isXsdAnyMarker()) {
+		// not sure about this: shouldn't extension schemas have xsdAnyMarker set?
+		if (complexTypeDefinition == null || complexTypeDefinition.isXsdAnyMarker() || complexTypeDefinition.getExtensionForType() != null) {
 			def = resolveGlobalItemDefinition(itemName, complexTypeDefinition);
 			if (def != null) {
 				return def;

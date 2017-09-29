@@ -44,7 +44,7 @@ public class ExecutionContext {
     private final ScriptingExpressionEvaluator scriptingExpressionEvaluator;
     private final StringBuilder consoleOutput = new StringBuilder();
     private final Map<String, PipelineData> globalVariables = new HashMap<>();      // will probably remain unused
-    private final Map<String, Object> initialVariables;                             // used e.g. when there are no data in a pipeline
+    private final Map<String, Object> initialVariables;                             // used e.g. when there are no data in a pipeline; these are frozen - i.e. made immutable if possible; to be cloned-on-use
     private PipelineData finalOutput;                                        // used only when passing result to external clients (TODO do this more cleanly)
 
     public ExecutionContext(ScriptingExpressionEvaluationOptionsType options, Task task,
@@ -57,7 +57,7 @@ public class ExecutionContext {
         this.initialVariables = initialVariables;
     }
 
-    public Task getTask() {
+	public Task getTask() {
         return task;
     }
 

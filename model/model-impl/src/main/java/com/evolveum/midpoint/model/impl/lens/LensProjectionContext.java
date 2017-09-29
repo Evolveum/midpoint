@@ -220,12 +220,15 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	public ObjectDelta<ShadowType> getSecondaryDelta() {
 		return secondaryDelta;
 	}
-
+	
 	@Override
 	public ObjectDeltaObject<ShadowType> getObjectDeltaObject() throws SchemaException {
 		return new ObjectDeltaObject<>(getObjectCurrent(), getDelta(), getObjectNew());
 	}
 
+	public boolean hasSecondaryDelta() {
+		return secondaryDelta != null && !secondaryDelta.isEmpty();
+	}
 
 	@Override
 	public void setSecondaryDelta(ObjectDelta<ShadowType> secondaryDelta) {
@@ -1405,4 +1408,5 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		}
 		return !current.asObjectable().getPendingOperation().isEmpty();
 	}
+
 }

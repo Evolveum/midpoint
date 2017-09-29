@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -34,6 +33,7 @@ public class PipelineItem implements DebugDumpable, Serializable {
 
 	@NotNull private PrismValue value;
 	@NotNull private OperationResult result;
+	// variables here are to be cloned-on-use (if they are not immutable)
 	@NotNull private final Map<String,Object> variables = new HashMap<>();
 
 	public PipelineItem(@NotNull PrismValue value, @NotNull OperationResult result) {
@@ -44,7 +44,7 @@ public class PipelineItem implements DebugDumpable, Serializable {
 	public PipelineItem(@NotNull PrismValue value, @NotNull OperationResult result, @NotNull Map<String, Object> variables) {
 		this.value = value;
 		this.result = result;
-		copyClonedVariables(variables, this.variables);
+		this.variables.putAll(variables);
 	}
 
 	@NotNull
@@ -70,10 +70,11 @@ public class PipelineItem implements DebugDumpable, Serializable {
 		return variables;
 	}
 
-	@SuppressWarnings("unchecked")
-	public <X> X getVariable(String name) {
-		return (X) variables.get(name);
-	}
+	// don't forget to clone on use
+//	@SuppressWarnings("unchecked")
+//	public <X> X getVariable(String name) {
+//		return (X) variables.get(name);
+//	}
 
 	@Override
 	public String debugDump(int indent) {
@@ -89,12 +90,7 @@ public class PipelineItem implements DebugDumpable, Serializable {
 	}
 
 	public PipelineItem cloneMutableState() {
-		PipelineItem rv = new PipelineItem(value, result.clone());
-		copyClonedVariables(variables, rv.getVariables());
-		return rv;
-	}
-
-	public static void copyClonedVariables(Map<String, Object> sourceMap, Map<String, Object> targetMap) {
-		sourceMap.forEach((key, value) -> targetMap.put(key, CloneUtil.clone(value)));
+		// note that variables are cloned on use
+		return new PipelineItem(value, result.clone(), variables);
 	}
 }

@@ -101,7 +101,7 @@ public class SchemaTestUtil {
 		assertFalse("Metadata is runtime", metadataContainer.isRuntimeSchema());
 		assertFalse("Metadata is dynamic", metadataContainer.isDynamic());
 		assertTrue("Metadata is NOT operational", metadataContainer.isOperational());
-		assertEquals("Metadata size", 12, metadataContainer.getDefinitions().size());
+		assertEquals("Metadata size", 13, metadataContainer.getDefinitions().size());
 
         PrismReferenceDefinition tenantRefDef = complexTypeDefinition.findItemDefinition(UserType.F_TENANT_REF, PrismReferenceDefinition.class);
         PrismAsserts.assertDefinition(tenantRefDef, UserType.F_TENANT_REF, ObjectReferenceType.COMPLEX_TYPE, 0, 1);

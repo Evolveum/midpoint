@@ -53,6 +53,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.evolveum.midpoint.model.impl.scripting.VariablesUtil.cloneIfNecessary;
+
 /**
  * @author mederly
  */
@@ -76,8 +78,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
 	    if (data.isEmpty()) {
 	    	// TODO fix this brutal hack (with dummyValue)
 		    PrismContainerValue<ObjectType> dummyValue = new PrismContainerValue<>(prismContext);
-		    PipelineItem dummyItem = new PipelineItem(dummyValue, PipelineData.newOperationResult());
-		    PipelineItem.copyClonedVariables(context.getInitialVariables(), dummyItem.getVariables());
+		    PipelineItem dummyItem = new PipelineItem(dummyValue, PipelineData.newOperationResult(), context.getInitialVariables());
 		    data = Collections.singletonList(dummyItem);
 	    }
 
@@ -112,7 +113,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
 		    ObjectQuery objectQuery;
 		    if (unresolvedObjectQuery != null) {
 			    ExpressionVariables variables = new ExpressionVariables();
-			    item.getVariables().forEach((name, value) -> variables.addVariableDefinition(new QName(name), value));
+			    item.getVariables().forEach((name, value) -> variables.addVariableDefinition(new QName(name), cloneIfNecessary(name, value)));
 			    try {
 				    objectQuery = ExpressionUtil
 						    .evaluateQueryExpressions(unresolvedObjectQuery, variables, expressionFactory, prismContext,

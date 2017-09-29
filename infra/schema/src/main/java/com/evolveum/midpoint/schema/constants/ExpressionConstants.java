@@ -92,4 +92,5 @@ public class ExpressionConstants {
 
 	public static final QName VAR_CHANNEL = new QName(SchemaConstants.NS_C, "channel");
 	public static final QName VAR_WORKFLOW_CONTEXT = new QName(SchemaConstants.NS_C, "workflowContext");
+	public static final QName VAR_TASK = new QName(SchemaConstants.NS_C, "task");
 }

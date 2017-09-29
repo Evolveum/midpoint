@@ -42,6 +42,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import java.util.Collections;
+
 /**
  * @author lazyman
  */
@@ -138,7 +140,7 @@ public class PageBulkAction extends PageAdminConfiguration {
                     //noinspection ConstantConditions
                     ScriptExecutionResult executionResult =
                             parsed instanceof ExecuteScriptType ?
-                                    getScriptingService().evaluateExpression((ExecuteScriptType) parsed, task, result) :
+                                    getScriptingService().evaluateExpression((ExecuteScriptType) parsed, Collections.emptyMap(), task, result) :
                                     getScriptingService().evaluateExpression((ScriptingExpressionType) parsed, task, result);
                     result.recordStatus(OperationResultStatus.SUCCESS, "Action executed. Returned " + executionResult.getDataOutput().size() + " item(s). Console and data output available via 'Export to XML' function.");
                     result.addReturn("console", executionResult.getConsoleOutput());
