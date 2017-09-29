@@ -244,7 +244,7 @@ public class Clockwork {
 			return HookOperationMode.FOREGROUND;
 		}
 		PrismObject<F> focusObject = context.getFocusContext() != null ? context.getFocusContext().getObjectAny() : null;
-		ModelExecuteOptions options = null;
+		ModelExecuteOptions options = new ModelExecuteOptions();
 		switch (resolutionPolicy.getAction()) {
 			case FAIL: throw new SystemException("Conflict detected while updating " + focusObject);
 			case LOG:
@@ -253,7 +253,7 @@ public class Clockwork {
 			case RECOMPUTE:
 				break;
 			case RECONCILE:
-				options = ModelExecuteOptions.createReconcile();
+				options.setReconcile();
 				break;
 			default:
 				throw new IllegalStateException("Unsupported conflict resolution action: " + resolutionPolicy.getAction());
@@ -290,28 +290,28 @@ public class Clockwork {
 
 		int preconditionAttempts = 0;
 		while (true) {
-			
-			PrismObject<F> focus = repositoryService.getObject(focusClass, oid, null, result);
-			LensContext<FocusType> contextNew = contextFactory.createRecomputeContext(focus, options, task, result);
-					contextNew.setProgressListeners(new ArrayList<>(emptyIfNull(context.getProgressListeners())));
-			
-					int attemptOld = context.getConflictResolutionAttemptNumber();
+						
+			int attemptOld = context.getConflictResolutionAttemptNumber();
 			int attemptNew = attemptOld + 1;
 			boolean shouldExecuteAttempt = shouldExecuteAttempt(context, resolutionPolicy, attemptNew);
 			if (!shouldExecuteAttempt) {
 				LOGGER.warn("CONFLICT: Couldn't resolve conflict even after {} resolution attempt(s), giving up.", attemptOld);
 				return HookOperationMode.FOREGROUND;
 			}
-			contextNew.setConflictResolutionAttemptNumber(attemptNew);
-			// this is a recursion; but limited to max attempts which should not be a large number
 			
 			delay(context, resolutionPolicy, attemptNew + preconditionAttempts);
 			
-			LOGGER.debug("CONFLICT: Recomputing {} as reaction to conflict (options={}, attempts={},{})",
-					context.getFocusContext().getHumanReadableName(), attemptNew, preconditionAttempts);
+			PrismObject<F> focus = repositoryService.getObject(focusClass, oid, null, result);
+			LensContext<FocusType> contextNew = contextFactory.createRecomputeContext(focus, options, task, result);
+			contextNew.setProgressListeners(new ArrayList<>(emptyIfNull(context.getProgressListeners())));
+			contextNew.setConflictResolutionAttemptNumber(attemptNew);
+						
+			LOGGER.debug("CONFLICT: Recomputing {} as reaction to conflict (options={}, attempts={},{}, readVersion={})",
+					context.getFocusContext().getHumanReadableName(), options, attemptNew, preconditionAttempts, contextNew.getFocusContext().getObjectReadVersion());
 			
 			try {
-				
+
+				// this is a recursion; but limited to max attempts which should not be a large number
 				HookOperationMode hookOperationMode = run(contextNew, task, result);
 				
 				// This may be in fact a giveup after recompute that was not able to cleanly proceed.

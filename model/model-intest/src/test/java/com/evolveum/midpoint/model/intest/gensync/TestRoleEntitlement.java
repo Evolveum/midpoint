@@ -434,7 +434,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, RoleType.class);
         dummyAuditService.assertHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertTarget(ROLE_PIRATE_OID);
@@ -541,7 +541,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, RoleType.class);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertTarget(ROLE_PIRATE_OID);
@@ -761,7 +761,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(3);
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0, 1);
+        dummyAuditService.assertExecutionDeltas(0, 2);
         dummyAuditService.assertHasDelta(0, ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(1, 1);
         dummyAuditService.assertHasDelta(1, ChangeType.MODIFY, RoleType.class);
