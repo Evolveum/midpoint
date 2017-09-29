@@ -354,8 +354,8 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         display("Herman (civilised hermit)", user);
 
         hermanCivilisedHermitTs = getTimeSafely();
-        hermanCivilisedHermitEid = assertObjectAuditRecords(USER_HERMAN_OID, 9);
-        assertRecordsFromInitial(hermanCivilisedHermitTs, 15);
+        hermanCivilisedHermitEid = assertObjectAuditRecords(USER_HERMAN_OID, 8);
+        assertRecordsFromInitial(hermanCivilisedHermitTs, 14);
     }
 
     @Test
