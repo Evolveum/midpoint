@@ -1,1 +1,1 @@
-com.evolveum.midpoint.provisioning.ucf.impl.Slf4jConnectorLogger
+com.evolveum.midpoint.provisioning.ucf.impl.connid.Slf4jConnectorLogger
