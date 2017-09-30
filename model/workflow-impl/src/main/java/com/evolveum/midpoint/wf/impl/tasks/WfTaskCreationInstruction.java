@@ -400,15 +400,14 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 		}
 		task.setWorkflowContext(wfContext);
 
-		WfExecutionTasksSerializationType serialization = wfConfigurationType != null ? wfConfigurationType.getExecutionTasksSerialization() : null;
+		WfExecutionTasksSerializationType serialization =
+				wfConfigurationType != null && wfConfigurationType.getExecutionTasks() != null ?
+						wfConfigurationType.getExecutionTasks().getSerialization() : null;
 		if (parentTask != null && executeModelOperationHandler && serialization != null && !Boolean.FALSE.equals(serialization.isEnabled())) {
 			TaskType taskBean = task.getTaskPrismObject().asObjectable();
-			// TODO think about 3.7 (setting the group influences also the local execution possibilities)
-//			String groupPrefix = serialization.getExecutionGroupPrefix() != null ?
-//					serialization.getExecutionGroupPrefix() : DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION;
 			String groupName = DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION + parentTask.getTaskIdentifier();
-			Duration retryAfter = serialization.getRetryInterval() != null ?
-					serialization.getRetryInterval() : XmlTypeConverter.createDuration(DEFAULT_SERIALIZATION_RETRY_TIME);
+			Duration retryAfter = serialization.getRetryAfter() != null ?
+					serialization.getRetryAfter() : XmlTypeConverter.createDuration(DEFAULT_SERIALIZATION_RETRY_TIME);
 			taskBean.setExecutionConstraints(
 					new TaskExecutionConstraintsType()
 							.group(groupName)

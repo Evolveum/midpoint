@@ -478,10 +478,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="executionTasksSerialization" minOccurs="0" type="tns:WfExecutionTasksSerializationType">
+            <xsd:element name="executionTasks" minOccurs="0" type="tns:WfExecutionTasksConfigurationType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Whether and how to serialize execution tasks (if "execute after all approvals" is set to false).
+                        Configuration related to tasks in which model operations are executed.
 						EXPERIMENTAL
                     </xsd:documentation>
 					<xsd:appinfo>
@@ -494,6 +494,28 @@
             <xsd:element name="generalChangeProcessor" minOccurs="0" type="tns:GeneralChangeProcessorConfigurationType" />
         </xsd:sequence>
     </xsd:complexType>
+
+	<xsd:complexType name="WfExecutionTasksConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configuration related to tasks in which model operations are executed.
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:experimental>true</a:experimental>
+				<a:since>3.6.1</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="serialization" type="tns:WfExecutionTasksSerializationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether and how to serialize execution tasks (if "execute after all approvals" is set to false).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
 
 	<xsd:complexType name="WfExecutionTasksSerializationType">
 		<xsd:annotation>
@@ -514,7 +536,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="retryInterval" type="xsd:duration" minOccurs="0">
+			<xsd:element name="retryAfter" type="xsd:duration" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						Interval after which the execution task is to be rescheduled in case of conflict. Default is 10 seconds.
