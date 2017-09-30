@@ -61,6 +61,7 @@ public class JobExecutor implements InterruptableJob {
     private static final long WATCHFUL_SLEEP_INCREMENT = 500;
 
     private static final int DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT = 60;
+    private static final int RESCHEDULE_TIME_RANDOMIZATION_INTERVAL = 3;
     private static final int RESCHEDULE_TIME_FOR_NO_SUITABLE_NODE = 60;
 
 	/*
@@ -338,6 +339,7 @@ public class JobExecutor implements InterruptableJob {
 		} else {
 			retryAt = System.currentTimeMillis() + defaultInterval * 1000L;
 		}
+		retryAt += Math.random() * RESCHEDULE_TIME_RANDOMIZATION_INTERVAL * 1000.0;     // to avoid endless collisions
 		if (nextTaskRunTime != null && nextTaskRunTime < retryAt) {
 			return new RescheduleTime(nextTaskRunTime, true);
 		} else {
