@@ -1784,7 +1784,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionDeltas(0,2);
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
-		dummyAuditService.assertExecutionDeltas(1,1);			// user is again disabled here
+		dummyAuditService.assertExecutionDeltas(1,2);			// user is again disabled here
+		dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class); // lastProvisioningTimestamp
         dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
@@ -1822,7 +1823,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionDeltas(0,2);
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
-        dummyAuditService.assertExecutionDeltas(1,1);			// user is again disabled here
+        dummyAuditService.assertExecutionDeltas(1,2);			// user is again disabled here
+        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class); // lastProvisioningTimestamp
         dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
@@ -1859,8 +1861,9 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0,1);
+        dummyAuditService.assertExecutionDeltas(0,2);
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class); // lastProvisioningTimestamp
         dummyAuditService.assertExecutionSuccess();
 	}
     
@@ -1930,8 +1933,9 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0,1);
+        dummyAuditService.assertExecutionDeltas(0,2);
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class); // lastProvisioningTimestamp
         dummyAuditService.assertExecutionSuccess();
 	}
     

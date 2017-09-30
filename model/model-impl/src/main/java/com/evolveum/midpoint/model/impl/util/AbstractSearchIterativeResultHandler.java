@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.util;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -353,7 +354,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 				}
 			}
 
-		} catch (CommonException|RuntimeException e) {
+		} catch (CommonException | PreconditionViolationException | Error | RuntimeException e) {
 			if (isRecordIterationStatistics()) {
 				workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
 						null /* TODO */, object.getOid(), startTime, e);
@@ -430,7 +431,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		}
 	}
 
-	private boolean processError(PrismObject<O> object, Exception ex, OperationResult result) {
+	private boolean processError(PrismObject<O> object, Throwable ex, OperationResult result) {
 		int errorsCount = errors.incrementAndGet();
 		LOGGER.trace("Processing error, count: {}", errorsCount);
 
@@ -480,7 +481,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		this.logErrors = logErrors;
 	}
 
-	protected abstract boolean handleObject(PrismObject<O> object, Task workerTask, OperationResult result) throws CommonException;
+	protected abstract boolean handleObject(PrismObject<O> object, Task workerTask, OperationResult result) throws CommonException, PreconditionViolationException;
 
 	public class ProcessingRequest {
 		public PrismObject<O> object;
