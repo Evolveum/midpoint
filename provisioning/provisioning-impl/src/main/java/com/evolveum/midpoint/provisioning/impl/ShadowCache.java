@@ -895,19 +895,18 @@ public abstract class ShadowCache {
 		for (PendingOperationType pendingOperation: sortedOperations) {
 
 			ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
-			OperationResultStatusType statusType = pendingOperation.getResultStatus();
-			XMLGregorianCalendar completionTimestamp = pendingOperation.getCompletionTimestamp();
-			XMLGregorianCalendar now = null;
+			
+			if (!OperationResultStatusType.IN_PROGRESS.equals(pendingOperation.getResultStatus())) {
+				continue;
+			}
 			
 			String asyncRef = pendingOperation.getAsynchronousOperationReference();
 			if (asyncRef != null) {
 				
-				OperationResultStatus newStaus = resouceObjectConverter.refreshOperationStatus(ctx, repoShadow, asyncRef, parentResult);
-				
-				now = clock.currentTimeXMLGregorianCalendar();
+				OperationResultStatus newStatus = resouceObjectConverter.refreshOperationStatus(ctx, repoShadow, asyncRef, parentResult);
 						
-				if (newStaus != null) {
-					OperationResultStatusType newStatusType = newStaus.createStatusType();
+				if (newStatus != null) {
+					OperationResultStatusType newStatusType = newStatus.createStatusType();
 					if (!newStatusType.equals(pendingOperation.getResultStatus())) {
 						
 						
@@ -924,14 +923,11 @@ public abstract class ShadowCache {
 							shadowDelta.addModification(statusDelta);
 						}
 
-						statusType = newStatusType;
-						
 						if (operationCompleted) {
 							// Operation completed
 							PropertyDelta<XMLGregorianCalendar> timestampDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_COMPLETION_TIMESTAMP));
-							timestampDelta.setValuesToReplace(new PrismPropertyValue<>(now));
+							timestampDelta.setValuesToReplace(new PrismPropertyValue<>(clock.currentTimeXMLGregorianCalendar()));
 							shadowDelta.addModification(timestampDelta);
-							completionTimestamp = now;
 							
 							ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
 							ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
@@ -975,10 +971,6 @@ public abstract class ShadowCache {
 					}
 				}
 			}
-			
-			if (now == null) {
-				now = clock.currentTimeXMLGregorianCalendar();
-			}			
 		}
 		
 		if (shadowDelta.isDelete()) {

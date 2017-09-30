@@ -216,6 +216,10 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	public ObjectDelta<O> getPrimaryDelta() {
 		return primaryDelta;
 	}
+	
+	public boolean hasPrimaryDelta() {
+		return primaryDelta != null && !primaryDelta.isEmpty();
+	}
 
 	/**
 	 * As getPrimaryDelta() but caters for the possibility that an object already exists.
@@ -762,5 +766,17 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	}
 
 	public abstract String getHumanReadableName();
-
+	
+	public String getObjectReadVersion() {
+		// Do NOT use version from object current.
+		// Current object may be re-read, but the computation
+		// might be based on older data (objectOld).
+//		if (getObjectCurrent() != null) {
+//			return getObjectCurrent().getVersion();
+//		}
+		if (getObjectOld() != null) {
+			return getObjectOld().getVersion();
+		}
+		return null;
+	}
 }
