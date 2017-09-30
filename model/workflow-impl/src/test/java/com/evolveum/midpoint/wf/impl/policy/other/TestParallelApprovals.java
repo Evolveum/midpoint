@@ -80,8 +80,9 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 	protected void updateSystemConfiguration(SystemConfigurationType systemConfiguration) {
 		super.updateSystemConfiguration(systemConfiguration);
 		systemConfiguration.getWorkflowConfiguration()
-			.beginExecutionTasksSerialization()
-				.retryInterval(XmlTypeConverter.createDuration(1000));      // makes tests run faster
+				.beginExecutionTasks()
+						.beginSerialization()
+								.retryAfter(XmlTypeConverter.createDuration(1000));      // makes tests run faster
 	}
 
 	@Test

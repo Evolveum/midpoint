@@ -400,23 +400,45 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 		}
 		task.setWorkflowContext(wfContext);
 
-		WfExecutionTasksSerializationType serialization = wfConfigurationType != null ? wfConfigurationType.getExecutionTasksSerialization() : null;
-		if (parentTask != null && executeModelOperationHandler && serialization != null && !Boolean.FALSE.equals(serialization.isEnabled())) {
+		WfExecutionTasksConfigurationType tasksConfig = wfConfigurationType != null ? wfConfigurationType.getExecutionTasks() : null;
+		if (executeModelOperationHandler && tasksConfig != null) {
 			TaskType taskBean = task.getTaskPrismObject().asObjectable();
-			// TODO think about 3.7 (setting the group influences also the local execution possibilities)
-//			String groupPrefix = serialization.getExecutionGroupPrefix() != null ?
-//					serialization.getExecutionGroupPrefix() : DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION;
-			String groupName = DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION + parentTask.getTaskIdentifier();
-			Duration retryAfter = serialization.getRetryInterval() != null ?
-					serialization.getRetryInterval() : XmlTypeConverter.createDuration(DEFAULT_SERIALIZATION_RETRY_TIME);
-			taskBean.setExecutionConstraints(
-					new TaskExecutionConstraintsType()
-							.group(groupName)
-							.groupTaskLimit(1)
-							.retryAfter(retryAfter));
-			LOGGER.trace("Setting group '{}' with a limit of 1 for task {}", groupName, task);
+			// execution constraints
+			TaskExecutionConstraintsType constraints = tasksConfig.getExecutionConstraints();
+			if (constraints != null) {
+				taskBean.setExecutionConstraints(constraints.clone());
+			}
+			// serialization
+			WfExecutionTasksSerializationType serialization = tasksConfig.getSerialization();
+			if (serialization != null && !Boolean.FALSE.equals(serialization.isEnabled()) && parentTask != null) {
+				String groupPrefix = serialization.getGroupPrefix() != null ?
+						serialization.getGroupPrefix() : DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION;
+				String groupName = groupPrefix + parentTask.getTaskIdentifier();
+				Duration retryAfter;
+				if (serialization.getRetryAfter() != null) {
+					if (constraints != null && constraints.getRetryAfter() != null && !constraints.getRetryAfter().equals(serialization.getRetryAfter())) {
+						LOGGER.warn(
+								"Workflow configuration: task constraints retryAfter ({}) is different from serialization retryAfter ({}) -- using the latter",
+								constraints.getRetryAfter(), serialization.getRetryAfter());
+					}
+					retryAfter = serialization.getRetryAfter();
+				} else if (constraints != null && constraints.getRetryAfter() != null) {
+					retryAfter = constraints.getRetryAfter();
+				} else {
+					retryAfter = XmlTypeConverter.createDuration(DEFAULT_SERIALIZATION_RETRY_TIME);
+				}
+				if (taskBean.getExecutionConstraints() == null) {
+					taskBean.setExecutionConstraints(new TaskExecutionConstraintsType());
+				}
+				taskBean.getExecutionConstraints()
+						.beginSecondaryGroup()
+								.group(groupName)
+								.groupTaskLimit(1)
+						.<TaskExecutionConstraintsType>end()
+						.retryAfter(retryAfter);
+				LOGGER.trace("Setting group '{}' with a limit of 1 for task {}", groupName, task);
+			}
 		}
-
 		return task;
 	}
 
