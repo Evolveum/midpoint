@@ -79,17 +79,12 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Future;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
+import static java.util.Collections.emptyMap;
 
 /**
  * Implementation of a Task.
@@ -1222,7 +1217,32 @@ public class TaskQuartzImpl implements Task {
 		return executionConstraints != null ? executionConstraints.getGroup() : null;
 	}
 
-    /*
+	@NotNull
+	@Override
+	public Collection<String> getGroups() {
+		return getGroupsWithLimits().keySet();
+	}
+
+	@NotNull
+	@Override
+	public Map<String, Integer> getGroupsWithLimits() {
+		TaskExecutionConstraintsType executionConstraints = getExecutionConstraints();
+		if (executionConstraints == null) {
+			return emptyMap();
+		}
+		Map<String, Integer> rv = new HashMap<>();
+		if (executionConstraints.getGroup() != null) {
+			rv.put(executionConstraints.getGroup(), executionConstraints.getGroupTaskLimit());
+		}
+		for (TaskExecutionGroupConstraintType sg : executionConstraints.getSecondaryGroup()) {
+			if (sg.getGroup() != null) {    // shouldn't occur but it's a user configurable field, so be prepared for the worst
+				rv.put(sg.getGroup(), sg.getGroupTaskLimit());
+			}
+		}
+		return rv;
+	}
+
+	/*
       * Schedule
       */
 

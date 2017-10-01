@@ -45,10 +45,10 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 
 /**
  * @author lazyman
@@ -826,6 +826,18 @@ public class SimpleTaskAdapter implements Task {
     @Override
     public String getGroup() {
         return null;
+    }
+
+    @NotNull
+    @Override
+    public Collection<String> getGroups() {
+        return emptySet();
+    }
+
+    @NotNull
+    @Override
+    public Map<String, Integer> getGroupsWithLimits() {
+        return emptyMap();
     }
 
     @NotNull

@@ -17,6 +17,7 @@ package com.evolveum.midpoint.task.api;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Task instance - a logical unit of work that is either done synchronously, asynchronously, it is deferred, scheduled, etc.
@@ -312,7 +314,13 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     public String getGroup();
 
-    /**
+    @NotNull
+	Collection<String> getGroups();
+
+    @NotNull
+    Map<String, Integer> getGroupsWithLimits();
+
+	/**
 	 * Returns the schedule.
 	 */
 	public ScheduleType getSchedule();

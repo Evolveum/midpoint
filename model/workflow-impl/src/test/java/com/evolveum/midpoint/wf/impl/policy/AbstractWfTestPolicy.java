@@ -187,7 +187,10 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		super.initSystem(initTask, initResult);
 		modelService.postInit(initResult);
 
-		repoAddObjectFromFile(getSystemConfigurationFile(), initResult);
+		PrismObject<SystemConfigurationType> sysconfig = prismContext.parseObject(getSystemConfigurationFile());
+		updateSystemConfiguration(sysconfig.asObjectable());
+		repoAddObject(sysconfig, initResult);
+
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
 		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
 		login(userAdministrator);
@@ -228,6 +231,10 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 		userTemplateAssigningRole1aOid = repoAddObjectFromFile(USER_TEMPLATE_ASSIGNING_ROLE_1A, initResult).getOid();
 		userTemplateAssigningRole1aOidAfter = repoAddObjectFromFile(USER_TEMPLATE_ASSIGNING_ROLE_1A_AFTER, initResult).getOid();
+	}
+
+	protected void updateSystemConfiguration(SystemConfigurationType systemConfiguration) {
+		// nothing to do by default
 	}
 
 	protected File getSystemConfigurationFile() {
