@@ -1634,6 +1634,52 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     }
 
     @Test
+    public void test108SecondaryGroupLimit() throws Exception {
+
+        final String TEST_NAME = "108SecondaryGroupLimit";
+        final OperationResult result = createResult(TEST_NAME);
+
+        TaskType task1 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
+        waitForTaskStart(task1.getOid(), result);
+
+        // import second task with the same group (expensive)
+		TaskType task2 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME + "-2")).asObjectable();
+
+		Thread.sleep(10000);
+        task1 = getTaskType(task1.getOid(), result);
+        assertNull("First task should have no retry time", task1.getNextRetryTimestamp());
+
+		task2 = getTaskType(task2.getOid(), result);
+		assertNull("Second task was started even if it should not be", task2.getLastRunStartTimestamp());
+		assertNotNull("Next retry time is not set for second task", task2.getNextRetryTimestamp());
+
+		// now finish first task and check the second one is started
+		boolean stopped = taskManager.suspendTasks(Collections.singleton(task1.getOid()), 20000L, result);
+		assertTrue("Task 1 was not suspended successfully", stopped);
+
+		waitForTaskStart(task2.getOid(), result);
+
+		// import third task that has another collision (large-ram) with the second one
+        TaskType task3 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME + "-3")).asObjectable();
+
+        Thread.sleep(10000);
+        task2 = getTaskType(task2.getOid(), result);
+        assertNull("Second task should have no retry time", task2.getNextRetryTimestamp());
+
+        task3 = getTaskType(task3.getOid(), result);
+        assertNull("Third task was started even if it should not be", task3.getLastRunStartTimestamp());
+        assertNotNull("Next retry time is not set for third task", task3.getNextRetryTimestamp());
+
+        // now finish second task and check the third one is started
+        stopped = taskManager.suspendTasks(Collections.singleton(task2.getOid()), 20000L, result);
+        assertTrue("Task 2 was not suspended successfully", stopped);
+
+        waitForTaskStart(task3.getOid(), result);
+
+		taskManager.suspendTasks(Collections.singleton(task3.getOid()), 20000L, result);
+    }
+
+    @Test
     public void test110GroupLimit() throws Exception {
 
         final String TEST_NAME = "110GroupLimit";
@@ -1727,6 +1773,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         checkLeftover(leftovers, "022", result);
         checkLeftover(leftovers, "100", result);
         checkLeftover(leftovers, "105", result);
+        checkLeftover(leftovers, "108", result);
+        checkLeftover(leftovers, "108", "a", result);
+        checkLeftover(leftovers, "108", "b", result);
         checkLeftover(leftovers, "110", result);
         checkLeftover(leftovers, "110", "a", result);
 		checkLeftover(leftovers, "120", result);

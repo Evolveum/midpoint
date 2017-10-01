@@ -164,8 +164,9 @@ public class AssociationFromLinkExpressionEvaluator
 
 	private boolean matchesForRecursion(OrgType thisOrg) {
 		for (String recurseUpOrgType: evaluatorType.getRecurseUpOrgType()) {
-			thisOrg.getOrgType().contains(recurseUpOrgType);
-			return true;
+			if (thisOrg.getOrgType().contains(recurseUpOrgType)) {
+				return true;
+			}
 		}
 		return false;
 	}

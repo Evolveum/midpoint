@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
 
+import javax.xml.datatype.Duration;
 import java.util.*;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
@@ -58,6 +60,8 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 
 	private static final Trace LOGGER = TraceManager.getTrace(WfTaskCreationInstruction.class);
 	private static final Integer DEFAULT_PROCESS_CHECK_INTERVAL = 30;
+	private static final String DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION = "$approval-task-group$:";
+	private static final long DEFAULT_SERIALIZATION_RETRY_TIME = 10000L;
 
 	private final ChangeProcessor changeProcessor;
 
@@ -396,6 +400,45 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 		}
 		task.setWorkflowContext(wfContext);
 
+		WfExecutionTasksConfigurationType tasksConfig = wfConfigurationType != null ? wfConfigurationType.getExecutionTasks() : null;
+		if (executeModelOperationHandler && tasksConfig != null) {
+			TaskType taskBean = task.getTaskPrismObject().asObjectable();
+			// execution constraints
+			TaskExecutionConstraintsType constraints = tasksConfig.getExecutionConstraints();
+			if (constraints != null) {
+				taskBean.setExecutionConstraints(constraints.clone());
+			}
+			// serialization
+			WfExecutionTasksSerializationType serialization = tasksConfig.getSerialization();
+			if (serialization != null && !Boolean.FALSE.equals(serialization.isEnabled()) && parentTask != null) {
+				String groupPrefix = serialization.getGroupPrefix() != null ?
+						serialization.getGroupPrefix() : DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION;
+				String groupName = groupPrefix + parentTask.getTaskIdentifier();
+				Duration retryAfter;
+				if (serialization.getRetryAfter() != null) {
+					if (constraints != null && constraints.getRetryAfter() != null && !constraints.getRetryAfter().equals(serialization.getRetryAfter())) {
+						LOGGER.warn(
+								"Workflow configuration: task constraints retryAfter ({}) is different from serialization retryAfter ({}) -- using the latter",
+								constraints.getRetryAfter(), serialization.getRetryAfter());
+					}
+					retryAfter = serialization.getRetryAfter();
+				} else if (constraints != null && constraints.getRetryAfter() != null) {
+					retryAfter = constraints.getRetryAfter();
+				} else {
+					retryAfter = XmlTypeConverter.createDuration(DEFAULT_SERIALIZATION_RETRY_TIME);
+				}
+				if (taskBean.getExecutionConstraints() == null) {
+					taskBean.setExecutionConstraints(new TaskExecutionConstraintsType());
+				}
+				taskBean.getExecutionConstraints()
+						.beginSecondaryGroup()
+								.group(groupName)
+								.groupTaskLimit(1)
+						.<TaskExecutionConstraintsType>end()
+						.retryAfter(retryAfter);
+				LOGGER.trace("Setting group '{}' with a limit of 1 for task {}", groupName, task);
+			}
+		}
 		return task;
 	}
 

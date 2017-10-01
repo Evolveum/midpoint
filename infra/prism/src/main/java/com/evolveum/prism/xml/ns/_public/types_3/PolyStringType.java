@@ -494,7 +494,7 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((any == null) ? 0 : any.hashCode());
+		result = prime * result + ((any == null || any.isEmpty()) ? 0 : any.hashCode());
 		result = prime * result + ((norm == null) ? 0 : norm.hashCode());
 		result = prime * result + ((orig == null) ? 0 : orig.hashCode());
 		return result;
