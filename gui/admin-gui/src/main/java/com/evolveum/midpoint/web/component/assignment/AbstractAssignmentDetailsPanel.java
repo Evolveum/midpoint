@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.prism.*;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -37,12 +38,6 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ContainerValuePanel;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
-import com.evolveum.midpoint.web.component.prism.PrismPanel;
-import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
@@ -56,17 +51,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 /**
  * Created by honchar
  */
-public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extends BasePanel<AssignmentDto>{
+public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extends BasePanel<ContainerValueWrapper<AssignmentType>>{
     private static final long serialVersionUID = 1L;
 
     private final static String ID_DISPLAY_NAME = "displayName";
     private final static String ID_ACTIVATION_PANEL = "activationPanel";
     private final static String ID_CONTAINERS = "otherContainers";
 
-    public AbstractAssignmentDetailsPanel(String id, Form<?> form, IModel<AssignmentDto> assignmentModel){
+    public AbstractAssignmentDetailsPanel(String id, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel){
         super(id, assignmentModel);
-        
-        
     }
     
     @Override
@@ -83,19 +76,18 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 
 			@Override
     		public C getObject() {
-    			AssignmentDto assignemtn = getModelObject();
-    			if (assignemtn.isAssignableObject()) {
+				AssignmentType assignment = getModelObject().getContainerValue().getValue();
+    			if (AssignmentsUtil.isAssignableObject(assignment)) {
     				Task task = getPageBase().createSimpleTask("Load target");
     				com.evolveum.midpoint.schema.result.OperationResult result = task.getResult();
-    				return (C) WebModelServiceUtils.loadObject(getModelObject().getAssignment().getTargetRef(), getPageBase(), task, result).asObjectable();
+    				return (C) WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(), task, result).asObjectable();
     			}
-    			AssignmentType assignmentType = assignemtn.getAssignment();
-    			if (assignmentType.getConstruction() != null) {
-    				return (C) assignmentType.getConstruction();
-    			} else if (assignmentType.getPersonaConstruction() != null) {
-    				return (C) assignmentType.getPersonaConstruction();
-    			} else if (assignmentType.getPolicyRule() !=null) {
-    				return (C) assignmentType.getPolicyRule();
+    			if (assignment.getConstruction() != null) {
+    				return (C) assignment.getConstruction();
+    			} else if (assignment.getPersonaConstruction() != null) {
+    				return (C) assignment.getPersonaConstruction();
+    			} else if (assignment.getPolicyRule() !=null) {
+    				return (C) assignment.getPolicyRule();
     			}
 
     			return null;
@@ -112,12 +104,12 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 		PageAdminObjectDetails<F> pageBase = (PageAdminObjectDetails<F>)getPageBase();
 		
 		ItemPath assignmentPath = getAssignmentPath();
-		ContainerValueWrapperFromObjectWrapperModel<AssignmentType, F> assignmentModel = 
-				new ContainerValueWrapperFromObjectWrapperModel<AssignmentType, F>(pageBase.getObjectModel(), assignmentPath);
+//		ContainerValueWrapperFromObjectWrapperModel<AssignmentType, F> assignmentModel =
+//				new ContainerValueWrapperFromObjectWrapperModel<AssignmentType, F>(pageBase.getObjectModel(), assignmentPath);
 		
 		Form form = new Form<>("form");
 		
-		ContainerValuePanel<AssignmentType> assignmentPanel = new ContainerValuePanel("basic", assignmentModel, true, form, itemWrapper -> getAssignmentBasicTabVisibity(itemWrapper, assignmentPath), pageBase);
+		ContainerValuePanel<AssignmentType> assignmentPanel = new ContainerValuePanel("basic", getModel(), true, form, itemWrapper -> getAssignmentBasicTabVisibity(itemWrapper, assignmentPath), pageBase);
 		add(assignmentPanel);
 		
 		
@@ -133,13 +125,13 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
     }
     
     protected ItemPath getAssignmentPath() {
-    	return getModel().getObject().getAssignment().asPrismContainerValue().getPath();
+    	return getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
     }
     
     protected abstract List<ItemPath> collectContainersToShow();
     
     private boolean getAssignmentBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
-    	AssignmentType assignment = getModelObject().getAssignment();
+    	AssignmentType assignment = getModelObject().getContainerValue().getValue();
 		ObjectReferenceType targetRef = assignment.getTargetRef();
 		List<ItemPath> pathsToHide = new ArrayList<>();
 		QName targetType = null;

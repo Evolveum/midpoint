@@ -38,6 +38,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.MergeObjectsPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -132,21 +133,21 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     protected AbstractObjectMainPanel<UserType> createMainPanel(String id){
 
     	//empty assignments model
-    	CountableLoadableModel<AssignmentDto> assignemtns = new CountableLoadableModel<AssignmentDto>() {
+    	CountableLoadableModel<AssignmentType> assignemtns = new CountableLoadableModel<AssignmentType>() {
         	private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<AssignmentDto> load() {
+            protected List<AssignmentType> load() {
                 return new ArrayList<>();
             }
     	};
 
-    	//empty projections model
-    	 CountableLoadableModel<AssignmentDto> policyRules = new CountableLoadableModel<AssignmentDto>() {
+    	//empty policy rules  model
+    	 CountableLoadableModel<AssignmentType> policyRules = new CountableLoadableModel<AssignmentType>() {
          	private static final long serialVersionUID = 1L;
 
              @Override
-             protected List<AssignmentDto> load() {
+             protected List<AssignmentType> load() {
                  return new ArrayList<>();
              }
          };
@@ -160,7 +161,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
                      }
                  };
 
-        return new FocusMainPanel<UserType>(id, getObjectModel(), assignemtns, policyRules, shadows, this) {
+        return new FocusMainPanel<UserType>(id, getObjectModel(), shadows, this) {
 
 			private static final long serialVersionUID = 1L;
 

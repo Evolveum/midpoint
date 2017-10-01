@@ -22,6 +22,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -41,12 +43,6 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman
@@ -393,6 +389,49 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 					delta.addModificationDeleteContainer(itemWrapper.getPath(), itemWrapper.getContainerValue().clone());
 					break;
 			}
+		}
+	}
+
+	public <O extends ObjectType> void collectDeleteDelta(ObjectDelta<O> delta,  PrismContext prismContext) throws SchemaException {
+
+		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
+			if (ValueStatus.DELETED.equals(itemWrapper.getStatus())){
+				ContainerDelta<C> containerDelta = new ContainerDelta(ItemPath.EMPTY_PATH, itemWrapper.getDefinition().getName(),
+						itemWrapper.getDefinition(), prismContext);
+				containerDelta.addValuesToDelete(itemWrapper.getContainerValue().clone());
+				delta.addModification(containerDelta);
+			}
+		}
+	}
+
+	public <O extends ObjectType> void collectAddDelta(ObjectDelta<O> delta,  ItemPath propertyPath,
+													   PrismContainerDefinition def, PrismContext prismContext) throws SchemaException {
+
+		ContainerDelta containerDelta = new ContainerDelta(propertyPath, def.getName(), def, prismContext);
+
+		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
+			if (ValueStatus.ADDED.equals(itemWrapper.getStatus())) {
+				itemWrapper.getContainerValue().applyDefinition(def, false);
+				containerDelta.addValueToAdd(itemWrapper.getContainerValue().clone());
+
+			}
+		}
+//		ContainerDelta<C> containerDelta = delta.createContainerModification(propertyPath);
+//
+//		List<PrismContainerValue> containerValuesToAdd = new ArrayList<>();
+//
+//		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
+//			if (ValueStatus.ADDED.equals(itemWrapper.getStatus())){
+//				containerValuesToAdd.add(itemWrapper.getContainerValue().clone());
+
+//				ContainerDelta<C> containerDelta = new ContainerDelta(new ItemPath(FocusType.F_ASSIGNMENT), itemWrapper.getDefinition().getName(),
+//						itemWrapper.getDefinition(), prismContext);
+//				containerDelta.addValuesToAdd(itemWrapper.getContainerValue().clone());
+//			}
+//		}
+//		containerDelta.addValuesToAdd(containerValuesToAdd.toArray(new PrismContainerValue[containerValuesToAdd.size()]));
+		if (!containerDelta.isEmpty()){
+			delta.addModification(containerDelta);
 		}
 	}
 

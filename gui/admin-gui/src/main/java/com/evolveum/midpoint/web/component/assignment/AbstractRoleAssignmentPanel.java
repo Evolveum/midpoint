@@ -21,7 +21,14 @@ import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
+import javax.xml.validation.Schema;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -56,10 +63,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
  * Created by honchar.
@@ -72,8 +75,9 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
 
 
-    public AbstractRoleAssignmentPanel(String id, IModel<List<AssignmentDto>> assignmentsModel){
-    	super(id, assignmentsModel);
+    public AbstractRoleAssignmentPanel(String id, IModel<List<ContainerValueWrapper<AssignmentType>>> assignmentsModel,
+                                       ContainerWrapper assignmentContainerWrapper){
+    	super(id, assignmentsModel, assignmentContainerWrapper);
     }
 
     protected void initCustomLayout(WebMarkupContainer assignmentsContainer){
@@ -149,106 +153,33 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                    return;
            }
            for (T object : assignmentsList){
-        	   AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(object.asPrismObject(), relation);
-               AssignmentDto dto = new AssignmentDto(assignment, UserDtoStatus.ADD);
-               getModelObject().add(0, dto);
+               try {
+                   AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(object.asPrismObject(), relation);
+                   assignment.asPrismContainerValue().applyDefinition(assignmentContainerWrapper.getItem().getDefinition(), false);
+                   ContainerValueWrapper<AssignmentType> newAssignmentContainerWrapper = assignmentContainerWrapper.createItem(false);
+                   newAssignmentContainerWrapper.setStatus(ValueStatus.ADDED);
+                   newAssignmentContainerWrapper.getContainerValue().getValue().setupContainerValue(assignment.asPrismContainerValue());
+                   getModelObject().add(0, newAssignmentContainerWrapper);
+               } catch (SchemaException ex){
+
+               }
            }
 
            refreshTable(target);
 
        }
 
-    protected List<IColumn<AssignmentDto, String>> initColumns() {
-        List<IColumn<AssignmentDto, String>> columns = new ArrayList<>();
+    protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
+        List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-        columns.add(new PropertyColumn<AssignmentDto, String>(createStringResource("ObjectReferenceType.relation"), AssignmentDto.F_RELATION_TYPE));
-
-        //commented since these columns are not used
-//        columns.add(new DirectlyEditablePropertyColumn<AssignmentEditorDto>(createStringResource("AssignmentDataTablePanel.descriptionColumnName"), AssignmentEditorDto.F_DESCRIPTION){
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
-//                                     final IModel<AssignmentEditorDto> rowModel) {
-//                super.populateItem(cellItem, componentId, rowModel);
-//                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
-//            }
-//        });
-//        columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("AssignmentDataTablePanel.organizationColumnName")){
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId, final IModel<AssignmentEditorDto> rowModel) {
-//                ObjectQuery orgQuery = QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
-//                        .item(OrgType.F_TENANT).eq(false)
-//                        .or().item(OrgType.F_TENANT).isNull()
-//                        .build();
-//                ChooseTypePanel orgPanel = getChooseOrgPanel(componentId, rowModel, orgQuery);
-//                orgPanel.add(visibleIfRoleBehavior(rowModel));
-//                cellItem.add(orgPanel);
-//                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
-//            }
-//
-//        });
-//        columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("AssignmentDataTablePanel.tenantColumnName")){
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId, final IModel<AssignmentEditorDto> rowModel) {
-//                ObjectQuery tenantQuery = QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
-//                        .item(OrgType.F_TENANT).eq(true)
-//                        .build();
-//                ChooseTypePanel tenantPanel = getChooseOrgPanel(componentId, rowModel, tenantQuery);
-//                tenantPanel.add(visibleIfRoleBehavior(rowModel));
-//                cellItem.add(tenantPanel);
-//                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
-//            }
-//
-//        });
-//        columns.add(new LinkColumn<AssignmentEditorDto>(createStringResource("AssignmentDataTablePanel.activationColumnName")) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
-//                                     final IModel<AssignmentEditorDto> rowModel) {
-//                super.populateItem(cellItem, componentId, rowModel);
-//                cellItem.setEnabled(false);
-////                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
-//            }
-//
-//            @Override
-//            protected IModel createLinkModel(IModel<AssignmentEditorDto> rowModel) {
-//                IModel<String> activationLabelModel = AssignmentsUtil.createActivationTitleModel(rowModel,"", AssignmentDataTablePanel.this);
-//                return StringUtils.isEmpty(activationLabelModel.getObject()) ?
-//                        createStringResource("AssignmentEditorPanel.undefined") : activationLabelModel;
-//            }
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target, IModel<AssignmentEditorDto> rowModel) {
-//                        AssignmentActivationPopupablePanel popupPanel = new AssignmentActivationPopupablePanel(pageBase.getMainPopupBodyId(), rowModel){
-//                            private static final long serialVersionUID = 1L;
-//
-//                            @Override
-//                            protected void reloadDateComponent(AjaxRequestTarget target) {
-//                                target.add(getAssignmentsContainer());
-//                            }
-//                        };
-//                        pageBase.showMainPopup(popupPanel, target);
-//            }
-//        });
-//        columns.add(new AbstractColumn<AssignmentDto, String>(createStringResource("AssignmentDataTablePanel.activationColumnName")) {
-//
-//        	private static final long serialVersionUID = 1L;
-//
-//			@Override
-//            public void populateItem(Item<ICellPopulator<AssignmentDto>> cellItem, String componentId,
-//                                     final IModel<AssignmentDto> rowModel) {
-//                IModel<String> activationLabelModel = AssignmentsUtil.createActivationTitleModelExperimental(rowModel,"", AbstractRoleAssignmentPanel.this);
-//                cellItem.add(new Label(componentId, StringUtils.isEmpty(activationLabelModel.getObject()) ?
-//                        createStringResource("AssignmentEditorPanel.undefined") : activationLabelModel));
-//            }
-//        });
-
+        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("ObjectReferenceType.relation")) {
+            @Override
+            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
+                String relation = assignmentModel.getObject().getContainerValue().getValue().getTargetRef() != null ?
+                        assignmentModel.getObject().getContainerValue().getValue().getTargetRef().getRelation().getLocalPart() : "";
+                item.add(new Label(componentId, relation));
+            }
+        });
 
         return columns;
     }
@@ -309,7 +240,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	}
 
 	@Override
-	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<AssignmentDto> model) {
+	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
 		return new AbstractRoleAssignmentDetailsPanel(ID_ASSIGNMENT_DETAILS, form, model);
 	}
 

@@ -24,6 +24,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.Validate;
@@ -42,17 +44,17 @@ import java.util.stream.Collectors;
 /**
  * @author katkav
  */
-public class AssignmentListDataProvider extends BaseSortableDataProvider<AssignmentDto> {
+public class AssignmentListDataProvider extends BaseSortableDataProvider<ContainerValueWrapper<AssignmentType>> {
 
-    private IModel<List<AssignmentDto>> model;
+    private IModel<List<ContainerValueWrapper<AssignmentType>>> model;
 
 	private boolean sortable;			// just to ensure backward compatibility with existing usages
 
-    public AssignmentListDataProvider(Component component, IModel<List<AssignmentDto>> model) {
+    public AssignmentListDataProvider(Component component, IModel<List<ContainerValueWrapper<AssignmentType>>> model) {
 		this(component, model, false);
 	}
 
-    public AssignmentListDataProvider(Component component, IModel<List<AssignmentDto>> model, boolean sortable) {
+    public AssignmentListDataProvider(Component component, IModel<List<ContainerValueWrapper<AssignmentType>>> model, boolean sortable) {
         super(component);
 
         Validate.notNull(model);
@@ -62,10 +64,10 @@ public class AssignmentListDataProvider extends BaseSortableDataProvider<Assignm
 
 
     @Override
-    public Iterator<? extends AssignmentDto> internalIterator(long first, long count) {
+    public Iterator<? extends ContainerValueWrapper<AssignmentType>> internalIterator(long first, long count) {
         getAvailableData().clear();
 
-        List<AssignmentDto> list = searchThroughList();
+        List<ContainerValueWrapper<AssignmentType>> list = searchThroughList();
 
 		if (sortable && getSort() != null) {
 			sort(list);
@@ -84,16 +86,16 @@ public class AssignmentListDataProvider extends BaseSortableDataProvider<Assignm
     }
 
     @SuppressWarnings("unchecked")
-	protected <V extends Comparable<V>> void sort(List<AssignmentDto> list) {
-		Collections.sort(list, new Comparator<AssignmentDto>() {
+	protected <V extends Comparable<V>> void sort(List<ContainerValueWrapper<AssignmentType>> list) {
+		Collections.sort(list, new Comparator<ContainerValueWrapper<AssignmentType>>() {
 			@Override
-			public int compare(AssignmentDto o1, AssignmentDto o2) {
+			public int compare(ContainerValueWrapper<AssignmentType> o1, ContainerValueWrapper<AssignmentType> o2) {
 				SortParam<String> sortParam = getSort();
 				String propertyName = sortParam.getProperty();
 				V prop1, prop2;
 				try {
-					prop1 = (V) PropertyUtils.getProperty(o1, propertyName);
-					prop2 = (V) PropertyUtils.getProperty(o2, propertyName);
+					prop1 = (V) PropertyUtils.getProperty(o1.getContainerValue().asContainerable(), propertyName);
+					prop2 = (V) PropertyUtils.getProperty(o2.getContainerValue().asContainerable(), propertyName);
 				} catch (RuntimeException|IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
 					throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
 				}
@@ -105,7 +107,7 @@ public class AssignmentListDataProvider extends BaseSortableDataProvider<Assignm
 
     @Override
     protected int internalSize() {
-        List<AssignmentDto> list = searchThroughList();
+        List<ContainerValueWrapper<AssignmentType>> list = searchThroughList();
         if (list == null) {
             return 0;
         }
@@ -113,12 +115,12 @@ public class AssignmentListDataProvider extends BaseSortableDataProvider<Assignm
         return list.size();
     }
 
-    public List<AssignmentDto> getSelectedData() {
+    public List<ContainerValueWrapper<AssignmentType>> getSelectedData() {
     	return getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
     }
 
-    private List<AssignmentDto> searchThroughList() {
-    	List<AssignmentDto> list = model.getObject();
+    private List<ContainerValueWrapper<AssignmentType>> searchThroughList() {
+    	List<ContainerValueWrapper<AssignmentType>> list = model.getObject();
 
     	if (list == null || list.isEmpty()) {
     		return null;
@@ -128,9 +130,9 @@ public class AssignmentListDataProvider extends BaseSortableDataProvider<Assignm
     		return list;
     	}
 
-    	List<AssignmentDto> filtered = list.stream().filter(a -> {
+    	List<ContainerValueWrapper<AssignmentType>> filtered = list.stream().filter(a -> {
 			try {
-				return ObjectQuery.match(a.getAssignment(), getQuery().getFilter(), null);
+				return ObjectQuery.match(a.getContainerValue().asContainerable(), getQuery().getFilter(), null);
 			} catch (SchemaException e) {
 				throw new TunnelException(e.getMessage());
 			}
