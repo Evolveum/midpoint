@@ -44,20 +44,6 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 	}
 
 	@Override
-	public CountableLoadableModel<AssignmentDto> getPolicyRulesModel() {
-		CountableLoadableModel<AssignmentDto> policyModel = super.getPolicyRulesModel();
-		policyModel.getObject().addAll(loadInducementsPolicyRules());
-		Collections.sort(policyModel.getObject());
-		return policyModel;
-	}
-
-	@Override
-	protected int countPolicyRules() {
-		return super.countPolicyRules() + loadInducementsPolicyRules().size();
-	}
-
-
-	@Override
 	protected void prepareObjectDeltaForModify(ObjectDelta<T> focusDelta) throws SchemaException {
 		super.prepareObjectDeltaForModify(focusDelta);
 
@@ -96,14 +82,6 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 
 		Collections.sort(list);
 
-		return list;
-	}
-
-	private List<AssignmentDto> loadInducementsPolicyRules(){
-		List<AssignmentType> inducements = getInducementsList();
-		List<AssignmentDto> list = getPolicyRulesList(inducements, StringUtils.isEmpty(getObjectWrapper().getOid()) ?
-				UserDtoStatus.ADD : UserDtoStatus.MODIFY);
-		Collections.sort(list);
 		return list;
 	}
 

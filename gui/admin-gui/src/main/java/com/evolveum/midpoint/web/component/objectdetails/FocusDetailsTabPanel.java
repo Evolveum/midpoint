@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
@@ -60,10 +61,9 @@ public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabP
 
 	public FocusDetailsTabPanel(String id, Form mainForm,
 			LoadableModel<ObjectWrapper<F>> focusWrapperModel,
-			LoadableModel<List<AssignmentDto>> assignmentsModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			PageBase pageBase) {
-		super(id, mainForm, focusWrapperModel, assignmentsModel, projectionModel, pageBase);
+		super(id, mainForm, focusWrapperModel, projectionModel, pageBase);
 		initLayout();
 	}
 

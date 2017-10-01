@@ -19,10 +19,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -65,7 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 
-public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
+public abstract class AssignmentPanel extends BasePanel<List<ContainerValueWrapper<AssignmentType>>> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -81,10 +88,11 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 	private final static String ID_CANCEL_BUTTON = "cancelButton";
 
 	protected boolean assignmentDetailsVisible;
+	protected ContainerWrapper assignmentContainerWrapper;
 
-	public AssignmentPanel(String id, IModel<List<AssignmentDto>> assignmentsModel) {
+	public AssignmentPanel(String id, IModel<List<ContainerValueWrapper<AssignmentType>>> assignmentsModel, ContainerWrapper assignmentContainerWrapper) {
 		super(id, assignmentsModel);
-
+		this.assignmentContainerWrapper = assignmentContainerWrapper;
 	}
 
 	protected abstract void initPaging();
@@ -111,7 +119,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 		assignmentsContainer.setOutputMarkupId(true);
 		add(assignmentsContainer);
 
-		BoxedTablePanel<AssignmentDto> assignmentTable = initAssignmentTable();
+		BoxedTablePanel<ContainerValueWrapper<AssignmentType>> assignmentTable = initAssignmentTable();
 		assignmentsContainer.add(assignmentTable);
 
 		AjaxIconButton newObjectIcon = new AjaxIconButton(ID_NEW_ASSIGNMENT_BUTTON, new Model<>("fa fa-plus"),
@@ -149,7 +157,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 
 	}
 
-	private BoxedTablePanel<AssignmentDto> initAssignmentTable() {
+	private BoxedTablePanel<ContainerValueWrapper<AssignmentType>> initAssignmentTable() {
 
 		AssignmentListDataProvider assignmentsProvider = new AssignmentListDataProvider(this, getModel()) {
 			private static final long serialVersionUID = 1L;
@@ -166,12 +174,12 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 
 		};
 
-		List<IColumn<AssignmentDto, String>> columns = initBasicColumns();
+		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = initBasicColumns();
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI)) {
-			columns.add(new InlineMenuButtonColumn<AssignmentDto>(getAssignmentMenuActions(), 2, getPageBase()));
+			columns.add(new InlineMenuButtonColumn<ContainerValueWrapper<AssignmentType>>(getAssignmentMenuActions(), 2, getPageBase()));
 		}
 
-		BoxedTablePanel<AssignmentDto> assignmentTable = new BoxedTablePanel<AssignmentDto>(ID_ASSIGNMENTS_TABLE,
+		BoxedTablePanel<ContainerValueWrapper<AssignmentType>> assignmentTable = new BoxedTablePanel<ContainerValueWrapper<AssignmentType>>(ID_ASSIGNMENTS_TABLE,
 				assignmentsProvider, columns, getTableId(), getItemsPerPage()) {
 			private static final long serialVersionUID = 1L;
 
@@ -182,8 +190,10 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 			}
 
 			@Override
-			protected Item<AssignmentDto> customizeNewRowItem(Item<AssignmentDto> item, IModel<AssignmentDto> model) {
-				item.add(AttributeModifier.append("class", AssignmentsUtil.createAssignmentStatusClassModel(model)));
+			protected Item<ContainerValueWrapper<AssignmentType>> customizeNewRowItem(Item<ContainerValueWrapper<AssignmentType>> item,
+																					  IModel<ContainerValueWrapper<AssignmentType>> model) {
+				item.add(AttributeModifier.append("class",
+						AssignmentsUtil.createAssignmentStatusClassModel(Model.of(model.getObject().getContainerValue().asContainerable()))));
 				return item;
 			}
 
@@ -200,36 +210,43 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 
 	protected abstract ObjectQuery createObjectQuery();
 
-	protected List<IColumn<AssignmentDto, String>> initBasicColumns() {
-		List<IColumn<AssignmentDto, String>> columns = new ArrayList<>();
+	protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
+		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-		columns.add(new CheckBoxHeaderColumn<AssignmentDto>());
+		columns.add(new CheckBoxHeaderColumn<ContainerValueWrapper<AssignmentType>>(){
+			private static final long serialVersionUID = 1L;
 
-		columns.add(new IconColumn<AssignmentDto>(Model.of("")) {
+			@Override
+			protected IModel<Boolean> getCheckBoxValueModel(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+				return Model.of(rowModel.getObject().isSelected());
+			}
+		});
+
+		columns.add(new IconColumn<ContainerValueWrapper<AssignmentType>>(Model.of("")) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel<String> createIconModel(IModel<AssignmentDto> rowModel) {
+			protected IModel<String> createIconModel(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
 				return new AbstractReadOnlyModel<String>() {
 
 					private static final long serialVersionUID = 1L;
 
 					@Override
 					public String getObject() {
-						return WebComponentUtil.createDefaultBlackIcon(rowModel.getObject().getTargetType());
+						return WebComponentUtil.createDefaultBlackIcon(AssignmentsUtil.getTargetType(rowModel.getObject().getContainerValue().asContainerable()));
 					}
 				};
 			}
 
 		});
 
-		columns.add(new LinkColumn<AssignmentDto>(createStringResource("PolicyRulesPanel.nameColumn")){
+		columns.add(new LinkColumn<ContainerValueWrapper<AssignmentType>>(createStringResource("PolicyRulesPanel.nameColumn")){
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected IModel<String> createLinkModel(IModel<AssignmentDto> rowModel) {
-            	String name = AssignmentsUtil.getName(rowModel.getObject().getAssignment(), getParentPage());
+            protected IModel<String> createLinkModel(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+            	String name = AssignmentsUtil.getName(rowModel.getObject().getContainerValue().asContainerable(), getParentPage());
             if (StringUtils.isBlank(name)) {
             	return createStringResource("AssignmentPanel.noName");
             }
@@ -238,23 +255,23 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
             }
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<AssignmentDto> rowModel) {
+            public void onClick(AjaxRequestTarget target, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
                 assignmentDetailsPerformed(target, rowModel);
             }
         });
 
-		columns.add(new LinkColumn<AssignmentDto>(createStringResource("AssignmentType.activation")){
+		columns.add(new LinkColumn<ContainerValueWrapper<AssignmentType>>(createStringResource("AssignmentType.activation")){
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected IModel<String> createLinkModel(IModel<AssignmentDto> rowModel) {
-            	return AssignmentsUtil.createActivationTitleModelExperimental(rowModel, AssignmentPanel.this);
-
+            protected IModel<String> createLinkModel(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+//            	return AssignmentsUtil.createActivationTitleModelExperimental(rowModel, AssignmentPanel.this);
+return Model.of("");
             }
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<AssignmentDto> rowModel) {
-                updateAssignmnetActivation(target, rowModel);
+            public void onClick(AjaxRequestTarget target, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+//                updateAssignmnetActivation(target, rowModel);
             }
         });
 
@@ -297,7 +314,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
         return columns;
 	}
 
-	protected abstract List<IColumn<AssignmentDto, String>> initColumns();
+	protected abstract List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns();
 
 	protected abstract void newAssignmentClickPerformed(AjaxRequestTarget target);
 
@@ -320,23 +337,23 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 
 		add(details);
 
-		IModel<List<AssignmentDto>> selectedAssignmnetList = new AbstractReadOnlyModel<List<AssignmentDto>>() {
+		IModel<List<ContainerValueWrapper<AssignmentType>>> selectedAssignmnetList = new AbstractReadOnlyModel<List<ContainerValueWrapper<AssignmentType>>>() {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public List<AssignmentDto> getObject() {
+			public List<ContainerValueWrapper<AssignmentType>> getObject() {
 				return getAssignmentListProvider().getSelectedData();
 			}
 		};
 
-		ListView<AssignmentDto> assignmentDetailsView = new ListView<AssignmentDto>(ID_ASSIGNMENTS_DETAILS,
+		ListView<ContainerValueWrapper<AssignmentType>> assignmentDetailsView = new ListView<ContainerValueWrapper<AssignmentType>>(ID_ASSIGNMENTS_DETAILS,
 				selectedAssignmnetList) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(ListItem<AssignmentDto> item) {
+			protected void populateItem(ListItem<ContainerValueWrapper<AssignmentType>> item) {
 				Form form = this.findParent(Form.class);
 				AbstractAssignmentDetailsPanel details = createDetailsPanel(ID_ASSIGNMENT_DETAILS, form, item.getModel());
 				item.add(details);
@@ -369,7 +386,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 			@Override
 			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 				assignmentDetailsVisible = false;
-				getSelectedAssignments().stream().forEach(a -> {a.revertChanges(); a.setSelected(false);});
+//				getSelectedAssignments().stream().forEach(a -> {a.revertChanges(); a.setSelected(false);});
 				ajaxRequestTarget.add(AssignmentPanel.this);
 			}
 		};
@@ -380,14 +397,14 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 		return (AssignmentListDataProvider) getAssignmentTable().getDataTable().getDataProvider();
 	}
 
-	protected BoxedTablePanel<AssignmentDto> getAssignmentTable() {
-		return (BoxedTablePanel<AssignmentDto>) get(createComponentPath(ID_ASSIGNMENTS, ID_ASSIGNMENTS_TABLE));
+	protected BoxedTablePanel<ContainerValueWrapper<AssignmentType>> getAssignmentTable() {
+		return (BoxedTablePanel<ContainerValueWrapper<AssignmentType>>) get(createComponentPath(ID_ASSIGNMENTS, ID_ASSIGNMENTS_TABLE));
 	}
 
-	protected abstract AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<AssignmentDto> model);
+	protected abstract AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model);
 
-	private List<AssignmentDto> getSelectedAssignments() {
-		BoxedTablePanel<AssignmentDto> assignemntTable = getAssignmentTable();
+	private List<ContainerValueWrapper<AssignmentType>> getSelectedAssignments() {
+		BoxedTablePanel<ContainerValueWrapper<AssignmentType>> assignemntTable = getAssignmentTable();
 		AssignmentListDataProvider assignmentProvider = (AssignmentListDataProvider) assignemntTable.getDataTable()
 				.getDataProvider();
 		return assignmentProvider.getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
@@ -404,8 +421,8 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 		return menuItems;
 	}
 
-	private ColumnMenuAction<AssignmentDto> createDeleteColumnAction() {
-		return new ColumnMenuAction<AssignmentDto>() {
+	private ColumnMenuAction<ContainerValueWrapper<AssignmentType>> createDeleteColumnAction() {
+		return new ColumnMenuAction<ContainerValueWrapper<AssignmentType>>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -413,17 +430,16 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 				if (getRowModel() == null) {
 					deleteAssignmentPerformed(target, getSelectedAssignments());
 				} else {
-					AssignmentDto rowDto = (AssignmentDto) getRowModel().getObject();
-					List<AssignmentDto> toDelete = new ArrayList<>();
-					toDelete.add(rowDto);
+					List<ContainerValueWrapper<AssignmentType>> toDelete = new ArrayList<>();
+					toDelete.add(getRowModel().getObject());
 					deleteAssignmentPerformed(target, toDelete);
 				}
 			}
 		};
 	}
 
-	private ColumnMenuAction<AssignmentDto> createEditColumnAction() {
-		return new ColumnMenuAction<AssignmentDto>() {
+	private ColumnMenuAction<ContainerValueWrapper<AssignmentType>> createEditColumnAction() {
+		return new ColumnMenuAction<ContainerValueWrapper<AssignmentType>>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -437,26 +453,18 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 		};
 	}
 
-	protected void assignmentDetailsPerformed(AjaxRequestTarget target, IModel<AssignmentDto> rowModel) {
+	protected void assignmentDetailsPerformed(AjaxRequestTarget target, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
 		assignmentDetailsVisible = true;
 		getModelObject().forEach(a -> a.setSelected(false));
 		rowModel.getObject().setSelected(true);
 		target.add(AssignmentPanel.this);
 	}
 
-	protected void assignmentDetailsPerformed(AjaxRequestTarget target, List<AssignmentDto> rowModel) {
+	protected void assignmentDetailsPerformed(AjaxRequestTarget target, List<ContainerValueWrapper<AssignmentType>> rowModel) {
 		assignmentDetailsVisible = true;
+		getModelObject().forEach(a -> a.setSelected(false));
 		rowModel.stream().forEach(a -> a.setSelected(true));
 		target.add(AssignmentPanel.this);
-	}
-
-	protected void updateAssignmnetActivation(AjaxRequestTarget target, IModel<AssignmentDto> rowModel) {
-		AssignmentActivationPopupablePanel activationPanel = new AssignmentActivationPopupablePanel(
-				getPageBase().getMainPopupBodyId(),
-				new PropertyModel<>(rowModel, AssignmentDto.F_VALUE + "." + AssignmentType.F_ACTIVATION.getLocalPart()));
-		activationPanel.setOutputMarkupId(true);
-
-		getPageBase().showMainPopup(activationPanel, target);
 	}
 
 	protected abstract TableId getTableId();
@@ -467,8 +475,15 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 		target.add(getAssignmentContainer().addOrReplace(initAssignmentTable()));
 	}
 
-	protected void deleteAssignmentPerformed(AjaxRequestTarget target, List<AssignmentDto> toDelete) {
-		toDelete.forEach(a -> a.setStatus(UserDtoStatus.DELETE));
+	protected void deleteAssignmentPerformed(AjaxRequestTarget target, List<ContainerValueWrapper<AssignmentType>> toDelete) {
+		if (toDelete == null){
+			return;
+		}
+		for (ContainerValueWrapper<AssignmentType> assignmentContainerWrapper : getModelObject()){
+			if (toDelete.contains(assignmentContainerWrapper)){
+				assignmentContainerWrapper.setStatus(ValueStatus.DELETED);
+			}
+		}
 		refreshTable(target);
 	}
 
