@@ -164,11 +164,15 @@ public class ResourceManager {
 		if (GetOperationOptions.isReadOnly(options)) {
 			repoOptions = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
 		}
-		PrismObject<ResourceType> repositoryObject = repositoryService.getObject(ResourceType.class, oid, repoOptions, parentResult);
+		PrismObject<ResourceType> repositoryObject = readResourceFromRepository(oid, repoOptions, parentResult);
 		
 		return loadAndCacheResource(repositoryObject, options, task, parentResult);
 	}
-
+	
+	private PrismObject<ResourceType> readResourceFromRepository(String oid, Collection<SelectorOptions<GetOperationOptions>> repoOptions, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT);
+		return repositoryService.getObject(ResourceType.class, oid, repoOptions, parentResult);
+	}
 	
 	private PrismObject<ResourceType> loadAndCacheResource(PrismObject<ResourceType> repositoryObject, 
 			GetOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -292,7 +296,7 @@ public class ResourceManager {
 				// Now we need to re-read the resource from the repository and re-aply the schemas. This ensures that we will
 				// cache the correct version and that we avoid race conditions, etc.
 				
-				newResource = repositoryService.getObject(ResourceType.class, repoResource.getOid(), null, result);
+				newResource = readResourceFromRepository(repoResource.getOid(), null, result);
 				applyConnectorSchemaToResource(newResource, task, result);
 				
 			} catch (SchemaException e) {
