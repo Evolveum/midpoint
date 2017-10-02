@@ -100,7 +100,6 @@
 			<artifactId>repo-common</artifactId>
 			<version>3.7-SNAPSHOT</version>
 		</dependency>
-		
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
@@ -262,5 +261,13 @@
 			<artifactId>spring-aop</artifactId>
 			<scope>test</scope> 
 		</dependency>
+		
+		<!-- NOT needed at all. But dependency:analyze plugin complains if it is not here. -->
+		<dependency>
+            <groupId>net.tirasa.connid</groupId>
+            <artifactId>connector-framework</artifactId>
+            <scope>test</scope>
+        </dependency>
+		
 	</dependencies>
 </project>
