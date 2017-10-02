@@ -146,25 +146,25 @@ public class ConnIdConvertor {
 				break;
 			}
 		}
-
-		for (Attribute icfAttr : co.getAttributes()) {
+		
+		for (Attribute connIdAttr : co.getAttributes()) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Reading ICF attribute {}: {}", icfAttr.getName(), icfAttr.getValue());
+				LOGGER.trace("Reading ICF attribute {}: {}", connIdAttr.getName(), connIdAttr.getValue());
 			}
-			if (icfAttr.getName().equals(Uid.NAME)) {
+			if (connIdAttr.getName().equals(Uid.NAME)) {
 				// UID is handled specially (see above)
 				continue;
 			}
-			if (icfAttr.is(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME)) {
+			if (connIdAttr.is(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME)) {
 				// Already processed
 				continue;
 			}
-			if (icfAttr.getName().equals(OperationalAttributes.PASSWORD_NAME)) {
+			if (connIdAttr.getName().equals(OperationalAttributes.PASSWORD_NAME)) {
 				// password has to go to the credentials section
-				ProtectedStringType password = getSingleValue(icfAttr, ProtectedStringType.class);
+				ProtectedStringType password = getSingleValue(connIdAttr, ProtectedStringType.class);
 				if (password == null) {
 					// equals() instead of == is needed. The AttributeValueCompleteness enum may be loaded by different classloader
-					if (!AttributeValueCompleteness.INCOMPLETE.equals(icfAttr.getAttributeValueCompleteness())) {
+					if (!AttributeValueCompleteness.INCOMPLETE.equals(connIdAttr.getAttributeValueCompleteness())) {
 						continue;
 					}
 					// There is no password value in the ConnId attribute. But it was indicated that
@@ -178,8 +178,8 @@ public class ConnIdConvertor {
 				}
 				continue;
 			}
-			if (icfAttr.getName().equals(OperationalAttributes.ENABLE_NAME)) {
-				Boolean enabled = getSingleValue(icfAttr, Boolean.class);
+			if (connIdAttr.getName().equals(OperationalAttributes.ENABLE_NAME)) {
+				Boolean enabled = getSingleValue(connIdAttr, Boolean.class);
 				if (enabled == null) {
 					continue;
 				}
@@ -195,9 +195,9 @@ public class ConnIdConvertor {
 				LOGGER.trace("Converted activation administrativeStatus: {}", activationStatusType);
 				continue;
 			}
-
-			if (icfAttr.getName().equals(OperationalAttributes.ENABLE_DATE_NAME)) {
-				Long millis = getSingleValue(icfAttr, Long.class);
+			
+			if (connIdAttr.getName().equals(OperationalAttributes.ENABLE_DATE_NAME)) {
+				Long millis = getSingleValue(connIdAttr, Long.class);
 				if (millis == null) {
 					continue;
 				}
@@ -206,8 +206,8 @@ public class ConnIdConvertor {
 				continue;
 			}
 
-			if (icfAttr.getName().equals(OperationalAttributes.DISABLE_DATE_NAME)) {
-				Long millis = getSingleValue(icfAttr, Long.class);
+			if (connIdAttr.getName().equals(OperationalAttributes.DISABLE_DATE_NAME)) {
+				Long millis = getSingleValue(connIdAttr, Long.class);
 				if (millis == null) {
 					continue;
 				}
@@ -215,9 +215,9 @@ public class ConnIdConvertor {
 				activationType.setValidTo(XmlTypeConverter.createXMLGregorianCalendar(millis));
 				continue;
 			}
-
-			if (icfAttr.getName().equals(OperationalAttributes.LOCK_OUT_NAME)) {
-				Boolean lockOut = getSingleValue(icfAttr, Boolean.class);
+			
+			if (connIdAttr.getName().equals(OperationalAttributes.LOCK_OUT_NAME)) {
+				Boolean lockOut = getSingleValue(connIdAttr, Boolean.class);
 				if (lockOut == null) {
 					continue;
 				}
@@ -233,7 +233,7 @@ public class ConnIdConvertor {
 				continue;
 			}
 
-			QName qname = icfNameMapper.convertAttributeNameToQName(icfAttr.getName(), attributesContainerDefinition);
+			QName qname = icfNameMapper.convertAttributeNameToQName(connIdAttr.getName(), attributesContainerDefinition);
 			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname, caseIgnoreAttributeNames);
 
 			if (attributeDefinition == null) {
@@ -245,7 +245,8 @@ public class ConnIdConvertor {
 					}
 				}
 				if (attributeDefinition == null) {
-					throw new SchemaException("Unknown attribute "+qname+" in definition of object class "+attributesContainerDefinition.getTypeName()+". Original ICF name: "+icfAttr.getName(), qname);
+					throw new SchemaException("Unknown attribute " + qname + " in definition of object class " + attributesContainerDefinition.getTypeName()
+					+ ". Original ConnId name: " + connIdAttr.getName() + " in resource object identified by " + co.getName(), qname);
 				}
 			}
 
@@ -258,12 +259,12 @@ public class ConnIdConvertor {
 			// if true, we need to convert whole connector object to the
 			// resource object also with the null-values attributes
 			if (full) {
-				if (icfAttr.getValue() != null) {
+				if (connIdAttr.getValue() != null) {
 					// Convert the values. While most values do not need
 					// conversions, some
 					// of them may need it (e.g. GuardedString)
-					for (Object icfValue : icfAttr.getValue()) {
-						Object value = convertValueFromIcf(icfValue, qname);
+					for (Object connIdValue : connIdAttr.getValue()) {
+						Object value = convertValueFromIcf(connIdValue, qname);
 						resourceAttribute.add(new PrismPropertyValue<>(value));
 					}
 				}
@@ -274,13 +275,13 @@ public class ConnIdConvertor {
 				// in this case when false, we need only the attributes with the
 				// non-null values.
 			} else {
-				if (icfAttr.getValue() != null && !icfAttr.getValue().isEmpty()) {
+				if (connIdAttr.getValue() != null && !connIdAttr.getValue().isEmpty()) {
 					// Convert the values. While most values do not need
 					// conversions, some of them may need it (e.g. GuardedString)
 					boolean empty = true;
-					for (Object icfValue : icfAttr.getValue()) {
-						if (icfValue != null) {
-							Object value = convertValueFromIcf(icfValue, qname);
+					for (Object connIdValue : connIdAttr.getValue()) {
+						if (connIdValue != null) {
+							Object value = convertValueFromIcf(connIdValue, qname);
 							empty = false;
 							resourceAttribute.add(new PrismPropertyValue<>(value));
 						}
