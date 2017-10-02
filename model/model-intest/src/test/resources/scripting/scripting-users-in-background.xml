@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <s:search>
+        <s:type>c:UserType</s:type>
+        <s:query>
+            <q:filter>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <c:expression>
+                        <c:script>
+                            <c:code>
+                                basic.getExtensionPropertyValue(task, "", "userName")
+                            </c:code>
+                        </c:script>
+                    </c:expression>
+                </q:equal>
+            </q:filter>
+        </s:query>
+    </s:search>
+    <s:action>
+        <s:type>execute-script</s:type>
+        <s:parameter>
+            <s:name>script</s:name>
+            <c:value xsi:type="c:ScriptExpressionEvaluatorType">
+                <c:code>
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+					import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder
+
+                    log.info('Modifying user {}', input)
+                    def deltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+                        .item(UserType.F_DESCRIPTION)
+                        .replace(basic.stringify(task.name))
+                        .asObjectDeltas(input.oid)
+                    log.info('Change:\n{}', deltas.iterator().next().debugDump())
+                    midpoint.executeChanges(deltas, null)
+                </c:code>
+            </c:value>
+        </s:parameter>
+    </s:action>
+</s:pipeline>

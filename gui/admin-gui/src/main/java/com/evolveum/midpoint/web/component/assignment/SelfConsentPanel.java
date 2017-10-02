@@ -46,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 
-public class SelfConsentPanel extends BasePanel<AssignmentDto> {
+public class SelfConsentPanel extends BasePanel<AssignmentType> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -63,7 +63,7 @@ public class SelfConsentPanel extends BasePanel<AssignmentDto> {
 	private static final String OPERATION_LOAD_TARGET = DOT_CLASS + "loadTargetRef";
 //	private PageBase parentPage;
 
-	public SelfConsentPanel(String id, IModel<AssignmentDto> model, PageBase parentPage) {
+	public SelfConsentPanel(String id, IModel<AssignmentType> model, PageBase parentPage) {
 		super(id, model);
 
 		Task task = parentPage.createSimpleTask(OPERATION_LOAD_TARGET);
@@ -73,7 +73,7 @@ public class SelfConsentPanel extends BasePanel<AssignmentDto> {
 		// ... also, we should use utility method for loading
 		
 		PrismObject<AbstractRoleType> abstractRole = WebModelServiceUtils
-						.loadObject(getModelObject().getAssignment().getTargetRef(), parentPage, task, result);
+						.loadObject(getModelObject().getTargetRef(), parentPage, task, result);
 
 		if (abstractRole == null) {
 			getSession().error("Failed to load target ref");
@@ -107,7 +107,7 @@ public class SelfConsentPanel extends BasePanel<AssignmentDto> {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				SelfConsentPanel.this.getModelObject().getAssignment().setLifecycleState(SchemaConstants.LIFECYCLE_FAILED);
+				SelfConsentPanel.this.getModelObject().setLifecycleState(SchemaConstants.LIFECYCLE_FAILED);
 				target.add(SelfConsentPanel.this);
 			}
 		};
@@ -120,7 +120,7 @@ public class SelfConsentPanel extends BasePanel<AssignmentDto> {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				SelfConsentPanel.this.getModelObject().getAssignment().setLifecycleState(SchemaConstants.LIFECYCLE_ACTIVE);
+				SelfConsentPanel.this.getModelObject().setLifecycleState(SchemaConstants.LIFECYCLE_ACTIVE);
 				target.add(SelfConsentPanel.this);
 			}
 		};
@@ -133,7 +133,7 @@ public class SelfConsentPanel extends BasePanel<AssignmentDto> {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				SelfConsentPanel.this.getModelObject().getAssignment().setLifecycleState(SchemaConstants.LIFECYCLE_FAILED);
+				SelfConsentPanel.this.getModelObject().setLifecycleState(SchemaConstants.LIFECYCLE_FAILED);
 				target.add(SelfConsentPanel.this);
 			}
 		};
@@ -166,8 +166,7 @@ public class SelfConsentPanel extends BasePanel<AssignmentDto> {
 
 
 		//TODO move to the WebComponentUtil ???
-	private String getIconCssClass(AssignmentDto assignment) {
-		AssignmentType assignmentType = assignment.getAssignment();
+	private String getIconCssClass(AssignmentType assignmentType) {
 		String currentLifecycle = assignmentType.getLifecycleState();
 		if (StringUtils.isBlank(currentLifecycle)) {
 			return GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_FUTURE_COLORED;
@@ -189,7 +188,7 @@ public class SelfConsentPanel extends BasePanel<AssignmentDto> {
 	}
 
 	private boolean isActiveConsent(){
-		String lifecycle = SelfConsentPanel.this.getModelObject().getAssignment().getLifecycleState();
+		String lifecycle = SelfConsentPanel.this.getModelObject().getLifecycleState();
 		if (StringUtils.isBlank(lifecycle)) {
 			return false;
 		}

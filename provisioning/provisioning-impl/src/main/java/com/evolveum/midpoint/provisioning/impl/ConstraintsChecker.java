@@ -194,8 +194,8 @@ public class ConstraintsChecker {
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 		List<PrismObject<ShadowType>> foundObjects = shadowCache.searchObjects(query, options, true, task, result);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Uniqueness check of {} resulted in {} results, using query:\n{}",
-					identifier, foundObjects.size(), query.debugDump());
+			LOGGER.trace("Uniqueness check of {} resulted in {} results:\n{}\nquery:\n{}",
+					identifier, foundObjects.size(), foundObjects, query.debugDump(1));
 		}
 		if (foundObjects.isEmpty()) {
 			if (useCache) {
@@ -204,8 +204,8 @@ public class ConstraintsChecker {
 			return true;
 		}
 		if (foundObjects.size() > 1) {
+			LOGGER.error("Found {} objects with attribute {}:\n{}", foundObjects.size() ,identifier.toHumanReadableString(), foundObjects);
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Found {} objects with attribute {}", foundObjects.size() ,identifier.toHumanReadableString());
 				for (PrismObject<ShadowType> foundObject: foundObjects) {
 					LOGGER.debug("Conflicting object:\n{}", foundObject.debugDump());
 				}

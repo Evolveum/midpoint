@@ -18,6 +18,9 @@ package com.evolveum.midpoint.web.component.sample;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 
@@ -41,10 +44,7 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractFocusTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.wicket.model.Model;
 
 /**
  * Sample showing a custom focus form that displays semi-static form.
@@ -68,14 +68,13 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
 
     public SampleFormFocusTabPanel(String id, Form mainForm,
                                    LoadableModel<ObjectWrapper<F>> focusWrapperModel,
-                                   LoadableModel<List<AssignmentDto>> assignmentsModel,
                                    LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
                                    PageBase pageBase) {
-        super(id, mainForm, focusWrapperModel, assignmentsModel, projectionModel, pageBase);
-        initLayout(focusWrapperModel, assignmentsModel, pageBase);
+        super(id, mainForm, focusWrapperModel, projectionModel, pageBase);
+        initLayout(focusWrapperModel, pageBase);
     }
 
-    private void initLayout(final LoadableModel<ObjectWrapper<F>> focusModel, LoadableModel<List<AssignmentDto>> assignmentsModel, PageBase pageBase) {
+    private void initLayout(final LoadableModel<ObjectWrapper<F>> focusModel, PageBase pageBase) {
         add(new Label(ID_HEADER, "Object details"));
         WebMarkupContainer body = new WebMarkupContainer("body");
         add(body);
@@ -96,7 +95,9 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
             // TODO: better errror reporting
         }
 
-        add(new SimpleRoleSelector<F,RoleType>(ID_ROLES, assignmentsModel, availableRoles));
+        ContainerWrapper<AssignmentType> assignmentsContainerWrapper = getObjectWrapper().findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
+
+        add(new SimpleRoleSelector<F,RoleType>(ID_ROLES, Model.ofList(assignmentsContainerWrapper.getValues()), availableRoles));
     }
 
 }

@@ -181,8 +181,7 @@ public class PipelineData implements DebugDumpable {
 		return objects.stream().map(o -> ObjectTypeUtil.createObjectRef(o)).collect(Collectors.toList());
 	}
 
-	static PipelineData parseFrom(ValueListType input, Map<String, Object> initialVariables,
-			PrismContext prismContext) {
+	static PipelineData parseFrom(ValueListType input, Map<String, Object> frozenInitialVariables, PrismContext prismContext) {
 		PipelineData rv = new PipelineData();
 		if (input != null) {
 			for (Object o : input.getValue()) {
@@ -191,18 +190,18 @@ public class PipelineData implements DebugDumpable {
 					RawType raw = (RawType) o;
 					PrismValue prismValue = raw.getAlreadyParsedValue();
 					if (prismValue != null) {
-						rv.addValue(prismValue, initialVariables);
+						rv.addValue(prismValue, frozenInitialVariables);
 					} else {
 						throw new IllegalArgumentException("Raw value in the input data: " + DebugUtil.debugDump(raw.getXnode()));
 						// TODO attempt to parse it somehow (e.g. by passing to the pipeline and then parsing based on expected type)
 					}
 				} else {
 					if (o instanceof Containerable) {
-						rv.addValue(((Containerable) o).asPrismContainerValue(), initialVariables);
+						rv.addValue(((Containerable) o).asPrismContainerValue(), frozenInitialVariables);
 					} else if (o instanceof Referencable) {
-						rv.addValue(((Referencable) o).asReferenceValue(), initialVariables);
+						rv.addValue(((Referencable) o).asReferenceValue(), frozenInitialVariables);
 					} else {
-						rv.addValue(new PrismPropertyValue<>(o, prismContext), initialVariables);
+						rv.addValue(new PrismPropertyValue<>(o, prismContext), frozenInitialVariables);
 					}
 				}
 			}

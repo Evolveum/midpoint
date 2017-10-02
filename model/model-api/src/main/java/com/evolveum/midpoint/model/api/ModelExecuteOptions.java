@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.api;
 
 
 import com.evolveum.midpoint.schema.AbstractOptions;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationBusinessContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
@@ -134,6 +135,18 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	 * this option only if there is reasonable assumption that the request will stop after INITIAL phase.
 	 */
 	private PartialProcessingOptionsType initialPartialProcessing;
+	
+	/**
+	 * A method to resolve conflicts on focus objects. This specifies how will the processors handle
+	 * optimistic locking conflicts - and whether they even try to detect them. The default value is
+	 * null, which means that there is no reaction to conflicts and that the conflicts are not even
+	 * detected.
+	 * 
+	 * Note that different default conflict resolution may be specified in system configuration.
+	 * 
+	 * EXPERIMENTAL
+	 */
+	private ConflictResolutionType focusConflictResolution;
 
     public Boolean getForce() {
 		return force;
@@ -536,6 +549,28 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		return opts;
 	}
 
+	public ConflictResolutionType getFocusConflictResolution() {
+		return focusConflictResolution;
+	}
+
+	public void setFocusConflictResolution(ConflictResolutionType focusConflictResolution) {
+		this.focusConflictResolution = focusConflictResolution;
+	}
+	
+	public static ConflictResolutionType getFocusConflictResolution(ModelExecuteOptions options) {
+		if (options == null) {
+			return null;
+		}
+		return options.getFocusConflictResolution();
+	}
+
+	public static ModelExecuteOptions createFocusConflictResolution(ConflictResolutionType focusConflictResolution) {
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setFocusConflictResolution(focusConflictResolution);
+		return opts;
+	}
+
+
 	public ModelExecuteOptionsType toModelExecutionOptionsType() {
         ModelExecuteOptionsType retval = new ModelExecuteOptionsType();
         retval.setForce(force);
@@ -551,6 +586,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		// preAuthorized is purposefully omitted (security reasons)
 		retval.setRequestBusinessContext(requestBusinessContext);
 		retval.setPartialProcessing(partialProcessing);
+		retval.setFocusConflictResolution(focusConflictResolution);
         return retval;
     }
 
@@ -572,6 +608,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		// preAuthorized is purposefully omitted (security reasons)
 		retval.setRequestBusinessContext(type.getRequestBusinessContext());
 		retval.setPartialProcessing(type.getPartialProcessing());
+		retval.setFocusConflictResolution(type.getFocusConflictResolution());
         return retval;
     }
 
@@ -633,6 +670,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
     	appendFlag(sb, "requestBusinessContext", requestBusinessContext == null ? null : true);
     	appendVal(sb, "partialProcessing", format(partialProcessing));
     	appendVal(sb, "initialPartialProcessing", format(initialPartialProcessing));
+    	appendVal(sb, "focusConflictResolution", focusConflictResolution);
     	removeLastComma(sb);
 		sb.append(")");
 		return sb.toString();

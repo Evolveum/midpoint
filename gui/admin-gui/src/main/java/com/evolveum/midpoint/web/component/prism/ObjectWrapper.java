@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -58,10 +59,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -74,6 +71,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 
 	public static final String F_DISPLAY_NAME = "displayName";
 	public static final String F_SELECTED = "selected";
+	public static final String F_OBJECT = "object";
 
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectWrapper.class);
 
@@ -345,6 +343,9 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 
 		for (ContainerWrapper containerWrapper : getContainers()) {
 			containerWrapper.collectModifications(delta);
+			containerWrapper.collectDeleteDelta(delta, object.getPrismContext());
+//			containerWrapper.collectAddDelta(delta, new ItemPath(FocusType.F_ASSIGNMENT), object.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT),
+//					object.getPrismContext());
 		}
 		// returning container to previous order
 		Collections.sort(containers, new ItemWrapperComparator());

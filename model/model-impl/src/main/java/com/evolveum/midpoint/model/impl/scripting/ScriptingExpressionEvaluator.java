@@ -152,10 +152,11 @@ public class ScriptingExpressionEvaluator {
     }
 
     // TEMPORARY!
-	public ExecutionContext evaluateExpression(@NotNull ExecuteScriptType executeScript, @NotNull Map<String, Object> initialVariables, Task task, OperationResult result) throws ScriptExecutionException {
+	public ExecutionContext evaluateExpression(@NotNull ExecuteScriptType executeScript, Map<String, Object> initialVariables, Task task, OperationResult result) throws ScriptExecutionException {
 		Validate.notNull(executeScript.getScriptingExpression(), "Scripting expression must be present");
+        Map<String, Object> frozenVariables = VariablesUtil.initialPreparation(initialVariables);
         ExecutionContext context = evaluateExpression(executeScript.getScriptingExpression().getValue(),
-                PipelineData.parseFrom(executeScript.getInput(), initialVariables, prismContext), executeScript.getOptions(), initialVariables, false, task, result);
+                PipelineData.parseFrom(executeScript.getInput(), frozenVariables, prismContext), executeScript.getOptions(), frozenVariables, false, task, result);
         context.computeResults();
         return context;
     }
@@ -163,17 +164,18 @@ public class ScriptingExpressionEvaluator {
     // VERY TEMPORARY!
 	public ExecutionContext evaluateExpressionPrivileged(@NotNull ExecuteScriptType executeScript, @NotNull Map<String, Object> initialVariables, Task task, OperationResult result) throws ScriptExecutionException {
 		Validate.notNull(executeScript.getScriptingExpression(), "Scripting expression must be present");
+        Map<String, Object> frozenVariables = VariablesUtil.initialPreparation(initialVariables);
         ExecutionContext context = evaluateExpression(executeScript.getScriptingExpression().getValue(),
-                PipelineData.parseFrom(executeScript.getInput(), initialVariables, prismContext), executeScript.getOptions(), initialVariables, true, task, result);
+                PipelineData.parseFrom(executeScript.getInput(), frozenVariables, prismContext), executeScript.getOptions(), frozenVariables, true, task, result);
         context.computeResults();
         return context;
     }
 
     // main entry point from the outside
 	private ExecutionContext evaluateExpression(ScriptingExpressionType expression, PipelineData data,
-            ScriptingExpressionEvaluationOptionsType options, Map<String, Object> initialVariables,
+            ScriptingExpressionEvaluationOptionsType options, Map<String, Object> frozenInitialVariables,
             boolean privileged, Task task, OperationResult result) throws ScriptExecutionException {
-		ExecutionContext context = new ExecutionContext(options, task, this, privileged, initialVariables);
+		ExecutionContext context = new ExecutionContext(options, task, this, privileged, frozenInitialVariables);
 		PipelineData output;
 		try {
 			output = evaluateExpression(expression, data, context, result);

@@ -126,9 +126,7 @@ public class PolicyStateRecorder {
 		cr.oldPolicySituations.addAll(existingPolicySituation);
 		cr.oldTriggeredRules.addAll(existingTriggeredPolicyRule);
 		cr.situationsNeedUpdate = !Objects.equals(cr.oldPolicySituations, cr.newPolicySituations);
-		// we do not use Objects.equal, because it uses hashCode, that is (for some reason) wrongly computed
-		//cr.rulesNeedUpdate = !Objects.equals(cr.oldTriggeredRules, cr.newTriggeredRules);
-		cr.rulesNeedUpdate = !MiscUtil.unorderedCollectionEquals(cr.oldTriggeredRules, cr.newTriggeredRules);
+		cr.rulesNeedUpdate = !Objects.equals(cr.oldTriggeredRules, cr.newTriggeredRules);   // hope hashCode is computed well
 		return cr;
 	}
 

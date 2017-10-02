@@ -29,8 +29,10 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -91,21 +93,7 @@ public class RecomputeTriggerHandler implements TriggerHandler {
 			clockwork.run(lensContext, task, result);
 			LOGGER.trace("Recomputing of {}: {}", object, result.getStatus());
 
-		} catch (SchemaException e) {
-			LOGGER.error(e.getMessage(), e);
-		} catch (ObjectNotFoundException e) {
-			LOGGER.error(e.getMessage(), e);
-		} catch (ExpressionEvaluationException e) {
-			LOGGER.error(e.getMessage(), e);
-		} catch (CommunicationException e) {
-			LOGGER.error(e.getMessage(), e);
-		} catch (ObjectAlreadyExistsException e) {
-			LOGGER.error(e.getMessage(), e);
-		} catch (ConfigurationException e) {
-			LOGGER.error(e.getMessage(), e);
-		} catch (PolicyViolationException e) {
-			LOGGER.error(e.getMessage(), e);
-		} catch (SecurityViolationException e) {
+		} catch (CommonException | PreconditionViolationException | RuntimeException | Error  e) {
 			LOGGER.error(e.getMessage(), e);
 		}
 

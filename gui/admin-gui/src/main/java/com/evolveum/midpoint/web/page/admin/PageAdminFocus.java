@@ -45,6 +45,8 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
@@ -77,8 +79,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	public static final String AUTH_ORG_ALL_DESCRIPTION = "PageAdminUsers.auth.orgAll.description";
 
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
-	private CountableLoadableModel<AssignmentDto> assignmentsModel;
-	private CountableLoadableModel<AssignmentDto> policyRulesModel;
 	private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
 
 	private static final String DOT_CLASS = PageAdminFocus.class.getName() + ".";
@@ -102,36 +102,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			}
 		};
 
-		assignmentsModel = new CountableLoadableModel<AssignmentDto>(false) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected List<AssignmentDto> load() {
-				return loadAssignments();
-			}
-
-			@Override
-			public int countInternal() {
-				return countAssignments();
-			}
-		};
-
-		policyRulesModel = new CountableLoadableModel<AssignmentDto>(false) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected List<AssignmentDto> load() {
-				return loadPolicyRules();
-			}
-
-			@Override
-			public int countInternal() {
-				return countPolicyRules();
-			}
-		};
-
-
-
         delegatedToMeModel= new LoadableModel<List<AssignmentEditorDto>>(false) {
 
         	private static final long serialVersionUID = 1L;
@@ -147,14 +117,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return projectionModel;
 	}
 
-	public CountableLoadableModel<AssignmentDto> getAssignmentsModel() {
-		return assignmentsModel;
-	}
-
-	public CountableLoadableModel<AssignmentDto> getPolicyRulesModel() {
-		return policyRulesModel;
-	}
-
 	public LoadableModel<List<AssignmentEditorDto>> getDelegatedToMeModel() {
 		return delegatedToMeModel;
 	}
@@ -163,19 +125,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return projectionModel.getObject();
 	}
 
-	public boolean isAssignmentsLoaded() {
-		return assignmentsModel.isLoaded() || policyRulesModel.isLoaded();
-	}
-
-	public List<AssignmentDto> getFocusAssignments() {
-		return assignmentsModel.getObject();
-	}
-
 	protected void reviveModels() throws SchemaException {
 		super.reviveModels();
 		WebComponentUtil.revive(projectionModel, getPrismContext());
-		WebComponentUtil.revive(assignmentsModel, getPrismContext());
-		WebComponentUtil.revive(policyRulesModel, getPrismContext());
 	}
 
 	protected ObjectWrapper<F> loadFocusWrapper(PrismObject<F> userToEdit) {
@@ -400,22 +352,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
         return list;
     }
 
-    private int countAssignments() {
 
-		int rv = 0;
-		PrismObject<F> focus = getObjectModel().getObject().getObject();
-		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
-		for (AssignmentType assignment : assignments) {
-			if (!AssignmentsUtil.isPolicyRuleAssignment(assignment) && !AssignmentsUtil.isConsentAssignment(assignment)
-					&& AssignmentsUtil.isAssignmentRelevant(assignment)) {
-				rv++;
-			}
-		}
-		return rv;
-	}
 
-    private List<AssignmentDto> loadAssignments() {
-    	List<AssignmentDto> list = new ArrayList<AssignmentDto>();
+    private List<AssignmentType> loadAssignments() {
+    	List<AssignmentType> list = new ArrayList<AssignmentType>();
 
 		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
 		PrismObject<F> focus = focusWrapper.getObject();
@@ -423,41 +363,33 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		for (AssignmentType assignment : assignments) {
 			if (!AssignmentsUtil.isPolicyRuleAssignment(assignment) && !AssignmentsUtil.isConsentAssignment(assignment)
 					&& AssignmentsUtil.isAssignmentRelevant(assignment)) {
-				list.add(new AssignmentDto(assignment, StringUtils.isEmpty(focusWrapper.getOid()) ? UserDtoStatus.ADD : UserDtoStatus.MODIFY));
+				//TODO set status
+				list.add(assignment);
+//				list.add(new AssignmentDto(assignment, StringUtils.isEmpty(focusWrapper.getOid()) ? UserDtoStatus.ADD : UserDtoStatus.MODIFY));
 			}
 		}
-
-		Collections.sort(list);
+//TODO uncomment
+//		Collections.sort(list);
 
 		return list;
 	}
 
-    protected int countPolicyRules() {
-		int policyRuleCounter = 0;
-		PrismObject<F> focus = getObjectModel().getObject().getObject();
-		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
-		for (AssignmentType assignment : assignments) {
-			if (AssignmentsUtil.isPolicyRuleAssignment(assignment)) {
-				policyRuleCounter++;
-			}
-		}
-		return policyRuleCounter;
-	}
-
-    private List<AssignmentDto> loadPolicyRules() {
+    private List<AssignmentType> loadPolicyRules() {
 		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
 		PrismObject<F> focus = focusWrapper.getObject();
-		List<AssignmentDto> list = getPolicyRulesList(focus.asObjectable().getAssignment(), StringUtils.isEmpty(focusWrapper.getOid()) ?
+		List<AssignmentType> list = getPolicyRulesList(focus.asObjectable().getAssignment(), StringUtils.isEmpty(focusWrapper.getOid()) ?
 				UserDtoStatus.ADD : UserDtoStatus.MODIFY);
-		Collections.sort(list);
+		//TODO uncomment
+//		Collections.sort(list);
 		return list;
 	}
 
-    protected List<AssignmentDto> getPolicyRulesList(List<AssignmentType> assignments, UserDtoStatus status){
-		List<AssignmentDto> list = new ArrayList<AssignmentDto>();
+    protected List<AssignmentType> getPolicyRulesList(List<AssignmentType> assignments, UserDtoStatus status){
+		List<AssignmentType> list = new ArrayList<AssignmentType>();
 		for (AssignmentType assignment : assignments) {
 			if (AssignmentsUtil.isPolicyRuleAssignment(assignment)) {
-				list.add(new AssignmentDto(assignment, status));
+				//TODO set status
+				list.add(assignment);
 			}
 		}
 		return list;
@@ -480,7 +412,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			focusType.getParentOrg().addAll(orgsToAdd);
 		}
 
-		handleAssignmentForAdd(focus, UserType.F_ASSIGNMENT, assignmentsModel.getObject());
+// 		handleAssignmentForAdd(focus, UserType.F_ASSIGNMENT, assignmentsModel.getObject());
 
 	}
 
@@ -536,15 +468,20 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		// There may be assignments delta only if they are loaded. Otherwise the user didn't open
 		// the assignments tab at all. So, we are not loaded do not force load here. The load will
 		// only slow down the operation - especially if we have many assignments
-		if (isAssignmentsLoaded()) {
+//		if (isAssignmentsLoaded()) {
 			// handle assignments
-			PrismContainerDefinition<AssignmentType> def = objectDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
+//			PrismContainerDefinition<AssignmentType> def = objectDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
 //			handleAssignmentDeltas(focusDelta, getFocusAssignments(), def);
-			List<AssignmentDto> assignmentsList = new ArrayList<>();
-			assignmentsList.addAll(getFocusAssignments());
-			assignmentsList.addAll(getPolicyRulesModel().getObject());
-			handleAssignmentExperimentalDeltas(focusDelta, assignmentsList, def, false);
-		}
+//			List<AssignmentType> assignmentsList = new ArrayList<>();
+//			assignmentsList.addAll(getFocusAssignments());
+//			assignmentsList.addAll(getPolicyRulesModel().getObject());
+			//TODO perhaps not needed any more
+//			ContainerWrapper assignmentContainerWrapper = getObjectWrapper().findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
+//
+//			handleAssignmentExperimentalDeltas(focusDelta,
+//					assignmentContainerWrapper.getValues(),
+//					def, false);
+//		}
 	}
 
 	protected PrismObjectDefinition<F> getObjectDefinition() {
@@ -611,38 +548,53 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	}
 
 	protected ContainerDelta<AssignmentType> handleAssignmentExperimentalDeltas(ObjectDelta<F> focusDelta,
-			List<AssignmentDto> assignments, PrismContainerDefinition def,
-													boolean isDelegation) throws SchemaException {
+											List<ContainerValueWrapper<AssignmentType>> assignments, PrismContainerDefinition def,
+																				boolean isDelegation) throws SchemaException {
 		ContainerDelta<AssignmentType> assDelta = new ContainerDelta(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
 
-		for (AssignmentDto assDto : assignments) {
-			PrismContainerValue<AssignmentType> newValue = assDto.getAssignment().asPrismContainerValue();
+//		for (ContainerValueWrapper<AssignmentType> assignmentContainerWrapper : assignments) {
+//			switch (assignmentContainerWrapper.getStatus()) {
+//				case ADDED:
+//					assDelta.addValueToAdd(assignmentContainerWrapper.getContainerValue().clone());
+//					break;
+//				case NOT_CHANGED:
+//					assignmentContainerWrapper.collectModifications(focusDelta);
+//					break;
+//				case DELETED:
+//					assDelta.addValuesToDelete(assignmentContainerWrapper.getContainerValue().clone());
+//					break;
+//			}
+//
 
-			switch (assDto.getStatus()) {
-				case ADD:
-					newValue.applyDefinition(def, false);
-					assDelta.addValueToAdd(newValue.clone());
-					break;
-				case DELETE:
-					PrismContainerValue<AssignmentType> oldValue = assDto.getAssignment().asPrismContainerValue();
-					if (isDelegation){
-						oldValue.applyDefinition(def, false);
-					} else {
-						oldValue.applyDefinition(def);
-					}
-					assDelta.addValueToDelete(oldValue.clone());
-					break;
-				case MODIFY:
-					Collection<? extends ItemDelta> deltas = assDto.computeAssignmentDelta();
-					if (deltas != null || !deltas.isEmpty()) {
-						focusDelta.addModifications(deltas);
-					}
 
-					break;
-				default:
-					warn(getString("pageAdminUser.message.illegalAssignmentState", assDto.getStatus()));
-			}
-		}
+//			PrismContainerValue<AssignmentType> newValue = assignmentContainerWrapper.getAssignment().asPrismContainerValue();
+//
+//			switch (assignmentContainerWrapper.getStatus()) {
+//				case ADD:
+//					newValue.applyDefinition(def, false);
+//					assDelta.addValueToAdd(newValue.clone());
+//					break;
+//				case DELETE:
+//					PrismContainerValue<AssignmentType> oldValue = assignmentContainerWrapper.getAssignment().asPrismContainerValue();
+//					if (isDelegation){
+//						oldValue.applyDefinition(def, false);
+//					} else {
+//						oldValue.applyDefinition(def);
+//					}
+//					assDelta.addValueToDelete(oldValue.clone());
+//					break;
+//				case MODIFY:
+//					Collection<? extends ItemDelta> deltas = assignmentContainerWrapper.computeAssignmentDelta();
+//					if (deltas != null || !deltas.isEmpty()) {
+//						focusDelta.addModifications(deltas);
+//					}
+//
+//					break;
+//				default:
+//					warn(getString("pageAdminUser.message.illegalAssignmentState", assignmentContainerWrapper.getStatus()));
+//			}
+//		}
+
 
 		if (!assDelta.isEmpty()) {
 			assDelta = focusDelta.addModification(assDelta);
@@ -739,8 +691,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			forceDeleteDelta = ObjectDelta.createEmptyModifyDelta(getCompileTimeClass(),
 					focusWrapper.getObject().getOid(), getPrismContext());
 		}
-
-		handleAssignmentExperimentalDeltas(forceDeleteDelta, getFocusAssignments(), def, false);
+//perhaps not needed anymore
+		ContainerWrapper assignmentContainerWrapper = getObjectWrapper().findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
+		handleAssignmentExperimentalDeltas(forceDeleteDelta, assignmentContainerWrapper.getValues(), def, false);
 		return forceDeleteDelta;
 	}
 

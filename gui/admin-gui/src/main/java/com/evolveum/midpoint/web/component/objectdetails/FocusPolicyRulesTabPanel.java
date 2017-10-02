@@ -20,12 +20,14 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.web.component.assignment.AssignmentDataTablePanel;
-import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
-import com.evolveum.midpoint.web.component.assignment.PolicyRuleDetailsPanel;
-import com.evolveum.midpoint.web.component.assignment.PolicyRulesPanel;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentPreviewDialog;
@@ -36,6 +38,8 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,8 +52,6 @@ import java.util.stream.Collectors;
 public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObjectTabPanel{
     private static final long serialVersionUID = 1L;
 
-    private LoadableModel<List<AssignmentDto>> policyRulesModel;
-
     private static final String ID_POLICY_RULES_CONTAINER = "policyRulesContainer";
     private static final String ID_POLICY_RULES_PANEL = "policyRulesPanel";
     private static final String DOT_CLASS = FocusAssignmentsTabPanel.class.getName() + ".";
@@ -57,21 +59,30 @@ public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObje
     private PolicyRulesPanel policyRulesPanel = null;
 
     public FocusPolicyRulesTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel,
-                                    LoadableModel<List<AssignmentDto>> policyRulesModel, PageBase page) {
+                                    PageBase page) {
         super(id, mainForm, focusWrapperModel, page);
-        this.policyRulesModel = policyRulesModel;
         initLayout();
     }
 
     private void initLayout() {
+        ContainerWrapper<AssignmentType> assignmentsContainerWrapper = getObjectWrapper().findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
+
         WebMarkupContainer policyRules = new WebMarkupContainer(ID_POLICY_RULES_CONTAINER);
         policyRules.setOutputMarkupId(true);
         add(policyRules);
 
-        PolicyRulesPanel policyRulesPanel = new PolicyRulesPanel(ID_POLICY_RULES_PANEL, policyRulesModel);
+        PolicyRulesPanel policyRulesPanel = new PolicyRulesPanel(ID_POLICY_RULES_PANEL, getPolicyRulesModel(assignmentsContainerWrapper), assignmentsContainerWrapper);
         policyRules.add(policyRulesPanel);
     }
 
-
-
+    private IModel<List<ContainerValueWrapper<AssignmentType>>> getPolicyRulesModel(ContainerWrapper<AssignmentType> assignmentsContainerWrapper){
+        List<ContainerValueWrapper<AssignmentType>> policyRuleList = new ArrayList<>();
+        assignmentsContainerWrapper.getValues().forEach(a -> {
+            if (AssignmentsUtil.isPolicyRuleAssignment(a.getContainerValue().getValue())){
+                policyRuleList.add(a);
+            }
+        });
+//		Collections.sort(consentsList);
+        return Model.ofList(policyRuleList);
+    }
 }

@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.page.admin.roles.RoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.roles.RolePolicyPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -49,11 +50,9 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 	private static final long serialVersionUID = 1L;
 
 	public RoleMainPanel(String id, LoadableModel<ObjectWrapper<RoleType>> objectModel,
-			CountableLoadableModel<AssignmentDto> assignmentsModel,
-			CountableLoadableModel<AssignmentDto> policyRulesModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			LoadableModel<List<AssignmentEditorDto>> inducementsModel, PageAdminFocus<RoleType> parentPage) {
-		super(id, objectModel, assignmentsModel, policyRulesModel, projectionModel, inducementsModel, parentPage);
+		super(id, objectModel, projectionModel, inducementsModel, parentPage);
 	}
 
 	@Override
