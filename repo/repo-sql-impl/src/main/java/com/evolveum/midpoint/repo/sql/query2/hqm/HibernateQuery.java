@@ -80,6 +80,23 @@ public abstract class HibernateQuery {
 
     private List<Ordering> orderingList = new ArrayList<>();
 
+
+    public class Grouping {
+        @NotNull private final String byProperty;
+
+        Grouping(@NotNull String byProperty) {
+            this.byProperty = byProperty;
+        }
+
+        @NotNull
+        public String getByProperty() {
+            return byProperty;
+        }
+    }
+
+    private List<Grouping> groupingList = new ArrayList<>();
+
+
     public HibernateQuery(@NotNull JpaEntityDefinition primaryEntityDef) {
         primaryEntity = createItemSpecification(primaryEntityDef);
     }
@@ -161,6 +178,22 @@ public abstract class HibernateQuery {
                 }
             }
         }
+
+        if (!groupingList.isEmpty()) {
+            sb.append("\n");
+            indent(sb, indent);
+            sb.append("group by ");
+            boolean first = true;
+            for (Grouping grouping : groupingList) {
+                if (first) {
+                    first = false;
+                } else {
+                    sb.append(", ");
+                }
+                sb.append(grouping.byProperty);
+            }
+        }
+
         return sb.toString();
     }
 
@@ -231,6 +264,15 @@ public abstract class HibernateQuery {
     public List<Ordering> getOrderingList() {
         return orderingList;
     }
+
+    public void addGrouping(String propertyPath) {
+        groupingList.add(new Grouping(propertyPath));
+    }
+
+    public List<Grouping> getGroupingList() {
+        return groupingList;
+    }
+
 
     public abstract RootHibernateQuery getRootQuery();
 
