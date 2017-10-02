@@ -181,6 +181,7 @@ public class ResourceManager {
 		
 		if (!isComplete(completedResource)) {
 			// No not cache non-complete resources (e.g. those retrieved with noFetch)
+			LOGGER.trace("Not putting resource {} ({}) into cache because it's not complete", repositoryObject.getName(), repositoryObject.getOid());
 			return completedResource; 
 		}
 
@@ -198,6 +199,9 @@ public class ResourceManager {
 		if (completeResourceResult.isSuccess()) {
 			// Cache only resources that are completely OK
 			resourceCache.put(completedResource);
+		} else {
+			LOGGER.trace("Not putting {} into cache because the completeResource operation status is {}",
+					ObjectTypeUtil.toShortString(repositoryObject), completeResourceResult.getStatus());
 		}
 		
 		InternalMonitor.getResourceCacheStats().recordMiss();
