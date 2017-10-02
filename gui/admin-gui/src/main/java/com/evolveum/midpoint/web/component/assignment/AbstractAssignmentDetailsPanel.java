@@ -20,6 +20,9 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.*;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -103,13 +106,17 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 		
 		PageAdminObjectDetails<F> pageBase = (PageAdminObjectDetails<F>)getPageBase();
 		
-		ItemPath assignmentPath = getAssignmentPath();
+		ItemPath assignmentPath = getModelObject().getPath();
 //		ContainerValueWrapperFromObjectWrapperModel<AssignmentType, F> assignmentModel =
 //				new ContainerValueWrapperFromObjectWrapperModel<AssignmentType, F>(pageBase.getObjectModel(), assignmentPath);
 		
 		Form form = new Form<>("form");
+
+		ContainerValueWrapper<AssignmentType> containerWrapper = getModelObject();
+		if (containerWrapper == null){}
 		
-		ContainerValuePanel<AssignmentType> assignmentPanel = new ContainerValuePanel("basic", getModel(), true, form, itemWrapper -> getAssignmentBasicTabVisibity(itemWrapper, assignmentPath), pageBase);
+		ContainerValuePanel<AssignmentType> assignmentPanel = new ContainerValuePanel("basic", getModel(), true, form,
+				itemWrapper -> getAssignmentBasicTabVisibity(itemWrapper, assignmentPath), pageBase);
 		add(assignmentPanel);
 		
 		
@@ -172,7 +179,5 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
     protected IModel<String> getAdditionalNameLabelStyleClass(){
         return Model.of("");
     }
-
-   
 
 }

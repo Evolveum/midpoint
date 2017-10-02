@@ -404,15 +404,19 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		}
 	}
 
-	public <O extends ObjectType> void collectAddDelta(ObjectDelta<O> delta,  ItemPath propertyPath,
-													   PrismContainerDefinition def, PrismContext prismContext) throws SchemaException {
+	public <O extends ObjectType> void collectAddDelta(ObjectDelta<O> delta, PrismContext prismContext) throws SchemaException {
 
-		ContainerDelta containerDelta = new ContainerDelta(propertyPath, def.getName(), def, prismContext);
+//		ContainerDelta containerDelta = new ContainerDelta(propertyPath, def.getName(), def, prismContext);
 
 		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
 			if (ValueStatus.ADDED.equals(itemWrapper.getStatus())) {
-				itemWrapper.getContainerValue().applyDefinition(def, false);
+				ContainerDelta<C> containerDelta = new ContainerDelta(ItemPath.EMPTY_PATH, itemWrapper.getDefinition().getName(),
+						itemWrapper.getDefinition(), prismContext);
+//				itemWrapper.getContainerValue().applyDefinition(def, false);
 				containerDelta.addValueToAdd(itemWrapper.getContainerValue().clone());
+				if (!containerDelta.isEmpty()){
+					delta.addModification(containerDelta);
+				}
 
 			}
 		}
@@ -430,9 +434,6 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 //			}
 //		}
 //		containerDelta.addValuesToAdd(containerValuesToAdd.toArray(new PrismContainerValue[containerValuesToAdd.size()]));
-		if (!containerDelta.isEmpty()){
-			delta.addModification(containerDelta);
-		}
 	}
 
 	@Override

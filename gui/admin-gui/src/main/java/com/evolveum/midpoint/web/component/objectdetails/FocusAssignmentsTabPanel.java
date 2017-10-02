@@ -29,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -71,14 +72,30 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 	}
 
 	private IModel<List<ContainerValueWrapper<AssignmentType>>> getAssignmentsListModel(ContainerWrapper<AssignmentType> assignmentsContainerWrapper){
-		List<ContainerValueWrapper<AssignmentType>> assignmentsList = new ArrayList<>();
-		assignmentsContainerWrapper.getValues().forEach(a -> {
-			if (!AssignmentsUtil.isPolicyRuleAssignment(a.getContainerValue().getValue()) && !AssignmentsUtil.isConsentAssignment(a.getContainerValue().getValue())
-					&& AssignmentsUtil.isAssignmentRelevant(a.getContainerValue().getValue())) {
-				assignmentsList.add(a);
-			}
-		});
+		return new IModel<List<ContainerValueWrapper<AssignmentType>>>() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public List<ContainerValueWrapper<AssignmentType>> getObject() {
+				List<ContainerValueWrapper<AssignmentType>> assignmentsList = new ArrayList<>();
+				assignmentsContainerWrapper.getValues().forEach(a -> {
+					if (!AssignmentsUtil.isPolicyRuleAssignment(a.getContainerValue().getValue()) && !AssignmentsUtil.isConsentAssignment(a.getContainerValue().getValue())
+							&& AssignmentsUtil.isAssignmentRelevant(a.getContainerValue().getValue())) {
+						assignmentsList.add(a);
+					}
+				});
 //		Collections.sort(consentsList);
-		return Model.ofList(assignmentsList);
+				return assignmentsList;
+			}
+
+			@Override
+			public void setObject(List<ContainerValueWrapper<AssignmentType>> object){
+				assignmentsContainerWrapper.getValues().clear();
+				assignmentsContainerWrapper.getValues().addAll(object);
+			}
+
+			@Override
+			public void detach(){};
+		};
 	}
 }
