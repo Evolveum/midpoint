@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -67,6 +68,9 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	private List<ContainerValueWrapper<C>> values;
 
 	private boolean readonly;
+	
+	//TODO: HACK to have custom filter for association contianer here becasue of creating new association:
+	private ObjectFilter filter;
 
 	ContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path) {
 		Validate.notNull(container, "container must not be null.");
@@ -97,13 +101,21 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 			}
 		}
 	}
+	
+	public ObjectFilter getFilter() {
+		return filter;
+	}
+	
+	public void setFilter(ObjectFilter filter) {
+		this.filter = filter;
+	}
 
 	@Override
 	public PrismContainerDefinition<C> getItemDefinition() {
 		return container.getDefinition();
 	}
-
-	public ContainerStatus getStatus() {
+	
+		public ContainerStatus getStatus() {
 		return status;
 	}
 
@@ -287,16 +299,16 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return getItem().isEmpty();
 	}
 
-	public void addValue(boolean showEmpty) {
-		getValues().add(createItem(showEmpty));
+	public void addValue(ContainerValueWrapper<C> newValue) {
+		getValues().add(newValue);
 	}
 
-	public ContainerValueWrapper<C> createItem(boolean showEmpty) {
-		PrismContainerValue<C> pcv = container.createNewValue();
-		ContainerValueWrapper<C> wrapper = new ContainerValueWrapper<C>(this, pcv, ValueStatus.ADDED, pcv.getPath());
-		wrapper.setShowEmpty(showEmpty, true);
-		return wrapper;
-	}
+//	public ContainerValueWrapper<C> createItem(boolean showEmpty) {
+//		PrismContainerValue<C> pcv = container.createNewValue();
+//		ContainerValueWrapper<C> wrapper = new ContainerValueWrapper<C>(this, pcv, ValueStatus.ADDED, pcv.getPath());
+//		wrapper.setShowEmpty(showEmpty, true);
+//		return wrapper;
+//	}
 
 	public void sort(final PageBase pageBase) {
 		for (ContainerValueWrapper<C> valueWrapper : getValues()) {
@@ -466,6 +478,12 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 
 	private boolean emphasizedAndCanAdd(PrismContainerDefinition<C> def) {
 		return def.canAdd() && def.isEmphasized();
+	}
+
+	@Override
+	public void addValue(boolean showEmpty) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

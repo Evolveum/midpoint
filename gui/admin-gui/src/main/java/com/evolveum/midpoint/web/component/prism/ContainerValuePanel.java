@@ -34,6 +34,8 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.users.component.AssociationValueChoicePanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -115,6 +117,7 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 
 			@Override
             protected void populateItem(final ListItem<IW> item) {
+				
 				if (item.getModel().getObject() instanceof ContainerWrapper) {
 					PrismContainerPanel<C> containerPanel = new PrismContainerPanel("property", (IModel<ContainerWrapper<C>>) item.getModel(), true, form, isPanaleVisible, pageBase);
 					containerPanel.setOutputMarkupId(true);

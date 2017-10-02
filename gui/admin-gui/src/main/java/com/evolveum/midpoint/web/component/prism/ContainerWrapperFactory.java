@@ -23,7 +23,11 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -90,12 +94,11 @@ public class ContainerWrapperFactory {
         List<ContainerValueWrapper<C>> containerValues = createContainerValues(cWrapper, path);
         cWrapper.setProperties(containerValues);
         cWrapper.computeStripes();
-
-        return cWrapper;
+        
+       return cWrapper;
     }
     
-  
-	public <C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readonly) {
+   public <C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readonly) {
 
 		result = new OperationResult(CREATE_PROPERTIES);
 
@@ -130,11 +133,16 @@ public class ContainerWrapperFactory {
 	    	return containerValueWrappers;
 	    }
 	  
-	  private <C extends Containerable> ContainerValueWrapper<C> createContainerValueWrapper(ContainerWrapper cWrapper, PrismContainerValue<C> value, ValueStatus status, ItemPath path){
+	  public <C extends Containerable> ContainerValueWrapper<C> createContainerValueWrapper(ContainerWrapper cWrapper, PrismContainerValue<C> value, ValueStatus status, ItemPath path){
 		  ContainerValueWrapper<C> containerValueWrapper = new ContainerValueWrapper<C>(cWrapper, value, status, path);
 		    
 			List<ItemWrapper> properties = createProperties(containerValueWrapper, false);
 			containerValueWrapper.setProperties(properties);
+			
+			ReferenceWrapper shadowRefWrapper = (ReferenceWrapper) containerValueWrapper.findPropertyWrapper(ShadowAssociationType.F_SHADOW_REF);
+    		if (shadowRefWrapper != null && cWrapper.getFilter() != null) {
+    			shadowRefWrapper.setFilter(cWrapper.getFilter());
+    		}
 			
 			return containerValueWrapper;
 	  }
