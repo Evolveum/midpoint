@@ -85,11 +85,9 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
     private static final String ID_ITEMS_COUNT = "itemsCount";
 
 	public AbstractRoleMainPanel(String id, LoadableModel<ObjectWrapper<R>> objectModel,
-			CountableLoadableModel<AssignmentDto> assignmentsModel,
-			CountableLoadableModel<AssignmentDto> policyRulesModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			LoadableModel<List<AssignmentEditorDto>> inducementsModel, PageAdminFocus<R> parentPage) {
-		super(id, objectModel, assignmentsModel, policyRulesModel, projectionModel, parentPage);
+		super(id, objectModel, projectionModel, parentPage);
 		this.inducementsModel = inducementsModel;
 	}
 

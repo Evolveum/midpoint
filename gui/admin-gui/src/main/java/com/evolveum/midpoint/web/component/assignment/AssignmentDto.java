@@ -49,28 +49,6 @@ public class AssignmentDto extends Selectable<AssignmentDto> implements Comparab
 		this.status = status;
 	}
 
-	/**
-	 *
-	 * @return true if this is an assignment of a RoleType, OrgType, ServiceType or Resource
-	 * @return false if this is an assignment of a User(delegation, deputy) or PolicyRules
-	 */
-	public boolean isAssignableObject(){
-		if (assignment.getPersonaConstruction() != null) {
-			return false;
-		}
-
-		if (assignment.getPolicyRule() != null) {
-			return false;
-		}
-
-		//TODO: uncomment when GDPR is in
-//		if (assignment.getTargetRef() != null && assignment.getTargetRef().getRelation().equals(SchemaConstants.ORG_CONSENT)) {
-//			return false;
-//		}
-
-		return true;
-	}
-
 	public Collection<? extends ItemDelta> computeAssignmentDelta() {
 		Collection<? extends ItemDelta> deltas = oldAssignment.asPrismContainerValue().diff(assignment.asPrismContainerValue());
 		return deltas;
@@ -93,25 +71,6 @@ public class AssignmentDto extends Selectable<AssignmentDto> implements Comparab
 		}
 
 		return assignment.getTargetRef().getRelation();
-
-	}
-
-	public QName getTargetType() {
-		if (assignment.getTarget() != null) {
-			// object assignment
-			return assignment.getTarget().asPrismObject().getComplexTypeDefinition().getTypeName();
-		} else if (assignment.getTargetRef() != null) {
-			return assignment.getTargetRef().getType();
-		}
-		if (assignment.getPolicyRule() != null){
-			return PolicyRuleType.COMPLEX_TYPE;
-		}
-
-		if (assignment.getPersonaConstruction() != null) {
-			return PersonaConstructionType.COMPLEX_TYPE;
-		}
-		// account assignment through account construction
-		return ConstructionType.COMPLEX_TYPE;
 
 	}
 

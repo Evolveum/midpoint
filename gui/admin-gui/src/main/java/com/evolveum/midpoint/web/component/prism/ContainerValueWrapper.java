@@ -80,6 +80,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	private ItemPath path;
 	private List<ItemWrapper> properties;
 	private boolean readonly;
+	private boolean selected;
 
 	ContainerValueWrapper(ContainerWrapper<C> containerWrapper, PrismContainerValue<C> containerValue, ValueStatus status,
 			ItemPath path) {
@@ -123,6 +124,10 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	public ValueStatus getStatus() {
 		return status;
+	}
+
+	public void setStatus(ValueStatus status){
+		this.status = status;
 	}
 
 	public ItemPath getPath() {
@@ -257,6 +262,14 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	public void setReadonly(boolean readonly) {
 		this.readonly = readonly;
+	}
+
+	public boolean isSelected() {
+		return selected;
+	}
+
+	public void setSelected(boolean selected) {
+		this.selected = selected;
 	}
 
 	public void sort(final PageBase pageBase) {

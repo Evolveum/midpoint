@@ -3,6 +3,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -32,7 +33,7 @@ public class AbstractRoleAssignmentDetailsPanel<F extends FocusType> extends Abs
 			hiddenItems.add(AssignmentType.F_POLICY_RULE);
 	};
 
-	public AbstractRoleAssignmentDetailsPanel(String id, Form<?> form, IModel<AssignmentDto> assignmentModel) {
+	public AbstractRoleAssignmentDetailsPanel(String id, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
 		super(id, form, assignmentModel);
 	}
 
@@ -40,11 +41,11 @@ public class AbstractRoleAssignmentDetailsPanel<F extends FocusType> extends Abs
 	@Override
 	protected List<ItemPath> collectContainersToShow() {
 		List<ItemPath> pathsToShow = new ArrayList<>();
-		if (ConstructionType.COMPLEX_TYPE.equals(getModelObject().getTargetType())) {
+		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(getModelObject().getContainerValue().getValue()))) {
 			pathsToShow.add(getAssignmentPath().append(AssignmentType.F_CONSTRUCTION));
 		}
 		
-		if (PersonaConstructionType.COMPLEX_TYPE.equals(getModelObject().getTargetType())) {
+		if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(getModelObject().getContainerValue().getValue()))) {
 			pathsToShow.add(getAssignmentPath().append(AssignmentType.F_PERSONA_CONSTRUCTION));
 		}
 		return pathsToShow;

@@ -60,6 +60,9 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 	}
 
 	private String createImageModel() {
+		if (getModelObject() == null){
+			return "";
+		}
 		if (ObjectType.class.isAssignableFrom(getModelObject().getClass())) {
 			return WebComponentUtil.createDefaultIcon((ObjectType) getModelObject());
 		}
@@ -74,6 +77,9 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 
 	private IModel<String> createHeaderModel() {
 		// TODO: align with DisplayNameModel
+		if (getModelObject() == null){
+			return Model.of("");
+		}
 		if (ObjectType.class.isAssignableFrom(getModelObject().getClass())) {
 			return Model.of(WebComponentUtil.getEffectiveName((ObjectType) getModelObject(), AbstractRoleType.F_DISPLAY_NAME));
 		}

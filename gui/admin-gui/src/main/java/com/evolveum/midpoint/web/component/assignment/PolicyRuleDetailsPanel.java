@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -33,7 +34,7 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
 
 
     
-    public PolicyRuleDetailsPanel(String id, Form<?> form, IModel<AssignmentDto> model){
+    public PolicyRuleDetailsPanel(String id, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model){
         super(id, form, model);
     }
 

@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.function.Function;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -70,14 +71,14 @@ public class AssignmentsUtil {
         };
     }
 
-    public static IModel<String> createActivationTitleModelExperimental(IModel<AssignmentDto> model, BasePanel basePanel) {
+    public static IModel<String> createActivationTitleModelExperimental(IModel<AssignmentType> model, BasePanel basePanel) {
     	return createActivationTitleModelExperimental(model.getObject(), s -> s.value(), basePanel);
     }
 
-    public static IModel<String> createActivationTitleModelExperimental(AssignmentDto model, Function<ActivationStatusType, String> transformStatusLambda, BasePanel basePanel) {
+    public static IModel<String> createActivationTitleModelExperimental(AssignmentType model, Function<ActivationStatusType, String> transformStatusLambda, BasePanel basePanel) {
 
 //    	AssignmentDto assignmentDto = model.getObject();
-    	ActivationType activation = model.getAssignment().getActivation();
+    	ActivationType activation = model.getActivation();
     	if (activation == null) {
     		return basePanel.createStringResource("lower.ActivationStatusType.null");
     	}
@@ -105,7 +106,7 @@ public class AssignmentsUtil {
 
     }
     
-    public static IModel<String> createConsentActivationTitleModel(IModel<AssignmentDto> model, BasePanel basePanel) {
+    public static IModel<String> createConsentActivationTitleModel(IModel<AssignmentType> model, BasePanel basePanel) {
     	return createActivationTitleModelExperimental(model.getObject(), 
     			s -> { 
     				// TODO: localization
@@ -170,14 +171,16 @@ public class AssignmentsUtil {
 //        };
 //    }
 
-    public static IModel<String> createAssignmentStatusClassModel(final IModel<AssignmentDto> model) {
+    public static IModel<String> createAssignmentStatusClassModel(final IModel<AssignmentType> model) {
         return new AbstractReadOnlyModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
-                AssignmentDto dto = model.getObject();
-                return dto.getStatus().name().toLowerCase();
+                //TODO fix
+//                AssignmentType dto = model.getObject();
+//                return dto.getStatus().name().toLowerCase();
+                return "";
             }
         };
     }
@@ -327,4 +330,44 @@ public class AssignmentsUtil {
         return QNameUtil.match(assignment.getTargetRef().getRelation(), SchemaConstants.ORG_CONSENT);
     }
 
+    /**
+     *
+     * @return true if this is an assignment of a RoleType, OrgType, ServiceType or Resource
+     * @return false if this is an assignment of a User(delegation, deputy) or PolicyRules
+     */
+    public static boolean isAssignableObject(AssignmentType assignment){
+        if (assignment.getPersonaConstruction() != null) {
+            return false;
+        }
+
+        if (assignment.getPolicyRule() != null) {
+            return false;
+        }
+
+        //TODO: uncomment when GDPR is in
+//		if (assignment.getTargetRef() != null && assignment.getTargetRef().getRelation().equals(SchemaConstants.ORG_CONSENT)) {
+//			return false;
+//		}
+
+        return true;
+    }
+
+    public static QName getTargetType(AssignmentType assignment) {
+        if (assignment.getTarget() != null) {
+            // object assignment
+            return assignment.getTarget().asPrismObject().getComplexTypeDefinition().getTypeName();
+        } else if (assignment.getTargetRef() != null) {
+            return assignment.getTargetRef().getType();
+        }
+        if (assignment.getPolicyRule() != null){
+            return PolicyRuleType.COMPLEX_TYPE;
+        }
+
+        if (assignment.getPersonaConstruction() != null) {
+            return PersonaConstructionType.COMPLEX_TYPE;
+        }
+        // account assignment through account construction
+        return ConstructionType.COMPLEX_TYPE;
+
+    }
 }

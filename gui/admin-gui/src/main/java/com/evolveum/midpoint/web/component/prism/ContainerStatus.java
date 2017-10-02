@@ -21,5 +21,5 @@ package com.evolveum.midpoint.web.component.prism;
  */
 public enum ContainerStatus {
 
-    ADDING, MODIFYING;
+    ADDING, MODIFYING, DELETING;
 }

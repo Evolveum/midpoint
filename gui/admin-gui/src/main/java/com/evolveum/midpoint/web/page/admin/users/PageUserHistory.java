@@ -163,7 +163,7 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
 
     @Override
     protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
-        return new FocusMainPanel<UserType>(id, getObjectModel(), getAssignmentsModel(), getPolicyRulesModel(), getProjectionModel(), this) {
+        return new FocusMainPanel<UserType>(id, getObjectModel(), getProjectionModel(), this) {
             @Override
             protected List<ITab> createTabs(final PageAdminObjectDetails<UserType> parentPage) {
                 List<ITab> tabs = new ArrayList<>();
@@ -213,8 +213,7 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
 
                             @Override
                             public String getCount() {
-                                return Integer.toString(getAssignmentsModel().getObject() == null ?
-                                        0 : getAssignmentsModel().getObject().size());
+                                return Integer.toString(countAssignments());
                             }
                         });
                 authorization = new FocusTabVisibleBehavior(unwrapModel(),
