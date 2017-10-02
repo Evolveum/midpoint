@@ -60,7 +60,7 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 
 	private static final Trace LOGGER = TraceManager.getTrace(WfTaskCreationInstruction.class);
 	private static final Integer DEFAULT_PROCESS_CHECK_INTERVAL = 30;
-	private static final String DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION = "$approval-task-group$:";
+	private static final String DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION = "$approval-task-group$:object:";
 	private static final long DEFAULT_SERIALIZATION_RETRY_TIME = 10000L;
 
 	private final ChangeProcessor changeProcessor;
@@ -403,17 +403,22 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 		WfExecutionTasksSerializationType serialization =
 				wfConfigurationType != null && wfConfigurationType.getExecutionTasks() != null ?
 						wfConfigurationType.getExecutionTasks().getSerialization() : null;
-		if (parentTask != null && executeModelOperationHandler && serialization != null && !Boolean.FALSE.equals(serialization.isEnabled())) {
-			TaskType taskBean = task.getTaskPrismObject().asObjectable();
-			String groupName = DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION + parentTask.getTaskIdentifier();
-			Duration retryAfter = serialization.getRetryAfter() != null ?
-					serialization.getRetryAfter() : XmlTypeConverter.createDuration(DEFAULT_SERIALIZATION_RETRY_TIME);
-			taskBean.setExecutionConstraints(
-					new TaskExecutionConstraintsType()
-							.group(groupName)
-							.groupTaskLimit(1)
-							.retryAfter(retryAfter));
-			LOGGER.trace("Setting group '{}' with a limit of 1 for task {}", groupName, task);
+		if (executeModelOperationHandler && serialization != null && !Boolean.FALSE.equals(serialization.isEnabled())) {
+			String objectOid = wfContext.getObjectRef() != null ? wfContext.getObjectRef().getOid() : null;
+			if (objectOid != null) {
+				TaskType taskBean = task.getTaskPrismObject().asObjectable();
+				String groupName = DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION + objectOid;
+				Duration retryAfter = serialization.getRetryAfter() != null ?
+						serialization.getRetryAfter() : XmlTypeConverter.createDuration(DEFAULT_SERIALIZATION_RETRY_TIME);
+				taskBean.setExecutionConstraints(
+						new TaskExecutionConstraintsType()
+								.group(groupName)
+								.groupTaskLimit(1)
+								.retryAfter(retryAfter));
+				LOGGER.trace("Setting group '{}' with a limit of 1 for task {}", groupName, task);
+			} else {
+				LOGGER.warn("Object OID to serialize approval execution task on is null; serialization will not occur.\n{}", debugDump());
+			}
 		}
 
 		return task;

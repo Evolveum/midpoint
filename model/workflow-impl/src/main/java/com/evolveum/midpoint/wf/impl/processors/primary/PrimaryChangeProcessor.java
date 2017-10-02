@@ -248,8 +248,9 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 			WfConfigurationType wfConfigurationType, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (changesWithoutApproval != null && !changesWithoutApproval.isEmpty() && executionMode != ALL_AFTERWARDS) {
             ModelContext task0context = contextCopyWithDeltasReplaced(context, changesWithoutApproval);
-            WfTaskCreationInstruction instruction0 = WfTaskCreationInstruction.createModelOnly(rootWfTask.getChangeProcessor(), task0context);
+            WfTaskCreationInstruction<?, ?> instruction0 = WfTaskCreationInstruction.createModelOnly(rootWfTask.getChangeProcessor(), task0context);
             instruction0.setTaskName("Executing changes that do not require approval");
+	        instruction0.setObjectRef(context, result);
 			return wfTaskController.submitWfTask(instruction0, rootWfTask, wfConfigurationType, result);
         } else {
             return null;
