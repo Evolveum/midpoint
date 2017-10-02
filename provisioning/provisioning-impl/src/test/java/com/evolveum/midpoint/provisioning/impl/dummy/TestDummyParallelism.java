@@ -371,7 +371,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 	 * is finished. But the threads are fast and the operations are slow. So this is
 	 * a very slim chance.
 	 */
-	@Test(enabled = false)
+	@Test
 	public void test214ParallelModifyDisableSlow() throws Exception {
 		final String TEST_NAME = "test214ParallelModifyDisableSlow";
 		
