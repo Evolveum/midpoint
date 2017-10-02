@@ -106,7 +106,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>workflow-api</artifactId>
-            <version>3.6.1-SNAPSHOT</version>
+            <version>3.7-SNAPSHOT</version>
         </dependency>
 
 		<dependency>
