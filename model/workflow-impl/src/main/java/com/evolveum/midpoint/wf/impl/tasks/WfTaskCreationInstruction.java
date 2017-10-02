@@ -410,36 +410,72 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 			}
 			// serialization
 			WfExecutionTasksSerializationType serialization = tasksConfig.getSerialization();
-			if (serialization != null && !Boolean.FALSE.equals(serialization.isEnabled()) && parentTask != null) {
-				String groupPrefix = serialization.getGroupPrefix() != null ?
-						serialization.getGroupPrefix() : DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION;
-				String groupName = groupPrefix + parentTask.getTaskIdentifier();
-				Duration retryAfter;
-				if (serialization.getRetryAfter() != null) {
-					if (constraints != null && constraints.getRetryAfter() != null && !constraints.getRetryAfter().equals(serialization.getRetryAfter())) {
-						LOGGER.warn(
-								"Workflow configuration: task constraints retryAfter ({}) is different from serialization retryAfter ({}) -- using the latter",
-								constraints.getRetryAfter(), serialization.getRetryAfter());
+			if (serialization != null && !Boolean.FALSE.equals(serialization.isEnabled())) {
+				List<WfExecutionTasksSerializationScopeType> scopes = new ArrayList<>(serialization.getScope());
+				if (scopes.isEmpty()) {
+					scopes.add(WfExecutionTasksSerializationScopeType.OBJECT);
+				}
+				List<String> groups = new ArrayList<>(scopes.size());
+				for (WfExecutionTasksSerializationScopeType scope : scopes) {
+					String groupPrefix = serialization.getGroupPrefix() != null
+							? serialization.getGroupPrefix() : DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION;
+					String groupSuffix = getGroupSuffix(scope, wfContext, parentTask, task);
+					if (groupSuffix == null) {
+						continue;
 					}
-					retryAfter = serialization.getRetryAfter();
-				} else if (constraints != null && constraints.getRetryAfter() != null) {
-					retryAfter = constraints.getRetryAfter();
-				} else {
-					retryAfter = XmlTypeConverter.createDuration(DEFAULT_SERIALIZATION_RETRY_TIME);
+					groups.add(groupPrefix + scope.value() + ":" + groupSuffix);
 				}
-				if (taskBean.getExecutionConstraints() == null) {
-					taskBean.setExecutionConstraints(new TaskExecutionConstraintsType());
+				if (!groups.isEmpty()) {
+					Duration retryAfter;
+					if (serialization.getRetryAfter() != null) {
+						if (constraints != null && constraints.getRetryAfter() != null && !constraints.getRetryAfter()
+								.equals(serialization.getRetryAfter())) {
+							LOGGER.warn(
+									"Workflow configuration: task constraints retryAfter ({}) is different from serialization retryAfter ({}) -- using the latter",
+									constraints.getRetryAfter(), serialization.getRetryAfter());
+						}
+						retryAfter = serialization.getRetryAfter();
+					} else if (constraints != null && constraints.getRetryAfter() != null) {
+						retryAfter = constraints.getRetryAfter();
+					} else {
+						retryAfter = XmlTypeConverter.createDuration(DEFAULT_SERIALIZATION_RETRY_TIME);
+					}
+					TaskExecutionConstraintsType executionConstraints = taskBean.getExecutionConstraints();
+					if (executionConstraints == null) {
+						executionConstraints = new TaskExecutionConstraintsType();
+						taskBean.setExecutionConstraints(executionConstraints);
+					}
+					for (String group : groups) {
+						executionConstraints
+								.beginSecondaryGroup()
+								.group(group)
+								.groupTaskLimit(1);
+					}
+					executionConstraints.setRetryAfter(retryAfter);
+					LOGGER.trace("Setting groups {} with a limit of 1 for task {}", groups, task);
 				}
-				taskBean.getExecutionConstraints()
-						.beginSecondaryGroup()
-								.group(groupName)
-								.groupTaskLimit(1)
-						.<TaskExecutionConstraintsType>end()
-						.retryAfter(retryAfter);
-				LOGGER.trace("Setting group '{}' with a limit of 1 for task {}", groupName, task);
 			}
 		}
 		return task;
+	}
+
+	private String getGroupSuffix(WfExecutionTasksSerializationScopeType scope, WfContextType wfContext, Task parentTask, Task task) {
+		switch (scope) {
+			case GLOBAL: return "";
+			case OBJECT:
+				String oid = wfContext.getObjectRef() != null ? wfContext.getObjectRef().getOid() : null;
+				if (oid == null) {
+					LOGGER.warn("No object OID present, synchronization with the scope of {} couldn't be set up for task {}", scope, task);
+					return null;
+				}
+				return oid;
+			case TARGET:
+				return wfContext.getTargetRef() != null ? wfContext.getTargetRef().getOid() : null;     // null can occur so let's be silent then
+			case OPERATION:
+				return parentTask != null ? parentTask.getTaskIdentifier() : null;                      // null can occur so let's be silent then
+			default:
+				throw new AssertionError("Unknown scope: " + scope);
+		}
 	}
 
 	// FIXME brutal hack because of objectDelta should be in wfContext when evaluating auto completion expression
