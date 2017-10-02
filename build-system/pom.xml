@@ -63,8 +63,8 @@
         <selenium.version>1.0.1</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.1.11</logback.version>
-        <spring.boot.version>1.5.6.RELEASE</spring.boot.version>
-        <spring.version>4.3.10.RELEASE</spring.version>
+        <spring.boot.version>1.5.7.RELEASE</spring.boot.version>
+        <spring.version>4.3.11.RELEASE</spring.version>
         <spring.security.version>4.2.3.RELEASE</spring.security.version>
         <cas.client.version>3.4.1</cas.client.version>
         <testng.version>6.8.8</testng.version>
@@ -1118,11 +1118,6 @@
                     </exclusion>
                 </exclusions>
 			</dependency>
-			<dependency>
-	        	<groupId>org.webjars</groupId>
-	    		<artifactId>webjars-locator</artifactId>
-	    		<version>0.15</version>
-	        </dependency>
 	        <dependency>
 	            <groupId>ro.isdc.wro4j</groupId>
 	            <artifactId>wro4j-core</artifactId>
