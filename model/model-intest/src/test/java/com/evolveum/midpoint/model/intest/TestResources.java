@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.intest;
 
 import static org.testng.AssertJUnit.assertNull;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -163,6 +162,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
         // precondition
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
@@ -173,13 +173,12 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, options , task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess("getObject result", result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
         display("Resource", resource);
 
@@ -189,6 +188,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchema(resource));
 
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
@@ -210,6 +210,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
         // precondition
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
@@ -221,14 +222,13 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 				GetOperationOptions.createNoFetch());
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, options,
 				task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess("getObject result", result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
         display("Resource", resource);
 
@@ -238,6 +238,59 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchema(resource));
 
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 1); // First "real" read
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
+	}
+	
+	/**
+	 * Make sure that resource caching works well even if noFetch is used.
+	 */
+	@Test
+    public void test053GetResourceNoFetchAgain() throws Exception {
+		final String TEST_NAME = "test053GetResourceNoFetchAgain";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+
+        // precondition
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
+
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
+				GetOperationOptions.createNoFetch());
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, options,
+				task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        display("Resource", resource);
+
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
+
+		assertResourceDummy(resource, false);
+
+        assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchema(resource));
+
+        // Previous noFetch read did NOT place resource in the cache. Because the resource
+        // may not be complete.
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 1);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
@@ -249,8 +302,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	 * MID-3424
 	 */
 	@Test
-    public void test053GetResourceNoFetchReadOnly() throws Exception {
-		final String TEST_NAME = "test053GetResourceNoFetchReadOnly";
+    public void test055GetResourceNoFetchReadOnly() throws Exception {
+		final String TEST_NAME = "test055GetResourceNoFetchReadOnly";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -259,6 +312,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
         // precondition
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
@@ -271,14 +325,13 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(option);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, options,
 				task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess("getObject result", result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
         display("Resource", resource);
 
@@ -288,6 +341,9 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchema(resource));
 
+        // Previous noFetch read did NOT place resource in the cache. Because the resource
+        // may not be complete.
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 1);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
@@ -315,17 +371,16 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, options, task, result);
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         assertNotNull("null search return", resources);
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
 
-        result.computeStatus();
-        TestUtil.assertSuccess("searchObjects result", result);
+        assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  2);
 
@@ -333,6 +388,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         	assertResource(resource, false);
         }
 
+        // No explicit get. Search is doing all the work.
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
@@ -364,17 +421,16 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(option);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, options, task, result);
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         assertNotNull("null search return", resources);
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
 
-        result.computeStatus();
-        TestUtil.assertSuccess("searchObjects result", result);
+        assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  0);
 
@@ -382,6 +438,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         	assertResource(resource, false);
         }
 
+     	// No explicit get. Search is doing all the work.
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
@@ -419,19 +477,20 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         modelService.searchObjectsIterative(ResourceType.class, null, handler, options, task, result);
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess("searchObjects result", result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  2);
 
+        // No explicit get. Search is doing all the work.
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
@@ -471,19 +530,20 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(option);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.searchObjectsIterative(ResourceType.class, null, handler, options, task, result);
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess("searchObjects result", result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  2);
 
+        // No explicit get. Search is doing all the work.
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
@@ -506,18 +566,21 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null , task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess("getObject result", result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  4);
 
         assertResourceDummy(resource, true);
 
+        // TODO not sure why are there 2 read counts. Should be 1. But this is not that important right now.
+        // Some overhead on initial resource read is OK. What is important is that it does not increase during 
+        // normal account operations.
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 2);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 1);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 1);
@@ -545,19 +608,19 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 				GetOperationOptions.createReadOnly());
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,
 				options , task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess("getObject result", result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
 
         assertResourceDummy(resource, true);
 
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
@@ -582,22 +645,23 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertSteadyResources();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, null, task, result);
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         assertNotNull("null search return", resources);
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
 
-        result.computeStatus();
-        TestUtil.assertSuccess("searchObjects result", result);
+        assertSuccess(result);
 
         for (PrismObject<ResourceType> resource: resources) {
         	assertResource(resource, true);
         }
 
+        // Obviously, there is some uninitialized resource in the system
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 1);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 1);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 1);
@@ -630,8 +694,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         modelService.searchObjectsIterative(ResourceType.class, null, handler, null, task, result);
 
 		// THEN
-        result.computeStatus();
-        TestUtil.assertSuccess("searchObjects result", result);
+        assertSuccess(result);
 
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
@@ -747,8 +810,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		lastVersion =  resource.getVersion();
 		display("Initial version", lastVersion);
 
-        result.computeStatus();
-        TestUtil.assertSuccess("getObject result", result);
+		assertSuccess(result);
 
         IntegrationTestTools.displayXml("Initialized dummy resource", resource);
 	}
@@ -769,11 +831,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_RED_OID, null , task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
         assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
@@ -812,13 +874,12 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, options , task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess("getObject result", result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
         display("Resource", resource);
         IntegrationTestTools.displayXml("Initialized dummy resource", resource);
@@ -847,13 +908,12 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null , task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
 
@@ -1044,13 +1104,12 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null , task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
 

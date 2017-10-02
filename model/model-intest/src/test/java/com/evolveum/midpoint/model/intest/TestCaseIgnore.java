@@ -111,7 +111,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME="test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         assertShadows(5);
 	}
@@ -119,7 +119,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test131ModifyUserJackAssignAccount() throws Exception {
 		final String TEST_NAME="test131ModifyUserJackAssignAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCaseIgnore.class.getName() + "." + TEST_NAME);
@@ -132,7 +132,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+       displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
@@ -174,7 +174,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test133SeachAccountShadows() throws Exception {
 		final String TEST_NAME="test133SeachAccountShadows";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCaseIgnore.class.getName() + "." + TEST_NAME);
@@ -186,7 +186,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+       displayWhen(TEST_NAME);
         SearchResultList<PrismObject<ShadowType>> foundShadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
 		// THEN
@@ -228,7 +228,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test139ModifyUserJackUnassignAccount() throws Exception {
 		final String TEST_NAME = "test139ModifyUserJackUnassignAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCaseIgnore.class.getName() + "." + TEST_NAME);
@@ -268,7 +268,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test150JackAssignRoleX() throws Exception {
 		final String TEST_NAME = "test150JackAssignRoleX";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -280,7 +280,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         assignRole(USER_JACK_OID, ROLE_X_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+       displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -315,7 +315,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test152GetJack() throws Exception {
 		final String TEST_NAME = "test152GetJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -324,7 +324,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+       displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -357,7 +357,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test159JackUnAssignRoleX() throws Exception {
 		final String TEST_NAME = "test159JackUnAssignRoleX";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -369,7 +369,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         unassignRole(USER_JACK_OID, ROLE_X_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+       displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -389,7 +389,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test160JackAssignRoleBasic() throws Exception {
 		final String TEST_NAME = "test160JackAssignRoleBasic";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -398,11 +398,11 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         display("User jack before", userBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+       displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_UPCASE_BASIC_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+       displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -438,7 +438,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test161JackAssignRoleJoker() throws Exception {
 		final String TEST_NAME = "test161JackAssignRoleJoker";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -447,11 +447,11 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         display("User jack before", userBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+       displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_JOKER_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+       displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -491,7 +491,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test165JackUnAssignRoleJoker() throws Exception {
 		final String TEST_NAME = "test165JackUnAssignRoleJoker";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -500,11 +500,11 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         display("User jack before", userBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+       displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_JOKER_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+       displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -540,7 +540,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test169JackUnAssignRoleBasic() throws Exception {
 		final String TEST_NAME = "test169JackUnAssignRoleBasic";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -549,11 +549,11 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         display("User jack before", userBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+       displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_UPCASE_BASIC_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+       displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -575,7 +575,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test170JackAssignRoleJoker() throws Exception {
 		final String TEST_NAME = "test170JackAssignRoleJoker";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -584,13 +584,12 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         display("User jack before", userBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_JOKER_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         // Make sure this is repository so we do not destroy the "evidence" yet.
         PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
@@ -624,7 +623,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test179JackUnAssignRoleJoker() throws Exception {
 		final String TEST_NAME = "test179JackUnAssignRoleJoker";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -633,13 +632,12 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         display("User jack before", userBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_JOKER_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         // Make sure this is repository so we do not destroy the "evidence" yet.
         PrismObject<UserType> userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
@@ -668,7 +666,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test200GuybrushAssignRoleFools() throws Exception {
 		final String TEST_NAME = "test200GuybrushAssignRoleFools";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -689,13 +687,12 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 		assertShadows(4);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         assignRole(USER_GUYBRUSH_OID, ROLE_FOOL_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertShadows(6);
 
