@@ -62,6 +62,10 @@
             <artifactId>wss4j-ws-security-common</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.apache.wss4j</groupId>
+            <artifactId>wss4j-ws-security-dom</artifactId>
+        </dependency>
+        <dependency>
         	<!-- NOT needed specifically for this module. But it will be needed for any
         	     dependent module that generates the classes. -->
             <groupId>org.apache.cxf.xjc-utils</groupId>

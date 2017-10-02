@@ -185,6 +185,10 @@
 			<groupId>org.jetbrains</groupId>
 			<artifactId>annotations-java5</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+        </dependency>
 
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
