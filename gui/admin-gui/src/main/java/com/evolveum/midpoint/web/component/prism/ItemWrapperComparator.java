@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
@@ -38,8 +40,20 @@ public class ItemWrapperComparator implements Comparator<ItemWrapper>, Serializa
         if (isMainContainer(p2)) {
             return 1;
         }
-
-        Integer index1 = def1.getDisplayOrder();
+        
+        if (def1 instanceof PrismContainerDefinition) {
+        	return 1;
+        }
+        
+        if (def1 instanceof PrismContainerDefinition) {
+        	return 1;
+        }
+        
+        Integer index1 = null;
+        if (def1 != null) {
+        	index1 = def1.getDisplayOrder();
+        } 
+        
         Integer index2 = def2.getDisplayOrder();
         if (index1 != null && index2 != null) {
             return index1 - index2;
@@ -47,6 +61,8 @@ public class ItemWrapperComparator implements Comparator<ItemWrapper>, Serializa
             return -1;
         } else if (index1 == null && index2 != null) {
             return 1;
+        } else if (index1 == index2) {
+        	return 0;
         }
 
         return String.CASE_INSENSITIVE_ORDER.compare(getDisplayName(def1), getDisplayName(def2));

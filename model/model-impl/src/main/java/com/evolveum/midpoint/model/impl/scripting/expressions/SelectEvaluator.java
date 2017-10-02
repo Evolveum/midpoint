@@ -47,7 +47,7 @@ public class SelectEvaluator extends BaseExpressionEvaluator {
 				if (o instanceof Item) {
 					List<? extends PrismValue> values = ((Item<? extends PrismValue, ?>) o).getValues();
 					values.forEach((v) ->
-							output.addValue(v, item.getResult().clone()));        // clone to avoid aggregating subresults into unrelated results
+							output.addValue(v, item.getResult().clone(), item.getVariables()));        // clone to avoid aggregating subresults into unrelated results
 				} else {
 					throw new ScriptExecutionException(
 							"In 'select' commands, only property/container/reference selection is supported for now. Select on '"

@@ -20,6 +20,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -41,17 +43,17 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 
 	private static final long serialVersionUID = 1L;
 
-	public GdprAssignmentPanel(String id, IModel<List<AssignmentDto>> assignmentsModel) {
-		super(id, assignmentsModel);
+	public GdprAssignmentPanel(String id, IModel<List<ContainerValueWrapper<AssignmentType>>> assignmentsModel, ContainerWrapper assignmentContainerWrapper) {
+		super(id, assignmentsModel, assignmentContainerWrapper);
 	}
 
 
 	@Override
-	protected List<IColumn<AssignmentDto, String>> initColumns() {
-		List<IColumn<AssignmentDto, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<>(createStringResource("AssignmentType.lifecycleState"), AssignmentDto.F_VALUE + "." + AssignmentType.F_LIFECYCLE_STATE.getLocalPart()));
+	protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
+		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
+		columns.add(new PropertyColumn<>(createStringResource("AssignmentType.lifecycleState"), AssignmentType.F_LIFECYCLE_STATE.getLocalPart()));
 
-		columns.add(new CheckBoxColumn<AssignmentDto>(createStringResource("AssignmnetType.accepted")) {
+		columns.add(new CheckBoxColumn<ContainerValueWrapper<AssignmentType>>(createStringResource("AssignmnetType.accepted")) {
 
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -60,15 +62,14 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 			}
 
 			@Override
-			protected IModel<Boolean> getCheckBoxValueModel(IModel<AssignmentDto> rowModel) {
+			protected IModel<Boolean> getCheckBoxValueModel(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
 				return new AbstractReadOnlyModel<Boolean>() {
 
 					private static final long serialVersionUID = 1L;
 
 					@Override
 					public Boolean getObject() {
-						AssignmentDto assignmentDto = rowModel.getObject();
-						AssignmentType assignmentType = assignmentDto.getAssignment();
+						AssignmentType assignmentType = rowModel.getObject().getContainerValue().getValue();
 						if (assignmentType.getLifecycleState() == null) {
 							return Boolean.FALSE;
 						}

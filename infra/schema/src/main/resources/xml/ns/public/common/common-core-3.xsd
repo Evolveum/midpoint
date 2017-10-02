@@ -256,6 +256,7 @@
 	        			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
 	        			<a:displayName>OrgType.parentOrganization</a:displayName>
                     	<a:displayOrder>240</a:displayOrder>
+                    	<a:operational/>
 	        		</xsd:appinfo>
 	            </xsd:annotation>
 	        </xsd:element>
@@ -362,8 +363,50 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-                        
-        </xsd:sequence>
+
+			<xsd:element name="policySituation" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						The policy situation(s) of this object. The situations are result of
+						evaluation of the policy rules. This property is recorded for each object
+						and can be used for reporting, diagnostics, target selection in certification
+						campaigns, etc.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.5</a:since>
+						<a:operational>true</a:operational>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+
+			<xsd:element name="triggeredPolicyRule" type="tns:EvaluatedPolicyRuleType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Triggered policy rules for this assignment. (Not necessarily complete; subject to specified storage strategy.)
+						This is EXPERIMENTAL functionality. It is possibly to change in the near future.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+						<a:operational>true</a:operational>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+
+			<xsd:element name="policyException" type="tns:PolicyExceptionType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Recorded exception from a policy rule. The exceptions that are approved are
+						recoded here to avoid re-evaluating and re-approving them all the time.
+						This is EXPERIMENTAL functionality. It is likely to change in the near future.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.5</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+
+		</xsd:sequence>
                
         <xsd:attribute name="oid" type="xsd:string" use="optional">
             <xsd:annotation>
@@ -880,6 +923,30 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
+    		<xsd:element name="lastProvisioningTimestamp" type="xsd:dateTime" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					<p>
+    						The timestamp last provisioning operation that was based on this object.
+    						E.g. the timestamp of last modificaiton od any account based on the
+    						data from the user. This valus is only updated if there was any
+    						real change in the resource.
+    					</p>
+    					<p>
+    						This meta-datum is used as an informational property that tells when
+    						the data were last synchronized in outbound direction. But it has another
+    						imporatant role. It is used indirectly to trigger optimistic locking
+    						conflicts that are used to detect a "clean" recompute (i.e. recompute
+    						that is processing data without any outside interaction).
+    					</p>
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    					<a:since>3.6.1</a:since>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		
             <!-- The following certification-related items might be enabled in the future.
 
             <xsd:element name="certificationStartedTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -1728,6 +1795,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="secondaryGroup" type="tns:TaskExecutionGroupConstraintType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="allowedNode" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -1762,6 +1836,37 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+
+	<xsd:complexType name="TaskExecutionGroupConstraintType">  <!-- TODO type name -->
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				EXPERIMENTAL.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.7</a:since>
+				<a:container>true</a:container>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="group" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="groupTaskLimit" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of tasks within the group that can be executed at once (clusterwide). Default is "unlimited".
+						This parameter will be moved into separate task group object in a later version of midPoint.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
 	<xsd:complexType name="OperationStatsType">
         <xsd:annotation>
             <xsd:documentation>
@@ -2399,22 +2504,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     
-                    <xsd:element name="policySituation" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
-		                <xsd:annotation>
-		                    <xsd:documentation>
-		                        The policy situation(s) of this object. The situations are result of
-		                        evaluation of the policy rules. This property is recorded for each object
-		                        and can be used for reporting, diagnostics, target selection in certification
-		                        campaigns, etc.
-		                    </xsd:documentation>
-		                    <xsd:appinfo>
-		                    	<a:since>3.5</a:since>
-								<a:operational>true</a:operational>
-		                    </xsd:appinfo>
-		                </xsd:annotation>
-		            </xsd:element>
-
-                </xsd:sequence>
+				</xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -3492,12 +3582,25 @@
             <xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-						Fired policy rule triggers for this assignment. (Some fields of the triggers might be zeroed out
-						in order to save space. This is yet to be decided.)
-						This is EXPERIMENTAL functionality. It is likely to change in the near future.
+						DEPRECATED. DO NOT USE.
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:since>3.6</a:since>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>3.7</a:deprecatedSince>
+						<a:operational>true</a:operational>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="triggeredPolicyRule" type="tns:EvaluatedPolicyRuleType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+						Triggered policy rules for this assignment. (Not necessarily complete; subject to specified storage strategy.)
+						This is EXPERIMENTAL functionality. It is possibly to change in the near future.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>3.7</a:since>
 						<a:operational>true</a:operational>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -10667,6 +10770,12 @@
     <xsd:element name="passwordLifeTime" type="tns:PasswordLifeTimeType"/>
 
     <xsd:complexType name="StringPolicyType">
+    	 <xsd:annotation>
+            <xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+        </xsd:annotation>
+    
         <xsd:sequence>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="limitations" type="tns:LimitationsType" minOccurs="0" maxOccurs="1"/>
@@ -11778,6 +11887,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6.1</a:since>
+						<a:experimental>true</a:experimental>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -11792,6 +11902,7 @@
 			<xsd:appinfo>
 				<a:container/>
 				<a:since>3.6.1</a:since>
+				<a:experimental>true</a:experimental>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -11830,6 +11941,7 @@
 			<xsd:appinfo>
 				<jaxb:typesafeEnumClass/>
 				<a:since>3.6.1</a:since>
+				<a:experimental>true</a:experimental>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
@@ -11853,6 +11965,28 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
+			<xsd:enumeration value="error">
+				<xsd:annotation>
+					<xsd:documentation>
+						Operation should be end with an error. 
+						This is a recoverable error (precondition failed).
+						TODO: align with "fail"
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ERROR"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="restart">
+				<xsd:annotation>
+					<xsd:documentation>
+						Operation should be restarted.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="RESTART"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
 			<xsd:enumeration value="recompute">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -11863,11 +11997,23 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
+			<xsd:enumeration value="reconcile">
+				<xsd:annotation>
+					<xsd:documentation>
+						The focus object should be recomputed and all projections reconciled.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="RECONCILE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
 			<xsd:enumeration value="fail">
 				<xsd:annotation>
 					<xsd:documentation>
 						The whole operation should fail. This is to be used mainly for testing purposes,
 						to check if conflict detection algorithm does not yield false positive results.
+						This fails with a system error. This is a definitive, non-recoverable fauilure.
+						TODO: align with "error"
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="FAIL"/>
@@ -14306,6 +14452,21 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="focusConflictResolution" type="tns:ConflictResolutionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						A method to resolve conflicts on focus objects. This specifies how will the 
+						processors handle optimistic locking conflicts - and whether they even try
+						to detect them. The default value is null, which means that there is no reaction
+						to conflicts and that the conflicts are not even detected.
+						Note that different default conflict resolution may be specified in system configuration.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6.1</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="modelExecuteOptions" type="tns:ModelExecuteOptionsType"/>

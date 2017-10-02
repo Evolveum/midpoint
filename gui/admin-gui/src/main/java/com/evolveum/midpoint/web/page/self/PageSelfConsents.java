@@ -69,7 +69,7 @@ public class PageSelfConsents extends PageBase{
 
 	private static final long serialVersionUID = 1L;
 
-	private LoadableModel<List<AssignmentDto>> consentModel;
+	private LoadableModel<List<AssignmentType>> consentModel;
 	private static final String DOT_CLASS = PageSelfConsents.class.getSimpleName() + ".";
 	private static final String OPERATION_LOAD_USER =  DOT_CLASS + "loadUserSelf";
 
@@ -77,12 +77,12 @@ public class PageSelfConsents extends PageBase{
 
 	public PageSelfConsents() {
 
-		consentModel = new LoadableModel<List<AssignmentDto>>() {
+		consentModel = new LoadableModel<List<AssignmentType>>() {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected List<AssignmentDto> load() {
+			protected List<AssignmentType> load() {
 				MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
 
 				if (principal == null) {
@@ -100,7 +100,8 @@ public class PageSelfConsents extends PageBase{
 				Collection<AssignmentType> assignments = assignmentContainer.getRealValues();
 				return assignments.stream()
 						.filter(a -> a.getTargetRef()!= null && QNameUtil.match(a.getTargetRef().getRelation(), SchemaConstants.ORG_CONSENT))
-						.map(a -> new AssignmentDto(a, UserDtoStatus.MODIFY))
+//TODO set status
+// .map(a -> new AssignmentDto(a, UserDtoStatus.MODIFY))
 						.collect(Collectors.toList());
 			}
 		};
@@ -112,8 +113,8 @@ public class PageSelfConsents extends PageBase{
 
 		RepeatingView consents = new RepeatingView(ID_CONSENTS);
 		consents.setOutputMarkupId(true);
-		for (AssignmentDto assignmentDto : consentModel.getObject()) {
-			SelfConsentPanel consentPanel = new SelfConsentPanel(consents.newChildId(), Model.of(assignmentDto), this);
+		for (AssignmentType assignmentType : consentModel.getObject()) {
+			SelfConsentPanel consentPanel = new SelfConsentPanel(consents.newChildId(), Model.of(assignmentType), this);
 			consentPanel.setOutputMarkupId(true);
 			consents.add(consentPanel);
 		}

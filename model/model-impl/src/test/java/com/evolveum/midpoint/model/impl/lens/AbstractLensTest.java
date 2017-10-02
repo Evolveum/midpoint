@@ -92,14 +92,14 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
             "user-barbossa-modify-delete-assignment-account-dummy-attr.xml");
 
 	protected static final File ROLE_PIRATE_FILE = new File(TEST_DIR, "role-pirate.xml");
-	protected static final File ROLE_PIRATE_SITUATION_ONLY_FILE = new File(TEST_DIR, "role-pirate-situation-only.xml");
+	protected static final File ROLE_PIRATE_RECORD_ONLY_FILE = new File(TEST_DIR, "role-pirate-record-only.xml");
 	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
 
 	protected static final File ROLE_MUTINIER_FILE = new File(TEST_DIR, "role-mutinier.xml");
 	protected static final String ROLE_MUTINIER_OID = "12345678-d34d-b33f-f00d-555555556668";
 
 	protected static final File ROLE_JUDGE_FILE = new File(TEST_DIR, "role-judge.xml");
-	protected static final File ROLE_JUDGE_SITUATION_ONLY_FILE = new File(TEST_DIR, "role-judge-situation-only.xml");
+	protected static final File ROLE_JUDGE_RECORD_ONLY_FILE = new File(TEST_DIR, "role-judge-record-only.xml");
 	protected static final String ROLE_JUDGE_OID = "12345111-1111-2222-1111-121212111111";
 
 	protected static final File ROLE_CONSTABLE_FILE = new File(TEST_DIR, "role-constable.xml");

@@ -44,6 +44,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
+import static com.evolveum.midpoint.prism.delta.PlusMinusZero.MINUS;
+import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
+import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
 
 /**
  * Evaluated assignment that contains all constructions and authorizations from the assignment
@@ -512,9 +515,9 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	public String toHumanReadableString() {
 		if (target != null) {
 			return "EvaluatedAssignment(" + target + ")";
-		} else if (constructionTriple != null && !constructionTriple.isEmpty()) {
+		} else if (!constructionTriple.isEmpty()) {
 			return "EvaluatedAssignment(" + constructionTriple + ")";
-		} else if (personaConstructionTriple != null && !personaConstructionTriple.isEmpty()) {
+		} else if (!personaConstructionTriple.isEmpty()) {
 			return "EvaluatedAssignment(" + personaConstructionTriple + ")";
 		} else {
 			return toString();
@@ -526,5 +529,19 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		rv.addAll(roles.getZeroSet());
 		rv.addAll(roles.getPlusSet());
 		return rv;
+	}
+
+	/**
+	 * @return mode (adding, deleting, keeping) with respect to the *current* object (not the old one)
+	 */
+	@NotNull
+	public PlusMinusZero getMode() {
+		if (assignmentIdi.getItemNew() == null || assignmentIdi.getItemNew().isEmpty()) {
+			return MINUS;
+		} else if (presentInCurrentObject) {
+			return ZERO;
+		} else {
+			return PLUS;
+		}
 	}
 }

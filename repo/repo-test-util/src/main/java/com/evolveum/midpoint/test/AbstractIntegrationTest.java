@@ -971,6 +971,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected void assertSteadyResources() {
+		assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 0);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
@@ -979,6 +980,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected void rememberSteadyResources() {
+		rememberCounter(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT);
 		rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
 		rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
@@ -1558,13 +1560,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
 		assertNotNull("No metadata in " + message, metadataType);
 		if (create) {
-			TestUtil.assertBetween("Wrong create timestamp in " + message, start, end, metadataType.getCreateTimestamp());
+			assertBetween("Wrong create timestamp in " + message, start, end, metadataType.getCreateTimestamp());
 			if (actorOid != null) {
 				ObjectReferenceType creatorRef = metadataType.getCreatorRef();
 				assertNotNull("No creatorRef in " + message, creatorRef);
 				assertEquals("Wrong creatorRef OID in " + message, actorOid, creatorRef.getOid());
 				if (assertRequest) {
-					TestUtil.assertBetween("Wrong request timestamp in " + message, start, end, metadataType.getRequestTimestamp());
+					assertBetween("Wrong request timestamp in " + message, start, end, metadataType.getRequestTimestamp());
 					ObjectReferenceType requestorRef = metadataType.getRequestorRef();
 					assertNotNull("No requestorRef in " + message, requestorRef);
 					assertEquals("Wrong requestorRef OID in " + message, actorOid, requestorRef.getOid());
@@ -1577,7 +1579,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				assertNotNull("No modifierRef in " + message, modifierRef);
 				assertEquals("Wrong modifierRef OID in " + message, actorOid, modifierRef.getOid());
 			}
-			TestUtil.assertBetween("Wrong password modify timestamp in " + message, start, end, metadataType.getModifyTimestamp());
+			assertBetween("Wrong password modify timestamp in " + message, start, end, metadataType.getModifyTimestamp());
 			assertEquals("Wrong modification channel in " + message, channel, metadataType.getModifyChannel());
 		}
 	}
@@ -1592,6 +1594,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertNotNull("No metadata in shadow "+shadow, metadata);
 		assertMetadata("Password metadata in "+shadow, metadata, passwordCreated, false, startCal, endCal, actorOid, channel);
 	}
+	
+	protected <O extends ObjectType> void assertLastProvisioningTimestamp(PrismObject<O> object,
+			XMLGregorianCalendar start, XMLGregorianCalendar end) {
+		MetadataType metadata = object.asObjectable().getMetadata();
+		assertNotNull("No metadata in " + object);
+		assertBetween("Wrong last provisioning timestamp in " + object, start, end, metadata.getLastProvisioningTimestamp());
+	}
 
 	// Convenience
 
@@ -1602,7 +1611,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void displayTestTitle(String testName) {
 		TestUtil.displayTestTitle(this, testName);
 	}
-
+	
 	protected void displayWhen(String testName) {
 		TestUtil.displayWhen(testName);
 	}
@@ -1613,6 +1622,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected void displayCleanup(String testName) {
 		TestUtil.displayCleanup(testName);
+	}
+
+	protected void displaySkip(String testName) {
+		TestUtil.displaySkip(testName);
 	}
 
 	protected void display(String str) {
@@ -1699,6 +1712,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		IntegrationTestTools.displayObjectTypeCollection(message, collection);
 	}
 
+	protected void assertBetween(String message, XMLGregorianCalendar start, XMLGregorianCalendar end,
+			XMLGregorianCalendar actual) {
+		TestUtil.assertBetween(message, start, end, actual);
+	}
+	
+	protected void assertBetween(String message, Long start, Long end,
+			Long actual) {
+		TestUtil.assertBetween(message, start, end, actual);
+	}
 
 	protected Task createTask(String operationName) {
 		if (!operationName.contains(".")) {

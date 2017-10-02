@@ -32,14 +32,16 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.quartz.*;
+import org.springframework.security.core.Authentication;
 
 import javax.xml.datatype.Duration;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @DisallowConcurrentExecution
 public class JobExecutor implements InterruptableJob {
@@ -59,6 +61,8 @@ public class JobExecutor implements InterruptableJob {
     private static final long WATCHFUL_SLEEP_INCREMENT = 500;
 
     private static final int DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT = 60;
+    private static final int RESCHEDULE_TIME_RANDOMIZATION_INTERVAL = 3;
+    private static final int RESCHEDULE_TIME_FOR_NO_SUITABLE_NODE = 60;
 
 	/*
 	 * JobExecutor is instantiated at each execution of the task, so we can store
@@ -165,6 +169,8 @@ public class JobExecutor implements InterruptableJob {
 			// Setup Spring Security context
 			PrismObject<UserType> taskOwner = task.getOwner();
 			try {
+				// just to be sure we won't run the owner-setting login with any garbage security context (see MID-4160)
+				taskManagerImpl.getSecurityEnforcer().setupPreAuthenticatedSecurityContext((Authentication) null);
 				taskManagerImpl.getSecurityEnforcer().setupPreAuthenticatedSecurityContext(taskOwner);
 			} catch (SchemaException e) {
 	            LoggingUtils.logUnexpectedException(LOGGER, "Task with OID {} cannot be executed: error setting security context", e, oid);
@@ -182,19 +188,46 @@ public class JobExecutor implements InterruptableJob {
 			}
 
 		} finally {
-            waitForTransientChildrenAndCloseThem(executionResult);              // this is only a safety net; because we've waited for children just after executing a handler
 
-            taskManagerImpl.unregisterRunningTask(task);
-            executingThread = null;
+			try {
+				waitForTransientChildrenAndCloseThem(executionResult);              // this is only a safety net; because we've waited for children just after executing a handler
 
-            if (!task.canRun()) {
-                processTaskStop(executionResult);
-            }
+				taskManagerImpl.unregisterRunningTask(task);
+				executingThread = null;
 
-			logThreadRunFinish(handler);
-            taskManagerImpl.notifyTaskThreadFinish(task);
+				if (!task.canRun()) {
+					processTaskStop(executionResult);
+				}
+
+				logThreadRunFinish(handler);
+				taskManagerImpl.notifyTaskThreadFinish(task);
+			} finally {
+				// "logout" this thread
+				taskManagerImpl.getSecurityEnforcer().setupPreAuthenticatedSecurityContext((Authentication) null);
+			}
 		}
 
+	}
+
+	class GroupExecInfo {
+		int limit;
+		Set<Task> tasks = new HashSet<>();
+
+		GroupExecInfo(Integer l) {
+			limit = l != null ? l : Integer.MAX_VALUE;
+		}
+
+		public void accept(Integer limit, Task task) {
+			if (limit != null && limit < this.limit) {
+				this.limit = limit;
+			}
+			this.tasks.add(task);
+		}
+
+		@Override
+		public String toString() {
+			return "{limit=" + limit + ", tasks=" + tasks + "}";
+		}
 	}
 
 	// returns false if constraints are not met (i.e. execution should finish immediately)
@@ -204,30 +237,13 @@ public class JobExecutor implements InterruptableJob {
 			return true;
 		}
 
-		// group limit
-		String group = executionConstraints.getGroup();
-		if (group != null && executionConstraints.getGroupTaskLimit() != null) {
-			List<Task> tasksInGroup = new ArrayList<>();
-			ClusterStatusInformation clusterStatusInformation = taskManagerImpl.getExecutionManager()
-					.getClusterStatusInformation(true, false, result);
-			for (ClusterStatusInformation.TaskInfo taskInfo : clusterStatusInformation.getTasks()) {
-				Task runningTask;
-				try {
-					runningTask = taskManagerImpl.getTask(taskInfo.getOid(), result);
-				} catch (ObjectNotFoundException e) {
-					LOGGER.debug("Couldn't find running task {} when checking execution constraints: {}", taskInfo.getOid(), e.getMessage());
-					continue;
-				} catch (SchemaException e) {
-					LoggingUtils.logUnexpectedException(LOGGER,
-							"Couldn't retrieve running task {} when checking execution constraints", e, taskInfo.getOid());
-					continue;
-				}
-				if (group.equals(runningTask.getGroup()) && !task.getOid().equals(runningTask.getOid())) {
-					tasksInGroup.add(runningTask);
-				}
-			}
-			int limit = executionConstraints.getGroupTaskLimit();
-			LOGGER.trace("Tasks in group {}: {}", group, tasksInGroup);
+		// group limits
+		Map<String, GroupExecInfo> groupMap = createGroupMap(task, result);
+		LOGGER.trace("groupMap = {}", groupMap);
+		for (Map.Entry<String, GroupExecInfo> entry : groupMap.entrySet()) {
+			String group = entry.getKey();
+			int limit = entry.getValue().limit;
+			Set<Task> tasksInGroup = entry.getValue().tasks;
 			if (tasksInGroup.size() >= limit) {
 				RescheduleTime rescheduleTime = getRescheduleTime(executionConstraints,
 						DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT, task.getNextRunStartTime(result));
@@ -248,6 +264,47 @@ public class JobExecutor implements InterruptableJob {
 			LOGGER.warn("Items allowedNodes and disallowedNodes in task/executionConstraints are no longer supported and are ignored. Please use node/taskExecutionLimitations instead. Task: {}", task);
 		}
 		return true;
+	}
+
+	@NotNull
+	private Map<String, GroupExecInfo> createGroupMap(TaskQuartzImpl task, OperationResult result) {
+		Map<String, GroupExecInfo> groupMap = new HashMap<>();
+		Map<String, Integer> groupsWithLimits = task.getGroupsWithLimits();
+		if (!groupsWithLimits.isEmpty()) {
+			groupsWithLimits.forEach((g, l) -> groupMap.put(g, new GroupExecInfo(l)));
+			ClusterStatusInformation csi = taskManagerImpl.getExecutionManager()
+					.getClusterStatusInformation(true, false, result);
+			for (ClusterStatusInformation.TaskInfo taskInfo : csi.getTasks()) {
+				if (task.getOid().equals(taskInfo.getOid())) {
+					continue;
+				}
+				Task otherTask;
+				try {
+					otherTask = taskManagerImpl.getTask(taskInfo.getOid(), result);
+				} catch (ObjectNotFoundException e) {
+					LOGGER.debug("Couldn't find running task {} when checking execution constraints: {}", taskInfo.getOid(),
+							e.getMessage());
+					continue;
+				} catch (SchemaException e) {
+					LoggingUtils.logUnexpectedException(LOGGER,
+							"Couldn't retrieve running task {} when checking execution constraints", e, taskInfo.getOid());
+					continue;
+				}
+				addToGroupMap(groupMap, otherTask);
+			}
+		}
+		return groupMap;
+	}
+
+	private void addToGroupMap(Map<String, GroupExecInfo> groupMap, Task otherTask) {
+		for (Map.Entry<String, Integer> otherGroupWithLimit : otherTask.getGroupsWithLimits().entrySet()) {
+			String otherGroup = otherGroupWithLimit.getKey();
+			GroupExecInfo groupExecInfo = groupMap.get(otherGroup);
+			if (groupExecInfo != null) {
+				Integer otherLimit = otherGroupWithLimit.getValue();
+				groupExecInfo.accept(otherLimit, otherTask);
+			}
+		}
 	}
 
 	private class RescheduleTime {
@@ -272,6 +329,7 @@ public class JobExecutor implements InterruptableJob {
 		} else {
 			retryAt = System.currentTimeMillis() + defaultInterval * 1000L;
 		}
+		retryAt += Math.random() * RESCHEDULE_TIME_RANDOMIZATION_INTERVAL * 1000.0;     // to avoid endless collisions
 		if (nextTaskRunTime != null && nextTaskRunTime < retryAt) {
 			return new RescheduleTime(nextTaskRunTime, true);
 		} else {

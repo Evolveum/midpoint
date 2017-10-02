@@ -171,6 +171,8 @@ public class AccCertCaseOperationsHelper {
             throw new IllegalStateException("Object class not found for object type " + objectType + " in campaign " + campaignShortName);
         }
 
+        // TODO derive search filter from certification handler (e.g. select only objects having assignments with the proper policySituation)
+	    // It is only an optimization but potentially a very strong one. Workaround: enter query filter manually into scope definition.
         final SearchFilterType searchFilter = objectBasedScope != null ? objectBasedScope.getSearchFilter() : null;
         if (searchFilter != null) {
             ObjectFilter filter = QueryConvertor.parseFilter(searchFilter, objectClass, prismContext);

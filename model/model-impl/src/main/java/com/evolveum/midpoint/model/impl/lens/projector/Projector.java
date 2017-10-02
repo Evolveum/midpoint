@@ -36,6 +36,7 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -109,7 +110,7 @@ public class Projector {
 	public <F extends ObjectType> void project(LensContext<F> context, String activityDescription,
 											   Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
 		projectInternal(context, activityDescription, true, false, task, parentResult);
 	}
 
@@ -119,7 +120,7 @@ public class Projector {
 	public <F extends ObjectType> void resume(LensContext<F> context, String activityDescription,
 											   Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
 
 		if (context.getProjectionWave() != context.getExecutionWave()) {
 			throw new IllegalStateException("Projector.resume called in illegal wave state: execution wave = " + context.getExecutionWave() +
@@ -139,14 +140,14 @@ public class Projector {
 	public <F extends ObjectType> void projectAllWaves(LensContext<F> context, String activityDescription,
 			Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
 		projectInternal(context, activityDescription, true, true, task, parentResult);
 	}
 
 	private <F extends ObjectType> void projectInternal(LensContext<F> context, String activityDescription,
             boolean fromStart, boolean allWaves, Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
 
         context.checkAbortRequested();
 
@@ -290,7 +291,7 @@ public class Projector {
 	        computeResultStatus(now, result);
 
 		} catch (SchemaException | PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException |
-				ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+				ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | PreconditionViolationException e) {
 			recordFatalError(e, now, result);
 			throw e;
 		} catch (RuntimeException e) {
@@ -310,7 +311,9 @@ public class Projector {
 
 	private <F extends ObjectType> void projectProjection(LensContext<F> context, LensProjectionContext projectionContext,
 			PartialProcessingOptionsType partialProcessingOptions,
-			XMLGregorianCalendar now, String activityDescription, Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+			XMLGregorianCalendar now, String activityDescription, Task task, OperationResult parentResult) 
+					throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, 
+					SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
 
 		if (projectionContext.getWave() != context.getProjectionWave()) {
     		// Let's skip accounts that do not belong into this wave.
@@ -364,6 +367,10 @@ public class Projector {
 					},
 					partialProcessingOptions::getProjectionValues);
 	
+	    	if (projectionContext.isThombstone()) {
+	    		result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is a thombstone");
+				return;
+	    	}
 	
 	    	LensUtil.partialExecute("projectionCredentials",
 					() -> {

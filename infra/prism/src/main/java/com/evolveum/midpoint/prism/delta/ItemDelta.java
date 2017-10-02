@@ -1293,7 +1293,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 			delta.applyTo(propertyContainerValue);
 		}
 	}
-
+	
 	public static void applyToMatchingPath(Collection<? extends ItemDelta> deltas, PrismContainer propertyContainer)
 			throws SchemaException {
 		for (ItemDelta delta : deltas) {
@@ -1499,6 +1499,12 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	}
 
 	public abstract ItemDelta<V,D> clone();
+
+	public ItemDelta<V,D> cloneWithChangedParentPath(ItemPath newParentPath) {
+		ItemDelta<V,D> clone = clone();
+		clone.setParentPath(newParentPath);
+		return clone;
+	}
 
 	protected void copyValues(ItemDelta<V,D> clone) {
 		clone.definition = this.definition;

@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.util.xml;
 
-import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import org.jvnet.jaxb2_commons.lang.JAXBEqualsStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 import org.w3c.dom.Element;
@@ -31,23 +31,48 @@ import com.evolveum.midpoint.util.DOMUtil;
  */
 public class DomAwareEqualsStrategy extends JAXBEqualsStrategy {
 
-	public static EqualsStrategy INSTANCE = new DomAwareEqualsStrategy();
+	public static DomAwareEqualsStrategy INSTANCE = new DomAwareEqualsStrategy();
+
+	private static final boolean ENABLE_BRUTAL_DEBUGGING = false;       // keep false to avoid unnecessary code execution
+	private boolean traceAll = false;
+	private boolean traceNotEqual = false;
+
+	public boolean isTraceAll() {
+		return traceAll;
+	}
+
+	public void setTraceAll(boolean traceAll) {
+		this.traceAll = traceAll;
+	}
+
+	public boolean isTraceNotEqual() {
+		return traceNotEqual;
+	}
+
+	public void setTraceNotEqual(boolean traceNotEqual) {
+		this.traceNotEqual = traceNotEqual;
+	}
 
 	@Override
 	protected boolean equalsInternal(ObjectLocator leftLocator,
 			ObjectLocator rightLocator, Object lhs, Object rhs) {
-//		System.out.println("DomAwareEqualsStrategy: "+PrettyPrinter.prettyPrint(lhs)+"<=>"+PrettyPrinter.prettyPrint(rhs));
+		if (ENABLE_BRUTAL_DEBUGGING && traceAll) {
+			System.out.println("DomAwareEqualsStrategy: "+ PrettyPrinter.prettyPrint(lhs)+"<=>"+PrettyPrinter.prettyPrint(rhs));
+		}
+		boolean result;
 		if (lhs instanceof String && rhs instanceof String) {
-			return DOMUtil.compareTextNodeValues((String)lhs, (String)rhs);
+			result = DOMUtil.compareTextNodeValues((String)lhs, (String)rhs);
 		} else if (lhs instanceof Element && rhs instanceof Element) {
 			final Element left = (Element) lhs;
 			final Element right = (Element) rhs;
-			boolean result = DOMUtil.compareElement(left, right, false);
-//			System.out.println("cmp: "+PrettyPrinter.prettyPrint(left)+"<=>"+PrettyPrinter.prettyPrint(right)+": "+result);
-			return result;
+			result = DOMUtil.compareElement(left, right, false);
 		} else {
-			return super.equalsInternal(leftLocator, rightLocator, lhs, rhs);
+			result = super.equalsInternal(leftLocator, rightLocator, lhs, rhs);
 		}
+		if (ENABLE_BRUTAL_DEBUGGING && (traceAll || traceNotEqual && !result)) {
+			System.out.println("cmp: "+PrettyPrinter.prettyPrint(lhs)+"<=>"+PrettyPrinter.prettyPrint(rhs)+": "+result);
+		}
+		return result;
 	}
 
 }

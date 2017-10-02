@@ -23,8 +23,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.util.Map;
 
 /**
  * Interface of the Model subsystem that provides scripting (bulk actions) operations.
@@ -79,7 +81,8 @@ public interface ScriptingService {
     ScriptExecutionResult evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result)
 			throws ScriptExecutionException, SchemaException, SecurityViolationException;
 
-	ScriptExecutionResult evaluateExpression(ExecuteScriptType executeScriptCommand, Task task, OperationResult result)
+	ScriptExecutionResult evaluateExpression(@NotNull ExecuteScriptType executeScriptCommand,
+			@NotNull Map<String, Object> initialVariables, @NotNull Task task, @NotNull OperationResult result)
 			throws ScriptExecutionException, SchemaException, SecurityViolationException;
 
 }

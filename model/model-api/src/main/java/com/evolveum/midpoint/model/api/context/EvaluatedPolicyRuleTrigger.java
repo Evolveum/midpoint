@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -131,26 +130,15 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 		return PolicyRuleTypeUtil.toDiagShortcut(constraintKind);
 	}
 
-	public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule,
-			boolean respectFinalFlag) {
+	public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options) {
 		EvaluatedPolicyRuleTriggerType rv = new EvaluatedPolicyRuleTriggerType();
-		fillCommonContent(rv, owningRule);
+		fillCommonContent(rv);
 		return rv;
 	}
 
-	protected void fillCommonContent(EvaluatedPolicyRuleTriggerType tt, EvaluatedPolicyRule owningRule) {
-		tt.setRuleName(owningRule.getName());
+	protected void fillCommonContent(EvaluatedPolicyRuleTriggerType tt) {
 		tt.setConstraintKind(constraintKind);
-		//tt.setConstraint(constraint);
 		tt.setMessage(LocalizationUtil.createLocalizableMessageType(message));
-		if (owningRule.getAssignmentPath() != null) {
-			tt.setAssignmentPath(owningRule.getAssignmentPath().toAssignmentPathType());
-		}
-		ObjectType directOwner = owningRule.getDirectOwner();
-		if (directOwner != null) {
-			tt.setDirectOwnerRef(ObjectTypeUtil.createObjectRef(directOwner));
-			tt.setDirectOwnerDisplayName(ObjectTypeUtil.getDisplayName(directOwner));
-		}
 		PolicyConstraintPresentationType presentation = constraint.getPresentation();
 		if (presentation != null) {
 			tt.setFinal(presentation.isFinal());

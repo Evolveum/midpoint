@@ -68,6 +68,7 @@ public class TextFormatter {
 
     private static final Trace LOGGER = TraceManager.getTrace(TextFormatter.class);
 
+    @SuppressWarnings("unused")
     public String formatObjectModificationDelta(ObjectDelta<? extends Objectable> objectDelta, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         return formatObjectModificationDelta(objectDelta, hiddenPaths, showOperationalAttributes, null, null);
     }
@@ -166,7 +167,7 @@ public class TextFormatter {
     private void formatItemDeltaValues(StringBuilder sb, String type, Collection<? extends PrismValue> values, boolean mightBeRemoved, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         if (values != null) {
             for (PrismValue prismValue : values) {
-                sb.append("   - " + type + ": ");
+                sb.append("   - ").append(type).append(": ");
                 String prefix = "     ";
                 formatPrismValue(sb, prefix, prismValue, mightBeRemoved, hiddenPaths, showOperationalAttributes);
                 if (!(prismValue instanceof PrismContainerValue)) {         // container values already end with newline
@@ -254,15 +255,19 @@ public class TextFormatter {
 
     private void formatPrismContainer(StringBuilder sb, String prefix, Item item, boolean mightBeRemoved, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         for (PrismContainerValue subContainerValue : ((PrismContainer<? extends Containerable>) item).getValues()) {
-            sb.append(prefix);
-            sb.append(" - ");
-            sb.append(getItemLabel(item));
-            if (subContainerValue.getId() != null) {
-                sb.append(" #").append(subContainerValue.getId());
-            }
-            sb.append(":\n");
             String prefixSubContainer = prefix + "   ";
-            formatContainerValue(sb, prefixSubContainer, subContainerValue, mightBeRemoved, hiddenPaths, showOperationalAttributes);
+            StringBuilder valueSb = new StringBuilder();
+            formatContainerValue(valueSb, prefixSubContainer, subContainerValue, mightBeRemoved, hiddenPaths, showOperationalAttributes);
+            if (valueSb.length() > 0) {
+                sb.append(prefix);
+                sb.append(" - ");
+                sb.append(getItemLabel(item));
+                if (subContainerValue.getId() != null) {
+                    sb.append(" #").append(subContainerValue.getId());
+                }
+                sb.append(":\n");
+                sb.append(valueSb.toString());
+            }
         }
     }
 
@@ -274,7 +279,7 @@ public class TextFormatter {
         if (item.size() > 1) {
             for (PrismReferenceValue referenceValue : ((PrismReference) item).getValues()) {
                 sb.append("\n");
-                sb.append(prefix + "   - ");
+                sb.append(prefix).append("   - ");
                 sb.append(formatReferenceValue(referenceValue, mightBeRemoved));
             }
         } else if (item.size() == 1) {
@@ -289,13 +294,13 @@ public class TextFormatter {
         sb.append(getItemLabel(item));
         sb.append(": ");
         if (item.size() > 1) {
-            for (PrismPropertyValue propertyValue : ((PrismProperty<? extends Object>) item).getValues()) {
+            for (PrismPropertyValue propertyValue : ((PrismProperty<?>) item).getValues()) {
                 sb.append("\n");
-                sb.append(prefix + "   - ");
+                sb.append(prefix).append("   - ");
                 sb.append(ValueDisplayUtil.toStringValue(propertyValue));
             }
         } else if (item.size() == 1) {
-            sb.append(ValueDisplayUtil.toStringValue(((PrismProperty<? extends Object>) item).getValue(0)));
+            sb.append(ValueDisplayUtil.toStringValue(((PrismProperty<?>) item).getValue(0)));
         }
         sb.append("\n");
     }
@@ -354,19 +359,12 @@ public class TextFormatter {
             if (!mightBeRemoved) {
                 LoggingUtils.logException(LOGGER, "Couldn't resolve reference when displaying object name within a notification (it might be already removed)", e);
             } else {
+                // ok, accepted
             }
         } catch (SchemaException e) {
             LoggingUtils.logException(LOGGER, "Couldn't resolve reference when displaying object name within a notification", e);
         }
         return null;
-    }
-
-    private String localPartOfType(Item item) {
-        if (item.getDefinition() != null) {
-            return localPart(item.getDefinition().getTypeName());
-        } else {
-            return null;
-        }
     }
 
     private String localPart(QName qname) {
@@ -441,7 +439,7 @@ public class TextFormatter {
     }
 
     private List<ItemDelta> filterAndOrderItemDeltas(ObjectDelta<? extends Objectable> objectDelta, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
-        List<ItemDelta> toBeDisplayed = new ArrayList<ItemDelta>(objectDelta.getModifications().size());
+        List<ItemDelta> toBeDisplayed = new ArrayList<>(objectDelta.getModifications().size());
         List<QName> noDefinition = new ArrayList<>();
         for (ItemDelta itemDelta: objectDelta.getModifications()) {
             if (itemDelta.getDefinition() != null) {
@@ -457,20 +455,17 @@ public class TextFormatter {
 			LOGGER.error("ItemDeltas for {} without definition - WILL NOT BE INCLUDED IN NOTIFICATION. Containing object delta:\n{}",
 					noDefinition, objectDelta.debugDump());
 		}
-        Collections.sort(toBeDisplayed, new Comparator<ItemDelta>() {
-            @Override
-            public int compare(ItemDelta delta1, ItemDelta delta2) {
-                Integer order1 = delta1.getDefinition().getDisplayOrder();
-                Integer order2 = delta2.getDefinition().getDisplayOrder();
-                if (order1 != null && order2 != null) {
-                    return order1 - order2;
-                } else if (order1 == null && order2 == null) {
-                    return 0;
-                } else if (order1 == null) {
-                    return 1;
-                } else {
-                    return -1;
-                }
+        toBeDisplayed.sort((delta1, delta2) -> {
+            Integer order1 = delta1.getDefinition().getDisplayOrder();
+            Integer order2 = delta2.getDefinition().getDisplayOrder();
+            if (order1 != null && order2 != null) {
+                return order1 - order2;
+            } else if (order1 == null && order2 == null) {
+                return 0;
+            } else if (order1 == null) {
+                return 1;
+            } else {
+                return -1;
             }
         });
         return toBeDisplayed;
@@ -486,12 +481,12 @@ public class TextFormatter {
         if (items == null) {
             return new ArrayList<>();
         }
-        List<Item> toBeDisplayed = new ArrayList<Item>(items.size());
+        List<Item> toBeDisplayed = new ArrayList<>(items.size());
         List<QName> noDefinition = new ArrayList<>();
         for (Item item : items) {
             if (item.getDefinition() != null) {
                 boolean isHidden = NotificationFunctionsImpl.isAmongHiddenPaths(item.getPath(), hiddenPaths);
-                if (!isHidden && (showOperationalAttributes || !item.getDefinition().isOperational())) {
+                if (!isHidden && (showOperationalAttributes || !item.getDefinition().isOperational()) && !item.isEmpty()) {
                     toBeDisplayed.add(item);
                 }
             } else {
@@ -502,20 +497,17 @@ public class TextFormatter {
 			LOGGER.error("Items {} without definition - THEY WILL NOT BE INCLUDED IN NOTIFICATION.\nAll items:\n{}",
 					noDefinition, DebugUtil.debugDump(items));
 		}
-        Collections.sort(toBeDisplayed, new Comparator<Item>() {
-            @Override
-            public int compare(Item item1, Item item2) {
-                Integer order1 = item1.getDefinition().getDisplayOrder();
-                Integer order2 = item2.getDefinition().getDisplayOrder();
-                if (order1 != null && order2 != null) {
-                    return order1 - order2;
-                } else if (order1 == null && order2 == null) {
-                    return 0;
-                } else if (order1 == null) {
-                    return 1;
-                } else {
-                    return -1;
-                }
+        toBeDisplayed.sort((item1, item2) -> {
+            Integer order1 = item1.getDefinition().getDisplayOrder();
+            Integer order2 = item2.getDefinition().getDisplayOrder();
+            if (order1 != null && order2 != null) {
+                return order1 - order2;
+            } else if (order1 == null && order2 == null) {
+                return 0;
+            } else if (order1 == null) {
+                return 1;
+            } else {
+                return -1;
             }
         });
         return toBeDisplayed;

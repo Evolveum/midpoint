@@ -20,6 +20,8 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.util.LocalizableMessageModel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -29,6 +31,7 @@ import org.apache.wicket.model.Model;
  */
 public class EvaluatedTriggerPanel extends BasePanel<EvaluatedTriggerDto> {
 
+    private static final String ID_FRAME = "frame";
     private static final String ID_MESSAGE = "message";
     private static final String ID_CHILDREN = "children";
 
@@ -40,12 +43,18 @@ public class EvaluatedTriggerPanel extends BasePanel<EvaluatedTriggerDto> {
 
     protected void initLayout() {
 	    EvaluatedTriggerDto trigger = getModelObject();
-	    add(new Label(ID_MESSAGE,
+	    WebMarkupContainer frame = new WebMarkupContainer(ID_FRAME);
+	    if (trigger.isHighlighted()) {
+		    frame.add(new AttributeAppender("style", "background-color: #fcffd3"));     // TODO skin
+	    }
+	    add(frame);
+
+	    frame.add(new Label(ID_MESSAGE,
 		        new LocalizableMessageModel(Model.of(trigger.getMessage()), this)));
 	    EvaluatedTriggerGroupDto children = trigger.getChildren();
 	    EvaluatedTriggerGroupPanel childrenPanel = new EvaluatedTriggerGroupPanel(ID_CHILDREN, Model.of(children));
 	    childrenPanel.setVisible(!children.getTriggers().isEmpty());
-	    add(childrenPanel);
+	    frame.add(childrenPanel);
     }
 
 }

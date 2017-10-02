@@ -23,6 +23,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author mederly
@@ -31,10 +33,18 @@ public class PipelineItem implements DebugDumpable, Serializable {
 
 	@NotNull private PrismValue value;
 	@NotNull private OperationResult result;
+	// variables here are to be cloned-on-use (if they are not immutable)
+	@NotNull private final Map<String,Object> variables = new HashMap<>();
 
 	public PipelineItem(@NotNull PrismValue value, @NotNull OperationResult result) {
 		this.value = value;
 		this.result = result;
+	}
+
+	public PipelineItem(@NotNull PrismValue value, @NotNull OperationResult result, @NotNull Map<String, Object> variables) {
+		this.value = value;
+		this.result = result;
+		this.variables.putAll(variables);
 	}
 
 	@NotNull
@@ -55,15 +65,32 @@ public class PipelineItem implements DebugDumpable, Serializable {
 		this.result = result;
 	}
 
+	@NotNull
+	public Map<String, Object> getVariables() {
+		return variables;
+	}
+
+	// don't forget to clone on use
+//	@SuppressWarnings("unchecked")
+//	public <X> X getVariable(String name) {
+//		return (X) variables.get(name);
+//	}
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpWithLabelLn(sb, "value", value, indent+1);
 		DebugUtil.debugDumpWithLabel(sb, "result", result, indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "variables", result, indent+1);
 		return sb.toString();
 	}
 
 	public void computeResult() {
 		result.computeStatus();
+	}
+
+	public PipelineItem cloneMutableState() {
+		// note that variables are cloned on use
+		return new PipelineItem(value, result.clone(), variables);
 	}
 }

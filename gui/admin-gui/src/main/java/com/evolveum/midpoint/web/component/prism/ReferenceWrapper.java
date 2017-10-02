@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
@@ -29,8 +30,12 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 
 	private static final long serialVersionUID = 3132143219403214903L;
 
-	public ReferenceWrapper(ContainerWrapper container, PrismReference reference, boolean readonly, ValueStatus status) {
-		super(container, reference, readonly, status);
+	public ReferenceWrapper(ContainerValueWrapper container, PrismReference reference, boolean readonly, ValueStatus status) {
+		super(container, reference, readonly, status, null);
+	}
+	
+	public ReferenceWrapper(ContainerValueWrapper container, PrismReference reference, boolean readonly, ValueStatus status, ItemPath path) {
+		super(container, reference, readonly, status, path);
 	}
 
 	public List<ValueWrapper> getValues() {
@@ -51,7 +56,7 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 		while (values.size() < minOccurs) {
 			values.add(createAddedValue());
 		}
-
+ 
 		if (values.isEmpty()) {
 			values.add(createAddedValue());
 		}
@@ -97,7 +102,7 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "readonly", readonly, indent+1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "itemDefinition", itemDefinition == null?null:itemDefinition.toString(), indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "itemDefinition", getItemDefinition() == null?null:getItemDefinition().toString(), indent+1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "reference", item, indent+1);
 		sb.append("\n");

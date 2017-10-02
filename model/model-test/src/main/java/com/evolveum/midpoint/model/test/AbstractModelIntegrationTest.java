@@ -191,6 +191,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
@@ -2411,6 +2412,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, parentResult);
 
 	}
+	
+	protected void setConflictResolutionAction(QName objectType, String subType, ConflictResolutionActionType conflictResolutionAction, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		ConflictResolutionType conflictResolutionType = new ConflictResolutionType();
+		conflictResolutionType.action(conflictResolutionAction);
+		setConflictResolution(objectType, subType, conflictResolutionType, parentResult);
+	}
 
 	protected void setGlobalSecurityPolicy(String securityPolicyOid, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
@@ -4442,12 +4450,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void transplantGlobalPolicyRulesAdd(File configWithGlobalRulesFile, Task task, OperationResult parentResult) throws SchemaException, IOException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		// copy rules from the file into live system config object
 		PrismObject<SystemConfigurationType> rules = prismContext.parserFor(configWithGlobalRulesFile).parse();
-		ObjectDelta<SystemConfigurationType> delta = (ObjectDelta<SystemConfigurationType>) DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
+		ObjectDelta<SystemConfigurationType> delta = DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
 				.item(SystemConfigurationType.F_GLOBAL_POLICY_RULE).add(
 					rules.asObjectable().getGlobalPolicyRule().stream()
 							.map(r -> r.clone().asPrismContainerValue())
 							.collect(Collectors.toList()))
-				.asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value());
+				.asObjectDeltaCast(SystemObjectsType.SYSTEM_CONFIGURATION.value());
 		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, parentResult);
 	}
 
@@ -4551,4 +4559,33 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			return rv.get(0);
 		}
 	}
+
+	// highly experimental
+	public class TestCtx {
+		public final String name;
+
+		public final Task task;
+		public final OperationResult result;
+
+		TestCtx(Object testCase, String name) {
+			this.name = name;
+			TestUtil.displayTestTitle(testCase, name);
+			task = taskManager.createTaskInstance(testCase.getClass().getName() + "." + name);
+			result = task.getResult();
+			dummyAuditService.clear();
+		}
+
+		public void displayWhen() {
+			TestUtil.displayWhen(name);
+		}
+
+		public void displayThen() {
+			TestUtil.displayThen(name);
+		}
+	}
+
+	protected TestCtx createContext(Object testCase, String testName) {
+		return new TestCtx(testCase, testName);
+	}
+
 }

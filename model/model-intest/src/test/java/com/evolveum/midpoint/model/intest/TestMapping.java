@@ -326,7 +326,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
@@ -371,7 +372,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
@@ -412,7 +414,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
@@ -457,7 +460,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
@@ -717,7 +721,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
          dummyAuditService.assertSimpleRecordSanity();
          dummyAuditService.assertRecords(2);
          dummyAuditService.assertAnyRequestDeltas();
-         dummyAuditService.assertExecutionDeltas(1);
+         dummyAuditService.assertExecutionDeltas(2);
+         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
          dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
          dummyAuditService.assertExecutionSuccess();
 	}
@@ -907,7 +912,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertExecutionDeltas(3);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
@@ -1130,7 +1135,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
          dummyAuditService.assertSimpleRecordSanity();
          dummyAuditService.assertRecords(2);
          dummyAuditService.assertAnyRequestDeltas();
-         dummyAuditService.assertExecutionDeltas(1);
+         dummyAuditService.assertExecutionDeltas(2);
+         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
          dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
          dummyAuditService.assertExecutionSuccess();
 	}

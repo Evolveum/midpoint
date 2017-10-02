@@ -21,7 +21,15 @@
 <wicket:panel>
     <div class="row">
         <div class="col-md-5">
-            <div wicket:id="changes" />
+            <div wicket:id="changes" ></div>
+            <div wicket:id="triggersContainer" class="box box-solid box-info" style="margin-bottom: 0; margin-top:20px;">
+                <div class="box-header with-border">
+                    <h3 class="box-title" style="margin-right: 35px;"><wicket:message key="workItemPanel.reasons"/></h3>
+                </div>
+                <div class="box-body">
+                    <div wicket:id="triggers"></div>
+                </div>
+            </div>
         </div>
         <div class="col-md-7">
             <div class="box box-info">

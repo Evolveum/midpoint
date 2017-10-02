@@ -92,7 +92,6 @@ public class PageUser extends PageAdminFocus<UserType> {
     private static final String ID_TASKS = "tasks";
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
     private LoadableModel<List<AssignmentsPreviewDto>> privilegesListModel;
-    private CountableLoadableModel<AssignmentDto> consentsModel;
     private UserDelegationsTabPanel userDelegationsTabPanel = null;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
@@ -129,21 +128,6 @@ public class PageUser extends PageAdminFocus<UserType> {
                 return getUserPrivilegesList();
             }
         };
-
-        consentsModel = new CountableLoadableModel<AssignmentDto>(false) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected List<AssignmentDto> load() {
-				return loadConsents();
-			}
-
-			@Override
-			public int count() {
-				return countConsents();
-			}
-
-		};
     }
 
     @Override
@@ -188,7 +172,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
 	@Override
 	protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
-        return new FocusMainPanel<UserType>(id, getObjectModel(), getAssignmentsModel(), getPolicyRulesModel(), getProjectionModel(), this) {
+        return new FocusMainPanel<UserType>(id, getObjectModel(), getProjectionModel(), this) {
             @Override
             protected void addSpecificTabs(final PageAdminObjectDetails<UserType> parentPage, List<ITab> tabs) {
                 FocusTabVisibleBehavior authorization;
@@ -276,12 +260,12 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusConsentTabPanel<UserType>(panelId, getMainForm(), getObjectModel(), consentsModel, parentPage);
+                        return new FocusConsentTabPanel<UserType>(panelId, getMainForm(), getObjectModel(), parentPage);
                     }
 
                     @Override
                     public String getCount() {
-                        return Integer.toString(consentsModel.count());
+                        return Integer.toString(countConsents());
                     }
                 });
             }
@@ -368,17 +352,6 @@ public class PageUser extends PageAdminFocus<UserType> {
         return list;
     }
 
-   @Override
-   protected void prepareObjectDeltaForModify(ObjectDelta<UserType> focusDelta) throws SchemaException {
-
-	super.prepareObjectDeltaForModify(focusDelta);
-
-	PrismContainerDefinition<AssignmentType> def = getObjectDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
-	if (consentsModel.isLoaded()) {
-		handleAssignmentExperimentalDeltas(focusDelta, consentsModel.getObject(), def, false);
-	}
-}
-
     @Override
     protected boolean processDeputyAssignments(boolean previewOnly) {
         boolean isAnythingChanged = false;
@@ -438,24 +411,16 @@ public class PageUser extends PageAdminFocus<UserType> {
 		return consentCounter;
 	}
 
-    private List<AssignmentDto> loadConsents() {
-		ObjectWrapper<UserType> focusWrapper = getObjectModel().getObject();
-		PrismObject<UserType> focus = focusWrapper.getObject();
-		List<AssignmentDto> list = getConsentsList(focus.asObjectable().getAssignment(), StringUtils.isEmpty(focusWrapper.getOid()) ?
-				UserDtoStatus.ADD : UserDtoStatus.MODIFY);
-		Collections.sort(list);
-		return list;
-	}
-
     private boolean isConsentAssignment(AssignmentType assignment) {
     	return assignment.getTargetRef() != null && QNameUtil.match(assignment.getTargetRef().getRelation(), SchemaConstants.ORG_CONSENT);
     }
 
-    protected List<AssignmentDto> getConsentsList(List<AssignmentType> assignments, UserDtoStatus status){
-		List<AssignmentDto> list = new ArrayList<AssignmentDto>();
+    protected List<AssignmentType> getConsentsList(List<AssignmentType> assignments, UserDtoStatus status){
+		List<AssignmentType> list = new ArrayList<AssignmentType>();
 		for (AssignmentType assignment : assignments) {
 			if (isConsentAssignment(assignment)) {
-				list.add(new AssignmentDto(assignment, status));
+			    //TODO set status
+				list.add(assignment);
 			}
 		}
 		return list;

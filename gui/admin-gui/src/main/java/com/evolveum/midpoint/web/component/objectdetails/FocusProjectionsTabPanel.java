@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -65,6 +66,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
@@ -127,9 +129,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				if (dto.isLoadedOK()) {
 					packageRef = new PackageResourceReference(ImgResources.class, ImgResources.HDD_PRISM);
 
-					shadowPanel = new PrismObjectPanel<F>(ID_SHADOW,
-							new PropertyModel<ObjectWrapper<F>>(item.getModel(), "object"), packageRef,
-							getMainForm(), getPageBase());
+					shadowPanel = new PrismPanel<F>(ID_SHADOW,
+							new ContainerWrapperListFromObjectWrapperModel(objectWrapperModel, Arrays.asList(new ItemPath(ShadowType.F_ATTRIBUTES), SchemaConstants.PATH_ACTIVATION, SchemaConstants.PATH_PASSWORD)), packageRef,
+							getMainForm(), null, getPageBase());
 				} else {
 					shadowPanel = new SimpleErrorPanel<ShadowType>(ID_SHADOW, item.getModel()) {
 						private static final long serialVersionUID = 1L;
@@ -256,7 +258,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 					showResult(wrapper.getResult(), false);
 				}
 
-				wrapper.setShowEmpty(true);
+//				wrapper.setShowEmpty(true);
 				wrapper.setMinimalized(true);
 				projectionModel.getObject().add(new FocusSubwrapperDto(wrapper, UserDtoStatus.ADD));
 			} catch (Exception ex) {
@@ -432,7 +434,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				continue;
 			}
 
-			PropertyWrapper enabledProperty = (PropertyWrapper) activation
+			PropertyWrapper enabledProperty = (PropertyWrapper) activation.getValues().iterator().next()
 					.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
 			if (enabledProperty == null || enabledProperty.getValues().size() != 1) {
 				warn(getString("pageAdminFocus.message.noEnabledPropertyFound", wrapper.getDisplayName()));
@@ -469,7 +471,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				continue;
 			}
 
-			PropertyWrapper lockedProperty = activation.findPropertyWrapper(ActivationType.F_LOCKOUT_STATUS);
+			PropertyWrapper lockedProperty = (PropertyWrapper) activation.getValues().iterator().next().findPropertyWrapper(ActivationType.F_LOCKOUT_STATUS);
 			if (lockedProperty == null || lockedProperty.getValues().size() != 1) {
 				warn(getString("pageAdminFocus.message.noLockoutStatusPropertyFound", wrapper.getDisplayName()));
 				continue;

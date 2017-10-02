@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -38,6 +40,8 @@ import javax.xml.namespace.QName;
  *
  */
 public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements ComplexTypeDefinition {
+
+	private static final Trace LOGGER = TraceManager.getTrace(ComplexTypeDefinitionImpl.class);
 
 	private static final long serialVersionUID = 2655797837209175037L;
 	@NotNull private final List<ItemDefinition> itemDefinitions = new ArrayList<>();
@@ -245,7 +249,13 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	@Override
 	public void merge(ComplexTypeDefinition otherComplexTypeDef) {
 		for (ItemDefinition otherItemDef: otherComplexTypeDef.getDefinitions()) {
-			add(otherItemDef.clone());
+			ItemDefinition existingItemDef = findItemDefinition(otherItemDef.getName());
+			if (existingItemDef != null) {
+				LOGGER.warn("Overwriting existing definition {} by {} (in {})", existingItemDef, otherItemDef, this);
+				replaceDefinition(otherItemDef.getName(), otherItemDef.clone());
+			} else {
+				add(otherItemDef.clone());
+			}
 		}
 	}
 

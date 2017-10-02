@@ -23,6 +23,8 @@ public enum InternalCounters {
 	RESOURCE_SCHEMA_PARSE_COUNT("resourceSchemaParseCount", "resource schema parse count", InternalOperationClasses.RESOURCE_SCHEMA_OPERATIONS),
 
 	RESOURCE_SCHEMA_FETCH_COUNT("resourceSchemaFetchCount", "resource schema fetch count", InternalOperationClasses.REPOSITORY_OPERATIONS),
+	
+	RESOURCE_REPOSITORY_READ_COUNT("resourceRepositoryReadCount", "resource repository read count", null),
 
 	CONNECTOR_INSTANCE_INITIALIZATION_COUNT("connectorInstanceInitializationCount", "connector instance initialization count", InternalOperationClasses.CONNECTOR_OPERATIONS),
 

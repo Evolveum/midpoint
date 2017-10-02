@@ -37,7 +37,9 @@
 	<globalPolicyRule>
 		<name>global-assignment-notification-for-judge</name>
 		<policyConstraints>
-			<ref>assignment-added</ref>
+			<ref>
+				<name>assignment-added</name>
+			</ref>
 		</policyConstraints>
 		<policyActions>
 			<notification/>

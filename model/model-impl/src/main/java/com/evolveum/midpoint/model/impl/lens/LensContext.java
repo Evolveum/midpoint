@@ -1368,4 +1368,22 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		conflictWatchers.forEach(w -> repositoryService.unregisterConflictWatcher(w));
 		conflictWatchers.clear();
 	}
+	
+	public boolean hasProjectionChange() {
+		for (LensProjectionContext projectionContext: getProjectionContexts()) {
+			if (projectionContext.getWave() != getExecutionWave()) {
+				continue;
+			}
+			if (!projectionContext.isCanProject()) {
+				continue;
+			}
+			if (projectionContext.isThombstone()) {
+				continue;
+			}
+			if (projectionContext.hasPrimaryDelta() || projectionContext.hasSecondaryDelta()) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

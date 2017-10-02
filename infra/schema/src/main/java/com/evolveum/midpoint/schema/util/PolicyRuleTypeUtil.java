@@ -123,11 +123,11 @@ public class PolicyRuleTypeUtil {
 				sb.append(abbreviation != null ? abbreviation : name.getLocalPart());
 			}
 		}
-		for (String ref : constraints.getRef()) {
+		for (PolicyConstraintReferenceType ref : constraints.getRef()) {
 			if (sb.length() > 0) {
 				sb.append(join);
 			}
-			sb.append("ref:").append(ref);
+			sb.append("ref:").append(ref.getName());
 		}
 		return sb.toString();
 	}
@@ -567,15 +567,16 @@ public class PolicyRuleTypeUtil {
 	@SuppressWarnings("unchecked")
 	private static void resolveLocalReferences(PolicyConstraintsType pc, ConstraintResolver resolver)
 			throws ObjectNotFoundException, SchemaException {
-		for (String ref : pc.getRef()) {
-			if (StringUtils.isEmpty(ref)) {
+		for (PolicyConstraintReferenceType ref : pc.getRef()) {
+			String refName = ref != null ? ref.getName() : null;
+			if (StringUtils.isEmpty(refName)) {
 				throw new SchemaException("Illegal empty reference: " + ref);
 			}
 			List<String> pathToRoot = getPathToRoot(pc);
-			if (pathToRoot.contains(ref)) {
-				throw new SchemaException("Trying to resolve cyclic reference to constraint '" + ref + "'. Contained in: " + pathToRoot);
+			if (pathToRoot.contains(refName)) {
+				throw new SchemaException("Trying to resolve cyclic reference to constraint '" + refName + "'. Contained in: " + pathToRoot);
 			}
-			JAXBElement<? extends AbstractPolicyConstraintType> resolved = resolver.resolve(ref);
+			JAXBElement<? extends AbstractPolicyConstraintType> resolved = resolver.resolve(refName);
 			QName constraintName = resolved.getName();
 			AbstractPolicyConstraintType constraintValue = resolved.getValue();
 			PrismContainer<? extends AbstractPolicyConstraintType> container = pc.asPrismContainerValue().findOrCreateContainer(constraintName);
@@ -632,4 +633,32 @@ public class PolicyRuleTypeUtil {
 		};
 	}
 
+	@NotNull
+	public static List<EvaluatedExclusionTriggerType> getAllExclusionTriggers(List<EvaluatedPolicyRuleType> rules) {
+		List<EvaluatedExclusionTriggerType> rv = new ArrayList<>();
+		getExclusionTriggersFromRules(rv, rules);
+		return rv;
+	}
+
+	private static void getExclusionTriggersFromRules(List<EvaluatedExclusionTriggerType> rv, List<EvaluatedPolicyRuleType> rules) {
+		for (EvaluatedPolicyRuleType rule : rules) {
+			getExclusionTriggersFromRule(rv, rule);
+		}
+	}
+
+	private static void getExclusionTriggersFromRule(List<EvaluatedExclusionTriggerType> rv, EvaluatedPolicyRuleType rule) {
+		getExclusionTriggersFromTriggers(rv, rule.getTrigger());
+	}
+
+	private static void getExclusionTriggersFromTriggers(List<EvaluatedExclusionTriggerType> rv, List<EvaluatedPolicyRuleTriggerType> triggers) {
+		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
+			if (trigger instanceof EvaluatedExclusionTriggerType) {
+				rv.add((EvaluatedExclusionTriggerType) trigger);
+			} else if (trigger instanceof EvaluatedEmbeddingTriggerType) {
+				getExclusionTriggersFromTriggers(rv, ((EvaluatedEmbeddingTriggerType) trigger).getEmbedded());
+			} else if (trigger instanceof EvaluatedSituationTriggerType) {
+				getExclusionTriggersFromRules(rv, ((EvaluatedSituationTriggerType) trigger).getSourceRule());
+			}
+		}
+	}
 }

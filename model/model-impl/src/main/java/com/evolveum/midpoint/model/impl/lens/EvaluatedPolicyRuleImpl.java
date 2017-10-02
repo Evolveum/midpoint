@@ -15,10 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.*;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
@@ -30,6 +26,14 @@ import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 
 /**
  * @author semancik
@@ -309,14 +313,34 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 
 	/**
 	 * Honors "final" but not "hidden" flag.
+	 * @param options
 	 */
 
 	@Override
-	public EvaluatedPolicyRuleType toEvaluatedPolicyRuleType(boolean respectFinalFlag) {
+	public void addToEvaluatedPolicyRuleTypes(Collection<EvaluatedPolicyRuleType> rules, PolicyRuleExternalizationOptions options) {
 		EvaluatedPolicyRuleType rv = new EvaluatedPolicyRuleType();
-		//rv.setPolicyRule(policyRuleType);			// DO NOT use this, in order to avoid large data in assignments
-		triggers.forEach(t -> rv.getTrigger().add(t.toEvaluatedPolicyRuleTriggerType(this, respectFinalFlag)));
-		return rv;
+		rv.setRuleName(getName());
+		boolean isFull = options.getTriggeredRulesStorageStrategy() == FULL;
+		if (isFull && assignmentPath != null) {
+			rv.setAssignmentPath(assignmentPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
+		}
+		if (isFull && directOwner != null) {
+			rv.setDirectOwnerRef(ObjectTypeUtil.createObjectRef(directOwner));
+			rv.setDirectOwnerDisplayName(ObjectTypeUtil.getDisplayName(directOwner));
+		}
+		for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+			if (trigger instanceof EvaluatedSituationTrigger && trigger.isHidden()) {
+				for (EvaluatedPolicyRule sourceRule : ((EvaluatedSituationTrigger) trigger).getSourceRules()) {
+					sourceRule.addToEvaluatedPolicyRuleTypes(rules, options);
+				}
+			} else {
+				rv.getTrigger().add(trigger.toEvaluatedPolicyRuleTriggerType(options));
+			}
+		}
+		if (rv.getTrigger().isEmpty()) {
+			// skip empty situation rule
+		} else {
+			rules.add(rv);
+		}
 	}
-
 }

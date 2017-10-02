@@ -51,8 +51,8 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     private SelectableBean<OrgType> collapsedItem = null;                 //collapsed tree item
     private List<AssignmentEditorDto> assignmentShoppingCart;   //  a list of assignments in the shopping cart
     private AssignmentViewType viewType = null;      //the current view type
-    private List<PrismObject<UserType>> targetUserList = new ArrayList<>();
-    private PrismObject<UserType> assignmentsUserOwner = null;
+    private List<UserType> targetUserList = new ArrayList<>();
+    private UserType assignmentsUserOwner = null;
     private List<ConflictDto> conflictsList;
     private String requestDescription = "";
     private ObjectPaging roleCatalogPaging;
@@ -175,19 +175,19 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
         this.selectedOid = selectedOid;
     }
 
-    public List<PrismObject<UserType>> getTargetUserList() {
+    public List<UserType> getTargetUserList() {
         return targetUserList;
     }
 
-    public void setTargetUserList(List<PrismObject<UserType>> targetUserList) {
+    public void setTargetUserList(List<UserType> targetUserList) {
         this.targetUserList = targetUserList;
     }
 
-    public PrismObject<UserType> getAssignmentsUserOwner() {
+    public UserType getAssignmentsUserOwner() {
         return assignmentsUserOwner;
     }
 
-    public void setAssignmentsUserOwner(PrismObject<UserType> assignmentsUserOwner) {
+    public void setAssignmentsUserOwner(UserType assignmentsUserOwner) {
         this.assignmentsUserOwner = assignmentsUserOwner;
     }
 

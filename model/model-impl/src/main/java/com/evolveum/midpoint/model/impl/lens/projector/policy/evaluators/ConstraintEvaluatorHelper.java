@@ -162,19 +162,22 @@ public class ConstraintEvaluatorHelper {
 
 	public <F extends FocusType> LocalizableMessage createLocalizableMessage(
 			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> rctx,
-			LocalizableMessage defaultMessage, OperationResult result) throws ExpressionEvaluationException,
+			LocalizableMessage builtInMessage, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, SchemaException {
 		if (constraint.getPresentation() != null && constraint.getPresentation().getMessage() != null) {
 			LocalizableMessageType messageType =
 					createLocalizableMessageType(constraint.getPresentation().getMessage(), rctx, result);
-			return LocalizationUtil.parseLocalizableMessageType(messageType, defaultMessage);
+			return LocalizationUtil.parseLocalizableMessageType(messageType,
+					// if user-configured fallback message is present; we ignore the built-in constraint message
+					// TODO consider ignoring it always if custom presentation/message is provided
+					messageType.getFallbackMessage() != null ? null : builtInMessage);
 		} else if (constraint.getName() != null) {
 			return new LocalizableMessageBuilder()
 					.key(SchemaConstants.POLICY_CONSTRAINT_KEY_PREFIX + constraint.getName())
-					.fallbackLocalizableMessage(defaultMessage)
+					.fallbackLocalizableMessage(builtInMessage)
 					.build();
 		} else {
-			return defaultMessage;
+			return builtInMessage;
 		}
 	}
 

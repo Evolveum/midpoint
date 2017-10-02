@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -98,7 +99,6 @@ public class TestSoDCertification extends AbstractCertificationTest {
 		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
 	}
 
-	// TODO move a test like this into model-intest
 	@Test
 	public void test001Triggers() throws Exception {
 		final String TEST_NAME = "test001Triggers";
@@ -111,44 +111,51 @@ public class TestSoDCertification extends AbstractCertificationTest {
 		// THEN
 		AssignmentType a2a = findAssignmentByTargetRequired(jack, roleATest2aOid);
 		display("assignment 2a", a2a);
-		assertPacked(a2a, 2, 1);
+		assertTriggers(a2a, 2, 1);
 		AssignmentType a2b = findAssignmentByTargetRequired(jack, roleATest2bOid);
 		display("assignment 2b", a2b);
-		assertPacked(a2b, 2, 1);
+		assertTriggers(a2b, 2, 1);
 		AssignmentType a2c = findAssignmentByTargetRequired(jack, roleATest2cOid);
 		display("assignment 2c", a2c);
-		assertPacked(a2c, 2, 1);
+		assertTriggers(a2c, 2, 1);
 		AssignmentType a3a = findAssignmentByTargetRequired(jack, roleATest3aOid);
 		display("assignment 3a", a3a);
-		assertPacked(a3a, 1, 1);
+		assertTriggers(a3a, 1, 1);
 		AssignmentType a3b = findAssignmentByTargetRequired(jack, roleATest3bOid);
 		display("assignment 3b", a3b);
-		assertPacked(a3b, 1, 1);
+		assertTriggers(a3b, 1, 1);
 	}
 
-	private void assertPacked(AssignmentType assignment, int exclusionExpected, int situationExpected) {
+	private void assertTriggers(AssignmentType assignment, int exclusionExpected, int situationExpected) {
 		int exclusion = 0, situation = 0;
-		for (EvaluatedPolicyRuleTriggerType trigger : assignment.getTrigger()) {
-			assertNotNull("Identifier not null in base trigger: " + trigger, trigger.getTriggerId());
-			if (trigger instanceof EvaluatedSituationTriggerType) {
-				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
-				int sourceTriggers = 0;
-				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
-					for (EvaluatedPolicyRuleTriggerType sourceTrigger : sourceRule.getTrigger()) {
-						sourceTriggers++;
-						assertNotNull("Ref not null in situation source trigger: " + sourceTrigger, sourceTrigger.getRef());
+		for (EvaluatedPolicyRuleType rule : assignment.getTriggeredPolicyRule()) {
+			for (EvaluatedPolicyRuleTriggerType trigger : rule.getTrigger()) {
+				//assertNotNull("Identifier not null in base trigger: " + trigger, trigger.getTriggerId());
+				if (trigger instanceof EvaluatedSituationTriggerType) {
+					EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
+					int sourceTriggers = 0;
+					for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
+						for (EvaluatedPolicyRuleTriggerType sourceTrigger : sourceRule.getTrigger()) {
+							sourceTriggers++;
+							//assertNotNull("Ref not null in situation source trigger: " + sourceTrigger, sourceTrigger.getRef());
+						}
 					}
+					assertEquals("Wrong # of exclusion triggers in situation trigger", exclusionExpected, sourceTriggers);
+					situation++;
+				} else if (trigger instanceof EvaluatedExclusionTriggerType) {
+					exclusion++;
+				} else {
+					fail("Unexpected trigger: " + trigger);
 				}
-				assertEquals("Wrong # of exclusion triggers in situation trigger", exclusionExpected, sourceTriggers);
-				situation++;
-			} else if (trigger instanceof EvaluatedExclusionTriggerType) {
-				exclusion++;
-			} else {
-				fail("Unexpected trigger: " + trigger);
 			}
 		}
-		assertEquals("Wrong # of exclusion triggers", exclusionExpected, exclusion);
+		assertEquals("Wrong # of exclusion triggers", 0, exclusion);
 		assertEquals("Wrong # of situation triggers", situationExpected, situation);
+
+		List<EvaluatedExclusionTriggerType> exclusionTriggers = PolicyRuleTypeUtil
+				.getAllExclusionTriggers(assignment.getTriggeredPolicyRule());
+		display("Exclusion triggers for " + assignment, exclusionTriggers);
+		assertEquals("Wrong # of extracted exclusion triggers", exclusionExpected, exclusionTriggers.size());
 	}
 
 	@Test

@@ -234,11 +234,11 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result, String key1, String key2,
 			PrismObject<?> target, Object... args)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		LocalizableMessage defaultMessage = new LocalizableMessageBuilder()
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + key1 + key2)
 				.arg(evaluatorHelper.createObjectSpecification(target))
 				.args(args)
 				.build();
-		return evaluatorHelper.createLocalizableMessage(constraint, rctx, defaultMessage, result);
+		return evaluatorHelper.createLocalizableMessage(constraint, rctx, builtInMessage, result);
 	}
 }

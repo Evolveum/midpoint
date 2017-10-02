@@ -17,20 +17,26 @@
       xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    
-    <div class="box-body" >
-        	<div class="container-fluid prism-object">
-        	
-        		<div class="row">
-        			<div class="container-fluid prism-container">
         				<div wicket:id="displayName"/>
-        				<div class="row prism-header">
-							<span class="prism-title">
-								<wicket:message key="AbstractAssignmentDetailsPanel.properties"/>
-							</span>
-						</div>
+    <div wicket:id="basic" />
+    <div wicket:id="otherContainers" />
+    <div wicket:id="activationPanel" />
+    
+<!--     <div class="box-body" > -->
+<!--         	<div class="container-fluid prism-object"> -->
+        	
+<!--         		<div class="row"> -->
+<!--         			<div class="container-fluid prism-container"> -->
+<!--         				<div wicket:id="displayName"/> -->
+<!--         				<div class="row prism-header"> -->
+<!-- 							<span class="prism-title"> -->
+<!-- 								<wicket:message key="AbstractAssignmentDetailsPanel.properties"/> -->
+<!-- 							</span> -->
+<!-- 						</div> -->
         			
-        				<div wicket:id="propertiesPanel" class="prism-properties">
+<!--         				<div wicket:id="propertiesPanel" class="prism-properties"> -->
+        				
+        					
         				
 <!--         					<div wicket:id="descriptionContainer" > -->
 <!-- 	        					<div class="row prism-property"> -->
@@ -47,20 +53,20 @@
 <!-- 					            </div> -->
 <!-- 				            </div> -->
 
-							<div class="stripe">
-	        					<div class="row prism-property" wicket:id="relationContainer">
-					                <div class="col-xs-4">
-					                    <span><wicket:message key="AssignmentEditorPanel.relation"/></span>
-					                </div>
-					                <div class="col-xs-8">
-					                    <div class="row">
-					                        <div class="col-xs-9">
-					                            <div wicket:id="relation" />
-					                        </div>
-					                    </div>
-					                </div>
-					            </div>
-				            </div>
+<!-- 							<div class="stripe"> -->
+<!-- 	        					<div class="row prism-property" wicket:id="relationContainer"> -->
+<!-- 					                <div class="col-xs-4"> -->
+<!-- 					                    <span><wicket:message key="AssignmentEditorPanel.relation"/></span> -->
+<!-- 					                </div> -->
+<!-- 					                <div class="col-xs-8"> -->
+<!-- 					                    <div class="row"> -->
+<!-- 					                        <div class="col-xs-9"> -->
+<!-- 					                            <div wicket:id="relation" /> -->
+<!-- 					                        </div> -->
+<!-- 					                    </div> -->
+<!-- 					                </div> -->
+<!-- 					            </div> -->
+<!-- 				            </div> -->
 				            
 <!-- 				            <div wicket:id="focusTypeContainer" > -->
 <!-- 	        					<div class="row prism-property"> -->
@@ -77,23 +83,23 @@
 <!-- 					            </div> -->
 <!-- 				            </div> -->
 							
-							<div>
-					            <div class="row prism-property" wicket:id="tenantContainer">
-					                <div class="col-xs-4">
-					                    <span><wicket:message key="AssignmentEditorPanel.tenantRef" /></span>
-					                </div>
-					                <div wicket:id="tenant"/>
-					            </div>
-				            </div>
+<!-- 							<div> -->
+<!-- 					            <div class="row prism-property" wicket:id="tenantContainer"> -->
+<!-- 					                <div class="col-xs-4"> -->
+<!-- 					                    <span><wicket:message key="AssignmentEditorPanel.tenantRef" /></span> -->
+<!-- 					                </div> -->
+<!-- 					                <div wicket:id="tenant"/> -->
+<!-- 					            </div> -->
+<!-- 				            </div> -->
 				            
-				            <div class="stripe">
-					            <div class="row prism-property" wicket:id="projectContainer">
-					                <div class="col-xs-4">
-					                    <span><wicket:message key="AssignmentEditorPanel.orgRef" /></span>
-					                </div>
-					                <div wicket:id="project"/>
-					            </div>
-					        </div>
+<!-- 				            <div class="stripe"> -->
+<!-- 					            <div class="row prism-property" wicket:id="projectContainer"> -->
+<!-- 					                <div class="col-xs-4"> -->
+<!-- 					                    <span><wicket:message key="AssignmentEditorPanel.orgRef" /></span> -->
+<!-- 					                </div> -->
+<!-- 					                <div wicket:id="project"/> -->
+<!-- 					            </div> -->
+<!-- 					        </div> -->
 					        
 <!-- 					         	<div class="row prism-property"> -->
 <!-- 					                <div class="col-xs-8"> -->
@@ -106,36 +112,36 @@
 <!-- 					            </div> -->
 				            
 <!-- 				            <div wicket:id="policySituations" >  -->
-	        					<div class="row prism-property">
-					                <div class="col-xs-4">
-					                    <span><wicket:message key="AssignmentEditorPanel.focusType"/></span>
-					                </div>
-					                <div class="col-xs-8">
-					                    <div class="row">
-					                        <div class="col-xs-9">
-					                        	<span wicket:id="policySituations">
-								            		<div wicket:id="policySituation"/>
-								            	</span >
-					                        </div>
-					                    </div>
-					                </div>
-					            </div>
+<!-- 	        					<div class="row prism-property"> -->
+<!-- 					                <div class="col-xs-4"> -->
+<!-- 					                    <span><wicket:message key="AssignmentEditorPanel.focusType"/></span> -->
+<!-- 					                </div> -->
+<!-- 					                <div class="col-xs-8"> -->
+<!-- 					                    <div class="row"> -->
+<!-- 					                        <div class="col-xs-9"> -->
+<!-- 					                        	<span wicket:id="policySituations"> -->
+<!-- 								            		<div wicket:id="policySituation"/> -->
+<!-- 								            	</span > -->
+<!-- 					                        </div> -->
+<!-- 					                    </div> -->
+<!-- 					                </div> -->
+<!-- 					            </div> -->
 <!-- 				            </div> -->
 
-						</div>
-					</div>
-				</div>
+<!-- 						</div> -->
+<!-- 					</div> -->
+<!-- 				</div> -->
 				
-        </div>
+<!--         </div> -->
     
     
    
-    <div class="row">
-        <div class="container-fluid prism-container">
-            <div wicket:id="activationPanel" />
-        </div>
-    </div>
-   </div> 
+<!--     <div class="row"> -->
+<!--         <div class="container-fluid prism-container"> -->
+<!--             <div wicket:id="activationPanel" /> -->
+<!--         </div> -->
+<!--     </div> -->
+<!--    </div>  -->
 </wicket:panel>
 </body>
 </html>

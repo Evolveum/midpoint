@@ -156,11 +156,11 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 	private <F extends FocusType> LocalizableMessage createMessage(String infoA, String infoB,
 			ExclusionPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		LocalizableMessage defaultMessage = new LocalizableMessageBuilder()
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
 				.args(infoA, infoB)
 				.build();
-		return evaluatorHelper.createLocalizableMessage(constraint, ctx, defaultMessage, result);
+		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
 	}
 
 	private ObjectType getConflictingObject(AssignmentPath path, PrismObject<?> defaultObject) {

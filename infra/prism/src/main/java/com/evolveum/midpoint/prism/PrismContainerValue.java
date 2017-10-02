@@ -466,13 +466,15 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     public void addAllReplaceExisting(Collection<? extends Item<?,?>> itemsToAdd) throws SchemaException {
 		checkMutability();
         // Check for conflicts, remove conflicting values
+//		itemsToAdd.forEach(itemToAdd -> addReplaceExisting(itemToAdd));
         for (Item<?,?> item : itemsToAdd) {
-            Item<?,?> existingItem = findItem(item.getElementName(), Item.class);
-            if (existingItem != null && items != null) {
-                items.remove(existingItem);
-            }
+        	addReplaceExisting(item);
+//            Item<?,?> existingItem = findItem(item.getElementName(), Item.class);
+//            if (existingItem != null && items != null) {
+//                items.remove(existingItem);
+//            }
         }
-        addAll(itemsToAdd);
+//        addAll(itemsToAdd);
     }
 
 	public <IV extends PrismValue,ID extends ItemDefinition> void replace(Item<IV,ID> oldItem, Item<IV,ID> newItem) throws SchemaException {
@@ -1181,10 +1183,30 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
 	public void applyDefinition(@NotNull PrismContainerDefinition<C> containerDef, boolean force) throws SchemaException {
 		checkMutability();
-		if (complexTypeDefinition != null && !force) {
-			return;                // there's a definition already
+		ComplexTypeDefinition definitionToUse = containerDef.getComplexTypeDefinition();
+		if (complexTypeDefinition != null) {
+			if (!force) {
+				return;                // there's a definition already
+			}
+			if (!complexTypeDefinition.getTypeName().equals(containerDef.getTypeName())) {
+				// the second condition is a hack because e.g.
+				// {http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector}ConfigurationType
+				// is clearly a runtime schema but it is _not_ marked as such (why?) -- see TestUcfDummy
+				if (!definitionToUse.isRuntimeSchema() && definitionToUse.getCompileTimeClass() != null) {
+					// this is the case in which we are going to overwrite a specific definition
+					// (e.g. WfPrimaryChangeProcessorStateType) with a generic one (e.g. WfProcessorSpecificStateType)
+					// --> we should either skip this, or fetch the fresh definition from the prism context
+					ComplexTypeDefinition freshCtd = prismContext.getSchemaRegistry().findComplexTypeDefinitionByType(complexTypeDefinition.getTypeName());
+					if (freshCtd != null) {
+						System.out.println("Using " + freshCtd + " instead of " + definitionToUse);
+						definitionToUse = freshCtd;
+					}
+				} else {
+					// we are probably applying a dynamic definition over static one -- so, let's proceed
+				}
+			}
 		}
-		replaceComplexTypeDefinition(containerDef.getComplexTypeDefinition());
+		replaceComplexTypeDefinition(definitionToUse);
 		// we need to continue even if CTD is null or 'any' - e.g. to resolve definitions within object extension
 		if (items != null) {
 			for (Item item : items) {
@@ -1207,6 +1229,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	 * This method can both return null and throws exception. It returns null in case there is no definition
 	 * but it is OK (e.g. runtime schema). It throws exception if there is no definition and it is not OK.
 	 */
+	@SuppressWarnings("unchecked")
 	private <ID extends ItemDefinition> ID determineItemDefinition(QName itemName, @Nullable ComplexTypeDefinition ctd) throws SchemaException {
 		ID itemDefinition = ctd != null ? ctd.findItemDefinition(itemName) : null;
 		if (itemDefinition != null) {
@@ -1645,6 +1668,10 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	}
 
 	public static <C extends Containerable> List<C> asContainerables(List<PrismContainerValue<C>> pcvs) {
+		return pcvs.stream().map(c -> c.asContainerable()).collect(Collectors.toList());
+	}
+
+	public static <C extends Containerable> Collection<C> asContainerables(Collection<PrismContainerValue<C>> pcvs) {
 		return pcvs.stream().map(c -> c.asContainerable()).collect(Collectors.toList());
 	}
 

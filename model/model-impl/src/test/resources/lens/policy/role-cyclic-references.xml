@@ -20,13 +20,15 @@
 	  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-    <name>Cyclic references</name>
+	<name>Cyclic references</name>
 	<assignment>
 		<policyRule>
 			<name>rule-A</name>
 			<policyConstraints>
 				<name>constraint-A</name>
-				<ref>constraint-B</ref>
+				<ref>
+					<name>constraint-B</name>
+				</ref>
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->
@@ -48,7 +50,9 @@
 						<stateBefore>false</stateBefore>
 						<stateAfter>true</stateAfter>
 						<constraints>
-							<ref>constraint-A</ref>
+							<ref>
+								<name>constraint-A</name>
+							</ref>
 						</constraints>
 					</transition>
 				</and>

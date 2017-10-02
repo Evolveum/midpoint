@@ -804,7 +804,7 @@ public class TestUnix extends AbstractStoryTest {
         display("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
-        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
 	}
 

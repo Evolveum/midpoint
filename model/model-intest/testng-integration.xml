@@ -63,6 +63,7 @@
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacNoInbounds"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestAssignmentValidity"/>
             <class name="com.evolveum.midpoint.model.intest.TestRaceConditions"/>
+            <class name="com.evolveum.midpoint.model.intest.TestNotifications"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
@@ -122,6 +123,7 @@
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManual"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualDisable"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualSlowProposed"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualDisableSlowProposed"/>
         </classes>
     </test>
     <test name="Security" preserve-order="true" parallel="false" verbose="10">

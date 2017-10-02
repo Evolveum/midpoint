@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
@@ -78,7 +79,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -195,6 +195,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Autowired(required = true)
 	private SystemObjectCache systemObjectCache;
+
+	@Autowired
+	private EmulatedSearchProvider emulatedSearchProvider;
 
 	public ModelObjectResolver getObjectResolver() {
 		return objectResolver;
@@ -602,6 +605,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 						CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException|RuntimeException e) {
 					ModelUtils.recordFatalError(result, e);
 					throw e;
+					
+				} catch (PreconditionViolationException e) {
+					ModelUtils.recordFatalError(result, e);
+					// TODO: Temporary fix for 3.6.1
+					// We do not want to propagate PreconditionViolationException to model API as that might break compatiblity
+					// ... and we do not really need that in 3.6.1
+					// TODO: expose PreconditionViolationException in 3.7
+					throw new SystemException(e);
+					
 				} finally {
 					task.markObjectActionExecutedBoundary();
 				}
@@ -718,33 +730,20 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 			result.cleanupResult();
 
-		} catch (ExpressionEvaluationException e) {
+		} catch (ExpressionEvaluationException | SchemaException | PolicyViolationException | ObjectNotFoundException | 
+				ObjectAlreadyExistsException | CommunicationException | ConfigurationException | SecurityViolationException |
+				RuntimeException | Error e) {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
-		} catch (SchemaException e) {
+			
+		} catch (PreconditionViolationException e) {
 			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (PolicyViolationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (ObjectNotFoundException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (ObjectAlreadyExistsException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (CommunicationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (ConfigurationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (RuntimeException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
+			// TODO: Temporary fix for 3.6.1
+			// We do not want to propagate PreconditionViolationException to model API as that might break compatiblity
+			// ... and we do not really need that in 3.6.1
+			// TODO: expose PreconditionViolationException in 3.7
+			throw new SystemException(e);
+			
 		} finally {
 			RepositoryCache.exit();
 		}
@@ -818,6 +817,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                     QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
                 }
                 switch (searchProvider) {
+	                case EMULATED: list = emulatedSearchProvider.searchObjects(type, query, options, result); break;
                     case REPOSITORY: list = cacheRepositoryService.searchObjects(type, query, options, result); break;
                     case PROVISIONING: list = provisioning.searchObjects(type, query, options, task, result); break;
                     case TASK_MANAGER:
@@ -874,25 +874,31 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 	private class ContainerOperationContext<T extends Containerable> {
-		final boolean isCase;
+		final boolean isCertCase;
+		final boolean isCaseMgmtWorkItem;
 		final boolean isWorkItem;
 		final ObjectTypes.ObjectManager manager;
 		final ObjectQuery refinedQuery;
 
 		ContainerOperationContext(Class<T> type, ObjectQuery query) throws SchemaException, SecurityViolationException {
-			isCase = AccessCertificationCaseType.class.equals(type);
+			isCertCase = AccessCertificationCaseType.class.equals(type);
+			isCaseMgmtWorkItem = CaseWorkItemType.class.equals(type);
 			isWorkItem = WorkItemType.class.equals(type);
 
-			if (!isCase && !isWorkItem) {
-				throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType and WorkItemType classes");
+			if (!isCertCase && !isWorkItem && !isCaseMgmtWorkItem) {
+				throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType, WorkItemType and CaseWorkItemType classes");
 			}
 
-			if (isCase) {
-				refinedQuery  = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query);
+			if (isCertCase) {
+				refinedQuery = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query);
 				manager = ObjectTypes.ObjectManager.REPOSITORY;
 			} else if (isWorkItem) {
 				refinedQuery = preProcessWorkItemSecurity(query);
 				manager = ObjectTypes.ObjectManager.WORKFLOW;
+			} else //noinspection ConstantConditions
+				if (isCaseMgmtWorkItem) {
+				refinedQuery = query;           // TODO
+				manager = ObjectTypes.ObjectManager.EMULATED;
 			} else {
 				throw new IllegalStateException();
 			}
@@ -936,6 +942,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
 				}
 				switch (ctx.manager) {
+					case EMULATED: list = emulatedSearchProvider.searchContainers(type, query, options, result); break;
 					case REPOSITORY: list = cacheRepositoryService.searchContainers(type, query, options, result); break;
 					case WORKFLOW: list = workflowManager.searchContainers(type, query, options, result); break;
 					default: throw new IllegalStateException();
@@ -964,11 +971,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			RepositoryCache.exit();
 		}
 
-		if (ctx.isCase) {
+		if (ctx.isCertCase) {
 			list = schemaTransformer.applySchemasAndSecurityToContainers(list, AccessCertificationCampaignType.class,
 					AccessCertificationCampaignType.F_CASE, rootOptions, options, null, task, result);
-		} else if (ctx.isWorkItem) {
-			// TODO implement security post processing for WorkItems
+		} else if (ctx.isWorkItem || ctx.isCaseMgmtWorkItem) {
+			// TODO implement security post processing for WorkItems and CaseWorkItems
 		} else {
 			throw new IllegalStateException();
 		}
@@ -2016,10 +2023,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public ScriptExecutionResult evaluateExpression(ExecuteScriptType scriptExecutionCommand, Task task, OperationResult result)
+    public ScriptExecutionResult evaluateExpression(@NotNull ExecuteScriptType scriptExecutionCommand,
+		    @NotNull Map<String, Object> initialVariables, @NotNull Task task, @NotNull OperationResult result)
 			throws ScriptExecutionException, SchemaException, SecurityViolationException {
         checkScriptingAuthorization(result);
-        ExecutionContext executionContext = scriptingExpressionEvaluator.evaluateExpression(scriptExecutionCommand, task, result);
+        ExecutionContext executionContext = scriptingExpressionEvaluator.evaluateExpression(scriptExecutionCommand, initialVariables, task, result);
         return executionContext.toExecutionResult();
     }
 

@@ -28,10 +28,19 @@ public class PagingConvertor {
 		if (pagingType == null) {
 			return null;
 		}
+        if (pagingType.getOrderBy() != null && pagingType.getGroupBy() != null) {
+            return ObjectPaging.createPaging(pagingType.getOffset(), pagingType.getMaxSize(),
+                    pagingType.getOrderBy().getItemPath(), toOrderDirection(pagingType.getOrderDirection()), pagingType.getGroupBy().getItemPath());
+        }
+
 		if (pagingType.getOrderBy() != null) {
 			return ObjectPaging.createPaging(pagingType.getOffset(), pagingType.getMaxSize(),
 					pagingType.getOrderBy().getItemPath(), toOrderDirection(pagingType.getOrderDirection()));
-		} else {
+
+		} if (pagingType.getGroupBy() != null) {
+            return ObjectPaging.createPaging(pagingType.getGroupBy().getItemPath());
+
+        } else {
 			return ObjectPaging.createPaging(pagingType.getOffset(), pagingType.getMaxSize());
 		}
 	}
@@ -62,7 +71,9 @@ public class PagingConvertor {
 		if (paging.getOrderBy() != null) {
 			pagingType.setOrderBy(new ItemPathType(paging.getOrderBy()));
 		}
-		
+        if (paging.getGroupBy() != null) {
+            pagingType.setGroupBy(new ItemPathType(paging.getGroupBy()));
+        }
 		return pagingType;
 	}
 	

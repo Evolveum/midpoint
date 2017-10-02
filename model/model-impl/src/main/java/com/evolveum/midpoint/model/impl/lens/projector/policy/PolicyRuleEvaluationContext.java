@@ -30,25 +30,22 @@ import java.util.Collection;
 /**
  * @author mederly
  */
-public abstract class PolicyRuleEvaluationContext<F extends FocusType> {
+public abstract class PolicyRuleEvaluationContext<F extends FocusType> implements Cloneable {
 
 	@NotNull public final EvaluatedPolicyRule policyRule;
 	@NotNull public final LensContext<F> lensContext;
 	@NotNull public final LensFocusContext<F> focusContext;
 	@NotNull public final Task task;
 	@NotNull public final ObjectState state;
+	@NotNull public final RulesEvaluationContext globalCtx;
 
 	public PolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, @NotNull LensContext<F> context,
-			@NotNull Task task) {
-		this(policyRule, context, task, null);
-	}
-
-	public PolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, @NotNull LensContext<F> context,
-			@NotNull Task task, @NotNull ObjectState state) {
+			@NotNull Task task, @NotNull RulesEvaluationContext globalCtx, @NotNull ObjectState state) {
 		this.policyRule = policyRule;
 		this.lensContext = context;
 		this.focusContext = context.getFocusContext();
 		this.task = task;
+		this.globalCtx = globalCtx;
 		if (focusContext == null) {
 			throw new IllegalStateException("No focus context");
 		}
@@ -72,4 +69,8 @@ public abstract class PolicyRuleEvaluationContext<F extends FocusType> {
 	}
 
 	public abstract String getShortDescription();
+
+	public void record() {
+		globalCtx.rulesToRecord.add(policyRule);
+	}
 }

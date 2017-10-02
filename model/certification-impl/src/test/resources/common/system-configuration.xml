@@ -53,6 +53,7 @@
 			</situation>
 		</policyConstraints>
 		<policyActions>
+			<record/>
 			<!-- empty; just to test policy rules stored in assignments -->
 		</policyActions>
 		<focusSelector>

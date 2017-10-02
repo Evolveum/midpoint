@@ -15,12 +15,11 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -72,6 +71,27 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	private String oid = null;
 	private int iteration;
     private String iterationToken;
+
+	/**
+	 * These are policy state modifications that should be applied.
+	 * Currently we apply them in ChangeExecutor.executeChanges only.
+	 *
+	 * In the future we plan to be able to apply some state modifications even
+	 * if the clockwork is exited in non-standard way (e.g. in primary state or with an exception).
+	 * But we must be sure what policy state to store, because some constraints might be triggered
+	 * because of expectation of future state (like conflicting assignment is added etc.)
+	 * ---
+	 * Although placed in LensElementContext, support for this data is currently implemented only for focus, not for projections.
+	 */
+	@NotNull private transient final List<ItemDelta<?,?>> pendingObjectPolicyStateModifications = new ArrayList<>();
+
+	/**
+	 * Policy state modifications for assignments.
+	 *
+	 * Although we put here also deltas for assignments that are to be deleted, we do not execute these
+	 * (because we implement execution only for the standard exit-path from the clockwork).
+	 */
+	@NotNull private transient final Map<AssignmentSpec, List<ItemDelta<?,?>>> pendingAssignmentPolicyStateModifications = new HashMap<>();
 
     /**
      * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the
@@ -196,6 +216,10 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	public ObjectDelta<O> getPrimaryDelta() {
 		return primaryDelta;
 	}
+	
+	public boolean hasPrimaryDelta() {
+		return primaryDelta != null && !primaryDelta.isEmpty();
+	}
 
 	/**
 	 * As getPrimaryDelta() but caters for the possibility that an object already exists.
@@ -249,6 +273,45 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
 	public abstract void swallowToSecondaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException;
+
+	// TODO deduplicate with swallowToSecondaryDelta in LensFocusContext
+	public ObjectDelta<O> swallowToDelta(ObjectDelta<O> originalDelta, ItemDelta<?,?> propDelta) throws SchemaException {
+		if (originalDelta == null) {
+			originalDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
+			originalDelta.setOid(getOid());
+		} else if (originalDelta.containsModification(propDelta, true, true)) {
+			return originalDelta;
+		}
+		originalDelta.swallow(propDelta);
+		return originalDelta;
+	}
+
+	@NotNull
+	public List<ItemDelta<?, ?>> getPendingObjectPolicyStateModifications() {
+		return pendingObjectPolicyStateModifications;
+	}
+
+	public void clearPendingObjectPolicyStateModifications() {
+		pendingObjectPolicyStateModifications.clear();
+	}
+
+	public void addToPendingObjectPolicyStateModifications(ItemDelta<?, ?> modification) {
+		pendingObjectPolicyStateModifications.add(modification);
+	}
+
+	@NotNull
+	public Map<AssignmentSpec, List<ItemDelta<?, ?>>> getPendingAssignmentPolicyStateModifications() {
+		return pendingAssignmentPolicyStateModifications;
+	}
+
+	public void clearPendingAssignmentPolicyStateModifications() {
+		pendingAssignmentPolicyStateModifications.clear();
+	}
+
+	public void addToPendingAssignmentPolicyStateModifications(@NotNull AssignmentType assignment, @NotNull PlusMinusZero mode, @NotNull ItemDelta<?, ?> modification) {
+		AssignmentSpec spec = new AssignmentSpec(assignment, mode);
+		pendingAssignmentPolicyStateModifications.computeIfAbsent(spec, k -> new ArrayList<>()).add(modification);
+	}
 
 	public boolean isAdd() {
 		if (ObjectDelta.isAdd(getPrimaryDelta())) {
@@ -703,5 +766,17 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	}
 
 	public abstract String getHumanReadableName();
-
+	
+	public String getObjectReadVersion() {
+		// Do NOT use version from object current.
+		// Current object may be re-read, but the computation
+		// might be based on older data (objectOld).
+//		if (getObjectCurrent() != null) {
+//			return getObjectCurrent().getVersion();
+//		}
+		if (getObjectOld() != null) {
+			return getObjectOld().getVersion();
+		}
+		return null;
+	}
 }

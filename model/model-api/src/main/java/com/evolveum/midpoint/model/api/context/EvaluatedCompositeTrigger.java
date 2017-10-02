@@ -77,11 +77,11 @@ public class EvaluatedCompositeTrigger extends EvaluatedPolicyRuleTrigger<Policy
 	}
 
 	@Override
-	public EvaluatedLogicalTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule, boolean respectFinalFlag) {
+	public EvaluatedLogicalTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options) {
 		EvaluatedLogicalTriggerType rv = new EvaluatedLogicalTriggerType();
-		fillCommonContent(rv, owningRule);
-		if (!respectFinalFlag || !isFinal()) {
-			innerTriggers.forEach(t -> rv.getEmbedded().add(t.toEvaluatedPolicyRuleTriggerType(owningRule, respectFinalFlag)));
+		fillCommonContent(rv);
+		if (!options.isRespectFinalFlag() || !isFinal()) {
+			innerTriggers.forEach(t -> rv.getEmbedded().add(t.toEvaluatedPolicyRuleTriggerType(options)));
 		}
 		return rv;
 	}
