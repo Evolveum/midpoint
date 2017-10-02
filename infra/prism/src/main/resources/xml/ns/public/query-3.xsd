@@ -120,6 +120,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="groupBy" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Property by which the results should be grouped.
+                        Reference to a property (XPath).
+                        Just one property for now.
+                        Maybe we will change this to a list later.
+                        If not specified, no grouping is assumed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

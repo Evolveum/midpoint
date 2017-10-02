@@ -84,6 +84,7 @@ import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -185,6 +186,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				ExpressionEvaluationException e) {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
+			
+		} catch (PreconditionViolationException e) {
+			ModelUtils.recordFatalError(result, e);
+			// TODO: Temporary fix for 3.6.1
+			// We do not want to propagate PreconditionViolationException to model API as that might break compatiblity
+			// ... and we do not really need that in 3.6.1
+			// TODO: expose PreconditionViolationException in 3.7
+			throw new SystemException(e);
+			
 		} finally {
 			RepositoryCache.exit();
 		}

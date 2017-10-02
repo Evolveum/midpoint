@@ -65,8 +65,8 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
 	private static final long WAIT_TIMEOUT = 60000L;
 
-	private static final int DUMMY_OPERATION_DELAY_RANGE = 1000;
-	
+	private static final int DUMMY_OPERATION_DELAY_RANGE = 1500;
+
 	private String accountMorganOid;
 	private String accountElizabethOid;
 
@@ -79,7 +79,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 	}
 	
 	protected int getConcurrentTestSlowRandomStartDelayRange() {
-		return 1000;
+		return 150;
 	}
 
 	@Override
@@ -371,7 +371,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 	 * is finished. But the threads are fast and the operations are slow. So this is
 	 * a very slim chance.
 	 */
-	@Test
+	@Test(enabled = false)
 	public void test214ParallelModifyDisableSlow() throws Exception {
 		final String TEST_NAME = "test214ParallelModifyDisableSlow";
 		

@@ -331,6 +331,16 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     }
 
     @Override
+    public S_FilterExit group(QName... names) {
+        return finish().group(names);
+    }
+
+    @Override
+    public S_FilterExit group(ItemPath path) {
+        return finish().group(path);
+    }
+
+    @Override
     public S_FilterExit offset(Integer n) {
         return finish().offset(n);
     }

@@ -199,6 +199,11 @@ public class TestUtil {
 		LOGGER.info(TEST_LOG_SECTION_PREFIX + " CLEANUP " + testName + TEST_LOG_SECTION_SUFFIX);
 	}
 	
+	public static void displaySkip(String testName) {
+		System.out.println(TEST_OUT_SECTION_PREFIX + " SKIP " + testName + TEST_OUT_SECTION_SUFFIX);
+		LOGGER.info(TEST_LOG_SECTION_PREFIX + " SKIP " + testName + TEST_LOG_SECTION_SUFFIX);
+	}
+
 	public static void info(String message) {
 		System.out.println(TEST_OUT_SECTION_PREFIX + message + TEST_OUT_SECTION_SUFFIX);
 		LOGGER.info(TEST_LOG_SECTION_PREFIX + message + TEST_LOG_SECTION_SUFFIX);
