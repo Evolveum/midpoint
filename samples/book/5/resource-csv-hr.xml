@@ -16,7 +16,7 @@
   -->
 
 
-<c:resource oid="03c3ceea-78e2-11e6-954d-dfdfa9ace0cf"
+<resource oid="03c3ceea-78e2-11e6-954d-dfdfa9ace0cf"
             xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -27,7 +27,7 @@
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
-    <c:name>HR System</c:name>
+    <name>HR System</name>
 
     <description>
         HR resource using CSV connector. This is the HR feed (source) resource.
@@ -35,29 +35,27 @@
         book, chapter 5.
     </description>
 
-	<connectorRef type="ConnectorType">
-		<filter>
-			<q:equal>
-				<q:path>c:connectorType</q:path>
-				<q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
-			</q:equal>
-		</filter>
-	</connectorRef>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal>
+                <q:path>c:connectorType</q:path>
+                <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
 
-	<c:connectorConfiguration>
-
-		<!-- Configuration specific for the CSVfile connector -->
-		<icfc:configurationProperties
-					xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
-			<icfccsvfile:filePath>/var/opt/midpoint-book/resources/hr.csv</icfccsvfile:filePath>
-			<icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
-			<icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
-			<icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
-			<icfccsvfile:uniqueAttribute>empno</icfccsvfile:uniqueAttribute>
-			<icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>
-		</icfc:configurationProperties>
-
-	</c:connectorConfiguration>
+    <connectorConfiguration>
+        <!-- Configuration specific for the CSV connector -->
+        <icfc:configurationProperties
+                xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+            <icfccsvfile:filePath>/var/opt/midpoint-book/resources/hr.csv</icfccsvfile:filePath>
+            <icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
+            <icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
+            <icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
+            <icfccsvfile:uniqueAttribute>empno</icfccsvfile:uniqueAttribute>
+            <icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
 
     <schemaHandling>
 
@@ -168,5 +166,5 @@
             </reaction>
         </objectSynchronization>
     </synchronization>
-</c:resource>
+</resource>
 
