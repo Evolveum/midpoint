@@ -680,7 +680,7 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertExecutionDeltas(0,3);
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class); // primary, link (2 deltas)
         dummyAuditService.assertHasDelta(0,ChangeType.ADD, ShadowType.class); // AD account
-        dummyAuditService.assertExecutionDeltas(1,2);
+        dummyAuditService.assertExecutionDeltas(1,3);
         dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class); // link
         dummyAuditService.assertHasDelta(1,ChangeType.ADD, ShadowType.class); // Mail account
         dummyAuditService.assertExecutionDeltas(2,2);
@@ -797,7 +797,7 @@ public class TestTrafo extends AbstractStoryTest {
         dummyAuditService.assertHasDelta(0, ChangeType.ADD, UserType.class); // primary
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class); // link
         dummyAuditService.assertHasDelta(0,ChangeType.ADD, ShadowType.class); // AD account
-        dummyAuditService.assertExecutionDeltas(1, 2);
+        dummyAuditService.assertExecutionDeltas(1, 3);
         dummyAuditService.assertHasDelta(1, ChangeType.MODIFY, UserType.class); // link
         dummyAuditService.assertHasDelta(1,ChangeType.ADD, ShadowType.class); // Mail account
         dummyAuditService.assertExecutionDeltas(2, 2);
