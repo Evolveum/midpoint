@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
@@ -605,6 +606,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 						CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException|RuntimeException e) {
 					ModelUtils.recordFatalError(result, e);
 					throw e;
+					
+				} catch (PreconditionViolationException e) {
+					ModelUtils.recordFatalError(result, e);
+					// TODO: Temporary fix for 3.6.1
+					// We do not want to propagate PreconditionViolationException to model API as that might break compatiblity
+					// ... and we do not really need that in 3.6.1
+					// TODO: expose PreconditionViolationException in 3.7
+					throw new SystemException(e);
+					
 				} finally {
 					task.markObjectActionExecutedBoundary();
 				}
@@ -712,33 +722,21 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 			result.cleanupResult();
 
-		} catch (ExpressionEvaluationException e) {
+
+		} catch (ExpressionEvaluationException | SchemaException | PolicyViolationException | ObjectNotFoundException | 
+				ObjectAlreadyExistsException | CommunicationException | ConfigurationException | SecurityViolationException |
+				RuntimeException | Error e) {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
-		} catch (SchemaException e) {
+			
+		} catch (PreconditionViolationException e) {
 			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (PolicyViolationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (ObjectNotFoundException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (ObjectAlreadyExistsException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (CommunicationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (ConfigurationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (RuntimeException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
+			// TODO: Temporary fix for 3.6.1
+			// We do not want to propagate PreconditionViolationException to model API as that might break compatiblity
+			// ... and we do not really need that in 3.6.1
+			// TODO: expose PreconditionViolationException in 3.7
+			throw new SystemException(e);
+			
 		} finally {
 			RepositoryCache.exit();
 		}

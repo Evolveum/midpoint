@@ -80,7 +80,7 @@ public class BaseModelInvocationProcessingHelper {
      */
     public WfTaskCreationInstruction createInstructionForRoot(ChangeProcessor changeProcessor, ModelContext modelContext, Task taskFromModel, ModelContext contextForRoot, OperationResult result) throws SchemaException {
 
-        WfTaskCreationInstruction instruction;
+        WfTaskCreationInstruction<?, ?> instruction;
         if (contextForRoot != null) {
             instruction = WfTaskCreationInstruction.createModelOnly(changeProcessor, contextForRoot);
         } else {
@@ -92,6 +92,7 @@ public class BaseModelInvocationProcessingHelper {
         instruction.setTaskOwner(taskFromModel.getOwner());
         instruction.setCreateTaskAsWaiting();
 
+	    instruction.setObjectRef(modelContext, result);
 		instruction.setRequesterRef(getRequester(taskFromModel, result));
         return instruction;
     }

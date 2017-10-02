@@ -56,6 +56,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -781,7 +782,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 				
 			} catch (ConfigurationException | ObjectNotFoundException | SchemaException |
 					PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException |
-					CommunicationException | SecurityViolationException e) {
+					CommunicationException | SecurityViolationException | PreconditionViolationException e) {
 				LOGGER.error("SYNCHRONIZATION: Error in synchronization on {} for situation {}: {}: {}. Change was {}",
 						new Object[] {resource, situation.getSituation(), e.getClass().getSimpleName(), 
 								e.getMessage(), change, e});

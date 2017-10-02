@@ -478,12 +478,75 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="executionTasks" minOccurs="0" type="tns:WfExecutionTasksConfigurationType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configuration related to tasks in which model operations are executed.
+						EXPERIMENTAL
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:experimental>true</a:experimental>
+						<a:since>3.6.1</a:since>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="primaryChangeProcessor" minOccurs="0" type="tns:PrimaryChangeProcessorConfigurationType" />
             <xsd:element name="generalChangeProcessor" minOccurs="0" type="tns:GeneralChangeProcessorConfigurationType" />
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="LegacyApproversSpecificationUsageType">
+	<xsd:complexType name="WfExecutionTasksConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configuration related to tasks in which model operations are executed.
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:experimental>true</a:experimental>
+				<a:since>3.6.1</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="serialization" type="tns:WfExecutionTasksSerializationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether and how to serialize execution tasks (if "execute after all approvals" is set to false).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="WfExecutionTasksSerializationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Whether and how to serialize execution tasks (if "execute after all approvals" is set to false).
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:experimental>true</a:experimental>
+				<a:since>3.6.1</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether this feature is enabled. Default is true if executionTasksSerialization element is present; false otherwise.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="retryAfter" type="xsd:duration" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Interval after which the execution task is to be rescheduled in case of conflict. Default is 10 seconds.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="LegacyApproversSpecificationUsageType">
         <xsd:annotation>
             <xsd:documentation>
                 How to deal with legacy approvers specifications, i.e. approvalRef, approvalExpression, approvalSchema,

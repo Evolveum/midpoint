@@ -93,6 +93,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	public static final File USER_ADMINISTRATOR_FILE = new File(TEST_RESOURCE_DIR, "user-administrator.xml");
 
 	protected static final File USER_JACK_FILE = new File(TEST_RESOURCE_DIR, "user-jack.xml");
+	protected static final File USER_BOB_FILE = new File(TEST_RESOURCE_DIR, "user-bob.xml");
+	protected static final File USER_CHUCK_FILE = new File(TEST_RESOURCE_DIR, "user-chuck.xml");
 	protected static final File USER_LEAD1_FILE = new File(TEST_RESOURCE_DIR, "user-lead1.xml");
 	protected static final File USER_LEAD1_DEPUTY_1_FILE = new File(TEST_RESOURCE_DIR, "user-lead1-deputy1.xml");
 	protected static final File USER_LEAD1_DEPUTY_2_FILE = new File(TEST_RESOURCE_DIR, "user-lead1-deputy2.xml");
@@ -134,6 +136,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
 
 	protected String userJackOid;
+	protected String userBobOid;
+	protected String userChuckOid;
 	protected String userLead1Oid;
 	protected String userLead1Deputy1Oid;
 	protected String userLead1Deputy2Oid;
@@ -202,7 +206,10 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		super.initSystem(initTask, initResult);
 		modelService.postInit(initResult);
 
-		repoAddObjectFromFile(getSystemConfigurationFile(), initResult);
+		PrismObject<SystemConfigurationType> sysconfig = prismContext.parseObject(getSystemConfigurationFile());
+		updateSystemConfiguration(sysconfig.asObjectable());
+		repoAddObject(sysconfig, initResult);
+
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
 		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
 		login(userAdministrator);
@@ -214,6 +221,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		metaroleApproveUnassign = repoAddObjectFromFile(METAROLE_APPROVE_UNASSIGN_FILE, initResult).getOid();
 
 		userJackOid = repoAddObjectFromFile(USER_JACK_FILE, initResult).getOid();
+		userBobOid = repoAddObjectFromFile(USER_BOB_FILE, initResult).getOid();
+		userChuckOid = repoAddObjectFromFile(USER_CHUCK_FILE, initResult).getOid();
 		roleRole1Oid = repoAddObjectFromFile(ROLE_ROLE1_FILE, initResult).getOid();
 		roleRole1aOid = repoAddObjectFromFile(ROLE_ROLE1A_FILE, initResult).getOid();
 		roleRole1bOid = repoAddObjectFromFile(ROLE_ROLE1B_FILE, initResult).getOid();
@@ -243,6 +252,10 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 		userTemplateAssigningRole1aOid = repoAddObjectFromFile(USER_TEMPLATE_ASSIGNING_ROLE_1A, initResult).getOid();
 		userTemplateAssigningRole1aOidAfter = repoAddObjectFromFile(USER_TEMPLATE_ASSIGNING_ROLE_1A_AFTER, initResult).getOid();
+	}
+
+	protected void updateSystemConfiguration(SystemConfigurationType systemConfiguration) {
+		// nothing to do by default
 	}
 
 	protected File getSystemConfigurationFile() {

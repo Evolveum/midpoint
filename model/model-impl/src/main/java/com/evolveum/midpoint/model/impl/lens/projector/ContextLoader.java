@@ -1277,7 +1277,7 @@ public class ContextLoader {
 			projCtx.setOid(objectCurrent.getOid());
 		
 		} catch (ObjectNotFoundException ex) {
-			LOGGER.trace("Load of full resource object {} ended with ObjectNotFoundException (options={})", projCtx, getOptions);
+			LOGGER.debug("Load of full resource object {} ended with ObjectNotFoundException (options={})", projCtx, getOptions);
 			if (projCtx.isDelete()){
 				//this is OK, shadow was deleted, but we will continue in processing with old shadow..and set it as full so prevent from other full loading
 				projCtx.setFullShadow(true);
