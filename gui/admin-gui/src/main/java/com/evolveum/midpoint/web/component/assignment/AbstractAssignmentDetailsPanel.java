@@ -80,7 +80,7 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 			@Override
     		public C getObject() {
 				AssignmentType assignment = getModelObject().getContainerValue().getValue();
-    			if (AssignmentsUtil.isAssignableObject(assignment)) {
+    			if (assignment.getTargetRef() != null) {
     				Task task = getPageBase().createSimpleTask("Load target");
     				com.evolveum.midpoint.schema.result.OperationResult result = task.getResult();
     				return (C) WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(), task, result).asObjectable();

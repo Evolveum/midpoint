@@ -37,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -71,7 +72,12 @@ public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObje
         policyRules.setOutputMarkupId(true);
         add(policyRules);
 
-        PolicyRulesPanel policyRulesPanel = new PolicyRulesPanel(ID_POLICY_RULES_PANEL, getPolicyRulesModel(assignmentsContainerWrapper), assignmentsContainerWrapper);
+        PolicyRulesPanel policyRulesPanel = new PolicyRulesPanel(ID_POLICY_RULES_PANEL, new AbstractReadOnlyModel<ContainerWrapper<AssignmentType>>() {
+            @Override
+            public ContainerWrapper<AssignmentType> getObject() {
+                return assignmentsContainerWrapper;
+            }
+        });
         policyRules.add(policyRulesPanel);
     }
 
