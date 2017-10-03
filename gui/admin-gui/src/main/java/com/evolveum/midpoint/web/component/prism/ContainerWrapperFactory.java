@@ -130,7 +130,7 @@ public class ContainerWrapperFactory {
 	    	return containerValueWrappers;
 	    }
 	  
-	  private <C extends Containerable> ContainerValueWrapper<C> createContainerValueWrapper(ContainerWrapper cWrapper, PrismContainerValue<C> value, ValueStatus status, ItemPath path){
+	  public <C extends Containerable> ContainerValueWrapper<C> createContainerValueWrapper(ContainerWrapper cWrapper, PrismContainerValue<C> value, ValueStatus status, ItemPath path){
 		  ContainerValueWrapper<C> containerValueWrapper = new ContainerValueWrapper<C>(cWrapper, value, status, path);
 		    
 			List<ItemWrapper> properties = createProperties(containerValueWrapper, false);

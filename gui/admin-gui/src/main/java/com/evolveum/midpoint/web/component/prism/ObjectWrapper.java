@@ -344,8 +344,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 		for (ContainerWrapper containerWrapper : getContainers()) {
 			containerWrapper.collectModifications(delta);
 			containerWrapper.collectDeleteDelta(delta, object.getPrismContext());
-//			containerWrapper.collectAddDelta(delta, new ItemPath(FocusType.F_ASSIGNMENT), object.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT),
-//					object.getPrismContext());
+			containerWrapper.collectAddDelta(delta, object.getPrismContext());
 		}
 		// returning container to previous order
 		Collections.sort(containers, new ItemWrapperComparator());
