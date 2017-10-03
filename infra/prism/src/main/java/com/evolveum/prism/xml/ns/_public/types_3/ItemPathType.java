@@ -30,6 +30,8 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -165,5 +167,9 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 		} else {
 			throw new IllegalArgumentException("Value " + value + " is neither ItemPath nor ItemPathType.");
 		}
+	}
+
+	public static List<ItemPath> toItemPathList(List<ItemPathType> list) {
+    	return list.stream().map(pt -> pt.getItemPath()).collect(Collectors.toList());
 	}
 }

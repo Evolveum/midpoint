@@ -221,17 +221,21 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             WfTask rootWfTask = submitRootTask(context, changesWithoutApproval, taskFromModel, executionMode, wfConfigurationType, result);
             WfTask wfTask0 = submitTask0(context, changesWithoutApproval, rootWfTask, executionMode, wfConfigurationType, result);
 
+	        WfTask objectCreationTask = null;
+
             // start the jobs
             List<WfTask> wfTasks = new ArrayList<>(instructions.size());
             for (PcpChildWfTaskCreationInstruction instruction : instructions) {
 				if (instruction.startsWorkflowProcess() && instruction.isExecuteApprovedChangeImmediately()) {
 					// if we want to execute approved changes immediately in this instruction, we have to wait for
-					// task0 (if there is any) and then to update our model context with the results (if there are any)
-					// TODO CONSIDER THIS... when OID is no longer transferred
+					// task0 and/or object creation task
 					instruction.addHandlersAfterWfProcessAtEnd(WfTaskUtil.WAIT_FOR_TASKS_HANDLER_URI, WfPrepareChildOperationTaskHandler.HANDLER_URI);
 				}
 				WfTask wfTask = wfTaskController.submitWfTask(instruction, rootWfTask.getTask(), wfConfigurationType, null, result);
                 wfTasks.add(wfTask);
+                if (instruction.isObjectCreationInstruction()) {
+                	objectCreationTask = wfTask;
+                }
             }
 
             // all jobs depend on job0 (if there is one)
@@ -240,6 +244,15 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
                     wfTask0.addDependent(wfTask);
                 }
                 wfTask0.commitChanges(result);
+            }
+	        // all jobs depend on object creation task (if there is one)
+            if (objectCreationTask != null) {
+	            for (WfTask wfTask : wfTasks) {
+	            	if (wfTask != objectCreationTask) {
+			            objectCreationTask.addDependent(wfTask);
+		            }
+	            }
+	            objectCreationTask.commitChanges(result);
             }
 
             baseModelInvocationProcessingHelper.logJobsBeforeStart(rootWfTask, result);

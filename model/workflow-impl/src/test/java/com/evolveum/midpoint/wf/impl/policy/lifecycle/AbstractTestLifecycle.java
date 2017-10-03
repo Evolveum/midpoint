@@ -59,8 +59,10 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 	protected static final File TEST_LIFECYCLE_RESOURCE_DIR = new File("src/test/resources/policy/lifecycle");
 
 	protected static final File USER_PIRATE_OWNER_FILE = new File(TEST_LIFECYCLE_RESOURCE_DIR, "user-pirate-owner.xml");
+	protected static final File USER_JUDGE_OWNER_FILE = new File(TEST_LIFECYCLE_RESOURCE_DIR, "user-judge-owner.xml");
 
 	protected String userPirateOwnerOid;
+	protected String userJudgeOwnerOid;
 
 	String rolePirateOid;
 
@@ -68,6 +70,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		userPirateOwnerOid = addAndRecomputeUser(USER_PIRATE_OWNER_FILE, initTask, initResult);
+		userJudgeOwnerOid = addAndRecomputeUser(USER_JUDGE_OWNER_FILE, initTask, initResult);
 	}
 
 	protected boolean approveObjectAdd() {

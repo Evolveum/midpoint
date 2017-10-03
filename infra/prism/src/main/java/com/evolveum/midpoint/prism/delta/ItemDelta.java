@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Foreachable;
@@ -1991,4 +1992,20 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 			}
 		});
 	}
+
+	// TODO move to Item
+	public static <V extends PrismValue, D extends ItemDefinition> ItemDelta<V, D> createAddDeltaFor(Item<V, D> item) {
+		ItemDelta<V, D> rv = item.createDelta(item.getPath());
+		rv.addValuesToAdd(item.getClonedValues());
+		return rv;
+	}
+
+	// TODO move to Item
+	@SuppressWarnings("unchecked")
+	public static <V extends PrismValue, D extends ItemDefinition> ItemDelta<V, D> createAddDeltaFor(Item<V, D> item, PrismValue value) {
+		ItemDelta<V, D> rv = item.createDelta(item.getPath());
+		rv.addValueToAdd((V) CloneUtil.clone(value));
+		return rv;
+	}
+
 }
