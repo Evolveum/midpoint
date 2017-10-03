@@ -337,7 +337,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
             @Override
             public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
                                      final IModel<AssignmentEditorDto> rowModel) {
-                IModel<String> activationLabelModel = AssignmentsUtil.createActivationTitleModel(rowModel,"", AssignmentDataTablePanel.this);
+                IModel<String> activationLabelModel = AssignmentsUtil.createActivationTitleModel(rowModel.getObject().getActivation(),"", AssignmentDataTablePanel.this);
                 cellItem.add(new Label(componentId, StringUtils.isEmpty(activationLabelModel.getObject()) ?
                         createStringResource("AssignmentEditorPanel.undefined") : activationLabelModel));
             }

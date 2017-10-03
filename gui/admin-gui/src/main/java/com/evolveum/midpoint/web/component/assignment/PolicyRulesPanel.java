@@ -19,10 +19,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -47,10 +49,6 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 /**
  * Created by honchar.
@@ -61,8 +59,8 @@ public class PolicyRulesPanel extends AssignmentPanel {
     private static final long serialVersionUID = 1L;
 
 
-    public PolicyRulesPanel(String id, IModel<List<ContainerValueWrapper<AssignmentType>>> policyRulesModel, ContainerWrapper assignmentContainerWrapper){
-        super(id, policyRulesModel, assignmentContainerWrapper);
+    public PolicyRulesPanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
+        super(id, assignmentContainerWrapperModel);
 
     }
 
@@ -153,17 +151,23 @@ public class PolicyRulesPanel extends AssignmentPanel {
         policyRule.setDescription("");
         assignment.setPolicyRule(policyRule);
 
-        ContainerValueWrapper<AssignmentType> newAssignmentContainerWrapper = assignmentContainerWrapper.createItem(false);
-        newAssignmentContainerWrapper.setStatus(ValueStatus.ADDED);
-        newAssignmentContainerWrapper.getContainerValue().getValue().setupContainerValue(assignment.asPrismContainerValue());
-        getModelObject().add(newAssignmentContainerWrapper);
+//        ContainerValueWrapper<AssignmentType> newAssignmentContainerWrapper = assignmentContainerWrapper.createItem(false);
+//        newAssignmentContainerWrapper.setStatus(ValueStatus.ADDED);
+//        newAssignmentContainerWrapper.getContainerValue().getValue().setupContainerValue(assignment.asPrismContainerValue());
+//        getModelObject().add(newAssignmentContainerWrapper);
         target.add(getAssignmentContainer());
 	}
 
 	@Override
 	protected ObjectQuery createObjectQuery() {
-		return null;
-	}
+        return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+                .block()
+                .not()
+                .item(getModelObject().getItemDefinition(), new ItemPath(AssignmentType.F_POLICY_RULE))
+                .isNull()
+                .endBlock()
+                .build();
+    }
 
 	@Override
 	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
