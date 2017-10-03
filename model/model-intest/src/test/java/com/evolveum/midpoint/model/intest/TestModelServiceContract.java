@@ -1574,7 +1574,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // the previous command changes resource, therefore let's explicitly re-read it before test
         // to refresh the cache and not affect the performance results (monitor).
         modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 1);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
+        
+        assertSteadyResources();
 
 		// WHEN
         displayWhen(TEST_NAME);
@@ -1634,7 +1637,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // the previous command changes resource, therefore let's explicitly re-read it before test
         // to refresh the cache and not affect the performance results (monitor).
         modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 1);
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
+        assertSteadyResources();
     }
 
 	/**

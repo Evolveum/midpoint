@@ -703,6 +703,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="scope" type="tns:WfExecutionTasksSerializationScopeType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Scope of serialization. The default is "object". If multiple scopes are defined, serialization occurs on each one.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="retryAfter" type="xsd:duration" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -719,6 +726,61 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+
+	<xsd:simpleType name="WfExecutionTasksSerializationScopeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Scope of execution task serialization.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="operation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        No two workflow execution tasks from a single operation are allowed to execute at once.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OPERATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="object">
+                <xsd:annotation>
+                    <xsd:documentation>
+						No two workflow execution tasks on a given object are allowed to execute at once.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="target">
+                <xsd:annotation>
+                    <xsd:documentation>
+						No two workflow execution tasks related to give target are allowed to execute at once.
+						Note that the information on target is not always available (e.g. when executing changes
+						that do not require approval), so this may not be absolutely reliable.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TARGET"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="global">
+                <xsd:annotation>
+                    <xsd:documentation>
+						No two workflow execution tasks are allowed to execute at once.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="GLOBAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 	<xsd:simpleType name="LegacyApproversSpecificationUsageType">
         <xsd:annotation>

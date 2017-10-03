@@ -124,6 +124,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         importObjectFromFile(ROLE_CREW_OF_GUYBRUSH_FILE);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        rememberSteadyResources();
     }
 
     /**
@@ -136,6 +138,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        
+        assertSteadyResources();
 
         PrismObject<ShadowType> group = prismContext.parseObject(SHADOW_GROUP_DUMMY_SWASHBUCKLERS_FILE);
 
@@ -150,6 +154,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        
+        assertSteadyResources();
 	}
 
 	@Test
@@ -374,6 +380,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertNotNull("No group on orange dummy resource", dummyGroupAtOrange);
         display("Group @orange", dummyGroupAtOrange);
         assertNoGroupMembers(dummyGroupAtOrange);
+        
+        assertSteadyResources();
     }
 
     @Test
@@ -1006,6 +1014,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_RAPP_USERNAME);
+        
+        assertSteadyResources();
 	}
 
     @Test
@@ -1354,6 +1364,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
 		assertNoGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
+		
+		assertSteadyResources();
 	}
 
 	/**
@@ -1485,6 +1497,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 1);
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertSteadyResources();
 	}
 
 	/**
@@ -2082,6 +2096,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 0);
 
         assertJackNoAccountNoSwashbuckler();
+        
+        assertSteadyResources();
 	}
 
 	private void assertJackClean() throws SchemaViolationException, ConflictException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
