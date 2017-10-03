@@ -23,10 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTreeDeltasType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionObjectDeltaType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -38,9 +35,9 @@ import java.util.*;
  *
  * @author mederly
  */
-public class ObjectTreeDeltas<F extends FocusType> implements DebugDumpable {
+public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
 
-    private ObjectDelta<F> focusChange;
+    private ObjectDelta<T> focusChange;
     private Map<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> projectionChangeMap = new HashMap<>();    // values are non null here
     private PrismContext prismContext;
 
@@ -48,12 +45,12 @@ public class ObjectTreeDeltas<F extends FocusType> implements DebugDumpable {
         this.prismContext = prismContext;
     }
 
-    public ObjectTreeDeltas(ObjectDelta<F> focusChange, PrismContext prismContext) {
+    public ObjectTreeDeltas(ObjectDelta<T> focusChange, PrismContext prismContext) {
         this.focusChange = focusChange;
         this.prismContext = prismContext;
     }
 
-    public ObjectDelta<F> getFocusChange() {
+    public ObjectDelta<T> getFocusChange() {
         return focusChange;
     }
 
@@ -65,7 +62,7 @@ public class ObjectTreeDeltas<F extends FocusType> implements DebugDumpable {
         return projectionChangeMap;
     }
 
-    public void setFocusChange(ObjectDelta<F> focusChange) {
+    public void setFocusChange(ObjectDelta<T> focusChange) {
         this.focusChange = focusChange;
     }
 
@@ -105,8 +102,8 @@ public class ObjectTreeDeltas<F extends FocusType> implements DebugDumpable {
 		return true;
 	}
 
-	public ObjectTreeDeltas<F> clone() {
-        ObjectTreeDeltas<F> clone = new ObjectTreeDeltas<>(prismContext);
+	public ObjectTreeDeltas<T> clone() {
+        ObjectTreeDeltas<T> clone = new ObjectTreeDeltas<>(prismContext);
         if (focusChange != null) {
             clone.setFocusChange(focusChange.clone());
         }
@@ -220,7 +217,7 @@ public class ObjectTreeDeltas<F extends FocusType> implements DebugDumpable {
         return sb.toString();
     }
 
-	public void merge(ObjectTreeDeltas<F> deltasToMerge) throws SchemaException {
+	public void merge(ObjectTreeDeltas<T> deltasToMerge) throws SchemaException {
 		if (deltasToMerge == null) {
 			return;
 		}

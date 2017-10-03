@@ -580,6 +580,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		assertNotNull("Root task OID is not set in model task", rootTaskOid);
 
 		Task rootTask = taskManager.getTask(rootTaskOid, result);
+		display("Root task after first clockwork.run", rootTask);
 		assertTrue("Root task is not persistent", rootTask.isPersistent());
 
 		UriStack uriStack = rootTask.getOtherHandlersUriStack();
@@ -997,7 +998,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 	protected <T extends ObjectType> void assertObject(T object) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<T> objectFromRepo = searchObjectByName((Class<T>) object.getClass(), object.getName().getOrig());
-		assertNotNull("Object " + object + " was not created", object);
+		assertNotNull("Object " + object + " was not created", objectFromRepo);
 		objectFromRepo.removeItem(new ItemPath(ObjectType.F_METADATA), Item.class);
 		objectFromRepo.removeItem(new ItemPath(ObjectType.F_OPERATION_EXECUTION), Item.class);
 		assertEquals("Object is different from the one that was expected", object, objectFromRepo.asObjectable());

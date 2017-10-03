@@ -157,7 +157,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 
     @Override
     public boolean isEnabledByDefault() {
-        return false;       // overriden in selected aspects
+        return false;       // overridden in selected aspects
     }
 
     @Override
