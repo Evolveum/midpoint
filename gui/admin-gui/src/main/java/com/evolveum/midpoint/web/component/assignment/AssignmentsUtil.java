@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import org.exolab.castor.dsml.XML;
 
 /**
  * Created by honchar.
@@ -40,29 +41,32 @@ public class AssignmentsUtil {
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentsUtil.class);
 
     public static IModel<String> createActivationTitleModel(ActivationType activation, String defaultTitle, BasePanel basePanel) {
+        if (activation == null) {
+            return Model.of("");
+        }
+        return createActivationTitleModel(activation.getAdministrativeStatus(), activation.getValidFrom(), activation.getValidTo(), basePanel);
+    }
+
+    public static IModel<String> createActivationTitleModel(ActivationStatusType administrativeStatus, XMLGregorianCalendar validFrom, XMLGregorianCalendar validTo,
+                                                            BasePanel basePanel) {
         return new AbstractReadOnlyModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
-                if (activation == null) {
-                    return defaultTitle;
-                }
-
-                ActivationStatusType status = activation.getAdministrativeStatus();
-                String strEnabled = basePanel.createStringResource(status, "lower", "ActivationStatusType.null")
+                String strEnabled = basePanel.createStringResource(administrativeStatus, "lower", "ActivationStatusType.null")
                         .getString();
 
-                if (activation.getValidFrom() != null && activation.getValidTo() != null) {
+                if (validFrom != null && validTo != null) {
                     return basePanel.getString("AssignmentEditorPanel.enabledFromTo", strEnabled,
-                            MiscUtil.asDate(activation.getValidFrom()),
-                            MiscUtil.asDate(activation.getValidTo()));
-                } else if (activation.getValidFrom() != null) {
+                            MiscUtil.asDate(validFrom),
+                            MiscUtil.asDate(validTo));
+                } else if (validFrom != null) {
                     return basePanel.getString("AssignmentEditorPanel.enabledFrom", strEnabled,
-                            MiscUtil.asDate(activation.getValidFrom()));
-                } else if (activation.getValidTo() != null) {
+                            MiscUtil.asDate(validFrom));
+                } else if (validTo != null) {
                     return basePanel.getString("AssignmentEditorPanel.enabledTo", strEnabled,
-                            MiscUtil.asDate(activation.getValidTo()));
+                            MiscUtil.asDate(validTo));
                 }
 
                 return strEnabled;
