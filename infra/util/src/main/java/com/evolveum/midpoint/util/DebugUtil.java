@@ -187,7 +187,7 @@ public class DebugUtil {
 		} else {
 			StringBuilder sb = new StringBuilder();
 			indentDebugDump(sb, indent + 1);
-			sb.append(object.toString());
+			sb.append(PrettyPrinter.prettyPrint(object));
 			return sb.toString();
 		}
 	}
