@@ -253,6 +253,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	}
 
 	@Override
+	public void deleteSecondaryDeltas() {
+		secondaryDelta = null;
+	}
+
+	@Override
 	public void setOid(String oid) {
 		super.setOid(oid);
 		if (secondaryDelta != null) {

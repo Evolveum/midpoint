@@ -720,4 +720,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		}
 		return null;
 	}
+
+	public abstract void deleteSecondaryDeltas();
 }

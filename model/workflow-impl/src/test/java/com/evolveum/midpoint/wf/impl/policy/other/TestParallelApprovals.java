@@ -191,15 +191,6 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 		assertAssignedRole(aliceAfter, roleRole53aOid);
 	}
 
-	public void approveAllWorkItems(Task task, OperationResult result) throws Exception {
-		List<WorkItemType> workItems = getWorkItems(task, result);
-		display("work items", workItems);
-		display("approving work items");
-		for (WorkItemType workItem : workItems) {
-			workflowManager.completeWorkItem(workItem.getExternalId(), true, null, null, null, result);
-		}
-	}
-
 	@Test
 	public void test120ParallelApprovalsInTwoOperations() throws Exception {
 		final String TEST_NAME = "test120ParallelApprovalsInTwoOperations";

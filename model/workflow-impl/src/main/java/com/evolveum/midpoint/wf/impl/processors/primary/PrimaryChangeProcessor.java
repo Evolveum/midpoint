@@ -280,6 +280,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             ObjectDelta<ShadowType> projectionDelta = changeMap.get(projectionContext.getResourceShadowDiscriminator());
             projectionContext.setPrimaryDelta(projectionDelta);
         }
+	    contextCopy.deleteSecondaryDeltas();
         return contextCopy;
     }
 
@@ -290,6 +291,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         for (ModelProjectionContext projectionContext : projectionContexts) {
             projectionContext.setPrimaryDelta(null);
         }
+        contextCopy.deleteSecondaryDeltas();
         return contextCopy;
     }
 

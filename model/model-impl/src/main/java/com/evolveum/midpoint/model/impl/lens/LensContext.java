@@ -1324,4 +1324,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		}
 		return false;
 	}
+
+	public void deleteSecondaryDeltas() {
+		if (focusContext != null) {
+			focusContext.deleteSecondaryDeltas();
+		}
+		for (LensProjectionContext projectionContext : projectionContexts) {
+			projectionContext.deleteSecondaryDeltas();
+		}
+	}
 }
