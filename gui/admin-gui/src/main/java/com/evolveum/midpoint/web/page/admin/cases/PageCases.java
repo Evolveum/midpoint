@@ -121,6 +121,9 @@ public class PageCases extends PageAdminCases {
         IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
         columns.add(column);
 
+        column = new PropertyColumn(createStringResource("pageCases.table.state"), "value.state");
+        columns.add(column);
+
 //        column = new PropertyColumn(createStringResource("CaseType.event"),
 //                CaseType.F_EVENT.getLocalPart(),  SelectableBean.F_VALUE + ".event");
 //        columns.add(column);
