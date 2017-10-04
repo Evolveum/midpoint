@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -511,10 +512,28 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					}
 				}
 				if (!found) {
-					LOGGER.trace("  {}: delegator object spec not applicable for {}, object OID {} because delegator does not match",
-							autzHumanReadableDesc, desc, object.getOid());
-					return false;
+					if (BooleanUtils.isTrue(delegatorSpec.isAllowInactive())) {
+						for (AssignmentType objectAssignment: ((UserType)object.asObjectable()).getAssignment()) {
+							ObjectReferenceType objectAssignmentTargetRef = objectAssignment.getTargetRef();
+							if (objectAssignmentTargetRef == null) {
+								continue;
+							}
+							if (principal.getOid().equals(objectAssignmentTargetRef.getOid())) {
+								if (QNameUtil.match(SchemaConstants.ORG_DEPUTY, objectAssignmentTargetRef.getRelation())) {
+									found = true;
+									break;
+								}
+							}
+						}
+					}
+					
+					if (!found) {
+						LOGGER.trace("  {}: delegator object spec not applicable for {}, object OID {} because delegator does not match",
+								autzHumanReadableDesc, desc, object.getOid());
+						return false;
+					}
 				}
+				
 			}
 		}
 

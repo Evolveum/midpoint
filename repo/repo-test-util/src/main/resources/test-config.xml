@@ -72,6 +72,8 @@
         	<blabla>Bla bla bla</blabla>
         	<baseDn>dc=example,dc=com</baseDn>
         	<passwordClear>secret</passwordClear>
+        	<adBaseDn>DC=ad,DC=evolveum,DC=com</adBaseDn>
+        	<adUsersDn>CN=Users,DC=ad,DC=evolveum,DC=com</adUsersDn>
         </constants>
     </midpoint>
 </configuration>

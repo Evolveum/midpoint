@@ -86,8 +86,23 @@ public class ExistsFilter extends ObjectFilter implements ItemFilter {
 
 	@Override
     public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-        throw new UnsupportedOperationException();
-    }
+		Item itemToFind = value.findItem(fullPath);
+		if (itemToFind == null || itemToFind.isEmpty()) {
+			return false;
+		}
+		if (!(itemToFind instanceof PrismContainer)) {
+			throw new SchemaException("Couldn't use exists query to search for items other than containers: " + itemToFind);
+		}
+		if (filter == null) {
+			return true;
+		}
+		for (PrismContainerValue<?> pcv : ((PrismContainer<?>) itemToFind).getValues()) {
+			if (filter.match(pcv, matchingRuleRegistry)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
     @Override
 	public void checkConsistence(boolean requireDefinitions) {

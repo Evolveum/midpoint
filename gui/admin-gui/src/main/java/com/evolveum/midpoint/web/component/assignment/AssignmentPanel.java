@@ -19,14 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -43,7 +40,6 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.util.tester.WicketTester;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -52,13 +48,11 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
@@ -67,13 +61,13 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.AssignmentListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>> {
 
@@ -281,8 +275,45 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			@Override
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-				item.add(new Label(componentId, AssignmentsUtil.createActivationTitleModel(rowModel.getObject().getContainerValue().getValue().getActivation(),
-						"", AssignmentPanel.this).getObject()));
+				List<ItemWrapper> assignmentItems = rowModel.getObject().getItems();//ContainerValue().findContainer(AssignmentType.F_ACTIVATION);
+				ItemWrapper activationItem = null;
+				for (ItemWrapper wrapper : assignmentItems){
+					if (wrapper.getPath().containsName(AssignmentType.F_ACTIVATION)){
+						activationItem = wrapper;
+						break;
+					}
+				}
+				ActivationStatusType administrativeStatus = null;
+				XMLGregorianCalendar validFrom = null;
+				XMLGregorianCalendar validTo = null;
+				if (activationItem != null){
+					List<ContainerValueWrapper<ActivationType>> activationsList = activationItem.getValues();
+					if (activationsList != null && activationsList.size() > 0){
+						List<ItemWrapper> activation = activationsList.get(0).getItems();
+						if (activation != null && activation.size() > 0) {
+							for (ItemWrapper activationProperty : activation) {
+								if (activationProperty.getValues() != null && activationProperty.getValues().size() > 0) {
+									List<ValueWrapper> values = activationProperty.getValues();
+									if (values.get(0).getValue() != null && values.get(0).getValue().getRealValue() != null) {
+										if (activationProperty.getPath().containsName(ActivationType.F_ADMINISTRATIVE_STATUS)) {
+											administrativeStatus = (ActivationStatusType) values.get(0).getValue().getRealValue();
+											continue;
+										}
+										if (activationProperty.getPath().containsName(ActivationType.F_VALID_FROM)) {
+											validFrom = (XMLGregorianCalendar) values.get(0).getValue().getRealValue();
+											continue;
+										}
+										if (activationProperty.getPath().containsName(ActivationType.F_VALID_TO)) {
+											validTo = (XMLGregorianCalendar) values.get(0).getValue().getRealValue();
+											continue;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				item.add(new Label(componentId, AssignmentsUtil.createActivationTitleModel(administrativeStatus, validFrom, validTo, AssignmentPanel.this).getObject()));
 			}
         });
         columns.addAll(initColumns());

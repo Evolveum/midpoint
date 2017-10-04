@@ -37,7 +37,7 @@
         <icfc:configurationProperties xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector">
             <icfcldap:host>chimera.ad.evolveum.com</icfcldap:host>
             <icfcldap:port>636</icfcldap:port>
-            <icfcldap:baseContext>DC=ad,DC=evolveum,DC=com</icfcldap:baseContext>
+            <icfcldap:baseContext><expression><const>adBaseDn</const></expression></icfcldap:baseContext>
             <icfcldap:bindDn>CN=midpoint,CN=Users,DC=ad,DC=evolveum,DC=com</icfcldap:bindDn>
             <icfcldap:connectionSecurity>ssl</icfcldap:connectionSecurity>
             <icfcldap:bindPassword>
@@ -87,7 +87,7 @@
             	<filter>
             		<q:equal>
             			<q:path>attributes/dn</q:path>
-            			<q:value>CN=Users,DC=ad,DC=evolveum,DC=com</q:value>
+            			<expression><const>adUsersDn</const></expression>
             		</q:equal>
             	</filter>
             </baseContext>
@@ -102,7 +102,7 @@
 					<expression>
 						<script>
 							<code>
-								basic.composeDnWithSuffix('CN', fullName + iterationToken, 'CN=Users,DC=ad,DC=evolveum,DC=com')
+								basic.composeDnWithSuffix('CN', fullName + iterationToken, midpoint.getConst('adUsersDn'))
 							</code>
 						</script>
 					</expression>
