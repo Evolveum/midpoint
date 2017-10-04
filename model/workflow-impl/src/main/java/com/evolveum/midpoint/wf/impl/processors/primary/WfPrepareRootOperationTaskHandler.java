@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,6 +84,8 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
 
             LensContext rootContext = (LensContext) rootWfTask.retrieveModelContext(result);
 
+            List<ObjectTreeDeltas> deltasToMerge = new ArrayList<>();
+
             boolean changed = false;
             for (WfTask child : children) {
 
@@ -100,38 +103,46 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
                         LOGGER.trace("Child job {} returned {} deltas", child, deltas != null ? deltas.getDeltaList().size() : 0);
                     }
                     if (deltas != null) {
-                        LensFocusContext focusContext = rootContext.getFocusContext();
-                        ObjectDelta focusDelta = deltas.getFocusChange();
-                        if (focusDelta != null) {
-                            if (LOGGER.isTraceEnabled()) {
-                                LOGGER.trace("Adding delta from job {} to root model context; delta = {}", child, focusDelta.debugDump(0));
-                            }
-                            if (focusContext.getPrimaryDelta() != null && !focusContext.getPrimaryDelta().isEmpty()) {
-                                focusContext.addPrimaryDelta(focusDelta);
-                            } else {
-                                focusContext.setPrimaryDelta(focusDelta);
-                            }
-                            changed = true;
-                        }
-                        Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> entries = deltas.getProjectionChangeMapEntries();
-                        for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : entries) {
-                            if (LOGGER.isTraceEnabled()) {
-                                LOGGER.trace("Adding projection delta from job {} to root model context; rsd = {}, delta = {}", child, entry.getKey(),
-                                        entry.getValue().debugDump());
-                            }
-                            ModelProjectionContext projectionContext = rootContext.findProjectionContext(entry.getKey());
-                            if (projectionContext == null) {
-                                // TODO more liberal treatment?
-                                throw new IllegalStateException("No projection context for " + entry.getKey());
-                            }
-                            if (projectionContext.getPrimaryDelta() != null && !projectionContext.getPrimaryDelta().isEmpty()) {
-                                projectionContext.addPrimaryDelta(entry.getValue());
-                            } else {
-                                projectionContext.setPrimaryDelta(entry.getValue());
-                            }
-                            changed = true;
+                        if (deltas.getFocusChange() != null && deltas.getFocusChange().isAdd()) {
+                            deltasToMerge.add(0, deltas);   // "add" must go first
+                        } else {
+                            deltasToMerge.add(deltas);
                         }
                     }
+                }
+            }
+
+            for (ObjectTreeDeltas deltaToMerge : deltasToMerge) {
+                LensFocusContext focusContext = rootContext.getFocusContext();
+                ObjectDelta focusDelta = deltaToMerge.getFocusChange();
+                if (focusDelta != null) {
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Adding delta to root model context; delta = {}", focusDelta.debugDump(0));
+                    }
+                    if (focusContext.getPrimaryDelta() != null && !focusContext.getPrimaryDelta().isEmpty()) {
+                        focusContext.addPrimaryDelta(focusDelta);
+                    } else {
+                        focusContext.setPrimaryDelta(focusDelta);
+                    }
+                    changed = true;
+                }
+                Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> entries = deltaToMerge.getProjectionChangeMapEntries();
+                for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : entries) {
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Adding projection delta to root model context; rsd = {}, delta = {}", entry.getKey(),
+                                entry.getValue().debugDump());
+                    }
+                    ModelProjectionContext projectionContext = rootContext.findProjectionContext(entry.getKey());
+                    if (projectionContext == null) {
+                        // TODO more liberal treatment?
+                        throw new IllegalStateException("No projection context for " + entry.getKey());
+                    }
+                    if (projectionContext.getPrimaryDelta() != null && !projectionContext.getPrimaryDelta().isEmpty()) {
+                        projectionContext.addPrimaryDelta(entry.getValue());
+                    } else {
+                        projectionContext.setPrimaryDelta(entry.getValue());
+                    }
+                    changed = true;
                 }
             }
 
