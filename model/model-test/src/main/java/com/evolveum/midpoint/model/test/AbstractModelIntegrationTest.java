@@ -814,6 +814,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modifyObjectReplaceProperty(type, oid, ObjectType.F_NAME, task, result, createPolyString(newName));
 	}
 
+	protected void recomputeUser(String userOid) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException  {
+		Task task = createTask("recomputeUser");
+		OperationResult result = task.getResult();
+		modelService.recompute(UserType.class, userOid, null, task, result);
+		assertSuccess(result);
+	}
+	
 	protected void recomputeUser(String userOid, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException  {
 		modelService.recompute(UserType.class, userOid, null, task, result);
 	}
@@ -1819,7 +1826,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <F extends FocusType> void assertAssignedDeputy(PrismObject<F> focus, String targetUserOid) {
 		MidPointAsserts.assertAssigned(focus, targetUserOid, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY);
 	}
-
+	
 	protected static <F extends FocusType> void assertAssignedOrgs(PrismObject<F> user, String... orgOids) {
 		MidPointAsserts.assertAssignedOrgs(user, orgOids);
 	}
