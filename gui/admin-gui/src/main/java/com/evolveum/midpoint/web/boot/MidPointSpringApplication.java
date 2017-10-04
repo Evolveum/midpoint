@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.boot;
 
 import com.evolveum.midpoint.gui.impl.util.ReportPeerQueryInterceptor;
 import com.evolveum.midpoint.prism.schema.CatalogImpl;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
 import org.apache.cxf.transport.servlet.CXFServlet;
 import org.apache.wicket.protocol.http.WicketFilter;
@@ -43,7 +44,6 @@ import org.springframework.web.filter.DelegatingFilterProxy;
 import ro.isdc.wro.http.WroFilter;
 
 import javax.servlet.DispatcherType;
-import java.io.IOException;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -130,7 +130,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     }
 
     @Bean
-    public FilterRegistrationBean webResourceOptimizer(WroFilter wroFilter) throws IOException {
+    public FilterRegistrationBean webResourceOptimizer(WroFilter wroFilter) {
         FilterRegistrationBean registration = new FilterRegistrationBean();
         registration.setFilter(wroFilter);
         registration.addUrlPatterns("/wro/*");
