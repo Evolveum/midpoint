@@ -87,7 +87,7 @@ public class ExistsFilter extends ObjectFilter implements ItemFilter {
 	@Override
     public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		Item itemToFind = value.findItem(fullPath);
-		if (itemToFind == null || itemToFind.isEmpty()) {
+		if (itemToFind == null || itemToFind.getValues().isEmpty()) {
 			return false;
 		}
 		if (!(itemToFind instanceof PrismContainer)) {

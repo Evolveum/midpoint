@@ -153,22 +153,15 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
            }
            ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
            for (T object : assignmentsList){
-//               ContainerWrapper<AssignmentType> newAssignmentContainer = factory.createContainerWrapper(object.asPrismContainerValue().getContainer(),
-//                       ContainerStatus.ADDING, new ItemPath(FocusType.F_ASSIGNMENT));
-
                ObjectReferenceType ort = new ObjectReferenceType();
                ort.setOid(object.getOid());
                ort.setRelation(SchemaConstants.ORG_DEFAULT);
                ort.setType(WebComponentUtil.classToQName(getPageBase().getPrismContext(), object.getClass()));
 
 
-PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
-newAssignment.asContainerable().setTargetRef(ort);
+                PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
+                newAssignment.asContainerable().setTargetRef(ort);
 
-
-//               AssignmentType assignment = new AssignmentType();
-//               assignment.setTargetRef(ort);
-//               assignment.asPrismContainerValue().setParent(getModelObject().getItem());
 
                ContainerValueWrapper<AssignmentType> valueWrapper = factory.createContainerValueWrapper(getModelObject(), newAssignment,
                        ValueStatus.ADDED, new ItemPath(FocusType.F_ASSIGNMENT));
