@@ -66,12 +66,14 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 		assignments.setOutputMarkupId(true);
 		add(assignments);
 
-		AbstractRoleAssignmentPanel panel = new AbstractRoleAssignmentPanel(ID_ASSIGNMENTS_PANEL, new AbstractReadOnlyModel<ContainerWrapper<AssignmentType>>() {
-			@Override
-			public ContainerWrapper<AssignmentType> getObject() {
-				return assignmentsContainerWrapper;
-			}
-		});
+		AbstractRoleAssignmentPanel panel = new AbstractRoleAssignmentPanel(ID_ASSIGNMENTS_PANEL, Model.of(assignmentsContainerWrapper));
+
+//				new AbstractReadOnlyModel<ContainerWrapper<AssignmentType>>() {
+//			@Override
+//			public ContainerWrapper<AssignmentType> getObject() {
+//				return assignmentsContainerWrapper;
+//			}
+//		});
 		assignments.add(panel);
 	}
 
