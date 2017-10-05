@@ -90,7 +90,7 @@ public class PageCase  extends PageAdminCases {
             LOGGER.trace("caseInstance:[oid]={} was null", oid);
             getSession().error(getString("pageCase.message.cantEditCase"));
             showResult(result);
-            throw new RestartResponseException(PageResources.class);
+            throw new RestartResponseException(PageCases.class);
         }
 
 
