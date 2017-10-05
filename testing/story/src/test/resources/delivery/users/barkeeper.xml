@@ -42,6 +42,7 @@
 	<givenName>Barkeeper</givenName>
 	<familyName>Scumm</familyName>
 	<emailAddress>barkeeper@evolveum.com</emailAddress>
+	<employeeType>10</employeeType>
 	<credentials>
 		<password>
 			<value>a123456</value>

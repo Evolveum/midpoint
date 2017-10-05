@@ -138,7 +138,7 @@ public class TestDelivery extends AbstractStoryTest {
 
 	@BeforeSuite
 	public void setSchema() throws Exception {
-		System.out.println("Setting extension schema dir");
+		System.out.println("Setting extension schema dir to " + EXTENSION_SCHEMA_DIR);
 		ConfigurablePrismContextFactory.setExtensionDirOverride(EXTENSION_SCHEMA_DIR);
 	}
 
@@ -199,8 +199,8 @@ public class TestDelivery extends AbstractStoryTest {
 	}
 
 	@Test
-	public void test100Assign_IT_2_fail() throws Exception {
-		final String TEST_NAME = "test100Assign_IT_2_fail";
+	public void test100Assign_IT_2_failure() throws Exception {
+		final String TEST_NAME = "test100Assign_IT_2_failure";
 		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = createTask(TestDelivery.class.getName() + "." + TEST_NAME);
@@ -212,6 +212,21 @@ public class TestDelivery extends AbstractStoryTest {
 		} catch (PolicyViolationException e) {
 			System.out.println("Got expected exception: " + e);
 		}
+	}
+
+	@Test
+	public void test110Assign_IT_2_success() throws Exception {
+		final String TEST_NAME = "test110Assign_IT_2_success";
+		TestUtil.displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TestDelivery.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		assignRole(userBarkeeperOid, roleIt2Oid, task, result);         // hard constraint
+		result.computeStatus();
+		assertSuccess(result);
+
+		assertAssignedRole(userBarkeeperOid, roleIt2Oid, task, result);
 	}
 
 //	@Test

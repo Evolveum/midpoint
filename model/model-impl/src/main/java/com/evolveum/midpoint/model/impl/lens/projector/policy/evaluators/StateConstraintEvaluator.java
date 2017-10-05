@@ -53,6 +53,7 @@ import javax.xml.bind.JAXBElement;
 import java.util.*;
 
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_OBJECT;
+import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.ASSIGNMENT_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.OBJECT_STATE;
 import static java.util.Collections.emptyList;
@@ -121,7 +122,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 		if (constraint.getExecuteScript() != null) {
 			Map<String, Object> variables = new HashMap<>();
 			variables.put(VAR_OBJECT.getLocalPart(), object);
-			variables.put("ruleEvaluationContext", ctx);
+			variables.put(VAR_RULE_EVALUATION_CONTEXT.getLocalPart(), ctx);
 			ExecutionContext resultingContext;
 			try {
 				resultingContext = scriptingExpressionEvaluator.evaluateExpressionPrivileged(constraint.getExecuteScript(), variables, ctx.task, result);

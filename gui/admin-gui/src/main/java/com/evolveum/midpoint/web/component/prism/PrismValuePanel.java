@@ -660,7 +660,17 @@ public class PrismValuePanel extends Panel {
         	}
 
 			panel = new ValueChoosePanel(id,
-    				new PropertyModel<>(valueWrapperModel, "value"), item.getValues(), false, typeClasses);
+    				new PropertyModel<>(valueWrapperModel, "value"), item.getValues(), false, typeClasses) {
+				
+				@Override
+				protected ObjectFilter createCustomFilter() {
+					ItemWrapper wrapper = valueWrapperModel.getObject().getItem();
+					if (!(wrapper instanceof ReferenceWrapper)){
+						return null;
+					}
+					return ((ReferenceWrapper) wrapper).getFilter();
+				}
+			};
 
         } else if (item instanceof PrismContainer<?>) {
 //        	AssociationWrapper itemWrapper = (AssociationWrapper) valueWrapperModel.getObject().getItem();
@@ -857,12 +867,12 @@ public class PrismValuePanel extends Panel {
         target.add(parent.getParent());
     }
 
-    private ObjectQuery getAssociationsSearchQuery(PrismContext prismContext, PrismObject resource, QName objectClass, ShadowKindType kind) {
-        return QueryBuilder.queryFor(ShadowType.class, prismContext)
-                .item(ShadowType.F_OBJECT_CLASS).eq(objectClass)
-                .and().item(ShadowType.F_KIND).eq(kind)
-                .and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
-                .build();
-    }
+//    private ObjectQuery getAssociationsSearchQuery(PrismContext prismContext, PrismObject resource, QName objectClass, ShadowKindType kind) {
+//        return QueryBuilder.queryFor(ShadowType.class, prismContext)
+//                .item(ShadowType.F_OBJECT_CLASS).eq(objectClass)
+//                .and().item(ShadowType.F_KIND).eq(kind)
+//                .and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
+//                .build();
+//    }
 
 }

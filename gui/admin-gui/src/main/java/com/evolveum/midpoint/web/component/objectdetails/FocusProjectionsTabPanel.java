@@ -130,7 +130,10 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 					packageRef = new PackageResourceReference(ImgResources.class, ImgResources.HDD_PRISM);
 
 					shadowPanel = new PrismPanel<F>(ID_SHADOW,
-							new ContainerWrapperListFromObjectWrapperModel(objectWrapperModel, Arrays.asList(new ItemPath(ShadowType.F_ATTRIBUTES), SchemaConstants.PATH_ACTIVATION, SchemaConstants.PATH_PASSWORD)), packageRef,
+							new ContainerWrapperListFromObjectWrapperModel(objectWrapperModel, 
+									Arrays.asList(new ItemPath(ShadowType.F_ATTRIBUTES), 
+											SchemaConstants.PATH_ACTIVATION, SchemaConstants.PATH_PASSWORD
+											/*,new ItemPath(ShadowType.F_ASSOCIATION ) */)), packageRef,
 							getMainForm(), null, getPageBase());
 				} else {
 					shadowPanel = new SimpleErrorPanel<ShadowType>(ID_SHADOW, item.getModel()) {

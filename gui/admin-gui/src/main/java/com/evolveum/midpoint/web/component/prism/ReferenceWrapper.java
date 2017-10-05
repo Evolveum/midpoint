@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
@@ -29,6 +30,8 @@ import java.util.List;
 public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference, PrismReferenceDefinition> implements Serializable {
 
 	private static final long serialVersionUID = 3132143219403214903L;
+	
+	private ObjectFilter filter;
 
 	public ReferenceWrapper(ContainerValueWrapper container, PrismReference reference, boolean readonly, ValueStatus status) {
 		super(container, reference, readonly, status, null);
@@ -49,7 +52,8 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 		List<ValueWrapper> values = new ArrayList<ValueWrapper>();
 
 		for (PrismReferenceValue prismValue : item.getValues()) {
-			values.add(new ValueWrapper(this, prismValue, prismValue, ValueStatus.NOT_CHANGED));
+			
+			values.add(new ValueWrapper(this, prismValue, ValueStatus.NOT_CHANGED));
 		}
 
 		int minOccurs = getItemDefinition().getMinOccurs();
@@ -69,6 +73,14 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 		PrismReferenceValue prv = new PrismReferenceValue();
 		ValueWrapper wrapper = new ValueWrapper(this, prv, ValueStatus.ADDED);
 		return wrapper;
+	}
+	
+	public ObjectFilter getFilter() {
+		return filter;
+	}
+	
+	public void setFilter(ObjectFilter filter) {
+		this.filter = filter;
 	}
 
 	@Override

@@ -151,21 +151,24 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                    target.add(getPageBase().getFeedbackPanel());
                    return;
            }
-           ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
+           
            for (T object : assignmentsList){
-               ObjectReferenceType ort = new ObjectReferenceType();
-               ort.setOid(object.getOid());
-               ort.setRelation(SchemaConstants.ORG_DEFAULT);
-               ort.setType(WebComponentUtil.classToQName(getPageBase().getPrismContext(), object.getClass()));
-
-
-                PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
-                newAssignment.asContainerable().setTargetRef(ort);
-
-
-               ContainerValueWrapper<AssignmentType> valueWrapper = factory.createContainerValueWrapper(getModelObject(), newAssignment,
-                       ValueStatus.ADDED, new ItemPath(FocusType.F_ASSIGNMENT));
-               getModelObject().getValues().add(valueWrapper);
+        	   PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
+        	   ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(object, relation);
+        	   AssignmentType assignmentType = newAssignment.asContainerable();
+        	   if (ResourceType.class.equals(object.getClass())) {
+        		   ConstructionType constructionType = new ConstructionType();
+        		   constructionType.setResourceRef(ref);
+        		   assignmentType.setConstruction(constructionType);
+        	   } else {
+        		   assignmentType.setTargetRef(ref);
+        	   }
+        	   ContainerValueWrapper<AssignmentType> newAssignmentValueWrapper = createNewAssignmentContainerValueWrapper(newAssignment);
+//        	   getModelObject().getValues().add(newAssignmentValueWrapper);
+               
+//               ContainerValueWrapper<AssignmentType> valueWrapper = factory.createContainerValueWrapper(getModelObject(), newAssignment.asPrismContainerValue(),
+//                       ValueStatus.ADDED, new ItemPath(FocusType.F_ASSIGNMENT));
+//               getModelObject().getValues().add(valueWrapper);
            }
 
            refreshTable(target);

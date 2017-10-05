@@ -24,30 +24,21 @@
 		<policyRule>
 			<policyConstraints>
 				<objectState>
-					<filter>
-						<q:type>
-							<q:type>UserType</q:type>
-							<q:filter>
-								<q:all/>
-							</q:filter>
-						</q:type>
-					</filter>
+					<expression>
+						<script>
+							<code>
+								log.info('Evaluating rule on {}', object)
+								this.binding.variables.each {k,v -> log.info('{} = {}', k, v)}
+								!object.employeeType.contains('10')
+							</code>
+						</script>
+					</expression>
 				</objectState>
-				<objectState>
-					<filter>
-						<q:not>
-							<q:equal>
-								<q:path>employeeType</q:path>
-								<q:value>10</q:value>
-							</q:equal>
-						</q:not>
-					</filter>
-				</objectState>
-				<assignment/>
 			</policyConstraints>
 			<policyActions>
 				<enforcement/>
 			</policyActions>
+			<evaluationTarget>assignment</evaluationTarget>
 		</policyRule>
 		<order>2</order>
 	</inducement>

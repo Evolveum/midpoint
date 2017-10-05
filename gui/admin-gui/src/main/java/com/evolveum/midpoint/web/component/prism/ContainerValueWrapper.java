@@ -195,11 +195,21 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	}
 
 	public boolean hasChanged() {
-		for (ItemWrapper item : getItems()) {
-			if (item.hasChanged()) {
+		
+		switch (getStatus()) {
+			case DELETED : 
 				return true;
-			}
+			case ADDED:
+			case NOT_CHANGED:
+				for (ItemWrapper item : getItems()) {
+					if (item.hasChanged()) {
+						return true;
+					}
+				}
 		}
+
+		
+		
 
 		return false;
 	}
@@ -372,7 +382,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		try {
 			newValue.addAllReplaceExisting((Collection) getUpdatedContainerValueItems(containerValue.getPrismContext()));
 		} catch (TunnelException e) {
-			throw new SchemaException();
+			throw new SchemaException(e.getMessage(), e);
 		}
 
 		return newValue;
@@ -413,7 +423,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 				}
 			} catch (SchemaException ex) {
-				throw new TunnelException("Cannot create add delta for container value: " + containerValue);
+				throw new TunnelException("Cannot create add delta for container value: " + containerValue, ex);
 			}
 		});
 		return updatedItems;

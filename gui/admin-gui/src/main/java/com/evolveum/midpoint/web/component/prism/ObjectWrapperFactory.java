@@ -16,13 +16,22 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
@@ -226,53 +235,147 @@ public class ObjectWrapperFactory {
         return list;
     }
 
-    private <O extends ObjectType, C extends Containerable> void addContainerWrappers(
-    														List<ContainerWrapper<? extends Containerable>> containerWrappers,
-    														ObjectWrapper<O> oWrapper, PrismContainer<C> parentContainer, ItemPath path,
-    														OperationResult result) throws SchemaException {
+	private <O extends ObjectType, C extends Containerable> void addContainerWrappers(
+			List<ContainerWrapper<? extends Containerable>> containerWrappers, ObjectWrapper<O> oWrapper,
+			PrismContainer<C> parentContainer, ItemPath path, OperationResult result) throws SchemaException {
 
-        PrismContainerDefinition<C> parentContainerDefinition = parentContainer.getDefinition();
+		PrismContainerDefinition<C> parentContainerDefinition = parentContainer.getDefinition();
 
-        List<ItemPathSegment> segments = new ArrayList<>();
-        if (path != null) {
-            segments.addAll(path.getSegments());
-        }
-        ItemPath parentPath = new ItemPath(segments);
-        for (ItemDefinition def : (Collection<ItemDefinition>) parentContainerDefinition.getDefinitions()) {
-            if (!(def instanceof PrismContainerDefinition)) {
-                continue;
-            }
-            if (isIgnoreContainer(def.getTypeName())) {
-            	continue;
-            }
+		List<ItemPathSegment> segments = new ArrayList<>();
+		if (path != null) {
+			segments.addAll(path.getSegments());
+		}
+		ItemPath parentPath = new ItemPath(segments);
+		for (ItemDefinition def : (Collection<ItemDefinition>) parentContainerDefinition.getDefinitions()) {
+			if (!(def instanceof PrismContainerDefinition)) {
+				continue;
+			}
+			if (isIgnoreContainer(def.getTypeName())) {
+				continue;
+			}
 
-            LOGGER.trace("ObjectWrapper.createContainerWrapper processing definition: {}", def);
+			LOGGER.trace("ObjectWrapper.createContainerWrapper processing definition: {}", def);
 
-            PrismContainerDefinition<?> containerDef = (PrismContainerDefinition) def;
+			PrismContainerDefinition<?> containerDef = (PrismContainerDefinition) def;
 
-            ItemPath newPath = createPropertyPath(parentPath, containerDef.getName());
+			ItemPath newPath = createPropertyPath(parentPath, containerDef.getName());
 
-                    ContainerWrapperFactory cwf = new ContainerWrapperFactory(modelServiceLocator);
+			ContainerWrapperFactory cwf = new ContainerWrapperFactory(modelServiceLocator);
 
-                    if (AssignmentType.COMPLEX_TYPE.equals(parentContainer.getDefinition().getName())) {
-                    	System.out.println("something");
-                    }
-                    
-                    PrismContainer prismContainer = parentContainer.findContainer(def.getName());
+			if (AssignmentType.COMPLEX_TYPE.equals(parentContainer.getDefinition().getName())) {
+				System.out.println("something");
+			}
 
-                    ContainerWrapper container;
-                    if (prismContainer != null) {
-                        container = cwf.createContainerWrapper(prismContainer, ContainerStatus.MODIFYING, newPath);
-                    } else {
-                        prismContainer = containerDef.instantiate();
-                        container = cwf.createContainerWrapper(prismContainer, ContainerStatus.ADDING, newPath);
-                    }
-                    result.addSubresult(cwf.getResult());
-                    containerWrappers.add(container);
+			PrismContainer prismContainer = parentContainer.findContainer(def.getName());
 
-                }
-    }
+			ContainerWrapper<C> container;
+			if (prismContainer != null) {
+				container = cwf.createContainerWrapper(prismContainer, ContainerStatus.MODIFYING, newPath);
+			} else {
+				prismContainer = containerDef.instantiate();
+				container = cwf.createContainerWrapper(prismContainer, ContainerStatus.ADDING, newPath);
+			}
+			
+			 if (SchemaConstants.PATH_ASSOCIATION.equivalent(newPath)) {
+		        	ObjectFilter filter = getAssociationsSearchFilter((PrismObject<ShadowType>) oWrapper.getObject());
+		        	
+		        	container.setFilter(filter);
+		        	
+		        	container.getValues().forEach(containerValueWrapper -> {
+		        		ReferenceWrapper shadowRefWrapper = (ReferenceWrapper) containerValueWrapper.findPropertyWrapper(ShadowAssociationType.F_SHADOW_REF);
+		        		if (shadowRefWrapper != null) {
+		        			shadowRefWrapper.setFilter(filter);
+		        		}
+		        	});
 
+			 }
+
+			 result.addSubresult(cwf.getResult());
+				containerWrappers.add(container);
+				
+		}
+	}
+	
+	 private ObjectFilter getAssociationsSearchFilter(PrismObject<ShadowType> shadow) {
+		 
+		 Map<QName, PrismContainer<ShadowAssociationType>> assocMap = new HashMap<>();
+         PrismContainer<ShadowAssociationType> associationContainer = shadow.findContainer(ShadowType.F_ASSOCIATION);
+     	if (associationContainer != null && associationContainer.getValues() != null) {
+	            // Do NOT load shadows here. This will be huge overhead if there are many associations.
+	        	// Load them on-demand (if necessary at all).
+	            List<PrismContainerValue<ShadowAssociationType>> associations = associationContainer.getValues();
+	            if (associations != null) {
+	                for (PrismContainerValue<ShadowAssociationType> cval : associations) {
+	                    ShadowAssociationType associationType = cval.asContainerable();
+	                    QName assocName = associationType.getName();
+	                    PrismContainer<ShadowAssociationType> fractionalContainer = assocMap.get(assocName);
+	                    if (fractionalContainer == null) {
+	                        fractionalContainer = new PrismContainer<>(ShadowType.F_ASSOCIATION, ShadowAssociationType.class, cval.getPrismContext());
+	                        fractionalContainer.setDefinition(cval.getParent().getDefinition());
+	                        // HACK: set the name of the association as the element name so wrapper.getName() will return correct data.
+	                        fractionalContainer.setElementName(assocName);
+	                        assocMap.put(assocName, fractionalContainer);
+	                    }
+	                    try {
+	                        fractionalContainer.add(cval.clone());
+	                    } catch (SchemaException e) {
+	                        // Should not happen
+	                        throw new SystemException("Unexpected error: " + e.getMessage(), e);
+	                    }
+	                }
+	            }
+         }
+
+         PrismReference resourceRef = shadow.findReference(ShadowType.F_RESOURCE_REF);
+         PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
+
+         // HACK. The revive should not be here. Revive is no good. The next use of the resource will
+         // cause parsing of resource schema. We need some centralized place to maintain live cached copies
+         // of resources.
+         try {
+             resource.revive(modelServiceLocator.getPrismContext());
+         } catch (SchemaException e) {
+             throw new SystemException(e.getMessage(), e);
+         }
+         RefinedResourceSchema refinedSchema;
+         CompositeRefinedObjectClassDefinition rOcDef;
+         try {
+             refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+             rOcDef = refinedSchema.determineCompositeObjectClassDefinition(shadow);
+         } catch (SchemaException e) {
+             throw new SystemException(e.getMessage(), e);
+         }
+         // Make sure even empty associations have their wrappers so they can be displayed and edited
+//         for (RefinedAssociationDefinition assocDef : rOcDef.getAssociationDefinitions()) {
+//             QName name = assocDef.getName();
+//             if (!assocMap.containsKey(name)) {
+//                 PrismContainer<ShadowAssociationType> fractionalContainer = new PrismContainer<>(ShadowType.F_ASSOCIATION, ShadowAssociationType.class, prismContext);
+//                 fractionalContainer.setDefinition(cWrapper.getItemDefinition());
+//                 // HACK: set the name of the association as the element name so wrapper.getName() will return correct data.
+//                 fractionalContainer.setElementName(name);
+//                 assocMap.put(name, fractionalContainer);
+//             }
+//         }
+
+         List<ObjectFilter> associatonFilters = new ArrayList<>();
+         
+         ShadowType shadowType = shadow.asObjectable();
+         rOcDef.getAssociationDefinitions().forEach(def -> {
+        	 RefinedObjectClassDefinition assocDef = def.getAssociationTarget();
+        	 associatonFilters.add(createAssociationFilter(shadowType.getResourceRef().getOid(), assocDef.getKind(), assocDef.getObjectClassDefinition().getTypeName()));
+         });
+         
+         return OrFilter.createOr(associatonFilters);
+	        
+	    }
+	  
+	 private ObjectFilter createAssociationFilter(String resourceOid, ShadowKindType kind, QName objectClass) {
+		 return QueryBuilder.queryFor(ShadowType.class, modelServiceLocator.getPrismContext())
+	                .item(ShadowType.F_OBJECT_CLASS).eq(objectClass)
+	                .and().item(ShadowType.F_KIND).eq(kind)
+	                .and().item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+	                .buildFilter();
+	 }
 
     private boolean isIgnoreContainer(QName containerDefinitionName) {
     	 for (QName container : CONTAINERS_TO_IGNORE) {

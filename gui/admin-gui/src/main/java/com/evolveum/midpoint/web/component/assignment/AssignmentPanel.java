@@ -48,6 +48,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -67,6 +68,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -276,6 +278,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			@Override
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+				
 				List<ItemWrapper> assignmentItems = rowModel.getObject().getItems();//ContainerValue().findContainer(AssignmentType.F_ACTIVATION);
 				ItemWrapper activationItem = null;
 				for (ItemWrapper wrapper : assignmentItems){
@@ -324,7 +327,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	protected abstract List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns();
 
 	protected abstract void newAssignmentClickPerformed(AjaxRequestTarget target);
-
+	
 	protected void initCustomLayout(WebMarkupContainer assignmentsContainer) {
 
 	}
@@ -350,7 +353,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 			@Override
 			public List<ContainerValueWrapper<AssignmentType>> getObject() {
-				return getAssignmentListProvider().getSelectedData();
+				return getModelObject().getValues().stream().filter(v -> v.isSelected()).collect(Collectors.toList());
 			}
 		};
 
@@ -378,10 +381,11 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+			public void onClick(AjaxRequestTarget target) {
 				assignmentDetailsVisible = false;
 				getSelectedAssignments().stream().forEach(a -> a.setSelected(false));
-				ajaxRequestTarget.add(AssignmentPanel.this);
+				refreshTable(target);
+				target.add(AssignmentPanel.this);
 			}
 		};
 		details.add(doneButton);
@@ -486,12 +490,22 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		if (toDelete == null){
 			return;
 		}
-		for (ContainerValueWrapper<AssignmentType> assignmentContainerWrapper : getModelObject().getValues()){
-			if (toDelete.contains(assignmentContainerWrapper)){
-				assignmentContainerWrapper.setStatus(ValueStatus.DELETED);
-			}
-		}
+		toDelete.forEach(value -> value.setStatus(ValueStatus.DELETED));
+//		for (ContainerValueWrapper<AssignmentType> assignmentContainerWrapper : getModelObject().getValues()){
+//			if (toDelete.contains(assignmentContainerWrapper)){
+//				assignmentContainerWrapper.setStatus(ValueStatus.DELETED);
+//			}
+//		}
 		refreshTable(target);
+	}
+	
+	protected ContainerValueWrapper<AssignmentType> createNewAssignmentContainerValueWrapper(PrismContainerValue<AssignmentType> newAssignment) {
+		ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
+		ContainerValueWrapper<AssignmentType> valueWrapper = factory.createContainerValueWrapper(getModelObject(), newAssignment,
+                ValueStatus.ADDED, new ItemPath(FocusType.F_ASSIGNMENT));
+		valueWrapper.setShowEmpty(true, false);
+		getModelObject().getValues().add(valueWrapper);
+		return valueWrapper;
 	}
 
 	protected WebMarkupContainer getAssignmentContainer() {

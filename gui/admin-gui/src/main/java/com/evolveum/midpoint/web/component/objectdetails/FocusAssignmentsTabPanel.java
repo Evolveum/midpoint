@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.component.assignment.AbstractRoleAssignmentPane
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
@@ -66,6 +67,7 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 		assignments.setOutputMarkupId(true);
 		add(assignments);
 
+		new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), new ItemPath(FocusType.F_ASSIGNMENT));
 		AbstractRoleAssignmentPanel panel = new AbstractRoleAssignmentPanel(ID_ASSIGNMENTS_PANEL, Model.of(assignmentsContainerWrapper));
 
 //				new AbstractReadOnlyModel<ContainerWrapper<AssignmentType>>() {

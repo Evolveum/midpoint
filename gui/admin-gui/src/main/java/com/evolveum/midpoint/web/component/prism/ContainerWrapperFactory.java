@@ -23,7 +23,11 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -90,12 +94,11 @@ public class ContainerWrapperFactory {
         List<ContainerValueWrapper<C>> containerValues = createContainerValues(cWrapper, path);
         cWrapper.setProperties(containerValues);
         cWrapper.computeStripes();
-
-        return cWrapper;
+        
+       return cWrapper;
     }
     
-  
-	public <C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readonly) {
+   public <C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readonly) {
 
 		result = new OperationResult(CREATE_PROPERTIES);
 
@@ -113,7 +116,7 @@ public class ContainerWrapperFactory {
 	    	List<ContainerValueWrapper<C>> containerValueWrappers = new ArrayList<>();
 	    	PrismContainer<C> container = cWrapper.getItem();
 	    	
-	    	if (container.getValues().isEmpty()) {
+	    	if (container.getValues().isEmpty() && !(new ItemPath(FocusType.F_ASSIGNMENT)).equivalent(container.getPath())) {
 	    		PrismContainerValue<C> pcv = container.createNewValue();
 	    		 ContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(cWrapper, pcv, ValueStatus.ADDED, cWrapper.getPath());
 	    		
@@ -122,7 +125,7 @@ public class ContainerWrapperFactory {
 	    	}
 	    	
 	    	container.getValues().forEach(pcv -> {
-	    		ContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(cWrapper, pcv, ValueStatus.NOT_CHANGED, pcv.getPath());
+	    		ContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(cWrapper, pcv, cWrapper.getStatus() == ContainerStatus.ADDING ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, pcv.getPath());
     			containerValueWrappers.add(containerValueWrapper);
 	    	});
 	    	
@@ -135,6 +138,11 @@ public class ContainerWrapperFactory {
 		    
 			List<ItemWrapper> properties = createProperties(containerValueWrapper, false);
 			containerValueWrapper.setProperties(properties);
+			
+			ReferenceWrapper shadowRefWrapper = (ReferenceWrapper) containerValueWrapper.findPropertyWrapper(ShadowAssociationType.F_SHADOW_REF);
+    		if (shadowRefWrapper != null && cWrapper.getFilter() != null) {
+    			shadowRefWrapper.setFilter(cWrapper.getFilter());
+    		}
 			
 			return containerValueWrapper;
 	  }
@@ -241,7 +249,7 @@ public class ContainerWrapperFactory {
 //			}
 			return new PropertyWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, cWrapper.getPath().append(newProperty.getPath()));
 		}
-		return new PropertyWrapper(cWrapper, property, propertyIsReadOnly, ValueStatus.NOT_CHANGED, property.getPath());
+		return new PropertyWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath());
 	}
 
 	private <C extends Containerable> ReferenceWrapper createReferenceWrapper(PrismReferenceDefinition def, ContainerValueWrapper<C> cWrapper, boolean onlyEmpty) {
@@ -268,7 +276,7 @@ public class ContainerWrapperFactory {
         }
         
         return new ReferenceWrapper(cWrapper, reference, propertyIsReadOnly,
-                    ValueStatus.NOT_CHANGED, reference.getPath());
+        		cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, reference.getPath());
         
 	}
 	
@@ -299,7 +307,7 @@ public class ContainerWrapperFactory {
 			}
 			return createContainerWrapper(newContainer, ContainerStatus.ADDING, cWrapper.getPath().append(newContainer.getPath()));
 		}
-		return createContainerWrapper(container, ContainerStatus.MODIFYING, container.getPath());
+		return createContainerWrapper(container, cWrapper.getStatus() == ValueStatus.ADDED ? ContainerStatus.ADDING: ContainerStatus.MODIFYING, container.getPath());
 	}
 	
 	private <C extends Containerable> ContainerWrapper<C> createPolicyConstraintsContainer(PrismContainer<C> policyConstraintsContainer, PrismContainerDefinition<C> def, ContainerValueWrapper<C> parentContainer) {

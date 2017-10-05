@@ -147,13 +147,29 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 		// }
 
 		if (oidList.isEmpty()) {
+			ObjectFilter customFilter = createCustomFilter();
+			if (customFilter != null) {
+				query.addFilter(customFilter);
+				return query;
+			}
+			
 			return null;
+			
 		}
 
 		ObjectFilter oidFilter = InOidFilter.createInOid(oidList);
 		query.setFilter(NotFilter.createNot(oidFilter));
 
+		ObjectFilter customFilter = createCustomFilter();
+		if (customFilter != null) {
+			query.addFilter(customFilter);
+		}
+		
 		return query;
+	}
+	
+	protected ObjectFilter createCustomFilter() {
+		return null;
 	}
 
 	/**

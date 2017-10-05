@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2014 Evolveum
+  ~ Copyright (c) 2014-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
   <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       oid="00000000-0000-0000-0000-00000000aad1"
       version="0">
-   <name>Basic Role - CSV</name>
+   <name>Basic Role</name>
    <inducement id="1">
       <construction>
          <resourceRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -24,4 +24,5 @@
                       type="c:ResourceType"/>
       </construction>
    </inducement>
+   <requestable>true</requestable>
 </role>
