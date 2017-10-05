@@ -115,6 +115,7 @@
             <class name="com.evolveum.midpoint.schema.TestParseTask"/>
             <class name="com.evolveum.midpoint.schema.TestParseLookupTable"/>
             <class name="com.evolveum.midpoint.schema.TestParseTaskBulkAction"/>
+            <class name="com.evolveum.midpoint.schema.TestParseTaskBulkAction2"/>
             <class name="com.evolveum.midpoint.schema.TestParseGenericObject"/>
             <class name="com.evolveum.midpoint.schema.TestParseObjectTemplate"/>
             <class name="com.evolveum.midpoint.schema.TestParsePasswordPolicy"/>

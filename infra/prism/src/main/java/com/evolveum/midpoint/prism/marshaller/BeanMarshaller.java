@@ -390,6 +390,11 @@ public class BeanMarshaller {
 
 	// TODO shouldn't we use here the same approach as above?
 	private void setExplicitTypeDeclarationIfNeeded(XNode node, Method getter, Object getterResult, QName typeName) {
+		if (typeName == null) {
+			// the idea is not to overwrite pre-existing explicit type declaration with null value
+			// TODO reconsider
+			return;
+		}
 		Class getterReturnType = getter.getReturnType();
 		Class getterType = null;
 		if (Collection.class.isAssignableFrom(getterReturnType)) {

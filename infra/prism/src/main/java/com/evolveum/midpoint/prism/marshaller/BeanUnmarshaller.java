@@ -1010,7 +1010,7 @@ public class BeanUnmarshaller {
 			if (xsubnode.getTypeQName() != null) {
 				PrismValue value = prismContext.parserFor(xsubnode.toRootXNode()).parseItemValue();	// TODO what about objects? oid/version will be lost here
 				if (value != null && !value.isRaw()) {
-					raw = new RawType(value, prismContext);
+					raw = new RawType(value, xsubnode.getTypeQName(), prismContext);
 				}
 			}
 			propValue = raw;
