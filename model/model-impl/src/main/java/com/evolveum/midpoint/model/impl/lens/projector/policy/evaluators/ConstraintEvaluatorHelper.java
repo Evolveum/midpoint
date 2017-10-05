@@ -45,6 +45,7 @@ import javax.xml.namespace.QName;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
 import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
 
 /**
@@ -72,6 +73,7 @@ public class ConstraintEvaluatorHelper {
 			var.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null);
 			var.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, null);
 		}
+		var.addVariableDefinition(VAR_RULE_EVALUATION_CONTEXT, rctx);
 		return var;
 	}
 
