@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.menu.*;
+import com.evolveum.midpoint.web.page.admin.cases.PageCase;
 import com.evolveum.midpoint.web.page.admin.cases.PageCases;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.reports.*;
@@ -1394,10 +1395,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
     private MainMenuItem createCaseItems(){
-           	MainMenuItem item = new MainMenuItem("fa fa-list", createStringResource("PageAdmin.menu.top.cases"),null);
+		MainMenuItem item = new MainMenuItem("fa fa-list", createStringResource("PageAdmin.menu.top.cases"),null);
         List<MenuItem> submenu = item.getItems();
-                MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.cases.list"), PageCases.class);
-        submenu.add(list);
+		MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.cases.list"), PageCases.class);
+		submenu.add(list);
+		createFocusPageViewMenu(submenu, "PageAdmin.menu.top.cases.view", PageCase.class);
         return item;
     }
 

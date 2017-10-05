@@ -17,7 +17,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -28,17 +27,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by acope on 9/14/17.
+ * @author acope on 9/14/17.
  */
-@PageDescriptor(urls = {
+@PageDescriptor(
+    urls = {
         @Url(mountUrl = "/admin/cases", matchUrlForSecurity = "/admin/cases")
-}, action = {
+    }, action = {
         @AuthorizationAction(actionUri = PageAdminCases.AUTH_CASES_ALL_LABEL,
                 label = PageAdminCases.AUTH_CASES_ALL_LABEL,
                 description = PageAdminCases.AUTH_CASES_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASES_URL,
                 label = "PageCases.auth.cases.label",
-                description = "PageCases.auth.cases.description")})
+                description = "PageCases.auth.cases.description")
+    })
 public class PageCases extends PageAdminCases {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCases.class);
