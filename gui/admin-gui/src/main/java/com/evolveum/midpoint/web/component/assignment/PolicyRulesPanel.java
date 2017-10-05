@@ -16,12 +16,17 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -143,29 +148,17 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
 	@Override
 	protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
-		// TODO Auto-generated method stub
-
-        AssignmentType assignment = new AssignmentType();
-
-        PolicyRuleType policyRule = new PolicyRuleType(getPageBase().getPrismContext());
-        policyRule.setDescription("");
-        assignment.setPolicyRule(policyRule);
-
-//        ContainerValueWrapper<AssignmentType> newAssignmentContainerWrapper = assignmentContainerWrapper.createItem(false);
-//        newAssignmentContainerWrapper.setStatus(ValueStatus.ADDED);
-//        newAssignmentContainerWrapper.getContainerValue().getValue().setupContainerValue(assignment.asPrismContainerValue());
-//        getModelObject().add(newAssignmentContainerWrapper);
-        target.add(getAssignmentContainer());
+        PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
+        ContainerValueWrapper<AssignmentType> newAssignmentWrapper = createNewAssignmentContainerValueWrapper(newAssignment);
+        assignmentDetailsPerformed(target, Arrays.asList(newAssignmentWrapper));
+//        refreshTable(target);
+       
 	}
 
 	@Override
 	protected ObjectQuery createObjectQuery() {
         return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
-                .block()
-                .not()
-                .item(getModelObject().getItemDefinition(), new ItemPath(AssignmentType.F_POLICY_RULE))
-                .isNull()
-                .endBlock()
+                .exists(AssignmentType.F_POLICY_RULE)
                 .build();
     }
 

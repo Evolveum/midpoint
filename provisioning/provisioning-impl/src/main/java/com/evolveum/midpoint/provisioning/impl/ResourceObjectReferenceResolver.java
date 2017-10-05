@@ -40,6 +40,9 @@ import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -75,8 +78,9 @@ public class ResourceObjectReferenceResolver {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectReferenceResolver.class);
 
-	@Autowired(required = true)
-	private PrismContext prismContext;
+	@Autowired private PrismContext prismContext;	
+	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private ShadowManager shadowManager;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -85,9 +89,6 @@ public class ResourceObjectReferenceResolver {
 	@Autowired(required = true)
 	@Qualifier("shadowCacheProvisioner")
 	private ShadowCache shadowCache;
-
-	@Autowired(required = true)
-	private ShadowManager shadowManager;
 
 	PrismObject<ShadowType> resolve(ProvisioningContext ctx, ResourceObjectReferenceType resourceObjectReference,
 			QName objectClass, final String desc, OperationResult result)
@@ -118,8 +119,11 @@ public class ResourceObjectReferenceResolver {
 		subctx.assertDefinition();
 
 		ObjectQuery refQuery = QueryJaxbConvertor.createObjectQuery(ShadowType.class, resourceObjectReference.getFilter(), prismContext);
+		// No variables. At least not now. We expect that mostly constants will be used here.
+		ExpressionVariables variables = new ExpressionVariables();
+		ObjectQuery evaluatedRefQuery = ExpressionUtil.evaluateQueryExpressions(refQuery, variables, expressionFactory, prismContext, desc, ctx.getTask(), result);
 		ObjectFilter baseFilter = ObjectQueryUtil.createResourceAndObjectClassFilter(ctx.getResource().getOid(), objectClass, prismContext);
-		ObjectFilter filter = AndFilter.createAnd(baseFilter, refQuery.getFilter());
+		ObjectFilter filter = AndFilter.createAnd(baseFilter, evaluatedRefQuery.getFilter());
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
 		// TODO: implement "repo" search strategies

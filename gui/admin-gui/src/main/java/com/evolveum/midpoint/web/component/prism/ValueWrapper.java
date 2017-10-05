@@ -41,22 +41,22 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ValueWrapper.class);
 
-    private ItemWrapper item;
+    private PropertyOrReferenceWrapper item;
     private PrismValue value;
     private PrismValue oldValue;
 //    private PrismPropertyValue<T> value;
 //    private PrismPropertyValue<T> oldValue;
     private ValueStatus status;
 
-    public ValueWrapper(ItemWrapper property, PrismValue value) {
+    public ValueWrapper(PropertyOrReferenceWrapper property, PrismValue value) {
         this(property, value, ValueStatus.NOT_CHANGED);
     }
 
-    public ValueWrapper(ItemWrapper property, PrismValue value, ValueStatus status) {
+    public ValueWrapper(PropertyOrReferenceWrapper property, PrismValue value, ValueStatus status) {
         this(property, value, null, status);
     }
 
-    public ValueWrapper(ItemWrapper property, PrismValue value, PrismValue oldValue,
+    public ValueWrapper(PropertyOrReferenceWrapper property, PrismValue value, PrismValue oldValue,
             ValueStatus status) {
         Validate.notNull(property, "Property wrapper must not be null.");
         Validate.notNull(value, "Property value must not be null.");
@@ -87,7 +87,19 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 			}
 		}
 
-        if (oldValue == null && value instanceof PrismPropertyValue) {
+		if (oldValue == null && value instanceof PrismPropertyValue && ValueStatus.ADDED == property.getStatus()) {
+			oldValue = new PrismPropertyValue<T>(null);
+		}
+		
+		if (oldValue == null && value instanceof PrismReferenceValue && ValueStatus.ADDED == property.getStatus()) {
+			oldValue = new PrismReferenceValue();
+		}
+		
+		if (oldValue == null && value instanceof PrismReferenceValue && ValueStatus.ADDED != property.getStatus()) {
+			oldValue = value.clone();
+		}
+		
+        if (oldValue == null && value instanceof PrismPropertyValue && ValueStatus.ADDED != property.getStatus()) {
             T val = ((PrismPropertyValue<T>) this.value).getValue();
             if (val instanceof PolyString) {
                 PolyString poly = (PolyString)val;

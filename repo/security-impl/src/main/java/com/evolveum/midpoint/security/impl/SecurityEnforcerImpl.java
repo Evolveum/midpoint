@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.security.impl;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -33,6 +32,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -209,7 +209,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
 						// if there is more than one role which specify
 						// different authz (e.g one role specify allow for whole
-						// objet, the other role specify allow only for some
+						// object, the other role specify allow only for some
 						// attributes. this ended with allow for whole object (MID-2018)
 						Collection<ItemPath> allowed = getItems(autz);
 						if (allow && allowedItems.isEmpty()){
@@ -251,9 +251,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				// all items in the object and delta must be allowed
 
 				if (delta != null) {
-					allow = processAuthorizationDelta(delta, allowedItems);
+					allow = processAuthorizationDelta(delta, allowedItems, phase);
 				} else if (object != null) {
-					allow = processAuthorizationObject(object, allowedItems);
+					allow = processAuthorizationObject(object, allowedItems, phase);
 				}
 			}
 		}
@@ -264,21 +264,21 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return allow;
 	}
 
-	private <O extends ObjectType> boolean processAuthorizationObject(PrismContainer<O> object, final Collection<ItemPath> allowedItems) {
-		return isContainerAllowed(object.getValue(), allowedItems);
+	private <O extends ObjectType> boolean processAuthorizationObject(PrismContainer<O> object, final Collection<ItemPath> allowedItems, AuthorizationPhaseType phase) {
+		return isContainerAllowed(object.getValue(), allowedItems, phase);
 	}
 
-	private <C extends Containerable> boolean processAuthorizationContainerDelta(ContainerDelta<C> cdelta, final Collection<ItemPath> allowedItems) {
+	private <C extends Containerable> boolean processAuthorizationContainerDelta(ContainerDelta<C> cdelta, final Collection<ItemPath> allowedItems, AuthorizationPhaseType phase) {
 		final MutableBoolean itemDecision = new MutableBoolean(true);
 		cdelta.foreach(cval -> {
-			if (!isContainerAllowed(cval, allowedItems)) {
+			if (!isContainerAllowed(cval, allowedItems, phase)) {
 				itemDecision.setValue(false);
 			}
 		});
 		return itemDecision.booleanValue();
 	}
 
-	private boolean isContainerAllowed(PrismContainerValue<?> cval, Collection<ItemPath> allowedItems) {
+	private boolean isContainerAllowed(PrismContainerValue<?> cval, Collection<ItemPath> allowedItems, AuthorizationPhaseType phase) {
 		if (cval.isEmpty()) {
 			// TODO: problem with empty containers such as
 			// orderConstraint in assignment. Skip all
@@ -289,18 +289,18 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		for (Item<?, ?> item: cval.getItems()) {
 			ItemPath itemPath = item.getPath();
 			if (item instanceof PrismContainer<?>) {
-				if (isInList(itemPath, allowedItems)) {
+				if (isAllowedItem(itemPath, allowedItems, phase)) {
 					// entire container is allowed. We do not need to go deeper
 				} else {
 					List<PrismContainerValue<?>> subValues = (List)((PrismContainer<?>)item).getValues();
 					for (PrismContainerValue<?> subValue: subValues) {
-						if (!isContainerAllowed(subValue, allowedItems)) {
+						if (!isContainerAllowed(subValue, allowedItems, phase)) {
 							decision = false;
 						}
 					}
 				}
 			} else {
-				if (!isInList(itemPath, allowedItems)) {
+				if (!isAllowedItem(itemPath, allowedItems, phase)) {
 					LOGGER.trace("  DENY operation because item {} in the object is not allowed", itemPath);
 					decision = false;
 				}
@@ -309,20 +309,20 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return decision;
 	}
 
-	private <O extends ObjectType> boolean processAuthorizationDelta(ObjectDelta<O> delta, final Collection<ItemPath> allowedItems) {
+	private <O extends ObjectType> boolean processAuthorizationDelta(ObjectDelta<O> delta, final Collection<ItemPath> allowedItems, AuthorizationPhaseType phase) {
 		if (delta.isAdd()) {
-			return processAuthorizationObject(delta.getObjectToAdd(), allowedItems);
+			return processAuthorizationObject(delta.getObjectToAdd(), allowedItems, phase);
 		} else {
 			for (ItemDelta<?,?> itemDelta: delta.getModifications()) {
 				ItemPath itemPath = itemDelta.getPath();
 				if (itemDelta instanceof ContainerDelta<?>) {
-					if (!isInList(itemPath, allowedItems)) {
-						if (!processAuthorizationContainerDelta((ContainerDelta<?>)itemDelta, allowedItems)) {
+					if (!isAllowedItem(itemPath, allowedItems, phase)) {
+						if (!processAuthorizationContainerDelta((ContainerDelta<?>)itemDelta, allowedItems, phase)) {
 							return false;
 						}
 					}
 				} else {
-					if (!isInList(itemPath, allowedItems)) {
+					if (!isAllowedItem(itemPath, allowedItems, phase)) {
 						LOGGER.trace("  DENY operation because item {} in the delta is not allowed", itemPath);
 						return false;
 					}
@@ -330,6 +330,17 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}
 			return true;
 		}
+	}
+	
+	private boolean isAllowedItem(ItemPath itemPath, Collection<ItemPath> allowedItems, AuthorizationPhaseType phase) {
+		return isInList(itemPath, allowedItems) || allowedForExecutionByDefault(itemPath, phase);
+	}
+	
+	private boolean allowedForExecutionByDefault(ItemPath itemPath, AuthorizationPhaseType phase) {
+		if (!AuthorizationPhaseType.EXECUTION.equals(phase)) {
+			return false;
+		}
+		return isInList(itemPath, AuthorizationConstants.EXECUTION_ITEMS_ALLOWED_BY_DEFAULT);
 	}
 
 	private boolean isInList(ItemPath itemPath, Collection<ItemPath> allowedItems) {
@@ -511,10 +522,28 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					}
 				}
 				if (!found) {
-					LOGGER.trace("  {}: delegator object spec not applicable for {}, object OID {} because delegator does not match",
-							autzHumanReadableDesc, desc, object.getOid());
-					return false;
+					if (BooleanUtils.isTrue(delegatorSpec.isAllowInactive())) {
+						for (AssignmentType objectAssignment: ((UserType)object.asObjectable()).getAssignment()) {
+							ObjectReferenceType objectAssignmentTargetRef = objectAssignment.getTargetRef();
+							if (objectAssignmentTargetRef == null) {
+								continue;
+							}
+							if (principal.getOid().equals(objectAssignmentTargetRef.getOid())) {
+								if (QNameUtil.match(SchemaConstants.ORG_DEPUTY, objectAssignmentTargetRef.getRelation())) {
+									found = true;
+									break;
+								}
+							}
+						}
+					}
+					
+					if (!found) {
+						LOGGER.trace("  {}: delegator object spec not applicable for {}, object OID {} because delegator does not match",
+								autzHumanReadableDesc, desc, object.getOid());
+						return false;
+					}
 				}
+				
 			}
 		}
 

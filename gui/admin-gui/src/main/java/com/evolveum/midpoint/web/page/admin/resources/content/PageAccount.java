@@ -150,7 +150,9 @@ public class PageAccount extends PageAdminResources {
     }
     
     private List<ItemPath> getItemsToShow() {
-    	return Arrays.asList(new ItemPath(ShadowType.F_ATTRIBUTES), SchemaConstants.PATH_ACTIVATION, SchemaConstants.PATH_PASSWORD);
+    	return Arrays.asList(new ItemPath(ShadowType.F_ATTRIBUTES), 
+    			SchemaConstants.PATH_ACTIVATION, SchemaConstants.PATH_PASSWORD,
+    			new ItemPath(ShadowType.F_ASSOCIATION));
     }
 
     private void initButtons(Form mainForm) {
