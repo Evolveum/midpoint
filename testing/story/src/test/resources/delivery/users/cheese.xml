@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<user oid="b2a3f4ad-ad7b-4691-83d9-34d5ebb50a04"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+
+	<name>cheese</name>
+	<description>The owner of Scumm Bar</description>
+	<parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
+	<parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType" relation="org:manager"/>
+	<assignment id="1">
+		<targetRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
+	</assignment>
+	<assignment id="2">
+		<targetRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType" relation="org:manager"/>
+	</assignment>
+	<!--<assignment id="3">-->
+		<!--<description>a-test-1</description>-->
+		<!--<targetRef type="RoleType" relation="org:approver">-->
+			<!--<filter>-->
+				<!--<q:equal>-->
+					<!--<q:path>name</q:path>-->
+					<!--<q:value>a-test-1</q:value>-->
+				<!--</q:equal>-->
+			<!--</filter>-->
+		<!--</targetRef>-->
+	<!--</assignment>-->
+	<!--<assignment id="4">-->
+		<!--<description>a-test-2a</description>-->
+		<!--<targetRef type="RoleType" relation="org:approver">-->
+			<!--<filter>-->
+				<!--<q:equal>-->
+					<!--<q:path>name</q:path>-->
+					<!--<q:value>a-test-2a</q:value>-->
+				<!--</q:equal>-->
+			<!--</filter>-->
+		<!--</targetRef>-->
+	<!--</assignment>-->
+	<!--<assignment id="5">-->
+		<!--<description>a-test-2b</description>-->
+		<!--<targetRef type="RoleType" relation="org:approver">-->
+			<!--<filter>-->
+				<!--<q:equal>-->
+					<!--<q:path>name</q:path>-->
+					<!--<q:value>a-test-2b</q:value>-->
+				<!--</q:equal>-->
+			<!--</filter>-->
+		<!--</targetRef>-->
+	<!--</assignment>-->
+	<!--<assignment id="6">-->
+		<!--<description>a-test-4</description>-->
+		<!--<targetRef type="RoleType" relation="org:approver">-->
+			<!--<filter>-->
+				<!--<q:equal>-->
+					<!--<q:path>name</q:path>-->
+					<!--<q:value>a-test-4</q:value>-->
+				<!--</q:equal>-->
+			<!--</filter>-->
+		<!--</targetRef>-->
+	<!--</assignment>-->
+	
+	<assignment id="1000">
+		<targetRef oid="00000000-0000-0000-0000-000000000008" type="RoleType"/>    <!-- End user -->
+	</assignment>
+	<!--<assignment id="1001">-->
+		<!--<targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>    &lt;!&ndash; Approver &ndash;&gt;-->
+	<!--</assignment>-->
+	<fullName>Ignatius Cheese</fullName>
+	<givenName>Ignatius</givenName>
+	<familyName>Cheese</familyName>
+	<emailAddress>cheese@evolveum.com</emailAddress>
+	<credentials>
+		<password>
+			<value>a123456</value>
+		</password>
+	</credentials>
+</user>

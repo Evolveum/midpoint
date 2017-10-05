@@ -703,18 +703,11 @@ public class ItemPath implements Serializable, Cloneable {
 	}
 
 	public static IdItemPathSegment getFirstIdSegment(ItemPath itemPath) {
-		ItemPathSegment first = itemPath.first();
-		if (first instanceof IdItemPathSegment) {
-			return (IdItemPathSegment)first;
-		}
-		return null;
+		return itemPath != null ? itemPath.getFirstIdSegment() : null;
 	}
 
 	public static NameItemPathSegment getFirstNameSegment(ItemPath itemPath) {
-		if (itemPath == null) {
-			return null;
-		}
-		return itemPath.getFirstNameSegment();
+		return itemPath != null ? itemPath.getFirstNameSegment() : null;
 	}
 
 	public NameItemPathSegment getFirstNameSegment() {
@@ -726,6 +719,15 @@ public class ItemPath implements Serializable, Cloneable {
 			return getFirstNameSegment(rest());
 		}
 		return null;
+	}
+
+	public IdItemPathSegment getFirstIdSegment() {
+		ItemPathSegment first = first();
+		if (first instanceof IdItemPathSegment) {
+			return (IdItemPathSegment)first;
+		} else {
+			return null;
+		}
 	}
 
 	public static QName getFirstName(ItemPath itemPath) {

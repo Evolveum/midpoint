@@ -602,6 +602,18 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <!--<xsd:element name="ignoreItem" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">-->
+                        <!--<xsd:annotation>-->
+                            <!--<xsd:documentation>-->
+                                <!--Modifications of these items are to be ignored.-->
+								<!--EXPERIMENTAL-->
+                            <!--</xsd:documentation>-->
+							<!--<xsd:appinfo>-->
+								<!--<a:experimental>true</a:experimental>-->
+								<!--<a:since>3.7</a:since>-->
+							<!--</xsd:appinfo>-->
+                        <!--</xsd:annotation>-->
+                    <!--</xsd:element>-->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1140,7 +1152,19 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:choice>
+					<xsd:element name="processSpecification" type="c:WfProcessSpecificationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+								EXPERIMENTAL
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+								<a:experimental>true</a:experimental>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+					<xsd:choice>
                         <xsd:sequence>
                             <xsd:element name="approverRelation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
                                 <xsd:annotation>
@@ -1316,6 +1340,100 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="WfProcessSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specification of a process that is to be started.
+				EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+	        <xsd:choice>
+		        <xsd:element name="ref" type="xsd:string" minOccurs="1">
+			        <xsd:annotation>
+				        <xsd:documentation>
+					        Reference to existing process specification. NOT IMPLEMENTED YET
+				        </xsd:documentation>
+			        </xsd:annotation>
+		        </xsd:element>
+		        <xsd:sequence>
+			        <xsd:element name="name" type="xsd:string" minOccurs="0">
+				        <xsd:annotation>
+					        <xsd:documentation>
+						        Name for this process specification. NOT IMPLEMENTED YET
+					        </xsd:documentation>
+				        </xsd:annotation>
+			        </xsd:element>
+			        <xsd:element name="order" type="xsd:int" minOccurs="0">
+				        <xsd:annotation>
+					        <xsd:documentation>
+						        In what order this process specification is to be considered.
+					        </xsd:documentation>
+				        </xsd:annotation>
+			        </xsd:element>
+			        <xsd:element name="deltaFrom" type="c:DeltaSourceSpecificationType" minOccurs="0" maxOccurs="unbounded">
+				        <xsd:annotation>
+					        <xsd:documentation>
+						        TODO
+					        </xsd:documentation>
+				        </xsd:annotation>
+			        </xsd:element>
+			        <xsd:element name="includeAction" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				        <xsd:annotation>
+					        <xsd:documentation>
+						        What approval actions to include during approval schema creation for this process. NOT IMPLEMENTED YET
+					        </xsd:documentation>
+				        </xsd:annotation>
+			        </xsd:element>
+			        <xsd:element name="excludeAction" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				        <xsd:annotation>
+					        <xsd:documentation>
+						        What approval actions to exclude during approval schema creation for this process. NOT IMPLEMENTED YET
+					        </xsd:documentation>
+				        </xsd:annotation>
+			        </xsd:element>
+		        </xsd:sequence>
+	        </xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DeltaSourceSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+				EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+			<xsd:choice>
+				<xsd:element name="item" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>
+							Include all modifications of these items as a delta that is to be approved.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="itemValue" type="t:ItemPathType" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							Create a delta for each value of this item that is to be added, deleted or modified.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:choice>
         </xsd:sequence>
     </xsd:complexType>
 

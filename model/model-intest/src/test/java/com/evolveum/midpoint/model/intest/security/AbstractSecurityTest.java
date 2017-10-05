@@ -27,8 +27,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -71,6 +73,8 @@ import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.FailableProcessor;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -220,6 +224,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected static final File ROLE_DELEGATOR_FILE = new File(TEST_DIR, "role-delegator.xml");
 	protected static final String ROLE_DELEGATOR_OID = "00000000-0000-0000-0000-00000000d001";
+	
+	protected static final File ROLE_DELEGATOR_PLUS_FILE = new File(TEST_DIR, "role-delegator-plus.xml");
+	protected static final String ROLE_DELEGATOR_PLUS_OID = "00000000-0000-0000-0000-00000000d101";
 
 	protected static final File ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_FILE = new File(TEST_DIR, "role-org-read-orgs-ministry-of-rum.xml");
 	protected static final String ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_OID = "00000000-0000-0000-0000-00000000aa0d";
@@ -349,7 +356,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 63;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 64;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 
 	protected String userRumRogersOid;
@@ -393,6 +400,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_ASSIGN_REQUESTABLE_ROLES_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ASSIGN_ORGRELATION_FILE, initResult);
 		repoAddObjectFromFile(ROLE_DELEGATOR_FILE, initResult);
+		repoAddObjectFromFile(ROLE_DELEGATOR_PLUS_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_FILE, initResult);
 		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_FILE, initResult);
  		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_FILE, initResult);
@@ -615,12 +623,12 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		}
 	}
 
-	protected void assertVisibleUsers(int expectedNumAllUsers) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	protected void assertVisibleUsers(int expectedNumAllUsers) throws Exception {
 		assertSearch(UserType.class, null, expectedNumAllUsers);
 
 	}
 
-	protected void assertReadDeny() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	protected void assertReadDeny() throws Exception {
 		assertReadDeny(0);
 		assertReadDenyRaw();
 	}
@@ -637,7 +645,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertContainerSearch(AccessCertificationCaseType.class, null, expectedNumber);
     }
 
-	protected void assertReadDeny(int expectedNumAllUsers) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	protected void assertReadDeny(int expectedNumAllUsers) throws Exception {
         assertGetDeny(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -650,7 +658,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 0);
 	}
 	
-	protected void assertReadDenyRaw() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+	protected void assertReadDenyRaw() throws Exception {
         assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 
@@ -659,11 +667,11 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertSearchDeny(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 	}
 
-	protected void assertReadAllow() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	protected void assertReadAllow() throws Exception {
 		assertReadAllow(NUMBER_OF_ALL_USERS);
 	}
 
-	protected void assertReadAllow(int expectedNumAllUsers) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	protected void assertReadAllow(int expectedNumAllUsers) throws Exception {
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
 
@@ -672,11 +680,11 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 1);
 	}
 	
-	protected void assertReadAllowRaw() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	protected void assertReadAllowRaw() throws Exception {
 		assertReadAllowRaw(NUMBER_OF_ALL_USERS);
 	}
 	
-	protected void assertReadAllowRaw(int expectedNumAllUsers) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	protected void assertReadAllowRaw(int expectedNumAllUsers) throws Exception {
         assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 
@@ -773,11 +781,11 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		return object;
 	}
 
-	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {
 		assertSearch(type, query, null, expectedResults);
 	}
 	
-	protected <O extends ObjectType> void assertSearchRaw(Class<O> type, ObjectQuery query, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	protected <O extends ObjectType> void assertSearchRaw(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {
 		assertSearch(type, query, SelectorOptions.createCollection(GetOperationOptions.createRaw()), expectedResults);
 	}
 
@@ -786,7 +794,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
 	protected <O extends ObjectType> void assertSearchDeny(Class<O> type, ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+			Collection<SelectorOptions<GetOperationOptions>> options) throws Exception {
 		try {
 			assertSearch(type, query, options, 0);
 		} catch (SecurityViolationException e) {
@@ -795,21 +803,70 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		}
 	}
 	
+	
 	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws Exception {
+		assertSearch(type, query, options, 
+				new SearchAssertion<O>() {
+
+					@Override
+					public void assertObjects(String message, List<PrismObject<O>> objects) throws Exception {
+						if (objects.size() > expectedResults) {
+							failDeny(message, type, query, expectedResults, objects.size());
+						} else if (objects.size() < expectedResults) {
+							failAllow(message, type, query, expectedResults, objects.size());
+						}
+					}
+
+					@Override
+					public void assertCount(int count) throws Exception {
+						if (count > expectedResults) {
+							failDeny("count", type, query, expectedResults, count);
+						} else if (count < expectedResults) {
+							failAllow("count", type, query, expectedResults, count);
+						}
+					}
+			
+			});
+	}
+	
+	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, String... expectedOids) throws Exception {
+		assertSearch(type, query, null, expectedOids);
+	}
+	
+	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, String... expectedOids) throws Exception {
+		assertSearch(type, query, options, 
+				new SearchAssertion<O>() {
+
+					@Override
+					public void assertObjects(String message, List<PrismObject<O>> objects) throws Exception {
+						if (!MiscUtil.unorderedCollectionEquals(objects, Arrays.asList(expectedOids), 
+								(object,expectedOid) -> expectedOid.equals(object.getOid()))) {
+							failAllow(message, type, (query==null?"null":query.toString())+", expected "+Arrays.toString(expectedOids)+", actual "+objects, null);
+						}
+					}
+
+					@Override
+					public void assertCount(int count) throws Exception {
+						if (count != expectedOids.length) {
+							failAllow("count", type, query, expectedOids.length, count);
+						}
+					}
+			
+			});
+	}
+	
+	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, SearchAssertion<O> assertion) throws Exception {
 		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertSearchObjects");
         OperationResult result = task.getResult();
 		try {
 			logAttempt("search", type, query);
 			List<PrismObject<O>> objects = modelService.searchObjects(type, query, options, task, result);
 			display("Search returned", objects.toString());
-			if (objects.size() > expectedResults) {
-				failDeny("search", type, query, expectedResults, objects.size());
-			} else if (objects.size() < expectedResults) {
-				failAllow("search", type, query, expectedResults, objects.size());
-			}
-			result.computeStatus();
-			TestUtil.assertSuccess(result);
+			assertion.assertObjects("search", objects);
+			assertSuccess(result);
 		} catch (SecurityViolationException e) {
 			// this should not happen
 			result.computeStatus();
@@ -831,13 +888,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 			};
 			modelService.searchObjectsIterative(type, query, handler, options, task, result);
 			display("Search iterative returned", objects.toString());
-			if (objects.size() > expectedResults) {
-				failDeny("searchIterative", type, query, expectedResults, objects.size());
-			} else if (objects.size() < expectedResults) {
-				failAllow("searchIterative", type, query, expectedResults, objects.size());
-			}
-			result.computeStatus();
-			TestUtil.assertSuccess(result);
+			assertion.assertObjects("searchIterative", objects);
+			assertSuccess(result);
 		} catch (SecurityViolationException e) {
 			// this should not happen
 			result.computeStatus();
@@ -851,13 +903,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 			logAttempt("count", type, query);
 			int numObjects = modelService.countObjects(type, query, options, task, result);
 			display("Count returned", numObjects);
-			if (numObjects > expectedResults) {
-				failDeny("count", type, query, expectedResults, numObjects);
-			} else if (numObjects < expectedResults) {
-				failAllow("count", type, query, expectedResults, numObjects);
-			}
-			result.computeStatus();
-			TestUtil.assertSuccess(result);
+			assertion.assertCount(numObjects);
+			assertSuccess(result);
 		} catch (SecurityViolationException e) {
 			// this should not happen
 			result.computeStatus();

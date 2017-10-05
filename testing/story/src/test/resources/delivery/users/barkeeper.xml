@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<user oid="b87eb285-b4ae-43c0-9e4c-7ba651de81fa"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
+	<name>barkeeper</name>
+	<parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
+	<assignment id="1">
+		<targetRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
+	</assignment>
+	<!--<c:assignment id="2">-->
+		<!--<c:targetRef type="c:OrgType">-->
+			<!--<filter>-->
+				<!--<q:equal>-->
+					<!--<q:path>name</q:path>-->
+					<!--<q:value>Security Approvers</q:value>-->
+				<!--</q:equal>-->
+			<!--</filter>-->
+		<!--</c:targetRef>-->
+	<!--</c:assignment>-->
+	<assignment id="1000">
+		<targetRef oid="00000000-0000-0000-0000-000000000008" type="RoleType"/>    <!-- End user -->
+	</assignment>
+	<fullName>Horridly Scarred Barkeep</fullName>
+	<givenName>Barkeeper</givenName>
+	<familyName>Scumm</familyName>
+	<emailAddress>barkeeper@evolveum.com</emailAddress>
+	<credentials>
+		<password>
+			<value>a123456</value>
+		</password>
+	</credentials>
+</user>

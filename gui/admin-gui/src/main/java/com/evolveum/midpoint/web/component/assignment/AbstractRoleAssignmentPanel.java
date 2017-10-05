@@ -23,11 +23,10 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 import javax.xml.validation.Schema;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -63,6 +62,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+import org.springframework.expression.spel.ast.Assign;
 
 /**
  * Created by honchar.
@@ -75,9 +75,8 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
 
 
-    public AbstractRoleAssignmentPanel(String id, IModel<List<ContainerValueWrapper<AssignmentType>>> assignmentsModel,
-                                       ContainerWrapper assignmentContainerWrapper){
-    	super(id, assignmentsModel, assignmentContainerWrapper);
+    public AbstractRoleAssignmentPanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
+    	super(id, assignmentContainerWrapperModel);
     }
 
     protected void initCustomLayout(WebMarkupContainer assignmentsContainer){
@@ -152,17 +151,21 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                    target.add(getPageBase().getFeedbackPanel());
                    return;
            }
+           ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
            for (T object : assignmentsList){
-               try {
-                   AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(object.asPrismObject(), relation);
-                   assignment.asPrismContainerValue().applyDefinition(assignmentContainerWrapper.getItem().getDefinition(), false);
-                   ContainerValueWrapper<AssignmentType> newAssignmentContainerWrapper = assignmentContainerWrapper.createItem(false);
-                   newAssignmentContainerWrapper.setStatus(ValueStatus.ADDED);
-                   newAssignmentContainerWrapper.getContainerValue().getValue().setupContainerValue(assignment.asPrismContainerValue());
-                   getModelObject().add(0, newAssignmentContainerWrapper);
-               } catch (SchemaException ex){
+               ObjectReferenceType ort = new ObjectReferenceType();
+               ort.setOid(object.getOid());
+               ort.setRelation(SchemaConstants.ORG_DEFAULT);
+               ort.setType(WebComponentUtil.classToQName(getPageBase().getPrismContext(), object.getClass()));
 
-               }
+
+                PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
+                newAssignment.asContainerable().setTargetRef(ort);
+
+
+               ContainerValueWrapper<AssignmentType> valueWrapper = factory.createContainerValueWrapper(getModelObject(), newAssignment,
+                       ValueStatus.ADDED, new ItemPath(FocusType.F_ASSIGNMENT));
+               getModelObject().getValues().add(valueWrapper);
            }
 
            refreshTable(target);

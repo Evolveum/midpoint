@@ -416,34 +416,16 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		}
 	}
 
-	public <O extends ObjectType> void collectAddDelta(ObjectDelta<O> delta,  ItemPath propertyPath,
-													   PrismContainerDefinition def, PrismContext prismContext) throws SchemaException {
-
-		ContainerDelta containerDelta = new ContainerDelta(propertyPath, def.getName(), def, prismContext);
-
+	public <O extends ObjectType> void collectAddDelta(ObjectDelta<O> delta, PrismContext prismContext) throws SchemaException {
 		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
 			if (ValueStatus.ADDED.equals(itemWrapper.getStatus())) {
-				itemWrapper.getContainerValue().applyDefinition(def, false);
+				ContainerDelta<C> containerDelta = new ContainerDelta(ItemPath.EMPTY_PATH, itemWrapper.getDefinition().getName(),
+						itemWrapper.getDefinition(), prismContext);
 				containerDelta.addValueToAdd(itemWrapper.getContainerValue().clone());
-
+				if (!containerDelta.isEmpty()){
+					delta.addModification(containerDelta);
+				}
 			}
-		}
-//		ContainerDelta<C> containerDelta = delta.createContainerModification(propertyPath);
-//
-//		List<PrismContainerValue> containerValuesToAdd = new ArrayList<>();
-//
-//		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
-//			if (ValueStatus.ADDED.equals(itemWrapper.getStatus())){
-//				containerValuesToAdd.add(itemWrapper.getContainerValue().clone());
-
-//				ContainerDelta<C> containerDelta = new ContainerDelta(new ItemPath(FocusType.F_ASSIGNMENT), itemWrapper.getDefinition().getName(),
-//						itemWrapper.getDefinition(), prismContext);
-//				containerDelta.addValuesToAdd(itemWrapper.getContainerValue().clone());
-//			}
-//		}
-//		containerDelta.addValuesToAdd(containerValuesToAdd.toArray(new PrismContainerValue[containerValuesToAdd.size()]));
-		if (!containerDelta.isEmpty()){
-			delta.addModification(containerDelta);
 		}
 	}
 

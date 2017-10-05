@@ -267,7 +267,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		nameLabel.setOutputMarkupId(true);
 		name.add(nameLabel);
 
-		Label activation = new Label(ID_ACTIVATION, AssignmentsUtil.createActivationTitleModel(getModel(), "-", AssignmentEditorPanel.this));
+		Label activation = new Label(ID_ACTIVATION, AssignmentsUtil.createActivationTitleModel(getModel().getObject().getActivation(), "-", AssignmentEditorPanel.this));
 		headerRow.add(activation);
 
 		ToggleIconButton expandButton = new ToggleIconButton(ID_EXPAND, GuiStyleConstants.CLASS_ICON_EXPAND,

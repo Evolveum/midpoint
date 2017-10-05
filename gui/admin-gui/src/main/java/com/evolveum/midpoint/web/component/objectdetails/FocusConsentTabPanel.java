@@ -17,6 +17,7 @@ import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -38,7 +39,12 @@ public class FocusConsentTabPanel<F extends FocusType> extends AbstractObjectTab
 	private void initLayout() {
 		ContainerWrapper<AssignmentType> assignmentsContainerWrapper = getObjectWrapper().findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
 
-		GdprAssignmentPanel consentRoles =  new GdprAssignmentPanel(ID_ROLES, getConsentsModel(assignmentsContainerWrapper), assignmentsContainerWrapper);
+		GdprAssignmentPanel consentRoles =  new GdprAssignmentPanel(ID_ROLES, new AbstractReadOnlyModel<ContainerWrapper<AssignmentType>>() {
+			@Override
+			public ContainerWrapper<AssignmentType> getObject() {
+				return assignmentsContainerWrapper;
+			}
+		});
 		add(consentRoles);
 		consentRoles.setOutputMarkupId(true);
 

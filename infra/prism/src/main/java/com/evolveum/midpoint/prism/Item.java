@@ -438,7 +438,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	}
 	    D definition = getDefinition();
 	    if (definition != null) {
-		    if (!isEmpty() && definition.isSingleValue()) {
+		    if (!values.isEmpty() && definition.isSingleValue()) {
 			    throw new SchemaException("Attempt to put more than one value to single-valued item " + this + "; newly added value: " + newValue);
 		    }
     		newValue.applyDefinition(definition, false);
