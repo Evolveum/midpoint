@@ -2234,7 +2234,6 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         // WHEN
         displayWhen(TEST_NAME);
         
-        assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         
