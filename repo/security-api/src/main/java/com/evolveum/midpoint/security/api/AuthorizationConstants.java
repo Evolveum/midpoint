@@ -441,15 +441,13 @@ public class AuthorizationConstants {
 			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),
 			new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_METADATA),
 			new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_POLICY_SITUATION),
-			new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TRIGGERED_POLICY_RULE),
 			new ItemPath(FocusType.F_DELEGATED_REF),
 			new ItemPath(FocusType.F_ITERATION),
 			new ItemPath(FocusType.F_ITERATION_TOKEN),
 //			new ItemPath(FocusType.F_LINK_REF), // in fact, linkRef may be omitted here. link/unlink is done after execution authorizations are applied
 			new ItemPath(FocusType.F_PERSONA_REF),
 			new ItemPath(FocusType.F_ROLE_INFLUENCE_REF),
-			new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF),
-			new ItemPath(FocusType.F_TRIGGERED_POLICY_RULE)
+			new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF)
 		);
 
 }
