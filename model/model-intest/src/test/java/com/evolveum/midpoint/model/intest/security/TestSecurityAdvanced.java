@@ -104,7 +104,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		final String TEST_NAME = "test102AutzLechuckPersonaManagement";
         displayTestTitle(TEST_NAME);
         // GIVEN
-        cleanupAutzTest(USER_LECHUCK_OID);
+        cleanupAutzTest(USER_LECHUCK_OID, 1);
         assignRole(USER_LECHUCK_OID, ROLE_PERSONA_MANAGEMENT_OID);
         login(USER_LECHUCK_USERNAME);
 
@@ -1178,8 +1178,8 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	}
 
     @Override
-    protected void cleanupAutzTest(String userOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
-    	super.cleanupAutzTest(userOid);
+    protected void cleanupAutzTest(String userOid, int expectedAssignments) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
+    	super.cleanupAutzTest(userOid, expectedAssignments);
 
         Task task = taskManager.createTaskInstance(TestSecurityAdvanced.class.getName() + ".cleanupAutzTest");
         OperationResult result = task.getResult();
