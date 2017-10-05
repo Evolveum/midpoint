@@ -81,6 +81,7 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
             }
         };
         menuItemButton.setOutputMarkupId(true);
+        menuItemButton.setOutputMarkupPlaceholderTag(true);
         menuItemButton.add(new AttributeAppender("class", "dropdown-toggle " + getAdditionalButtonClass()));
         menuItemButton.add(new AttributeAppender("style", getMenuItemButtonStyle()));
         menuItemContainer.add(menuItemButton);

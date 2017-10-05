@@ -357,28 +357,36 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		// Does not make much sense, but it is given by the interface
 	}
 
-	public PrismContainer createContainerAddDelta() throws SchemaException {
+	public PrismContainer<C> createContainerAddDelta() throws SchemaException {
 
-		PrismContainer containerAdd = container.clone();
+		PrismContainer<C> containerAdd = container.clone();
 
 		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
 			if (!itemWrapper.hasChanged()) {
 				continue;
 			}
-			if (itemWrapper.isMain()) {
-				containerAdd.setValue(itemWrapper.createContainerValueAddDelta());
+			
+			PrismContainerValue<C> newContainerValue = itemWrapper.createContainerValueAddDelta();
+			
+			if (newContainerValue == null) {
 				continue;
 			}
-			containerAdd.add(itemWrapper.createContainerValueAddDelta());
+			
+			if (itemWrapper.isMain()) {
+				containerAdd.setValue(newContainerValue);
+				continue;
+			}
+			
+			if (containerAdd.isSingleValue()) {
+				containerAdd.replace(newContainerValue);
+			} else {
+				containerAdd.add(newContainerValue);
+			}
 		}
 		return containerAdd;
 	}
 
 	public <O extends ObjectType> void collectModifications(ObjectDelta<O> delta) throws SchemaException {
-
-		if (!hasChanged()) {
-			return;
-		}
 
 		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
 			if (!itemWrapper.hasChanged()) {
@@ -398,7 +406,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 					itemWrapper.collectModifications(delta);
 					break;
 				case DELETED:
-					delta.addModificationDeleteContainer(itemWrapper.getPath(), itemWrapper.getContainerValue().clone());
+					delta.addModificationDeleteContainer(getPath(), itemWrapper.getContainerValue().clone());
 					break;
 			}
 		}

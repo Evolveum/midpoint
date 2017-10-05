@@ -52,7 +52,8 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 		List<ValueWrapper> values = new ArrayList<ValueWrapper>();
 
 		for (PrismReferenceValue prismValue : item.getValues()) {
-			values.add(new ValueWrapper(this, prismValue, prismValue, ValueStatus.NOT_CHANGED));
+			
+			values.add(new ValueWrapper(this, prismValue, ValueStatus.NOT_CHANGED));
 		}
 
 		int minOccurs = getItemDefinition().getMinOccurs();

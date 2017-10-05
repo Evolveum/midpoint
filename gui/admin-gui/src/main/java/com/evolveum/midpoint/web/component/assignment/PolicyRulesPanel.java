@@ -16,9 +16,11 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -146,17 +148,11 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
 	@Override
 	protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
-        ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
-
         PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
-        newAssignment.asContainerable().setPolicyRule(new PolicyRuleType());
-
-
-        ContainerValueWrapper<AssignmentType> valueWrapper = factory.createContainerValueWrapper(getModelObject(), newAssignment,
-                ValueStatus.ADDED, new ItemPath(FocusType.F_ASSIGNMENT));
-        getModelObject().getValues().add(valueWrapper);
-
-        refreshTable(target);
+        ContainerValueWrapper<AssignmentType> newAssignmentWrapper = createNewAssignmentContainerValueWrapper(newAssignment);
+        assignmentDetailsPerformed(target, Arrays.asList(newAssignmentWrapper));
+//        refreshTable(target);
+       
 	}
 
 	@Override
