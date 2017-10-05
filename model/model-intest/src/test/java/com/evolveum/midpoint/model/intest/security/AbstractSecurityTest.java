@@ -85,11 +85,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -99,6 +101,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecifi
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SubjectedObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
@@ -553,8 +556,11 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		assertEquals("Wrong modification flag for "+attrName, expectedModify, rAttrDef.canModify());
 	}
 
-	
 	protected void cleanupAutzTest(String userOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
+		cleanupAutzTest(userOid, 0);
+	}
+
+	protected void cleanupAutzTest(String userOid, int expectedAssignments) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
 		login(userAdministrator);
 		if (userOid != null) {
 			unassignAllRoles(userOid);
@@ -563,6 +569,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".cleanupAutzTest");
         OperationResult result = task.getResult();
         
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
         cleanupDelete(UserType.class, USER_HERMAN_OID, task, result);
         cleanupDelete(UserType.class, USER_DRAKE_OID, task, result);
         cleanupDelete(UserType.class, USER_RAPP_OID, task, result);
@@ -577,7 +585,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result, PrismTestUtil.createPolyString("Wannabe"));
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM, task, result);
         modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString(USER_JACK_GIVEN_NAME));
-        
+
+        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER, task, result);
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER, task, result);
@@ -589,6 +598,14 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         cleanupDelete(TaskType.class, TASK_T4_OID, task, result);
         cleanupDelete(TaskType.class, TASK_T5_OID, task, result);
         cleanupDelete(TaskType.class, TASK_T6_OID, task, result);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        PrismObject<UserType> user = getUser(userOid);
+        assertAssignments(user, expectedAssignments);
+        if (expectedAssignments == 0) {
+        	assertLinks(user, 0);
+        }
 	}
 	
 	protected void cleanupAdd(File userLargoFile, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
@@ -951,7 +968,25 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		TestUtil.assertSuccess(result);
 		logAllow("add", object.getCompileTimeClass(), object.getOid(), null);
 	}
+
+	protected <O extends ObjectType> void assertModifyMetadataDeny(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		XMLGregorianCalendar oneHourAgo = XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), "-PT1H");
+		assertModifyDenyOptions(type, oid, getMetadataPath(MetadataType.F_MODIFY_TIMESTAMP), null, oneHourAgo);
+		assertModifyDenyOptions(type, oid, getMetadataPath(MetadataType.F_CREATE_CHANNEL), null, "hackHackHack");
+	}
 	
+	protected <O extends ObjectType> void assertPasswordChangeDeny(Class<O> type, String oid, String newPassword) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ProtectedStringType passwordPs = new ProtectedStringType();
+        passwordPs.setClearValue(newPassword);
+        assertModifyDeny(type, oid, PASSWORD_PATH, passwordPs);
+	}
+
+	protected <O extends ObjectType> void assertPasswordChangeAllow(Class<O> type, String oid, String newPassword) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ProtectedStringType passwordPs = new ProtectedStringType();
+        passwordPs.setClearValue(newPassword);
+        assertModifyAllow(type, oid, PASSWORD_PATH, passwordPs);
+	}
+
 	protected <O extends ObjectType> void assertModifyDeny(Class<O> type, String oid, QName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		assertModifyDenyOptions(type, oid, propertyName, null, newRealValue);
 	}
@@ -1329,5 +1364,5 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected <O extends ObjectType> ObjectQuery createMembersQuery(Class<O> resultType, String roleOid) {
 		return QueryBuilder.queryFor(resultType, prismContext).item(UserType.F_ROLE_MEMBERSHIP_REF).ref(roleOid).build();
 	}
-
+	
 }

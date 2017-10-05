@@ -125,17 +125,17 @@
     	</object>
     	<item>credentials</item>
     	<item>assignment</item>
-    	<item>parentOrgRef</item>
-    	<item>roleMembershipRef</item>
     </authorization>
     
     <authorization>
-    	<name>self-shadow-execution-modify</name>
+    	<name>self-shadow-execution-add-modify-delete</name>
     	<description>
-    		Authorization that allows to self-modification of some properties on user's accounts, but only in execution phase. 
-    		The limitation real limitation of these operations is done in the request phase.
+    		Authorization that allows to self-modification of user's accounts, but only in execution phase.
+    		The real limitation of these operations is done in the request phase.
     	</description>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
     	<phase>execution</phase>
     	<object>
     		<type>ShadowType</type>
@@ -143,7 +143,6 @@
     			<special>self</special>
     		</owner>
     	</object>
-    	<item>credentials</item>
     </authorization>
     
     <authorization>

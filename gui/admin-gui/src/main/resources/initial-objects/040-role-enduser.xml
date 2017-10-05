@@ -131,9 +131,6 @@
     	</object>
     	<item>credentials</item>
     	<item>assignment</item>
-    	<item>parentOrgRef</item>
-    	<item>roleMembershipRef</item>
-    	<item>metadata</item>
     </authorization>
     <authorization>
     	<name>self-shadow-execution-add-modify-delete</name>
