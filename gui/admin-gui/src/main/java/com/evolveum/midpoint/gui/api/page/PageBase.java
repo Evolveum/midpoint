@@ -1168,13 +1168,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			items.add(createHomeItems());
 		}
 
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CASE_URL,
-                AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
-                AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-            items.add(createCaseItems());
-        }
-
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL,
 				AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
 				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
@@ -1287,6 +1280,15 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				PageProcessInstancesAll.class);
 		submenu.add(menu);
 
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CASE_URL,
+				AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
+				AuthorizationConstants.AUTZ_GUI_ALL_URL,
+				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+			menu = new MenuItem(createStringResource("PageAdmin.menu.top.cases.list"), PageCases.class);
+			submenu.add(menu);
+			createFocusPageViewMenu(submenu, "PageAdmin.menu.top.cases.view", PageCase.class);
+		}
+
 		return item;
 	}
 
@@ -1393,15 +1395,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 		return item;
 	}
-
-    private MainMenuItem createCaseItems(){
-		MainMenuItem item = new MainMenuItem("fa fa-list", createStringResource("PageAdmin.menu.top.cases"),null);
-        List<MenuItem> submenu = item.getItems();
-		MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.cases.list"), PageCases.class);
-		submenu.add(list);
-		createFocusPageViewMenu(submenu, "PageAdmin.menu.top.cases.view", PageCase.class);
-        return item;
-    }
 
 	private MainMenuItem createConfigurationItems() {
 		MainMenuItem item = new MainMenuItem("fa fa-cog", createStringResource("PageAdmin.menu.top.configuration"),
