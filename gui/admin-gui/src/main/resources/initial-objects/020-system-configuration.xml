@@ -61,6 +61,12 @@
             <package>org.apache.wicket.resource.PropertiesFactory</package>
         </classLogger>
         <classLogger>
+            <!-- disabled because we don't need to see every log message for every key
+            when resource bundle doesn't exist for specific locale (unnecessary log pollution) -->
+            <level>ERROR</level>
+            <package>org.springframework.context.support.ResourceBundleMessageSource</package>
+        </classLogger>
+        <classLogger>
             <!-- Standard useful logger -->
             <level>INFO</level>
             <package>com.evolveum.midpoint.model.impl.lens.projector.Projector</package>
