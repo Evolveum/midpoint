@@ -16,17 +16,18 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -50,7 +51,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -90,6 +90,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	private final static String ID_CANCEL_BUTTON = "cancelButton";
 
 	protected boolean assignmentDetailsVisible;
+	private List<ContainerValueWrapper<AssignmentType>> detailsPanelAssignmentsList = new ArrayList<>();
 
 	public AssignmentPanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
 		super(id, assignmentContainerWrapperModel);
@@ -352,18 +353,15 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 		add(details);
 
-		IModel<List<ContainerValueWrapper<AssignmentType>>> selectedAssignmnetList = new AbstractReadOnlyModel<List<ContainerValueWrapper<AssignmentType>>>() {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public List<ContainerValueWrapper<AssignmentType>> getObject() {
-				return getModelObject().getValues().stream().filter(v -> v.isSelected()).collect(Collectors.toList());
-			}
-		};
-
 		ListView<ContainerValueWrapper<AssignmentType>> assignmentDetailsView = new ListView<ContainerValueWrapper<AssignmentType>>(ID_ASSIGNMENTS_DETAILS,
-				selectedAssignmnetList) {
+				new AbstractReadOnlyModel<List<ContainerValueWrapper<AssignmentType>>>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public List<ContainerValueWrapper<AssignmentType>> getObject() {
+						return detailsPanelAssignmentsList;
+					}
+				}) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -388,7 +386,6 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				assignmentDetailsVisible = false;
-				getSelectedAssignments().stream().forEach(a -> a.setSelected(false));
 				refreshTable(target);
 				target.add(AssignmentPanel.this);
 			}
@@ -402,7 +399,6 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			@Override
 			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 				assignmentDetailsVisible = false;
-//				getSelectedAssignments().stream().forEach(a -> {a.revertChanges(); a.setSelected(false);});
 				ajaxRequestTarget.add(AssignmentPanel.this);
 			}
 		};
@@ -471,15 +467,15 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	protected void assignmentDetailsPerformed(AjaxRequestTarget target, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
 		assignmentDetailsVisible = true;
-//		getModelObject().forEach(a -> a.setSelected(false));
-		rowModel.getObject().setSelected(true);
+		detailsPanelAssignmentsList.clear();
+		detailsPanelAssignmentsList.add(rowModel.getObject());
 		target.add(AssignmentPanel.this);
 	}
 
 	protected void assignmentDetailsPerformed(AjaxRequestTarget target, List<ContainerValueWrapper<AssignmentType>> rowModel) {
 		assignmentDetailsVisible = true;
-//		getModelObject().forEach(a -> a.setSelected(false));
-		rowModel.stream().forEach(a -> a.setSelected(true));
+		detailsPanelAssignmentsList.clear();
+		detailsPanelAssignmentsList.addAll(rowModel);
 		target.add(AssignmentPanel.this);
 	}
 
