@@ -15,7 +15,9 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -67,6 +69,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	private boolean connected = false;
 	
 	private static int randomDelayRange = 0;
+
+	private static final String DEFAULT_OPERATOR_OID = "00000000-0000-0000-0000-000000000002";  // administrator
 	
 	protected static final Random RND = new Random();
 	
@@ -151,7 +155,24 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 			}
 			LOGGER.info("Manual connector wait is over");
 		}
-		
+
+		PrismObject<ResourceType> resource;
+		try {
+			resource = repositoryService.getObject(ResourceType.class, resourceOid, null, result);
+		} catch (ObjectNotFoundException e) {
+			// We do not signal this as ObjectNotFoundException as it could be misinterpreted as "shadow
+			// object not found" with subsequent handling as such.
+			throw new SystemException("Resource " + resourceOid + " couldn't be found", e);
+		}
+		ResourceBusinessConfigurationType businessConfiguration = resource.asObjectable().getBusiness();
+		List<ObjectReferenceType> operators = new ArrayList<>();
+		if (businessConfiguration != null) {
+			operators.addAll(businessConfiguration.getOperatorRef());
+		}
+		if (operators.isEmpty()) {
+			operators.add(new ObjectReferenceType().oid(DEFAULT_OPERATOR_OID).type(UserType.COMPLEX_TYPE));
+		}
+
 		String caseOid = OidUtil.generateOid();
 		
 		caseType.setOid(caseOid);
@@ -164,6 +185,15 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		caseType.setState(SchemaConstants.CASE_STATE_OPEN);
 
 		caseType.setObjectRef(new ObjectReferenceType().oid(resourceOid).type(ResourceType.COMPLEX_TYPE));
+
+		for (ObjectReferenceType operator : operators) {
+			CaseWorkItemType workItem = new CaseWorkItemType(getPrismContext())
+					.originalAssigneeRef(operator.clone())
+					.assigneeRef(operator.clone())
+					.name(caseType.getName().getOrig());
+			caseType.getWorkItem().add(workItem);
+			// TODO deadline and maybe other fields
+		}
 
 		// TODO: case payload
 		// TODO: a lot of other things
