@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import org.apache.commons.io.FileUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -157,5 +158,10 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		// CSV password is readable
 		PrismProperty<PolyStringType> passValProp = shadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
 		assertNotNull("No password value property in "+shadow+": "+passValProp, passValProp);
+	}
+
+	@Override
+	protected String[] getExpectedOperators() {
+		return new String[] { SystemObjectsType.USER_ADMINISTRATOR.value() };
 	}
 }

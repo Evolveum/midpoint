@@ -126,4 +126,9 @@ public class TestManual extends AbstractManualResourceTest {
 	protected void assertResourceSchemaBeforeTest(Element resourceXsdSchemaElementBefore) {
 		AssertJUnit.assertNotNull("No schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 	}
+
+	@Override
+	protected String[] getExpectedOperators() {
+		return new String[] { "operator1-oid", "operator2-oid" };
+	}
 }
