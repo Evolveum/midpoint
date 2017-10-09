@@ -1830,7 +1830,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected void assertNoPendingOperation(PrismObject<ShadowType> shadow) {
 		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
-		assertEquals("Wroung number of pending operations in "+shadow, 0, pendingOperations.size());
+		assertEquals("Wrong number of pending operations in "+shadow, 0, pendingOperations.size());
 	}
 
 	protected void assertCase(String oid, String expectedState) throws ObjectNotFoundException, SchemaException {
@@ -2136,10 +2136,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			if (threads[i].isAlive()) {
 				System.out.println("Waiting for " + threads[i]);
 				threads[i].join(timeout);
-				Throwable threadException = threads[i].getException();
-				if (threadException != null) {
-					throw new AssertionError("Test thread "+i+" failed: "+threadException.getMessage(), threadException);
-				}
+			}
+			Throwable threadException = threads[i].getException();
+			if (threadException != null) {
+				throw new AssertionError("Test thread "+i+" failed: "+threadException.getMessage(), threadException);
 			}
 		}
 	}

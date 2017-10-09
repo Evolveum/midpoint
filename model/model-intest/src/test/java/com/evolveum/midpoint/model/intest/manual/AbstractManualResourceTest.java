@@ -3338,7 +3338,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
 	protected void assertPendingOperationDeltas(PrismObject<ShadowType> shadow, int expectedNumber) {
 		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
-		assertEquals("Wroung number of pending operations in "+shadow, expectedNumber, pendingOperations.size());
+		assertEquals("Wrong number of pending operations in "+shadow, expectedNumber, pendingOperations.size());
 	}
 
 	protected PendingOperationType assertSinglePendingOperation(PrismObject<ShadowType> shadow,
