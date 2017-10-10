@@ -24,8 +24,7 @@
 	<!-- CAS CONFIG -->
 	<bean id="serviceProperties"
         class="org.springframework.security.cas.ServiceProperties">
-    <property name="service"
-        value="${auth.cas.midpoint.host}/j_spring_cas_security_check"/>
+    <property name="service" value="${auth.cas.midpoint.host}/login/cas"/>
     <property name="sendRenew" value="${auth.cas.send.renew}"/>
   </bean>
   
