@@ -275,6 +275,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 
     public abstract <X> X getRealValue();
 
+    @NotNull
     public abstract <X> Collection<X> getRealValues();
 
     public boolean hasValue(PrismValue value, boolean ignoreMetadata) {

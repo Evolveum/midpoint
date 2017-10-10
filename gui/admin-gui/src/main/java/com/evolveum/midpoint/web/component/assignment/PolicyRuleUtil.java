@@ -249,6 +249,7 @@ public class PolicyRuleUtil {
         if (policyActions == null) {
             return "";
         }
+        // todo include flag for conditional execution
         StringBuilder sb = new StringBuilder();
         if (policyActions.getEnforcement() != null){
             sb.append(PolicyActionsType.F_ENFORCEMENT.getLocalPart());

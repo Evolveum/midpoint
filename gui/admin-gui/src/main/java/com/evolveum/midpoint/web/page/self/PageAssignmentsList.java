@@ -458,8 +458,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                                 AssignmentConflictDto<F> dto2 = new AssignmentConflictDto<>(addedAssignmentTargetObj,
                                         evaluatedAssignment.getAssignmentType(true) != null);
                                 // everything other than 'enforce' is a warning
-                                boolean isWarning = policyRule.getActions() == null
-                                        || policyRule.getActions().getEnforcement() == null;
+                                boolean isWarning = policyRule.containsEnabledAction()
+                                        && !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
                                 ConflictDto conflict = new ConflictDto(dto1, dto2, isWarning);
                                 String oid1 = exclusionTargetObj.getOid();
                                 String oid2 = addedAssignmentTargetObj.getOid();

@@ -23,8 +23,13 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,11 +39,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public class AssignmentPathImpl implements AssignmentPath {
 
-	private final List<AssignmentPathSegmentImpl> segments = new ArrayList<>();
+	@NotNull private final List<AssignmentPathSegmentImpl> segments = new ArrayList<>();
+	@NotNull private final PrismContext prismContext;
 
-	public AssignmentPathImpl() {
+	public AssignmentPathImpl(PrismContext prismContext) {
+		this.prismContext = prismContext;
 	}
 
+	@NotNull
 	@Override
 	public List<AssignmentPathSegmentImpl> getSegments() {
 		return segments;
@@ -126,7 +134,7 @@ public class AssignmentPathImpl implements AssignmentPath {
 	 * Shallow clone.
 	 */
 	public AssignmentPathImpl clone() {
-		AssignmentPathImpl clone = new AssignmentPathImpl();
+		AssignmentPathImpl clone = new AssignmentPathImpl(prismContext);
 		clone.segments.addAll(this.segments);
 		return clone;
 	}
@@ -207,6 +215,28 @@ public class AssignmentPathImpl implements AssignmentPath {
 	public AssignmentPathType toAssignmentPathType(boolean includeAssignmentsContent) {
 		AssignmentPathType rv = new AssignmentPathType();
 		segments.forEach(seg -> rv.getSegment().add(seg.toAssignmentPathSegmentType(includeAssignmentsContent)));
+		return rv;
+	}
+
+	@NotNull
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
+
+	@Override
+	public ExtensionType collectExtensions(int startAt) throws SchemaException {
+		ExtensionType rv = new ExtensionType(prismContext);
+		PrismContainerValue<?> pcv = rv.asPrismContainerValue();
+		for (int i = startAt; i < segments.size(); i++) {
+			AssignmentPathSegmentImpl segment = segments.get(i);
+			AssignmentType assignment = segment.getAssignmentAny();
+			if (assignment != null && assignment.getExtension() != null) {
+				LensUtil.mergeExtension(pcv, assignment.getExtension().asPrismContainerValue());
+			}
+			if (segment.getTarget() != null && segment.getTarget().getExtension() != null) {
+				LensUtil.mergeExtension(pcv, segment.getTarget().getExtension().asPrismContainerValue());
+			}
+		}
 		return rv;
 	}
 }

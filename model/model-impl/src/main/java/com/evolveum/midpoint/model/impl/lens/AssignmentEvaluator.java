@@ -210,7 +210,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 		EvaluationContext ctx = new EvaluationContext(
 				new EvaluatedAssignmentImpl<>(assignmentIdi, evaluateOld),
-				new AssignmentPathImpl(),
+				new AssignmentPathImpl(prismContext),
 				primaryAssignmentMode, evaluateOld, task, result);
 
 		AssignmentPathSegmentImpl segment = new AssignmentPathSegmentImpl(source, sourceDescription, assignmentIdi, true, evaluateOld);

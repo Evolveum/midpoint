@@ -40,17 +40,15 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -59,7 +57,6 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -67,6 +64,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import static java.util.Collections.emptyList;
 
 /**
  * Library of standard midPoint functions. These functions are made available to all
@@ -404,23 +403,45 @@ public class BasicExpressionFunctions {
 		return toSingle(values, "a multi-valued extension property "+propertyQname);
 	}
 
-	public <T> T getPropertyValue(ObjectType object, String path) throws SchemaException {
-		Collection<T> values = getPropertyValues(object, path);
+	public <T> T getPropertyValue(Containerable c, String path) throws SchemaException {
+		return getPropertyValue(c, new ItemPathType(path));
+	}
+
+	public <T> Collection<T> getPropertyValues(Containerable c, String path) {
+		return getPropertyValues(c, new ItemPathType(path));
+	}
+
+	public <T> T getPropertyValue(Containerable c, ItemPathType path) throws SchemaException {
+		return c != null ? getPropertyValue(c.asPrismContainerValue(), path) : null;
+	}
+
+	public <T> Collection<T> getPropertyValues(Containerable c, ItemPathType path) {
+		return c != null ? getPropertyValues(c.asPrismContainerValue(), path) : emptyList();
+	}
+
+	public <T> T getPropertyValue(PrismContainerValue<?> pcv, String path) throws SchemaException {
+		return getPropertyValue(pcv, new ItemPathType(path));
+	}
+
+	public <T> T getPropertyValue(PrismContainerValue<?> pcv, ItemPathType path) throws SchemaException {
+		Collection<T> values = getPropertyValues(pcv, path);
 		return toSingle(values, "a multi-valued property "+path);
 	}
 
-	public <T> Collection<T> getPropertyValues(ObjectType object, String path) {
-		if (object == null) {
-			return null;
+	public <T> Collection<T> getPropertyValues(PrismContainerValue<?> pcv, String path) {
+		return getPropertyValues(pcv, new ItemPathType(path));
+	}
+
+	public <T> Collection<T> getPropertyValues(PrismContainerValue<?> pcv, ItemPathType path) {
+		if (pcv == null) {
+			return emptyList();
 		}
-		ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
-		ScriptExpression scriptExpression = scriptContext.getScriptExpression();
-		ItemPath itemPath = scriptExpression.parsePath(path);
-		PrismProperty property = object.asPrismObject().findProperty(itemPath);
-		if (property == null) {
-			return new ArrayList<T>(0);
+		Item<?,?> item = pcv.findItem(path.getItemPath());
+		if (item == null) {
+			return new ArrayList<>(0);      // TODO or emptyList?
 		}
-		return property.getRealValues();
+		//noinspection unchecked
+		return (Collection<T>) item.getRealValues();
 	}
 
 

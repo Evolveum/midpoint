@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedTimeValidityTrigger;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
@@ -32,6 +31,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -73,7 +73,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_A
  *
  */
 @Component
-public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<UserType, AbstractScannerResultHandler<UserType>> {
+public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<FocusType, AbstractScannerResultHandler<FocusType>> {
 
 	// WARNING! This task handler is efficiently singleton!
 	// It is a spring bean and it is supposed to handle all search task instances
@@ -82,6 +82,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 
 	public static final String HANDLER_URI = ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI;
 
+	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private ContextFactory contextFactory;
     @Autowired private Clockwork clockwork;
     // task OID -> object OIDs; cleared on task start
@@ -111,7 +112,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	private static final transient Trace LOGGER = TraceManager.getTrace(FocusValidityScannerTaskHandler.class);
 
 	public FocusValidityScannerTaskHandler() {
-        super(UserType.class, "Focus validity scan", OperationConstants.FOCUS_VALIDITY_SCAN);
+        super(FocusType.class, "Focus validity scan", OperationConstants.FOCUS_VALIDITY_SCAN);
     }
 
 	@PostConstruct
@@ -121,16 +122,11 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 
 	@Override
 	protected Class<? extends ObjectType> getType(Task task) {
-		Class<? extends ObjectType> type = getTypeFromTask(task, UserType.class);
-		if (type == null) {
-			return UserType.class;
-		}
-		return type;
-
+		return getTypeFromTask(task, UserType.class);
 	}
 
 	@Override
-	protected ObjectQuery createQuery(AbstractScannerResultHandler<UserType> handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) throws SchemaException {
+	protected ObjectQuery createQuery(AbstractScannerResultHandler<FocusType> handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) throws SchemaException {
 		initProcessedOids(coordinatorTask);
 
 		TimeValidityPolicyConstraintType validtyContraintType = getValidityPolicyConstraint(coordinatorTask);
@@ -139,7 +135,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 
 		ObjectQuery query = new ObjectQuery();
 		ObjectFilter filter;
-//		PrismObjectDefinition<UserType> focusObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+//		PrismObjectDefinition<FocusType> focusObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(FocusType.class);
 
 		XMLGregorianCalendar lastScanTimestamp = handler.getLastScanTimestamp();
 		XMLGregorianCalendar thisScanTimestamp = handler.getThisScanTimestamp();
@@ -219,7 +215,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	}
 
 	@Override
-	protected void finish(AbstractScannerResultHandler<UserType> handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult)
+	protected void finish(AbstractScannerResultHandler<FocusType> handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult)
 			throws SchemaException {
 		TimeValidityPolicyConstraintType validtyContraintType = getValidityPolicyConstraint(coordinatorTask);
 
@@ -233,17 +229,17 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	}
 
 	@Override
-	protected AbstractScannerResultHandler<UserType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
+	protected AbstractScannerResultHandler<FocusType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
 			OperationResult opResult) {
 
-		AbstractScannerResultHandler<UserType> handler = new AbstractScannerResultHandler<UserType>(
+		AbstractScannerResultHandler<FocusType> handler = new AbstractScannerResultHandler<FocusType>(
 				coordinatorTask, FocusValidityScannerTaskHandler.class.getName(), "recompute", "recompute task", taskManager) {
 			@Override
-			protected boolean handleObject(PrismObject<UserType> object, Task workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
+			protected boolean handleObject(PrismObject<FocusType> object, Task workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
 				if (oidAlreadySeen(coordinatorTask, object.getOid())) {
 					LOGGER.trace("Recomputation already executed for {}", ObjectTypeUtil.toShortString(object));
 				} else {
-					reconcileUser(object, workerTask, result);
+					reconcileFocus(object, workerTask, result);
 				}
 				return true;
 			}
@@ -252,15 +248,16 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		return handler;
 	}
 
-	private void reconcileUser(PrismObject<UserType> user, Task workerTask, OperationResult result) throws SchemaException,
+	private void reconcileFocus(PrismObject<FocusType> focus, Task workerTask, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
 			ConfigurationException, PolicyViolationException, SecurityViolationException, PreconditionViolationException {
-		LOGGER.trace("Recomputing user {}", user);
+		LOGGER.trace("Recomputing focus {}", focus);
 		// We want reconcile option here. There may be accounts that are in wrong activation state.
 		// We will not notice that unless we go with reconcile.
-		LensContext<UserType> lensContext = contextFactory.createRecomputeContext(user, ModelExecuteOptions.createReconcile(), workerTask, result);
+		LensContext<FocusType> lensContext = contextFactory.createRecomputeContext(focus, ModelExecuteOptions.createReconcile(), workerTask, result);
 		if (hasNotifyAction(workerTask)) {
-			EvaluatedPolicyRule policyRule = new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), null, prismContext);
+			EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), null, prismContext);
+			policyRule.computeEnabledActions(null, focus, expressionFactory, workerTask, result);
 			TimeValidityPolicyConstraintType constraint = getValidityPolicyConstraint(workerTask);
 			EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedTimeValidityTrigger(
 					Boolean.TRUE.equals(constraint.isAssignment()) ? PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY : PolicyConstraintKindType.OBJECT_TIME_VALIDITY,
@@ -268,9 +265,9 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 			policyRule.getTriggers().add(evaluatedTrigger);
 			lensContext.getFocusContext().addPolicyRule(policyRule);
 		}
-		LOGGER.trace("Recomputing of user {}: context:\n{}", user, lensContext.debugDumpLazily());
+		LOGGER.trace("Recomputing of focus {}: context:\n{}", focus, lensContext.debugDumpLazily());
 		clockwork.run(lensContext, workerTask, result);
-		LOGGER.trace("Recomputing of user {}: {}", user, result.getStatus());
+		LOGGER.trace("Recomputing of focus {}: {}", focus, result.getStatus());
 	}
 
 	private TimeValidityPolicyConstraintType getValidityPolicyConstraint(Task coordinatorTask) {
