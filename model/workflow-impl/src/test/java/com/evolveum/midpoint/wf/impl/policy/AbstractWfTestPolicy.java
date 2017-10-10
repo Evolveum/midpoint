@@ -239,6 +239,11 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		userTemplateAssigningRole1aOidAfter = repoAddObjectFromFile(USER_TEMPLATE_ASSIGNING_ROLE_1A_AFTER, initResult).getOid();
 	}
 
+	@Override
+	protected PrismObject<UserType> getDefaultActor() {
+		return userAdministrator;
+	}
+
 	protected void updateSystemConfiguration(SystemConfigurationType systemConfiguration) {
 		// nothing to do by default
 	}
@@ -863,21 +868,22 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		protected List<ExpectedWorkItem> getExpectedWorkItems() { return null; }
 
 		protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception { }
+		// mutually exclusive with getApprovalSequence
 		protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception { return true; }
 
-		protected void sortSubtasks(List<Task> subtasks) {
-			Collections.sort(subtasks, Comparator.comparing(this::getCompareKey));
+		private void sortSubtasks(List<Task> subtasks) {
+			subtasks.sort(Comparator.comparing(this::getCompareKey));
 		}
 
-		protected void sortWorkItems(List<WorkItemType> workItems) {
-			Collections.sort(workItems, Comparator.comparing(this::getCompareKey));
+		private void sortWorkItems(List<WorkItemType> workItems) {
+			workItems.sort(Comparator.comparing(this::getCompareKey));
 		}
 
-		protected String getCompareKey(Task task) {
+		private String getCompareKey(Task task) {
 			return task.getTaskPrismObject().asObjectable().getWorkflowContext().getTargetRef().getOid();
 		}
 
-		protected String getCompareKey(WorkItemType workItem) {
+		private String getCompareKey(WorkItemType workItem) {
 			return workItem.getOriginalAssigneeRef().getOid();
 		}
 

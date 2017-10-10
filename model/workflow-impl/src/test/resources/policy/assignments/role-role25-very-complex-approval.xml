@@ -232,4 +232,26 @@
 			</policyActions>
 		</policyRule>
 	</assignment>
+	<assignment id="11">
+		<policyRule>	<!-- this should not be present (assignment being added does not contain 'validTo') -->
+			<policyConstraints>
+				<assignment>
+					<item>activation/validTo</item>
+				</assignment>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>110</order>
+					</compositionStrategy>
+					<approvalSchema>
+						<stage>
+							<approverRelation>not-matching</approverRelation>
+							<outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+						</stage>
+					</approvalSchema>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</assignment>
 </role>
