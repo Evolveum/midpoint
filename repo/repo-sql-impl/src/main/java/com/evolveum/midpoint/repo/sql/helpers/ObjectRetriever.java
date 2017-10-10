@@ -332,7 +332,7 @@ public class ObjectRetriever {
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
 		boolean cases = AccessCertificationCaseType.class.equals(type);
 		boolean workItems = AccessCertificationWorkItemType.class.equals(type);
-		boolean caseWorkItems = AccessCertificationWorkItemType.class.equals(type);
+		boolean caseWorkItems = CaseWorkItemType.class.equals(type);
 		if (!cases && !workItems && !caseWorkItems) {
 			throw new UnsupportedOperationException("Only AccessCertificationCaseType or AccessCertificationWorkItemType or CaseWorkItemType is supported here now.");
 		}
