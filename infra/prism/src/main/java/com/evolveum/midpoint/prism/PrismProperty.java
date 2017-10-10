@@ -130,6 +130,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         return (List) getValues();
     }
 
+    @NotNull
     @Override
     public Collection<T> getRealValues() {
 		Collection<T> realValues = new ArrayList<T>(getValues().size());

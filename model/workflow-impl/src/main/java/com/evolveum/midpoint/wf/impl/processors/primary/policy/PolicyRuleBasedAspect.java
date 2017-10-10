@@ -80,7 +80,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 	List<EvaluatedPolicyRule> selectTriggeredApprovalActionRules(Collection<EvaluatedPolicyRule> rules) {
 		return rules.stream()
-					.filter(r -> r.isTriggered() && r.getActions() != null && !r.getActions().getApproval().isEmpty())
+					.filter(r -> r.isTriggered() && r.containsEnabledAction(ApprovalPolicyActionType.class))
 					.collect(Collectors.toList());
 	}
 

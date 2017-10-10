@@ -307,6 +307,13 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		return getAssignment(evaluatedForOld);
 	}
 
+	public AssignmentType getAssignmentAny() {
+		if (assignmentIdi == null) {
+			return null;
+		}
+		return assignmentIdi.getItemNew() != null ? getAssignment(false) : getAssignment(true);
+	}
+
 	@Override
 	public AssignmentType getAssignmentNew() {
 		if (assignmentIdi == null || assignmentIdi.getItemNew() == null || assignmentIdi.getItemNew().isEmpty()) {

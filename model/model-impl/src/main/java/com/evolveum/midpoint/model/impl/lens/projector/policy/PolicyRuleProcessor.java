@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -81,6 +82,7 @@ public class PolicyRuleProcessor {
 	@Autowired private StateConstraintEvaluator stateConstraintEvaluator;
 	@Autowired private CompositeConstraintEvaluator compositeConstraintEvaluator;
 	@Autowired private TransitionConstraintEvaluator transitionConstraintEvaluator;
+	@Autowired private ExpressionFactory expressionFactory;
 
 	private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 
@@ -322,8 +324,11 @@ public class PolicyRuleProcessor {
 			}
 			ctx.triggerRule(triggers);
 		}
-		if (ctx.policyRule.isTriggered() && ctx.policyRule.getActions() != null && ctx.policyRule.getActions().getRecord() != null) {
-			ctx.record();
+		if (ctx.policyRule.isTriggered()) {
+			((EvaluatedPolicyRuleImpl) ctx.policyRule).computeEnabledActions(ctx, ctx.getObject(), expressionFactory, ctx.task, result);
+			if (ctx.policyRule.containsEnabledAction(RecordPolicyActionType.class)) {
+				ctx.record();
+			}
 		}
 		traceRuleEvaluationResult(ctx.policyRule, ctx);
 	}
@@ -441,8 +446,7 @@ public class PolicyRuleProcessor {
 						continue;
 					}
 					EvaluatedExclusionTrigger exclTrigger = (EvaluatedExclusionTrigger) trigger;
-					PolicyActionsType actions = targetPolicyRule.getActions();
-					if (actions == null || actions.getPrune() == null) {
+					if (!targetPolicyRule.containsEnabledAction(PrunePolicyActionType.class)) {
 						continue;
 					}
 					EvaluatedAssignment<FocusType> conflictingAssignment = exclTrigger.getConflictingAssignment();

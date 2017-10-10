@@ -202,7 +202,7 @@ public class AssignmentPolicyAspectPart {
 			LOGGER.debug("Assignment to be {}: {}: {} this target policy rules, {} triggered approval actions:",
 					verb, newAssignment, newAssignment.getThisTargetPolicyRules().size(), triggeredApprovalActionRules.size());
 			for (EvaluatedPolicyRule t : triggeredApprovalActionRules) {
-				LOGGER.debug(" - Approval actions: {}", t.getActions().getApproval());
+				LOGGER.debug(" - Approval actions: {}", t.getEnabledActions(ApprovalPolicyActionType.class));
 				for (EvaluatedPolicyRuleTrigger trigger : t.getTriggers()) {
 					LOGGER.debug("   - {}", trigger);
 				}
@@ -250,7 +250,7 @@ public class AssignmentPolicyAspectPart {
 
 		// (3) actions from triggered rules
 		for (EvaluatedPolicyRule approvalRule : triggeredApprovalRules) {
-			for (ApprovalPolicyActionType approvalAction : approvalRule.getActions().getApproval()) {
+			for (ApprovalPolicyActionType approvalAction : approvalRule.getEnabledActions(ApprovalPolicyActionType.class)) {
 				builder.add(main.getSchemaFromAction(approvalAction), approvalAction.getCompositionStrategy(), targetObject, approvalRule);
 			}
 		}

@@ -18,7 +18,9 @@ package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
@@ -69,4 +71,6 @@ public interface AssignmentPath extends DebugDumpable, ShortDumpable {
 	List<ObjectType> getFirstOrderChain();
 
 	AssignmentPathType toAssignmentPathType(boolean includeAssignmentsContent);
+
+	ExtensionType collectExtensions(int startAt) throws SchemaException;
 }

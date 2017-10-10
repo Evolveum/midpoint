@@ -38,8 +38,10 @@ import java.util.*;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType.*;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 /**
  * @author mederly
@@ -140,25 +142,40 @@ public class PolicyRuleTypeUtil {
 		}
 	}
 
-	public static String toShortString(PolicyActionsType actions) {
+	public static String toShortString(PolicyActionsType actions, List<PolicyActionType> enabledActions) {
 		if (actions == null) {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder();
 		if (actions.getEnforcement() != null) {
-			sb.append("enforce ");
+			sb.append("enforce");
+			if (filterActions(enabledActions, EnforcementPolicyActionType.class).isEmpty()) {
+				sb.append("X");
+			}
 		}
 		if (!actions.getApproval().isEmpty()) {
-			sb.append("approve ");
+			sb.append(" approve");
+			if (filterActions(enabledActions, ApprovalPolicyActionType.class).isEmpty()) {
+				sb.append("X");
+			}
 		}
 		if (actions.getRemediation() != null) {
-			sb.append("remedy ");
+			sb.append(" remedy");
+			if (filterActions(enabledActions, RemediationPolicyActionType.class).isEmpty()) {
+				sb.append("X");
+			}
 		}
 		if (actions.getCertification() != null) {
-			sb.append("certify ");
+			sb.append(" certify");
+			if (filterActions(enabledActions, CertificationPolicyActionType.class).isEmpty()) {
+				sb.append("X");
+			}
 		}
 		if (!actions.getNotification().isEmpty()) {
-			sb.append("notify ");
+			sb.append(" notify");
+			if (filterActions(enabledActions, NotificationPolicyActionType.class).isEmpty()) {
+				sb.append("X");
+			}
 		}
 		return sb.toString().trim();
 	}
@@ -338,6 +355,29 @@ public class PolicyRuleTypeUtil {
 					&& MiscUtil.unorderedCollectionEquals(st1.getSourceRule(), st2.getSourceRule());
 		};
 		return MiscUtil.unorderedCollectionEquals(currentTriggersUnpacked, triggers, comparator);
+	}
+
+	public static List<PolicyActionType> getAllActions(PolicyActionsType actions) {
+		List<PolicyActionType> rv = new ArrayList<>();
+		if (actions == null) {
+			return rv;
+		}
+		addIgnoreNull(rv, actions.getEnforcement());
+		rv.addAll(actions.getApproval());
+		addIgnoreNull(rv, actions.getRecord());
+		rv.addAll(actions.getNotification());
+		addIgnoreNull(rv, actions.getCertification());
+		addIgnoreNull(rv, actions.getPrune());
+		addIgnoreNull(rv, actions.getRemediation());
+		return rv;
+	}
+
+	public static <T extends PolicyActionType> List<T> filterActions(List<PolicyActionType> actions, Class<T> clazz) {
+		//noinspection unchecked
+		return actions.stream()
+				.filter(a -> clazz.isAssignableFrom(a.getClass()))
+				.map(a -> (T) a)
+				.collect(Collectors.toList());
 	}
 
 	@FunctionalInterface
