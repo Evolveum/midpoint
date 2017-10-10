@@ -387,11 +387,14 @@ public class TestStrings extends AbstractStoryTest {
 		// GIVEN
 		login(userAdministrator);
 		List<WorkItemType> workItems = getWorkItems(task, result);
-		WorkItemType firstWorkItem = workItems.get(0);
+		displayWorkItems("Work item after 1st approval", workItems);
+		WorkItemType elaineWorkItem = workItems.stream()
+				.filter(wi -> userElaineOid.equals(wi.getOriginalAssigneeRef().getOid()))
+				.findFirst().orElseThrow(() -> new AssertionError("No work item for elaine"));
 
 		// WHEN
 		// Second approval
-		workflowService.completeWorkItem(firstWorkItem.getExternalId(), true, "OK. Security.", null, result);
+		workflowService.completeWorkItem(elaineWorkItem.getExternalId(), true, "OK. Security.", null, result);
 
 		// THEN
 		workItems = getWorkItems(task, result);
