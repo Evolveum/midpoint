@@ -120,7 +120,7 @@ public class PageAssignmentShoppingKart extends PageSelf {
             initShoppingCartConfigurationDto();
             getRoleCatalogStorage().setShoppingCartConfigurationDto(shoppingCartConfigurationDto);
         }
-        if (StringUtils.isEmpty(getRoleCatalogStorage().getSelectedOid())){
+        if (StringUtils.isEmpty(getRoleCatalogStorage().getSelectedOid()) && shoppingCartConfigurationDto != null) {
             getRoleCatalogStorage().setSelectedOid(shoppingCartConfigurationDto.getRoleCatalogOid());
         }
         initModels();
@@ -371,11 +371,6 @@ public class PageAssignmentShoppingKart extends PageSelf {
                     }
                 }, false, createStringResource("AssignmentCatalogPanel.selectSourceUser")){
             private static final long serialVersionUID = 1L;
-
-            @Override
-            protected ObjectFilter getUserQueryFilter(){
-                return getAssignableRolesFilter();
-            }
 
             @Override
             protected void singleUserSelectionPerformed(AjaxRequestTarget target, UserType user){
