@@ -52,6 +52,7 @@ import java.util.List;
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
 import static com.evolveum.midpoint.wf.impl.util.MiscDataUtil.getFocusObjectName;
 import static java.util.Collections.singletonList;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 /**
  * @author mederly
@@ -145,11 +146,11 @@ public class ObjectPolicyAspectPart {
 			if (sourceSpec == null || sourceSpec.getItem().isEmpty() && sourceSpec.getItemValue() == null) {
 				return addWholeDelta(focusDelta, rv);
 			} else if (!sourceSpec.getItem().isEmpty()) {
-				ObjectDelta.FactorOutResult<T> out = focusDelta.factorOut(ItemPathType.toItemPathList(sourceSpec.getItem()), false);
-				rv.addAll(out.offsprings);
+				ObjectDelta.FactorOutResultSingle<T> out = focusDelta.factorOut(ItemPathType.toItemPathList(sourceSpec.getItem()), false);
+				addIgnoreNull(rv, out.offspring);
 			} else {
 				assert sourceSpec.getItemValue() != null;
-				ObjectDelta.FactorOutResult<T> out = focusDelta.factorOutValues(sourceSpec.getItemValue().getItemPath(), false);
+				ObjectDelta.FactorOutResultMulti<T> out = focusDelta.factorOutValues(sourceSpec.getItemValue().getItemPath(), false);
 				rv.addAll(out.offsprings);
 			}
 		}

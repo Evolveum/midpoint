@@ -18,9 +18,10 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedModificationTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -30,27 +31,29 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentModificationPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
+
+import static java.util.Collections.singletonList;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
  * @author semancik
  * @author mederly
  */
 @Component
-public class AssignmentConstraintEvaluator implements PolicyConstraintEvaluator<AssignmentModificationPolicyConstraintType> {
+public class AssignmentModificationConstraintEvaluator extends ModificationConstraintEvaluator<AssignmentModificationPolicyConstraintType> {
 
 	private static final String CONSTRAINT_KEY_PREFIX = "assignmentModification.";
-
-	@Autowired private ConstraintEvaluatorHelper evaluatorHelper;
 
 	@Override
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<AssignmentModificationPolicyConstraintType> constraintElement,
@@ -61,36 +64,27 @@ public class AssignmentConstraintEvaluator implements PolicyConstraintEvaluator<
 			return null;
 		}
 		AssignmentPolicyRuleEvaluationContext<F> ctx = (AssignmentPolicyRuleEvaluationContext<F>) rctx;
-		if (ctx.isDirect && (ctx.inPlus || ctx.inMinus) && matchesOperation(constraint, ctx.inPlus, ctx.inMinus)) {
-			List<QName> relationsToCheck = constraint.getRelation().isEmpty() ?
-					Collections.singletonList(null) : constraint.getRelation();
-			for (QName constraintRelation : relationsToCheck) {
-				if (MiscSchemaUtil.compareRelation(constraintRelation, ctx.evaluatedAssignment.getRelation())) {
-					return new EvaluatedModificationTrigger(
-							PolicyConstraintKindType.ASSIGNMENT_MODIFICATION,
-							constraint, createMessage(constraintElement, ctx, result));
-				}
-			}
+		if (!ctx.isDirect ||
+				!operationMatches(constraint, ctx.inPlus, ctx.inZero, ctx.inMinus) ||
+				!relationMatches(constraint, ctx) ||
+				!pathsMatch(constraint, ctx)) {
+			return null;
 		}
-		return null;
+		// TODO check modifications
+		return new EvaluatedModificationTrigger(
+				PolicyConstraintKindType.ASSIGNMENT_MODIFICATION,
+				constraint, createMessage(constraintElement, ctx, result));
 	}
 
 	private <F extends FocusType> LocalizableMessage createMessage(JAXBElement<AssignmentModificationPolicyConstraintType> constraint,
 			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		ModelState state = ctx.lensContext.getState();
-		String stateKey;
-		if (state == ModelState.INITIAL || state == ModelState.PRIMARY) {
-			stateKey = "toBe";
-		} else {
-			stateKey = "was";
-			// TODO derive more precise information from executed deltas, if needed
-		}
+		String stateKey = createStateKey(ctx);
 		if (ctx.inPlus) {
 			stateKey += "Added";
 		} else if (ctx.inMinus) {
 			stateKey += "Deleted";
-		} else{
+		} else {
 			stateKey += "Modified";
 		}
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
@@ -101,11 +95,62 @@ public class AssignmentConstraintEvaluator implements PolicyConstraintEvaluator<
 		return evaluatorHelper.createLocalizableMessage(constraint.getValue(), ctx, builtInMessage, result);
 	}
 
-	private boolean matchesOperation(AssignmentModificationPolicyConstraintType constraint, boolean inPlus, boolean inMinus) {
+	private <F extends FocusType> boolean relationMatches(AssignmentModificationPolicyConstraintType constraint,
+			AssignmentPolicyRuleEvaluationContext<F> ctx) {
+		List<QName> relationsToCheck = constraint.getRelation().isEmpty() ?
+				singletonList(null) : constraint.getRelation();
+		for (QName constraintRelation : relationsToCheck) {
+			if (MiscSchemaUtil.compareRelation(constraintRelation, ctx.evaluatedAssignment.getRelation())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean operationMatches(AssignmentModificationPolicyConstraintType constraint, boolean inPlus, boolean inZero, boolean inMinus) {
 		List<ChangeTypeType> operations = constraint.getOperation();
 		return operations.isEmpty() ||
 				inPlus && operations.contains(ChangeTypeType.ADD) ||
+				inZero && operations.contains(ChangeTypeType.MODIFY) ||
 				inMinus && operations.contains(ChangeTypeType.DELETE);
 	}
 
+	// TODO discriminate between primary and secondary changes (perhaps make it configurable)
+	// Primary changes are "approvable", secondary ones are not.
+	private <F extends FocusType> boolean pathsMatch(AssignmentModificationPolicyConstraintType constraint,
+			AssignmentPolicyRuleEvaluationContext<F> ctx) throws SchemaException {
+
+		// hope this is correctly filled in
+		if (constraint.getItem().isEmpty()) {
+			if (ctx.inPlus || ctx.inMinus) {
+				return true;
+			} else {
+				Collection<? extends ItemDelta<?, ?>> subItemDeltas = ctx.evaluatedAssignment.getAssignmentIdi().getSubItemDeltas();
+				return subItemDeltas != null && !subItemDeltas.isEmpty();
+			}
+		}
+		for (ItemPathType path : constraint.getItem()) {
+			ItemPath itemPath = path.getItemPath();
+			if (ctx.inPlus && !pathMatches(ctx.evaluatedAssignment.getAssignmentType(false), itemPath) ||
+					ctx.inMinus && !pathMatches(ctx.evaluatedAssignment.getAssignmentType(true), itemPath) ||
+					ctx.inZero && !pathMatches(ctx.evaluatedAssignment.getAssignmentIdi().getSubItemDeltas(), itemPath)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean pathMatches(AssignmentType assignment, ItemPath path) throws SchemaException {
+		return assignment.asPrismContainerValue().containsItem(path, false);
+	}
+
+	private boolean pathMatches(Collection<? extends ItemDelta<?, ?>> deltas, ItemPath path) {
+		for (ItemDelta<?, ?> delta : emptyIfNull(deltas)) {
+			// TODO what about changes like extension/cities[2]/name (in delta) vs. extension/cities/name (in spec)
+			if (path.isSubPathOrEquivalent(delta.getPath().tail(2))) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

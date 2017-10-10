@@ -35,6 +35,19 @@
 	</assignment>
 	<assignment>
 		<policyRule>
+			<name>any-change-to-assignment-of-student-with-validTo</name>
+			<policyConstraints>
+				<assignment>
+					<item>activation/validTo</item>
+				</assignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<assignment>
+		<policyRule>
 			<!-- this rule could trigger on assignment of Student role as well as on modification of Student role itself -->
 			<!-- but because it contains only focus-specific constraints, it will be evaluated on Student role itself -->
 			<name>ambivalent-rule</name>

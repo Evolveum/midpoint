@@ -90,7 +90,7 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
         wfContext.getEvent().add(event);
     }
 
-    public <F extends ObjectType> void setDeltasToProcess(ObjectDelta<F> delta) {
+    public void setDeltasToProcess(ObjectDelta<? extends ObjectType> delta) {
         setDeltasToProcesses(new ObjectTreeDeltas<>(delta, getChangeProcessor().getPrismContext()));
     }
 

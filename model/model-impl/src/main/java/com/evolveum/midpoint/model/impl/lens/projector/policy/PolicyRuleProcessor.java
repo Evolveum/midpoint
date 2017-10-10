@@ -72,12 +72,12 @@ public class PolicyRuleProcessor {
 	@Autowired private MappingEvaluator mappingEvaluator;
 	@Autowired private PolicyStateRecorder policyStateRecorder;
 
-	@Autowired private AssignmentConstraintEvaluator assignmentConstraintEvaluator;
+	@Autowired private AssignmentModificationConstraintEvaluator assignmentConstraintEvaluator;
 	@Autowired private HasAssignmentConstraintEvaluator hasAssignmentConstraintEvaluator;
 	@Autowired private ExclusionConstraintEvaluator exclusionConstraintEvaluator;
 	@Autowired private MultiplicityConstraintEvaluator multiplicityConstraintEvaluator;
 	@Autowired private PolicySituationConstraintEvaluator policySituationConstraintEvaluator;
-	@Autowired private ModificationConstraintEvaluator modificationConstraintEvaluator;
+	@Autowired private ObjectModificationConstraintEvaluator modificationConstraintEvaluator;
 	@Autowired private StateConstraintEvaluator stateConstraintEvaluator;
 	@Autowired private CompositeConstraintEvaluator compositeConstraintEvaluator;
 	@Autowired private TransitionConstraintEvaluator transitionConstraintEvaluator;
