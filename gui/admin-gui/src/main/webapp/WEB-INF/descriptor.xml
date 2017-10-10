@@ -29,6 +29,7 @@
     <packagesToScan>com.evolveum.midpoint.web.page.admin.reports</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.admin.configuration</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.admin.certification</packagesToScan>
+    <packagesToScan>com.evolveum.midpoint.web.page.admin.cases</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.login</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.error</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.forgetpassword</packagesToScan>

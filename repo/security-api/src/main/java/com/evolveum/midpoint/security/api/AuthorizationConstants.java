@@ -269,6 +269,9 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_CASE_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "caseDetails");
     public static final String AUTZ_UI_CASE_DETAILS_URL = NS_AUTHORIZATION_UI + "#caseDetails";
 
+	public static final String AUTZ_UI_MY_CASE_WORK_ITEMS_URL = NS_AUTHORIZATION_UI + "#myCaseWorkItems";
+	public static final String AUTZ_UI_ALL_CASE_WORK_ITEMS_URL = NS_AUTHORIZATION_UI + "#allCaseWorkItems";
+
 
 
     //Certification
