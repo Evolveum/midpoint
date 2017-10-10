@@ -694,13 +694,13 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return null;
 	}
 
-	public ContainerWrapper<C> findContainerWrapper(ItemPath path) {
+	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(ItemPath path) {
 		Validate.notNull(path, "QName must not be null.");
 		for (ItemWrapper wrapper : getItems()) {
 			if (!(wrapper instanceof ContainerWrapper)) {
 				continue;
 			}
-			ContainerWrapper<C> containerWrapper = (ContainerWrapper<C>) wrapper;
+			ContainerWrapper<T> containerWrapper = (ContainerWrapper<T>) wrapper;
 			if (containerWrapper.getPath().equivalent(path)) {
 				return containerWrapper;
 			}

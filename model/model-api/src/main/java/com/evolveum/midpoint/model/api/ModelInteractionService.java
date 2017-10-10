@@ -283,4 +283,12 @@ public interface ModelInteractionService {
 	@NotNull
 	List<ObjectReferenceType> getDeputyAssignees(ObjectReferenceType assignee, QName limitationItemName, Task task, OperationResult parentResult)
 			throws SchemaException;
+
+	/**
+	 * computes effective status for the current ActivationType object
+	 * @param lifecycleStatus
+	 * @param activationType
+	 * @return
+	 */
+	ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType);
 }
