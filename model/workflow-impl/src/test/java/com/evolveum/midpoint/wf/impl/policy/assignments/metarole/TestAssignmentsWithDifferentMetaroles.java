@@ -17,6 +17,7 @@ package com.evolveum.midpoint.wf.impl.policy.assignments.metarole;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -121,6 +123,8 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		userLead22Oid = addAndRecomputeUser(USER_LEAD22_FILE, initTask, initResult);
 		userLead23Oid = addAndRecomputeUser(USER_LEAD23_FILE, initTask, initResult);
 		userLead24Oid = addAndRecomputeUser(USER_LEAD24_FILE, initTask, initResult);
+
+		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_JSON);
 	}
 
 	@Test
@@ -737,11 +741,13 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		AssignmentType assignment = findAssignmentByTargetRequired(jackBefore, roleRole28Oid);
 		ObjectDelta<UserType> deltaToApprove = DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_DESCRIPTION)
-				.replace("new description")
+						.replace("new description")
+				.item(UserType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_LIFECYCLE_STATE)      // this will be part of the delta to approve
+						.replace("active")
 				.asObjectDeltaCast(userJackOid);
 		ObjectDelta<UserType> delta0 = DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_FULL_NAME)
-				.replace(PolyString.fromOrig("new full name 4"))
+						.replace(PolyString.fromOrig("new full name 4"))
 				.asObjectDeltaCast(userJackOid);
 
 		// +THEN
