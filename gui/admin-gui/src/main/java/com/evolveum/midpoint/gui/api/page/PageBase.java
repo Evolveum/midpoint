@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.menu.*;
+import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAll;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAllocatedToMe;
 import com.evolveum.midpoint.web.page.admin.cases.PageCases;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
@@ -1284,6 +1285,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				AuthorizationConstants.AUTZ_GUI_ALL_URL,
 				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
 			menu = new MenuItem(createStringResource("PageAdmin.menu.top.caseWorkItems.list"), PageCaseWorkItemsAllocatedToMe.class);
+			submenu.add(menu);
+			menu = new MenuItem(createStringResource("PageAdmin.menu.top.caseWorkItems.listAll"), PageCaseWorkItemsAll.class);
 			submenu.add(menu);
 			//createFocusPageViewMenu(submenu, "PageAdmin.menu.top.cases.view", PageCase.class);
 		}

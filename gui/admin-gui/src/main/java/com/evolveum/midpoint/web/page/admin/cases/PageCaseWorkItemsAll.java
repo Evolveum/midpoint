@@ -23,17 +23,17 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 /**
  * @author bpowers
  */
-@PageDescriptor(url = "/admin/caseWorkItemsAllocatedToMe", action = {
+@PageDescriptor(url = "/admin/caseWorkItemsAll", action = {
         @AuthorizationAction(actionUri = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL,
                 label = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL_LABEL,
                 description = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
-                label = "PageCaseWorkItemsAllocatedToMe.auth.myCaseWorkItems.label",
-                description = "PageCaseWorkItemsAllocatedToMe.auth.myCaseWorkItems.description")})
-public class PageCaseWorkItemsAllocatedToMe extends PageCaseWorkItems {
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ALL_CASE_WORK_ITEMS_URL,
+                label = "PageCaseWorkItemsAll.auth.allCaseWorkItems.label",
+                description = "PageCaseWorkItemsAll.auth.allCaseWorkItems.description")})
+public class PageCaseWorkItemsAll extends PageCaseWorkItems {
 
-    public PageCaseWorkItemsAllocatedToMe() {
-        super(false);
+    public PageCaseWorkItemsAll() {
+        super(true);
     }
 
 }
