@@ -147,9 +147,12 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 		}
 		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_TARGET_REF));
 		
-		if (OrgType.COMPLEX_TYPE.equals(targetType)) {
+		if (OrgType.COMPLEX_TYPE.equals(targetType) || AssignmentsUtil.isPolicyRuleAssignment(getModelObject().getContainerValue().asContainerable())) {
 			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_TENANT_REF));
 			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_ORG_REF));
+		}
+		if (AssignmentsUtil.isPolicyRuleAssignment(getModelObject().getContainerValue().asContainerable())){
+			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_FOCUS_TYPE));
 		}
 		
 		if (assignment.getConstruction() == null) {

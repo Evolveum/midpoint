@@ -43,8 +43,6 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
 		List<ItemPath> containersToShow = new ArrayList<>();
 		containersToShow.add(getAssignmentPath().append(AssignmentType.F_POLICY_RULE));
 		
-		containersToShow.add(getAssignmentPath().append(AssignmentType.F_POLICY_EXCEPTION));
-		
 		return containersToShow;
 	}
 

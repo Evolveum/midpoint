@@ -262,10 +262,6 @@ public class ObjectWrapperFactory {
 
 			ContainerWrapperFactory cwf = new ContainerWrapperFactory(modelServiceLocator);
 
-			if (AssignmentType.COMPLEX_TYPE.equals(parentContainer.getDefinition().getName())) {
-				System.out.println("something");
-			}
-
 			PrismContainer prismContainer = parentContainer.findContainer(def.getName());
 
 			ContainerWrapper<C> container;
