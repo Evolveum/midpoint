@@ -1,4 +1,3 @@
-<?xml version="1.0"?>
 <!--
   ~ Copyright (c) 2010-2017 Evolveum
   ~
@@ -16,15 +15,20 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/delivery/ext"
-	  oid="fceb5715-545f-4d67-86c8-5f4783597736">
-	<name>k10-tpu-10-rem-elaine</name>
-	<extension>
-		<ext:attribute1>extension/tpu</ext:attribute1>
-		<ext:value1>10</ext:value1>
-		<ext:remediatorRef oid="771d00e6-792a-4296-8b4e-c4f59f712e0f" type="UserType"/> <!-- elaine -->
-	</extension>
-	<assignment>
-		<targetRef oid="db0eadd1-3e2b-4dad-801e-80700f2d11e5" type="RoleType"/>
+	  oid="00000001-d34d-b33f-f00d-000000000029">
+	<name>Role29</name>
+	<assignment id="1">
+		<policyRule>
+			<policyConstraints>
+				<assignment>
+					<operation>modify</operation>
+				</assignment>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />	<!-- administrator -->
+				</approval>
+			</policyActions>
+		</policyRule>
 	</assignment>
 </role>

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.test;
 
+import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -44,6 +45,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -92,20 +94,6 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -923,6 +911,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		unassignRole(userOid, roleOid, task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
+	}
+
+	protected void unassignRoleByAssignmentValue(PrismObject<? extends FocusType> focus, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		AssignmentType assignment = findAssignmentByTargetRequired(focus, roleOid);
+		ObjectDelta<? extends FocusType> delta = DeltaBuilder.deltaFor(focus.getCompileTimeClass(), prismContext)
+				.item(FocusType.F_ASSIGNMENT)
+				.delete(assignment.clone())
+				.asObjectDeltaCast(focus.getOid());
+		modelService.executeChanges(singleton(delta), null, task, result);
 	}
 
 	protected void unassignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
@@ -2920,7 +2919,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			taskManager.resumeTask(task, result);
 		} else if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
 			LOGGER.debug("Task {} is closed, scheduling it to run now", task);
-			taskManager.scheduleTasksNow(Collections.singleton(taskOid), result);
+			taskManager.scheduleTasksNow(singleton(taskOid), result);
 		} else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
 			if (taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier()) != null) {
 				// Task is really executing. Let's wait until it finishes; hopefully it won't start again (TODO)
@@ -2928,7 +2927,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				waitForTaskFinish(taskOid, false);
 			}
 			LOGGER.debug("Task {} is finished, scheduling it to run now", task);
-			taskManager.scheduleTasksNow(Collections.singleton(taskOid), result);
+			taskManager.scheduleTasksNow(singleton(taskOid), result);
 		} else {
 			throw new IllegalStateException("Task " + task + " cannot be restarted, because its state is: " + task.getExecutionStatus());
 		}
@@ -4394,7 +4393,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 						.item(TaskType.F_SCHEDULE).replace()
 						.asItemDeltas(),
 				result);
-		taskManager.resumeTasks(Collections.singleton(taskOid), result);
+		taskManager.resumeTasks(singleton(taskOid), result);
 	}
 
 	protected void repoAddObjects(List<ObjectType> objects, OperationResult result)

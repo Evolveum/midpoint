@@ -62,7 +62,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
 
 		//Delta
-    	PrismContainerValue<AssignmentType> assignmentValue = new PrismContainerValue<AssignmentType>(getPrismContext());
+    	PrismContainerValue<AssignmentType> assignmentValue = new PrismContainerValue<>(getPrismContext());
     	// The value id is null
     	assignmentValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", getPrismContext());
 
@@ -91,7 +91,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
 
 		//Delta
-    	PrismContainerValue<AssignmentType> inducementValue = new PrismContainerValue<AssignmentType>(getPrismContext());
+    	PrismContainerValue<AssignmentType> inducementValue = new PrismContainerValue<>(getPrismContext());
     	// The value id is null
     	inducementValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala", getPrismContext());
 
@@ -328,7 +328,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		// WHEN
 		PrismContainerDefinition<AssignmentType> assignmentDef = PrismTestUtil.getSchemaRegistry()
 				.findContainerDefinitionByCompileTimeClass(AssignmentType.class).clone();
-		((PrismContainerDefinitionImpl) assignmentDef).setMaxOccurs(1);
+		assignmentDef.setMaxOccurs(1);
 		PrismContainer<AssignmentType> assignmentContainer = assignmentDef.instantiate();
 
 		PrismContainerValue<AssignmentType> assignmentValue =
@@ -360,14 +360,14 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		user.asObjectable().getAssignment().get(0).setId(9999L);
 		AssignmentType assignment9999 = new AssignmentType();
 		assignment9999.setId(9999L);
-		ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, getPrismContext())
+		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, getPrismContext())
 				.item(UserType.F_ASSIGNMENT).delete(assignment9999)
-				.asObjectDelta(user.getOid());
+				.asObjectDeltaCast(user.getOid());
 
 		// WHEN
 		PrismContainerDefinition<AssignmentType> assignmentDef = PrismTestUtil.getSchemaRegistry()
 				.findContainerDefinitionByCompileTimeClass(AssignmentType.class).clone();
-		((PrismContainerDefinitionImpl) assignmentDef).setMaxOccurs(1);
+		assignmentDef.setMaxOccurs(1);
 		PrismContainer<AssignmentType> assignmentContainer = assignmentDef.instantiate();
 
 		PrismContainerValue<AssignmentType> assignmentValue =
@@ -401,18 +401,18 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		ObjectDelta<UserType> addDelta = ObjectDelta.createAddDelta(user);
 
 		// WHEN
-		ObjectDelta.FactorOutResult<UserType> out = addDelta.factorOut(singleton(new ItemPath(UserType.F_ASSIGNMENT)), true);
+		ObjectDelta.FactorOutResultSingle<UserType> out = addDelta.factorOut(singleton(new ItemPath(UserType.F_ASSIGNMENT)), true);
 
 		// THEN
 		System.out.println("Delta before factorOut:\n" + addDelta.debugDump() + "\n");
 		System.out.println("Delta after factorOut:\n" + out.remainder.debugDump() + "\n");
-		System.out.println("Offspring deltas:\n" + DebugUtil.debugDump(out.offsprings) + "\n");
+		System.out.println("Offspring delta:\n" + DebugUtil.debugDump(out.offspring) + "\n");
 
 		assertTrue("Remaining delta is not an ADD delta", out.remainder.isAdd());
 		assertEquals("Wrong # of remaining assignments", 0, out.remainder.getObjectToAdd().asObjectable().getAssignment().size());
-		assertEquals("Wrong # of offspring deltas", 1, out.offsprings.size());
-		assertEquals("Wrong # of modifications in offspring", 1, out.offsprings.get(0).getModifications().size());
-		assertEquals("Wrong # of assignments to add", 3, out.offsprings.get(0).getModifications().iterator().next().getValuesToAdd().size());
+		assertNotNull("Missing offspring delta", out.offspring);
+		assertEquals("Wrong # of modifications in offspring", 1, out.offspring.getModifications().size());
+		assertEquals("Wrong # of assignments to add", 3, out.offspring.getModifications().iterator().next().getValuesToAdd().size());
 	}
 
 	// subtract of single-valued PCV from multivalued one
@@ -426,17 +426,17 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		ObjectDelta<UserType> addDelta = ObjectDelta.createAddDelta(user);
 
 		// WHEN
-		ObjectDelta.FactorOutResult<UserType> out = addDelta.factorOut(asList(new ItemPath(UserType.F_GIVEN_NAME), new ItemPath(UserType.F_FAMILY_NAME)), true);
+		ObjectDelta.FactorOutResultSingle<UserType> out = addDelta.factorOut(asList(new ItemPath(UserType.F_GIVEN_NAME), new ItemPath(UserType.F_FAMILY_NAME)), true);
 
 		// THEN
 		System.out.println("Delta before factorOut:\n" + addDelta.debugDump() + "\n");
 		System.out.println("Delta after factorOut:\n" + out.remainder.debugDump() + "\n");
-		System.out.println("Offspring deltas:\n" + DebugUtil.debugDump(out.offsprings) + "\n");
+		System.out.println("Offspring delta:\n" + DebugUtil.debugDump(out.offspring) + "\n");
 
 		assertTrue("Remaining delta is not an ADD delta", out.remainder.isAdd());
 		assertEquals("Wrong # of remaining assignments", 3, out.remainder.getObjectToAdd().asObjectable().getAssignment().size());
-		assertEquals("Wrong # of offspring deltas", 1, out.offsprings.size());
-		assertEquals("Wrong # of modifications in offspring", 2, out.offsprings.get(0).getModifications().size());
+		assertNotNull("Missing offspring delta", out.offspring);
+		assertEquals("Wrong # of modifications in offspring", 2, out.offspring.getModifications().size());
 	}
 
 	@Test
@@ -449,7 +449,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		ObjectDelta<UserType> addDelta = ObjectDelta.createAddDelta(user);
 
 		// WHEN
-		ObjectDelta.FactorOutResult<UserType> out = addDelta.factorOutValues(new ItemPath(UserType.F_ASSIGNMENT), true);
+		ObjectDelta.FactorOutResultMulti<UserType> out = addDelta.factorOutValues(new ItemPath(UserType.F_ASSIGNMENT), true);
 
 		// THEN
 		System.out.println("Delta before factorOut:\n" + addDelta.debugDump() + "\n");
@@ -480,17 +480,17 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 				.asObjectDeltaCast("oid1");
 
 		// WHEN
-		ObjectDelta.FactorOutResult<UserType> out = delta.factorOut(singleton(new ItemPath(UserType.F_ASSIGNMENT)), true);
+		ObjectDelta.FactorOutResultSingle<UserType> out = delta.factorOut(singleton(new ItemPath(UserType.F_ASSIGNMENT)), true);
 
 		// THEN
 		System.out.println("Delta before operation:\n" + delta.debugDump() + "\n");
 		System.out.println("Delta after factorOut:\n" + out.remainder.debugDump() + "\n");
-		System.out.println("Offspring deltas:\n" + DebugUtil.debugDump(out.offsprings) + "\n");
+		System.out.println("Offspring delta:\n" + DebugUtil.debugDump(out.offspring) + "\n");
 
 		assertTrue("Remaining delta is not a MODIFY delta", out.remainder.isModify());
 		assertEquals("Wrong # of remaining modifications", 1, out.remainder.getModifications().size());
-		assertEquals("Wrong # of offspring deltas", 1, out.offsprings.size());
-		assertEquals("Wrong # of modifications in offspring 0", 2, out.offsprings.get(0).getModifications().size());
+		assertNotNull("Missing offspring delta", out.offspring);
+		assertEquals("Wrong # of modifications in offspring 0", 2, out.offspring.getModifications().size());
 	}
 
 	@Test
@@ -510,7 +510,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 				.asObjectDeltaCast("oid1");
 
 		// WHEN
-		ObjectDelta.FactorOutResult<UserType> out = delta.factorOutValues(new ItemPath(UserType.F_ASSIGNMENT), true);
+		ObjectDelta.FactorOutResultMulti<UserType> out = delta.factorOutValues(new ItemPath(UserType.F_ASSIGNMENT), true);
 
 		// THEN
 		System.out.println("Delta before operation:\n" + delta.debugDump() + "\n");

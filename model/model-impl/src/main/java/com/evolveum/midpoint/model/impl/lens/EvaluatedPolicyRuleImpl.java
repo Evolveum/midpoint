@@ -16,13 +16,25 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.model.api.context.*;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +45,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 
 /**
@@ -60,6 +73,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	@Nullable private final AssignmentPath assignmentPath;
 	@Nullable private final ObjectType directOwner;
 	private final transient PrismContext prismContext;     // only for debugDump - if null, nothing serious happens
+
+	@NotNull private final List<PolicyActionType> enabledActions = new ArrayList<>();          // computed only when necessary (typically when triggered)
 
 	public EvaluatedPolicyRuleImpl(@NotNull PolicyRuleType policyRuleType, @Nullable AssignmentPath assignmentPath,
 			PrismContext prismContext) {
@@ -274,7 +289,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		}
 		sb.append("(").append(PolicyRuleTypeUtil.toShortString(getPolicyConstraints())).append(")");
 		sb.append("->");
-		sb.append("(").append(PolicyRuleTypeUtil.toShortString(getActions())).append(")");
+		sb.append("(").append(PolicyRuleTypeUtil.toShortString(getActions(), enabledActions)).append(")");
 		if (!getTriggers().isEmpty()) {
 			sb.append(" # {T:");
 			sb.append(getTriggers().stream().map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
@@ -341,6 +356,72 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 			// skip empty situation rule
 		} else {
 			rules.add(rv);
+		}
+	}
+
+	@NotNull
+	public List<PolicyActionType> getEnabledActions() {
+		return enabledActions;
+	}
+
+	private <F extends FocusType> ExpressionVariables createExpressionVariables(PolicyRuleEvaluationContext<F> rctx, PrismObject<F> object) {
+		ExpressionVariables var = new ExpressionVariables();
+		var.addVariableDefinition(ExpressionConstants.VAR_USER, object);
+		var.addVariableDefinition(ExpressionConstants.VAR_FOCUS, object);
+		var.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object);
+		if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
+			AssignmentPolicyRuleEvaluationContext actx = (AssignmentPolicyRuleEvaluationContext<F>) rctx;
+			var.addVariableDefinition(ExpressionConstants.VAR_TARGET, actx.evaluatedAssignment.getTarget());
+			var.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment);
+			var.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, actx.evaluatedAssignment.getAssignmentType(actx.state == ObjectState.BEFORE));
+		} else if (rctx instanceof ObjectPolicyRuleEvaluationContext) {
+			var.addVariableDefinition(ExpressionConstants.VAR_TARGET, null);
+			var.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null);
+			var.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, null);
+		} else if (rctx != null) {
+			throw new AssertionError(rctx);
+		}
+		var.addVariableDefinition(VAR_RULE_EVALUATION_CONTEXT, rctx);
+		return var;
+	}
+
+	@Override
+	public boolean containsEnabledAction() {
+		return !enabledActions.isEmpty();
+	}
+
+	@Override
+	public boolean containsEnabledAction(Class<? extends PolicyActionType> clazz) {
+		return !getEnabledActions(clazz).isEmpty();
+	}
+
+	@Override
+	public <T extends PolicyActionType> List<T> getEnabledActions(Class<T> clazz) {
+		return PolicyRuleTypeUtil.filterActions(enabledActions, clazz);
+	}
+
+	@Override
+	public <T extends PolicyActionType> T getEnabledAction(Class<T> clazz) {
+		List<T> actions = getEnabledActions(clazz);
+		if (actions.isEmpty()) {
+			return null;
+		} else if (actions.size() == 1) {
+			return actions.get(0);
+		} else {
+			throw new IllegalStateException("More than one enabled policy action of class " + clazz + ": " + actions);
+		}
+	}
+
+	public <F extends FocusType> void computeEnabledActions(@Nullable PolicyRuleEvaluationContext<F> rctx, PrismObject<F> object,
+			ExpressionFactory expressionFactory, Task task, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		List<PolicyActionType> allActions = PolicyRuleTypeUtil.getAllActions(policyRuleType.getPolicyActions());
+		for (PolicyActionType action : allActions) {
+			if (action.getCondition() != null) {
+				ExpressionVariables variables = createExpressionVariables(rctx, object);
+				LensUtil.evaluateBoolean(action.getCondition(), variables, "condition in action " + action.getName() + " (" + action.getClass().getSimpleName() + ")", expressionFactory, prismContext, task, result);
+			}
+			enabledActions.add(action);
 		}
 	}
 }

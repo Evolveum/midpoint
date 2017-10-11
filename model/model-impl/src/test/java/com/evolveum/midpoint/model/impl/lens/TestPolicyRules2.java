@@ -75,7 +75,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	protected static final File ROLE_UNRESOLVABLE_REFERENCES_FILE = new File(TEST_DIR, "role-unresolvable-references.xml");
 	protected static final File ROLE_AMBIGUOUS_REFERENCE_FILE = new File(TEST_DIR, "role-ambiguous-reference.xml");
 
-	private static final int STUDENT_TARGET_RULES = 5;          // one is global
+	private static final int STUDENT_TARGET_RULES = 6;          // one is global
 	private static final int STUDENT_FOCUS_RULES = 21;
 
 	private static final String ACTIVITY_DESCRIPTION = "PROJECTOR (test)";
@@ -217,6 +217,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 	/**
 	 * Jacks's cost center is set to be 1900. So 1900/new constraint should trigger. But not 1900/current nor 1900/old.
+	 * Also validTo constraint should trigger.
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
@@ -230,8 +231,10 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 		LensContext<UserType> context = createUserLensContext();
 		fillContextWithUser(context, USER_JACK_OID, result);
+		AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE, prismContext);
+		assignment.beginActivation().validTo("2099-01-01T00:00:00");
 		context.getFocusContext().addPrimaryDelta((ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
-				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE, prismContext))
+				.item(UserType.F_ASSIGNMENT).add(assignment)
 				.item(UserType.F_COST_CENTER).replace("1900")
 				.asObjectDelta(USER_JACK_OID));
 		display("Input context", context);
@@ -251,8 +254,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		//dumpPolicySituations(context);
 
 		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
-		assertTargetTriggers(context, null, 2);
-		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1);
+		assertTargetTriggers(context, null, 3);
+		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 2);
 		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
 
 		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
@@ -281,8 +284,10 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 		LensContext<UserType> context = createUserLensContext();
 		fillContextWithUser(context, USER_JACK_OID, result);
+		AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE, prismContext);
+		assignment.beginActivation().validTo("2099-01-01T00:00:00");
 		context.getFocusContext().addPrimaryDelta((ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
-				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE, prismContext))
+				.item(UserType.F_ASSIGNMENT).add(assignment)
 				.item(UserType.F_COST_CENTER).replace("1900")
 				.asObjectDelta(USER_JACK_OID));
 		display("Input context", context);
@@ -303,8 +308,8 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		dumpPolicySituations(context);
 
 		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
-		assertTargetTriggers(context, null, 2);
-		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1);
+		assertTargetTriggers(context, null, 3);
+		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 2);
 		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
 
 		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
@@ -322,6 +327,55 @@ public class TestPolicyRules2 extends AbstractLensTest {
 //				SchemaConstants.MODEL_POLICY_SITUATION_HAS_ASSIGNMENT,
 //				SchemaConstants.MODEL_POLICY_SITUATION_HAS_NO_ASSIGNMENT);
 	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void test135JackChangeValidTo() throws Exception {
+		final String TEST_NAME = "test135JackChangeValidTo";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		Long assignmentId = getUser(USER_JACK_OID).asObjectable().getAssignment().get(0).getId();
+
+		LensContext<UserType> context = createUserLensContext();
+		fillContextWithUser(context, USER_JACK_OID, result);
+		context.getFocusContext().addPrimaryDelta((ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO).replace()
+				.asObjectDelta(USER_JACK_OID));
+		display("Input context", context);
+
+		assertFocusModificationSanity(context);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+
+		// cannot run the clockwork as in the secondary state the deltas are no longer considered (!)
+		projector.project(context, ACTIVITY_DESCRIPTION, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		dumpPolicyRules(context);
+		dumpPolicySituations(context);
+
+		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
+		assertTargetTriggers(context, null, 3);
+		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 2);
+		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
+
+		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
+		assertFocusTriggers(context, null, 9);
+		assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 1);
+		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
+		assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
+		assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 3);
+	}
+
 
 	@Test
 	public void test140JackNoChange() throws Exception {
@@ -602,7 +656,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertEvaluatedTargetPolicyRules(context, 0);
 		assertTargetTriggers(context, null, 0);
 
-		assertEvaluatedFocusPolicyRules(context, 4);
+		assertEvaluatedFocusPolicyRules(context, 5);
 		assertFocusTriggers(context, null, 2);
 		assertFocusTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 2);
 	}

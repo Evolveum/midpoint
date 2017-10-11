@@ -17,14 +17,17 @@ package com.evolveum.midpoint.wf.impl.policy.assignments.metarole;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -48,6 +51,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevel
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.AUTO_COMPLETION_CONDITION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.NO_ASSIGNEES_FOUND;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.PROCESS;
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -73,6 +78,9 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	protected static final File ROLE_ROLE24_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role24-approval-and-enforce.xml");
 	protected static final File ROLE_ROLE25_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role25-very-complex-approval.xml");
 	protected static final File ROLE_ROLE26_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role26-no-approvers.xml");
+	protected static final File ROLE_ROLE27_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role27-modifications-and.xml");
+	protected static final File ROLE_ROLE28_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role28-modifications-or.xml");
+	protected static final File ROLE_ROLE29_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role29-modifications-no-items.xml");
 	protected static final File ORG_LEADS2122_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "org-leads2122.xml");
 
 	protected static final File USER_LEAD21_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "user-lead21.xml");
@@ -86,6 +94,9 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	protected String roleRole24Oid;
 	protected String roleRole25Oid;
 	protected String roleRole26Oid;
+	protected String roleRole27Oid;
+	protected String roleRole28Oid;
+	protected String roleRole29Oid;
 	protected String orgLeads2122Oid;
 
 	protected String userLead21Oid;
@@ -103,12 +114,17 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		roleRole24Oid = repoAddObjectFromFile(ROLE_ROLE24_FILE, initResult).getOid();
 		roleRole25Oid = repoAddObjectFromFile(ROLE_ROLE25_FILE, initResult).getOid();
 		roleRole26Oid = repoAddObjectFromFile(ROLE_ROLE26_FILE, initResult).getOid();
+		roleRole27Oid = repoAddObjectFromFile(ROLE_ROLE27_FILE, initResult).getOid();
+		roleRole28Oid = repoAddObjectFromFile(ROLE_ROLE28_FILE, initResult).getOid();
+		roleRole29Oid = repoAddObjectFromFile(ROLE_ROLE29_FILE, initResult).getOid();
 		orgLeads2122Oid = repoAddObjectFromFile(ORG_LEADS2122_FILE, initResult).getOid();
 
 		userLead21Oid = addAndRecomputeUser(USER_LEAD21_FILE, initTask, initResult);
 		userLead22Oid = addAndRecomputeUser(USER_LEAD22_FILE, initTask, initResult);
 		userLead23Oid = addAndRecomputeUser(USER_LEAD23_FILE, initTask, initResult);
 		userLead24Oid = addAndRecomputeUser(USER_LEAD24_FILE, initTask, initResult);
+
+		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_JSON);
 	}
 
 	@Test
@@ -269,7 +285,6 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 		Task task = createTask(TEST_NAME);
-		task.setOwner(userAdministrator);
 		OperationResult result = task.getResult();
 
 		try {
@@ -326,7 +341,6 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 		Task task = createTask(TEST_NAME);
-		task.setOwner(userAdministrator);
 		OperationResult result = task.getResult();
 
 		assignRole(userJackOid, roleRole26Oid, task, result);
@@ -346,6 +360,664 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			exception.printStackTrace();
 			fail("Got unexpected exception: " + exception);
 		}
+	}
+
+	// "assignment modification" (no specific items)
+	@Test
+	public void test600AssignRole29() throws Exception {
+		final String TEST_NAME = "test600AssignRole29";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignRole(userJackOid, roleRole29Oid, task, result);           // should proceed without approvals
+
+		// THEN
+		displayThen(TEST_NAME);
+		PrismObject<UserType> jack = getUser(userJackOid);
+		display("jack", jack);
+		assertAssignedRoles(jack, roleRole29Oid);
+	}
+
+	@Test
+	public void test610ModifyAssignmentOfRole29() throws Exception {
+		final String TEST_NAME = "test610ModifyAssignmentOfRole29";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<UserType> jackBefore = getUser(userJackOid);
+		AssignmentType assignment = findAssignmentByTargetRequired(jackBefore, roleRole29Oid);
+		ObjectDelta<UserType> deltaToApprove = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_DESCRIPTION)
+						.replace("new description")
+				.asObjectDeltaCast(userJackOid);
+		ObjectDelta<UserType> delta0 = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_FULL_NAME)
+						.replace(PolyString.fromOrig("new full name"))
+				.asObjectDeltaCast(userJackOid);
+
+		// +THEN
+		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
+			@Override
+			protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
+				return jackBefore;
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getFocusDelta() throws Exception {
+				return ObjectDelta.summarize(deltaToApprove, delta0);
+			}
+
+			@Override
+			protected int getNumberOfDeltasToApprove() {
+				return 1;
+			}
+
+			@Override
+			protected List<Boolean> getApprovals() {
+				return singletonList(true);
+			}
+
+			@Override
+			protected List<ObjectDelta<UserType>> getExpectedDeltasToApprove() {
+				return singletonList(deltaToApprove);
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getExpectedDelta0() {
+				return delta0;
+			}
+
+			@Override
+			protected String getObjectOid() {
+				return userJackOid;
+			}
+
+			@Override
+			protected List<ExpectedTask> getExpectedTasks() {
+				return singletonList(new ExpectedTask(roleRole29Oid, "Modifying assignment of Role29 on jack"));
+			}
+
+			@Override
+			protected List<ExpectedWorkItem> getExpectedWorkItems() {
+				ExpectedTask etask = getExpectedTasks().get(0);
+				return singletonList(new ExpectedWorkItem(USER_ADMINISTRATOR_OID, roleRole29Oid, etask));
+			}
+
+			@Override
+			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+				System.out.println("assertDeltaExecuted for number = " + number + ", yes = " + yes);
+				// todo
+				// e.g. check metadata
+				if (number == 0) {
+					PrismObject<UserType> jack = getUser(userJackOid);
+					assertEquals("wrong new full name", yes ? "new full name" : "Jack Sparrow", jack.asObjectable().getFullName().getOrig());
+				} else {
+					PrismObject<UserType> jack = getUser(userJackOid);
+					AssignmentType assignment1 = findAssignmentByTargetRequired(jack, roleRole29Oid);
+					assertEquals("wrong new assignment description", yes ? "new description" : null, assignment1.getDescription());
+				}
+			}
+
+			@Override
+			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+				return true;
+			}
+
+			@Override
+			public List<ApprovalInstruction> getApprovalSequence() {
+				return null;
+			}
+
+			@Override
+			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
+					OperationResult result) throws Exception {
+				// todo
+			}
+
+		}, 1, false);
+
+		// THEN
+		displayThen(TEST_NAME);
+		PrismObject<UserType> jackAfter = getUser(userJackOid);
+		display("jack after", jackAfter);
+		assertAssignedRoles(jackAfter, roleRole29Oid);
+	}
+
+	@Test
+	public void test620ModifyAssignmentOfRole29Immediate() throws Exception {
+		final String TEST_NAME = "test620ModifyAssignmentOfRole29Immediate";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<UserType> jackBefore = getUser(userJackOid);
+		AssignmentType assignment = findAssignmentByTargetRequired(jackBefore, roleRole29Oid);
+		ObjectDelta<UserType> deltaToApprove = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_DESCRIPTION)
+						.replace("new description 2")
+				.asObjectDeltaCast(userJackOid);
+		ObjectDelta<UserType> delta0 = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_FULL_NAME)
+						.replace(PolyString.fromOrig("new full name 2"))
+				.asObjectDeltaCast(userJackOid);
+
+		// +THEN
+		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
+			@Override
+			protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
+				return jackBefore;
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getFocusDelta() throws Exception {
+				return ObjectDelta.summarize(deltaToApprove, delta0);
+			}
+
+			@Override
+			protected int getNumberOfDeltasToApprove() {
+				return 1;
+			}
+
+			@Override
+			protected List<Boolean> getApprovals() {
+				return singletonList(true);
+			}
+
+			@Override
+			protected List<ObjectDelta<UserType>> getExpectedDeltasToApprove() {
+				return singletonList(deltaToApprove);
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getExpectedDelta0() {
+				return delta0;
+			}
+
+			@Override
+			protected String getObjectOid() {
+				return userJackOid;
+			}
+
+			@Override
+			protected List<ExpectedTask> getExpectedTasks() {
+				return singletonList(new ExpectedTask(roleRole29Oid, "Modifying assignment of Role29 on jack"));
+			}
+
+			@Override
+			protected List<ExpectedWorkItem> getExpectedWorkItems() {
+				ExpectedTask etask = getExpectedTasks().get(0);
+				return singletonList(new ExpectedWorkItem(USER_ADMINISTRATOR_OID, roleRole29Oid, etask));
+			}
+
+			@SuppressWarnings("Duplicates")
+			@Override
+			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+				System.out.println("assertDeltaExecuted for number = " + number + ", yes = " + yes);
+				// todo
+				// e.g. check metadata
+				if (number == 0) {
+					PrismObject<UserType> jack = getUser(userJackOid);
+					assertEquals("wrong new full name", yes ? "new full name 2" : "new full name", jack.asObjectable().getFullName().getOrig());
+				} else {
+					PrismObject<UserType> jack = getUser(userJackOid);
+					AssignmentType assignment1 = findAssignmentByTargetRequired(jack, roleRole29Oid);
+					assertEquals("wrong new assignment description", yes ? "new description 2" : "new description", assignment1.getDescription());
+				}
+			}
+
+			@Override
+			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+				return true;
+			}
+
+			@Override
+			public List<ApprovalInstruction> getApprovalSequence() {
+				return null;
+			}
+
+			@Override
+			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
+					OperationResult result) throws Exception {
+				// todo
+			}
+
+		}, 1, true);
+
+		// THEN
+		displayThen(TEST_NAME);
+		PrismObject<UserType> jackAfter = getUser(userJackOid);
+		display("jack after", jackAfter);
+		assertAssignedRoles(jackAfter, roleRole29Oid);
+	}
+
+	@Test
+	public void test630UnassignRole29() throws Exception {
+		final String TEST_NAME = "test630UnassignRole29";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		unassignRoleByAssignmentValue(getUser(userJackOid), roleRole29Oid, task, result);           // should proceed without approvals
+
+		// THEN
+		displayThen(TEST_NAME);
+		PrismObject<UserType> jack = getUser(userJackOid);
+		display("jack", jack);
+		assertNotAssignedRole(jack, roleRole29Oid);
+	}
+
+	// assignment modification ("or" of 2 items)
+	@Test
+	public void test700AssignRole28() throws Exception {
+		final String TEST_NAME = "test700AssignRole28";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN/THEN
+		ObjectDelta<UserType> deltaToApprove = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT)
+						.add(ObjectTypeUtil.createAssignmentTo(roleRole28Oid, ObjectTypes.ROLE, prismContext)
+									.description("description"))
+				.asObjectDeltaCast(userJackOid);
+		ObjectDelta<UserType> delta0 = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_FULL_NAME)
+				.replace(PolyString.fromOrig("new full name 3"))
+				.asObjectDeltaCast(userJackOid);
+
+		PrismObject<UserType> jackBefore = getUser(userJackOid);
+
+		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
+			@Override
+			protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
+				return jackBefore;
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getFocusDelta() throws Exception {
+				return ObjectDelta.summarize(deltaToApprove, delta0);
+			}
+
+			@Override
+			protected int getNumberOfDeltasToApprove() {
+				return 1;
+			}
+
+			@Override
+			protected List<Boolean> getApprovals() {
+				return singletonList(true);
+			}
+
+			@Override
+			protected List<ObjectDelta<UserType>> getExpectedDeltasToApprove() {
+				return singletonList(deltaToApprove);
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getExpectedDelta0() {
+				return delta0;
+			}
+
+			@Override
+			protected String getObjectOid() {
+				return userJackOid;
+			}
+
+			@Override
+			protected List<ExpectedTask> getExpectedTasks() {
+				return singletonList(new ExpectedTask(roleRole28Oid, "Assigning Role28 to jack"));
+			}
+
+			@Override
+			protected List<ExpectedWorkItem> getExpectedWorkItems() {
+				ExpectedTask etask = getExpectedTasks().get(0);
+				return singletonList(new ExpectedWorkItem(USER_ADMINISTRATOR_OID, roleRole28Oid, etask));
+			}
+
+			@Override
+			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+				System.out.println("assertDeltaExecuted for number = " + number + ", yes = " + yes);
+				// todo
+				// e.g. check metadata
+				if (number == 0) {
+					PrismObject<UserType> jack = getUser(userJackOid);
+					assertEquals("wrong new full name", yes ? "new full name 3" : "new full name 2", jack.asObjectable().getFullName().getOrig());
+				} else {
+					PrismObject<UserType> jack = getUser(userJackOid);
+					if (yes) {
+						assertAssignedRole(jack, roleRole28Oid);
+					} else {
+						assertNotAssignedRole(jack, roleRole28Oid);
+					}
+				}
+			}
+
+			@Override
+			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+				return true;
+			}
+
+			@Override
+			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
+					OperationResult result) throws Exception {
+				// todo
+			}
+
+		}, 1, false);
+
+		// THEN
+		displayThen(TEST_NAME);
+		PrismObject<UserType> jack = getUser(userJackOid);
+		display("jack", jack);
+		assertAssignedRoles(jack, roleRole28Oid);
+	}
+
+	@Test
+	public void test710ModifyAssignmentOfRole28() throws Exception {
+		final String TEST_NAME = "test710ModifyAssignmentOfRole28";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<UserType> jackBefore = getUser(userJackOid);
+		AssignmentType assignment = findAssignmentByTargetRequired(jackBefore, roleRole28Oid);
+		ObjectDelta<UserType> deltaToApprove = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_DESCRIPTION)
+						.replace("new description")
+				.item(UserType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_LIFECYCLE_STATE)      // this will be part of the delta to approve
+						.replace("active")
+				.asObjectDeltaCast(userJackOid);
+		ObjectDelta<UserType> delta0 = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_FULL_NAME)
+						.replace(PolyString.fromOrig("new full name 4"))
+				.asObjectDeltaCast(userJackOid);
+
+		// +THEN
+		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
+			@Override
+			protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
+				return jackBefore;
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getFocusDelta() throws Exception {
+				return ObjectDelta.summarize(deltaToApprove, delta0);
+			}
+
+			@Override
+			protected int getNumberOfDeltasToApprove() {
+				return 1;
+			}
+
+			@Override
+			protected List<Boolean> getApprovals() {
+				return singletonList(true);
+			}
+
+			@Override
+			protected List<ObjectDelta<UserType>> getExpectedDeltasToApprove() {
+				return singletonList(deltaToApprove);
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getExpectedDelta0() {
+				return delta0;
+			}
+
+			@Override
+			protected String getObjectOid() {
+				return userJackOid;
+			}
+
+			@Override
+			protected List<ExpectedTask> getExpectedTasks() {
+				return singletonList(new ExpectedTask(roleRole28Oid, "Modifying assignment of Role28 on jack"));
+			}
+
+			@Override
+			protected List<ExpectedWorkItem> getExpectedWorkItems() {
+				ExpectedTask etask = getExpectedTasks().get(0);
+				return singletonList(new ExpectedWorkItem(USER_ADMINISTRATOR_OID, roleRole28Oid, etask));
+			}
+
+			@Override
+			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+				System.out.println("assertDeltaExecuted for number = " + number + ", yes = " + yes);
+				// todo
+				// e.g. check metadata
+				if (number == 0) {
+					PrismObject<UserType> jack = getUser(userJackOid);
+					assertEquals("wrong new full name", yes ? "new full name 4" : "new full name 3", jack.asObjectable().getFullName().getOrig());
+				} else {
+					PrismObject<UserType> jack = getUser(userJackOid);
+					AssignmentType assignment1 = findAssignmentByTargetRequired(jack, roleRole28Oid);
+					assertEquals("wrong new assignment description", yes ? "new description" : "description", assignment1.getDescription());
+				}
+			}
+
+			@Override
+			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+				return true;
+			}
+
+			@Override
+			public List<ApprovalInstruction> getApprovalSequence() {
+				return null;
+			}
+
+			@Override
+			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
+					OperationResult result) throws Exception {
+				// todo
+			}
+
+		}, 1, false);
+
+		// THEN
+		displayThen(TEST_NAME);
+		PrismObject<UserType> jackAfter = getUser(userJackOid);
+		display("jack after", jackAfter);
+		assertAssignedRoles(jackAfter, roleRole28Oid);
+	}
+
+	@Test
+	public void test720UnassignRole28() throws Exception {
+		final String TEST_NAME = "test720UnassignRole28";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<UserType> jackBefore = getUser(userJackOid);
+		AssignmentType assignment = findAssignmentByTargetRequired(jackBefore, roleRole28Oid);
+		ObjectDelta<UserType> deltaToApprove = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT)
+						.delete(new AssignmentType().id(assignment.getId()))        // id-only, to test the constraint
+				.asObjectDeltaCast(userJackOid);
+		ObjectDelta<UserType> delta0 = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_FULL_NAME)
+				.replace(PolyString.fromOrig("new full name 5"))
+				.asObjectDeltaCast(userJackOid);
+
+		// +THEN
+		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
+			@Override
+			protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
+				return jackBefore;
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getFocusDelta() throws Exception {
+				return ObjectDelta.summarize(deltaToApprove, delta0);
+			}
+
+			@Override
+			protected int getNumberOfDeltasToApprove() {
+				return 1;
+			}
+
+			@Override
+			protected List<Boolean> getApprovals() {
+				return singletonList(true);
+			}
+
+			@Override
+			protected List<ObjectDelta<UserType>> getExpectedDeltasToApprove() {
+				return singletonList(deltaToApprove);
+			}
+
+			@Override
+			protected ObjectDelta<UserType> getExpectedDelta0() {
+				return delta0;
+			}
+
+			@Override
+			protected String getObjectOid() {
+				return userJackOid;
+			}
+
+			@Override
+			protected List<ExpectedTask> getExpectedTasks() {
+				return singletonList(new ExpectedTask(roleRole28Oid, "Unassigning Role28 from jack"));
+			}
+
+			@Override
+			protected List<ExpectedWorkItem> getExpectedWorkItems() {
+				ExpectedTask etask = getExpectedTasks().get(0);
+				return singletonList(new ExpectedWorkItem(USER_ADMINISTRATOR_OID, roleRole28Oid, etask));
+			}
+
+			@Override
+			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+				System.out.println("assertDeltaExecuted for number = " + number + ", yes = " + yes);
+				// todo
+				// e.g. check metadata
+				if (number == 0) {
+					PrismObject<UserType> jack = getUser(userJackOid);
+					assertEquals("wrong new full name", yes ? "new full name 5" : "new full name 4", jack.asObjectable().getFullName().getOrig());
+				} else {
+					PrismObject<UserType> jack = getUser(userJackOid);
+					if (yes) {
+						assertNotAssignedRole(jack, roleRole28Oid);
+					} else {
+						assertAssignedRole(jack, roleRole28Oid);
+					}
+				}
+			}
+
+			@Override
+			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+				return true;
+			}
+
+			@Override
+			public List<ApprovalInstruction> getApprovalSequence() {
+				return null;
+			}
+
+			@Override
+			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
+					OperationResult result) throws Exception {
+				// todo
+			}
+
+		}, 1, false);
+
+		// THEN
+		displayThen(TEST_NAME);
+		PrismObject<UserType> jackAfter = getUser(userJackOid);
+		display("jack after", jackAfter);
+		assertNotAssignedRole(jackAfter, roleRole28Oid);
+	}
+
+	@Test
+	public void test800AssignRole27() throws Exception {
+		final String TEST_NAME = "test800AssignRole27";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT)
+				.add(ObjectTypeUtil.createAssignmentTo(roleRole27Oid, ObjectTypes.ROLE, prismContext)
+						.description("description"))
+				.asObjectDeltaCast(userJackOid);
+		executeChanges(delta, null, task, result); // should proceed without approvals (only 1 of the items is present)
+
+		// THEN
+		displayThen(TEST_NAME);
+		PrismObject<UserType> jack = getUser(userJackOid);
+		display("jack", jack);
+		assertAssignedRoles(jack, roleRole27Oid);
+	}
+
+	@Test
+	public void test810ModifyAssignmentOfRole27() throws Exception {
+		final String TEST_NAME = "test810ModifyAssignmentOfRole27";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<UserType> jackBefore = getUser(userJackOid);
+		AssignmentType assignmentBefore = findAssignmentByTargetRequired(jackBefore, roleRole27Oid);
+		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT, assignmentBefore.getId(), AssignmentType.F_DESCRIPTION)
+				.replace("new description")
+				.asObjectDeltaCast(userJackOid);
+
+		executeChanges(delta, null, task, result); // should proceed without approvals (only 1 of the items is present)
+
+		// THEN
+		displayThen(TEST_NAME);
+		PrismObject<UserType> jack = getUser(userJackOid);
+		display("jack", jack);
+		AssignmentType assignment = findAssignmentByTargetRequired(jack, roleRole27Oid);
+		assertEquals("Wrong description", "new description", assignment.getDescription());
+	}
+
+	@Test
+	public void test820UnassignRole27() throws Exception {
+		final String TEST_NAME = "test820UnassignRole27";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		unassignRoleByAssignmentValue(getUser(userJackOid), roleRole27Oid, task, result);           // should proceed without approvals
+
+		// THEN
+		displayThen(TEST_NAME);
+		PrismObject<UserType> jack = getUser(userJackOid);
+		display("jack", jack);
+		assertNotAssignedRole(jack, roleRole27Oid);
 	}
 
 	private void executeAssignRoles123ToJack(String TEST_NAME, boolean immediate,
@@ -512,7 +1184,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		ModelExecuteOptions options = immediate ? ModelExecuteOptions.createExecuteImmediatelyAfterApproval() : new ModelExecuteOptions();
 		options.setPartialProcessing(new PartialProcessingOptionsType().approvals(PROCESS));
 		ModelContext<ObjectType> modelContext = modelInteractionService
-				.previewChanges(Collections.singleton(primaryDelta), options, task, result);
+				.previewChanges(singleton(primaryDelta), options, task, result);
 
 		List<ApprovalSchemaExecutionInformationType> approvalInfo = modelContext.getHookPreviewResults(ApprovalSchemaExecutionInformationType.class);
 		List<PolicyRuleEnforcerHookPreviewOutputType> enforceInfo = modelContext.getHookPreviewResults(PolicyRuleEnforcerHookPreviewOutputType.class);

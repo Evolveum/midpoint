@@ -106,6 +106,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     public void setValue(T value) {
 		checkMutability();
         this.value = value;
+        this.rawElement = null;
         checkValue();
     }
 
@@ -397,9 +398,13 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 					(PrismPropertyDefinition) definitionSource.getParent().getDefinition());
 			PrismPropertyValue<T> newPVal = new PrismPropertyValue<T>(parsedRealValue);
 			return newPVal;
+		} else if (definitionSource.getRealClass() != null && definitionSource.getPrismContext() != null) {
+			T parsedRealValue = parseRawElementToNewRealValue(origValue, (Class<T>) definitionSource.getRealClass(), definitionSource.getPrismContext());
+			PrismPropertyValue<T> newPVal = new PrismPropertyValue<T>(parsedRealValue);
+			return newPVal;
 		} else {
 			throw new IllegalArgumentException("Attempt to use property " + origValue.getParent() +
-					" values in a raw parsing state (raw elements) with parsed value that has no definition");
+					" values in a raw parsing state (raw elements) with parsed value that has no definition nor class with prism context");
 		}
 	}
 
@@ -411,6 +416,10 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		return value;
 	}
 
+	private T parseRawElementToNewRealValue(PrismPropertyValue<T> prismPropertyValue, Class<T> clazz, PrismContext prismContext)
+				throws SchemaException {
+		return prismContext.parserFor(prismPropertyValue.rawElement.toRootXNode()).parseRealValue(clazz);
+	}
 
 	@Override
 	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {

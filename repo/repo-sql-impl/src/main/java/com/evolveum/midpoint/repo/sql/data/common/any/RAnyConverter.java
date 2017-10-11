@@ -25,12 +25,12 @@ import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
@@ -255,6 +255,9 @@ public class RAnyConverter {
         Object object = value.getValue();
         if (object instanceof Element) {
             object = getRealRepoValue(definition, (Element) object);
+        } else if (object instanceof RawType) {
+            RawType raw = (RawType) object;
+            object = raw.getParsedRealValue(returnType);
         } else {
             object = getAggregatedRepoObject(object);
         }

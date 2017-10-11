@@ -16,14 +16,11 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
-import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -31,7 +28,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -42,11 +38,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
-import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
 
 /**
  * @author mederly
@@ -80,31 +73,15 @@ public class ConstraintEvaluatorHelper {
 	public boolean evaluateBoolean(ExpressionType expressionBean, ExpressionVariables expressionVariables,
 			String contextDescription, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
-		return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, task, result,
-				DOMUtil.XSD_BOOLEAN, false);
+		return LensUtil.evaluateBoolean(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
+				task, result);
 	}
 
 	public String evaluateString(ExpressionType expressionBean, ExpressionVariables expressionVariables,
 			String contextDescription, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
-		return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, task, result,
-				DOMUtil.XSD_STRING, null);
-	}
-
-	public <T> T evaluateExpressionSingle(ExpressionType expressionBean, ExpressionVariables expressionVariables,
-			String contextDescription, Task task, OperationResult result, QName typeName, T defaultValue)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
-		PrismPropertyDefinition<T> resultDef = new PrismPropertyDefinitionImpl<>(
-				new QName(SchemaConstants.NS_C, "result"), typeName, prismContext);
-		Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
-				expressionFactory.makeExpression(expressionBean, resultDef, contextDescription, task, result);
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, expressionVariables, contextDescription, task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple = ModelExpressionThreadLocalHolder
-				.evaluateExpressionInContext(expression, context, task, result);
-		List<T> results = exprResultTriple.getZeroSet().stream()
-				.map(ppv -> (T) ppv.getRealValue())
-				.collect(Collectors.toList());
-		return getSingleValue(results, defaultValue, contextDescription);
+		return LensUtil.evaluateString(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
+				task, result);
 	}
 
 	public <F extends FocusType> LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,

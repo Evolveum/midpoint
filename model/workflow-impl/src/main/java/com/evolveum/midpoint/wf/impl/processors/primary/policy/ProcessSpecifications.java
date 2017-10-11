@@ -50,7 +50,7 @@ public class ProcessSpecifications {
 	static ProcessSpecifications createFromRules(List<EvaluatedPolicyRule> rules) {
 		LinkedHashMap<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> collected = new LinkedHashMap<>();
 		for (EvaluatedPolicyRule rule : rules) {
-			for (ApprovalPolicyActionType approvalAction : rule.getActions().getApproval()) {
+			for (ApprovalPolicyActionType approvalAction : rule.getEnabledActions(ApprovalPolicyActionType.class)) {
 				WfProcessSpecificationType spec = approvalAction.getProcessSpecification();
 				collected.computeIfAbsent(spec, s -> new ArrayList<>()).add(new ImmutablePair<>(approvalAction, rule));
 			}
