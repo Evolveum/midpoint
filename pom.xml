@@ -21,7 +21,7 @@
 	<name>midPoint Project</name>
 	<groupId>com.evolveum.midpoint</groupId>
 	<artifactId>midpoint</artifactId>
-	<version>3.6.1</version>
+	<version>3.6.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<description>Utility module to compile all of the maven based midPoint projects.</description>
 	<organization>

@@ -24,7 +24,7 @@
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.6.1</version>
+        <version>3.6.2-SNAPSHOT</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -120,7 +120,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>3.6.1</version>
+            <version>3.6.2-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -219,7 +219,7 @@
                     <dependency>
                         <groupId>com.evolveum.midpoint.tools</groupId>
                         <artifactId>xjc-plugin</artifactId>
-                        <version>3.6.1</version>
+                        <version>3.6.2-SNAPSHOT</version>
                     </dependency>
                 </dependencies>
             </plugin>
