@@ -16,9 +16,13 @@
 
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.util.AssignmentPathUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.ShortDumpable;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -73,4 +77,10 @@ public interface AssignmentPath extends DebugDumpable, ShortDumpable {
 	AssignmentPathType toAssignmentPathType(boolean includeAssignmentsContent);
 
 	ExtensionType collectExtensions(int startAt) throws SchemaException;
+
+	static ExtensionType collectExtensions(AssignmentPathType path, int startAt, ModelService modelService, Task task, OperationResult result)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException {
+		return AssignmentPathUtil.collectExtensions(path, startAt, modelService, task, result);
+	}
 }

@@ -17,11 +17,12 @@
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/delivery/ext"
-	  oid="d3d029f2-09b4-4b32-9abb-fe4d98b9f4fe">
-	<name>k10-tpu-10</name>
+	  oid="24d185b8-024e-4161-a93d-4df806c561d2">
+	<name>k10-cc-1900-rem-administrator</name>
 	<extension>
-		<ext:attribute1>extension/tpu</ext:attribute1>
-		<ext:value1>10</ext:value1>
+		<ext:attribute1>costCenter</ext:attribute1>
+		<ext:value1>1900</ext:value1>
+		<ext:remediatorRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/> <!-- administrator -->
 	</extension>
 	<assignment>
 		<targetRef oid="db0eadd1-3e2b-4dad-801e-80700f2d11e5" type="RoleType"/> <!-- k10 -->

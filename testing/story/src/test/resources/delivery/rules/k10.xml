@@ -82,8 +82,17 @@
 							<approverExpression>
 								<script>
 									<code>
+										import com.evolveum.midpoint.schema.util.*
 										log.info('### workflow context:\n{}', workflowContext.asPrismContainerValue().debugDump())
-										'00000000-0000-0000-0000-000000000002'
+										def rules = WfContextUtil.getRulesForStage(workflowContext, stageDefinition.number)
+										log.info('rules found: {}', rules)
+										def approvers = rules.collectMany { rule ->
+											def ext = midpoint.collectExtensions(rule.assignmentPath, 1)
+											def remediatorRef = basic.getPropertyValue(ext, "remediatorRef")
+											remediatorRef != null ? [remediatorRef.clone()] : []
+										}
+										log.info('approvers found: {}', approvers)
+										approvers
 									</code>
 								</script>
 							</approverExpression>

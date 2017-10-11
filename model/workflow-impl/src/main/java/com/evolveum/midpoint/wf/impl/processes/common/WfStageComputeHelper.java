@@ -138,10 +138,15 @@ public class WfStageComputeHelper {
 			Task opTask, OperationResult opResult) {
 		ComputationResult rv = new ComputationResult();
 		ExpressionVariables expressionVariables = null;
+		VariablesProvider enhancedVariablesProvider = () -> {
+			ExpressionVariables variables = variablesProvider.get();
+			variables.addVariableDefinition(ExpressionConstants.VAR_STAGE_DEFINITION, stageDef);
+			return variables;
+		};
 
 		if (stageDef.getAutomaticallyApproved() != null) {
 			try {
-				expressionVariables = variablesProvider.get();
+				expressionVariables = enhancedVariablesProvider.get();
 				boolean preApproved = evaluationHelper.evaluateBooleanExpression(stageDef.getAutomaticallyApproved(), expressionVariables,
 						"automatic approval expression", opTask, opResult);
 				LOGGER.trace("Pre-approved = {} for stage {}", preApproved, stageDef);
@@ -157,7 +162,7 @@ public class WfStageComputeHelper {
 		if (rv.predeterminedOutcome == null && stageDef.getAutomaticallyCompleted() != null) {
 			try {
 				if (expressionVariables == null) {
-					expressionVariables = variablesProvider.get();
+					expressionVariables = enhancedVariablesProvider.get();
 				}
 				String outcome = evaluateAutoCompleteExpression(stageDef, expressionVariables, opTask, opResult);
 				if (outcome != null) {
@@ -177,7 +182,7 @@ public class WfStageComputeHelper {
 			if (!stageDef.getApproverExpression().isEmpty()) {
 				try {
 					if (expressionVariables == null) {
-						expressionVariables = variablesProvider.get();
+						expressionVariables = enhancedVariablesProvider.get();
 					}
 					rv.approverRefs.addAll(evaluationHelper.evaluateRefExpressions(stageDef.getApproverExpression(), expressionVariables,
 							"resolving approver expression", opTask, opResult));

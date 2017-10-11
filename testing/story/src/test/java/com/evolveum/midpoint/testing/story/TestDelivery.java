@@ -80,11 +80,15 @@ public class TestDelivery extends AbstractStoryTest {
 	private static String ruleK10_tpu_10_oid;
 	private static final File RULE_K10_TPU_10_REM_ELAINE_FILE = new File(RULES_DIR, "k10-tpu-10-rem-elaine.xml");
 	private static String ruleK10_tpu_10_rem_elaine_oid;
+	private static final File RULE_K10_CC_1900_REM_ADMINISTRATOR_FILE = new File(RULES_DIR, "k10-cc-1900-rem-administrator.xml");
+	private static String ruleK10_cc_1900_rem_administrator_oid;
 
 	private static final File ROLE_IT_1_FILE = new File(ROLES_DIR, "role-it-1.xml");
 	private static String roleIt1Oid;
 	private static final File ROLE_IT_2_FILE = new File(ROLES_DIR, "role-it-2.xml");
 	private static String roleIt2Oid;
+	private static final File ROLE_IT_3_FILE = new File(ROLES_DIR, "role-it-3.xml");
+	private static String roleIt3Oid;
 
 	//
 //	private static final File ROLE_A_TEST_1 = new File(ROLES_SPECIFIC_DIR, "a-test-1.xml");
@@ -162,8 +166,10 @@ public class TestDelivery extends AbstractStoryTest {
 		ruleK10_oid = addAndRecompute(RULE_K10_FILE, initTask, initResult);
 		ruleK10_tpu_10_oid = addAndRecompute(RULE_K10_TPU_10_FILE, initTask, initResult);
 		ruleK10_tpu_10_rem_elaine_oid = addAndRecompute(RULE_K10_TPU_10_REM_ELAINE_FILE, initTask, initResult);
+		ruleK10_cc_1900_rem_administrator_oid = addAndRecompute(RULE_K10_CC_1900_REM_ADMINISTRATOR_FILE, initTask, initResult);
 		roleIt1Oid = addAndRecompute(ROLE_IT_1_FILE, initTask, initResult);
 		roleIt2Oid = addAndRecompute(ROLE_IT_2_FILE, initTask, initResult);
+		roleIt3Oid = addAndRecompute(ROLE_IT_3_FILE, initTask, initResult);
 
 //		metaroleApprovalRoleApproversFirstOid = repoAddObjectFromFile(METAROLE_APPROVAL_ROLE_APPROVERS_FIRST_FILE, initResult).getOid();
 //		metaroleApprovalRoleApproversFormOid = repoAddObjectFromFile(METAROLE_APPROVAL_ROLE_APPROVERS_FORM_FILE, initResult).getOid();
@@ -252,6 +258,38 @@ public class TestDelivery extends AbstractStoryTest {
 
 		waitForTaskCloseOrSuspend(rootTask.getOid());
 		assertAssignedRole(userBobOid, roleIt1Oid, task, result);
+	}
+
+	@Test
+	public void test130Assign_IT_3() throws Exception {
+		final String TEST_NAME = "test130Assign_IT_3";
+		TestUtil.displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TestDelivery.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		assignRole(userCarlaOid, roleIt3Oid, task, result);         // two approval constraints
+
+		WorkItemType workItem = getWorkItem(task, result);
+		display("work item", workItem);
+		WfContextType workflowContext = WfContextUtil.getWorkflowContext(workItem);
+		display("workflow context", workflowContext);
+
+		ObjectReferenceType ref = task.getWorkflowContext().getRootTaskRef();
+		Task rootTask = taskManager.getTask(ref.getOid(), result);
+		display("root task", rootTask);
+
+		workflowService.completeWorkItem(workItem.getExternalId(), true, null, null, result);
+
+		WorkItemType workItem2 = getWorkItem(task, result);
+		display("work item2", workItem2);
+		WfContextType workflowContext2 = WfContextUtil.getWorkflowContext(workItem2);
+		display("workflow context2", workflowContext2);
+
+		workflowService.completeWorkItem(workItem2.getExternalId(), true, null, null, result);
+
+		waitForTaskCloseOrSuspend(rootTask.getOid());
+		assertAssignedRole(userCarlaOid, roleIt3Oid, task, result);
 	}
 
 //	@Test
