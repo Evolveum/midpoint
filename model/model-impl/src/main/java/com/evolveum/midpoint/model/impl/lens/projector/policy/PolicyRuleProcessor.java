@@ -325,7 +325,7 @@ public class PolicyRuleProcessor {
 			ctx.triggerRule(triggers);
 		}
 		if (ctx.policyRule.isTriggered()) {
-			((EvaluatedPolicyRuleImpl) ctx.policyRule).computeEnabledActions(ctx, ctx.getObject(), expressionFactory, ctx.task, result);
+			((EvaluatedPolicyRuleImpl) ctx.policyRule).computeEnabledActions(ctx, ctx.getObject(), expressionFactory, prismContext, ctx.task, result);
 			if (ctx.policyRule.containsEnabledAction(RecordPolicyActionType.class)) {
 				ctx.record();
 			}

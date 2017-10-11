@@ -22,12 +22,12 @@ import com.evolveum.midpoint.model.test.DummyTransport;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -227,6 +227,31 @@ public class TestDelivery extends AbstractStoryTest {
 		assertSuccess(result);
 
 		assertAssignedRole(userBarkeeperOid, roleIt2Oid, task, result);
+	}
+
+	@Test
+	public void test120Assign_IT_1() throws Exception {
+		final String TEST_NAME = "test120Assign_IT_1";
+		TestUtil.displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TestDelivery.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		assignRole(userBobOid, roleIt1Oid, task, result);         // approval constraint
+
+		WorkItemType workItem = getWorkItem(task, result);
+		display("work item", workItem);
+		WfContextType workflowContext = WfContextUtil.getWorkflowContext(workItem);
+		display("workflow context", workflowContext);
+
+		ObjectReferenceType ref = task.getWorkflowContext().getRootTaskRef();
+		Task rootTask = taskManager.getTask(ref.getOid(), result);
+		display("root task", rootTask);
+
+		workflowService.completeWorkItem(workItem.getExternalId(), true, null, null, result);
+
+		waitForTaskCloseOrSuspend(rootTask.getOid());
+		assertAssignedRole(userBobOid, roleIt1Oid, task, result);
 	}
 
 //	@Test

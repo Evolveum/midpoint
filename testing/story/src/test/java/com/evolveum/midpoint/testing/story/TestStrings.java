@@ -1178,60 +1178,6 @@ public class TestStrings extends AbstractStoryTest {
 
 	//endregion
 
-
-
-
-
-
-
-
-	//region TODO deduplicate with AbstractWfTestPolicy
-
-	private void displayWorkItems(String title, List<WorkItemType> workItems) {
-		workItems.forEach(wi -> display(title, wi));
-	}
-
-	protected WorkItemType getWorkItem(Task task, OperationResult result) throws Exception {
-		SearchResultList<WorkItemType> itemsAll = getWorkItems(task, result);
-		if (itemsAll.size() != 1) {
-			System.out.println("Unexpected # of work items: " + itemsAll.size());
-			for (WorkItemType workItem : itemsAll) {
-				System.out.println(PrismUtil.serializeQuietly(prismContext, workItem));
-			}
-		}
-		assertEquals("Wrong # of total work items", 1, itemsAll.size());
-		return itemsAll.get(0);
-	}
-
-	private SearchResultList<WorkItemType> getWorkItems(Task task, OperationResult result) throws Exception {
-		return modelService.searchContainers(WorkItemType.class, null, null, task, result);
-	}
-
-	protected ObjectReferenceType ort(String oid) {
-		return ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER);
-	}
-
-	protected PrismReferenceValue prv(String oid) {
-		return ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER).asReferenceValue();
-	}
-
-	protected PrismReference ref(List<ObjectReferenceType> orts) {
-		PrismReference rv = new PrismReference(new QName("dummy"));
-		orts.forEach(ort -> rv.add(ort.asReferenceValue().clone()));
-		return rv;
-	}
-
-	protected PrismReference ref(ObjectReferenceType ort) {
-		return ref(Collections.singletonList(ort));
-	}
-
-	protected Map<String, WorkItemType> sortByOriginalAssignee(Collection<WorkItemType> workItems) {
-		Map<String, WorkItemType> rv = new HashMap<>();
-		workItems.forEach(wi -> rv.put(wi.getOriginalAssigneeRef().getOid(), wi));
-		return rv;
-	}
-	//endregion
-
 	private void assertMessage(Message message, String recipient, String subject, String... texts) {
 		assertNotNull("No message for " + recipient, message);
 		assertEquals("Wrong # of recipients", 1, message.getTo().size());

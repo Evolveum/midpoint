@@ -57,7 +57,10 @@
 						<script>
 							<code>
 								def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(1)
-								basic.getPropertyValue(extension, "remediatorRef") == null
+								log.info('### enforcement:Extension:\n{}', extension?.asPrismContainerValue().debugDump())
+								def remediatorRef = basic.getPropertyValue(extension, "remediatorRef")
+								log.info('### enforcement:remediatorRef = {}', remediatorRef)
+								remediatorRef == null
 							</code>
 						</script>
 					</condition>
@@ -67,7 +70,10 @@
 						<script>
 							<code>
 								def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(1)
-								basic.getPropertyValue(extension, "remediatorRef") != null
+								log.info('### approval:Extension:\n{}', extension?.asPrismContainerValue().debugDump())
+								def remediatorRef = basic.getPropertyValue(extension, "remediatorRef")
+								log.info('### approval:remediatorRef = {}', remediatorRef)
+								remediatorRef != null
 							</code>
 						</script>
 					</condition>
@@ -76,7 +82,8 @@
 							<approverExpression>
 								<script>
 									<code>
-
+										log.info('### workflow context:\n{}', workflowContext.asPrismContainerValue().debugDump())
+										'00000000-0000-0000-0000-000000000002'
 									</code>
 								</script>
 							</approverExpression>
