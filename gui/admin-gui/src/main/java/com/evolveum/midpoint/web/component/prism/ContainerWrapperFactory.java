@@ -288,8 +288,9 @@ public class ContainerWrapperFactory {
 		PrismContainer<C> container = containerValue.findContainer(def.getName());
 
 		// TODO: hack, temporary because of recurcive dependecies
-		if (PolicyConstraintsType.COMPLEX_TYPE.equals(def.getTypeName())) {
-			return createPolicyConstraintsContainer(container, def, cWrapper);
+		if (PolicyConstraintsType.F_AND.equals(def.getName()) || PolicyConstraintsType.F_OR.equals(def.getName()) ||
+				PolicyConstraintsType.F_NOT.equals(def.getName()) || PolicyConstraintsType.F_TRANSITION.equals(def.getName())) {
+			return null;
 		}
 		
 		if (container != null && onlyEmpty) {
@@ -309,16 +310,7 @@ public class ContainerWrapperFactory {
 		}
 		return createContainerWrapper(container, cWrapper.getStatus() == ValueStatus.ADDED ? ContainerStatus.ADDING: ContainerStatus.MODIFYING, container.getPath());
 	}
-	
-	private <C extends Containerable> ContainerWrapper<C> createPolicyConstraintsContainer(PrismContainer<C> policyConstraintsContainer, PrismContainerDefinition<C> def, ContainerValueWrapper<C> parentContainer) {
-		if (policyConstraintsContainer != null) {
-			return createContainerWrapper(policyConstraintsContainer, ContainerStatus.MODIFYING, policyConstraintsContainer.getPath());
-		}
-		
-		return null;
-		
-	}
-	
+
 	private <C extends Containerable> boolean isItemReadOnly(ItemDefinition def, ContainerValueWrapper<C> cWrapper) {
 		if (cWrapper == null || cWrapper.getStatus() == ValueStatus.NOT_CHANGED) {
 
@@ -582,6 +574,9 @@ public class ContainerWrapperFactory {
      */
     @Deprecated
     private boolean skipProperty(ItemDefinition<? extends Item> def) {
+    	if (def == null){
+    		return true;
+		}
         final List<QName> names = new ArrayList<>();
         names.add(PasswordType.F_FAILED_LOGINS);
         names.add(PasswordType.F_LAST_FAILED_LOGIN);

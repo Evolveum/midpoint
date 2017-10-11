@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -424,7 +426,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                     shadow.asObjectable().getResource().asPrismObject(),
                     AuthorizationPhaseType.REQUEST);
 
-            if (rOCDef != null && rOCDef.getPasswordOutbound() != null ){
+            if (rOCDef != null && !CollectionUtils.isEmpty(rOCDef.getPasswordOutbound())){
                 return true;
             }
         } catch (SchemaException ex) {

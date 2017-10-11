@@ -907,24 +907,27 @@ public final class WebComponentUtil {
 	
 	public static <C extends Containerable> String getDisplayName(PrismContainerValue<C> prismContainerValue) {
 		if (prismContainerValue == null || prismContainerValue.isEmpty()) {
-			return "prismContainerValue.new";
+			return "ContainerPanel.containerProperties";
 		}
-		
+
 		C containerable = prismContainerValue.asContainerable();
-		
 		if (containerable instanceof AssignmentType && ((AssignmentType) containerable).getTargetRef() != null) {
 			ObjectReferenceType assignemntTargetRef = ((AssignmentType) containerable).getTargetRef();
-			return getName(assignemntTargetRef) + " - " + assignemntTargetRef.getRelation();
-		} 
-		
+			return getName(assignemntTargetRef) + " - " + assignemntTargetRef.getRelation().getLocalPart();
+		}
+
 		if (containerable instanceof ExclusionPolicyConstraintType){
-			ExclusionPolicyConstraintType exclusionContraint = (ExclusionPolicyConstraintType) containerable;
-			String displayName = exclusionContraint.getName() + "-" + getName(exclusionContraint.getTargetRef());
+			ExclusionPolicyConstraintType exclusionConstraint = (ExclusionPolicyConstraintType) containerable;
+			String displayName = (exclusionConstraint.getName() != null ? exclusionConstraint.getName() + "-" : "")
+					+ StringUtils.defaultIfEmpty(getName(exclusionConstraint.getTargetRef()), "");
 			return StringUtils.isNotEmpty(displayName) ? displayName : "Not defined exclusion name";
 		}
-		
-		return "Impelement in WebComponentUtil.getName(PrismContainerValue<C> prismContainerValue";
-			
+		if (containerable instanceof AbstractPolicyConstraintType){
+			AbstractPolicyConstraintType constraint = (AbstractPolicyConstraintType) containerable;
+			String displayName = constraint.getName() + "-" + constraint.getDescription();
+			return StringUtils.isNotEmpty(displayName) ? displayName : "ContainerPanel.containerProperties";
+		}
+		return "ContainerPanel.containerProperties";
 	}
 
 	public static String getDisplayNameOrName(PrismObject object) {
