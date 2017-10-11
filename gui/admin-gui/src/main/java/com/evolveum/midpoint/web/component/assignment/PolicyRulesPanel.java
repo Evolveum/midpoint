@@ -103,8 +103,8 @@ public class PolicyRulesPanel extends AssignmentPanel {
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
             	PolicyRuleType policyRuleType = rowModel.getObject().getContainerValue().getValue().getPolicyRule();
-            	String action = PolicyRuleTypeUtil.toShortString(policyRuleType.getPolicyActions());
-                cellItem.add(new MultiLineLabel(componentId, Model.of(action != null && !action.equals("null") ? action : "")));
+//            	String action = PolicyRuleTypeUtil.toShortString(policyRuleType.getPolicyActions());
+//                cellItem.add(new MultiLineLabel(componentId, Model.of(action != null && !action.equals("null") ? action : "")));
             }
 
         });
