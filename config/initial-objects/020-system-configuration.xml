@@ -22,7 +22,6 @@
     <!--         <globalAccountSynchronizationSettings> -->
     <!--         <assignmentPolicyEnforcement>relative</assignmentPolicyEnforcement> -->
     <!--         </globalAccountSynchronizationSettings> -->
-    <globalPasswordPolicyRef oid="00000000-0000-0000-0000-000000000003" type="c:ValuePolicyType"/>
     <globalSecurityPolicyRef oid="00000000-0000-0000-0000-000000000120"/>
     <logging>
         <classLogger>

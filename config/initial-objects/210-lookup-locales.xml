@@ -41,6 +41,10 @@
 		<label>Español</label>
 	</row>
 	<row>
+		<key>fi</key>
+		<label>Suomi</label>
+	</row>
+	<row>
 		<key>hu</key>
 		<label>Magyar</label>
 	</row>
@@ -63,6 +67,10 @@
 	<row>
 		<key>tr</key>
 		<label>Türkçe</label>
+	</row>
+	<row>
+		<key>zh_CN</key>
+		<label>中文</label>
 	</row>
 
 </lookupTable>
