@@ -30,9 +30,7 @@ import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.menu.*;
-import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAll;
-import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAllocatedToMe;
-import com.evolveum.midpoint.web.page.admin.cases.PageCases;
+import com.evolveum.midpoint.web.page.admin.cases.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.reports.*;
 import com.evolveum.midpoint.web.page.self.*;
@@ -148,7 +146,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequest
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsAll;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsAllocatedToMe;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsClaimable;
-import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItems;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
@@ -262,6 +259,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	@SpringBean(name = "modelController")
 	private AccessCertificationService certficationService;
+
+	@SpringBean(name = "modelController")
+	private CaseManagementService caseManagementService;
 
 	@SpringBean(name = "accessDecisionManager")
 	private SecurityEnforcer securityEnforcer;
@@ -460,6 +460,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	public AccessCertificationService getCertificationService() {
 		return certficationService;
+	}
+
+	public CaseManagementService getCaseManagementService() {
+		return caseManagementService;
 	}
 
 	@Override
@@ -1288,7 +1292,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			submenu.add(menu);
 			menu = new MenuItem(createStringResource("PageAdmin.menu.top.caseWorkItems.listAll"), PageCaseWorkItemsAll.class);
 			submenu.add(menu);
-			//createFocusPageViewMenu(submenu, "PageAdmin.menu.top.cases.view", PageCase.class);
+			createFocusPageViewMenu(submenu, "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
 		}
 
 		return item;

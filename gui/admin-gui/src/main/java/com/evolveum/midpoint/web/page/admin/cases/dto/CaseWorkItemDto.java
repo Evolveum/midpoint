@@ -23,12 +23,18 @@ import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * DTO representing a particular CaseWorkItem.
@@ -42,8 +48,11 @@ public class CaseWorkItemDto extends Selectable {
     public static final String F_NAME = "name";
     public static final String F_OBJECT_NAME = "objectName";
     public static final String F_ASSIGNEES = "assignees";
+    public static final String F_ORIGINAL_ASSIGNEE = "originalAssignee";
     public static final String F_DESCRIPTION = "description";
+    public static final String F_CLOSE_TIMESTAMP = "closeTimestamp";
     public static final String F_COMMENT = "comment";
+    public static final String F_OUTCOME = "outcome";
 
     @NotNull private final CaseWorkItemType workItem;
 
@@ -89,6 +98,10 @@ public class CaseWorkItemDto extends Selectable {
         return WorkItemTypeUtil.getComment(workItem);
     }
 
+    public String getOutcome() {
+        return WorkItemTypeUtil.getOutcome(workItem);
+    }
+
     public void setComment(String value) {
         if (workItem.getOutput() == null) {
             workItem.beginOutput().comment(value);
@@ -105,11 +118,24 @@ public class CaseWorkItemDto extends Selectable {
         return WebComponentUtil.getReferencedObjectNames(workItem.getAssigneeRef(), false);
     }
 
+    public String getOriginalAssignee() {
+//        return WebComponentUtil.getReferencedObjectNames(Collections.singletonList(workItem.getOriginalAssigneeRef()), false);
+        return WebComponentUtil.getName(workItem.getOriginalAssigneeRef());
+    }
+
     public String getName() {
         return workItem.getName();
     }
 
+    public AbstractWorkItemOutputType getOutput() {
+        return workItem.getOutput();
+    }
+
     public String getDescription() {
         return _case.getDescription();
+    }
+
+    public XMLGregorianCalendar getCloseTimestamp() {
+        return workItem.getCloseTimestamp();
     }
 }
