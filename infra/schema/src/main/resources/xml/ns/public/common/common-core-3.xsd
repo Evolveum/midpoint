@@ -9158,6 +9158,20 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="dataProtection" type="tns:DataProtectionType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Specifies the GDPR related attributes
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+                                <a:displayName>AbstractRoleType.dataProtection</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -9228,6 +9242,122 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+    
+     <xsd:complexType name="DataProtectionType">
+     	<xsd:annotation>
+     		<xsd:documentation>
+     			<p>
+     				Container which specify legal content for the role related to the GDPR.
+     				E.g which law enforce the presence of the attribute, who is a recipient 
+     				of the data, to which purposes are data used etc.
+     			</p>
+     		</xsd:documentation>
+     		<xsd:appinfo>
+     			<a:container/>
+     		</xsd:appinfo>
+     	</xsd:annotation>
+     	<xsd:sequence>
+     		<xsd:element name="controllerName" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					Name of the company, organization which precess the data
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.controllerName</a:displayName>
+		               	<a:displayOrder>100</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="controllerContact" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					Contact information about company, organization which precess the data
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.controllerContact</a:displayName>
+		               	<a:displayOrder>110</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="dpoContact" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					Contact information for data privacy oficier
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.dpoContact</a:displayName>
+		               	<a:displayOrder>120</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="processingPurposesDescription" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					Purposes for processing, e.g marketing, contract,...
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.processingPurposesDescription</a:displayName>
+		               	<a:displayOrder>130</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="legitimateInterestDescription" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					Law which enforce it.
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.legitimateInterestDescription</a:displayName>
+		               	<a:displayOrder>140</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="dataRecipientDescription" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					Contains information about recipient of the data.
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.dataRecipientDescription</a:displayName>
+		               	<a:displayOrder>150</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="periodOfStorageDescription" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					How long we need to store the data (e.g after the employee left the organization)
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.periodOfStorageDescription</a:displayName>
+		               	<a:displayOrder>160</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="automatedDecisionMakingDescription" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.automatedDecisionMakingDescription</a:displayName>
+		               	<a:displayOrder>170</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="securityMeasuresDescription" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					Compute the risk and security issues.
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.securityMeasuresDescription</a:displayName>
+		               	<a:displayOrder>180</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     	</xsd:sequence>
+     </xsd:complexType>
 
     <xsd:complexType name="AuthorizationType">
         <xsd:annotation>

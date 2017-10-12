@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
@@ -89,7 +90,7 @@ public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabP
 	}
 	
 	private List<ItemPath> getVisibleContainers() {
-		return Arrays.asList(ItemPath.EMPTY_PATH, SchemaConstants.PATH_ACTIVATION, SchemaConstants.PATH_PASSWORD);
+		return Arrays.asList(ItemPath.EMPTY_PATH, new ItemPath(AbstractRoleType.F_DATA_PROTECTION), SchemaConstants.PATH_ACTIVATION, SchemaConstants.PATH_PASSWORD);
 	}
 	
 
