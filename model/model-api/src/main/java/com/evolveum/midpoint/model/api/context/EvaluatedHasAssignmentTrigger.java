@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 public class EvaluatedHasAssignmentTrigger extends EvaluatedPolicyRuleTrigger<HasAssignmentPolicyConstraintType> {
 
 	public EvaluatedHasAssignmentTrigger(@NotNull PolicyConstraintKindType kind, @NotNull HasAssignmentPolicyConstraintType constraint,
-			LocalizableMessage message) {
-		super(kind, constraint, message);
+			LocalizableMessage message, LocalizableMessage shortMessage) {
+		super(kind, constraint, message, shortMessage);
 	}
 
 	@Override

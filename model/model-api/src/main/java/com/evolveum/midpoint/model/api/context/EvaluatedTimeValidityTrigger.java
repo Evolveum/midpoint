@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 public class EvaluatedTimeValidityTrigger extends EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> {
 
 	public EvaluatedTimeValidityTrigger(@NotNull PolicyConstraintKindType kind, @NotNull TimeValidityPolicyConstraintType constraint,
-			LocalizableMessage message) {
-		super(kind, constraint, message);
+			LocalizableMessage message, LocalizableMessage shortMessage) {
+		super(kind, constraint, message, shortMessage);
 	}
 
 	@Override

@@ -57,6 +57,7 @@ public class EvaluatedTriggerGroupDto implements Serializable {
 				EvaluatedTriggerDto.create(group.getTriggers(), trigger, highlighted, triggersAlreadyShown);
 			}
 		}
+		EvaluatedTriggerDto.sort(group.getTriggers());
 		return group;
 	}
 }

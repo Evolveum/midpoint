@@ -71,7 +71,10 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
 		if (sourceRules.isEmpty()) {
 			return null;
 		}
-		return new EvaluatedSituationTrigger(situationConstraint, createMessage(sourceRules, constraint.getValue(), rctx, result), sourceRules);
+		return new EvaluatedSituationTrigger(situationConstraint,
+				createMessage(sourceRules, constraint.getValue(), rctx, result),
+				createShortMessage(sourceRules, constraint.getValue(), rctx, result),
+				sourceRules);
 	}
 
 	private LocalizableMessage createMessage(Collection<EvaluatedPolicyRule> sourceRules,
@@ -90,6 +93,24 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
 					.build();
 		}
 		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
+	}
+
+	private LocalizableMessage createShortMessage(Collection<EvaluatedPolicyRule> sourceRules,
+			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		// determine if there's a single message that could be retrieved
+		List<TreeNode<LocalizableMessage>> messageTrees = sourceRules.stream()
+				.flatMap(r -> r.extractShortMessages().stream())
+				.collect(Collectors.toList());
+		LocalizableMessage builtInMessage;
+		if (messageTrees.size() == 1) {
+			builtInMessage = messageTrees.get(0).getUserObject();
+		} else {
+			builtInMessage = new LocalizableMessageBuilder()
+					.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
+					.build();
+		}
+		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
 	}
 
 

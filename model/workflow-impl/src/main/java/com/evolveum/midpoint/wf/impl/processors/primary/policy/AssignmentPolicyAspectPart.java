@@ -37,6 +37,7 @@ import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -49,15 +50,14 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationIn
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
-import org.apache.velocity.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.wf.impl.util.MiscDataUtil.getFocusObjectName;
 import static com.evolveum.midpoint.wf.impl.util.MiscDataUtil.getFocusObjectOid;
 import static java.util.Collections.singleton;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
@@ -263,23 +263,15 @@ public class AssignmentPolicyAspectPart {
 			PlusMinusZero assignmentMode, ModelContext<?> modelContext,
 			PrismObject<UserType> requester, OperationResult result) throws SchemaException {
 
-		String objectName = getFocusObjectName(modelContext);
-
 		@SuppressWarnings("unchecked")
 		PrismObject<? extends ObjectType> target = (PrismObject<? extends ObjectType>) evaluatedAssignment.getTarget();
 		Validate.notNull(target, "assignment target is null");
 
-		String targetName = target.getName() != null ? target.getName().getOrig() : "(unnamed)";
-		String operation;
-		switch (assignmentMode) {
-			case PLUS: operation = "assigning " + targetName + " to " + objectName; break;
-			case MINUS: operation = "unassigning " + targetName + " from " + objectName; break;
-			default: operation = "modifying assignment of " + targetName + " on " + objectName; break;
-		}
-		String approvalTaskName = "Approve " + operation;
+		LocalizableMessage processName = createProcessName(builderResult);
+		String processNameEnglish = null;
 
 		PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> instruction =
-				PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(main.getChangeProcessor(), approvalTaskName,
+				PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(main.getChangeProcessor(), processNameEnglish,
 						builderResult.schemaType, builderResult.attachedRules);
 
 		instruction.prepareCommonAttributes(main, modelContext, requester);
@@ -290,12 +282,35 @@ public class AssignmentPolicyAspectPart {
 		instruction.setTargetRef(createObjectRef(target), result);
 
 		String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
-		instruction.setTaskName("Approval " + andExecuting + "of " + operation);
-		instruction.setProcessInstanceName(StringUtils.capitalizeFirstLetter(operation));
+		instruction.setTaskName("Approval " + andExecuting + "of: " + processNameEnglish);
+		instruction.setProcessInstanceName(processNameEnglish);
+		instruction.setLocalizableProcessInstanceName(processName);
 
 		itemApprovalProcessInterface.prepareStartInstruction(instruction);
 
 		return instruction;
+	}
+
+	private LocalizableMessage createProcessName(ApprovalSchemaBuilder.Result schemaBuilderResult) {
+		List<EvaluatedPolicyRuleTriggerType> triggers = new ArrayList<>();
+		for (SchemaAttachedPolicyRuleType entry : schemaBuilderResult.attachedRules.getEntry()) {
+			for (EvaluatedPolicyRuleTriggerType trigger : entry.getRule().getTrigger()) {
+				triggers.add(trigger);
+			}
+		}
+
+		return null;
+
+		//		String objectName = getFocusObjectName(modelContext);
+//
+//		String targetName = target.getName() != null ? target.getName().getOrig() : "(unnamed)";
+//		String operation;
+//		switch (assignmentMode) {
+//			case PLUS: operation = "assigning " + targetName + " to " + objectName; break;
+//			case MINUS: operation = "unassigning " + targetName + " from " + objectName; break;
+//			default: operation = "modifying assignment of " + targetName + " on " + objectName; break;
+//		}
+//		String approvalTaskName = "Approve " + operation;
 	}
 
 	// creates an ObjectDelta that will be executed after successful approval of the given assignment

@@ -349,6 +349,8 @@ public class PolicyRuleTypeUtil {
 					&& Objects.equals(st1.getConstraintKind(), st2.getConstraintKind())
 					&& Objects.equals(st1.getConstraint(), st2.getConstraint())
 					&& Objects.equals(st1.getMessage(), st2.getMessage())
+					&& Objects.equals(st1.getShortMessage(), st2.getShortMessage())
+					&& Objects.equals(st1.getPresentationOrder(), st2.getPresentationOrder())
 					&& Objects.equals(st1.getAssignmentPath(), st2.getAssignmentPath())
 					&& Objects.equals(st1.getDirectOwnerRef(), st2.getDirectOwnerRef())
 					&& Objects.equals(st1.getDirectOwnerDisplayName(), st2.getDirectOwnerDisplayName())

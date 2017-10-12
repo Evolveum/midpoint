@@ -149,7 +149,8 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 		ObjectType objectB = getConflictingObject(pathB, targetB.getTarget());
 
 		LocalizableMessage message = createMessage(infoA, infoB, constraint, ctx, result);
-		return new EvaluatedExclusionTrigger(constraint, message, assignmentB, objectA, objectB, pathA, pathB);
+		LocalizableMessage shortMessage = createShortMessage(infoA, infoB, constraint, ctx, result);
+		return new EvaluatedExclusionTrigger(constraint, message, shortMessage, assignmentB, objectA, objectB, pathA, pathB);
 	}
 
 	@NotNull
@@ -161,6 +162,17 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 				.args(infoA, infoB)
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
+	}
+
+	@NotNull
+	private <F extends FocusType> LocalizableMessage createShortMessage(String infoA, String infoB,
+			ExclusionPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
+				.args(infoA, infoB)
+				.build();
+		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
 	}
 
 	private ObjectType getConflictingObject(AssignmentPath path, PrismObject<?> defaultObject) {
@@ -233,8 +245,11 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 		ObjectReferenceType targetRef = constraint.getTargetRef();
 		if (roleB.getOid().equals(targetRef.getOid())) {
 			EvaluatedExclusionTrigger trigger = new EvaluatedExclusionTrigger(
-					constraint, buildFallbackMessage("Violation of SoD policy: " + roleA.getTarget() + " excludes " + roleB.getTarget() +
-					", they cannot be assigned at the same time"), assignmentB,
+					constraint,
+					buildFallbackMessage("Violation of SoD policy: " + roleA.getTarget() + " excludes " + roleB.getTarget() +
+							", they cannot be assigned at the same time"),
+					buildFallbackMessage(roleA.getTarget().getName() + " excludes " + roleB.getTarget().getName()),
+					assignmentB,
 					roleA.getTarget() != null ? roleA.getTarget().asObjectable() : null,
 					roleB.getTarget() != null ? roleB.getTarget().asObjectable() : null,
 					roleA.getAssignmentPath(), roleB.getAssignmentPath());

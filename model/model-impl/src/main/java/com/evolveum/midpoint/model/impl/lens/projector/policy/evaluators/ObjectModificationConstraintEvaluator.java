@@ -38,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ModificationPolicyCo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
@@ -66,7 +67,9 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 
 		if (modificationConstraintMatches(constraint.getValue(), ctx)) {
 			LocalizableMessage message = createMessage(constraint, rctx, result);
-			return new EvaluatedModificationTrigger(PolicyConstraintKindType.OBJECT_MODIFICATION, constraint.getValue(), message);
+			LocalizableMessage shortMessage = createShortMessage(constraint, rctx, result);
+			return new EvaluatedModificationTrigger(PolicyConstraintKindType.OBJECT_MODIFICATION, constraint.getValue(), 
+					message, shortMessage);
 		} else {
 			return null;
 		}
@@ -75,19 +78,34 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 	private <F extends FocusType> LocalizableMessage createMessage(JAXBElement<ModificationPolicyConstraintType> constraint,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		String stateKey = createStateKey(rctx);
-		if (rctx.focusContext.isAdd()) {
-			stateKey += "Added";
-		} else if (rctx.focusContext.isDelete()) {
-			stateKey += "Deleted";
-		} else{
-			stateKey += "Modified";
-		}
+		String keyPostfix = createStateKey(rctx) + createOperationKey(rctx);
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
-				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + stateKey)
-				.args(evaluatorHelper.createObjectSpecification(rctx.focusContext.getObjectAny()))
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
+				.args(evaluatorHelper.createTechnicalObjectSpecification(rctx.focusContext.getObjectAny()))
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint.getValue(), rctx, builtInMessage, result);
+	}
+
+	private <F extends FocusType> LocalizableMessage createShortMessage(JAXBElement<ModificationPolicyConstraintType> constraint,
+			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		String keyPostfix = createStateKey(rctx) + createOperationKey(rctx);
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
+				.args(evaluatorHelper.createTechnicalObjectSpecification(rctx.focusContext.getObjectAny()))
+				.build();
+		return evaluatorHelper.createLocalizableShortMessage(constraint.getValue(), rctx, builtInMessage, result);
+	}
+
+	@NotNull
+	private <F extends FocusType> String createOperationKey(PolicyRuleEvaluationContext<F> rctx) {
+		if (rctx.focusContext.isAdd()) {
+			return "Added";
+		} else if (rctx.focusContext.isDelete()) {
+			return "Deleted";
+		} else {
+			return "Modified";
+		}
 	}
 
 	// TODO discriminate between primary and secondary changes (perhaps make it configurable)

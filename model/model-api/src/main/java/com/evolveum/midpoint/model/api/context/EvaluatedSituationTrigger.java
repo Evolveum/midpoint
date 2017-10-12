@@ -38,8 +38,8 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
 	@NotNull private final Collection<EvaluatedPolicyRule> sourceRules;
 
 	public EvaluatedSituationTrigger(@NotNull PolicySituationPolicyConstraintType constraint,
-			LocalizableMessage message, @NotNull Collection<EvaluatedPolicyRule> sourceRules) {
-		super(PolicyConstraintKindType.SITUATION, constraint, message);
+			LocalizableMessage message, LocalizableMessage shortMessage, @NotNull Collection<EvaluatedPolicyRule> sourceRules) {
+		super(PolicyConstraintKindType.SITUATION, constraint, message, shortMessage);
 		this.sourceRules = sourceRules;
 	}
 

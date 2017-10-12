@@ -303,30 +303,49 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return sb.toString();
 	}
 
-	@SuppressWarnings("unchecked")
+	enum MessageKind { NORMAL, SHORT, /*LONG*/ }
+
 	@Override
 	public List<TreeNode<LocalizableMessage>> extractMessages() {
+		return extractMessages(MessageKind.NORMAL);
+	}
+
+	@Override
+	public List<TreeNode<LocalizableMessage>> extractShortMessages() {
+		return extractMessages(MessageKind.SHORT);
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<TreeNode<LocalizableMessage>> extractMessages(MessageKind kind) {
 		TreeNode<LocalizableMessage> root = new TreeNode<>();
 		for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
-			createMessageTreeNode(root, trigger);
+			createMessageTreeNode(root, trigger, kind);
 		}
 		return root.getChildren();
 	}
 
-	private void createMessageTreeNode(TreeNode<LocalizableMessage> root, EvaluatedPolicyRuleTrigger<?> trigger) {
+	private void createMessageTreeNode(TreeNode<LocalizableMessage> root, EvaluatedPolicyRuleTrigger<?> trigger, MessageKind kind) {
 		PolicyConstraintPresentationType presentation = trigger.getConstraint().getPresentation();
 		boolean hidden = presentation != null && Boolean.TRUE.equals(presentation.isHidden());
 		boolean isFinal = presentation != null && Boolean.TRUE.equals(presentation.isFinal());
 		if (!hidden) {
 			TreeNode<LocalizableMessage> newNode = new TreeNode<>();
-			newNode.setUserObject(trigger.getMessage());
+			newNode.setUserObject(getMessage(trigger, kind));
 			root.add(newNode);
 			root = newNode;
 		}
 		if (!isFinal) {
 			for (EvaluatedPolicyRuleTrigger<?> innerTrigger : trigger.getInnerTriggers()) {
-				createMessageTreeNode(root, innerTrigger);
+				createMessageTreeNode(root, innerTrigger, kind);
 			}
+		}
+	}
+
+	private LocalizableMessage getMessage(EvaluatedPolicyRuleTrigger<?> trigger, MessageKind kind) {
+		switch (kind) {
+			case NORMAL: return trigger.getMessage();
+			case SHORT: return trigger.getMessage();
+			default: throw new AssertionError(kind);
 		}
 	}
 

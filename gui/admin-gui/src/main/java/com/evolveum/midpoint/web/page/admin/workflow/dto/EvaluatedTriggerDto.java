@@ -76,6 +76,10 @@ public class EvaluatedTriggerDto implements Serializable {
 		}
 	}
 
+	public static void sort(List<EvaluatedTriggerDto> triggers) {
+		// TODO
+	}
+
 	private static boolean alreadyShown(List<AlreadyShownTriggerRecord> triggersAlreadyShown, EvaluatedTriggerDto newTriggerDto) {
 		EvaluatedPolicyRuleTriggerType anonymizedTrigger = newTriggerDto.trigger.clone().ruleName(null);
 		for (AlreadyShownTriggerRecord alreadyShown : triggersAlreadyShown) {
