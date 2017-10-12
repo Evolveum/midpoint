@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.gui.api.util;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.normalizeRelation;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -913,7 +914,7 @@ public final class WebComponentUtil {
 		C containerable = prismContainerValue.asContainerable();
 		if (containerable instanceof AssignmentType && ((AssignmentType) containerable).getTargetRef() != null) {
 			ObjectReferenceType assignemntTargetRef = ((AssignmentType) containerable).getTargetRef();
-			return getName(assignemntTargetRef) + " - " + assignemntTargetRef.getRelation().getLocalPart();
+			return getName(assignemntTargetRef) + " - " + normalizeRelation(assignemntTargetRef.getRelation()).getLocalPart();
 		}
 
 		if (containerable instanceof ExclusionPolicyConstraintType){
