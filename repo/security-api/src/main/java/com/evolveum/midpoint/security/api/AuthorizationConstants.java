@@ -271,6 +271,7 @@ public class AuthorizationConstants {
 
 	public static final String AUTZ_UI_MY_CASE_WORK_ITEMS_URL = NS_AUTHORIZATION_UI + "#myCaseWorkItems";
 	public static final String AUTZ_UI_ALL_CASE_WORK_ITEMS_URL = NS_AUTHORIZATION_UI + "#allCaseWorkItems";
+	public static final String AUTZ_UI_CASE_WORK_ITEM_URL = NS_AUTHORIZATION_UI + "#caseWorkItem";
 
 
 

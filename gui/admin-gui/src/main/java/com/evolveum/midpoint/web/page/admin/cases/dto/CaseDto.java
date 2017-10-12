@@ -16,48 +16,43 @@
 
 package com.evolveum.midpoint.web.page.admin.cases.dto;
 
-import com.evolveum.midpoint.certification.api.OutcomeUtils;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
-import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
- * DTO representing a particular CaseWorkItem.
+ * DTO representing a particular Case.
  *
  * TODO cleanup a bit
  *
  * @author bpowers
  */
-public class CaseWorkItemDto extends Selectable {
+public class CaseDto extends Selectable {
 
     public static final String F_NAME = "name";
     public static final String F_OBJECT_NAME = "objectName";
-    public static final String F_ASSIGNEES = "assignees";
     public static final String F_DESCRIPTION = "description";
-    public static final String F_COMMENT = "comment";
+    public static final String F_EVENT = "event";
+    public static final String F_OUTCOME = "outcome";
+    public static final String F_CLOSE_TIMESTAMP = "closeTimestamp";
+    public static final String F_STATE = "state";
 
-    @NotNull private final CaseWorkItemType workItem;
-
-    private CaseType _case;
+    @NotNull private final CaseType caseInstance;
     private String objectName;
 
-    public CaseWorkItemDto(@NotNull CaseWorkItemType workItem) {
-        this._case = CaseWorkItemUtil.getCase(workItem);
-        this.workItem = workItem;
-        this.objectName = getName(this._case.getObjectRef());
+    public CaseDto(@NotNull CaseType _case) {
+        this.caseInstance = _case;
+        this.objectName = getObjectName(this.caseInstance.getObjectRef());
     }
 
     // ugly hack (for now) - we extract the name from serialization metadata
-    private String getName(ObjectReferenceType ref) {
+    private String getObjectName(ObjectReferenceType ref) {
         if (ref == null) {
             return null;
         }
@@ -74,42 +69,52 @@ public class CaseWorkItemDto extends Selectable {
     }
 
     public QName getObjectType() {
-        return _case.getObjectRef().getType();
+        return caseInstance.getObjectRef().getType();
     }
 
     public Long getCaseId() {
-        return _case.asPrismContainerValue().getId();
+        return caseInstance.asPrismContainerValue().getId();
     }
 
     public CaseType getCase() {
-        return _case;
-    }
-
-    public String getComment() {
-        return WorkItemTypeUtil.getComment(workItem);
-    }
-
-    public void setComment(String value) {
-        if (workItem.getOutput() == null) {
-            workItem.beginOutput().comment(value);
-        } else {
-            workItem.getOutput().comment(value);
-        }
-    }
-
-    public long getWorkItemId() {
-        return workItem.getId();
-    }
-
-    public String getAssignees() {
-        return WebComponentUtil.getReferencedObjectNames(workItem.getAssigneeRef(), false);
+        return caseInstance;
     }
 
     public String getName() {
-        return workItem.getName();
+        return caseInstance.getName().toString();
     }
 
     public String getDescription() {
-        return _case.getDescription();
+        return caseInstance.getDescription();
+    }
+
+    public String getEvent() {
+        return caseInstance.getEvent().toString();
+    }
+
+    public String getOutcome() {
+        return caseInstance.getOutcome();
+    }
+
+    public XMLGregorianCalendar getCloseTimestamp() {
+        return caseInstance.getCloseTimestamp();
+    }
+
+    public String getState() {
+        return caseInstance.getState();
+    }
+
+    public List<CaseWorkItemType> getWorkItems() {
+        return caseInstance.getWorkItem();
+    }
+
+    public CaseWorkItemType getWorkItem(Long caseWorkItemId) {
+        List<CaseWorkItemType> caseWorkItems = caseInstance.getWorkItem();
+        for (CaseWorkItemType caseWorkItem : caseWorkItems){
+            if (caseWorkItem.getId().equals(caseWorkItemId)) {
+                return caseWorkItem;
+            }
+        }
+        return null;
     }
 }

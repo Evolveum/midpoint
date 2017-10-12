@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -70,6 +71,8 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
     private static final String DOT_CLASS = PageCaseWorkItems.class.getName() + ".";
     private static final String OPERATION_RECORD_ACTION = DOT_CLASS + "recordAction";
     private static final String OPERATION_RECORD_ACTION_SELECTED = DOT_CLASS + "recordActionSelected";
+    private static final String PARAMETER_CASE_ID = "caseId";
+    private static final String PARAMETER_CASE_WORK_ITEM_ID = "caseWorkItemId";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_CASE_WORK_ITEMS_TABLE = "caseWorkItemsTable";
@@ -107,7 +110,8 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         } else {
             // not authorized to see all => sees only allocated to him (not quite what is expected, but sufficient for the time being)
             return QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
-                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS).build();
+                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS)
+                    .and().item(CaseType.F_CLOSE_TIMESTAMP).isNull().build();
         }
     }
 
@@ -179,9 +183,9 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<CaseWorkItemDto> rowModel) {
                 PageParameters parameters = new PageParameters();
-//                parameters.add(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getWorkItemId());
-                parameters.add(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getCase().getOid());
-                navigateToNext(PageCase.class, parameters);
+                parameters.add(PARAMETER_CASE_ID, rowModel.getObject().getCase().getOid());
+                parameters.add(PARAMETER_CASE_WORK_ITEM_ID, rowModel.getObject().getWorkItemId());
+                navigateToNext(PageCaseWorkItem.class, parameters);
             }
         };
     }

@@ -74,7 +74,7 @@ public class CaseWorkItemDtoProvider extends BaseSortableDataProvider<CaseWorkIt
             ModelService modelService = getPage().getModelService();
             List<CaseWorkItemType> workItems = modelService.searchContainers(CaseWorkItemType.class, getQuery(), resolveNames, task, result);
             for (CaseWorkItemType workItem : workItems) {
-                getAvailableData().add(new CaseWorkItemDto(workItem, getPage()));
+                getAvailableData().add(new CaseWorkItemDto(workItem));
             }
         } catch (Exception ex) {
             result.recordFatalError("Couldn't list decisions.", ex);
