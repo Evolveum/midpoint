@@ -29,7 +29,7 @@ import javax.xml.namespace.QName;
 public abstract class AbstractPropertyValueParserTest<T> extends AbstractPrismValueParserTest<PrismPropertyValue<T>> {
 
 	@SuppressWarnings("Convert2MethodRef")
-	protected void processParsings(Class<T> clazz, QName type, PrismPropertyDefinition definition, SerializingFunction<PrismPropertyValue<T>> serializer, String serId) throws Exception {
+	protected void processParsings(Class<T> clazz, QName type, PrismPropertyDefinition<T> definition, SerializingFunction<PrismPropertyValue<T>> serializer, String serId) throws Exception {
 		process("parseItemValue - no hint", p -> p.parseItemValue(), serializer, serId);
 
 		if (clazz != null) {

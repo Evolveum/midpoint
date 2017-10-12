@@ -213,23 +213,8 @@ public final class PrismForJAXBUtil {
 	        	}
 	            fieldContainer = new PrismContainer<T>(fieldName, parent.getPrismContext());
 	            fieldContainer.add(fieldContainerValue);
-	            if (parent.getParent() == null) {
-	                parent.add(fieldContainer);			// TODO what if fieldContainer is already there?
-	            } else {
-                    parent.addReplaceExisting(fieldContainer);
-	            }
+                parent.addReplaceExisting(fieldContainer);
 	        }
-//	        // Make sure that the definition from parent is applied to new field container
-//	        if (fieldContainer.getDefinition() == null) {
-//	        	PrismContainer<?> parentContainer = parent.getContainer();
-//	        	if (parentContainer != null) {
-//		        	PrismContainerDefinition<?> parentDefinition = parentContainer.getDefinition();
-//		        	if (parentDefinition != null) {
-//		        		PrismContainerDefinition<T> fieldDefinition = parentDefinition.findContainerDefinition(fieldName);
-//		        		fieldContainer.setDefinition(fieldDefinition);
-//		        	}
-//	        	}
-//	        }
         } catch (SchemaException e) {
         	// This should not happen. Code generator and compiler should take care of that.
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);

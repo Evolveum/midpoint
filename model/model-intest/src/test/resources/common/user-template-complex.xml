@@ -74,7 +74,7 @@
     <item>
     	<ref>preferredLanguage</ref>
     	<displayName>Language</displayName>
-    	<valueEnumerationRef oid="70000000-0000-0000-1111-000000000001"/>
+    	<valueEnumerationRef oid="70000000-0000-0000-1111-000000000001" type="LookupTableType"/>
     </item>
 
 	<!-- Normal-strength mapping with property source and target -->

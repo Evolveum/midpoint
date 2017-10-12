@@ -5656,7 +5656,7 @@
                         Reference to the account type password policy settings.
                     </xsd:documentation>
                     <xsd:appinfo>
-            			<a:objectReferenceTargetType>tns:PasswordPolicyType</a:objectReferenceTargetType>
+            			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

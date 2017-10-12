@@ -16,9 +16,10 @@
 package com.evolveum.midpoint.schema.parser;
 
 import static org.testng.AssertJUnit.assertEquals;
+
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismParser;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismSerializer;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
@@ -43,7 +44,7 @@ import java.util.List;
  * @author mederly
  *
  */
-public class TestParseMappingConst extends AbstractPropertyValueParserTest<MappingType> {
+public class TestParseMappingConst extends AbstractContainerValueParserTest<MappingType> {
 
 	@Override
 	protected File getFile() {
@@ -62,7 +63,7 @@ public class TestParseMappingConst extends AbstractPropertyValueParserTest<Mappi
 
 		PrismContext prismContext = getPrismContext();
 		PrismParser parser = prismContext.parserFor(getFile());
-		PrismPropertyValue<MappingType> mappingPval = parser.parseItemValue();
+		PrismContainerValue<MappingType> mappingPval = parser.parseItemValue();
 
 		System.out.println("\nmappingPval:\n"+mappingPval.debugDump(1));
 
@@ -86,13 +87,12 @@ public class TestParseMappingConst extends AbstractPropertyValueParserTest<Mappi
 		processParsings(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_USER).serialize(v), "s2");		// misleading item name
 	}
 
-	private void processParsings(SerializingFunction<PrismPropertyValue<MappingType>> serializer, String serId) throws Exception {
-		PrismPropertyDefinition<MappingType> definition = getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstantsGenerated.C_MAPPING);
-		processParsings(MappingType.class, MappingType.COMPLEX_TYPE, definition, serializer, serId);
+	private void processParsings(SerializingFunction<PrismContainerValue<MappingType>> serializer, String serId) throws Exception {
+		processParsings(MappingType.class, null, MappingType.COMPLEX_TYPE, null, serializer, serId);
 	}
 
 	@Override
-	protected void assertPrismPropertyValueLocal(PrismPropertyValue<MappingType> value) throws SchemaException {
+	protected void assertPrismContainerValueLocal(PrismContainerValue<MappingType> value) throws SchemaException {
 		MappingType mappingType = value.getValue();
 		ExpressionType expressionType = mappingType.getExpression();
 		List<JAXBElement<?>> expressionEvaluatorElements = expressionType.getExpressionEvaluator();
