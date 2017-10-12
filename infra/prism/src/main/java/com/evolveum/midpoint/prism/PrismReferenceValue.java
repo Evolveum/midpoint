@@ -562,47 +562,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		}
 
 		// A hack, just to avoid crashes. TODO think about this!
-		return new Referencable() {
-			PrismReferenceValue referenceValue = PrismReferenceValue.this;
-			@Override
-			public PrismReferenceValue asReferenceValue() {
-				return referenceValue;
-			}
-			@Override
-			public void setupReferenceValue(PrismReferenceValue value) {
-				referenceValue = value;
-			}
-			@Override
-			public String getOid() {
-				return referenceValue.getOid();
-			}
-			@Override
-			public QName getType() {
-				return referenceValue.getTargetType();
-			}
-			@Override
-			public PolyStringType getTargetName() {
-				return PrismForJAXBUtil.getReferenceTargetName(referenceValue);
-			}
-			@Override
-			public QName getRelation() {
-				return referenceValue.getRelation();
-			}
-			@Override
-			public String getDescription() {
-				return referenceValue.getDescription();
-			}
-			@Override
-			public EvaluationTimeType getResolutionTime() {
-				return referenceValue.getResolutionTime();
-			}
-			@Override
-			public SearchFilterType getFilter() {
-				SearchFilterType filter = new SearchFilterType();
-				filter.setFilterClauseXNode(PrismForJAXBUtil.getReferenceFilterClauseXNode(referenceValue));
-				return filter;
-			}
-		};
+		return new DefaultReferencableImpl(this);
 	}
 
 	@NotNull

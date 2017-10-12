@@ -993,21 +993,11 @@ public class LensUtil {
 		    PrismContainer<?> dstExtensionContainer = dstContainer.findOrCreateContainer(AssignmentType.F_EXTENSION);
 		    PrismContainerValue<?> dstExtensionContainerValue = dstExtensionContainer.getValues().isEmpty()
 				    ? dstExtensionContainer.createNewValue() : dstExtensionContainer.getValue();
-		    mergeExtension(dstExtensionContainerValue, srcExtension.getValue());
+		    ObjectTypeUtil.mergeExtension(dstExtensionContainerValue, srcExtension.getValue());
 	    }
 	}
 
-	public static void mergeExtension(PrismContainerValue<?> dstExtensionContainerValue, PrismContainerValue<?> srcExtensionContainerValue) throws SchemaException {
-		for (Item<?,?> srcExtensionItem: srcExtensionContainerValue.getItems()) {
-			Item<?,?> magicItem = dstExtensionContainerValue.findItem(srcExtensionItem.getElementName());
-			if (magicItem == null) {
-				//noinspection unchecked
-				dstExtensionContainerValue.add(srcExtensionItem.clone());
-			}
-		}
-	}
-
-    public static <V extends PrismValue,D extends ItemDefinition> Mapping.Builder<V,D> addAssignmentPathVariables(Mapping.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
+	public static <V extends PrismValue,D extends ItemDefinition> Mapping.Builder<V,D> addAssignmentPathVariables(Mapping.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
     	ExpressionVariables expressionVariables = new ExpressionVariables();
 		Utils.addAssignmentPathVariables(assignmentPathVariables, expressionVariables);
 		return builder.addVariableDefinitions(expressionVariables.getMap());
