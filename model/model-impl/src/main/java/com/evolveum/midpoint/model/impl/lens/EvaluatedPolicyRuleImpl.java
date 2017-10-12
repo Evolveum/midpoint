@@ -35,6 +35,8 @@ import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +57,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPoli
 public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	private static final long serialVersionUID = 1L;
 
+	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedPolicyRuleImpl.class);
+
 	@NotNull private final PolicyRuleType policyRuleType;
 	private final Collection<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
 	private final Collection<PolicyExceptionType> policyExceptions = new ArrayList<>();
@@ -72,7 +76,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	 */
 	@Nullable private final AssignmentPath assignmentPath;
 	@Nullable private final ObjectType directOwner;
-	private final transient PrismContext prismContext;     // only for debugDump - if null, nothing serious happens
+	private final transient PrismContext prismContextForDebugDump;     // if null, nothing serious happens
 
 	@NotNull private final List<PolicyActionType> enabledActions = new ArrayList<>();          // computed only when necessary (typically when triggered)
 
@@ -80,7 +84,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 			PrismContext prismContext) {
 		this.policyRuleType = policyRuleType;
 		this.assignmentPath = assignmentPath;
-		this.prismContext = prismContext;
+		this.prismContextForDebugDump = prismContext;
 		this.directOwner = computeDirectOwner();
 	}
 
@@ -240,7 +244,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		DebugUtil.debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
 		DebugUtil.debugDumpLabelLn(sb, "policyRuleType", indent + 1);
 		DebugUtil.indentDebugDump(sb, indent + 2);
-		PrismPrettyPrinter.debugDumpValue(sb, indent + 2, policyRuleType, prismContext, PolicyRuleType.COMPLEX_TYPE, PrismContext.LANG_XML);
+		PrismPrettyPrinter.debugDumpValue(sb, indent + 2, policyRuleType, prismContextForDebugDump, PolicyRuleType.COMPLEX_TYPE, PrismContext.LANG_XML);
 		DebugUtil.debugDumpWithLabelLn(sb, "assignmentPath", assignmentPath, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "triggers", triggers, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "directOwner", ObjectTypeUtil.toShortString(directOwner), indent + 1);
@@ -413,13 +417,18 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	}
 
 	public <F extends FocusType> void computeEnabledActions(@Nullable PolicyRuleEvaluationContext<F> rctx, PrismObject<F> object,
-			ExpressionFactory expressionFactory, Task task, OperationResult result)
+			ExpressionFactory expressionFactory, PrismContext prismContext, Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		List<PolicyActionType> allActions = PolicyRuleTypeUtil.getAllActions(policyRuleType.getPolicyActions());
 		for (PolicyActionType action : allActions) {
 			if (action.getCondition() != null) {
 				ExpressionVariables variables = createExpressionVariables(rctx, object);
-				LensUtil.evaluateBoolean(action.getCondition(), variables, "condition in action " + action.getName() + " (" + action.getClass().getSimpleName() + ")", expressionFactory, prismContext, task, result);
+				if (!LensUtil.evaluateBoolean(action.getCondition(), variables, "condition in action " + action.getName() + " (" + action.getClass().getSimpleName() + ")", expressionFactory, prismContext, task, result)) {
+					LOGGER.trace("Skipping action {} ({}) because the condition evaluated to false", action.getName(), action.getClass().getSimpleName());
+					continue;
+				} else {
+					LOGGER.trace("Accepting action {} ({}) because the condition evaluated to true", action.getName(), action.getClass().getSimpleName());
+				}
 			}
 			enabledActions.add(action);
 		}

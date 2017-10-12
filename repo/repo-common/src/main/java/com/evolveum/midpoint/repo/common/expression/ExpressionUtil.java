@@ -953,6 +953,10 @@ public class ExpressionUtil {
 		return (o) -> {
 			if (o == null || o instanceof ObjectReferenceType) {
 				return o;
+			} else if (o instanceof Referencable) {
+				ObjectReferenceType rv = new ObjectReferenceType();
+				rv.setupReferenceValue(((Referencable) o).asReferenceValue());
+				return rv;
 			} else if (o instanceof PrismReferenceValue) {
 				ObjectReferenceType rv = new ObjectReferenceType();
 				rv.setupReferenceValue((PrismReferenceValue) o);

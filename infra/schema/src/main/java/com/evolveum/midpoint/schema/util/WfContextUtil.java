@@ -37,6 +37,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import static java.util.Collections.emptyList;
 
 /**
  * TODO clean up these formatting methods
@@ -200,7 +201,7 @@ public class WfContextUtil {
 	public static List<SchemaAttachedPolicyRuleType> getAttachedPolicyRules(WfContextType workflowContext, int order) {
 		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(workflowContext);
 		if (info == null || info.getPolicyRules() == null) {
-			return Collections.emptyList();
+			return emptyList();
 		}
 		return info.getPolicyRules().getEntry().stream()
 				.filter(e -> e.getStageMax() != null && e.getStageMax() != null
@@ -766,16 +767,36 @@ public class WfContextUtil {
 		}
 		List<SchemaAttachedPolicyRuleType> entries = info.getPolicyRules().getEntry();
 		for (int i = 0; i < info.getApprovalSchema().getStage().size(); i++) {
-			int stageNumber = i+1;
-			List<EvaluatedPolicyRuleType> rulesForStage = new ArrayList<>();
-			for (SchemaAttachedPolicyRuleType entry : entries) {
-				if (entry.getStageMin() != null && stageNumber >= entry.getStageMin()
-						&& entry.getStageMax() != null && stageNumber <= entry.getStageMax()) {
-					rulesForStage.add(entry.getRule());
-				}
-			}
-			rv.add(rulesForStage);
+			rv.add(getRulesForStage(entries, i+1));
 		}
 		return rv;
+	}
+
+	@NotNull
+	private static List<EvaluatedPolicyRuleType> getRulesForStage(List<SchemaAttachedPolicyRuleType> entries, int stageNumber) {
+		List<EvaluatedPolicyRuleType> rulesForStage = new ArrayList<>();
+		for (SchemaAttachedPolicyRuleType entry : entries) {
+			if (entry.getStageMin() != null && stageNumber >= entry.getStageMin()
+					&& entry.getStageMax() != null && stageNumber <= entry.getStageMax()) {
+				rulesForStage.add(entry.getRule());
+			}
+		}
+		return rulesForStage;
+	}
+
+	// Do not use in approval expressions, because they are evaluated also on process start/preview.
+	// Use explicit stage number instead.
+	@NotNull
+	public static List<EvaluatedPolicyRuleType> getRulesForCurrentStage(WfContextType wfc) {
+		return getRulesForStage(wfc, wfc.getStageNumber());
+	}
+
+	@NotNull
+	public static List<EvaluatedPolicyRuleType> getRulesForStage(WfContextType wfc, Integer stageNumber) {
+		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(wfc);
+		if (info == null || info.getPolicyRules() == null || stageNumber == null) {
+			return emptyList();
+		}
+		return getRulesForStage(info.getPolicyRules().getEntry(), stageNumber);
 	}
 }

@@ -2117,4 +2117,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		}
 
 	}
+
+	@NotNull
+	@Override
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
 }

@@ -57,7 +57,10 @@
 						<script>
 							<code>
 								def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(1)
-								basic.getPropertyValue(extension, "remediatorRef") == null
+								log.info('### enforcement:Extension:\n{}', extension?.asPrismContainerValue().debugDump())
+								def remediatorRef = basic.getPropertyValue(extension, "remediatorRef")
+								log.info('### enforcement:remediatorRef = {}', remediatorRef)
+								remediatorRef == null
 							</code>
 						</script>
 					</condition>
@@ -67,7 +70,10 @@
 						<script>
 							<code>
 								def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(1)
-								basic.getPropertyValue(extension, "remediatorRef") != null
+								log.info('### approval:Extension:\n{}', extension?.asPrismContainerValue().debugDump())
+								def remediatorRef = basic.getPropertyValue(extension, "remediatorRef")
+								log.info('### approval:remediatorRef = {}', remediatorRef)
+								remediatorRef != null
 							</code>
 						</script>
 					</condition>
@@ -76,7 +82,17 @@
 							<approverExpression>
 								<script>
 									<code>
-
+										import com.evolveum.midpoint.schema.util.*
+										log.info('### workflow context:\n{}', workflowContext.asPrismContainerValue().debugDump())
+										def rules = WfContextUtil.getRulesForStage(workflowContext, stageDefinition.number)
+										log.info('rules found: {}', rules)
+										def approvers = rules.collectMany { rule ->
+											def ext = midpoint.collectExtensions(rule.assignmentPath, 1)
+											def remediatorRef = basic.getPropertyValue(ext, "remediatorRef")
+											remediatorRef != null ? [remediatorRef.clone()] : []
+										}
+										log.info('approvers found: {}', approvers)
+										approvers
 									</code>
 								</script>
 							</approverExpression>

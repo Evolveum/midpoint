@@ -23,12 +23,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.model.api.util.AssignmentPathUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
@@ -225,18 +224,6 @@ public class AssignmentPathImpl implements AssignmentPath {
 
 	@Override
 	public ExtensionType collectExtensions(int startAt) throws SchemaException {
-		ExtensionType rv = new ExtensionType(prismContext);
-		PrismContainerValue<?> pcv = rv.asPrismContainerValue();
-		for (int i = startAt; i < segments.size(); i++) {
-			AssignmentPathSegmentImpl segment = segments.get(i);
-			AssignmentType assignment = segment.getAssignmentAny();
-			if (assignment != null && assignment.getExtension() != null) {
-				LensUtil.mergeExtension(pcv, assignment.getExtension().asPrismContainerValue());
-			}
-			if (segment.getTarget() != null && segment.getTarget().getExtension() != null) {
-				LensUtil.mergeExtension(pcv, segment.getTarget().getExtension().asPrismContainerValue());
-			}
-		}
-		return rv;
+		return AssignmentPathUtil.collectExtensions(this, startAt, prismContext);
 	}
 }

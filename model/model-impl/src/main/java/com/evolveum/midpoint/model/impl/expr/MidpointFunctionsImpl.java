@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -1401,5 +1402,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public String getConst(String name) {
 		return constantsManager.getConstantValue(name);
+	}
+
+	@Override
+	public ExtensionType collectExtensions(AssignmentPathType path, int startAt)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException {
+		return AssignmentPath.collectExtensions(path, startAt, modelService, getCurrentTask(), getCurrentResult());
 	}
 }

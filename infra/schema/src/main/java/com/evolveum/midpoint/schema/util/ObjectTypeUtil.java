@@ -735,4 +735,14 @@ public class ObjectTypeUtil {
 		return ref1 != null && ref2 != null && ref1.getOid() != null && ref2.getOid() != null
 				&& ref1.getOid().equals(ref2.getOid());
 	}
+
+	public static void mergeExtension(PrismContainerValue<?> dstExtensionContainerValue, PrismContainerValue<?> srcExtensionContainerValue) throws SchemaException {
+		for (Item<?,?> srcExtensionItem: srcExtensionContainerValue.getItems()) {
+			Item<?,?> magicItem = dstExtensionContainerValue.findItem(srcExtensionItem.getElementName());
+			if (magicItem == null) {
+				//noinspection unchecked
+				dstExtensionContainerValue.add(srcExtensionItem.clone());
+			}
+		}
+	}
 }
