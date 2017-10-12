@@ -61,49 +61,14 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 	}
 
 	private void initLayout() {
-		ContainerWrapper<AssignmentType> assignmentsContainerWrapper = getObjectWrapper().findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
-
 		WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
 		assignments.setOutputMarkupId(true);
 		add(assignments);
 
-		new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), new ItemPath(FocusType.F_ASSIGNMENT));
-		AbstractRoleAssignmentPanel panel = new AbstractRoleAssignmentPanel(ID_ASSIGNMENTS_PANEL, Model.of(assignmentsContainerWrapper));
+		AbstractRoleAssignmentPanel panel = new AbstractRoleAssignmentPanel(ID_ASSIGNMENTS_PANEL,
+				new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), new ItemPath(FocusType.F_ASSIGNMENT)));
 
-//				new AbstractReadOnlyModel<ContainerWrapper<AssignmentType>>() {
-//			@Override
-//			public ContainerWrapper<AssignmentType> getObject() {
-//				return assignmentsContainerWrapper;
-//			}
-//		});
 		assignments.add(panel);
 	}
 
-	private IModel<List<ContainerValueWrapper<AssignmentType>>> getAssignmentsListModel(ContainerWrapper<AssignmentType> assignmentsContainerWrapper){
-		return new IModel<List<ContainerValueWrapper<AssignmentType>>>() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public List<ContainerValueWrapper<AssignmentType>> getObject() {
-				List<ContainerValueWrapper<AssignmentType>> assignmentsList = new ArrayList<>();
-				assignmentsContainerWrapper.getValues().forEach(a -> {
-					if (!AssignmentsUtil.isPolicyRuleAssignment(a.getContainerValue().getValue()) && !AssignmentsUtil.isConsentAssignment(a.getContainerValue().getValue())
-							&& AssignmentsUtil.isAssignmentRelevant(a.getContainerValue().getValue())) {
-						assignmentsList.add(a);
-					}
-				});
-//		Collections.sort(consentsList);
-				return assignmentsList;
-			}
-
-			@Override
-			public void setObject(List<ContainerValueWrapper<AssignmentType>> object){
-				assignmentsContainerWrapper.getValues().clear();
-				assignmentsContainerWrapper.getValues().addAll(object);
-			}
-
-			@Override
-			public void detach(){};
-		};
-	}
 }

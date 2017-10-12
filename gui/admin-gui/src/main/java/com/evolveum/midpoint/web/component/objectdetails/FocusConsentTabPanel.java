@@ -15,6 +15,7 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -37,31 +38,10 @@ public class FocusConsentTabPanel<F extends FocusType> extends AbstractObjectTab
 	}
 
 	private void initLayout() {
-		ContainerWrapper<AssignmentType> assignmentsContainerWrapper = getObjectWrapper().findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
-
-		GdprAssignmentPanel consentRoles =  new GdprAssignmentPanel(ID_ROLES, new AbstractReadOnlyModel<ContainerWrapper<AssignmentType>>() {
-			@Override
-			public ContainerWrapper<AssignmentType> getObject() {
-				return assignmentsContainerWrapper;
-			}
-		});
+		GdprAssignmentPanel consentRoles =  new GdprAssignmentPanel(ID_ROLES,
+				new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), new ItemPath(FocusType.F_ASSIGNMENT)));
 		add(consentRoles);
 		consentRoles.setOutputMarkupId(true);
 
-	}
-
-	private IModel<List<ContainerValueWrapper<AssignmentType>>> getConsentsModel(ContainerWrapper<AssignmentType> assignmentsContainerWrapper){
-		List<ContainerValueWrapper<AssignmentType>> consentsList = new ArrayList<>();
-		assignmentsContainerWrapper.getValues().forEach(a -> {
-			if (isConsentAssignment(a.getContainerValue().getValue())){
-				consentsList.add(a);
-			}
-		});
-//		Collections.sort(consentsList);
-		return Model.ofList(consentsList);
-	}
-
-	private boolean isConsentAssignment(AssignmentType assignment) {
-		return assignment.getTargetRef() != null && QNameUtil.match(assignment.getTargetRef().getRelation(), SchemaConstants.ORG_CONSENT);
 	}
 }

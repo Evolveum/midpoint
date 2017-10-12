@@ -20,24 +20,24 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 
@@ -51,11 +51,18 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 	@Override
 	protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
 		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<>(createStringResource("AssignmentType.lifecycleState"), AssignmentType.F_LIFECYCLE_STATE.getLocalPart()));
+		columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.lifecycleState")) {
+			private static final long serialVersionUID = 1L;
+				@Override
+				public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+					item.add(new Label(componentId, rowModel.getObject().getContainerValue().asContainerable().getLifecycleState()));
+				}
+		});
 
 		columns.add(new CheckBoxColumn<ContainerValueWrapper<AssignmentType>>(createStringResource("AssignmnetType.accepted")) {
 
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected IModel<Boolean> getEnabled() {
 				return Model.of(Boolean.FALSE);
@@ -99,4 +106,12 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 		super.addSelectedAssignmentsPerformed(target, assignmentsList, SchemaConstants.ORG_CONSENT);
 	}
 
+	protected ObjectQuery createObjectQuery() {
+		return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+				.block()
+				.item(new ItemPath(AssignmentType.F_TARGET_REF))
+				.ref(SchemaConstants.ORG_CONSENT)
+				.endBlock()
+				.build();
+	}
 }
