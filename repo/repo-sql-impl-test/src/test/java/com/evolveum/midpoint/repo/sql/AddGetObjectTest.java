@@ -149,8 +149,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         int count = 0;
         elements = prismContext.parserFor(file).parseObjects();
         for (int i = 0; i < elements.size(); i++) {
+        	PrismObject object = elements.get(i);
             try {
-                PrismObject object = elements.get(i);
                 object.asObjectable().setOid(oids.get(i));
 
                 Class<? extends ObjectType> clazz = object.getCompileTimeClass();
@@ -168,7 +168,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 }
                 PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), o, result);
 
-                LOGGER.info("Old\n{}\nnew\n{}", new Object[]{object.debugDump(3), newObject.debugDump(3)});
+                LOGGER.info("AFTER READ: {}\nOld\n{}\nnew\n{}", object, object.debugDump(3), newObject.debugDump(3));
                 checkContainersSize(newObject, object);
                 System.out.println("OLD: " + object.findProperty(ObjectType.F_NAME).getValue());
                 System.out.println("NEW: " + newObject.findProperty(ObjectType.F_NAME).getValue());
@@ -196,9 +196,9 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                     }
                     LOGGER.error("{}", prismContext.serializeObjectToString(newObject, PrismContext.LANG_XML));
                 }
-            } catch (Exception ex) {
-                LOGGER.error("Exception occurred", ex);
-                throw ex;
+            } catch (Throwable ex) {
+                LOGGER.error("Exception occurred for {}", object, ex);
+                throw new RuntimeException("Exception during processing of "+object+": "+ex.getMessage(), ex);
             }
         }
 
@@ -215,7 +215,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
     private void checkContainerValuesSize(QName parentName, PrismContainerValue newValue, PrismContainerValue oldValue) {
         LOGGER.info("Checking: " + parentName);
-        AssertJUnit.assertEquals("Count doesn't match for '" + parentName + "'", size(oldValue), size(newValue));
+        AssertJUnit.assertEquals("Count doesn't match for '" + parentName + "' id="+newValue.getId(), size(oldValue), size(newValue));
 
         List<QName> checked = new ArrayList<QName>();
 
@@ -248,6 +248,11 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 newContainer.getElementName(), newContainer.size(), oldContainer.size());
         AssertJUnit.assertEquals(newContainer.size(), oldContainer.size());
 
+        PrismContainerDefinition def = oldContainer.getDefinition();
+        if (def != null && def.isMultiValue()) {
+        	// Comparison item-by-item is not reliable
+        	return;
+        }
         List<Long> checked = new ArrayList<Long>();
         List<PrismContainerValue> newValues = newContainer.getValues();
         for (PrismContainerValue value : newValues) {
