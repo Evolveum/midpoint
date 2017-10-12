@@ -5206,6 +5206,9 @@
                 describe the decisions of the system administrator about the
                 way how that attribute or association is used in midPoint.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="ref" type="t:ItemPathType">
@@ -5313,6 +5316,9 @@
                 describe the decisions of the system administrator about the
                 way how that attribute or association is used in midPoint.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
         	<xsd:extension base="tns:ItemRefinedDefinitionType">
@@ -5441,6 +5447,9 @@
                 describe the decisions of the system administrator about the
                 way how that attribute is used in midPoint.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
         	<xsd:extension base="tns:ResourceItemDefinitionType">
@@ -5617,6 +5626,11 @@
     </xsd:complexType>
 
     <xsd:complexType name="ResourcePasswordDefinitionType">
+    	<xsd:annotation>
+    		<xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
+    	</xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
             <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
@@ -5654,6 +5668,9 @@
             <xsd:documentation>
                 Defines how the mapping of the activation section is handled for the resource.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="existence" type="tns:ResourceBidirectionalMappingType" minOccurs="0" maxOccurs="1">
@@ -5704,6 +5721,7 @@
             </xsd:documentation>
             <xsd:appinfo>
             	<a:since>3.6</a:since>
+            	<a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -5729,6 +5747,11 @@
     </xsd:complexType>
 
     <xsd:complexType name="ResourceBidirectionalMappingType">
+    	<xsd:annotation>
+    		<xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
+    	</xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
             <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
@@ -5749,6 +5772,11 @@
     </xsd:complexType>
     
     <xsd:complexType name="ResourceBidirectionalMappingAndDefinitionType">
+    	<xsd:annotation>
+    		<xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
+    	</xsd:annotation>
 	    <xsd:complexContent>
 	    	<xsd:extension base="tns:ResourceBidirectionalMappingType">
 	    		<xsd:sequence>
@@ -6006,6 +6034,9 @@
                 and therefore it describes the decisions of the system administrator about the
                 way how entitlements are used in midPoint.
      		</xsd:documentation>
+     		<xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
      	</xsd:annotation>
         <xsd:complexContent>
         	<xsd:extension base="tns:ResourceItemDefinitionType">
@@ -6573,6 +6604,9 @@
                 these cases may simplify the code, as it all can be handled by a
                 generic library reused in many places through the system.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -10403,6 +10437,9 @@
                 describe the decisions of the system administrator about the
                 way how that attribute or association is used in midPoint.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
         	<xsd:extension base="tns:ItemRefinedDefinitionType">
@@ -10426,6 +10463,11 @@
     </xsd:complexType>
     
     <xsd:complexType name="ObjectTemplateMappingType">
+    	<xsd:annotation>
+    		<xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
+    	</xsd:annotation>
     	<xsd:complexContent>
     		<xsd:extension base="tns:MappingType">
     			<xsd:sequence>
