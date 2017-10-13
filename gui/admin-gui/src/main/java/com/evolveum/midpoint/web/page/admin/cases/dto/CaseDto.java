@@ -16,10 +16,14 @@
 
 package com.evolveum.midpoint.web.page.admin.cases.dto;
 
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -37,11 +41,14 @@ public class CaseDto extends Selectable {
 
     public static final String F_NAME = "name";
     public static final String F_OBJECT_NAME = "objectName";
+    public static final String F_TARGET_NAME = "targetName";
     public static final String F_DESCRIPTION = "description";
     public static final String F_EVENT = "event";
     public static final String F_OUTCOME = "outcome";
+    public static final String F_OPEN_TIMESTAMP = "openTimestamp";
     public static final String F_CLOSE_TIMESTAMP = "closeTimestamp";
     public static final String F_STATE = "state";
+    private static final Trace LOGGER = TraceManager.getTrace(CaseDto.class);
 
     @NotNull private final CaseType caseInstance;
     private String objectName;
@@ -68,8 +75,16 @@ public class CaseDto extends Selectable {
         return objectName;
     }
 
+    public String getTargetName() {
+        return caseInstance.getTargetName();
+    }
+
     public QName getObjectType() {
         return caseInstance.getObjectRef().getType();
+    }
+
+    public String getObjectOid() {
+        return caseInstance.getObjectRef().getOid();
     }
 
     public Long getCaseId() {
@@ -94,6 +109,17 @@ public class CaseDto extends Selectable {
 
     public String getOutcome() {
         return caseInstance.getOutcome();
+    }
+
+    public ObjectDeltaType getObjectChange() {
+        return caseInstance.getObjectChange();
+    }
+
+    public XMLGregorianCalendar getOpenTimestamp() {
+        if (caseInstance.getMetadata() != null) {
+            return caseInstance.getMetadata().getCreateTimestamp();
+        }
+        return null;
     }
 
     public XMLGregorianCalendar getCloseTimestamp() {

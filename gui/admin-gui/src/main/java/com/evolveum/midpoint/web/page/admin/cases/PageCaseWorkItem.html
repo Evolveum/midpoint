@@ -21,55 +21,12 @@
     <form wicket:id="mainForm" class="clearfix form-horizontal">
         <div class="row">
             <div class="col-md-6">
-                <div class="box box-success">
-                    <div class="box-header with-border">
-                        <h3 class="box-title"><wicket:message key="PageCaseWorkItem.caseDetails"/></h3>
-                    </div>
-                    <div class="box-body no-padding">
-                        <table class="table table-striped">
-                            <tr>
-                                <td><wicket:message key="PageCaseWorkItem.case.name"/></td>
-                                <td><div wicket:id="caseName" /></td>
-                            </tr>
-                            <tr>
-                                <td><wicket:message key="PageCaseWorkItem.case.description"/></td>
-                                <td><div wicket:id="caseDescription" /></td>
-                            </tr>
-                            <tr>
-                                <td><wicket:message key="PageCaseWorkItem.case.resource"/></td>
-                                <td><div wicket:id="caseResource" /></td>
-                            </tr>
-                            <tr>
-                                <td><wicket:message key="PageCaseWorkItem.case.event"/></td>
-                                <td><div wicket:id="caseEvent" /></td>
-                            </tr>
-                            <tr>
-                                <td><wicket:message key="PageCaseWorkItem.case.outcome"/></td>
-                                <td><div wicket:id="caseOutcome" /></td>
-                            </tr>
-                            <tr>
-                                <td><wicket:message key="PageCaseWorkItem.case.closeTimestamp"/></td>
-                                <td><div wicket:id="caseCloseTimestamp" /></td>
-                            </tr>
-                            <tr>
-                                <td><wicket:message key="PageCaseWorkItem.case.state"/></td>
-                                <td><div wicket:id="caseState" /></td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
                 <div class="box box-danger">
                     <div class="box-header with-border">
                         <h3 class="box-title"><wicket:message key="PageCaseWorkItem.caseWorkItem"/></h3>
                     </div>
                     <div class="box-body no-padding">
                         <table class="table table-striped">
-                            <tr>
-                                <td><wicket:message key="PageCaseWorkItem.caseWorkItem.name"/></td>
-                                <td><div wicket:id="caseWorkItemName" /></td>
-                            </tr>
                             <tr>
                                 <td><wicket:message key="PageCaseWorkItem.caseWorkItem.originalAssignee"/></td>
                                 <td><div wicket:id="caseWorkItemOriginalAssignee" /></td>
@@ -89,6 +46,46 @@
                         </table>
                     </div>
                 </div>
+                <div class="box box-success">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"><wicket:message key="PageCaseWorkItem.caseDetails"/></h3>
+                    </div>
+                    <div class="box-body no-padding">
+                        <table class="table table-striped">
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.case.description"/></td>
+                                <td><div wicket:id="caseDescription" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.case.resource"/></td>
+                                <td><div wicket:id="caseResource" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.case.targetName"/></td>
+                                <td><div wicket:id="caseTargetName" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.case.outcome"/></td>
+                                <td><div wicket:id="caseOutcome" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.case.openTimestamp"/></td>
+                                <td><div wicket:id="caseOpenTimestamp" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.case.closeTimestamp"/></td>
+                                <td><div wicket:id="caseCloseTimestamp" /></td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.case.state"/></td>
+                                <td><div wicket:id="caseState" /></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div  wicket:id="deltaPanel"></div>
             </div>
         </div>
 

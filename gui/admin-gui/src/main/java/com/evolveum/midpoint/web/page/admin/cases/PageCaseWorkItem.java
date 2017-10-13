@@ -15,18 +15,23 @@
  */
 package com.evolveum.midpoint.web.page.admin.cases;
 
+import com.evolveum.midpoint.gui.api.component.delta.ObjectDeltaOperationPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.CaseManagementService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -36,21 +41,28 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DefaultAjaxSubmitButton;
+import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseDto;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.Collection;
+import java.util.List;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OBJECT_REF;
@@ -74,13 +86,15 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 	private static final String PARAMETER_CASE_WORK_ITEM_ID = "caseWorkItemId";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCaseWorkItem.class);
-	private static final String ID_WORK_ITEM_PANEL = "workItemPanel";
+	private static final String ID_DELTA_PANEL = "deltaPanel";
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_CASE_NAME = "caseName";
 	private static final String ID_CASE_DESCRIPTION = "caseDescription";
 	private static final String ID_CASE_RESOURCE = "caseResource";
+	private static final String ID_CASE_TARGET_NAME = "caseTargetName";
 	private static final String ID_CASE_EVENT = "caseEvent";
 	private static final String ID_CASE_OUTCOME = "caseOutcome";
+	private static final String ID_CASE_OPEN_TIMESTAMP = "caseOpenTimestamp";
 	private static final String ID_CASE_CLOSE_TIMESTAMP = "caseCloseTimestamp";
 	private static final String ID_CASE_STATE = "caseState";
 	private static final String ID_CASE_WORK_ITEM_NAME = "caseWorkItemName";
@@ -191,28 +205,48 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
         add(mainForm);
 
 		// Case Details
-		mainForm.add(new Label(ID_CASE_NAME, new PropertyModel<>(caseDtoModel, CaseDto.F_NAME)));
+//		mainForm.add(new Label(ID_CASE_NAME, new PropertyModel<>(caseDtoModel, CaseDto.F_NAME)));
 		mainForm.add(new Label(ID_CASE_DESCRIPTION, new PropertyModel<>(caseDtoModel, CaseDto.F_DESCRIPTION)));
 		mainForm.add(new Label(ID_CASE_RESOURCE, new PropertyModel<>(caseDtoModel, CaseDto.F_OBJECT_NAME)));
-		mainForm.add(new Label(ID_CASE_EVENT, new PropertyModel<>(caseDtoModel, CaseDto.F_EVENT)));
+		mainForm.add(new Label(ID_CASE_TARGET_NAME, new PropertyModel<>(caseDtoModel, CaseDto.F_TARGET_NAME)));
+//		mainForm.add(new Label(ID_CASE_EVENT, new PropertyModel<>(caseDtoModel, CaseDto.F_EVENT)));
 		mainForm.add(new Label(ID_CASE_OUTCOME, new PropertyModel<>(caseDtoModel, CaseDto.F_OUTCOME)));
+		mainForm.add(new Label(ID_CASE_OPEN_TIMESTAMP, new PropertyModel<>(caseDtoModel, CaseDto.F_OPEN_TIMESTAMP)));
 		mainForm.add(new Label(ID_CASE_CLOSE_TIMESTAMP, new PropertyModel<>(caseDtoModel, CaseDto.F_CLOSE_TIMESTAMP)));
 		mainForm.add(new Label(ID_CASE_STATE, new PropertyModel<>(caseDtoModel, CaseDto.F_STATE)));
 
 		// Case Work Item Details
-		mainForm.add(new Label(ID_CASE_WORK_ITEM_NAME, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_NAME)));
+//		mainForm.add(new Label(ID_CASE_WORK_ITEM_NAME, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_NAME)));
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_ASSIGNEES, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_ASSIGNEES)));
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_ORIGINAL_ASSIGNEE, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_ORIGINAL_ASSIGNEE)));
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_CLOSE_TIMESTAMP, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_CLOSE_TIMESTAMP)));
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_OUTCOME, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_OUTCOME)));
 		mainForm.add(new TextArea<>(ID_CASE_WORK_ITEM_COMMENT, new PropertyModel<String>(caseWorkItemDtoModel, CaseWorkItemDto.F_COMMENT)));
 
+		initDeltaPanel(mainForm);
         initButtons(mainForm);
 		LOGGER.trace("END PageCaseWorkItem::initLayout");
     }
 
-    public WorkItemPanel getWorkItemPanel() {
-    	return (WorkItemPanel) get(ID_MAIN_FORM).get(ID_WORK_ITEM_PANEL);
+	private void initDeltaPanel(Form mainForm){
+//    	DeltaDto deltaDto = new DeltaDto(DeltaConvertor.toObjectDelta(caseDtoModel.getObject().getObjectChange()));
+		CaseDto caseDto = caseDtoModel.getObject();
+		String shadowName = caseDto.getTargetName();
+		ObjectDeltaType deltaType = caseDtoModel.getObject().getObjectChange();
+		deltaType.setOid(shadowName);
+		ObjectDeltaOperationType delta = new ObjectDeltaOperationType().objectDelta(deltaType).resourceOid(caseDtoModel.getObject().getObjectOid());
+		delta.setResourceName(new PolyStringType(caseDtoModel.getObject().getObjectName()));
+		delta.setObjectName(new PolyStringType(shadowName));
+		OperationResultType result = new OperationResultType();
+		result.setStatus(OperationResultStatusType.IN_PROGRESS);
+		delta.setExecutionResult(result);
+		RepeatingView deltaScene = new RepeatingView(ID_DELTA_PANEL);
+
+		ObjectDeltaOperationPanel deltaPanel = new ObjectDeltaOperationPanel(deltaScene.newChildId(), Model.of(delta), this);
+		deltaPanel.setOutputMarkupId(true);
+		deltaScene.add(deltaPanel);
+
+		mainForm.add(deltaScene);
 	}
 
     private void initButtons(Form mainForm) {

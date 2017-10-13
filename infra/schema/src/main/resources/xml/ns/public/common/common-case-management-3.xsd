@@ -70,6 +70,25 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="targetName" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Target name. Might be the account/shadow name if the case deals with
+                                an account on a resource.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectChange" type="t:ObjectDeltaType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Description of changes that happened to an resource object shadow.
+                                This is still used in midPoint 3.6 for consistency mechanism.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:deprecated>true</a:deprecated>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="state" type="xsd:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
