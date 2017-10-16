@@ -390,7 +390,7 @@ It also contains inbound mappings and definition to enable synchronization.
 			</attribute>
 			<configuredCapabilities>
 				<cap:pagedSearch>
-					<cap:defaultSortField>ri:uid</cap:defaultSortField>
+					<cap:defaultSortField>ri:cn</cap:defaultSortField>
 				</cap:pagedSearch>
 			</configuredCapabilities>
 		</objectType>
