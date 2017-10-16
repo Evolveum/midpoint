@@ -23,7 +23,7 @@
         <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">testrole</norm>
     </name>
     <description>GUI</description>
-    <metadata>
+    <metadata id="2">
         <createTimestamp>2013-06-14T09:26:57.644+02:00</createTimestamp>
         <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                     oid="00000000-0000-0000-0000-000000000002"

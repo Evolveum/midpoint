@@ -628,8 +628,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismContainer container = role.findContainer(RoleType.F_INDUCEMENT);
         assertEquals(2, container.size());
 
-        AssertJUnit.assertNotNull(container.getValue(2L));
         AssertJUnit.assertNotNull(container.getValue(3L));
+        AssertJUnit.assertNotNull(container.getValue(4L));
 
 		// modify role once more to check version progress
 		String version = role.getVersion();
