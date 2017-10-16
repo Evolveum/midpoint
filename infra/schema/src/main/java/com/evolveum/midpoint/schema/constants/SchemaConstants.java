@@ -532,6 +532,7 @@ public abstract class SchemaConstants {
 	public static final String TOKEN = "token";
 
 	public static final String OBJECT_TYPE_KEY_PREFIX = "ObjectType.";
+	public static final String OBJECT_TYPE_LOWERCASE_KEY_PREFIX = "ObjectTypeLowercase.";
 	public static final String DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX = "DefaultPolicyConstraint.";
 	public static final String DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX = "DefaultPolicyConstraint.Short.";
 	public static final String POLICY_CONSTRAINT_KEY_PREFIX = "PolicyConstraint.";

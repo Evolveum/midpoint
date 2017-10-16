@@ -17,11 +17,15 @@
 package com.evolveum.midpoint.wf.impl.processors.primary.policy;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -98,6 +102,20 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			// TODO maybe use name + description as well
 			rv.getStage().add(stageDef);
 			return rv;
+		}
+	}
+
+	LocalizableMessage createProcessName(ApprovalSchemaBuilder.Result schemaBuilderResult) {
+		List<EvaluatedPolicyRuleTriggerType> triggers = new ArrayList<>();
+		for (SchemaAttachedPolicyRuleType entry : schemaBuilderResult.attachedRules.getEntry()) {
+			triggers.addAll(entry.getRule().getTrigger());
+		}
+
+		List<TreeNode<EvaluatedPolicyRuleTriggerType>> trees = EvaluatedPolicyRuleUtil.arrangeForPresentationExt(triggers);
+		if (!trees.isEmpty() && trees.get(0).getUserObject().getShortMessage() != null) {
+			return LocalizationUtil.parseLocalizableMessageType(trees.get(0).getUserObject().getShortMessage());
+		} else {
+			return null;
 		}
 	}
 	//endregion

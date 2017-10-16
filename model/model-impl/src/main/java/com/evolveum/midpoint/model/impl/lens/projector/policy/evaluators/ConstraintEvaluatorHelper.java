@@ -115,42 +115,6 @@ public class ConstraintEvaluatorHelper {
 		return rv;
 	}
 
-	public LocalizableMessage createTechnicalObjectSpecification(PrismObject<?> object) {
-		if (object != null) {
-			return new LocalizableMessageBuilder()
-					.key(SchemaConstants.TECHNICAL_OBJECT_SPECIFICATION_KEY)
-					.arg(createObjectTypeSpecification(object.asObjectable().getClass().getSimpleName()))
-					.arg(object.asObjectable().getName())
-					.arg(object.getOid())
-					.build();
-		} else {
-			return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!
-		}
-	}
-
-	public LocalizableMessage createObjectSpecification(PrismObject<?> object) {
-		if (object != null) {
-			return new LocalizableMessageBuilder()
-					.key(SchemaConstants.OBJECT_SPECIFICATION_KEY)
-					.arg(createObjectTypeSpecification(object.asObjectable().getClass().getSimpleName()))
-					.arg(object.asObjectable().getName())
-					.build();
-		} else {
-			return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!
-		}
-	}
-
-	public LocalizableMessage createObjectTypeSpecification(QName type) {
-		return createObjectTypeSpecification(type != null ? type.getLocalPart() : null);
-	}
-
-	public LocalizableMessage createObjectTypeSpecification(String objectClassName) {
-		return new LocalizableMessageBuilder()
-						.key(SchemaConstants.OBJECT_TYPE_KEY_PREFIX + objectClassName)
-						.fallbackMessage(objectClassName)
-						.build();
-	}
-
 	public <F extends FocusType> LocalizableMessage createLocalizableMessage(
 			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> rctx,
 			LocalizableMessage builtInMessage, OperationResult result) throws ExpressionEvaluationException,

@@ -16,7 +16,10 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
+import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
+import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil.AugmentedTrigger;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleTriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleType;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil.arrangeForPresentationExt;
 
 /**
  * @author mederly
@@ -37,8 +42,12 @@ public class EvaluatedTriggerGroupDto implements Serializable {
 
 	@NotNull private final List<EvaluatedTriggerDto> triggers = new ArrayList<>();
 
-	public EvaluatedTriggerGroupDto(LocalizableMessage title) {
+	EvaluatedTriggerGroupDto(LocalizableMessage title,
+			List<TreeNode<AugmentedTrigger<HighlightingInformation>>> processedTriggers) {
 		this.title = title;
+		for (TreeNode<AugmentedTrigger<HighlightingInformation>> processedTrigger : processedTriggers) {
+			this.triggers.add(new EvaluatedTriggerDto(processedTrigger));
+		}
 	}
 
 	public LocalizableMessage getTitle() {
@@ -50,14 +59,56 @@ public class EvaluatedTriggerGroupDto implements Serializable {
 		return triggers;
 	}
 
-	public static EvaluatedTriggerGroupDto createFrom(List<EvaluatedPolicyRuleType> rules, boolean highlighted, List<AlreadyShownTriggerRecord> triggersAlreadyShown) {
-		EvaluatedTriggerGroupDto group = new EvaluatedTriggerGroupDto(null);
+	public static EvaluatedTriggerGroupDto initializeFromRules(List<EvaluatedPolicyRuleType> rules, boolean highlighted,
+			UniquenessFilter uniquenessFilter) {
+		List<AugmentedTrigger<HighlightingInformation>> augmentedTriggers = new ArrayList<>();
 		for (EvaluatedPolicyRuleType rule : rules) {
 			for (EvaluatedPolicyRuleTriggerType trigger : rule.getTrigger()) {
-				EvaluatedTriggerDto.create(group.getTriggers(), trigger, highlighted, triggersAlreadyShown);
+				augmentedTriggers.add(new AugmentedTrigger<>(trigger, new HighlightingInformation(highlighted)));
 			}
 		}
-		EvaluatedTriggerDto.sort(group.getTriggers());
-		return group;
+		List<TreeNode<AugmentedTrigger<HighlightingInformation>>> triggerTrees = arrangeForPresentationExt(augmentedTriggers, uniquenessFilter);
+		return new EvaluatedTriggerGroupDto(null, triggerTrees);
+	}
+
+	public static class UniquenessFilter implements EvaluatedPolicyRuleUtil.AdditionalFilter<HighlightingInformation> {
+
+		private static class AlreadyShownTriggerRecord<AD extends EvaluatedPolicyRuleUtil.AdditionalData> {
+			final AugmentedTrigger<AD> augmentedTrigger;
+			final EvaluatedPolicyRuleTriggerType anonymizedTrigger;
+
+			AlreadyShownTriggerRecord(AugmentedTrigger<AD> augmentedTrigger,
+					EvaluatedPolicyRuleTriggerType anonymizedTrigger) {
+				this.augmentedTrigger = augmentedTrigger;
+				this.anonymizedTrigger = anonymizedTrigger;
+			}
+		}
+
+		List<AlreadyShownTriggerRecord<HighlightingInformation>> triggersAlreadyShown = new ArrayList<>();
+
+		@Override
+		public boolean accepts(AugmentedTrigger<HighlightingInformation> newAugmentedTrigger) {
+			EvaluatedPolicyRuleTriggerType anonymizedTrigger = newAugmentedTrigger.trigger.clone().ruleName(null);
+			for (AlreadyShownTriggerRecord<HighlightingInformation> alreadyShown : triggersAlreadyShown) {
+				if (alreadyShown.anonymizedTrigger.equals(anonymizedTrigger)) {
+					alreadyShown.augmentedTrigger.additionalData.merge(newAugmentedTrigger.additionalData);
+					return false;
+				}
+			}
+			triggersAlreadyShown.add(new AlreadyShownTriggerRecord<>(newAugmentedTrigger, anonymizedTrigger));
+			return true;
+		}
+	}
+
+	public static class HighlightingInformation implements EvaluatedPolicyRuleUtil.AdditionalData {
+		boolean value;
+
+		HighlightingInformation(boolean value) {
+			this.value = value;
+		}
+
+		public void merge(EvaluatedPolicyRuleUtil.AdditionalData other) {
+			value = value | ((HighlightingInformation) other).value;
+		}
 	}
 }

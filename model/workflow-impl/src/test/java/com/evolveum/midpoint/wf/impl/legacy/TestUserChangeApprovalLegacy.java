@@ -143,7 +143,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 assertNotAssignedRole(USER_JACK_OID, ROLE_R1_OID, rootTask, result);
-                assertWfContextAfterClockworkRun(rootTask, subtasks, result, "Assigning Role1 to jack");
+                assertWfContextAfterClockworkRun(rootTask, subtasks, result, "Assigning role Role1 to user jack");
             }
 
             @Override
@@ -152,7 +152,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 checkDummyTransportMessages("simpleUserNotifier", 1);
                 checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                 checkUserApprovers(USER_JACK_OID, Arrays.asList(R1BOSS_OID), result);
-                assertWfContextAfterRootTaskFinishes(rootTask, subtasks, result, "Assigning Role1 to jack");
+                assertWfContextAfterRootTaskFinishes(rootTask, subtasks, result, "Assigning role Role1 to user jack");
             }
 
             @Override

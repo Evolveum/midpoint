@@ -149,8 +149,8 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 		tt.setShortMessage(LocalizationUtil.createLocalizableMessageType(shortMessage));
 		PolicyConstraintPresentationType presentation = constraint.getPresentation();
 		if (presentation != null) {
-			tt.setFinal(presentation.isFinal());
-			tt.setHidden(presentation.isHidden());
+			tt.setFinal(Boolean.TRUE.equals(presentation.isFinal()));
+			tt.setHidden(Boolean.TRUE.equals(presentation.isHidden())); // null would mean it would be overridden by isHiddenByDefault
 			tt.setPresentationOrder(presentation.getDisplayOrder());
 		}
 	}

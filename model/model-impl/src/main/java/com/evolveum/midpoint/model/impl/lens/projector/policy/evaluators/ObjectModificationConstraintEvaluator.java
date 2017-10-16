@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -81,7 +82,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 		String keyPostfix = createStateKey(rctx) + createOperationKey(rctx);
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
-				.args(evaluatorHelper.createTechnicalObjectSpecification(rctx.focusContext.getObjectAny()))
+				.args(ObjectTypeUtil.createTechnicalObjectSpecification(rctx.focusContext.getObjectAny()))
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint.getValue(), rctx, builtInMessage, result);
 	}
@@ -92,7 +93,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 		String keyPostfix = createStateKey(rctx) + createOperationKey(rctx);
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
-				.args(evaluatorHelper.createTechnicalObjectSpecification(rctx.focusContext.getObjectAny()))
+				.args(ObjectTypeUtil.createObjectSpecification(rctx.focusContext.getObjectAny()))
 				.build();
 		return evaluatorHelper.createLocalizableShortMessage(constraint.getValue(), rctx, builtInMessage, result);
 	}

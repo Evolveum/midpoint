@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -83,7 +84,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 		String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
-				.arg(evaluatorHelper.createTechnicalObjectSpecification(ctx.evaluatedAssignment.getTarget()))
+				.arg(ObjectTypeUtil.createTechnicalObjectSpecification(ctx.evaluatedAssignment.getTarget()))
 				.arg(ctx.evaluatedAssignment.getRelation() != null ? ctx.evaluatedAssignment.getRelation().getLocalPart() : null)
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint.getValue(), ctx, builtInMessage, result);
@@ -106,8 +107,8 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 		String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
-				.arg(evaluatorHelper.createObjectSpecification(ctx.evaluatedAssignment.getTarget()))
-				.arg(evaluatorHelper.createObjectSpecification(ctx.getObject()))
+				.arg(ObjectTypeUtil.createObjectSpecification(ctx.evaluatedAssignment.getTarget()))
+				.arg(ObjectTypeUtil.createObjectSpecification(ctx.getObject()))
 				.build();
 		return evaluatorHelper.createLocalizableShortMessage(constraint.getValue(), ctx, builtInMessage, result);
 	}

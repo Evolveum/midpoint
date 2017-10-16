@@ -138,7 +138,7 @@ public class PagePreviewChanges extends PageAdmin {
 				? modelContext.getHookPreviewResult(PolicyRuleEnforcerHookPreviewOutputType.class)
 				: null;
 		List<EvaluatedTriggerGroupDto> triggerGroups = enforcements != null
-				? Collections.singletonList(EvaluatedTriggerGroupDto.createFrom(enforcements.getRule(), false, null))
+				? Collections.singletonList(EvaluatedTriggerGroupDto.initializeFromRules(enforcements.getRule(), false, null))
 				: Collections.emptyList();
 		policyViolationsModel = Model.ofList(triggerGroups);
 

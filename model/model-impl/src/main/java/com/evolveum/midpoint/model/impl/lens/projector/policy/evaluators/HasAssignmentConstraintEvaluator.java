@@ -126,7 +126,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_POSITIVE)
-				.arg(evaluatorHelper.createTechnicalObjectSpecification(target))
+				.arg(ObjectTypeUtil.createTechnicalObjectSpecification(target))
 				.arg(evaluatorHelper.createBeforeAfterMessage(ctx))
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
@@ -137,7 +137,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_POSITIVE)
-				.arg(evaluatorHelper.createTechnicalObjectSpecification(target))
+				.arg(ObjectTypeUtil.createObjectSpecification(target))
 				.arg(evaluatorHelper.createBeforeAfterMessage(ctx))
 				.build();
 		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
@@ -148,7 +148,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_NEGATIVE)
-				.arg(evaluatorHelper.createObjectTypeSpecification(targetType))
+				.arg(ObjectTypeUtil.createObjectTypeSpecification(targetType))
 				.arg(targetOid)
 				.arg(evaluatorHelper.createBeforeAfterMessage(ctx))
 				.build();
@@ -160,7 +160,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_NEGATIVE)
-				.arg(evaluatorHelper.createObjectTypeSpecification(targetType))
+				.arg(ObjectTypeUtil.createObjectTypeSpecification(targetType))
 				.arg(targetOid)
 				.arg(evaluatorHelper.createBeforeAfterMessage(ctx))
 				.build();

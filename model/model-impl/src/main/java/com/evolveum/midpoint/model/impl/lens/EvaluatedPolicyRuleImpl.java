@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
@@ -317,28 +318,12 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 
 	@SuppressWarnings("unchecked")
 	private List<TreeNode<LocalizableMessage>> extractMessages(MessageKind kind) {
-		TreeNode<LocalizableMessage> root = new TreeNode<>();
-		for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
-			createMessageTreeNode(root, trigger, kind);
+		List<TreeNode<EvaluatedPolicyRuleTrigger<?>>> triggerTreeList = EvaluatedPolicyRuleUtil.arrangeForPresentationInt(triggers);
+		List<TreeNode<LocalizableMessage>> messageTreeList = new ArrayList<>();
+		for (TreeNode<EvaluatedPolicyRuleTrigger<?>> tree : triggerTreeList) {
+			messageTreeList.add(tree.tranform(trigger -> getMessage(trigger, kind)));
 		}
-		return root.getChildren();
-	}
-
-	private void createMessageTreeNode(TreeNode<LocalizableMessage> root, EvaluatedPolicyRuleTrigger<?> trigger, MessageKind kind) {
-		PolicyConstraintPresentationType presentation = trigger.getConstraint().getPresentation();
-		boolean hidden = presentation != null && Boolean.TRUE.equals(presentation.isHidden());
-		boolean isFinal = presentation != null && Boolean.TRUE.equals(presentation.isFinal());
-		if (!hidden) {
-			TreeNode<LocalizableMessage> newNode = new TreeNode<>();
-			newNode.setUserObject(getMessage(trigger, kind));
-			root.add(newNode);
-			root = newNode;
-		}
-		if (!isFinal) {
-			for (EvaluatedPolicyRuleTrigger<?> innerTrigger : trigger.getInnerTriggers()) {
-				createMessageTreeNode(root, innerTrigger, kind);
-			}
-		}
+		return messageTreeList;
 	}
 
 	private LocalizableMessage getMessage(EvaluatedPolicyRuleTrigger<?> trigger, MessageKind kind) {
