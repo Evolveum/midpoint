@@ -308,7 +308,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 
 			@Override
 			protected List<ExpectedTask> getExpectedTasks() {
-				return Collections.singletonList(new ExpectedTask(getRoleOid(1), "Assigning " + getRoleName(1) + " to jack"));
+				return Collections.singletonList(new ExpectedTask(getRoleOid(1), "Assigning role " + getRoleName(1) + " to user jack"));
 			}
 
 			@Override
@@ -430,9 +430,9 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 			@Override
 			protected List<ExpectedTask> getExpectedTasks() {
 				return Arrays.asList(
-						new ExpectedTask(getRoleOid(1), "Assigning "+getRoleName(1)+" to jack"),
-						new ExpectedTask(getRoleOid(2), "Assigning "+getRoleName(2)+" to jack"),
-						new ExpectedTask(getRoleOid(3), "Assigning "+getRoleName(3)+" to jack"));
+						new ExpectedTask(getRoleOid(1), "Assigning role "+getRoleName(1)+" to user jack"),
+						new ExpectedTask(getRoleOid(2), "Assigning role "+getRoleName(2)+" to user jack"),
+						new ExpectedTask(getRoleOid(3), "Assigning role "+getRoleName(3)+" to user jack"));
 			}
 
 			@Override

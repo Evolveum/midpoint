@@ -37,11 +37,14 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 	@NotNull private final PolicyConstraintKindType constraintKind;
 	@NotNull private final CT constraint;
 	private final LocalizableMessage message;
+	private final LocalizableMessage shortMessage;
 
-	public EvaluatedPolicyRuleTrigger(@NotNull PolicyConstraintKindType constraintKind, @NotNull CT constraint, LocalizableMessage message) {
+	public EvaluatedPolicyRuleTrigger(@NotNull PolicyConstraintKindType constraintKind, @NotNull CT constraint,
+			LocalizableMessage message, LocalizableMessage shortMessage) {
 		this.constraintKind = constraintKind;
 		this.constraint = constraint;
 		this.message = message;
+		this.shortMessage = shortMessage;
 	}
 
 	/**
@@ -65,6 +68,10 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 	 */
 	public LocalizableMessage getMessage() {
 		return message;
+	}
+
+	public LocalizableMessage getShortMessage() {
+		return shortMessage;
 	}
 
 	@Override
@@ -139,10 +146,12 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 	protected void fillCommonContent(EvaluatedPolicyRuleTriggerType tt) {
 		tt.setConstraintKind(constraintKind);
 		tt.setMessage(LocalizationUtil.createLocalizableMessageType(message));
+		tt.setShortMessage(LocalizationUtil.createLocalizableMessageType(shortMessage));
 		PolicyConstraintPresentationType presentation = constraint.getPresentation();
 		if (presentation != null) {
-			tt.setFinal(presentation.isFinal());
-			tt.setHidden(presentation.isHidden());
+			tt.setFinal(Boolean.TRUE.equals(presentation.isFinal()));
+			tt.setHidden(Boolean.TRUE.equals(presentation.isHidden())); // null would mean it would be overridden by isHiddenByDefault
+			tt.setPresentationOrder(presentation.getDisplayOrder());
 		}
 	}
 

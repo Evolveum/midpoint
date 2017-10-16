@@ -116,7 +116,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		System.out.println("Task = " + task);
 		assertNotNull("No task", task);
 
-		final String TASK_NAME = "Approve assigning Role1a to jack";
+		final String TASK_NAME = "Assigning role Role1a to user jack";
 		final String VAR = "someVariable";
 		taskService.setVariableLocal(task.getId(), VAR, "[:abc];[:def];[UserType:"+userLead1Oid+"]");
 		TaskQuery tq1 = taskService.createTaskQuery().includeTaskLocalVariables()
@@ -197,7 +197,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		System.out.println("Task = " + task);
 		assertNotNull("No task", task);
 
-		final String TASK_NAME = "Approve assigning Role1a to jack";
+		final String TASK_NAME = "Assigning role Role1a to user jack";
 		List<IdentityLink> linksBefore = taskService.getIdentityLinksForTask(task.getId());
 		System.out.println("Identity links (before)" + linksBefore);
 		taskService.addUserIdentityLink(task.getId(), "123", CommonProcessVariableNames.MIDPOINT_ASSIGNEE);

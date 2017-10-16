@@ -287,7 +287,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return "RAccessCertificationCase{" +
                 "id=" + id +
                 ", ownerOid='" + ownerOid + '\'' +
-                ", owner=" + owner +
+                ", targetRef=" + targetRef +
                 ", targetRef=" + targetRef +
                 ", objectRef=" + objectRef +
                 '}';

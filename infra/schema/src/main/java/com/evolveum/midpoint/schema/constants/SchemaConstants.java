@@ -532,11 +532,15 @@ public abstract class SchemaConstants {
 	public static final String TOKEN = "token";
 
 	public static final String OBJECT_TYPE_KEY_PREFIX = "ObjectType.";
+	public static final String OBJECT_TYPE_LOWERCASE_KEY_PREFIX = "ObjectTypeLowercase.";
 	public static final String DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX = "DefaultPolicyConstraint.";
+	public static final String DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX = "DefaultPolicyConstraint.Short.";
 	public static final String POLICY_CONSTRAINT_KEY_PREFIX = "PolicyConstraint.";
+	public static final String POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX = "PolicyConstraint.Short.";
 	public static final String POLICY_CONSTRAINTS_BEFORE_KEY = "PolicyConstraints.before";
 	public static final String POLICY_CONSTRAINTS_AFTER_KEY = "PolicyConstraints.after";
 	public static final String TECHNICAL_OBJECT_SPECIFICATION_KEY = "TechnicalObjectSpecification";
+	public static final String OBJECT_SPECIFICATION_KEY = "ObjectSpecification";
 	public static final String POLICY_VIOLATION_EXCEPTION_AGGREGATE_KEY = "PolicyViolationException.message.aggregate";
 
 	//	// resetPassword
