@@ -416,7 +416,7 @@ public class ResourceObjectConverter {
 				throw e;
 			}
 
-			connector.deleteObject(ctx.getObjectClassDefinition(), additionalOperations, identifiers, ctx, result);
+			connector.deleteObject(ctx.getObjectClassDefinition(), additionalOperations, shadow, identifiers, ctx, result);
 
 			computeResultStatus(result);
 			LOGGER.debug("PROVISIONING DELETE: {}", result.getStatus());
@@ -568,7 +568,7 @@ public class ResourceObjectConverter {
 				}
 				
 				// Execute primary ICF operation on this shadow
-				sideEffectOperations = executeModify(ctx, preReadShadow, identifiers, operations, result);
+				sideEffectOperations = executeModify(ctx, (preReadShadow == null ? repoShadow.clone() : preReadShadow), identifiers, operations, result);
 				
 			} else {
 				// We have to check BEFORE we add script operations, otherwise the check would be pointless
@@ -766,7 +766,7 @@ public class ResourceObjectConverter {
 					operationsWave = convertToReplace(ctx, operationsWave, currentShadow);
 				}
 				if (!operationsWave.isEmpty()) {
-					AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> ret = connector.modifyObject(objectClassDefinition, identifiersWorkingCopy, operationsWave, ctx, parentResult);
+					AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> ret = connector.modifyObject(objectClassDefinition, currentShadow, identifiersWorkingCopy, operationsWave, ctx, parentResult);
 					Collection<PropertyModificationOperation> sideEffects = ret.getReturnValue();
 					if (sideEffects != null) {
 						sideEffectChanges.addAll(sideEffects);

@@ -51,8 +51,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.prism.xml.ns._public.types_3.*;
 
 /**
  * @author Radovan Semancik
@@ -118,7 +118,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
 	@Override
 	protected String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
-			Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
+			PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, Collection<Operation> changes,
 			OperationResult result) throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
 		LOGGER.debug("Creating case to modify account {}:\n{}", identifiers, DebugUtil.debugDump(changes, 1));
@@ -133,6 +133,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 				.collect(Collectors.toList());
 		ObjectDelta<? extends ShadowType> objectDelta = ObjectDelta.createModifyDelta("", changeDeltas, ShadowType.class, getPrismContext());
 		ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
+		objectDeltaType.setOid(shadow.getOid());
 		String shadowName = getShadowIdentifier(identifiers);
 		String description = "Please modify resource account: "+shadowName;
 		PrismObject<CaseType> acase = addCase(description, resourceOid, shadowName, objectDeltaType, result);
@@ -141,15 +142,24 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
 	@Override
 	protected String createTicketDelete(ObjectClassComplexTypeDefinition objectClass,
-			Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, OperationResult result)
+			PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, String resourceOid, OperationResult result)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
 			SchemaException, ConfigurationException {
 		LOGGER.debug("Creating case to delete account {}", identifiers);
 		String shadowName = getShadowIdentifier(identifiers);
 		String description = "Please delete resource account: "+shadowName;
+		ObjectDeltaType objectDeltaType = new ObjectDeltaType();
+		objectDeltaType.setChangeType(ChangeTypeType.DELETE);
+		objectDeltaType.setObjectType(ShadowType.COMPLEX_TYPE);
+		ItemDeltaType itemDeltaType = new ItemDeltaType();
+		itemDeltaType.setPath(new ItemPathType("kind"));
+		itemDeltaType.setModificationType(ModificationTypeType.DELETE);
+		objectDeltaType.setOid(shadow.getOid());
+
+		objectDeltaType.getItemDelta().add(itemDeltaType);
 		PrismObject<CaseType> acase;
 		try {
-			acase = addCase(description, resourceOid, shadowName, null, result);
+			acase = addCase(description, resourceOid, shadowName, objectDeltaType, result);
 		} catch (ObjectAlreadyExistsException e) {
 			// should not happen
 			throw new SystemException(e.getMessage(), e);

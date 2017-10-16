@@ -261,12 +261,12 @@ public interface ConnectorInstance {
 	 * @throws SchemaException 
 	 * @throws ObjectAlreadyExistsException in case that the modified object conflicts with another existing object (e.g. while renaming an object)
 	 */
-    AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes, StateReporter reporter,
+    AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(ObjectClassComplexTypeDefinition objectClass, PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes, StateReporter reporter,
 																  OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
 			SecurityViolationException, ObjectAlreadyExistsException, ConfigurationException;
 	
-    AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
+    AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
 							 OperationResult parentResult)
 					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 	

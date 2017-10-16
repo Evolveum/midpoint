@@ -229,23 +229,24 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
     }
 
 	private void initDeltaPanel(Form mainForm){
-//    	DeltaDto deltaDto = new DeltaDto(DeltaConvertor.toObjectDelta(caseDtoModel.getObject().getObjectChange()));
 		CaseDto caseDto = caseDtoModel.getObject();
 		String shadowName = caseDto.getTargetName();
-		ObjectDeltaType deltaType = caseDtoModel.getObject().getObjectChange();
-		deltaType.setOid(shadowName);
-		ObjectDeltaOperationType delta = new ObjectDeltaOperationType().objectDelta(deltaType).resourceOid(caseDtoModel.getObject().getObjectOid());
-		delta.setResourceName(new PolyStringType(caseDtoModel.getObject().getObjectName()));
-		delta.setObjectName(new PolyStringType(shadowName));
-		OperationResultType result = new OperationResultType();
-		result.setStatus(OperationResultStatusType.IN_PROGRESS);
-		delta.setExecutionResult(result);
+		ObjectDeltaType deltaType = caseDto.getObjectChange();
 		RepeatingView deltaScene = new RepeatingView(ID_DELTA_PANEL);
 
-		ObjectDeltaOperationPanel deltaPanel = new ObjectDeltaOperationPanel(deltaScene.newChildId(), Model.of(delta), this);
-		deltaPanel.setOutputMarkupId(true);
-		deltaScene.add(deltaPanel);
+		if (deltaType != null) {
+			//deltaType.setOid(shadowName);
+			ObjectDeltaOperationType delta = new ObjectDeltaOperationType().objectDelta(deltaType).resourceOid(caseDtoModel.getObject().getObjectOid());
+			delta.setResourceName(new PolyStringType(caseDtoModel.getObject().getObjectName()));
+			delta.setObjectName(new PolyStringType(shadowName));
+			OperationResultType result = new OperationResultType();
+			result.setStatus(OperationResultStatusType.IN_PROGRESS);
+			delta.setExecutionResult(result);
 
+			ObjectDeltaOperationPanel deltaPanel = new ObjectDeltaOperationPanel(deltaScene.newChildId(), Model.of(delta), this);
+			deltaPanel.setOutputMarkupId(true);
+			deltaScene.add(deltaPanel);
+		}
 		mainForm.add(deltaScene);
 	}
 
