@@ -157,16 +157,21 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         column = new CheckBoxHeaderColumn<>();
         columns.add(column);
 
-//        column = new PropertyColumn(createStringResource("PageCaseWorkItems.table.name"), CaseWorkItemDto.F_NAME);
-        columns.add(createNameColumn());
+        columns.add(createDetailsLinkColumn());
 
         column = new PropertyColumn(createStringResource("PageCaseWorkItems.table.objectName"), CaseWorkItemDto.F_OBJECT_NAME);
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("PageCaseWorkItems.table.description"), CaseWorkItemDto.F_DESCRIPTION);
+        column = new PropertyColumn(createStringResource("PageCaseWorkItems.table.actors"), CaseWorkItemDto.F_ASSIGNEES);
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("PageCaseWorkItems.table.actors"), CaseWorkItemDto.F_ASSIGNEES);
+        column = new PropertyColumn(createStringResource("PageCaseWorkItems.table.openTimestamp"), CaseWorkItemDto.F_OPEN_TIMESTAMP);
+        columns.add(column);
+
+        column = new PropertyColumn(createStringResource("PageCaseWorkItems.table.closeTimestamp"), CaseWorkItemDto.F_CLOSE_TIMESTAMP);
+        columns.add(column);
+
+        column = new PropertyColumn(createStringResource("PageCaseWorkItems.table.state"), CaseWorkItemDto.F_STATE);
         columns.add(column);
 
         return columns;
@@ -177,9 +182,9 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
     }
 
     @NotNull
-    private AbstractColumn<CaseWorkItemDto, String> createNameColumn() {
-        return new LinkColumn<CaseWorkItemDto>(createStringResource("PageCaseWorkItems.table.name"), CaseWorkItemDto.F_NAME,
-                CaseWorkItemDto.F_NAME) {
+    private AbstractColumn<CaseWorkItemDto, String> createDetailsLinkColumn() {
+        return new LinkColumn<CaseWorkItemDto>(createStringResource("PageCaseWorkItems.table.description"), CaseWorkItemDto.F_DESCRIPTION,
+                CaseWorkItemDto.F_DESCRIPTION) {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<CaseWorkItemDto> rowModel) {
                 PageParameters parameters = new PageParameters();

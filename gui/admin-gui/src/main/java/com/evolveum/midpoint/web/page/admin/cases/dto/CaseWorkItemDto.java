@@ -50,7 +50,9 @@ public class CaseWorkItemDto extends Selectable {
     public static final String F_ASSIGNEES = "assignees";
     public static final String F_ORIGINAL_ASSIGNEE = "originalAssignee";
     public static final String F_DESCRIPTION = "description";
+    public static final String F_OPEN_TIMESTAMP = "openTimestamp";
     public static final String F_CLOSE_TIMESTAMP = "closeTimestamp";
+    public static final String F_STATE = "state";
     public static final String F_COMMENT = "comment";
     public static final String F_OUTCOME = "outcome";
 
@@ -137,5 +139,13 @@ public class CaseWorkItemDto extends Selectable {
 
     public XMLGregorianCalendar getCloseTimestamp() {
         return workItem.getCloseTimestamp();
+    }
+
+    public XMLGregorianCalendar getOpenTimestamp() {
+        return _case.getMetadata().getCreateTimestamp();
+    }
+
+    public String getState() {
+        return _case.getState();
     }
 }
