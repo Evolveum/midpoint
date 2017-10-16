@@ -1,9 +1,6 @@
 package com.evolveum.midpoint.repo.sql.util;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.cxf.common.util.StringUtils;
@@ -33,7 +30,13 @@ public class PrismIdentifierGenerator {
             result.setGeneratedOid(true);
         }
 
+        List<PrismContainer<?>> values = listAllPrismContainers(object);
+        generateContainerIds(values, result, operation);
 
+        return result;
+    }
+
+    private List<PrismContainer<?>> listAllPrismContainers(Visitable object) {
         List<PrismContainer<?>> values = new ArrayList<>();
 
         object.accept(visitable -> {
@@ -48,9 +51,7 @@ public class PrismIdentifierGenerator {
             values.add((PrismContainer) visitable);
         });
 
-
-        generateContainerIds(values, result, operation);
-        return result;
+        return values;
     }
 
     private void generateContainerIds(List<PrismContainer<?>> containers, IdGeneratorResult result, Operation operation) {
@@ -90,9 +91,15 @@ public class PrismIdentifierGenerator {
             return result;
         }
         AccessCertificationCaseType aCase = (AccessCertificationCaseType) containerable;
+
         List<PrismContainer<?>> containers = new ArrayList<>();
         CollectionUtils.addIgnoreNull(containers, aCase.asPrismContainerValue().findContainer(AccessCertificationCaseType.F_WORK_ITEM));
+
         generateContainerIds(containers, result, operation);
+
+//        List<PrismContainer<?>> values = listAllPrismContainers(aCase.asPrismContainerValue());
+//        generateContainerIds(values, result, operation);
+
         return result;
     }
 }

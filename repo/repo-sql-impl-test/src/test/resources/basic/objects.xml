@@ -1454,7 +1454,7 @@
 			<workItem id="1">
 				<stageNumber>1</stageNumber>
             	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output>
+				<output id="14">
 					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
 				</output>
 				<outputChangeTimestamp>2015-12-04T01:04:06.385+01:00</outputChangeTimestamp>
@@ -1473,7 +1473,7 @@
 			<workItem id="1">
 				<stageNumber>1</stageNumber>
             	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output>
+				<output id="15">
 					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#noResponse</outcome>
 				</output>
 				<outputChangeTimestamp>2015-12-04T01:10:08.670+01:00</outputChangeTimestamp>
@@ -1495,7 +1495,7 @@
 			<workItem id="1">
 				<stageNumber>1</stageNumber>
 				<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output>
+				<output id="16">
 					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
 				</output>
 				<outputChangeTimestamp>2015-12-04T01:10:13.814+01:00</outputChangeTimestamp>
@@ -1507,7 +1507,7 @@
             <currentStageOutcome>revoke</currentStageOutcome>
             <stageNumber>1</stageNumber>
             <assignment id="1">
-                <construction>
+                <construction id="2">
                     <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"><!-- Localhost OpenDJ (no extension schema) --></resourceRef>
                     <attribute>
                         <c:ref>ri:cn</c:ref>
@@ -1537,7 +1537,7 @@
 			<workItem id="1">
 				<stageNumber>1</stageNumber>
             	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output>
+				<output id="17">
 					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
 				</output>
 				<outputChangeTimestamp>2015-12-04T01:10:14.614+01:00</outputChangeTimestamp>
