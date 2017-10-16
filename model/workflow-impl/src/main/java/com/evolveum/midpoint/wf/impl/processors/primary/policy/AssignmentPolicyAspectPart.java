@@ -316,7 +316,7 @@ public class AssignmentPolicyAspectPart {
 		}
 
 		return new LocalizableMessageBuilder()
-				.key("DefaultPolicyConstraint.Short.assignmentModification.toBe" + operationKey)
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + "assignmentModification.toBe" + operationKey)
 				.arg(ObjectTypeUtil.createObjectSpecification(target))
 				.arg(ObjectTypeUtil.createObjectSpecification(asPrismObject(focus)))
 				.build();
