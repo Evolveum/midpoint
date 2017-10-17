@@ -45,8 +45,6 @@ public class SearchingUtils {
         ItemPath casePath = new ItemPath(T_PARENT);
         ItemPath workItemPath = ItemPath.EMPTY_PATH;
         ItemPath primaryItemPath;
-        LOGGER.debug("PROPERTY_NAME: {}", propertyName);
-        LOGGER.debug("casePath: {}", casePath);
         if (CASE_DESCRIPTION.equals(propertyName)) {
             primaryItemPath = casePath.subPath(CaseType.F_DESCRIPTION);
         } else if (WORK_ITEM_CLOSE_TIMESTAMP.equals(propertyName)) {
@@ -60,7 +58,6 @@ public class SearchingUtils {
         } else {
             primaryItemPath = new ItemPath(new QName(SchemaConstantsGenerated.NS_COMMON, propertyName));
         }
-        LOGGER.debug("primaryItemPath: {}", primaryItemPath);
         List<ObjectOrdering> rv = new ArrayList<>();
         rv.add(ObjectOrdering.createOrdering(primaryItemPath, sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING));
         // additional criteria are used to avoid random shuffling if first criteria is too vague)
