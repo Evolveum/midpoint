@@ -18,13 +18,17 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import org.apache.wicket.model.Model;
 
 /**
  * Created by honchar.
@@ -38,11 +42,35 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
         super(id, form, model);
     }
 
+	protected void initContainersPanel(Form form, PageAdminObjectDetails<F> pageBase){
+				RepeatingView containers = new RepeatingView(ID_CONTAINERS);
+
+		ContainerWrapperFromObjectWrapperModel<PolicyConstraintsType, F> constraintsModel =
+				new ContainerWrapperFromObjectWrapperModel<PolicyConstraintsType, F>(pageBase.getObjectModel(),
+						getModelObject().getPath().append(AssignmentType.F_POLICY_RULE).append(PolicyRuleType.F_POLICY_CONSTRAINTS));
+		PrismContainerPanel<PolicyConstraintsType> constraintsContainer = new PrismContainerPanel(ID_CONTAINERS, constraintsModel,
+				false, form, itemWrapper -> true, pageBase);
+//		PrismPanel<PolicyRuleType> constraintsContainer = new PrismPanel(ID_CONTAINERS,
+//				new ContainerWrapperListFromObjectWrapperModel<AssignmentType, F>(pageBase.getObjectModel(), collectConstraintContainersToShow()),
+//				null, form, null, pageBase) ;
+		constraintsContainer.setOutputMarkupId(true);
+		containers.add(constraintsContainer);
+		add(constraintsContainer);
+	}
+
+
 	@Override
 	protected List<ItemPath> collectContainersToShow() {
 		List<ItemPath> containersToShow = new ArrayList<>();
 		containersToShow.add(getAssignmentPath().append(AssignmentType.F_POLICY_RULE));
 		
+		return containersToShow;
+	}
+
+	protected List<ItemPath> collectConstraintContainersToShow() {
+		List<ItemPath> containersToShow = new ArrayList<>();
+		containersToShow.add(getAssignmentPath().append(AssignmentType.F_POLICY_RULE).append(PolicyRuleType.F_POLICY_CONSTRAINTS));
+
 		return containersToShow;
 	}
 

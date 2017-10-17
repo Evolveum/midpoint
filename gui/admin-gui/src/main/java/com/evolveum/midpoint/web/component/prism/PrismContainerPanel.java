@@ -84,6 +84,14 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
 			
 
     	};
+//        header.add(new VisibleEnableBehaviour(){
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public boolean isVisible(){
+//                return showHeader;
+//            }
+//        });
         header.setOutputMarkupId(true);
         add(header);
 
