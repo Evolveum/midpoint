@@ -261,7 +261,9 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 			TimeValidityPolicyConstraintType constraint = getValidityPolicyConstraint(workerTask);
 			EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedTimeValidityTrigger(
 					Boolean.TRUE.equals(constraint.isAssignment()) ? PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY : PolicyConstraintKindType.OBJECT_TIME_VALIDITY,
-					constraint, LocalizableMessageBuilder.buildFallbackMessage("Applying time validity constraint for focus"));
+					constraint,
+					LocalizableMessageBuilder.buildFallbackMessage("Applying time validity constraint for focus"),
+					LocalizableMessageBuilder.buildFallbackMessage("Time validity"));
 			policyRule.getTriggers().add(evaluatedTrigger);
 			lensContext.getFocusContext().addPolicyRule(policyRule);
 		}

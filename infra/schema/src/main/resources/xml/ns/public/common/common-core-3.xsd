@@ -9368,6 +9368,25 @@
 		            </xsd:appinfo>
      			</xsd:annotation>
      		</xsd:element>
+     		<xsd:element name="dataErasureDescription" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					<p>
+	     					Desription of data erasure practices, especially the period for data erasure.
+     					</p>
+     					<p>
+     						This is a free-form field that can be used to describe data erasure
+     						in a human-readable form suitable to be displayed to user.
+     						This is NOT structured information. Structurted information schema
+     						is planned for future midPoint releases.
+     					</p>
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.dataErasureDescription</a:displayName>
+		               	<a:displayOrder>170</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
      		<xsd:element name="automatedDecisionMakingDescription" type="xsd:string" minOccurs="0">
      			<xsd:annotation>
      				<xsd:documentation>
@@ -9384,7 +9403,7 @@
      				</xsd:documentation>
      				<xsd:appinfo>
 		               	<a:displayName>DataProtectionType.automatedDecisionMakingDescription</a:displayName>
-		               	<a:displayOrder>170</a:displayOrder>
+		               	<a:displayOrder>180</a:displayOrder>
 		            </xsd:appinfo>
      			</xsd:annotation>
      		</xsd:element>
@@ -9404,7 +9423,7 @@
      				</xsd:documentation>
      				<xsd:appinfo>
 		               	<a:displayName>DataProtectionType.securityMeasuresDescription</a:displayName>
-		               	<a:displayOrder>180</a:displayOrder>
+		               	<a:displayOrder>190</a:displayOrder>
 		            </xsd:appinfo>
      			</xsd:annotation>
      		</xsd:element>

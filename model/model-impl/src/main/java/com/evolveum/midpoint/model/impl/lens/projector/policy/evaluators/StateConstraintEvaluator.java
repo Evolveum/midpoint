@@ -146,7 +146,9 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 			// TODO retrieve localization messages from return (it should be Object then, not Boolean)
 		}
 
-		return new EvaluatedStateTrigger(OBJECT_STATE, constraint, createMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result));
+		return new EvaluatedStateTrigger(OBJECT_STATE, constraint,
+				createMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result),
+				createShortMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result));
 	}
 
 	private <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluateForAssignment(StatePolicyConstraintType constraint,
@@ -164,7 +166,9 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 		boolean match = evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx),
 				"expression in assignment state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result);
 		if (match) {
-			return new EvaluatedStateTrigger(ASSIGNMENT_STATE, constraint, createMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result));
+			return new EvaluatedStateTrigger(ASSIGNMENT_STATE, constraint,
+					createMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result),
+					createShortMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraint, ctx, result));
 		}
 		return null;
 	}
@@ -187,5 +191,25 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 				.args(args)
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
+	}
+
+	@NotNull
+	private <F extends FocusType> LocalizableMessage createShortMessage(String constraintKeyPrefix,
+			StatePolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		List<Object> args = new ArrayList<>();
+		args.add(evaluatorHelper.createBeforeAfterMessage(ctx));
+		String keySuffix;
+		if (constraint.getName() != null) {
+			args.add(constraint.getName());
+			keySuffix = KEY_NAMED;
+		} else {
+			keySuffix = KEY_UNNAMED;
+		}
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + constraintKeyPrefix + keySuffix)
+				.args(args)
+				.build();
+		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
 	}
 }

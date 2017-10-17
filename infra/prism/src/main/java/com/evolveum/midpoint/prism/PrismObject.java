@@ -448,4 +448,8 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 				.map(PrismObject::asObjectable)
 				.collect(Collectors.toList());
 	}
+
+	public static PrismObject<?> asPrismObject(Objectable o) {
+		return o != null ? o.asPrismObject() : null;
+	}
 }

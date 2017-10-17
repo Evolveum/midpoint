@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
@@ -71,28 +73,44 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 			return null;
 		}
 		// TODO check modifications
-		return new EvaluatedModificationTrigger(
-				PolicyConstraintKindType.ASSIGNMENT_MODIFICATION,
-				constraint, createMessage(constraintElement, ctx, result));
+		return new EvaluatedModificationTrigger(PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, constraint,
+				createMessage(constraintElement, ctx, result),
+				createShortMessage(constraintElement, ctx, result));
 	}
 
 	private <F extends FocusType> LocalizableMessage createMessage(JAXBElement<AssignmentModificationPolicyConstraintType> constraint,
 			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		String stateKey = createStateKey(ctx);
-		if (ctx.inPlus) {
-			stateKey += "Added";
-		} else if (ctx.inMinus) {
-			stateKey += "Deleted";
-		} else {
-			stateKey += "Modified";
-		}
+		String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
-				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + stateKey)
-				.args(evaluatorHelper.createObjectSpecification(ctx.evaluatedAssignment.getTarget()),
-						ctx.evaluatedAssignment.getRelation() != null ? ctx.evaluatedAssignment.getRelation().getLocalPart() : null)
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
+				.arg(ObjectTypeUtil.createTechnicalObjectSpecification(ctx.evaluatedAssignment.getTarget()))
+				.arg(ctx.evaluatedAssignment.getRelation() != null ? ctx.evaluatedAssignment.getRelation().getLocalPart() : null)
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint.getValue(), ctx, builtInMessage, result);
+	}
+
+	@NotNull
+	private <F extends FocusType> String createOperationKey(AssignmentPolicyRuleEvaluationContext<F> ctx) {
+		if (ctx.inPlus) {
+			return "Added";
+		} else if (ctx.inMinus) {
+			return "Deleted";
+		} else {
+			return "Modified";
+		}
+	}
+
+	private <F extends FocusType> LocalizableMessage createShortMessage(JAXBElement<AssignmentModificationPolicyConstraintType> constraint,
+			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
+				.arg(ObjectTypeUtil.createObjectSpecification(ctx.evaluatedAssignment.getTarget()))
+				.arg(ObjectTypeUtil.createObjectSpecification(ctx.getObject()))
+				.build();
+		return evaluatorHelper.createLocalizableShortMessage(constraint.getValue(), ctx, builtInMessage, result);
 	}
 
 	private <F extends FocusType> boolean relationMatches(AssignmentModificationPolicyConstraintType constraint,
