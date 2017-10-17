@@ -725,6 +725,18 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return null;
 	}
 
+	public boolean containsMultivalueContainer(){
+		for (ItemWrapper wrapper : getItems()) {
+			if (!(wrapper instanceof ContainerValueWrapper)) {
+				continue;
+			}
+			if (!((ContainerValueWrapper<C>) wrapper).getDefinition().isSingleValue()){
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public String getDisplayName() {
 		if (getContainer().isMain()) {
 			return "prismContainer.mainPanelDisplayName";
