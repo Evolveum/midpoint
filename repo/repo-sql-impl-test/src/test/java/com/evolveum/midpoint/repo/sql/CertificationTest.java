@@ -228,11 +228,11 @@ public class CertificationTest extends BaseSQLRepoTest {
     public void test250DeleteCase() throws Exception {
         OperationResult result = new OperationResult("test250DeleteCase");
 
-        AccessCertificationCaseType case12 = new AccessCertificationCaseType();
-        case12.setId(12L);
+        AccessCertificationCaseType case9 = new AccessCertificationCaseType();
+        case9.setId(9L);
 
         List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
-                .item(F_CASE).delete(case12)
+                .item(F_CASE).delete(case9)
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);

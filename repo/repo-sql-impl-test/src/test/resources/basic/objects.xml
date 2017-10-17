@@ -35,12 +35,12 @@
         <policySituation>somepolicysituation1</policySituation>
         <policySituation>somepolicysituation2</policySituation>
 
-        <trigger id="2">
+        <trigger id="4">
             <handlerUri>http://triggerUri</handlerUri>
             <timestamp>2013-05-07T10:38:21.350+02:00</timestamp>
         </trigger>
 
-        <metadata id="4">
+        <metadata>
             <creatorRef oid="cccccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
             <createApproverRef oid="cccccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
             <createApproverRef oid="cccccccc-cccc-cccc-cccc-000022222223" type="c:UserType"/>
@@ -55,11 +55,11 @@
 
         <assignment id="1">
             <description>Some assignment description</description>
-            <extension id="5">
+            <extension>
                 <my:dead xsi:type="xsd:int">123</my:dead>
                 <p:skipAutogeneration xsi:type="xsd:boolean">true</p:skipAutogeneration>
             </extension>
-            <metadata id="6">
+            <metadata>
                 <creatorRef oid="dddccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
                 <createApproverRef oid="dddccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
                 <createApproverRef oid="dddccccc-cccc-cccc-cccc-000022222223" type="c:UserType"/>
@@ -72,7 +72,7 @@
             <lifecycleState>lifecycleState1232</lifecycleState>
             <policySituation>situation1</policySituation>
             <policySituation>situation2</policySituation>
-            <construction id="7">
+            <construction>
                 <description>Account construction.</description>
                 <resourceRef oid="c0c010c0-d34d-b33f-f00d-333bbbbbbbb2" type="c:ResourceType"/>
                 <intent>default</intent>
@@ -108,8 +108,8 @@
         </locality>
         <jpegPhoto>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</jpegPhoto>
         <employeeNumber>en1234</employeeNumber>
-        <credentials id="8">
-            <password id="9">
+        <credentials>
+            <password>
              <c:value> -->
             <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
                <t:encryptionMethod>
@@ -138,7 +138,7 @@
 <!--                 </value> -->
             </password>
         </credentials>
-        <activation id="10">
+        <activation>
             <administrativeStatus>archived</administrativeStatus>
             <effectiveStatus>disabled</effectiveStatus>
             <disableReason>some reason</disableReason>
@@ -174,8 +174,8 @@
         <familyName>UserX00003</familyName>
         <emailAddress>testuserX00003@example.com</emailAddress>
         <locality>AreaX 00003</locality>
-        <credentials id="1">
-            <password id="2">
+        <credentials>
+            <password>
              <c:value> -->
             <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
                <t:encryptionMethod>
@@ -204,7 +204,7 @@
 <!--                 </value> -->
             </password>
         </credentials>
-        <activation id="3">
+        <activation>
             <administrativeStatus>archived</administrativeStatus>
             <effectiveStatus>disabled</effectiveStatus>
             <disableReason>asdfreason</disableReason>
@@ -225,15 +225,15 @@
                 </q:equal>
             </filter>
         </connectorRef>
-        <operationalState id="1">
+        <operationalState>
             <lastAvailabilityStatus>up</lastAvailabilityStatus>
         </operationalState>
 
-        <connectorConfiguration id="2"
+        <connectorConfiguration
                 xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
                 xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
-            <icfc:configurationProperties id="3">
+            <icfc:configurationProperties>
                 <icfcldap:port>1389</icfcldap:port>
                 <icfcldap:host>localhost</icfcldap:host>
                 <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
@@ -247,7 +247,7 @@
                 <icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
                 <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
             </icfc:configurationProperties>
-            <icfc:connectorPoolConfiguration id="4">
+            <icfc:connectorPoolConfiguration>
                 <icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>
                 <icfc:minIdle>1</icfc:minIdle>
                 <icfc:maxIdle>10</icfc:maxIdle>
@@ -255,7 +255,7 @@
                 <icfc:maxWait>150000</icfc:maxWait>
             </icfc:connectorPoolConfiguration>
             <icfc:producerBufferSize>100</icfc:producerBufferSize>
-            <icfc:timeouts id="5">
+            <icfc:timeouts>
                 <icfc:create>-1</icfc:create>
                 <icfc:get>-1</icfc:get>
                 <icfc:update>-1</icfc:update>
@@ -271,7 +271,7 @@
             </icfc:timeouts>
         </connectorConfiguration>
         <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
-        <schema id="6">
+        <schema>
             <definition>
                 <xsd:schema elementFormDefault="qualified"
 					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
@@ -379,8 +379,8 @@
 				</xsd:schema>
             </definition>
         </schema>
-		<schemaHandling id="7">
-			<objectType id="8">
+		<schemaHandling>
+			<objectType id="1">
 				<intent>default</intent>
 				<displayName>Default Account</displayName>
 				<default>true</default>
@@ -535,11 +535,11 @@
 		           </protected>
 			</objectType>
 		</schemaHandling>
-        <capabilities id="9" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-            <native id="10">
+        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+            <native>
                 <cap:delete/>
             </native>
-            <configured id="11">
+            <configured>
                 <cap:activation>
                     <cap:status>
                         <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
@@ -646,7 +646,7 @@
     <genericObject oid="9999">
         <name>My Sample Config Object</name>
         <description>Sample custom configuration object.</description>
-        <extension id="1" xmlns:p="http://example.com/p">
+        <extension xmlns:p="http://example.com/p">
             <p:stringType>some text in here</p:stringType>
             <p:intType>1234</p:intType>
             <p:doubleType>456.789</p:doubleType>
@@ -696,11 +696,11 @@
         <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
         <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
         <kind>account</kind>
-        <attributes id="1">
+        <attributes>
             <icfs:uid xsi:type="xsd:string" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
         </attributes>
         <intent>aaa</intent>
-        <activation id="2">
+        <activation>
             <administrativeStatus>archived</administrativeStatus>
             <effectiveStatus>disabled</effectiveStatus>
         </activation>
@@ -787,11 +787,11 @@
         <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
         <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
         <kind>account</kind>
-        <attributes id="3">
+        <attributes>
             <icfs:uid xsi:type="xsd:string" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
         </attributes>
         <intent>aaa</intent>
-        <activation id="4">
+        <activation>
             <administrativeStatus>archived</administrativeStatus>
             <effectiveStatus>disabled</effectiveStatus>
         </activation>
@@ -810,7 +810,7 @@
         <connectorVersion>1.1.0.0-e2</connectorVersion>
         <connectorBundle>openicf-csvfile-connector</connectorBundle>
         <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/com.evolveum.polygon.csvfile.CSVFileConnector</namespace>
-        <schema id="1">
+        <schema>
         <definition>
             <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/com.evolveum.polygon.csvfile.CSVFileConnector"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
@@ -1014,12 +1014,12 @@
         <identifier>123</identifier>
         <linkRef oid="11223355"/>
         <assignment id="1">
-            <construction id="6">
+            <construction>
                 <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
             </construction>
         </assignment>
         <inducement id="5">
-            <construction id="7">
+            <construction>
                 <resourceRef oid="10000000-0000-0000-0000-000000000005" type="c:ResourceType"/>
                 <kind>account</kind>
                 <intent>admin</intent>
@@ -1030,7 +1030,7 @@
             <decision>allow</decision>
             <action>http://example.com/uri1</action>
             <action>http://example.com/uri2</action>
-            <object id="8">
+            <object id="7">
             	<description>object description</description>
             	<type>c:UserType</type>
             	<filter>
@@ -1043,7 +1043,7 @@
 				<special>self</special>
             </object>
             <item>c:name</item>
-            <target id="9">
+            <target id="6">
             	<description>target description</description>
             	<type>c:UserType</type>
             	<filter>
@@ -1194,7 +1194,7 @@
             <name>someParameter</name>
             <reportRef oid="87654321-1234-1234-1234-123456789012" type="c:ReportType"/>
         </subreport>
-        <configurationSchema id="1">
+        <configurationSchema>
             <definition>
                 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -1223,7 +1223,7 @@
                 </xsd:schema>
             </definition>
         </configurationSchema>
-        <configuration id="2" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report">
+        <configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report">
             <r:LOGO_PATH>src/test/resources/reports/logo.jpg</r:LOGO_PATH>
             <r:BaseTemplateStyles>src/test/resources/styles/midpoint_base_styles.jrtx</r:BaseTemplateStyles>
             <r:type>c:UserType</r:type>
@@ -1243,7 +1243,7 @@
         	<minPasswordAge>0</minPasswordAge>
         	<passwordHistoryLength>0</passwordHistoryLength>
     	</lifetime>
-    	<stringPolicy id="1">
+    	<stringPolicy>
         	<description>Testing string policy</description>
         	<limitations>
             	<minLength>5</minLength>
@@ -1278,12 +1278,12 @@
         <description>Security policy example</description>
 <!--         <authentication> -->
 <!--         </authentication> -->
-        <credentials id="1">
-        	<password id="2">
+        <credentials>
+        	<password>
         		<passwordPolicyRef oid="SECURITY-0000-0000-0000-000000000003" type="c:ValuePolicyType"/>
         	</password>
-        	<securityQuestions id="3">
-        		<question id="4">
+        	<securityQuestions>
+        		<question id="1">
         			<identifier>http://example.com/uri3</identifier>
         			<enabled>false</enabled>
         		</question>
@@ -1389,7 +1389,7 @@
             <timestamp>2015-12-18T11:59:59.999+01:00</timestamp>
             <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage-approaching/handler-3</handlerUri>
         </trigger>
-        <metadata id="9">
+        <metadata>
             <createTimestamp>2015-12-04T00:37:08.885+01:00</createTimestamp>
             <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></creatorRef>
             <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
@@ -1398,10 +1398,10 @@
                        type="c:AccessCertificationDefinitionType"><!-- All user assignments --></definitionRef>
         <ownerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></ownerRef>
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
-        <remediationDefinition id="10">
+        <remediationDefinition>
             <style>automated</style>
         </remediationDefinition>
-        <stageDefinition id="11">
+        <stageDefinition id="7">
             <number>1</number>
             <name>Administrator's review</name>
             <description>In this stage, the administrator has to review all the assignments of all users.</description>
@@ -1432,7 +1432,7 @@
 			<workItem id="1">
 				<stageNumber>1</stageNumber>
 				<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output id="13">
+				<output>
 					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#notDecided</outcome>
 				</output>
 				<outputChangeTimestamp>2015-12-04T01:10:20.032+01:00</outputChangeTimestamp>
@@ -1454,7 +1454,7 @@
 			<workItem id="1">
 				<stageNumber>1</stageNumber>
             	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output id="14">
+				<output>
 					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
 				</output>
 				<outputChangeTimestamp>2015-12-04T01:04:06.385+01:00</outputChangeTimestamp>
@@ -1473,7 +1473,7 @@
 			<workItem id="1">
 				<stageNumber>1</stageNumber>
             	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output id="15">
+				<output>
 					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#noResponse</outcome>
 				</output>
 				<outputChangeTimestamp>2015-12-04T01:10:08.670+01:00</outputChangeTimestamp>
@@ -1495,7 +1495,7 @@
 			<workItem id="1">
 				<stageNumber>1</stageNumber>
 				<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output id="16">
+				<output>
 					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
 				</output>
 				<outputChangeTimestamp>2015-12-04T01:10:13.814+01:00</outputChangeTimestamp>
@@ -1507,7 +1507,7 @@
             <currentStageOutcome>revoke</currentStageOutcome>
             <stageNumber>1</stageNumber>
             <assignment id="1">
-                <construction id="2">
+                <construction>
                     <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"><!-- Localhost OpenDJ (no extension schema) --></resourceRef>
                     <attribute>
                         <c:ref>ri:cn</c:ref>
@@ -1537,7 +1537,7 @@
 			<workItem id="1">
 				<stageNumber>1</stageNumber>
             	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output id="17">
+				<output>
 					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
 				</output>
 				<outputChangeTimestamp>2015-12-04T01:10:14.614+01:00</outputChangeTimestamp>
@@ -1559,7 +1559,7 @@
 			<workItem id="1">
 				<stageNumber>1</stageNumber>
             	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output id="19">
+				<output>
 					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#reduce</outcome>
 				</output>
 				<outputChangeTimestamp>2015-12-04T01:10:15.375+01:00</outputChangeTimestamp>
@@ -1581,7 +1581,7 @@
 			<workItem id="1">
 				<stageNumber>1</stageNumber>
             	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output id="20">
+				<output>
 					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
 				</output>
 				<outputChangeTimestamp>2015-12-04T01:10:16.136+01:00</outputChangeTimestamp>
@@ -1607,12 +1607,12 @@
 
         <linkRef oid="11223355"/>
         <assignment id="1">
-            <construction id="6">
+            <construction>
                 <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
             </construction>
         </assignment>
         <inducement id="5">
-            <construction id="7">
+            <construction>
                 <resourceRef oid="10000000-0000-0000-0000-000000000005" type="c:ResourceType"/>
                 <kind>account</kind>
                 <intent>admin</intent>
@@ -1623,7 +1623,7 @@
             <decision>allow</decision>
             <action>http://example.com/uri1</action>
             <action>http://example.com/uri2</action>
-            <object id="8">
+            <object id="5">
                 <description>object description</description>
                 <type>c:UserType</type>
                 <filter>
@@ -1636,7 +1636,7 @@
                 <special>self</special>
             </object>
             <item>c:name</item>
-            <target id="9">
+            <target id="6">
                 <description>target description</description>
                 <type>c:UserType</type>
                 <filter>

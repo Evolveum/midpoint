@@ -48,6 +48,12 @@ public class PrismIdentifierGenerator {
                 return;
             }
 
+            PrismContainer container = (PrismContainer) visitable;
+            PrismContainerDefinition def = container.getDefinition();
+            if (def.isSingleValue()) {
+                return;
+            }
+
             values.add((PrismContainer) visitable);
         });
 
