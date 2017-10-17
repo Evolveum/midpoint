@@ -20,7 +20,8 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 	private static final String ID_SORT_PROPERTIES = "sortProperties";
     private static final String ID_SHOW_METADATA = "showMetadata";
     private static final String ID_SHOW_EMPTY_FIELDS = "showEmptyFields";
-	
+    private static final String ID_ADD_CHILD_CONTAINER = "addChildContainer";
+
 	
 	public PrismContainerValueHeaderPanel(String id, IModel<ContainerValueWrapper<C>> model) {
 		super(id, model);
@@ -118,6 +119,29 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
         sortPropertiesButton.add(buttonsVisibleBehaviour);
         add(sortPropertiesButton);
 		
+        ToggleIconButton addChildContainerButton = new ToggleIconButton(ID_ADD_CHILD_CONTAINER,
+        		GuiStyleConstants.CLASS_PLUS_CIRCLE_SUCCESS, GuiStyleConstants.CLASS_PLUS_CIRCLE_SUCCESS) {
+        	private static final long serialVersionUID = 1L;
+
+        	@Override
+            public void onClick(AjaxRequestTarget target) {
+            }
+
+        	@Override
+			public boolean isOn() {
+				return PrismContainerValueHeaderPanel.this.getModelObject().isSorted();
+			}
+        };
+		addChildContainerButton.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible(){
+				return getModelObject().containsMultivalueContainer();
+			}
+		});
+        add(addChildContainerButton);
+
 	}
 	
 	@Override
