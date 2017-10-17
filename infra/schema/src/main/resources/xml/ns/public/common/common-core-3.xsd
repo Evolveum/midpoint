@@ -9280,13 +9280,14 @@
      		</xsd:documentation>
      		<xsd:appinfo>
      			<a:container/>
+     			<a:since>3.7</a:since>
      		</xsd:appinfo>
      	</xsd:annotation>
      	<xsd:sequence>
      		<xsd:element name="controllerName" type="xsd:string" minOccurs="0">
      			<xsd:annotation>
      				<xsd:documentation>
-     					Name of the company, organization which precess the data
+     					Name of the company, organization which controls data processing
      				</xsd:documentation>
      				<xsd:appinfo>
 		               	<a:displayName>DataProtectionType.controllerName</a:displayName>
@@ -9297,7 +9298,7 @@
      		<xsd:element name="controllerContact" type="xsd:string" minOccurs="0">
      			<xsd:annotation>
      				<xsd:documentation>
-     					Contact information about company, organization which precess the data
+     					Contact information about company, organization which controls data processing
      				</xsd:documentation>
      				<xsd:appinfo>
 		               	<a:displayName>DataProtectionType.controllerContact</a:displayName>
@@ -9319,7 +9320,15 @@
      		<xsd:element name="processingPurposesDescription" type="xsd:string" minOccurs="0">
      			<xsd:annotation>
      				<xsd:documentation>
-     					Purposes for processing, e.g marketing, contract,...
+     					<p>
+     						Purposes for processing, e.g marketing, contract,...
+     					</p>
+     					<p>
+     						This is a free-form field that can be used to describe data processing
+     						purposes in a human-readable form suitable to be displayed to user.
+     						This is NOT structured information. Structurted information schema
+     						is planned for future midPoint releases.
+     					</p>
      				</xsd:documentation>
      				<xsd:appinfo>
 		               	<a:displayName>DataProtectionType.processingPurposesDescription</a:displayName>
@@ -9330,7 +9339,16 @@
      		<xsd:element name="legitimateInterestDescription" type="xsd:string" minOccurs="0">
      			<xsd:annotation>
      				<xsd:documentation>
-     					Law which enforce it.
+     					<p>
+	     					Legitimate interest for data processing. This may be a legislation that allows
+	     					data processing, consent or other lawful basis.
+     					</p>
+     					<p>
+     						This is a free-form field that can be used to describe legitimate
+     						interests in a human-readable form suitable to be displayed to user.
+     						This is NOT structured information. Structurted information schema
+     						is planned for future midPoint releases.
+     					</p>
      				</xsd:documentation>
      				<xsd:appinfo>
 		               	<a:displayName>DataProtectionType.legitimateInterestDescription</a:displayName>
@@ -9341,7 +9359,15 @@
      		<xsd:element name="dataRecipientDescription" type="xsd:string" minOccurs="0">
      			<xsd:annotation>
      				<xsd:documentation>
-     					Contains information about recipient of the data.
+     					<p>
+	     					Contains information about recipient of the data.
+     					</p>
+     					<p>
+     						This is a free-form field that can be used to describe recipients
+     						in a human-readable form suitable to be displayed to user.
+     						This is NOT structured information. Structurted information schema
+     						is planned for future midPoint releases.
+     					</p>
      				</xsd:documentation>
      				<xsd:appinfo>
 		               	<a:displayName>DataProtectionType.dataRecipientDescription</a:displayName>
@@ -9352,7 +9378,15 @@
      		<xsd:element name="periodOfStorageDescription" type="xsd:string" minOccurs="0">
      			<xsd:annotation>
      				<xsd:documentation>
-     					How long we need to store the data (e.g after the employee left the organization)
+     					<p>
+	     					How long we need to store the data (e.g after the employee left the organization)
+     					</p>
+     					<p>
+     						This is a free-form field that can be used to describe storage period
+     						in a human-readable form suitable to be displayed to user.
+     						This is NOT structured information. Structurted information schema
+     						is planned for future midPoint releases.
+     					</p>
      				</xsd:documentation>
      				<xsd:appinfo>
 		               	<a:displayName>DataProtectionType.periodOfStorageDescription</a:displayName>
@@ -9360,25 +9394,62 @@
 		            </xsd:appinfo>
      			</xsd:annotation>
      		</xsd:element>
+     		<xsd:element name="dataErasureDescription" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					<p>
+	     					Desription of data erasure practices, especially the period for data erasure.
+     					</p>
+     					<p>
+     						This is a free-form field that can be used to describe data erasure
+     						in a human-readable form suitable to be displayed to user.
+     						This is NOT structured information. Structurted information schema
+     						is planned for future midPoint releases.
+     					</p>
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.dataErasureDescription</a:displayName>
+		               	<a:displayOrder>170</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
      		<xsd:element name="automatedDecisionMakingDescription" type="xsd:string" minOccurs="0">
      			<xsd:annotation>
      				<xsd:documentation>
-     					
+     					<p>
+     						Description whether automated decision making (e.g. profilig) is part of the
+     						data processing.
+     					</p>
+     					<p>
+     						This is a free-form field that can be used to describe automated decision making
+     						in a human-readable form suitable to be displayed to user.
+     						This is NOT structured information. Structurted information schema
+     						is planned for future midPoint releases.
+     					</p>
      				</xsd:documentation>
      				<xsd:appinfo>
 		               	<a:displayName>DataProtectionType.automatedDecisionMakingDescription</a:displayName>
-		               	<a:displayOrder>170</a:displayOrder>
+		               	<a:displayOrder>180</a:displayOrder>
 		            </xsd:appinfo>
      			</xsd:annotation>
      		</xsd:element>
      		<xsd:element name="securityMeasuresDescription" type="xsd:string" minOccurs="0">
      			<xsd:annotation>
      				<xsd:documentation>
-     					Compute the risk and security issues.
+     					<p>
+     						Description of the security measures that apply to data processing
+     						(e.g. pseudonymization, confidentiality, ...)
+     					</p>
+     					<p>
+     						This is a free-form field that can be used to describe security measures
+     						in a human-readable form suitable to be displayed to user.
+     						This is NOT structured information. Structurted information schema
+     						is planned for future midPoint releases.
+     					</p>
      				</xsd:documentation>
      				<xsd:appinfo>
 		               	<a:displayName>DataProtectionType.securityMeasuresDescription</a:displayName>
-		               	<a:displayOrder>180</a:displayOrder>
+		               	<a:displayOrder>190</a:displayOrder>
 		            </xsd:appinfo>
      			</xsd:annotation>
      		</xsd:element>

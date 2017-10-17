@@ -16,13 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
+import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
+import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author mederly
@@ -36,10 +35,10 @@ public class EvaluatedTriggerDto implements Serializable {
 	@NotNull private final EvaluatedTriggerGroupDto children;
 	private boolean highlighted;
 
-	private EvaluatedTriggerDto(@NotNull EvaluatedPolicyRuleTriggerType trigger, boolean highlighted) {
-		this.trigger = trigger;
-		this.children = new EvaluatedTriggerGroupDto(null);
-		this.highlighted = highlighted;
+	public EvaluatedTriggerDto(TreeNode<EvaluatedPolicyRuleUtil.AugmentedTrigger<EvaluatedTriggerGroupDto.HighlightingInformation>> node) {
+		this.trigger = node.getUserObject().trigger;
+		this.children = new EvaluatedTriggerGroupDto(null, node.getChildren());
+		this.highlighted = node.getUserObject().additionalData.value;
 	}
 
 	@NotNull
@@ -54,54 +53,6 @@ public class EvaluatedTriggerDto implements Serializable {
 	@NotNull
 	public EvaluatedTriggerGroupDto getChildren() {
 		return children;
-	}
-
-	// copies logic from EvaluatedPolicyRuleImpl.createMessageTreeNode
-	public static void create(List<EvaluatedTriggerDto> resultList, EvaluatedPolicyRuleTriggerType trigger, boolean highlighted,
-			List<AlreadyShownTriggerRecord> triggersAlreadyShown) {
-		boolean hidden = Boolean.TRUE.equals(trigger.isHidden());
-		boolean isFinal = Boolean.TRUE.equals(trigger.isFinal());
-		if (!hidden) {
-			EvaluatedTriggerDto newTriggerDto = new EvaluatedTriggerDto(trigger, highlighted);
-			if (triggersAlreadyShown != null && alreadyShown(triggersAlreadyShown, newTriggerDto)) {
-				return;
-			}
-			resultList.add(newTriggerDto);
-			resultList = newTriggerDto.getChildren().getTriggers();
-		}
-		if (!isFinal) { // it's possible that this was pre-filtered e.g. by policy enforcer hook
-			for (EvaluatedPolicyRuleTriggerType innerTrigger : getChildTriggers(trigger)) {
-				create(resultList, innerTrigger, highlighted, triggersAlreadyShown);
-			}
-		}
-	}
-
-	private static boolean alreadyShown(List<AlreadyShownTriggerRecord> triggersAlreadyShown, EvaluatedTriggerDto newTriggerDto) {
-		EvaluatedPolicyRuleTriggerType anonymizedTrigger = newTriggerDto.trigger.clone().ruleName(null);
-		for (AlreadyShownTriggerRecord alreadyShown : triggersAlreadyShown) {
-			if (alreadyShown.anonymizedTrigger.equals(anonymizedTrigger)) {
-				if (newTriggerDto.highlighted) {
-					alreadyShown.originalTriggerDto.highlighted = true;
-				}
-				return true;
-			}
-		}
-		triggersAlreadyShown.add(new AlreadyShownTriggerRecord(newTriggerDto, anonymizedTrigger));
-		return false;
-	}
-
-	private static List<EvaluatedPolicyRuleTriggerType> getChildTriggers(EvaluatedPolicyRuleTriggerType trigger) {
-		if (trigger instanceof EvaluatedEmbeddingTriggerType) {
-			return ((EvaluatedEmbeddingTriggerType) trigger).getEmbedded();
-		} else if (trigger instanceof EvaluatedSituationTriggerType) {
-			List<EvaluatedPolicyRuleTriggerType> rv = new ArrayList<>();
-			for (EvaluatedPolicyRuleType rule : ((EvaluatedSituationTriggerType) trigger).getSourceRule()) {
-				rv.addAll(rule.getTrigger());
-			}
-			return rv;
-		} else {
-			return Collections.emptyList();
-		}
 	}
 
 	public boolean isHighlighted() {

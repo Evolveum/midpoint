@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 public class EvaluatedModificationTrigger extends EvaluatedPolicyRuleTrigger<ModificationPolicyConstraintType> {
 
 	public EvaluatedModificationTrigger(@NotNull PolicyConstraintKindType kind, @NotNull ModificationPolicyConstraintType constraint,
-			LocalizableMessage message) {
-		super(kind, constraint, message);
+			LocalizableMessage message, LocalizableMessage shortMessage) {
+		super(kind, constraint, message, shortMessage);
 	}
 
 	@Override

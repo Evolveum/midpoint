@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
@@ -303,30 +304,33 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return sb.toString();
 	}
 
-	@SuppressWarnings("unchecked")
+	enum MessageKind { NORMAL, SHORT, /*LONG*/ }
+
 	@Override
 	public List<TreeNode<LocalizableMessage>> extractMessages() {
-		TreeNode<LocalizableMessage> root = new TreeNode<>();
-		for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
-			createMessageTreeNode(root, trigger);
-		}
-		return root.getChildren();
+		return extractMessages(MessageKind.NORMAL);
 	}
 
-	private void createMessageTreeNode(TreeNode<LocalizableMessage> root, EvaluatedPolicyRuleTrigger<?> trigger) {
-		PolicyConstraintPresentationType presentation = trigger.getConstraint().getPresentation();
-		boolean hidden = presentation != null && Boolean.TRUE.equals(presentation.isHidden());
-		boolean isFinal = presentation != null && Boolean.TRUE.equals(presentation.isFinal());
-		if (!hidden) {
-			TreeNode<LocalizableMessage> newNode = new TreeNode<>();
-			newNode.setUserObject(trigger.getMessage());
-			root.add(newNode);
-			root = newNode;
+	@Override
+	public List<TreeNode<LocalizableMessage>> extractShortMessages() {
+		return extractMessages(MessageKind.SHORT);
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<TreeNode<LocalizableMessage>> extractMessages(MessageKind kind) {
+		List<TreeNode<EvaluatedPolicyRuleTrigger<?>>> triggerTreeList = EvaluatedPolicyRuleUtil.arrangeForPresentationInt(triggers);
+		List<TreeNode<LocalizableMessage>> messageTreeList = new ArrayList<>();
+		for (TreeNode<EvaluatedPolicyRuleTrigger<?>> tree : triggerTreeList) {
+			messageTreeList.add(tree.tranform(trigger -> getMessage(trigger, kind)));
 		}
-		if (!isFinal) {
-			for (EvaluatedPolicyRuleTrigger<?> innerTrigger : trigger.getInnerTriggers()) {
-				createMessageTreeNode(root, innerTrigger);
-			}
+		return messageTreeList;
+	}
+
+	private LocalizableMessage getMessage(EvaluatedPolicyRuleTrigger<?> trigger, MessageKind kind) {
+		switch (kind) {
+			case NORMAL: return trigger.getMessage();
+			case SHORT: return trigger.getMessage();
+			default: throw new AssertionError(kind);
 		}
 	}
 

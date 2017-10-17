@@ -119,7 +119,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 		ObjectDelta<RoleType> delta0 = ObjectDelta.createModifyDelta(rolePirateOid, Collections.emptyList(), RoleType.class, prismContext);
 		//noinspection UnnecessaryLocalVariable
 		ObjectDelta<RoleType> delta1 = descriptionDelta;
-		ExpectedTask expectedTask = new ExpectedTask(null, "Modification of pirate");
+		ExpectedTask expectedTask = new ExpectedTask(null, "Modifying role pirate");
 		ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userPirateOwnerOid, null, expectedTask);
 		modifyObject(TEST_NAME, descriptionDelta, delta0, delta1, false, true, userPirateOwnerOid,
 				Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem),
@@ -134,7 +134,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
-		ExpectedTask expectedTask = new ExpectedTask(null, "Deletion of pirate");
+		ExpectedTask expectedTask = new ExpectedTask(null, "Deleting role pirate");
 		ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userPirateOwnerOid, null, expectedTask);
 		deleteObject(TEST_NAME, RoleType.class, rolePirateOid, false, true, userPirateOwnerOid,
 				Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem));

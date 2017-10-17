@@ -39,6 +39,6 @@
         </property>
     </bean>
 
-    <bean class="com.evolveum.midpoint.common.LocalizationServiceImpl" init-method="init"/>
+    <bean id="localizationService" class="com.evolveum.midpoint.common.LocalizationServiceImpl" init-method="init"/>
 
 </beans>

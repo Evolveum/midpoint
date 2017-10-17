@@ -384,12 +384,12 @@ public class WorkItemDto extends Selectable {
 		if (wfc == null) {
 			return triggers;
 		}
-		List<AlreadyShownTriggerRecord> triggersAlreadyShown = new ArrayList<>();
+		EvaluatedTriggerGroupDto.UniquenessFilter uniquenessFilter = new EvaluatedTriggerGroupDto.UniquenessFilter();
 		List<List<EvaluatedPolicyRuleType>> rulesPerStageList = WfContextUtil.getRulesPerStage(wfc);
 		for (int i = 0; i < rulesPerStageList.size(); i++) {
 			Integer stageNumber = i + 1;
 			boolean highlighted = stageNumber.equals(wfc.getStageNumber());
-			EvaluatedTriggerGroupDto group = EvaluatedTriggerGroupDto.createFrom(rulesPerStageList.get(i), highlighted, triggersAlreadyShown);
+			EvaluatedTriggerGroupDto group = EvaluatedTriggerGroupDto.initializeFromRules(rulesPerStageList.get(i), highlighted, uniquenessFilter);
 			triggers.add(group);
 		}
 		return triggers;
