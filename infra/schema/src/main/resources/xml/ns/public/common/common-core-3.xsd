@@ -7213,6 +7213,32 @@
 
 	<xsd:element name="const" type="tns:ConstExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
+	<xsd:complexType name="FunctionExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Evaluates custom defined functions from Function Library
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="libraryRef" type="tns:ObjectReferenceType" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Reference to the library where is the function
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="function" type="xsd:string">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Name of the function to use
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+	<xsd:element name="function" type="tns:FunctionExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+	
     <xsd:complexType name="GenerateExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>
@@ -11556,6 +11582,53 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						What items to index for the given object type(s).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="FunctionLibraryType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Define reusable functions
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		 <xsd:complexContent>
+            <xsd:extension base="c:ObjectType">
+                <xsd:sequence>
+                	<xsd:element name="function" type="tns:FunctionType" minOccurs="0" maxOccurs="unbounded"/>
+            	</xsd:sequence>
+            </xsd:extension>
+       </xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="functionLibrary" type="tns:FunctionLibraryType" substitutionGroup="c:object"/>
+	
+	<xsd:complexType name="FunctionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describe function's name, parameters, return statement, ...
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Name of the function
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="body" type="tns:ExpressionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Defines the body of the function.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
