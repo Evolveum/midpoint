@@ -92,13 +92,8 @@ public class PrismIdentifierGenerator {
         }
         AccessCertificationCaseType aCase = (AccessCertificationCaseType) containerable;
 
-        List<PrismContainer<?>> containers = new ArrayList<>();
-        CollectionUtils.addIgnoreNull(containers, aCase.asPrismContainerValue().findContainer(AccessCertificationCaseType.F_WORK_ITEM));
-
-        generateContainerIds(containers, result, operation);
-
-//        List<PrismContainer<?>> values = listAllPrismContainers(aCase.asPrismContainerValue());
-//        generateContainerIds(values, result, operation);
+        List<PrismContainer<?>> values = listAllPrismContainers(aCase.asPrismContainerValue());
+        generateContainerIds(values, result, operation);
 
         return result;
     }
