@@ -25,6 +25,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 /**
  * Maintains "process specifications" i.e. recipes how to
  *  - analyze incoming deltas (WfProcessSpecificationType.deltaFrom),
@@ -33,21 +35,26 @@ import java.util.stream.Collectors;
  *
  * @author mederly
  */
-public class ProcessSpecifications {
+class ProcessSpecifications {
 
-	private final LinkedHashMap<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> specifications = new LinkedHashMap<>();
+	private final List<ProcessSpecification> specifications = new ArrayList<>();
+
+	private ProcessSpecifications() {
+		// use createFromRules instead
+	}
 
 	static class ProcessSpecification {
 		final WfProcessSpecificationType basicSpec;
 		final List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> actionsWithRules;
 
-		public ProcessSpecification(Map.Entry<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> entry) {
+		ProcessSpecification(Map.Entry<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> entry) {
 			this.basicSpec = entry.getKey();
 			this.actionsWithRules = entry.getValue();
 		}
 	}
 
 	static ProcessSpecifications createFromRules(List<EvaluatedPolicyRule> rules) {
+		// Step 1: plain list of approval actions -> map: process-spec -> list of related actions/rules ("collected")
 		LinkedHashMap<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> collected = new LinkedHashMap<>();
 		for (EvaluatedPolicyRule rule : rules) {
 			for (ApprovalPolicyActionType approvalAction : rule.getEnabledActions(ApprovalPolicyActionType.class)) {
@@ -55,30 +62,48 @@ public class ProcessSpecifications {
 				collected.computeIfAbsent(spec, s -> new ArrayList<>()).add(new ImmutablePair<>(approvalAction, rule));
 			}
 		}
-		// todo resolve references
+		// Step 2: resolve references
+		for (WfProcessSpecificationType spec : new HashSet<>(collected.keySet())) {     // cloned to avoid concurrent modification exception
+			if (spec.getRef() != null) {
+				List<Map.Entry<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>>> matching = collected.entrySet().stream()
+						.filter(e -> spec.getRef().equals(e.getKey().getName()))
+						.collect(Collectors.toList());
+				if (matching.isEmpty()) {
+					throw new IllegalStateException("Process specification named '"+spec.getRef()+"' referenced from an approval action couldn't be found");
+				} else if (matching.size() > 1) {
+					throw new IllegalStateException("More than one process specification named '"+spec.getRef()+"' referenced from an approval action: " + matching);
+				} else {
+					// move all actions/rules to the referenced process specification
+					List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> referencedSpecActions = matching.get(0).getValue();
+					referencedSpecActions.addAll(collected.get(spec));
+					collected.remove(spec);
+				}
+			}
+		}
+
+		// Step 3: include other actions
+		for (WfProcessSpecificationType spec : collected.keySet()) {
+			for (String actionToInclude : spec.getIncludeAction()) {
+				// TODO
+			}
+			
+		}
+
 		// todo distribute non-process-attached actions to process-attached ones
+
+		// Step 4: sorts process specifications and wraps into ProcessSpecification objects
 		ProcessSpecifications rv = new ProcessSpecifications();
 		collected.entrySet().stream()
 				.sorted((ps1, ps2) -> {
-					Integer order1 = ps1.getKey() != null ? ps1.getKey().getOrder() : null;
-					Integer order2 = ps2.getKey() != null ? ps2.getKey().getOrder() : null;
-					if (order1 != null || order2 != null) {
-						return Comparator.nullsLast(Comparator.<Integer>naturalOrder()).compare(order1, order2);
-					} else if (ps1.getKey() != null && ps2.getKey() == null) {
-						return -1;
-					} else if (ps1.getKey() == null && ps2.getKey() != null) {
-						return 1;
-					} else {
-						return 0;
-					}
-				}).forEach(e -> rv.specifications.put(e.getKey(), e.getValue()));
+					int order1 = defaultIfNull(ps1.getKey() != null ? ps1.getKey().getOrder() : null, Integer.MAX_VALUE);
+					int order2 = defaultIfNull(ps2.getKey() != null ? ps2.getKey().getOrder() : null, Integer.MAX_VALUE);
+					return Integer.compare(order1, order2);
+				}).forEach(e -> rv.specifications.add(new ProcessSpecification(e)));
 		return rv;
 	}
 
 	Collection<ProcessSpecification> getSpecifications() {
-		return specifications.entrySet().stream()
-				.map(ProcessSpecification::new)
-				.collect(Collectors.toList());
+		return specifications;
 	}
 
 }
