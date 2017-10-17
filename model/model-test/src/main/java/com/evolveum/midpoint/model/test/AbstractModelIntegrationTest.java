@@ -3340,6 +3340,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected DummyAccount assertDummyAccount(String dummyInstanceName, String username, String fullname, Boolean active) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		// display("account", account);
 		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
 		assertEquals("Wrong fullname for dummy("+dummyInstanceName+") account "+username, fullname, account.getAttributeValue("fullname"));
 		assertEquals("Wrong activation for dummy(" + dummyInstanceName + ") account " + username, active, account.isEnabled());

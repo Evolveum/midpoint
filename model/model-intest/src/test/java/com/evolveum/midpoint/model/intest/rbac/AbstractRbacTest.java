@@ -15,60 +15,18 @@
  */
 package com.evolveum.midpoint.model.intest.rbac;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 /**
  * @author semancik
@@ -77,39 +35,39 @@ import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractRbacTest extends AbstractInitializedModelIntegrationTest {
-	
+
 	protected static final File TEST_DIR = new File("src/test/resources", "rbac");
-	
+
 	protected static final File ROLE_ADRIATIC_PIRATE_FILE = new File(TEST_DIR, "role-adriatic-pirate.xml");
 	protected static final String ROLE_ADRIATIC_PIRATE_OID = "12345678-d34d-b33f-f00d-5555555566aa";
 
 	protected static final File ROLE_BLACK_SEA_PIRATE_FILE = new File(TEST_DIR, "role-black-sea-pirate.xml");
 	protected static final String ROLE_BLACK_SEA_PIRATE_OID = "12345678-d34d-b33f-f00d-5555555566bb";
-	
+
 	protected static final File ROLE_INDIAN_OCEAN_PIRATE_FILE = new File(TEST_DIR, "role-indian-ocean-pirate.xml");
 	protected static final String ROLE_INDIAN_OCEAN_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556610";
-	
+
 	protected static final File ROLE_HONORABILITY_FILE = new File(TEST_DIR, "role-honorability.xml");
 	protected static final String ROLE_HONORABILITY_OID = "12345678-d34d-b33f-f00d-555555557701";
-	
+
 	protected static final File ROLE_CLERIC_FILE = new File(TEST_DIR, "role-cleric.xml");
 	protected static final String ROLE_CLERIC_OID = "12345678-d34d-b33f-f00d-555555557702";
-	
+
 	protected static final File ROLE_WANNABE_FILE = new File(TEST_DIR, "role-wannabe.xml");
 	protected static final String ROLE_WANNABE_OID = "12345678-d34d-b33f-f00d-555555557703";
-	
+
 	protected static final File ROLE_HONORABLE_WANNABE_FILE = new File(TEST_DIR, "role-honorable-wannabe.xml");
 	protected static final String ROLE_HONORABLE_WANNABE_OID = "12345678-d34d-b33f-f00d-555555557704";
 
 	protected static final File ROLE_GOVERNOR_FILE = new File(TEST_DIR, "role-governor.xml");
 	protected static final String ROLE_GOVERNOR_OID = "12345678-d34d-b33f-f00d-555555557705";
-	
+
 	protected static final File ROLE_CANNIBAL_FILE = new File(TEST_DIR, "role-cannibal.xml");
 	protected static final String ROLE_CANNIBAL_OID = "12345678-d34d-b33f-f00d-555555557706";
-	
+
 	protected static final File ROLE_PROJECT_OMNINAMAGER_FILE = new File(TEST_DIR, "role-project-omnimanager.xml");
 	protected static final String ROLE_PROJECT_OMNINAMAGER_OID = "f23ab26c-69df-11e6-8330-979c643ea51c";
-	
+
 	protected static final File ROLE_WEAK_GOSSIPER_FILE = new File(TEST_DIR, "role-weak-gossiper.xml");
 	protected static final String ROLE_WEAK_GOSSIPER_OID = "e8fb2226-7f48-11e6-8cf1-630ce5c3f80b";
 
@@ -125,7 +83,7 @@ public abstract class AbstractRbacTest extends AbstractInitializedModelIntegrati
 	protected static final String ROLE_IMMUTABLE_GLOBAL_OID = "e7ba8884-b2f6-11e6-a0b9-d3540dd687d6";
 	protected static final String ROLE_IMMUTABLE_GLOBAL_DESCRIPTION = "Thou shalt not modify this role!";
 	protected static final String ROLE_IMMUTABLE_GLOBAL_IDENTIFIER = "GIG001";
-	
+
 	protected static final File ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_FILE = new File(TEST_DIR, "role-immutable-description-global.xml");
 	protected static final String ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_OID = "b7ea1c0c-31d6-445e-8949-9f8f4a665b3b";
 	protected static final String ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_DESCRIPTION = "Thou shalt not modify description of this role!";
@@ -139,7 +97,7 @@ public abstract class AbstractRbacTest extends AbstractInitializedModelIntegrati
 
 	protected static final File ROLE_NON_CREATEABLE_FILE = new File(TEST_DIR, "role-non-createable.xml");
 	protected static final String ROLE_NON_CREATEABLE_OID = "c45a25ce-b2e8-11e6-923e-938d2c54d334";
-	
+
 	protected static final File ROLE_CREATEABLE_FILE = new File(TEST_DIR, "role-createable.xml");
 	protected static final String ROLE_CREATEABLE_OID = "667a242c-dd13-4dbb-bc9f-ab678ba80d37";
 
@@ -154,7 +112,7 @@ public abstract class AbstractRbacTest extends AbstractInitializedModelIntegrati
 
 	protected static final File ROLE_BLOODY_FOOL_FILE = new File(TEST_DIR, "role-bloody-fool.xml");
 	protected static final String ROLE_BLOODY_FOOL_OID = "0a0ac150-af3d-11e6-9901-67fbcbd5bb25";
-	
+
 	protected static final File ROLE_TREASURE_GOLD_FILE = new File(TEST_DIR, "role-treasure-gold.xml");
 	protected static final String ROLE_TREASURE_GOLD_OID = "00a1db70-5817-11e7-93eb-9305bec579fe";
 
@@ -166,22 +124,26 @@ public abstract class AbstractRbacTest extends AbstractInitializedModelIntegrati
 
 	protected static final File ROLE_ALL_TREASURE_FILE = new File(TEST_DIR, "role-all-treasure.xml");
 	protected static final String ROLE_ALL_TREASURE_OID = "7fda5d86-5817-11e7-ac85-3b1cba81d3ef";
-	
+
 	protected static final File ROLE_LOOT_DIAMONDS_FILE = new File(TEST_DIR, "role-loot-diamonds.xml");
 	protected static final String ROLE_LOOT_DIAMONDS_OID = "974d7156-581c-11e7-916d-03ed3d47d102";
-	
+
 	protected static final File ROLE_ALL_LOOT_FILE = new File(TEST_DIR, "role-all-loot.xml");
 	protected static final String ROLE_ALL_LOOT_OID = "aaede614-581c-11e7-91bf-db837eb406b7";
-	
+
 	protected static final File ROLE_ALL_YOU_CAN_GET_FILE = new File(TEST_DIR, "role-all-you-can-get.xml");
 	protected static final String ROLE_ALL_YOU_CAN_GET_OID = "4671874e-5822-11e7-a571-8b43dc7d2876";
-	
+protected static final File ROLE_STRONG_RICH_SAILOR_FILE = new File(TEST_DIR, "role-strong-rich-sailor.xml");
+	protected static final String ROLE_STRONG_RICH_SAILOR_OID = "c86ea3ab-a92c-45d2-bb6e-b638f7a66002";
+
+	protected static final File ROLE_RICH_SAILOR_FILE = new File(TEST_DIR, "role-rich-sailor.xml");
+	protected static final String ROLE_RICH_SAILOR_OID = "e62d69a5-ffa8-46ef-9625-4c9a10966627";
 	protected static final File ORG_PROJECT_RECLAIM_BLACK_PEARL_FILE = new File(TEST_DIR, "org-project-reclaim-black-pearl.xml");
 	protected static final String ORG_PROJECT_RECLAIM_BLACK_PEARL_OID = "00000000-8888-6666-0000-200000005000";
 
 	protected static final String USER_LEMONHEAD_NAME = "lemonhead";
 	protected static final String USER_LEMONHEAD_FULLNAME = "Cannibal Lemonhead";
-	
+
 	protected static final String USER_SHARPTOOTH_NAME = "sharptooth";
 	protected static final String USER_SHARPTOOTH_FULLNAME = "Cannibal Sharptooth";
 
@@ -198,21 +160,21 @@ public abstract class AbstractRbacTest extends AbstractInitializedModelIntegrati
 	 * Undefined relation. It is not standard relation not a relation that is in any way configured.
 	 */
 	protected static final QName RELATION_COMPLICATED_QNAME = new QName("http://exmple.com/relation", "complicated");
-	
+
 	protected File getRoleGovernorFile() {
 		return ROLE_GOVERNOR_FILE;
 	}
-	
+
 	protected File getRoleCannibalFile() {
 		return ROLE_CANNIBAL_FILE;
 	}
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
 		super.initSystem(initTask, initResult);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-		
+
 		repoAddObjectFromFile(ROLE_ADRIATIC_PIRATE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_BLACK_SEA_PIRATE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_INDIAN_OCEAN_PIRATE_FILE, RoleType.class, initResult);
@@ -238,11 +200,14 @@ public abstract class AbstractRbacTest extends AbstractInitializedModelIntegrati
 		repoAddObjectFromFile(ROLE_ALL_LOOT_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_ALL_YOU_CAN_GET_FILE, RoleType.class, initResult);
 
+		repoAddObjectFromFile(ROLE_STRONG_RICH_SAILOR_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_RICH_SAILOR_FILE, RoleType.class, initResult);
+
 		repoAddObjectFromFile(USER_RAPP_FILE, initResult);
 
 		dummyResourceCtl.addGroup(GROUP_FOOLS_NAME);
 		dummyResourceCtl.addGroup(GROUP_SIMPLETONS_NAME);
 
 	}
-	
+
 }

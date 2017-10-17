@@ -777,8 +777,12 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 
 	@Override
 	public String toString() {
-		return "Construction(" + (refinedObjectClassDefinition == null ? getConstructionType()
-				: refinedObjectClassDefinition.getShadowDiscriminator()) + " in " + getSource() + ")";
+		return "Construction(" +
+				(refinedObjectClassDefinition == null ?
+						getConstructionType() : refinedObjectClassDefinition.getShadowDiscriminator()) +
+				" in " + getSource() +
+				(isValid() ? "" : ", invalid") +
+				")";
 	}
 
 }
