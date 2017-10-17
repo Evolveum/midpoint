@@ -703,11 +703,11 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			ContainerWrapper<T> containerWrapper = (ContainerWrapper<T>) wrapper;
 			if (containerWrapper.getPath().equivalent(path)) {
 				return containerWrapper;
-//			} else {
-//				ContainerWrapper<T> childrenContainer = containerWrapper.findContainerWrapper(path);
-//				if (childrenContainer != null){
-//					return childrenContainer;
-//				}
+			} else {
+				ContainerWrapper<T> childrenContainer = containerWrapper.findContainerWrapper(path);
+				if (childrenContainer != null){
+					return childrenContainer;
+				}
 			}
 		}
 		return null;
