@@ -38,11 +38,11 @@ public class CaseWorkItemUtil {
 
     public static CaseType getCase(CaseWorkItemType workItem) {
         @SuppressWarnings({"unchecked", "raw"})
-        PrismContainerable<AccessCertificationWorkItemType> parent = workItem.asPrismContainerValue().getParent();
+        PrismContainerable<CaseWorkItemType> parent = workItem.asPrismContainerValue().getParent();
         if (!(parent instanceof PrismContainer)) {
             return null;
         }
-        PrismValue parentParent = ((PrismContainer<AccessCertificationWorkItemType>) parent).getParent();
+        PrismValue parentParent = ((PrismContainer<CaseWorkItemType>) parent).getParent();
         if (!(parentParent instanceof PrismContainerValue)) {
             return null;
         }

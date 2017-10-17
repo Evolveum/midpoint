@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.cases.dto;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -32,6 +33,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import com.evolveum.midpoint.model.api.ModelService;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -64,6 +67,7 @@ public class CaseWorkItemDtoProvider extends BaseSortableDataProvider<CaseWorkIt
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
         try {
             ObjectPaging paging = createPaging(first, count);
+            LOGGER.trace("ITERATOR PAGING: {}.",paging);
             Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
 
             ObjectQuery caseQuery = getQuery();
@@ -72,7 +76,7 @@ public class CaseWorkItemDtoProvider extends BaseSortableDataProvider<CaseWorkIt
 
             Collection<SelectorOptions<GetOperationOptions>> resolveNames = createCollection(createResolveNames());
             ModelService modelService = getPage().getModelService();
-            List<CaseWorkItemType> workItems = modelService.searchContainers(CaseWorkItemType.class, getQuery(), resolveNames, task, result);
+            List<CaseWorkItemType> workItems = modelService.searchContainers(CaseWorkItemType.class, caseQuery, resolveNames, task, result);
             for (CaseWorkItemType workItem : workItems) {
                 getAvailableData().add(new CaseWorkItemDto(workItem));
             }
@@ -104,6 +108,7 @@ public class CaseWorkItemDtoProvider extends BaseSortableDataProvider<CaseWorkIt
         try {
             Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
             ObjectQuery query = getQuery().clone();
+
             ModelService modelService = getPage().getModelService();
             Collection<SelectorOptions<GetOperationOptions>> resolveNames = createCollection(createResolveNames());
             count = modelService.countContainers(CaseWorkItemType.class, query, resolveNames, task, result);
@@ -129,6 +134,12 @@ public class CaseWorkItemDtoProvider extends BaseSortableDataProvider<CaseWorkIt
 
     public void setNotDecidedOnly(boolean notDecidedOnly) {
         this.notDecidedOnly = notDecidedOnly;
+    }
+
+    @NotNull
+    @Override
+    protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+        return SearchingUtils.createObjectOrderings(sortParam);
     }
 
 }

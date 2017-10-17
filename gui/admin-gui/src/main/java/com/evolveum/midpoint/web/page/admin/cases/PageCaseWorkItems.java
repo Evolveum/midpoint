@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.cases;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -28,35 +29,44 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDtoProvider;
-import com.evolveum.midpoint.web.page.admin.certification.dto.SearchingUtils;
+import com.evolveum.midpoint.web.page.admin.cases.dto.SearchingUtils;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.isAuthorized;
@@ -98,7 +108,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
             // TODO handle more cleanly
             throw new SystemException("Couldn't create case work item query", e);
         }
-        provider.setSort(SearchingUtils.CURRENT_REVIEW_DEADLINE, SortOrder.ASCENDING);        // default sorting
+        provider.setSort(SearchingUtils.CASE_OPEN_TIMESTAMP, SortOrder.ASCENDING);// default sorting
         return provider;
     }
 
@@ -130,9 +140,9 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
         CaseWorkItemDtoProvider provider = createProvider();
-        int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL);
+        int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL);
         BoxedTablePanel<CaseWorkItemDto> table = new BoxedTablePanel<CaseWorkItemDto>(ID_CASE_WORK_ITEMS_TABLE, provider, initColumns(),
-                UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL, itemsPerPage) {
+                UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL, itemsPerPage) {
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
@@ -157,34 +167,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         column = new CheckBoxHeaderColumn<>();
         columns.add(column);
 
-        columns.add(createDetailsLinkColumn());
-
-        column = new PropertyColumn(createStringResource("PageCaseWorkItems.table.objectName"), CaseWorkItemDto.F_OBJECT_NAME);
-        columns.add(column);
-
-        column = new PropertyColumn(createStringResource("PageCaseWorkItems.table.actors"), CaseWorkItemDto.F_ASSIGNEES);
-        columns.add(column);
-
-        column = new PropertyColumn(createStringResource("PageCaseWorkItems.table.openTimestamp"), CaseWorkItemDto.F_OPEN_TIMESTAMP);
-        columns.add(column);
-
-        column = new PropertyColumn(createStringResource("PageCaseWorkItems.table.closeTimestamp"), CaseWorkItemDto.F_CLOSE_TIMESTAMP);
-        columns.add(column);
-
-        column = new PropertyColumn(createStringResource("PageCaseWorkItems.table.state"), CaseWorkItemDto.F_STATE);
-        columns.add(column);
-
-        return columns;
-    }
-
-    private Table getCaseWorkItemsTable() {
-        return (Table) get(createComponentPath(ID_MAIN_FORM, ID_CASE_WORK_ITEMS_TABLE));
-    }
-
-    @NotNull
-    private AbstractColumn<CaseWorkItemDto, String> createDetailsLinkColumn() {
-        return new LinkColumn<CaseWorkItemDto>(createStringResource("PageCaseWorkItems.table.description"), CaseWorkItemDto.F_DESCRIPTION,
-                CaseWorkItemDto.F_DESCRIPTION) {
+        column = new LinkColumn<CaseWorkItemDto>(createStringResource("PageCaseWorkItems.table.description"), CaseWorkItemDto.F_DESCRIPTION) {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<CaseWorkItemDto> rowModel) {
                 PageParameters parameters = new PageParameters();
@@ -193,6 +176,65 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 navigateToNext(PageCaseWorkItem.class, parameters);
             }
         };
+        columns.add(column);
+
+        column = new PropertyColumn<>(
+                createStringResource("PageCaseWorkItems.table.objectName"),
+                SearchingUtils.CASE_OBJECT_NAME, CaseWorkItemDto.F_OBJECT_NAME);
+        columns.add(column);
+
+        column = new PropertyColumn<>(createStringResource("PageCaseWorkItems.table.actor"), CaseWorkItemDto.F_ASSIGNEES);
+        columns.add(column);
+
+        column = new PropertyColumn<CaseWorkItemDto, String>(
+                createStringResource("PageCaseWorkItems.table.openTimestamp"),
+                SearchingUtils.CASE_OPEN_TIMESTAMP, CaseWorkItemDto.F_OPEN_TIMESTAMP) {
+            @Override
+            public void populateItem(Item<ICellPopulator<CaseWorkItemDto>> item, String componentId, IModel<CaseWorkItemDto> rowModel) {
+                super.populateItem(item, componentId, rowModel);
+                CaseWorkItemDto dto = rowModel.getObject();
+                XMLGregorianCalendar createdCal = dto.getOpenTimestamp();
+                if (createdCal != null) {
+//                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+//                    @Override
+//                    public Object getObject() {
+//                    return rowModel.getObject().getCampaignName();
+//                    }
+//                }));
+                    Date created = createdCal.toGregorianCalendar().getTime();
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(created, DateLabelComponent.LONG_MEDIUM_STYLE)));
+                    item.add(new TooltipBehavior());
+                }
+            }
+        };
+        columns.add(column);
+
+        column = new PropertyColumn<CaseWorkItemDto, String>(
+                createStringResource("PageCaseWorkItems.table.closeTimestamp"),
+                SearchingUtils.WORK_ITEM_CLOSE_TIMESTAMP, CaseWorkItemDto.F_CLOSE_TIMESTAMP) {
+            @Override
+            public void populateItem(Item<ICellPopulator<CaseWorkItemDto>> item, String componentId, IModel<CaseWorkItemDto> rowModel) {
+                super.populateItem(item, componentId, rowModel);
+                CaseWorkItemDto dto = rowModel.getObject();
+                XMLGregorianCalendar closedCal = dto.getCloseTimestamp();
+                if (closedCal != null) {
+                    Date closed = closedCal.toGregorianCalendar().getTime();
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE)));
+                    item.add(new TooltipBehavior());
+                }
+            }
+        };
+        columns.add(column);
+
+        column = new PropertyColumn<>(
+                createStringResource("PageCaseWorkItems.table.state"), CaseWorkItemDto.F_STATE);
+        columns.add(column);
+
+        return columns;
+    }
+
+    private Table getCaseWorkItemsTable() {
+        return (Table) get(createComponentPath(ID_MAIN_FORM, ID_CASE_WORK_ITEMS_TABLE));
     }
     //endregion
 
@@ -203,64 +245,6 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         pageParameters.add(OnePageParameterEncoder.PARAMETER, caseInstance.getOid());
         LOGGER.trace("caseDetailsPerformed()");
         navigateToNext(PageCase.class, pageParameters);
-    }
-
-    private void recordActionOnSelected(AccessCertificationResponseType response, AjaxRequestTarget target) {
-//        List<CaseWorkItemDto> workItemDtoList = WebComponentUtil.getSelectedData(getCaseWorkItemsTable());
-//        if (workItemDtoList.isEmpty()) {
-//            warn(getString("PageCaseWorkItems.message.noItemSelected"));
-//            target.add(getFeedbackPanel());
-//            return;
-//        }
-//
-//        OperationResult result = new OperationResult(OPERATION_RECORD_ACTION_SELECTED);
-//        Task task = createSimpleTask(OPERATION_RECORD_ACTION_SELECTED);
-//        for (CaseWorkItemDto workItemDto : workItemDtoList) {
-//            OperationResult resultOne = result.createSubresult(OPERATION_RECORD_ACTION);
-//            try {
-//                getCertificationService().recordDecision(
-//                        workItemDto.getCampaignRef().getOid(),
-//                        workItemDto.getCaseId(), workItemDto.getWorkItemId(),
-//                        response, workItemDto.getComment(), task, resultOne);
-//            } catch (Exception ex) {
-//                resultOne.recordFatalError(ex);
-//            } finally {
-//                resultOne.computeStatusIfUnknown();
-//            }
-//        }
-//        result.computeStatus();
-//
-//        if (!result.isSuccess()) {
-//            showResult(result);
-//        }
-//        target.add(getFeedbackPanel());
-//        target.add((Component) getCaseWorkItemsTable());
-    }
-
-    // if response is null this means keep the current one in workItemDto
-    private void recordActionPerformed(AjaxRequestTarget target, CaseWorkItemDto workItemDto, AccessCertificationResponseType response) {
-//        OperationResult result = new OperationResult(OPERATION_RECORD_ACTION);
-//        try {
-//            Task task = createSimpleTask(OPERATION_RECORD_ACTION);
-//            if (response == null) {
-//                response = workItemDto.getResponse();
-//            }
-//            // TODO work item ID
-//            getCertificationService().recordDecision(
-//                    workItemDto.getCampaignRef().getOid(),
-//                    workItemDto.getCaseId(), workItemDto.getWorkItemId(),
-//                    response, workItemDto.getComment(), task, result);
-//        } catch (Exception ex) {
-//            result.recordFatalError(ex);
-//        } finally {
-//            result.computeStatusIfUnknown();
-//        }
-//
-//        if (!result.isSuccess()) {
-//            showResult(result);
-//        }
-//        resetCertWorkItemCountModel();
-//        target.add(this);
     }
 
     private void searchFilterPerformed(AjaxRequestTarget target) {
