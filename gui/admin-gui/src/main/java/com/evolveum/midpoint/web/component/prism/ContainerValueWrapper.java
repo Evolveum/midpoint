@@ -727,10 +727,11 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	public boolean containsMultivalueContainer(){
 		for (ItemWrapper wrapper : getItems()) {
-			if (!(wrapper instanceof ContainerValueWrapper)) {
+			if (!(wrapper instanceof ContainerWrapper)) {
 				continue;
 			}
-			if (!((ContainerValueWrapper<C>) wrapper).getDefinition().isSingleValue()){
+			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue() &&
+					((ContainerWrapper<C>) wrapper).isVisible()){
 				return true;
 			}
 		}
