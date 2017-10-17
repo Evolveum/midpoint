@@ -90,7 +90,8 @@ public class ObjectPolicyAspectPart {
 
 		if (!triggeredApprovalActionRules.isEmpty()) {
 			addObjectOidIfNeeded(focusDelta, ctx.modelContext);
-			ProcessSpecifications processSpecifications = ProcessSpecifications.createFromRules(triggeredApprovalActionRules);
+			ProcessSpecifications processSpecifications = ProcessSpecifications.createFromRules(triggeredApprovalActionRules, prismContext);
+			LOGGER.trace("Process specifications:\n{}", debugDumpLazily(processSpecifications));
 			for (ProcessSpecification processSpecificationEntry : processSpecifications.getSpecifications()) {
 				if (focusDelta.isEmpty()) {
 					break;  // we're done
