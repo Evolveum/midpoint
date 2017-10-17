@@ -88,7 +88,6 @@ public class ObjectPolicyAspectPart {
 		List<EvaluatedPolicyRule> triggeredApprovalActionRules = main.selectTriggeredApprovalActionRules(focusContext.getPolicyRules());
 		LOGGER.trace("extractObjectBasedInstructions: triggeredApprovalActionRules:\n{}", debugDumpLazily(triggeredApprovalActionRules));
 
-		// default rule
 		if (!triggeredApprovalActionRules.isEmpty()) {
 			addObjectOidIfNeeded(focusDelta, ctx.modelContext);
 			ProcessSpecifications processSpecifications = ProcessSpecifications.createFromRules(triggeredApprovalActionRules);
@@ -111,6 +110,7 @@ public class ObjectPolicyAspectPart {
 				buildSchemaForObject(requester, instructions, ctx, result, deltasToApprove, builder);
 			}
 		} else if (baseConfigurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != DefaultApprovalPolicyRulesUsageType.NEVER) {
+			// default rule
 			ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
 			if (builder.addPredefined(object, SchemaConstants.ORG_OWNER, result)) {
 				LOGGER.trace("Added default approval action, as no explicit one was found");
