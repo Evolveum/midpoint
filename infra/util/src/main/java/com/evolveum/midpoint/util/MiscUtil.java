@@ -33,6 +33,7 @@ import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -670,5 +671,13 @@ public class MiscUtil {
 				throw new SystemException(e);
 			}
 		};
+	}
+
+	public static <T> Collection<T> filter(Collection<T> input, Predicate<? super T> predicate) {
+		return input.stream().filter(predicate).collect(Collectors.toList());
+	}
+
+	public static <T> Set<T> filter(Set<T> input, Predicate<? super T> predicate) {
+		return input.stream().filter(predicate).collect(Collectors.toSet());
 	}
 }

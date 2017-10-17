@@ -81,6 +81,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingAndDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import static com.evolveum.midpoint.util.MiscUtil.filter;
+
 /**
  * Processor that reconciles the computed account and the real account. There
  * will be some deltas already computed from the other processors. This
@@ -212,14 +214,14 @@ public class ReconciliationProcessor {
 
 		DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>> pvwoTriple = squeezedAuxiliaryObjectClasses.get(ShadowType.F_AUXILIARY_OBJECT_CLASS);
 
-		Collection<ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>> shouldBePValues = null;
+		Collection<ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>> shouldBePValues;
 		if (pvwoTriple == null) {
 			shouldBePValues = new ArrayList<>();
 		} else {
-			shouldBePValues = pvwoTriple.getNonNegativeValues();
+			shouldBePValues = selectValidValues(pvwoTriple.getNonNegativeValues());
 		}
 
-		Collection<PrismPropertyValue<QName>> arePValues = null;
+		Collection<PrismPropertyValue<QName>> arePValues;
 		PrismProperty<QName> propertyNew = shadowNew.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
 		if (propertyNew != null) {
 			arePValues = propertyNew.getValues();
@@ -384,7 +386,7 @@ public class ReconciliationProcessor {
             RefinedObjectClassDefinition rOcDef,
             PrismObject<ShadowType> shadowNew, PrismContainer attributesContainer) throws SchemaException {
 
-//			LOGGER.trace("Attribute reconciliation processing attribute {}",attrName);
+		LOGGER.trace("Attribute reconciliation processing attribute {}", attrName);
 		RefinedAttributeDefinition<T> attributeDefinition = projCtx.findAttributeDefinition(attrName);
 		if (attributeDefinition == null) {
 			String msg = "No definition for attribute " + attrName + " in "
@@ -421,7 +423,7 @@ public class ReconciliationProcessor {
 		if (pvwoTriple == null) {
 			shouldBePValues = new HashSet<>();
 		} else {
-			shouldBePValues = new HashSet<>(pvwoTriple.getNonNegativeValues());
+			shouldBePValues = new HashSet<>(selectValidValues(pvwoTriple.getNonNegativeValues()));
 		}
 
 		// We consider values explicitly requested by user to be among "should be values".
@@ -523,6 +525,11 @@ public class ReconciliationProcessor {
 
 	}
 
+	private <PV extends PrismValue, PD extends ItemDefinition> Collection<ItemValueWithOrigin<PV, PD>> selectValidValues(
+			Collection<ItemValueWithOrigin<PV, PD>> values) {
+		return filter(values, v -> v.isValid());
+	}
+
 	private <T> void addPropValuesFromDelta(
 			Collection<ItemValueWithOrigin<PrismPropertyValue<T>, PrismPropertyDefinition<T>>> shouldBePValues,
 			ObjectDelta<ShadowType> delta, QName attrName) {
@@ -619,7 +626,7 @@ public class ReconciliationProcessor {
             if (cvwoTriple == null) {
                 shouldBeCValues = new HashSet<>();
             } else {
-                shouldBeCValues = new HashSet<>(cvwoTriple.getNonNegativeValues());
+                shouldBeCValues = new HashSet<>(selectValidValues(cvwoTriple.getNonNegativeValues()));
             }
             // TODO what about equality checks? There will be probably duplicates there.
 
@@ -780,7 +787,7 @@ public class ReconciliationProcessor {
 			Collection<ItemValueWithOrigin<PrismPropertyValue<T>,PrismPropertyDefinition<T>>> shouldBePValues,
 			ValueMatcher<T> valueMatcher) throws SchemaException {
 
-		for (PrismPropertyValue<T> isPValue : arePValues){
+		for (PrismPropertyValue<T> isPValue : arePValues) {
 			if (matchPattern(attributeDefinition.getTolerantValuePattern(), isPValue, valueMatcher)){
 				LOGGER.trace("Reconciliation: KEEPING value {} of the attribute {}: match with tolerant value pattern." , isPValue, attributeDefinition.getName().getLocalPart());
 				continue;
@@ -790,7 +797,6 @@ public class ReconciliationProcessor {
 				recordDeleteDelta(isPValue, attributeDefinition, valueMatcher, projCtx, "it has matched with intolerant pattern");
 				continue;
 			}
-
 
 			if (!attributeDefinition.isTolerant()) {
 				if (!isInPvwoValues(valueMatcher, isPValue.getValue(), shouldBePValues)) {
