@@ -116,7 +116,7 @@ public class ContainerWrapperFactory {
 	    	List<ContainerValueWrapper<C>> containerValueWrappers = new ArrayList<>();
 	    	PrismContainer<C> container = cWrapper.getItem();
 	    	
-	    	if (container.getValues().isEmpty() && !(new ItemPath(FocusType.F_ASSIGNMENT)).equivalent(container.getPath())) {
+	    	if (container.getValues().isEmpty() && container.isSingleValue()) {
 	    		PrismContainerValue<C> pcv = container.createNewValue();
 	    		 ContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(cWrapper, pcv, ValueStatus.ADDED, cWrapper.getPath());
 	    		

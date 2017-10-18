@@ -703,6 +703,11 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			ContainerWrapper<T> containerWrapper = (ContainerWrapper<T>) wrapper;
 			if (containerWrapper.getPath().equivalent(path)) {
 				return containerWrapper;
+			} else {
+				ContainerWrapper<T> childrenContainer = containerWrapper.findContainerWrapper(path);
+				if (childrenContainer != null){
+					return childrenContainer;
+				}
 			}
 		}
 		return null;
@@ -718,6 +723,33 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 		}
 		return null;
+	}
+
+	public boolean containsMultivalueContainer(){
+		for (ItemWrapper wrapper : getItems()) {
+			if (!(wrapper instanceof ContainerWrapper)) {
+				continue;
+			}
+			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue() &&
+					((ContainerWrapper<C>) wrapper).isVisible()){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public List<QName> getChildMultivalueContainersPaths(){
+		List<QName> pathList = new ArrayList<>();
+		for (ItemWrapper wrapper : getItems()) {
+			if (!(wrapper instanceof ContainerWrapper)) {
+				continue;
+			}
+			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue() &&
+					((ContainerWrapper<C>) wrapper).isVisible()){
+				pathList.add(((ContainerWrapper<C>) wrapper).getName());
+			}
+		}
+		return pathList;
 	}
 
 	public String getDisplayName() {
