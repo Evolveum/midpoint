@@ -20,8 +20,12 @@ import java.util.Collection;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.repo.common.expression.AbstractAutowiredExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -36,11 +40,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
  * @author semancik
  *
  */
-public class ScriptExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
+@Component
+public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
 
-	private ScriptExpressionFactory scriptExpressionFactory;
-    private SecurityContextManager securityContextManager;
+	@Autowired private ScriptExpressionFactory scriptExpressionFactory;
+	@Autowired private SecurityContextManager securityContextManager;
 
+	public ScriptExpressionEvaluatorFactory() {
+		super();
+		// Nothing here
+	}
+	
+	// For use in tests
 	public ScriptExpressionEvaluatorFactory(ScriptExpressionFactory scriptExpressionFactory, SecurityContextManager securityContextManager) {
 		this.scriptExpressionFactory = scriptExpressionFactory;
         this.securityContextManager = securityContextManager;

@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,6 +32,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 /**
+ * Factory for expressions and registry for expression evaluator factories.
+ * 
  * @author semancik
  *
  */
@@ -56,12 +57,6 @@ public class ExpressionFactory {
 
 	public PrismContext getPrismContext() {
 		return prismContext;
-	}
-
-	public void setEvaluatorFactories(Collection<ExpressionEvaluatorFactory> evaluatorFactories) {
-		for (ExpressionEvaluatorFactory evaluatorFactory: evaluatorFactories) {
-			addEvaluatorFactory(evaluatorFactory);
-		}
 	}
 
 	public <V extends PrismValue,D extends ItemDefinition> Expression<V,D> makeExpression(ExpressionType expressionType,
@@ -88,7 +83,7 @@ public class ExpressionFactory {
 		return evaluatorFactoriesMap.get(elementName);
 	}
 
-	public void addEvaluatorFactory(ExpressionEvaluatorFactory factory) {
+	public void registerEvaluatorFactory(ExpressionEvaluatorFactory factory) {
 		evaluatorFactoriesMap.put(factory.getElementName(), factory);
 	}
 

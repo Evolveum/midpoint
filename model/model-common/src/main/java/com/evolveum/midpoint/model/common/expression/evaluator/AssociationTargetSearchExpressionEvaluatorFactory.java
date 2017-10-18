@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -44,24 +45,19 @@ import org.apache.commons.lang.Validate;
  * @author semancik
  *
  */
-public class AssociationTargetSearchExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
+public class AssociationTargetSearchExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluator {
 
-	private PrismContext prismContext;
-	private Protector protector;
-	private ObjectResolver objectResolver;
-	private ModelService modelService;
-    private SecurityContextManager securityContextManager;
+	private final PrismContext prismContext;
+	private final Protector protector;
+	private final ModelService modelService;
+    private final SecurityContextManager securityContextManager;
 
-	public AssociationTargetSearchExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ModelService modelService, SecurityContextManager securityContextManager) {
-		super();
+	public AssociationTargetSearchExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext, Protector protector, ModelService modelService, SecurityContextManager securityContextManager) {
+		super(expressionFactory);
 		this.prismContext = prismContext;
 		this.protector = protector;
 		this.modelService = modelService;
         this.securityContextManager = securityContextManager;
-	}
-
-	public void setObjectResolver(ObjectResolver objectResolver) {
-		this.objectResolver = objectResolver;
 	}
 
 	/* (non-Javadoc)
@@ -97,7 +93,7 @@ public class AssociationTargetSearchExpressionEvaluatorFactory implements Expres
             throw new SchemaException("Association expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
         AssociationTargetSearchExpressionEvaluator evaluator = new AssociationTargetSearchExpressionEvaluator((SearchObjectExpressionEvaluatorType)evaluatorTypeObject,
-        		(PrismContainerDefinition<ShadowAssociationType>) outputDefinition, protector, objectResolver, modelService, prismContext, securityContextManager);
+        		(PrismContainerDefinition<ShadowAssociationType>) outputDefinition, protector, getObjectResolver(), modelService, prismContext, securityContextManager);
         return (ExpressionEvaluator<V,D>) evaluator;
 	}
 

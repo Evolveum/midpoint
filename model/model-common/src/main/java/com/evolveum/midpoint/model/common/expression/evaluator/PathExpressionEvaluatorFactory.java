@@ -28,35 +28,30 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
+ * This is NOT autowired evaluator.
+ * 
  * @author semancik
- *
  */
-public class PathExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
+public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluator {
 
-	private PrismContext prismContext;
-	private ObjectResolver objectResolver;
-	private Protector protector;
+	private final PrismContext prismContext;
+	private final Protector protector;
 
-	public PathExpressionEvaluatorFactory(PrismContext prismContext, Protector protector) {
-		super();
+	public PathExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext, Protector protector) {
+		super(expressionFactory);
 		this.prismContext = prismContext;
 		this.protector = protector;
 	}
-
-	public void setObjectResolver(ObjectResolver objectResolver) {
-		this.objectResolver = objectResolver;
-	}
-
+	
 	@Override
 	public QName getElementName() {
 		return new ObjectFactory().createPath(null).getName();
@@ -83,7 +78,7 @@ public class PathExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
 		}
         ItemPath path = ((ItemPathType)evaluatorElementObject).getItemPath();
 
-        return new PathExpressionEvaluator<>(path, objectResolver, outputDefinition, protector, prismContext);
+        return new PathExpressionEvaluator<>(path, getObjectResolver(), outputDefinition, protector, prismContext);
 
 	}
 

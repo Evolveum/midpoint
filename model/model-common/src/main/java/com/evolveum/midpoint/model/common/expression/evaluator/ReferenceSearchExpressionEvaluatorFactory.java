@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -43,24 +44,19 @@ import org.apache.commons.lang.Validate;
  * @author semancik
  *
  */
-public class ReferenceSearchExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
+public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluator {
 
-	private PrismContext prismContext;
-	private Protector protector;
-	private ObjectResolver objectResolver;
-	private ModelService modelService;
-    private SecurityContextManager securityContextManager;
+	private final PrismContext prismContext;
+	private final Protector protector;
+	private final ModelService modelService;
+    private final SecurityContextManager securityContextManager;
 
-	public ReferenceSearchExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ModelService modelService, SecurityContextManager securityContextManager) {
-		super();
+	public ReferenceSearchExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext, Protector protector, ModelService modelService, SecurityContextManager securityContextManager) {
+		super(expressionFactory);
 		this.prismContext = prismContext;
 		this.protector = protector;
 		this.modelService = modelService;
         this.securityContextManager = securityContextManager;
-	}
-
-	public void setObjectResolver(ObjectResolver objectResolver) {
-		this.objectResolver = objectResolver;
 	}
 
 	/* (non-Javadoc)
@@ -96,7 +92,7 @@ public class ReferenceSearchExpressionEvaluatorFactory implements ExpressionEval
             throw new SchemaException("reference search expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
         ReferenceSearchExpressionEvaluator expressionEvaluator = new ReferenceSearchExpressionEvaluator((SearchObjectRefExpressionEvaluatorType)evaluatorTypeObject,
-        		(PrismReferenceDefinition) outputDefinition, protector, objectResolver, modelService, prismContext, securityContextManager);
+        		(PrismReferenceDefinition) outputDefinition, protector, getObjectResolver(), modelService, prismContext, securityContextManager);
         return (ExpressionEvaluator<V,D>) expressionEvaluator;
 	}
 

@@ -51,6 +51,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
@@ -184,8 +185,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Autowired private MidpointConfiguration midpointConfiguration;
 	@Autowired private RepositoryService repositoryService;
 	@Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
-	@Autowired private SecurityContextManager securityContextManager;
 	@Autowired private PrismContext prismContext;
+	
+	@Autowired
+	@Qualifier("securityContextManager")
+	private SecurityContextManager securityContextManager;
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.class);
 

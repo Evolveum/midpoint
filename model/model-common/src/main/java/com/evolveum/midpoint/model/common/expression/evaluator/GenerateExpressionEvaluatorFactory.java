@@ -28,38 +28,34 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 
 /**
+ * This is NOT autowired evaluator.
+ * 
  * @author semancik
  *
  */
-public class GenerateExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
+public class GenerateExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluator {
 
-	private Protector protector;
-	private PrismContext prismContext;
-	private ObjectResolver objectResolver;
-	private ValuePolicyProcessor valuePolicyGenerator;
+	private final Protector protector;
+	private final PrismContext prismContext;
+	private final ValuePolicyProcessor valuePolicyGenerator;
 
-	public GenerateExpressionEvaluatorFactory(Protector protector, ValuePolicyProcessor valuePolicyGenerator, PrismContext prismContext) {
-		super();
+	public GenerateExpressionEvaluatorFactory(ExpressionFactory expressionFactory, Protector protector, ValuePolicyProcessor valuePolicyGenerator, PrismContext prismContext) {
+		super(expressionFactory);
 		this.protector = protector;
 		this.prismContext = prismContext;
 		this.valuePolicyGenerator = valuePolicyGenerator;
 	}
-
-	public void setObjectResolver(ObjectResolver objectResolver) {
-		this.objectResolver = objectResolver;
-	}
-
+	
 	@Override
 	public QName getElementName() {
 		return new ObjectFactory().createGenerate(new GenerateExpressionEvaluatorType()).getName();
@@ -90,7 +86,7 @@ public class GenerateExpressionEvaluatorFactory implements ExpressionEvaluatorFa
 
         GenerateExpressionEvaluatorType generateEvaluatorType = (GenerateExpressionEvaluatorType)evaluatorTypeObject;
 
-		return new GenerateExpressionEvaluator<V,D>(generateEvaluatorType, outputDefinition, protector, objectResolver, valuePolicyGenerator, prismContext);
+		return new GenerateExpressionEvaluator<V,D>(generateEvaluatorType, outputDefinition, protector, getObjectResolver(), valuePolicyGenerator, prismContext);
 	}
 
 }

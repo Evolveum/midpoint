@@ -28,6 +28,7 @@
             classpath:ctx-configuration.xml
             classpath*:ctx-repository.xml,
             classpath:ctx-repo-cache.xml,
+            classpath:ctx-repo-common.xml,
             classpath:ctx-task.xml,
             classpath:ctx-provisioning.xml,
             classpath:ctx-ucf-connid.xml,
