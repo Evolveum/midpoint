@@ -49,7 +49,7 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
 				new ContainerWrapperFromObjectWrapperModel<PolicyConstraintsType, F>(pageBase.getObjectModel(),
 						getModelObject().getPath().append(AssignmentType.F_POLICY_RULE).append(PolicyRuleType.F_POLICY_CONSTRAINTS));
 		PrismContainerPanel<PolicyConstraintsType> constraintsContainer = new PrismContainerPanel(ID_CONTAINERS, constraintsModel,
-				false, form, itemWrapper -> true, pageBase);
+				false, form, null, pageBase);
 //		PrismPanel<PolicyRuleType> constraintsContainer = new PrismPanel(ID_CONTAINERS,
 //				new ContainerWrapperListFromObjectWrapperModel<AssignmentType, F>(pageBase.getObjectModel(), collectConstraintContainersToShow()),
 //				null, form, null, pageBase) ;
@@ -66,13 +66,5 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
 		
 		return containersToShow;
 	}
-
-	protected List<ItemPath> collectConstraintContainersToShow() {
-		List<ItemPath> containersToShow = new ArrayList<>();
-		containersToShow.add(getAssignmentPath().append(AssignmentType.F_POLICY_RULE).append(PolicyRuleType.F_POLICY_CONSTRAINTS));
-
-		return containersToShow;
-	}
-
 
 }

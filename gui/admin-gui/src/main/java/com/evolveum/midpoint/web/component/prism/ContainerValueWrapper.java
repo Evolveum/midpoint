@@ -725,6 +725,33 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return null;
 	}
 
+	public boolean containsMultivalueContainer(){
+		for (ItemWrapper wrapper : getItems()) {
+			if (!(wrapper instanceof ContainerWrapper)) {
+				continue;
+			}
+			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue() &&
+					((ContainerWrapper<C>) wrapper).isVisible()){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public List<QName> getChildMultivalueContainersPaths(){
+		List<QName> pathList = new ArrayList<>();
+		for (ItemWrapper wrapper : getItems()) {
+			if (!(wrapper instanceof ContainerWrapper)) {
+				continue;
+			}
+			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue() &&
+					((ContainerWrapper<C>) wrapper).isVisible()){
+				pathList.add(((ContainerWrapper<C>) wrapper).getName());
+			}
+		}
+		return pathList;
+	}
+
 	public String getDisplayName() {
 		if (getContainer().isMain()) {
 			return "prismContainer.mainPanelDisplayName";

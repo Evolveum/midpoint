@@ -73,17 +73,17 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
     }
 
     private void initLayout(final IModel<ContainerWrapper<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean showHeader) {
-    	PrismContainerHeaderPanel header = new PrismContainerHeaderPanel(ID_HEADER, model) {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			protected void onButtonClick(AjaxRequestTarget target) {
-				addOrReplaceProperties(model, form, isPanelVisible, true);
-				target.add(PrismContainerPanel.this.findParent(PrismPanel.class));
-			}
-			
-
-    	};
+//    	PrismContainerHeaderPanel header = new PrismContainerHeaderPanel(ID_HEADER, model) {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			protected void onButtonClick(AjaxRequestTarget target) {
+//				addOrReplaceProperties(model, form, isPanelVisible, true);
+//				target.add(PrismContainerPanel.this.findParent(PrismPanel.class));
+//			}
+//
+//
+//    	};
 //        header.add(new VisibleEnableBehaviour(){
 //            private static final long serialVersionUID = 1L;
 //
@@ -92,8 +92,8 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
 //                return showHeader;
 //            }
 //        });
-        header.setOutputMarkupId(true);
-        add(header);
+//        header.setOutputMarkupId(true);
+//        add(header);
 
         addOrReplaceProperties(model, form, isPanelVisible, false);
     }
