@@ -59,6 +59,7 @@ import static org.testng.AssertJUnit.assertTrue;
         "classpath*:ctx-repository-test.xml",
         "classpath:ctx-configuration-test.xml",
         "classpath:ctx-common.xml",
+        "classpath:ctx-repo-common.xml",
         "classpath:ctx-security.xml",
         "classpath:ctx-security-enforcer.xml",
         "classpath:ctx-audit.xml",
