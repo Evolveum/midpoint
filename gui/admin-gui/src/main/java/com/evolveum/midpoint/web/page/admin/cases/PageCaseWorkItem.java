@@ -235,7 +235,6 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 		RepeatingView deltaScene = new RepeatingView(ID_DELTA_PANEL);
 
 		if (deltaType != null) {
-			//deltaType.setOid(shadowName);
 			ObjectDeltaOperationType delta = new ObjectDeltaOperationType().objectDelta(deltaType).resourceOid(caseDtoModel.getObject().getObjectOid());
 			delta.setResourceName(new PolyStringType(caseDtoModel.getObject().getObjectName()));
 			delta.setObjectName(new PolyStringType(shadowName));

@@ -1293,6 +1293,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			menu = new MenuItem(createStringResource("PageAdmin.menu.top.caseWorkItems.listAll"), PageCaseWorkItemsAll.class);
 			submenu.add(menu);
 			createFocusPageViewMenu(submenu, "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
+			menu = new MenuItem(createStringResource("PageAdmin.menu.top.case.new"), PageCase.class);
+			submenu.add(menu);
 		}
 
 		return item;

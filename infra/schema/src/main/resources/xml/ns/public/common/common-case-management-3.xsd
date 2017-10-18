@@ -104,6 +104,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>CaseType.state</a:displayName>
+                                <a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000240" type="tns:LookupTableType"/>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
