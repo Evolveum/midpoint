@@ -21,8 +21,13 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.*;
+import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -46,45 +51,47 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
-public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
+public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, SecurityContextManager {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(MidPointGuiAuthorizationEvaluator.class);
 
 	private SecurityEnforcer securityEnforcer;
+	private SecurityContextManager securityContextManager;
 	
-    public MidPointGuiAuthorizationEvaluator(SecurityEnforcer securityEnforcer) {
+    public MidPointGuiAuthorizationEvaluator(SecurityEnforcer securityEnforcer, SecurityContextManager securityContextManager) {
 		super();
 		this.securityEnforcer = securityEnforcer;
+		this.securityContextManager = securityContextManager;
 	}
 
     @Override
 	public UserProfileService getUserProfileService() {
-		return securityEnforcer.getUserProfileService();
+		return securityContextManager.getUserProfileService();
 	}
 
 	@Override
 	public void setUserProfileService(UserProfileService userProfileService) {
-		securityEnforcer.setUserProfileService(userProfileService);
+		securityContextManager.setUserProfileService(userProfileService);
 	}
 
     @Override
     public void setupPreAuthenticatedSecurityContext(Authentication authentication) {
-        securityEnforcer.setupPreAuthenticatedSecurityContext(authentication);
+    	securityContextManager.setupPreAuthenticatedSecurityContext(authentication);
     }
 
     @Override
     public void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) throws SchemaException {
-		securityEnforcer.setupPreAuthenticatedSecurityContext(user);
+    	securityContextManager.setupPreAuthenticatedSecurityContext(user);
 	}
     
     @Override
 	public boolean isAuthenticated() {
-		return securityEnforcer.isAuthenticated();
+		return securityContextManager.isAuthenticated();
 	}
 
     @Override
 	public MidPointPrincipal getPrincipal() throws SecurityViolationException {
-		return securityEnforcer.getPrincipal();
+		return securityContextManager.getPrincipal();
 	}
     
     @Override
@@ -96,8 +103,8 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 
 	@Override
 	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException {
-		return securityEnforcer.isAuthorized(operationUrl, phase, object, delta, target, ownerResolver);
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		return securityEnforcer.isAuthorized(operationUrl, phase, object, delta, target, ownerResolver, task, result);
 	}
 
     @Override
@@ -107,9 +114,9 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 
 	@Override
 	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, OperationResult result)
-			throws SecurityViolationException, SchemaException {
-		securityEnforcer.authorize(operationUrl, phase, object, delta, target, ownerResolver, result);
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, Task task, OperationResult result)
+			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		securityEnforcer.authorize(operationUrl, phase, object, delta, target, ownerResolver, task, result);
 	}
 
 	@Override
@@ -187,48 +194,48 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
     }
 
     @Override
-	public <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver)
-			throws SchemaException {
-		return securityEnforcer.compileSecurityConstraints(object, ownerResolver);
+	public <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		return securityEnforcer.compileSecurityConstraints(object, ownerResolver, task, result);
 	}
 
     @Override
 	public <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
-			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException {
-		return securityEnforcer.preProcessObjectFilter(operationUrl, phase, objectType, object, origFilter);
+			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		return securityEnforcer.preProcessObjectFilter(operationUrl, phase, objectType, object, origFilter, task, result);
 	}
 
 	@Override
 	public <T extends ObjectType, O extends ObjectType> boolean canSearch(String operationUrl,
-			AuthorizationPhaseType phase, Class<T> objectType, PrismObject<O> object, boolean includeSpecial, ObjectFilter filter)
-			throws SchemaException {
-		return securityEnforcer.canSearch(operationUrl, phase, objectType, object, includeSpecial, filter);
+			AuthorizationPhaseType phase, Class<T> objectType, PrismObject<O> object, boolean includeSpecial, ObjectFilter filter, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		return securityEnforcer.canSearch(operationUrl, phase, objectType, object, includeSpecial, filter, task, result);
 	}
 
 	@Override
 	public <T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException {
-		return securityEnforcer.runAs(producer, user);
+		return securityContextManager.runAs(producer, user);
 	}
 
 	@Override
 	public <T> T runPrivileged(Producer<T> producer) {
-		return securityEnforcer.runPrivileged(producer);
+		return securityContextManager.runPrivileged(producer);
 	}
 
 	@Override
 	public <O extends ObjectType, R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(
 			MidPointPrincipal midPointPrincipal, String actionUri, PrismObject<O> object, PrismObject<R> target,
-			OwnerResolver ownerResolver) throws SchemaException {
-		return securityEnforcer.getAllowedRequestAssignmentItems(midPointPrincipal, actionUri, object, target, ownerResolver);
+			OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		return securityEnforcer.getAllowedRequestAssignmentItems(midPointPrincipal, actionUri, object, target, ownerResolver, task, result);
 	}
 
 	@Override
 	public void storeConnectionInformation(HttpConnectionInformation value) {
-		securityEnforcer.storeConnectionInformation(value);
+		securityContextManager.storeConnectionInformation(value);
 	}
 
 	@Override
 	public HttpConnectionInformation getStoredConnectionInformation() {
-		return securityEnforcer.getStoredConnectionInformation();
+		return securityContextManager.getStoredConnectionInformation();
 	}
 }

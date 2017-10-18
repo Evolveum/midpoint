@@ -184,7 +184,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
         OperationResult thisOpResult = parentResult.createMinorSubresult(OPERATION_NEW);
         fillInHandlerUriList(taskType);
         fillInObjectRefAttributes(taskType, options, pageBase, opTask, thisOpResult);
-        fillInParentTaskAttributes(taskType, taskService, options, thisOpResult);
+        fillInParentTaskAttributes(taskType, taskService, options, opTask, thisOpResult);
         fillInOperationResultAttributes(taskType);
         if (options.isRetrieveModelContext()) {
             fillInModelContext(taskType, modelInteractionService, opTask, thisOpResult);
@@ -279,13 +279,13 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return WebModelServiceUtils.resolveReferenceName(taskType.getObjectRef(), pageBase, opTask, thisOpResult);
     }
 
-    private void fillInParentTaskAttributes(TaskType taskType, TaskService taskService, TaskDtoProviderOptions options, OperationResult thisOpResult) {
+    private void fillInParentTaskAttributes(TaskType taskType, TaskService taskService, TaskDtoProviderOptions options, Task operationTask, OperationResult thisOpResult) {
         if (options.isGetTaskParent() && taskType.getParent() != null) {
             try {
 				Collection<SelectorOptions<GetOperationOptions>> getOptions =
 						options.isRetrieveSiblings() ? createCollection(TaskType.F_SUBTASK, createRetrieve()) : null;
-                parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), getOptions, thisOpResult).asObjectable();
-            } catch (SchemaException|ObjectNotFoundException|SecurityViolationException|ConfigurationException e) {
+                parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), getOptions, operationTask, thisOpResult).asObjectable();
+            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve parent task for task {}", e, taskType.getOid());
             }
         }

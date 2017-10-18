@@ -503,9 +503,9 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	private boolean isAuthorized(ModelAuthorizationAction action) {
 		try {
-			return getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)
-					|| getSecurityEnforcer().isAuthorized(action.getUrl(), null, taskDtoModel.getObject().getTaskType().asPrismObject(), null, null, null);
-		} catch (SchemaException e) {
+			return isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)
+					|| isAuthorized(action.getUrl(), null, taskDtoModel.getObject().getTaskType().asPrismObject(), null, null, null);
+		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine authorization for {}", e, action);
 			return true;			// it is only GUI thing
 		}

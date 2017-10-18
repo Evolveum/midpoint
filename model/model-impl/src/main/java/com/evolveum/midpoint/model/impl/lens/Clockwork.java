@@ -64,9 +64,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
-import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.OwnerResolver;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -1308,7 +1308,7 @@ public class Clockwork {
 				sb.toString());
 	}
 
-	private <F extends ObjectType> void authorizeContextRequest(LensContext<F> context, Task task, OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException {
+	private <F extends ObjectType> void authorizeContextRequest(LensContext<F> context, Task task, OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createMinorSubresult(Clockwork.class.getName()+".authorizeRequest");
 		LOGGER.trace("Authorizing request");
 		try {
@@ -1333,7 +1333,7 @@ public class Clockwork {
 	}
 
 	private <F extends ObjectType, O extends ObjectType> ObjectSecurityConstraints authorizeElementContext(LensContext<F> context, LensElementContext<O> elementContext,
-			OwnerResolver ownerResolver, boolean isFocus, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException {
+			OwnerResolver ownerResolver, boolean isFocus, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		ObjectDelta<O> primaryDelta = elementContext.getPrimaryDelta();
 		// If there is no delta then there is no request to authorize
 		if (primaryDelta != null) {
@@ -1346,7 +1346,7 @@ public class Clockwork {
 				object = elementContext.getObjectNew();
 			}
 			String operationUrl = ModelUtils.getOperationUrlFromDelta(primaryDelta);
-			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, ownerResolver);
+			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, ownerResolver, task, result);
 			if (securityConstraints == null) {
 				throw new AuthorizationException("Access denied");
 			}
@@ -1435,7 +1435,7 @@ public class Clockwork {
 
 			if (primaryDelta != null && !primaryDelta.isEmpty()) {
 				// TODO: optimize, avoid evaluating the constraints twice
-				securityEnforcer.authorize(operationUrl, getRequestAuthorizationPhase(context) , object, primaryDelta, null, ownerResolver, result);
+				securityEnforcer.authorize(operationUrl, getRequestAuthorizationPhase(context) , object, primaryDelta, null, ownerResolver, task, result);
 			}
 
 			return securityConstraints;
@@ -1458,7 +1458,7 @@ public class Clockwork {
 	}
 
 	private <F extends ObjectType,O extends ObjectType> void authorizeAssignmentRequest(LensContext<F> context, String assignActionUrl, PrismObject<O> object,
-			OwnerResolver ownerResolver, PlusMinusZero plusMinusZero, boolean prohibitPolicies, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException {
+			OwnerResolver ownerResolver, PlusMinusZero plusMinusZero, boolean prohibitPolicies, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		// This is *request* authorization. Therefore we care only about primary delta.
 		ObjectDelta<F> focusPrimaryDelta = context.getFocusContext().getPrimaryDelta();
 		if (focusPrimaryDelta == null) {
@@ -1493,7 +1493,7 @@ public class Clockwork {
 			ContainerDelta<AssignmentType> assignmentDelta = assignmentObjectDelta.createContainerModification(FocusType.F_ASSIGNMENT);
 			// We do not care if this is add or delete. All that matters for authorization is that it is in a delta.
 			assignmentDelta.addValuesToAdd(changedAssignment.asPrismContainerValue().clone());
-			if (securityEnforcer.isAuthorized(assignActionUrl, getRequestAuthorizationPhase(context), object, assignmentObjectDelta, target, ownerResolver)) {
+			if (securityEnforcer.isAuthorized(assignActionUrl, getRequestAuthorizationPhase(context), object, assignmentObjectDelta, target, ownerResolver, task, result)) {
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("{} of target {} to {} allowed with {} authorization",
 							assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1),
@@ -1503,7 +1503,7 @@ public class Clockwork {
 			}
 			QName relation = targetRef.getRelation();
 			if (ObjectTypeUtil.isDelegationRelation(relation)) {
-				if (securityEnforcer.isAuthorized(ModelAuthorizationAction.DELEGATE.getUrl(), getRequestAuthorizationPhase(context), object, assignmentObjectDelta, target, ownerResolver)) {
+				if (securityEnforcer.isAuthorized(ModelAuthorizationAction.DELEGATE.getUrl(), getRequestAuthorizationPhase(context), object, assignmentObjectDelta, target, ownerResolver, task, result)) {
 					if (LOGGER.isDebugEnabled()) {
 						LOGGER.debug("{} of target {} to {} allowed with {} authorization",
 							assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1),

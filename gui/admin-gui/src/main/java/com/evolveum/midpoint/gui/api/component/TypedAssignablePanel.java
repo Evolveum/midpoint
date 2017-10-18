@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -247,12 +248,13 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
                 if (type.equals(RoleType.COMPLEX_TYPE)) {
                     LOGGER.debug("Loading roles which the current user has right to assign");
-                    OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNABLE_ROLES);
+                    Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
+                    OperationResult result = task.getResult();
                     ObjectFilter filter = null;
                     try {
                         ModelInteractionService mis = parentPage.getModelInteractionService();
                         RoleSelectionSpecification roleSpec =
-                                mis.getAssignableRoleSpecification(SecurityUtils.getPrincipalUser().getUser().asPrismObject(), result);
+                                mis.getAssignableRoleSpecification(SecurityUtils.getPrincipalUser().getUser().asPrismObject(), task, result);
                         filter = roleSpec.getFilter();
                     } catch (Exception ex) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);

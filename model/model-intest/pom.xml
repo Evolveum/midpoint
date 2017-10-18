@@ -176,6 +176,12 @@
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>security-enforcer-impl</artifactId>
+			<version>3.7-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-sql-impl-test</artifactId>
 			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>

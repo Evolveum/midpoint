@@ -36,7 +36,7 @@ import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -79,7 +79,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 
 	@Nullable
 	@Autowired(required = false) // missing in some tests (maybe)
-	private SecurityEnforcer securityEnforcer;
+	private SecurityContextManager securityContextManager;
 
 	@Autowired
 	private PrismContext prismContext;
@@ -170,8 +170,8 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 		}
 
 		HttpConnectionInformation connInfo = SecurityUtil.getCurrentConnectionInformation();
-		if (connInfo == null && securityEnforcer != null) {
-			connInfo = securityEnforcer.getStoredConnectionInformation();
+		if (connInfo == null && securityContextManager != null) {
+			connInfo = securityContextManager.getStoredConnectionInformation();
 		}
 		if (connInfo != null) {
 			if (record.getSessionIdentifier() == null) {

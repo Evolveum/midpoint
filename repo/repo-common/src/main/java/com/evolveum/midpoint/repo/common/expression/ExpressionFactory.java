@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -43,11 +43,11 @@ public class ExpressionFactory {
 	private Map<ExpressionIdentifier, Expression<?,?>> cache = new HashMap<ExpressionIdentifier, Expression<?,?>>();
 	final private PrismContext prismContext;
 	private ObjectResolver objectResolver;					// using setter to allow Spring to handle circular references
-	final private SecurityEnforcer securityEnforcer;
+	final private SecurityContextManager securityContextManager;
 
-	public ExpressionFactory(SecurityEnforcer securityEnforcer, PrismContext prismContext) {
+	public ExpressionFactory(SecurityContextManager securityContextManager, PrismContext prismContext) {
 		this.prismContext = prismContext;
-		this.securityEnforcer = securityEnforcer;
+		this.securityContextManager = securityContextManager;
 	}
 
 	public void setObjectResolver(ObjectResolver objectResolver) {
@@ -79,7 +79,7 @@ public class ExpressionFactory {
 	private <V extends PrismValue,D extends ItemDefinition> Expression<V,D> createExpression(ExpressionType expressionType,
 																							 D outputDefinition, String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException {
-		Expression<V,D> expression = new Expression<V,D>(expressionType, outputDefinition, objectResolver, securityEnforcer, prismContext);
+		Expression<V,D> expression = new Expression<V,D>(expressionType, outputDefinition, objectResolver, securityContextManager, prismContext);
 		expression.parse(this, shortDesc, task, result);
 		return expression;
 	}

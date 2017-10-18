@@ -469,7 +469,7 @@ public class ModelCrudService {
 	}
 
 	public PrismObject<UserType> findShadowOwner(String accountOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException {
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException {
 		return modelService.findShadowOwner(accountOid, task, parentResult);
 	}
 
@@ -490,52 +490,52 @@ public class ModelCrudService {
 
 
 	//TASK AREA
-    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-        return taskService.suspendTasks(taskOids, waitForStop, parentResult);
+    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+        return taskService.suspendTasks(taskOids, waitForStop, operationTask, parentResult);
     }
 
-    public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-		taskService.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, parentResult);
+    public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+		taskService.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, operationTask, parentResult);
     }
 
-    public void resumeTasks(Collection<String> taskOids, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-		taskService.resumeTasks(taskOids, parentResult);
+    public void resumeTasks(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+		taskService.resumeTasks(taskOids, operationTask, parentResult);
     }
 
-    public void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-		taskService.scheduleTasksNow(taskOids, parentResult);
+    public void scheduleTasksNow(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+		taskService.scheduleTasksNow(taskOids, operationTask, parentResult);
     }
 
-    public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
-        return taskService.getTaskByIdentifier(identifier, options, parentResult);
+    public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, Task operationTask, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        return taskService.getTaskByIdentifier(identifier, options, operationTask, parentResult);
     }
 
-    public boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult) throws SchemaException, SecurityViolationException {
-        return taskService.deactivateServiceThreads(timeToWait, parentResult);
+    public boolean deactivateServiceThreads(long timeToWait, Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
+        return taskService.deactivateServiceThreads(timeToWait, operationTask, parentResult);
     }
 
-    public void reactivateServiceThreads(OperationResult parentResult) throws SchemaException, SecurityViolationException {
-		taskService.reactivateServiceThreads(parentResult);
+    public void reactivateServiceThreads(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
+		taskService.reactivateServiceThreads(operationTask, parentResult);
     }
 
     public boolean getServiceThreadsActivationState() {
         return taskService.getServiceThreadsActivationState();
     }
 
-    public void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-		taskService.stopSchedulers(nodeIdentifiers, parentResult);
+    public void stopSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+		taskService.stopSchedulers(nodeIdentifiers, operationTask, parentResult);
     }
 
-    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-        return taskService.stopSchedulersAndTasks(nodeIdentifiers, waitTime, parentResult);
+    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+        return taskService.stopSchedulersAndTasks(nodeIdentifiers, waitTime, operationTask, parentResult);
     }
 
-    public void startSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-		taskService.startSchedulers(nodeIdentifiers, parentResult);
+    public void startSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+		taskService.startSchedulers(nodeIdentifiers, operationTask, parentResult);
     }
 
-    public void synchronizeTasks(OperationResult parentResult) throws SchemaException, SecurityViolationException {
-		taskService.synchronizeTasks(parentResult);
+    public void synchronizeTasks(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
+		taskService.synchronizeTasks(operationTask, parentResult);
     }
 
     public List<String> getAllTaskCategories() {

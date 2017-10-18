@@ -152,13 +152,13 @@ public class TreeTablePanel extends BasePanel<String> {
 			boolean allowModify = org == null ||
 					// TODO: the modify authorization here is probably wrong.
 					// It is a model autz. UI autz should be here instead?
-					parentPage.getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
+					parentPage.isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
 							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
 							null, null, null);
 			boolean allowRead = org == null ||
 					// TODO: the authorization URI here is probably wrong.
 					// It is a model autz. UI autz should be here instead?
-					parentPage.getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.READ.getUrl(),
+					parentPage.isAuthorized(ModelAuthorizationAction.READ.getUrl(),
 							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
 							null, null, null);
 			InlineMenuItem item;
@@ -189,7 +189,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			boolean allowDelete = org == null ||
 					// TODO: the authorization URI here is probably wrong.
 					// It is a model autz. UI autz should be here instead?
-					parentPage.getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.DELETE.getUrl(),
+					parentPage.isAuthorized(ModelAuthorizationAction.DELETE.getUrl(),
 							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
 							null, null, null);
 			if (allowDelete) {
@@ -241,7 +241,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 			// TODO: the modify authorization here is probably wrong.
 			// It is a model autz. UI autz should be here instead?
-			boolean allowAddNew = parentPage.getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
+			boolean allowAddNew = parentPage.isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
 					AuthorizationPhaseType.REQUEST, (new OrgType(parentPage.getPrismContext())).asPrismObject(),
 					null, null, null);
 			if (allowModify && allowAddNew) {
@@ -262,7 +262,7 @@ public class TreeTablePanel extends BasePanel<String> {
 						});
 				items.add(item);
 			}
-		} catch (SchemaException ex){
+		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Failed to check menu items authorizations", ex);
 		}
 		return items;

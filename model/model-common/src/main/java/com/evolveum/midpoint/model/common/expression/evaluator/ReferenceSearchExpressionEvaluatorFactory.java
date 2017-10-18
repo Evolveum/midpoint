@@ -30,7 +30,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
@@ -48,14 +48,14 @@ public class ReferenceSearchExpressionEvaluatorFactory implements ExpressionEval
 	private Protector protector;
 	private ObjectResolver objectResolver;
 	private ModelService modelService;
-    private SecurityEnforcer securityEnforcer;
+    private SecurityContextManager securityContextManager;
 
-	public ReferenceSearchExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ModelService modelService, SecurityEnforcer securityEnforcer) {
+	public ReferenceSearchExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ModelService modelService, SecurityContextManager securityContextManager) {
 		super();
 		this.prismContext = prismContext;
 		this.protector = protector;
 		this.modelService = modelService;
-        this.securityEnforcer = securityEnforcer;
+        this.securityContextManager = securityContextManager;
 	}
 
 	public void setObjectResolver(ObjectResolver objectResolver) {
@@ -95,7 +95,7 @@ public class ReferenceSearchExpressionEvaluatorFactory implements ExpressionEval
             throw new SchemaException("reference search expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
         ReferenceSearchExpressionEvaluator expressionEvaluator = new ReferenceSearchExpressionEvaluator((SearchObjectRefExpressionEvaluatorType)evaluatorTypeObject,
-        		(PrismReferenceDefinition) outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer);
+        		(PrismReferenceDefinition) outputDefinition, protector, objectResolver, modelService, prismContext, securityContextManager);
         return (ExpressionEvaluator<V,D>) expressionEvaluator;
 	}
 

@@ -45,7 +45,7 @@
     
     <bean id="expressionFactory" class="com.evolveum.midpoint.repo.common.expression.ExpressionFactory" 
     		scope="singleton">
-        <constructor-arg ref="securityEnforcer"/>
+        <constructor-arg ref="securityContextManager"/>
         <constructor-arg ref="prismContext"/>
         <property name="evaluatorFactories">
         	<list>

@@ -19,7 +19,8 @@ package com.evolveum.midpoint.web.component.progress;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 
@@ -50,6 +51,8 @@ public interface ProgressReportingAwarePage {
     ModelInteractionService getModelInteractionService();
 
     SecurityEnforcer getSecurityEnforcer();
+    
+    SecurityContextManager getSecurityContextManager();
 
     Task createSimpleTask(String name);
 
