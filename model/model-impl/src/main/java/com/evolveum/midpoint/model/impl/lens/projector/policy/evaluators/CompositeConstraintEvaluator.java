@@ -75,7 +75,10 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
 			List<EvaluatedPolicyRuleTrigger<?>> triggers,
 			PolicyRuleEvaluationContext<?> rctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		return new EvaluatedCompositeTrigger(kind, value, createMessage(kind, value, rctx, result), triggers);
+		return new EvaluatedCompositeTrigger(kind, value,
+				createMessage(kind, value, rctx, result),
+				createShortMessage(kind, value, rctx, result),
+				triggers);
 	}
 
 	private LocalizableMessage createMessage(PolicyConstraintKindType kind,
@@ -85,5 +88,14 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + kind.value())
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
+	}
+
+	private LocalizableMessage createShortMessage(PolicyConstraintKindType kind,
+			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + kind.value())
+				.build();
+		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
 	}
 }

@@ -3461,6 +3461,9 @@
                         <xsd:documentation>
                             Policy rule that should be applied to the target object.
                         </xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>AssignmentType.policyRule</a:displayName>
+						</xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
 
@@ -13009,7 +13012,10 @@
     				<xsd:documentation>
     					Constraints to be applied to selected objects.
     				</xsd:documentation>
-    			</xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>PolicyRuleType.policyConstraints</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
     		</xsd:element>
     		<xsd:element name="policySituation" type="xsd:anyURI" minOccurs="0">
     			<xsd:annotation>

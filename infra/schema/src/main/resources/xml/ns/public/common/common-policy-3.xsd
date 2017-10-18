@@ -361,6 +361,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO. EXPERIMENTAL.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:long"/>
 	</xsd:complexType>

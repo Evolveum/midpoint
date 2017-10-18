@@ -75,6 +75,8 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 
 	List<TreeNode<LocalizableMessage>> extractMessages();
 
+	List<TreeNode<LocalizableMessage>> extractShortMessages();
+
 	// BEWARE: enabled actions can be queried only after computeEnabledActions has been called
 	// todo think again about this
 

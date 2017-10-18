@@ -483,6 +483,10 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 			return false;
 		}
 
+		if (!getItem().isSingleValue() && isEmpty() && ContainerStatus.MODIFYING.equals(status)){
+			return false;
+		}
+
 		switch (status) {
 			case MODIFYING:
 				return isNotEmptyAndCanReadAndModify(def) || showEmptyCanReadAndModify(def);

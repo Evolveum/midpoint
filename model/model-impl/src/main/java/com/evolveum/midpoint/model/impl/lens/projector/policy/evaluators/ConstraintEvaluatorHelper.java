@@ -115,30 +115,6 @@ public class ConstraintEvaluatorHelper {
 		return rv;
 	}
 
-	public LocalizableMessage createObjectSpecification(PrismObject<?> object) {
-		if (object != null) {
-			return new LocalizableMessageBuilder()
-					.key(SchemaConstants.TECHNICAL_OBJECT_SPECIFICATION_KEY)
-					.arg(createObjectTypeSpecification(object.asObjectable().getClass().getSimpleName()))
-					.arg(object.asObjectable().getName())
-					.arg(object.getOid())
-					.build();
-		} else {
-			return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!
-		}
-	}
-
-	public LocalizableMessage createObjectTypeSpecification(QName type) {
-		return createObjectTypeSpecification(type != null ? type.getLocalPart() : null);
-	}
-
-	public LocalizableMessage createObjectTypeSpecification(String objectClassName) {
-		return new LocalizableMessageBuilder()
-						.key(SchemaConstants.OBJECT_TYPE_KEY_PREFIX + objectClassName)
-						.fallbackMessage(objectClassName)
-						.build();
-	}
-
 	public <F extends FocusType> LocalizableMessage createLocalizableMessage(
 			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> rctx,
 			LocalizableMessage builtInMessage, OperationResult result) throws ExpressionEvaluationException,
@@ -153,6 +129,27 @@ public class ConstraintEvaluatorHelper {
 		} else if (constraint.getName() != null) {
 			return new LocalizableMessageBuilder()
 					.key(SchemaConstants.POLICY_CONSTRAINT_KEY_PREFIX + constraint.getName())
+					.fallbackLocalizableMessage(builtInMessage)
+					.build();
+		} else {
+			return builtInMessage;
+		}
+	}
+
+	public <F extends FocusType> LocalizableMessage createLocalizableShortMessage(
+			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> rctx,
+			LocalizableMessage builtInMessage, OperationResult result) throws ExpressionEvaluationException,
+			ObjectNotFoundException, SchemaException {
+		if (constraint.getPresentation() != null && constraint.getPresentation().getShortMessage() != null) {
+			LocalizableMessageType messageType =
+					createLocalizableMessageType(constraint.getPresentation().getShortMessage(), rctx, result);
+			return LocalizationUtil.parseLocalizableMessageType(messageType,
+					// if user-configured fallback message is present; we ignore the built-in constraint message
+					// TODO consider ignoring it always if custom presentation/message is provided
+					messageType.getFallbackMessage() != null ? null : builtInMessage);
+		} else if (constraint.getName() != null) {
+			return new LocalizableMessageBuilder()
+					.key(SchemaConstants.POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + constraint.getName())
 					.fallbackLocalizableMessage(builtInMessage)
 					.build();
 		} else {
