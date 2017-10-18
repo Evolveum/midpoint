@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -60,6 +61,8 @@ public class ScriptExecutor extends BaseActionExecutor {
 
 	@Autowired
 	private ScriptExpressionFactory scriptExpressionFactory;
+	@Autowired
+	private ExpressionFactory expressionFactory;
 
     private static final String NAME = "execute-script";
     private static final String PARAM_SCRIPT = "script";
@@ -86,7 +89,7 @@ public class ScriptExecutor extends BaseActionExecutor {
 
 		ScriptExpression scriptExpression;
 		try {
-			scriptExpression = scriptExpressionFactory.createScriptExpression(script, outputDefinition, "script");
+			scriptExpression = scriptExpressionFactory.createScriptExpression(script, outputDefinition, expressionFactory, "script", context.getTask(), globalResult);
 		} catch (ExpressionSyntaxException e) {
 			throw new ScriptExecutionException("Couldn't parse script expression: " + e.getMessage(), e);
 		}

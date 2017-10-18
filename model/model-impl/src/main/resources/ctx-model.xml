@@ -130,6 +130,7 @@
         		<ref bean="velocityScriptEvaluator"/>
         	</list>
         </property>
+
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 

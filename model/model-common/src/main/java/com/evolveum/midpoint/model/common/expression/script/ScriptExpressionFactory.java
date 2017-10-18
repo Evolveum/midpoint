@@ -19,12 +19,26 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.model.common.expression.functions.CustomFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
 /**
@@ -46,7 +60,7 @@ public class ScriptExpressionFactory {
 		this.prismContext = prismContext;
 		this.protector = protector;
 	}
-
+	
 	public ObjectResolver getObjectResolver() {
 		return objectResolver;
 	}
@@ -73,10 +87,36 @@ public class ScriptExpressionFactory {
 		return evaluatorMap;
 	}
 
-	public ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition, String shortDesc) throws ExpressionSyntaxException {
+	public ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition, ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult result) throws ExpressionSyntaxException {
 		ScriptExpression expression = new ScriptExpression(getEvaluator(getLanguage(expressionType), shortDesc), expressionType);
 		expression.setOutputDefinition(outputDefinition);
 		expression.setObjectResolver(objectResolver);
+		
+		//Custom functions
+				OperationResult subResult = result.createMinorSubresult(ScriptExpressionUtil.class.getName() + ".searchCustomFunctions");
+				ResultHandler<FunctionLibraryType> functionLibraryHandler = new ResultHandler<FunctionLibraryType>() {
+					
+					@Override
+					public boolean handle(PrismObject<FunctionLibraryType> object, OperationResult parentResult) {
+						FunctionLibrary customLibrary = new FunctionLibrary();
+						customLibrary.setVariableName(object.getName().getOrig());
+						customLibrary.setGenericFunctions(new CustomFunctions(object.asObjectable(), expressionFactory, result, task));
+						customLibrary.setNamespace(MidPointConstants.NS_FUNC_CUSTOM);
+						return functions.add(customLibrary);
+					}
+				};
+				try {
+					objectResolver.searchIterative(FunctionLibraryType.class, null, null, functionLibraryHandler, task, subResult);
+					subResult.recordSuccessIfUnknown();
+				} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException
+						| ExpressionEvaluationException | ObjectNotFoundException e) {
+					subResult.recordFatalError("Failed to initialize custom functions", e);
+					throw new ExpressionSyntaxException("An error occurred during custom libraries initialization. " + e.getMessage(), e);
+				}
+		
+				//TODO: caching
+				//cache string = functionLibraryType
+		//cache cleanup method
 		expression.setFunctions(functions);
 		return expression;
 	}

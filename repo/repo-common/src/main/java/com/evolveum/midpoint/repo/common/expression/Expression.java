@@ -110,7 +110,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		if (evaluatorFactory == null) {
 			throw new SchemaException("Unknown expression evaluator element "+fistEvaluatorElement.getName()+" in "+contextDescription);
 		}
-		return evaluatorFactory.createEvaluator(evaluatorElements, outputDefinition, contextDescription, task, result);
+		return evaluatorFactory.createEvaluator(evaluatorElements, outputDefinition, factory, contextDescription, task, result);
 	}
 
 	private ExpressionEvaluator<V,D> createDefaultEvaluator(ExpressionFactory factory, String contextDescription,
@@ -119,7 +119,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		if (evaluatorFactory == null) {
 			throw new SystemException("Internal error: No default expression evaluator factory");
 		}
-		return evaluatorFactory.createEvaluator(null, outputDefinition, contextDescription, task, result);
+		return evaluatorFactory.createEvaluator(null, outputDefinition, factory,  contextDescription, task, result);
 	}
 
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,

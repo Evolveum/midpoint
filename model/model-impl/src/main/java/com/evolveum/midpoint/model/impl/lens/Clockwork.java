@@ -23,6 +23,7 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -138,6 +139,7 @@ public class Clockwork {
 	@Autowired private SystemObjectCache systemObjectCache;
 	@Autowired private transient ProvisioningService provisioningService;
 	@Autowired private transient ChangeNotificationDispatcher changeNotificationDispatcher;
+	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private ScriptExpressionFactory scriptExpressionFactory;
 	@Autowired private PersonaProcessor personaProcessor;
 	@Autowired private PrismContext prismContext;
@@ -589,7 +591,7 @@ public class Clockwork {
     	LOGGER.trace("Evaluating {}", shortDesc);
 		// TODO: it would be nice to cache this
 		// null output definition: this script has no output
-		ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptExpressionEvaluatorType, null, shortDesc);
+		ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptExpressionEvaluatorType, null, expressionFactory, shortDesc, task, result);
 
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.addVariableDefinition(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
