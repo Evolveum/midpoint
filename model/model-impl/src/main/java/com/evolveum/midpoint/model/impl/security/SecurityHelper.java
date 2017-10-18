@@ -19,7 +19,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.soap.SOAPMessage;
 
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.binding.soap.saaj.SAAJInInterceptor;
 import org.apache.wss4j.common.ext.WSSecurityException;

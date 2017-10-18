@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Evolveum
+ * Copyright (c) 2013-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -494,7 +494,7 @@ public class ModelRestService {
 		Response response;
 		try {
 			if (clazz.isAssignableFrom(TaskType.class)){
-				model.suspendAndDeleteTasks(MiscUtil.createCollection(id), WAIT_FOR_TASK_STOP, true, parentResult);
+				model.suspendAndDeleteTasks(MiscUtil.createCollection(id), WAIT_FOR_TASK_STOP, true, task, parentResult);
 				parentResult.computeStatus();
 				finishRequest(task);
 				if (parentResult.isSuccess()){
@@ -718,9 +718,9 @@ public class ModelRestService {
 		Response response;
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
 		try {
-			model.suspendTasks(taskOids, WAIT_FOR_TASK_STOP, parentResult);
+			model.suspendTasks(taskOids, WAIT_FOR_TASK_STOP, task, parentResult);
 			parentResult.computeStatus();
-			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, parentResult);
+			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, task, parentResult);
 //			if (parentResult.isSuccess()){
 //				response = Response.noContent().build();
 //			} else {
@@ -770,7 +770,7 @@ public class ModelRestService {
 		Response response;
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
 		try {
-			model.resumeTasks(taskOids, parentResult);
+			model.resumeTasks(taskOids, task, parentResult);
 
 			parentResult.computeStatus();
 			response = RestServiceUtil.createResponse(Response.Status.ACCEPTED, parentResult);
@@ -799,7 +799,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			model.scheduleTasksNow(taskOids, parentResult);
+			model.scheduleTasksNow(taskOids, task, parentResult);
 
 			parentResult.computeStatus();
 

@@ -184,7 +184,7 @@ public class PageSelfDashboard extends PageSelf {
                             Authentication auth, IModel callableParameterModel) {
 
                         return new SecurityContextAwareCallable<CallableResult<List<WorkItemDto>>>(
-                                getSecurityEnforcer(), auth) {
+                        		getSecurityContextManager(), auth) {
 
                         	private static final long serialVersionUID = 1L;
 
@@ -226,7 +226,7 @@ public class PageSelfDashboard extends PageSelf {
                             Authentication auth, IModel callableParameterModel) {
 
                         return new SecurityContextAwareCallable<CallableResult<List<ProcessInstanceDto>>>(
-                                getSecurityEnforcer(), auth) {
+                        		getSecurityContextManager(), auth) {
                         	private static final long serialVersionUID = 1L;
 
                             @Override
@@ -376,7 +376,7 @@ public class PageSelfDashboard extends PageSelf {
                             Authentication auth, IModel<Object> callableParameterModel) {
 
                         return new SecurityContextAwareCallable<CallableResult<List<SimpleAccountDto>>>(
-                                getSecurityEnforcer(), auth) {
+                        		getSecurityContextManager(), auth) {
 
                             @Override
                             public AccountCallableResult<List<SimpleAccountDto>> callWithContextPrepared()
@@ -493,7 +493,7 @@ public class PageSelfDashboard extends PageSelf {
                             Authentication auth, IModel callableParameterModel) {
 
                         return new SecurityContextAwareCallable<CallableResult<List<AssignmentItemDto>>>(
-                                getSecurityEnforcer(), auth) {
+                                getSecurityContextManager(), auth) {
 
                             @Override
                             public CallableResult<List<AssignmentItemDto>> callWithContextPrepared() throws Exception {

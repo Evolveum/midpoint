@@ -34,6 +34,7 @@
             classpath:ctx-ucf-builtin.xml,
             classpath:ctx-audit.xml,
             classpath:ctx-security.xml,
+            classpath:ctx-security-enforcer.xml,
             classpath:ctx-model.xml,
             classpath:ctx-model-common.xml,
             classpath:ctx-report.xml,

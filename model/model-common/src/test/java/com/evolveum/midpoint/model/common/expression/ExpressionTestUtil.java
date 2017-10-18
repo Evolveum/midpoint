@@ -38,7 +38,7 @@ import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 
 /**
@@ -56,8 +56,8 @@ public class ExpressionTestUtil {
 	}
 
 	public static ExpressionFactory createInitializedExpressionFactory(ObjectResolver resolver, ProtectorImpl protector,
-			PrismContext prismContext, SecurityEnforcer securityEnforcer) {
-    	ExpressionFactory expressionFactory = new ExpressionFactory(securityEnforcer, prismContext);
+			PrismContext prismContext, SecurityContextManager securityContextManager) {
+    	ExpressionFactory expressionFactory = new ExpressionFactory(securityContextManager, prismContext);
     	expressionFactory.setObjectResolver(resolver);
 
     	// asIs
@@ -97,7 +97,7 @@ public class ExpressionTestUtil {
         scriptExpressionFactory.registerEvaluator(XPathScriptEvaluator.XPATH_LANGUAGE_URL, xpathEvaluator);
         Jsr223ScriptEvaluator groovyEvaluator = new Jsr223ScriptEvaluator("Groovy", prismContext, protector);
         scriptExpressionFactory.registerEvaluator(groovyEvaluator.getLanguageUrl(), groovyEvaluator);
-        ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory = new ScriptExpressionEvaluatorFactory(scriptExpressionFactory, securityEnforcer);
+        ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory = new ScriptExpressionEvaluatorFactory(scriptExpressionFactory, securityContextManager);
         expressionFactory.addEvaluatorFactory(scriptExpressionEvaluatorFactory);
 
         return expressionFactory;

@@ -137,7 +137,7 @@
     <bean id="scriptExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg ref="scriptExpressionFactory"/>
-          <constructor-arg name="securityEnforcer" ref="securityEnforcer"/>
+          <constructor-arg name="securityContextManager" ref="securityContextManager"/>
     </bean>
     
     <bean id="generateExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluatorFactory"
@@ -181,7 +181,7 @@
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
           <constructor-arg ref="modelController"/>
-          <constructor-arg ref="securityEnforcer"/>
+          <constructor-arg ref="securityContextManager"/>
           <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
     
@@ -191,7 +191,7 @@
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
           <constructor-arg ref="modelController"/>
-          <constructor-arg ref="securityEnforcer"/>
+          <constructor-arg ref="securityContextManager"/>
           <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
@@ -201,7 +201,7 @@
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
           <constructor-arg ref="modelController"/>
-          <constructor-arg ref="securityEnforcer"/>
+          <constructor-arg ref="securityContextManager"/>
           <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
@@ -224,7 +224,7 @@
     <bean id="expressionFactory" class="com.evolveum.midpoint.repo.common.expression.ExpressionFactory" 
     		scope="singleton">
         <constructor-arg>
-        	<ref bean="securityEnforcer"/>
+        	<ref bean="securityContextManager"/>
         </constructor-arg>
         <constructor-arg>
         	<ref bean="prismContext"/>
@@ -257,7 +257,7 @@
         <property name="protector" ref="protector"/>
         <property name="prismContext" ref="prismContext"/>
         <property name="filterManager" ref="filterManager"/>
-        <property name="securityEnforcer" ref="securityEnforcer"/>
+        <property name="securityContextManager" ref="securityContextManager"/>
     </bean>
     
     <bean id="midpointFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary"
@@ -435,6 +435,7 @@
         <constructor-arg name="securityEnforcer" ref="securityEnforcer"/>
         <constructor-arg name="securityHelper" ref="securityHelper"/>
         <constructor-arg name="activationComputer" ref="activationComputer"/>
+        <constructor-arg name="taskManager" ref="taskManager"/>
     </bean>
     
     <bean id="wsFaultListener" class="com.evolveum.midpoint.model.impl.security.WsFaultListener">

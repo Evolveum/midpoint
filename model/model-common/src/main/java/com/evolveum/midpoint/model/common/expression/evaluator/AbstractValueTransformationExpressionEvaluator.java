@@ -36,7 +36,7 @@ import com.evolveum.midpoint.repo.common.expression.SourceTriple;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -60,15 +60,15 @@ import java.util.Map.Entry;
 public abstract class AbstractValueTransformationExpressionEvaluator<V extends PrismValue, D extends ItemDefinition, E extends TransformExpressionEvaluatorType>
 						implements ExpressionEvaluator<V,D> {
 
-    private SecurityEnforcer securityEnforcer;
+    private SecurityContextManager securityContextManager;
 
 	private E expressionEvaluatorType;
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractValueTransformationExpressionEvaluator.class);
 
-    protected AbstractValueTransformationExpressionEvaluator(E expressionEvaluatorType, SecurityEnforcer securityEnforcer) {
+    protected AbstractValueTransformationExpressionEvaluator(E expressionEvaluatorType, SecurityContextManager securityContextManager) {
     	this.expressionEvaluatorType = expressionEvaluatorType;
-        this.securityEnforcer = securityEnforcer;
+        this.securityContextManager = securityContextManager;
     }
 
     public E getExpressionEvaluatorType() {

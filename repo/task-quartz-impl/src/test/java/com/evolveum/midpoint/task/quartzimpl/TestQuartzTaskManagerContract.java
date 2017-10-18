@@ -86,9 +86,10 @@ import static org.testng.AssertJUnit.*;
 @ContextConfiguration(locations = {"classpath:ctx-task.xml",
         "classpath:ctx-task-test.xml",
         "classpath:ctx-repo-cache.xml",
+        "classpath:ctx-security.xml",
+        "classpath:ctx-expression-test.xml",
         "classpath*:ctx-repository-test.xml",
         "classpath:ctx-audit.xml",
-        "classpath:ctx-security.xml",
         "classpath:ctx-common.xml",
         "classpath:ctx-configuration-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

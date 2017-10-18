@@ -26,7 +26,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
@@ -39,11 +39,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
 public class ScriptExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
 
 	private ScriptExpressionFactory scriptExpressionFactory;
-    private SecurityEnforcer securityEnforcer;
+    private SecurityContextManager securityContextManager;
 
-	public ScriptExpressionEvaluatorFactory(ScriptExpressionFactory scriptExpressionFactory, SecurityEnforcer securityEnforcer) {
+	public ScriptExpressionEvaluatorFactory(ScriptExpressionFactory scriptExpressionFactory, SecurityContextManager securityContextManager) {
 		this.scriptExpressionFactory = scriptExpressionFactory;
-        this.securityEnforcer = securityEnforcer;
+        this.securityContextManager = securityContextManager;
 	}
 
 	@Override
@@ -71,7 +71,7 @@ public class ScriptExpressionEvaluatorFactory implements ExpressionEvaluatorFact
 
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, factory, contextDescription, task, result);
 
-        return new ScriptExpressionEvaluator<>(scriptType, scriptExpression, securityEnforcer);
+        return new ScriptExpressionEvaluator<>(scriptType, scriptExpression, securityContextManager);
 
 	}
 

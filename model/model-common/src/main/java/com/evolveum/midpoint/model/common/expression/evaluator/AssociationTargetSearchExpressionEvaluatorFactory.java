@@ -31,7 +31,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
@@ -50,14 +50,14 @@ public class AssociationTargetSearchExpressionEvaluatorFactory implements Expres
 	private Protector protector;
 	private ObjectResolver objectResolver;
 	private ModelService modelService;
-    private SecurityEnforcer securityEnforcer;
+    private SecurityContextManager securityContextManager;
 
-	public AssociationTargetSearchExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ModelService modelService, SecurityEnforcer securityEnforcer) {
+	public AssociationTargetSearchExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ModelService modelService, SecurityContextManager securityContextManager) {
 		super();
 		this.prismContext = prismContext;
 		this.protector = protector;
 		this.modelService = modelService;
-        this.securityEnforcer = securityEnforcer;
+        this.securityContextManager = securityContextManager;
 	}
 
 	public void setObjectResolver(ObjectResolver objectResolver) {
@@ -97,7 +97,7 @@ public class AssociationTargetSearchExpressionEvaluatorFactory implements Expres
             throw new SchemaException("Association expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
         AssociationTargetSearchExpressionEvaluator evaluator = new AssociationTargetSearchExpressionEvaluator((SearchObjectExpressionEvaluatorType)evaluatorTypeObject,
-        		(PrismContainerDefinition<ShadowAssociationType>) outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer);
+        		(PrismContainerDefinition<ShadowAssociationType>) outputDefinition, protector, objectResolver, modelService, prismContext, securityContextManager);
         return (ExpressionEvaluator<V,D>) evaluator;
 	}
 

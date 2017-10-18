@@ -39,12 +39,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -56,6 +60,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseTy
  */
 public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor<SoapMessage> {
 
+	private static final String OPERATION_AUTHORIZATION = SpringAuthenticationInjectorInterceptor.class.getName() + ".authorization";
+	
 	private static final Trace LOGGER = TraceManager.getTrace(SpringAuthenticationInjectorInterceptor.class);
 
     private String phase;
@@ -67,14 +73,17 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
     private SecurityEnforcer securityEnforcer;
 	private SecurityHelper securityHelper;
 	private ActivationComputer activationComputer;
+	private TaskManager taskManager;
 
     public SpringAuthenticationInjectorInterceptor(UserProfileService userDetailsService,
-    		SecurityEnforcer securityEnforcer, SecurityHelper securityHelper, ActivationComputer activationComputer) {
+    		SecurityEnforcer securityEnforcer, SecurityHelper securityHelper, ActivationComputer activationComputer,
+    		TaskManager taskManager) {
         super();
         this.userDetailsService = userDetailsService;
         this.securityEnforcer = securityEnforcer;
         this.securityHelper = securityHelper;
         this.activationComputer = activationComputer;
+        this.taskManager = taskManager;
         id = getClass().getName();
         phase = Phase.PRE_PROTOCOL;
         getAfter().add(WSS4JInInterceptor.class.getName());
@@ -162,13 +171,16 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 			}
 
 			// AUTHORIZATION
+			
+			Task task = taskManager.createTaskInstance(OPERATION_AUTHORIZATION);
+			OperationResult result = task.getResult();
 
 			boolean isAuthorized;
 			try {
-				isAuthorized = securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_WS_ALL_URL, AuthorizationPhaseType.REQUEST, null, null, null, null);
+				isAuthorized = securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_WS_ALL_URL, AuthorizationPhaseType.REQUEST, null, null, null, null, task, result);
 				LOGGER.trace("Determined authorization for web service access (action: {}): {}", AuthorizationConstants.AUTZ_WS_ALL_URL, isAuthorized);
-			} catch (SchemaException e) {
-				LOGGER.debug("Access to web service denied for user '{}': schema error: {}",
+			} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
+				LOGGER.debug("Access to web service denied for user '{}': internal error: {}",
 						username, e.getMessage(), e);
 				message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
 				securityHelper.auditLoginFailure(username, principal.getUser(), connEnv, "Schema error: "+e.getMessage());
@@ -177,13 +189,13 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 			if (!isAuthorized) {
 	            String action = QNameUtil.qNameToUri(new QName(AuthorizationConstants.NS_AUTHORIZATION_WS, operationName));
 				try {
-					isAuthorized = securityEnforcer.isAuthorized(action, AuthorizationPhaseType.REQUEST, null, null, null, null);
+					isAuthorized = securityEnforcer.isAuthorized(action, AuthorizationPhaseType.REQUEST, null, null, null, null, task, result);
 					LOGGER.trace("Determined authorization for web service operation {} (action: {}): {}", operationName, action, isAuthorized);
-				} catch (SchemaException e) {
+				} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
 					LOGGER.debug("Access to web service denied for user '{}': schema error: {}",
 							username, e.getMessage(), e);
 					message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-					securityHelper.auditLoginFailure(username, principal.getUser(), connEnv, "Schema error: "+e.getMessage());
+					securityHelper.auditLoginFailure(username, principal.getUser(), connEnv, "Internal error: "+e.getMessage());
 					throw createFault(WSSecurityException.ErrorCode.FAILURE);
 				}
 			}
