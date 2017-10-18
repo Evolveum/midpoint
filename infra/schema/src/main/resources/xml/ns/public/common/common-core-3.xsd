@@ -10894,7 +10894,14 @@
                     		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="stringPolicy" type="c:StringPolicyType" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="stringPolicy" type="tns:StringPolicyType" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="prohibitedValues" type="tns:ProhibitedValuesType" minOccurs="0" maxOccurs="1">
+                    	<xsd:annotation>
+                    		<xsd:appinfo>
+                    			<a:since>3.7</a:since>
+                    		</xsd:appinfo>
+                    	</xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="minOccurs" type="xsd:string" minOccurs="0" default="0">
                     	<xsd:annotation>
                     		<xsd:documentation>
@@ -11112,6 +11119,61 @@
             <!-- TODO: sucess message? -->
         </xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:complexType name="ProhibitedValuesType">
+    	 <xsd:annotation>
+            <xsd:appinfo>
+				<a:container/>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>    
+        <xsd:sequence>
+            <xsd:element name="item" type="tns:ProhibitedValueItemType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProhibitedValueItemType">
+    	 <xsd:annotation>
+            <xsd:appinfo>
+				<a:container/>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>    
+        <xsd:sequence>
+            <xsd:element name="origin" type="tns:ValuePolicyOriginType" minOccurs="0" maxOccurs="1" default="subject"/>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1"/>
+            <!-- TODO: matching (exact, norm, case ignore, partial, ...), matching parameters ( 3 characters difference ) -->
+        </xsd:sequence>
+    </xsd:complexType>
+    
+        <xsd:simpleType name="ValuePolicyOriginType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="subject">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SUBJECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="persona">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PERSONA"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- owner? ("reverse" persona) -->
+        </xsd:restriction>
+    </xsd:simpleType>
     
 
     <xsd:complexType name="OperationResultType">
