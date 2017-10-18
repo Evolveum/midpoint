@@ -192,7 +192,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                             delta.getModifications().size(), newObject.toString(), delta.debugDump(3)});
                     ItemDelta id = (ItemDelta) delta.getModifications().iterator().next();
                     if (id.isReplace()) {
-                        System.out.println(id.getValuesToReplace().iterator().next());
+                        LOGGER.debug("{}", id.getValuesToReplace().iterator().next());
                     }
                     LOGGER.error("{}", prismContext.serializeObjectToString(newObject, PrismContext.LANG_XML));
                 }

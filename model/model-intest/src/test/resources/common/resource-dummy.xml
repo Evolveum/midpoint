@@ -223,6 +223,11 @@
 				</outbound>
 			</attribute>
             <attribute>
+                <ref>ri:wealth</ref>
+                <displayName>Wealth</displayName>
+                <tolerant>false</tolerant>
+            </attribute>
+            <attribute>
                 <ref>ri:gossip</ref>
                 <displayName>Gossip</displayName>
                 <tolerant>true</tolerant>
