@@ -29,10 +29,14 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.DefaultAjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDtoProvider;
 import com.evolveum.midpoint.web.page.admin.cases.dto.SearchingUtils;
@@ -86,9 +90,10 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_CASE_WORK_ITEMS_TABLE = "caseWorkItemsTable";
-
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_TABLE_HEADER = "tableHeader";
+    private static final String ID_BACK_BUTTON = "backButton";
+    private static final String ID_CREATE_CASE_BUTTON = "createCaseButton";
 
     private IModel<Boolean> showNotDecidedOnlyModel = new Model<>(false);
 
@@ -153,10 +158,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         table.setOutputMarkupId(true);
         table.setItemsPerPage(itemsPerPage);        // really don't know why this is necessary, as e.g. in PageRoles the size setting works without it
         mainForm.add(table);
-
-        // adding this on outer feedback panel prevents displaying the error messages
-        //addVisibleOnWarningBehavior(getMainFeedbackPanel());
-        //addVisibleOnWarningBehavior(getTempFeedbackPanel());
+        initButtons();
     }
 
     private List<IColumn<CaseWorkItemDto, String>> initColumns() {
@@ -236,9 +238,31 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
     private Table getCaseWorkItemsTable() {
         return (Table) get(createComponentPath(ID_MAIN_FORM, ID_CASE_WORK_ITEMS_TABLE));
     }
+    private void initButtons() {
+        AjaxButton back = new AjaxButton(ID_BACK_BUTTON, createStringResource("PageCaseWorkItems.button.back")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                cancelPerformed(target);
+            }
+        };
+        add(back);
+
+        AjaxButton createCase = new AjaxButton(ID_CREATE_CASE_BUTTON, createStringResource("PageCaseWorkItems.button.createCase")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                navigateToNext(PageCase.class);
+            }
+
+        };
+        add(createCase);
+    }
     //endregion
 
     //region Actions
+
+    private void cancelPerformed(AjaxRequestTarget target) {
+        redirectBack();
+    }
 
     private void caseDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
         PageParameters pageParameters = new PageParameters();

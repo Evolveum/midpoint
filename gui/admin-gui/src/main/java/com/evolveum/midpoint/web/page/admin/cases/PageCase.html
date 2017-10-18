@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2013 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
   ~
-  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~     http://www.apache.org/licenses/LICENSE-2.0
   ~
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,55 +18,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm" class="clearfix form-horizontal">
+    <form wicket:id="mainForm" autocomplete="off">
+
         <div class="row">
             <div class="col-md-12">
-                <div class="box box-success">
-                    <div class="box-header with-border">
-                        <h3 class="box-title"><wicket:message key="PageCase.details"/></h3>
-                    </div>
-                    <div class="box-body no-padding">
-                        <table class="table table-striped">
-                            <tr>
-                                <td><wicket:message key="PageCase.name"/></td>
-                                <td><div wicket:id="caseName" /></td>
-                            </tr>
-                            <tr>
-                                <td><wicket:message key="PageCase.description"/></td>
-                                <td><div wicket:id="caseDescription" /></td>
-                            </tr>
-                            <tr>
-                                <td><wicket:message key="PageCase.resource"/></td>
-                                <td><div wicket:id="caseResource" /></td>
-                            </tr>
-                            <tr>
-                                <td><wicket:message key="PageCase.event"/></td>
-                                <td><div wicket:id="caseEvent" /></td>
-                            </tr>
-                            <tr>
-                                <td><wicket:message key="PageCase.outcome"/></td>
-                                <td><div wicket:id="caseOutcome" /></td>
-                            </tr>
-                            <tr>
-                                <td><wicket:message key="PageCase.closeTimestamp"/></td>
-                                <td><div wicket:id="caseCloseTimestamp" /></td>
-                            </tr>
-                            <tr>
-                                <td><wicket:message key="PageCase.state"/></td>
-                                <td><div wicket:id="caseState" /></td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
+                <div wicket:id="case"/>
             </div>
         </div>
 
-        <div class="main-button-bar" style="padding-top: 15px">     <!-- TODO some implicit way of inserting the padding? -->
-            <a class="btn btn-default" wicket:id="backButton" />
+        <div class="main-button-bar">
+            <span class="button-group">
+                <a class="btn btn-default" wicket:id="backButton" />
+            </span>
+            <a class="btn btn-primary" wicket:id="saveButton"/>
         </div>
-
     </form>
-
 </wicket:extend>
 </body>
 </html>

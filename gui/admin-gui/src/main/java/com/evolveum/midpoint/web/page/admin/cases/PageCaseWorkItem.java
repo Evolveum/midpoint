@@ -265,7 +265,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 		closeCase.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return !caseDtoModel.getObject().getState().equals(SchemaConstants.CASE_STATE_CLOSED);
+				return caseDtoModel.getObject().getState() == null || !caseDtoModel.getObject().getState().equals(SchemaConstants.CASE_STATE_CLOSED);
 			}
 		});
 		mainForm.add(closeCase);
