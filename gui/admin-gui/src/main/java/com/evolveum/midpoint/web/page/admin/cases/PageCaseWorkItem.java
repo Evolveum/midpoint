@@ -91,7 +91,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 	private static final String ID_CASE_NAME = "caseName";
 	private static final String ID_CASE_DESCRIPTION = "caseDescription";
 	private static final String ID_CASE_RESOURCE = "caseResource";
-	private static final String ID_CASE_TARGET_NAME = "caseTargetName";
+	private static final String ID_CASE_TARGET = "caseTarget";
 	private static final String ID_CASE_EVENT = "caseEvent";
 	private static final String ID_CASE_OUTCOME = "caseOutcome";
 	private static final String ID_CASE_OPEN_TIMESTAMP = "caseOpenTimestamp";
@@ -208,7 +208,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 //		mainForm.add(new Label(ID_CASE_NAME, new PropertyModel<>(caseDtoModel, CaseDto.F_NAME)));
 		mainForm.add(new Label(ID_CASE_DESCRIPTION, new PropertyModel<>(caseDtoModel, CaseDto.F_DESCRIPTION)));
 		mainForm.add(new Label(ID_CASE_RESOURCE, new PropertyModel<>(caseDtoModel, CaseDto.F_OBJECT_NAME)));
-		mainForm.add(new Label(ID_CASE_TARGET_NAME, new PropertyModel<>(caseDtoModel, CaseDto.F_TARGET_NAME)));
+		mainForm.add(new Label(ID_CASE_TARGET, new PropertyModel<>(caseDtoModel, CaseDto.F_TARGET_NAME)));
 //		mainForm.add(new Label(ID_CASE_EVENT, new PropertyModel<>(caseDtoModel, CaseDto.F_EVENT)));
 		mainForm.add(new Label(ID_CASE_OUTCOME, new PropertyModel<>(caseDtoModel, CaseDto.F_OUTCOME)));
 		mainForm.add(new Label(ID_CASE_OPEN_TIMESTAMP, new PropertyModel<>(caseDtoModel, CaseDto.F_OPEN_TIMESTAMP)));

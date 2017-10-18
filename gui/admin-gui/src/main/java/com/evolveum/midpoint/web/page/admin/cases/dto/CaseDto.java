@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,17 +53,21 @@ public class CaseDto extends Selectable {
 
     @NotNull private final CaseType caseInstance;
     private String objectName;
+    private String targetName;
 
     public CaseDto(@NotNull CaseType _case) {
         this.caseInstance = _case;
-        this.objectName = getObjectName(this.caseInstance.getObjectRef());
+        this.objectName = extractObjectName(this.caseInstance.getObjectRef());
+        this.targetName = extractObjectName(this.caseInstance.getTargetRef());
     }
 
     // ugly hack (for now) - we extract the name from serialization metadata
-    private String getObjectName(ObjectReferenceType ref) {
+    private String extractObjectName(ObjectReferenceType ref) {
         if (ref == null) {
             return null;
         }
+
+        LOGGER.debug("TARGET NAME: {}", ref.getTargetName());
         String name = ref.getTargetName() != null ? ref.getTargetName().getOrig() : null;
         if (name == null) {
             return "(" + ref.getOid() + ")";
@@ -76,7 +81,7 @@ public class CaseDto extends Selectable {
     }
 
     public String getTargetName() {
-        return caseInstance.getTargetName();
+        return targetName;
     }
 
     public QName getObjectType() {

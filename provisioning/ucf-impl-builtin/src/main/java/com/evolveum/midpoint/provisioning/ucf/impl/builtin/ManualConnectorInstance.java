@@ -136,7 +136,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		objectDeltaType.setOid(shadow.getOid());
 		String shadowName = getShadowIdentifier(identifiers);
 		String description = "Please modify resource account: "+shadowName;
-		PrismObject<CaseType> acase = addCase(description, resourceOid, shadowName, objectDeltaType, result);
+		PrismObject<CaseType> acase = addCase(description, resourceOid, shadow.getOid(), objectDeltaType, result);
 		return acase.getOid();
 	}
 
@@ -159,7 +159,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		objectDeltaType.getItemDelta().add(itemDeltaType);
 		PrismObject<CaseType> acase;
 		try {
-			acase = addCase(description, resourceOid, shadowName, objectDeltaType, result);
+			acase = addCase(description, resourceOid, shadow.getOid(), objectDeltaType, result);
 		} catch (ObjectAlreadyExistsException e) {
 			// should not happen
 			throw new SystemException(e.getMessage(), e);
@@ -167,7 +167,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		return acase.getOid();
 	}
 	
-	private PrismObject<CaseType> addCase(String description, String resourceOid, String shadowName, ObjectDeltaType objectDelta, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
+	private PrismObject<CaseType> addCase(String description, String resourceOid, String shadowOid, ObjectDeltaType objectDelta, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
 		PrismObject<CaseType> acase = getPrismContext().createObject(CaseType.class);
 		CaseType caseType = acase.asObjectable();
 		
@@ -206,12 +206,12 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		caseType.setName(new PolyStringType(caseOid));
 
 		caseType.setDescription(description);
-		caseType.setTargetName(shadowName);
 		
 		// subtype
 		caseType.setState(SchemaConstants.CASE_STATE_OPEN);
 
 		caseType.setObjectRef(new ObjectReferenceType().oid(resourceOid).type(ResourceType.COMPLEX_TYPE));
+		caseType.setTargetRef(new ObjectReferenceType().oid(shadowOid).type(ShadowType.COMPLEX_TYPE));
 
 		if (objectDelta != null) {
 			caseType.setObjectChange(objectDelta);
