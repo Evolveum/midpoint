@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalPolicyActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificationType;
@@ -38,19 +39,21 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  *  - create approval processes
  *  - fill-in their approval schema (list of approval actions with policy rules)
  *
+ * TODO find better names
+ *
  * @author mederly
  */
-class ProcessSpecifications implements DebugDumpable {
+public class ProcessSpecifications implements DebugDumpable {
 
 	private final List<ProcessSpecification> specifications = new ArrayList<>();
 	private final PrismContext prismContext;
 
+	// use createFromRules instead
 	private ProcessSpecifications(PrismContext prismContext) {
-		// use createFromRules instead
 		this.prismContext = prismContext;
 	}
 
-	class ProcessSpecification implements DebugDumpable {
+	public class ProcessSpecification implements DebugDumpable {
 		final WfProcessSpecificationType basicSpec;
 		final List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> actionsWithRules;
 
@@ -78,7 +81,8 @@ class ProcessSpecifications implements DebugDumpable {
 		}
 	}
 
-	static ProcessSpecifications createFromRules(List<EvaluatedPolicyRule> rules, PrismContext prismContext) {
+	static ProcessSpecifications createFromRules(List<EvaluatedPolicyRule> rules, PrismContext prismContext)
+			throws ObjectNotFoundException {
 		// Step 1: plain list of approval actions -> map: process-spec -> list of related actions/rules ("collected")
 		LinkedHashMap<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> collected = new LinkedHashMap<>();
 		for (EvaluatedPolicyRule rule : rules) {
@@ -106,18 +110,25 @@ class ProcessSpecifications implements DebugDumpable {
 			}
 		}
 
+		Map<String, Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> actionsMap = null;
+
 		// Step 3: include other actions
-		for (WfProcessSpecificationType spec : collected.keySet()) {
+		for (Map.Entry<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> entry : collected.entrySet()) {
+			WfProcessSpecificationType spec = entry.getKey();
 			if (spec == null) {
 				continue;
 			}
 			for (String actionToInclude : spec.getIncludeAction()) {
-				// TODO
+				if (actionsMap == null) {
+					actionsMap = createActionsMap(collected.values());
+				}
+				Pair<ApprovalPolicyActionType, EvaluatedPolicyRule> actionWithRule = actionsMap.get(actionToInclude);
+				if (actionWithRule == null) {
+					throw new ObjectNotFoundException("Approval action '" + actionToInclude + "' cannot be found");
+				}
+				entry.getValue().add(actionWithRule);
 			}
-			
 		}
-
-		// todo distribute non-process-attached actions to process-attached ones
 
 		// Step 4: sorts process specifications and wraps into ProcessSpecification objects
 		ProcessSpecifications rv = new ProcessSpecifications(prismContext);
@@ -134,6 +145,19 @@ class ProcessSpecifications implements DebugDumpable {
 					int order2 = defaultIfNull(key2.getOrder(), Integer.MAX_VALUE);
 					return Integer.compare(order1, order2);
 				}).forEach(e -> rv.specifications.add(rv.new ProcessSpecification(e)));
+		return rv;
+	}
+
+	private static Map<String, Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> createActionsMap(
+			Collection<List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> allActionsWithRules) {
+		Map<String, Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> rv = new HashMap<>();
+		for (List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> actionsWithRules : allActionsWithRules) {
+			for (Pair<ApprovalPolicyActionType, EvaluatedPolicyRule> actionWithRule : actionsWithRules) {
+				if (actionWithRule.getLeft().getName() != null) {
+					rv.put(actionWithRule.getLeft().getName(), actionWithRule);
+				}
+			}
+		}
 		return rv;
 	}
 
