@@ -221,9 +221,9 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 			CaseWorkItemType workItem = new CaseWorkItemType(getPrismContext())
 					.originalAssigneeRef(operator.clone())
 					.assigneeRef(operator.clone())
-					.name(caseType.getName().getOrig());
+					.name(caseType.getName().getOrig())
+					.deadline(clock.currentTimeXMLGregorianCalendar());
 			caseType.getWorkItem().add(workItem);
-			// TODO deadline and maybe other fields
 		}
 
 		caseType.beginMetadata().setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());

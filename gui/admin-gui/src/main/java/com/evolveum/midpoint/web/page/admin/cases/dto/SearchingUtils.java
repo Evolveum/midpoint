@@ -31,6 +31,7 @@ public class SearchingUtils {
     private static final Trace LOGGER = TraceManager.getTrace(SearchingUtils.class);
 
     public static final String WORK_ITEM_CLOSE_TIMESTAMP = CaseWorkItemType.F_CLOSE_TIMESTAMP.getLocalPart();
+    public static final String WORK_ITEM_DEADLINE = CaseWorkItemType.F_DEADLINE.getLocalPart();
     public static final String CASE_OPEN_TIMESTAMP = MetadataType.F_CREATE_TIMESTAMP.getLocalPart();
     public static final String CASE_DESCRIPTION = CaseType.F_DESCRIPTION.getLocalPart();
     public static final String CASE_OBJECT_NAME = CaseType.F_OBJECT_REF.getLocalPart();
@@ -49,6 +50,8 @@ public class SearchingUtils {
             primaryItemPath = casePath.subPath(CaseType.F_DESCRIPTION);
         } else if (WORK_ITEM_CLOSE_TIMESTAMP.equals(propertyName)) {
             primaryItemPath = workItemPath.subPath(CaseWorkItemType.F_CLOSE_TIMESTAMP);
+        } else if (WORK_ITEM_DEADLINE.equals(propertyName)) {
+            primaryItemPath = workItemPath.subPath(CaseWorkItemType.F_DEADLINE);
         } else if (CASE_OPEN_TIMESTAMP.equals(propertyName)) {
             primaryItemPath = casePath.subPath(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP);
         } else if (CASE_OBJECT_NAME.equals(propertyName)) {

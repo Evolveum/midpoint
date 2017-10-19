@@ -40,6 +40,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDtoProvider;
 import com.evolveum.midpoint.web.page.admin.cases.dto.SearchingUtils;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertWorkItemDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -113,7 +114,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
             // TODO handle more cleanly
             throw new SystemException("Couldn't create case work item query", e);
         }
-        provider.setSort(SearchingUtils.CASE_OPEN_TIMESTAMP, SortOrder.ASCENDING);// default sorting
+        provider.setSort(SearchingUtils.WORK_ITEM_DEADLINE, SortOrder.ASCENDING);// default sorting
         return provider;
     }
 
@@ -193,20 +194,47 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 SearchingUtils.CASE_OPEN_TIMESTAMP, CaseWorkItemDto.F_OPEN_TIMESTAMP) {
             @Override
             public void populateItem(Item<ICellPopulator<CaseWorkItemDto>> item, String componentId, IModel<CaseWorkItemDto> rowModel) {
-                super.populateItem(item, componentId, rowModel);
                 CaseWorkItemDto dto = rowModel.getObject();
                 XMLGregorianCalendar createdCal = dto.getOpenTimestamp();
+                final Date created;
                 if (createdCal != null) {
-//                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
-//                    @Override
-//                    public Object getObject() {
-//                    return rowModel.getObject().getCampaignName();
-//                    }
-//                }));
-                    Date created = createdCal.toGregorianCalendar().getTime();
+                    created = createdCal.toGregorianCalendar().getTime();
                     item.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(created, DateLabelComponent.LONG_MEDIUM_STYLE)));
                     item.add(new TooltipBehavior());
+                } else {
+                    created = null;
                 }
+                item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                    @Override
+                    public String getObject() {
+                        return WebComponentUtil.getLocalizedDate(created, DateLabelComponent.LONG_MEDIUM_STYLE);
+                    }
+                }));
+            }
+        };
+        columns.add(column);
+
+        column = new PropertyColumn<CaseWorkItemDto, String>(
+                createStringResource("PageCaseWorkItems.table.deadline"),
+                SearchingUtils.WORK_ITEM_DEADLINE, CaseWorkItemDto.F_DEADLINE) {
+            @Override
+            public void populateItem(Item<ICellPopulator<CaseWorkItemDto>> item, String componentId, IModel<CaseWorkItemDto> rowModel) {
+                CaseWorkItemDto dto = rowModel.getObject();
+                XMLGregorianCalendar deadlineCal = dto.getDeadline();
+                final Date deadline;
+                if (deadlineCal != null) {
+                    deadline = deadlineCal.toGregorianCalendar().getTime();
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(deadline, DateLabelComponent.LONG_MEDIUM_STYLE)));
+                    item.add(new TooltipBehavior());
+                } else {
+                    deadline = null;
+                }
+                item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                    @Override
+                    public String getObject() {
+                        return WebComponentUtil.getLocalizedDate(deadline, DateLabelComponent.LONG_MEDIUM_STYLE);
+                    }
+                }));
             }
         };
         columns.add(column);
@@ -216,14 +244,22 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 SearchingUtils.WORK_ITEM_CLOSE_TIMESTAMP, CaseWorkItemDto.F_CLOSE_TIMESTAMP) {
             @Override
             public void populateItem(Item<ICellPopulator<CaseWorkItemDto>> item, String componentId, IModel<CaseWorkItemDto> rowModel) {
-                super.populateItem(item, componentId, rowModel);
                 CaseWorkItemDto dto = rowModel.getObject();
                 XMLGregorianCalendar closedCal = dto.getCloseTimestamp();
+                final Date closed;
                 if (closedCal != null) {
-                    Date closed = closedCal.toGregorianCalendar().getTime();
+                    closed = closedCal.toGregorianCalendar().getTime();
                     item.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE)));
                     item.add(new TooltipBehavior());
+                } else {
+                    closed = null;
                 }
+                item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                    @Override
+                    public String getObject() {
+                        return WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE);
+                    }
+                }));
             }
         };
         columns.add(column);

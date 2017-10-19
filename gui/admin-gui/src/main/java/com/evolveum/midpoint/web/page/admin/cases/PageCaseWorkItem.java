@@ -101,6 +101,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 	private static final String ID_CASE_WORK_ITEM_ASSIGNEES = "caseWorkItemAssignees";
 	private static final String ID_CASE_WORK_ITEM_ORIGINAL_ASSIGNEE = "caseWorkItemOriginalAssignee";
 	private static final String ID_CASE_WORK_ITEM_CLOSE_TIMESTAMP = "caseWorkItemCloseTimestamp";
+	private static final String ID_CASE_WORK_ITEM_DEADLINE = "caseWorkItemDeadline";
 	private static final String ID_CASE_WORK_ITEM_OUTCOME = "caseWorkItemOutcome";
 	private static final String ID_CASE_WORK_ITEM_COMMENT = "caseWorkItemComment";
 	private static final String ID_BACK_BUTTON = "backButton";
@@ -220,6 +221,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_ASSIGNEES, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_ASSIGNEES)));
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_ORIGINAL_ASSIGNEE, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_ORIGINAL_ASSIGNEE)));
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_CLOSE_TIMESTAMP, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_CLOSE_TIMESTAMP)));
+		mainForm.add(new Label(ID_CASE_WORK_ITEM_DEADLINE, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_DEADLINE)));
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_OUTCOME, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_OUTCOME)));
 		mainForm.add(new TextArea<>(ID_CASE_WORK_ITEM_COMMENT, new PropertyModel<String>(caseWorkItemDtoModel, CaseWorkItemDto.F_COMMENT)));
 
