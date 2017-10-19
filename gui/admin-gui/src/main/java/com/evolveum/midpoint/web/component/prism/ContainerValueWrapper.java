@@ -576,26 +576,19 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	}
 
 	public void addNewChildContainerValue(QName path, PageBase pageBase){
-		try {
-			//todo i don't know how to do it
-			PrismContainer containerToModify = containerValue.findOrCreateContainer(path);
-			PrismContainerValue pcv = containerToModify.createNewValue();
-			containerToModify.add(pcv);
-//
-//
-			ContainerWrapperFactory factory = new ContainerWrapperFactory(pageBase);
-			ContainerValueWrapper valueWrapper = factory.createContainerValueWrapper(containerWrapper,
-					pcv,
-					ValueStatus.ADDED, new ItemPath(path));
-			valueWrapper.setShowEmpty(true, false);
-			containerToModify.getValues().add(valueWrapper);
-
-//			ContainerWrapper<C> containerToModifyWrapper = containerWrapper.findContainerWrapper(new ItemPath(path));
-//			containerToModifyWrapper.addValue(true);
-
-		} catch (SchemaException ex){
-			LoggingUtils.logException(LOGGER, "could not crate container for item " + path, ex);
+		ContainerWrapper<C> childContainerWrapper = getContainer().findContainerWrapper(new ItemPath(getPath(), path));
+		boolean isSingleValue = childContainerWrapper.getItemDefinition().isSingleValue();
+		if (isSingleValue){
+			return;
 		}
+		PrismContainerValue<C> newContainerValue = childContainerWrapper.getItem().createNewValue();
+		ContainerWrapperFactory factory = new ContainerWrapperFactory(pageBase);
+		ContainerValueWrapper newValueWrapper = factory.createContainerValueWrapper(childContainerWrapper,
+				newContainerValue,
+				ValueStatus.ADDED, new ItemPath(path));
+		newValueWrapper.setShowEmpty(true, false);
+		childContainerWrapper.getValues().add(newValueWrapper);
+
 	}
 
 	private Item createItem(PropertyOrReferenceWrapper itemWrapper, ItemDefinition propertyDef) {

@@ -183,6 +183,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 	protected void addNewContainerValuePerformed(AjaxRequestTarget ajaxRequestTarget){
 		isChildContainersSelectorPanelVisible = false;
+		getModelObject().setShowEmpty(true, false);
 		getModelObject().addNewChildContainerValue(getSelectedContainerQName(), getPageBase());
 		ajaxRequestTarget.add(getChildContainersSelectorPanel().getParent());
 	}

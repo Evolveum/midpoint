@@ -297,9 +297,9 @@ public class ContainerWrapperFactory {
 			return null;
 		}
 
-		if (!def.isSingleValue() && (container == null || container.isEmpty())){
-			return null;
-		}
+//		if (!def.isSingleValue() && (container == null || container.isEmpty())){
+//			return null;
+//		}
 
 		if (container == null) {
 			PrismContainer<C> newContainer;
