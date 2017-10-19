@@ -92,8 +92,6 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME = "customFunction";
 	protected static final String RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAMESPACE = MidPointConstants.NS_RI;
 
-	private static final File CUSTOM_LIBRARY = new File(TEST_DIR, "custom-library.xml");
-	
 	protected static final String USER_GUYBRUSH_PASSWORD_1_CLEAR = "1wannaBEaP1rat3";
 	protected static final String USER_GUYBRUSH_PASSWORD_2_CLEAR = "1wannaBEtheP1rat3";
 
@@ -119,8 +117,6 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 				RESOURCE_DUMMY_LIGHT_CRIMSON_FILE, RESOURCE_DUMMY_LIGHT_CRIMSON_OID, initTask, initResult);
 		initDummyResourcePirate(RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME,
 				RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_FILE, RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_OID, initTask, initResult);
-		
-		importObjectFromFile(CUSTOM_LIBRARY);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 	}
@@ -2343,13 +2339,76 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
 
         // Check account in dummy resource
-        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME, "hello world!",
+        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME, USER_GUYBRUSH_USERNAME.toUpperCase(),
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account", dummyAccount);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME, "hello world!",
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, ACCOUNT_GUYBRUSH_DUMMY_LOCATION);
 
 	}
+	
+	public void test401modifyUserLocalityDummyCrisomCustomFunction() throws Exception {
+		final String TEST_NAME = "test401modifyUserLocalityDummyCrisomCustomFunction";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+		modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_SCABB_ISLAND));
+		
+		// THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
+				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
+
+        // Check account in dummy resource
+        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME, USER_GUYBRUSH_USERNAME.toUpperCase(),
+        		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
+        display("Dummy account", dummyAccount);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME, USER_GUYBRUSH_USERNAME.toUpperCase(),
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_SCABB_ISLAND);
+	}
+	
+	@Test
+    public void test402modifyDrinkDummyCustomFunctionCrimson() throws Exception {
+		final String TEST_NAME = "test402modifyDrinkDummyCustomFunctionCrimson";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BLOOD_ISLAND));
+
+		// THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
+				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
+
+		
+        // Check account in dummy resource
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME.toUpperCase(),
+        		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
+        display("Dummy account after", dummyAccountAfter);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME.toUpperCase(),
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BLOOD_ISLAND);
+        // location haven't changed and recon was not requested. The mapping was not evaluated.
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME.toUpperCase(),
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
+        		"rum from " + LOCALITY_BLOOD_ISLAND);
+	}
+
 
 	private String rumFrom(String locality) {
 		return "rum from " + locality;

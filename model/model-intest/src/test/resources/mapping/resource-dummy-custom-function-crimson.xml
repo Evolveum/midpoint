@@ -69,7 +69,9 @@
 					<expression>
 						<script>
 							<code>
-								name = myLib.execute("helloWorld", null);
+								map = new HashMap();
+								map.put("name", name);
+								name = myLib.execute("getName", map);
 								log.info("custom library name: " + name)
 								return name;
 							</code>
@@ -111,6 +113,18 @@
 					<source>
 						<path>locality</path>
 					</source>
+					<expression>
+						<function>
+							<libraryRef oid="c0c010c0-d34d-b33f-f00d-999999999999" type="FunctionLibraryType"/>
+							<function>
+								<name>getLocality</name>
+								<parameter>
+									<name>location</name>
+									<value>locality</value>
+								</parameter>
+							</function>
+						</function>
+					</expression>
 				</outbound>
 			</attribute>
 			<attribute>
@@ -120,24 +134,27 @@
 			</attribute>
 			<attribute>
 				<ref>ri:drink</ref>
-				<tolerant>false</tolerant>
 				<outbound>
 					<strength>strong</strength>
 					<source>
 						<path>locality</path>
 					</source>
 					<expression>
-						<script> <!-- MID-3661, MID-3674 -->
+						<script>
 							<code>
-								return myLib.execute("getDrink", {"country" : locality})
+								log.info("locality: "+locality)
+								fixedDrink ="";
+								if (locality != null) {
+									map = new HashMap()
+									map.put("country", locality)
+									fixedDrink = myLib.execute("addCountry", map)
+								}
+								log.info("drink: "+fixedDrink)
+								return fixedDrink
+							 
 							</code>
 						</script>
 					</expression>
-					<condition>
-						<script>
-							<code>midpoint.isFullShadow()</code>
-						</script>
-					</condition>
 				</outbound>
 			</attribute>
 			<attribute>

@@ -15,16 +15,23 @@
  */
 package com.evolveum.midpoint.model.common.expression.functions;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Parameter;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -38,8 +45,10 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
+import com.ibm.icu.util.BytesTrie.Entry;
 
 
 public class CustomFunctions {
@@ -52,7 +61,6 @@ public class CustomFunctions {
 	private Task task;
 	private PrismContext prismContext;
 	
-	
 	public CustomFunctions(FunctionLibraryType library, ExpressionFactory expressionFactory, OperationResult result, Task task) {
 		this.library = library;
 		this.expressionFactory = expressionFactory;
@@ -61,23 +69,30 @@ public class CustomFunctions {
 		this.task = task;
 	}
 	
-	public Object execute(String functionName, Object... params) throws ExpressionEvaluationException {
+	public Object execute(String functionName, Map<String, Object> params) throws ExpressionEvaluationException {
 		Validate.notNull("Function name must be specified", functionName);
 		
 		List<ExpressionType> functions = library.getFunction().stream().filter(expression -> functionName.equals(expression.getName())).collect(Collectors.toList());
 		
-		LOGGER.info("functions {}", functions);
+		LOGGER.trace("functions {}", functions);
 		ExpressionType expression = functions.iterator().next();
-//		return null;
-		LOGGER.info("fuction to execute {}", expression);
-		//TODO: fill expression variables
-		ExpressionVariables variables = new ExpressionVariables();
+
+		LOGGER.trace("fuction to execute {}", expression);
 		
-		QName returnType = expression.getReturnType();
-		if (returnType == null) {
-			returnType = DOMUtil.XSD_STRING;
-		}
+		
+		
 		try {
+			ExpressionVariables variables = new ExpressionVariables();
+			if (MapUtils.isNotEmpty(params)) {
+				for (Map.Entry<String, Object> entry : params.entrySet()) {
+					variables.addVariableDefinition(new QName(entry.getKey()), convertInput(entry, expression));
+				};
+			}
+			
+			QName returnType = expression.getReturnType();
+			if (returnType == null) {
+				returnType = DOMUtil.XSD_STRING;
+			}
 			
 			ItemDefinition outputDefinition = prismContext.getSchemaRegistry().findItemDefinitionByType(returnType);
 			if (outputDefinition == null) {
@@ -89,6 +104,24 @@ public class CustomFunctions {
 		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
 			throw new ExpressionEvaluationException(e.getMessage(), e);
 		}
+		
+	}
+
+	private Object convertInput(Map.Entry<String, Object> entry, ExpressionType expression) throws SchemaException {
+	
+		ExpressionParameterType expressionParam = expression.getParameter().stream().filter(param -> param.getName().equals(entry.getKey())).findAny().orElseThrow(SchemaException :: new);
+		Class<?> expressioNParameterClass = XsdTypeMapper.toJavaTypeIfKnown(expressionParam.getType());
+		
+		// FIXME: awful hack
+		if (expressioNParameterClass.equals(String.class) && entry.getValue().getClass().equals(PolyString.class)) {
+			return ((PolyString) entry.getValue()).getOrig();
+		}
+		
+		if (!expressioNParameterClass.equals(entry.getValue().getClass())){
+			throw new SchemaException("Unexpected type of value, expecting " + expressioNParameterClass.getSimpleName() + " but the actual value is " + entry.getValue().getClass().getSimpleName());
+		}
+		
+		return entry.getValue();
 		
 	}
 

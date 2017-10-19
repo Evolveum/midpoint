@@ -27,7 +27,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -56,6 +58,8 @@ public class ScriptExpressionFactory {
 	private Collection<FunctionLibrary> functions;
 	private Protector protector;
 
+	private Map<String, FunctionLibrary> customFunctionLibraryCache;
+	
 	public ScriptExpressionFactory(PrismContext prismContext, Protector protector) {
 		this.prismContext = prismContext;
 		this.protector = protector;
@@ -91,33 +95,41 @@ public class ScriptExpressionFactory {
 		ScriptExpression expression = new ScriptExpression(getEvaluator(getLanguage(expressionType), shortDesc), expressionType);
 		expression.setOutputDefinition(outputDefinition);
 		expression.setObjectResolver(objectResolver);
-		
-		//Custom functions
-				OperationResult subResult = result.createMinorSubresult(ScriptExpressionUtil.class.getName() + ".searchCustomFunctions");
-				ResultHandler<FunctionLibraryType> functionLibraryHandler = new ResultHandler<FunctionLibraryType>() {
-					
-					@Override
-					public boolean handle(PrismObject<FunctionLibraryType> object, OperationResult parentResult) {
-						FunctionLibrary customLibrary = new FunctionLibrary();
-						customLibrary.setVariableName(object.getName().getOrig());
-						customLibrary.setGenericFunctions(new CustomFunctions(object.asObjectable(), expressionFactory, result, task));
-						customLibrary.setNamespace(MidPointConstants.NS_FUNC_CUSTOM);
-						return functions.add(customLibrary);
-					}
-				};
-				try {
-					objectResolver.searchIterative(FunctionLibraryType.class, null, null, functionLibraryHandler, task, subResult);
-					subResult.recordSuccessIfUnknown();
-				} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException
-						| ExpressionEvaluationException | ObjectNotFoundException e) {
-					subResult.recordFatalError("Failed to initialize custom functions", e);
-					throw new ExpressionSyntaxException("An error occurred during custom libraries initialization. " + e.getMessage(), e);
-				}
-		
-				//TODO: caching
-				//cache string = functionLibraryType
-		//cache cleanup method
 		expression.setFunctions(functions);
+		
+		if (customFunctionLibraryCache != null) {
+			expression.getFunctions().addAll(customFunctionLibraryCache.values());
+		} else {
+			customFunctionLibraryCache = new HashMap<>();
+			//Custom functions
+			OperationResult subResult = result.createMinorSubresult(ScriptExpressionUtil.class.getName() + ".searchCustomFunctions");
+			ResultHandler<FunctionLibraryType> functionLibraryHandler = new ResultHandler<FunctionLibraryType>() {
+
+				@Override
+				public boolean handle(PrismObject<FunctionLibraryType> object, OperationResult parentResult) {
+					FunctionLibrary customLibrary = new FunctionLibrary();
+					customLibrary.setVariableName(object.getName().getOrig());
+					customLibrary.setGenericFunctions(new CustomFunctions(object.asObjectable(), expressionFactory, result, task));
+					customLibrary.setNamespace(MidPointConstants.NS_FUNC_CUSTOM);
+					customFunctionLibraryCache.put(object.getName().getOrig(), customLibrary);
+					return expression.getFunctions().add(customLibrary);
+				}
+			};
+			try {
+				objectResolver.searchIterative(FunctionLibraryType.class, null,
+						SelectorOptions.createCollection(GetOperationOptions.createReadOnly()), functionLibraryHandler, task,
+						subResult);
+				subResult.recordSuccessIfUnknown();
+			} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException
+					| ExpressionEvaluationException | ObjectNotFoundException e) {
+				subResult.recordFatalError("Failed to initialize custom functions", e);
+				throw new ExpressionSyntaxException("An error occurred during custom libraries initialization. " + e.getMessage(), e);
+			}
+		}
+	
+		//cache cleanup method
+		
+		
 		return expression;
 	}
 

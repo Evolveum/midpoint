@@ -134,6 +134,14 @@
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
     
+    <bean id="functionExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.evaluator.FunctionExpressionEvaluatorFactory"
+          scope="singleton">
+        <constructor-arg ref="expressionFactory"/>
+        <constructor-arg ref="protector"/>
+        <constructor-arg name="prismContext" ref="prismContext"/>
+        <property name="objectResolver" ref="modelObjectResolver"/>
+    </bean>
+    
     <bean id="generateExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluatorFactory"
           scope="singleton">
         <constructor-arg ref="expressionFactory"/>
