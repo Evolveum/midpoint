@@ -19,6 +19,9 @@ import java.io.File;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -141,6 +144,16 @@ protected static final File ROLE_STRONG_RICH_SAILOR_FILE = new File(TEST_DIR, "r
 	protected static final File ORG_PROJECT_RECLAIM_BLACK_PEARL_FILE = new File(TEST_DIR, "org-project-reclaim-black-pearl.xml");
 	protected static final String ORG_PROJECT_RECLAIM_BLACK_PEARL_OID = "00000000-8888-6666-0000-200000005000";
 
+	// very special resource s activation.existence derived from focusExists (not from legal)
+	protected static final File RESOURCE_DUMMY_FOCUS_EXISTS_FILE = new File(TEST_DIR, "resource-dummy-focus-exists.xml");
+	protected static final String RESOURCE_DUMMY_FOCUS_EXISTS_OID = "def52098-32b5-470b-bae5-a42792ad9b27";
+	protected static final String RESOURCE_DUMMY_FOCUS_EXISTS_NAME = "focus-exists";
+
+	protected DummyResource dummyResourceFocusExists;
+	protected DummyResourceContoller dummyResourceCtlFocusExists;
+	protected ResourceType resourceDummyFocusExistsType;
+	protected PrismObject<ResourceType> resourceDummyFocusExists;
+
 	protected static final String USER_LEMONHEAD_NAME = "lemonhead";
 	protected static final String USER_LEMONHEAD_FULLNAME = "Cannibal Lemonhead";
 
@@ -207,6 +220,13 @@ protected static final File ROLE_STRONG_RICH_SAILOR_FILE = new File(TEST_DIR, "r
 
 		dummyResourceCtl.addGroup(GROUP_FOOLS_NAME);
 		dummyResourceCtl.addGroup(GROUP_SIMPLETONS_NAME);
+
+		dummyResourceCtlFocusExists = DummyResourceContoller.create(RESOURCE_DUMMY_FOCUS_EXISTS_NAME, resourceDummyFocusExists);
+		dummyResourceCtlFocusExists.extendSchemaPirate();
+		dummyResourceFocusExists = dummyResourceCtlFocusExists.getDummyResource();
+		resourceDummyFocusExists = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FOCUS_EXISTS_FILE, RESOURCE_DUMMY_FOCUS_EXISTS_OID, initTask, initResult);
+		resourceDummyFocusExistsType = resourceDummyFocusExists.asObjectable();
+		dummyResourceCtlFocusExists.setResource(resourceDummyFocusExists);
 
 	}
 
