@@ -40,8 +40,10 @@
     <import resource="ctx-provisioning.xml"/>
     <import resource="ctx-samples-test.xml"/>
     <import resource="ctx-task.xml"/>
+    <import resource="ctx-repo-common.xml"/>
     <import resource="ctx-common.xml"/>
     <import resource="ctx-audit.xml"/>
+    <import resource="ctx-security-enforcer.xml"/>
     <import resource="ctx-security.xml"/>
     <import resource="classpath*:ctx-repository-test.xml"/>
     <import resource="ctx-repo-cache.xml"/>

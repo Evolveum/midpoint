@@ -20,7 +20,8 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 
@@ -51,6 +52,8 @@ public interface ModelServiceLocator {
 	PrismContext getPrismContext();
 
 	SecurityEnforcer getSecurityEnforcer();
+	
+	SecurityContextManager getSecurityContextManager();
 
 	ExpressionFactory getExpressionFactory();
 

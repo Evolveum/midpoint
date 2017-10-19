@@ -49,6 +49,8 @@ import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.*;
+import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -115,6 +117,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired private ContextFactory contextFactory;
 	@Autowired private Projector projector;
 	@Autowired private SecurityEnforcer securityEnforcer;
+	@Autowired private SecurityContextManager securityContextManager;
 	@Autowired private SchemaTransformer schemaTransformer;
 	@Autowired private ProvisioningService provisioning;
 	@Autowired private ModelObjectResolver objectResolver;
@@ -225,65 +228,73 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
 	@Override
-	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
 		PrismObjectDefinition<O> objectDefinition = object.getDefinition().deepClone(true);
 
-		PrismObject<O> baseObject = object;
-		if (object.getOid() != null) {
-			// Re-read the object from the repository to make sure we have all the properties.
-			// the object from method parameters may be already processed by the security code
-			// and properties needed to evaluate authorizations may not be there
-			// MID-3126, see also MID-3435
-			baseObject = cacheRepositoryService.getObject(object.getCompileTimeClass(), object.getOid(), null, result);
-		}
-
-		// TODO: maybe we need to expose owner resolver in the interface?
-		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(baseObject, null);
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
-		}
-		if (securityConstraints == null) {
-			// Nothing allowed => everything denied
-			result.setStatus(OperationResultStatus.NOT_APPLICABLE);
-			return null;
-		}
-
-		ObjectTemplateType objectTemplateType = null;
 		try {
-			objectTemplateType = schemaTransformer.determineObjectTemplate(object, phase, result);
-		} catch (ConfigurationException | ObjectNotFoundException e) {
-			result.recordFatalError(e);
-		}
-		schemaTransformer.applyObjectTemplateToDefinition(objectDefinition, objectTemplateType, result);
-
-		schemaTransformer.applySecurityConstraints(objectDefinition, securityConstraints, phase);
-
-		if (object.canRepresent(ShadowType.class)) {
-			PrismObject<ShadowType> shadow = (PrismObject<ShadowType>)object;
-			String resourceOid = ShadowUtil.getResourceOid(shadow);
-			if (resourceOid != null) {
-				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
-				PrismObject<ResourceType> resource;
-				try {
-					resource = provisioning.getObject(ResourceType.class, resourceOid, options, task, result);
-				} catch (CommunicationException | SecurityViolationException | ExpressionEvaluationException e) {
-					throw new ConfigurationException(e.getMessage(), e);
-				}
-				RefinedObjectClassDefinition refinedObjectClassDefinition = getEditObjectClassDefinition(shadow, resource, phase);
-				if (refinedObjectClassDefinition != null) {
-					((ComplexTypeDefinitionImpl) objectDefinition.getComplexTypeDefinition()).replaceDefinition(ShadowType.F_ATTRIBUTES,
-						refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
+		
+			PrismObject<O> baseObject = object;
+			if (object.getOid() != null) {
+				// Re-read the object from the repository to make sure we have all the properties.
+				// the object from method parameters may be already processed by the security code
+				// and properties needed to evaluate authorizations may not be there
+				// MID-3126, see also MID-3435
+				baseObject = cacheRepositoryService.getObject(object.getCompileTimeClass(), object.getOid(), null, result);
+			}
+	
+			// TODO: maybe we need to expose owner resolver in the interface?
+			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(baseObject, null, task, result);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
+			}
+			if (securityConstraints == null) {
+				// Nothing allowed => everything denied
+				result.setStatus(OperationResultStatus.NOT_APPLICABLE);
+				return null;
+			}
+	
+			ObjectTemplateType objectTemplateType = null;
+			try {
+				objectTemplateType = schemaTransformer.determineObjectTemplate(object, phase, result);
+			} catch (ConfigurationException | ObjectNotFoundException e) {
+				result.recordFatalError(e);
+			}
+			schemaTransformer.applyObjectTemplateToDefinition(objectDefinition, objectTemplateType, result);
+	
+			schemaTransformer.applySecurityConstraints(objectDefinition, securityConstraints, phase);
+	
+			if (object.canRepresent(ShadowType.class)) {
+				PrismObject<ShadowType> shadow = (PrismObject<ShadowType>)object;
+				String resourceOid = ShadowUtil.getResourceOid(shadow);
+				if (resourceOid != null) {
+					Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
+					PrismObject<ResourceType> resource;
+					try {
+						resource = provisioning.getObject(ResourceType.class, resourceOid, options, task, result);
+					} catch (CommunicationException | SecurityViolationException | ExpressionEvaluationException e) {
+						throw new ConfigurationException(e.getMessage(), e);
+					}
+					RefinedObjectClassDefinition refinedObjectClassDefinition = getEditObjectClassDefinition(shadow, resource, phase, task, result);
+					if (refinedObjectClassDefinition != null) {
+						((ComplexTypeDefinitionImpl) objectDefinition.getComplexTypeDefinition()).replaceDefinition(ShadowType.F_ATTRIBUTES,
+							refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
+					}
 				}
 			}
+	
+			result.computeStatus();
+			return objectDefinition;
+			
+		} catch (ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | SchemaException e) {
+			result.recordFatalError(e);
+			throw e;
 		}
 
-		result.computeStatus();
-		return objectDefinition;
 	}
 
 	@Override
-	public PrismObjectDefinition<ShadowType> getEditShadowDefinition(ResourceShadowDiscriminator discr, AuthorizationPhaseType phase, Task task, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+	public PrismObjectDefinition<ShadowType> getEditShadowDefinition(ResourceShadowDiscriminator discr, AuthorizationPhaseType phase, Task task, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 		// HACK hack hack
 		// Make a dummy shadow instance here and evaluate the schema for that. It is not 100% correct. But good enough for now.
 		// TODO: refactor when we add better support for multi-tenancy
@@ -303,8 +314,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
     @Override
-	public RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase)
-			throws SchemaException {
+	public RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
     	Validate.notNull(resource, "Resource must not be null");
 
     	RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
@@ -316,7 +327,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         LayerRefinedObjectClassDefinition layeredROCD = rocd.forLayer(LayerType.PRESENTATION);
 
     	// TODO: maybe we need to expose owner resolver in the interface?
-		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(shadow, null);
+		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(shadow, null, task, result);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Security constrains for {}:\n{}", shadow, securityConstraints==null?"null":securityConstraints.debugDump());
 		}
@@ -362,8 +373,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     	return layeredROCD;
 	}
 
-	public <O extends ObjectType,R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(PrismObject<O> object, PrismObject<R> target) throws SchemaException, SecurityViolationException  {
-		return securityEnforcer.getAllowedRequestAssignmentItems(securityEnforcer.getPrincipal(), ModelAuthorizationAction.ASSIGN.getUrl(), object, target, null);
+	public <O extends ObjectType,R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException  {
+		return securityEnforcer.getAllowedRequestAssignmentItems(securityContextManager.getPrincipal(), ModelAuthorizationAction.ASSIGN.getUrl(), object, target, null, task, result);
 	}
 
 	@Override
@@ -372,13 +383,19 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, ConfigurationException {
+	public <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createMinorSubresult(GET_ASSIGNABLE_ROLE_SPECIFICATION);
 
 		RoleSelectionSpecification spec = new RoleSelectionSpecification();
 
-		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(focus, null);
+		ObjectSecurityConstraints securityConstraints;
+		try {
+			securityConstraints = securityEnforcer.compileSecurityConstraints(focus, null, task, result);
+		} catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
 		if (securityConstraints == null) {
 			return null;
 		}
@@ -410,7 +427,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 		try {
 			ObjectFilter filter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.ASSIGN.getUrl(),
-					AuthorizationPhaseType.REQUEST, AbstractRoleType.class, focus, AllFilter.createAll());
+					AuthorizationPhaseType.REQUEST, AbstractRoleType.class, focus, AllFilter.createAll(), task, result);
 			LOGGER.trace("assignableRoleSpec filter: {}", filter);
 			spec.setFilter(filter);
 			if (filter instanceof NoneFilter) {
@@ -450,7 +467,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			}
 			result.recordSuccess();
 			return spec;
-		} catch (SchemaException | ConfigurationException | ObjectNotFoundException e) {
+		} catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException e) {
 			result.recordFatalError(e);
 			throw e;
 		}
@@ -605,7 +622,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		if (objectOid != null) {
 			object = (PrismObject<O>) objectResolver.getObject(objectType, objectOid, null, task, result).asPrismObject();
 		}
-		return securityEnforcer.canSearch(ModelAuthorizationAction.READ.getUrl(), null, resultType, object, includeSpecial, query.getFilter());
+		return securityEnforcer.canSearch(ModelAuthorizationAction.READ.getUrl(), null, resultType, object, includeSpecial, query.getFilter(), task, result);
 	}
 
 	@Override
@@ -679,7 +696,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	public AdminGuiConfigurationType getAdminGuiConfiguration(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		MidPointPrincipal principal = null;
 		try {
-			principal = securityEnforcer.getPrincipal();
+			principal = securityContextManager.getPrincipal();
 		} catch (SecurityViolationException e) {
 			LOGGER.warn("Security violation while getting principlal to get GUI config: {}", e.getMessage(), e);
 		}

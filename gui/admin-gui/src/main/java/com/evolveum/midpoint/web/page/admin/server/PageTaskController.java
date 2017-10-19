@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -54,6 +55,7 @@ import java.util.*;
  * @author mederly
  */
 public class PageTaskController implements Serializable {
+	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageTaskController.class);
 
@@ -204,19 +206,19 @@ public class PageTaskController implements Serializable {
 
 	void suspendPerformed(AjaxRequestTarget target) {
 		String oid = parentPage.getTaskDto().getOid();
-		OperationResult result = TaskOperationUtils.suspendPerformed(parentPage.getTaskService(), Collections.singleton(oid));
+		OperationResult result = TaskOperationUtils.suspendPerformed(parentPage.getTaskService(), Collections.singleton(oid), parentPage);
 		afterStateChangingOperation(target, result);
 	}
 
 	void resumePerformed(AjaxRequestTarget target) {
 		String oid = parentPage.getTaskDto().getOid();
-		OperationResult result = TaskOperationUtils.resumePerformed(parentPage.getTaskService(), Collections.singletonList(oid));
+		OperationResult result = TaskOperationUtils.resumePerformed(parentPage.getTaskService(), Collections.singletonList(oid), parentPage);
 		afterStateChangingOperation(target, result);
 	}
 
 	void runNowPerformed(AjaxRequestTarget target) {
 		String oid = parentPage.getTaskDto().getOid();
-		OperationResult result = TaskOperationUtils.runNowPerformed(parentPage.getTaskService(), Collections.singletonList(oid));
+		OperationResult result = TaskOperationUtils.runNowPerformed(parentPage.getTaskService(), Collections.singletonList(oid), parentPage);
 		afterStateChangingOperation(target, result);
 	}
 
@@ -225,13 +227,14 @@ public class PageTaskController implements Serializable {
 		if (instanceId == null) {
 			return;
 		}
-		OperationResult result = new OperationResult(PageProcessInstances.OPERATION_STOP_PROCESS_INSTANCE);
+		Task task = parentPage.createSimpleTask(PageProcessInstances.OPERATION_STOP_PROCESS_INSTANCE);
+		OperationResult result = task.getResult();
 		try {
 			parentPage.getWorkflowService().stopProcessInstance(instanceId,
 					WebComponentUtil.getOrigStringFromPoly(SecurityUtils.getPrincipalUser().getName()),
-					result);
+					task, result);
 			result.computeStatusIfUnknown();
-		} catch (SchemaException|ObjectNotFoundException|SecurityViolationException|RuntimeException e) {
+		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException | RuntimeException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop approval process instance {}", e, instanceId);
 			result.recordFatalError("Couldn't stop approval process instance " + instanceId + ": " + e.getMessage(), e);
 		}

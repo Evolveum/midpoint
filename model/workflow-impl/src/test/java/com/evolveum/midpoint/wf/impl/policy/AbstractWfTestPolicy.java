@@ -486,7 +486,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	}
 
 	protected WorkItemType getWorkItem(Task task, OperationResult result)
-			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 		//Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.resolveItemsNamed(WorkItemType.F_TASK_REF);
 		SearchResultList<WorkItemType> itemsAll = modelService.searchContainers(WorkItemType.class, null, null, task, result);
 		if (itemsAll.size() != 1) {
@@ -1022,7 +1022,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	}
 
 	protected void checkVisibleWorkItem(ExpectedWorkItem expectedWorkItem, int count, Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
+			throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		S_AtomicFilterExit q = QueryUtils
 				.filterForAssignees(QueryBuilder.queryFor(WorkItemType.class, prismContext), SecurityUtil.getPrincipal(),
 						OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS);

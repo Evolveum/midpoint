@@ -102,6 +102,7 @@ http://www.springframework.org/schema/context
     
     <beans:bean id="accessDecisionManager" class="com.evolveum.midpoint.web.security.MidPointGuiAuthorizationEvaluator">
     	<beans:constructor-arg name="securityEnforcer" ref="securityEnforcer"/>
+    	<beans:constructor-arg name="securityContextManager" ref="securityContextManager"/>
     </beans:bean>
     
     <beans:bean id="logoutHandler" class="com.evolveum.midpoint.web.security.AuditedLogoutHandler">

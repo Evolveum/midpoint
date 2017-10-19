@@ -485,11 +485,10 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
 		// WHEN
 		RefinedObjectClassDefinition rOCDef = modelInteractionService.getEditObjectClassDefinition(shadow,
-				getDummyResourceObject(), AuthorizationPhaseType.REQUEST);
+				getDummyResourceObject(), AuthorizationPhaseType.REQUEST, task, result);
 
 		// THEN
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		display("Refined object class", rOCDef);
 		assertNotNull("Null config", rOCDef);

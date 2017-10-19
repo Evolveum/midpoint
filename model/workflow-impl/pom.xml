@@ -84,6 +84,11 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>security-enforcer-api</artifactId>
+            <version>3.7-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>system-init</artifactId>
             <version>3.7-SNAPSHOT</version>
         </dependency>
@@ -273,6 +278,12 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-impl</artifactId>
+            <version>3.7-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>security-enforcer-impl</artifactId>
             <version>3.7-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>

@@ -28,6 +28,8 @@ import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -83,7 +85,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
             LOGGER.debug("Execution result:\n", executionResult.getConsoleOutput());
             result.computeStatus();
             runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
-        } catch (ScriptExecutionException|SecurityViolationException|SchemaException e) {
+        } catch (ScriptExecutionException | SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
             result.recordFatalError("Couldn't execute script: " + e.getMessage(), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script", e);
             runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR);

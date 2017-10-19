@@ -7060,6 +7060,13 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
+    		<xsd:element name="value" type="xsd:anyURI" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Parameter type
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
     	</xsd:sequence>
     </xsd:complexType>
     
@@ -7270,6 +7277,9 @@
             <xsd:documentation>
                 Evaluates custom defined functions from Function Library
             </xsd:documentation>
+            <xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="libraryRef" type="tns:ObjectReferenceType" minOccurs="0">
@@ -7279,7 +7289,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="function" type="xsd:string">
+        	<xsd:element name="function" type="tns:FunctionType" minOccurs="0">
         		<xsd:annotation>
         			<xsd:documentation>
         				Name of the function to use
@@ -7288,8 +7298,34 @@
         	</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-
 	<xsd:element name="function" type="tns:FunctionExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+	
+	<xsd:complexType name="FunctionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Declaring the function to execute with function expression evaluator
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="1">
+				<xsd:annotation>
+        			<xsd:documentation>
+        				Name of the function to use
+        			</xsd:documentation>
+        		</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="parameter" type="tns:ExpressionParameterType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+        			<xsd:documentation>
+        				Parameters
+        			</xsd:documentation>
+        		</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
 	
     <xsd:complexType name="GenerateExpressionEvaluatorType">
         <xsd:annotation>
