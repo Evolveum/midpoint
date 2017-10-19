@@ -125,7 +125,7 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 
 	private void executeCompleteAction(AccessCertificationCampaignType campaign, CompleteWorkItemActionType completeAction,
 			Task task, OperationResult result)
-			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 		List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(
 				CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid(), prismContext),
 				null, true, null, result);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -57,7 +57,7 @@ public class BaseAuditHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseAuditHelper.class);
 
-    @Autowired private SecurityEnforcer securityEnforcer;
+    @Autowired private SecurityContextManager securityContextManager;
     @Autowired private PrismContext prismContext;
 
     @Autowired
@@ -207,7 +207,7 @@ public class BaseAuditHelper {
 	private void setCurrentUserAsInitiator(AuditEventRecord record) {
 		try {
 			@SuppressWarnings("unchecked")
-			PrismObject<UserType> principal = securityEnforcer.getPrincipal().getUser().asPrismObject();
+			PrismObject<UserType> principal = securityContextManager.getPrincipal().getUser().asPrismObject();
 			record.setInitiator(principal);
 		} catch (SecurityViolationException e) {
 			record.setInitiator(null);

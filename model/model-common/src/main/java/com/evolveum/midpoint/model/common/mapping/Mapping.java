@@ -29,7 +29,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -55,6 +54,7 @@ import com.evolveum.midpoint.repo.common.expression.ValueSetDefinition;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -94,7 +94,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	private final Collection<V> originalTargetValues;
 
 	private final ObjectResolver objectResolver;
-    private final SecurityEnforcer securityEnforcer;          // in order to get c:actor variable
+    private final SecurityContextManager securityContextManager;          // in order to get c:actor variable
 	private final OriginType originType;
 	private final ObjectType originObject;
 	private final FilterManager<Filter> filterManager;
@@ -135,7 +135,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		variables = builder.variables;
 		mappingType = builder.mappingType;
 		objectResolver = builder.objectResolver;
-		securityEnforcer = builder.securityEnforcer;
+		securityContextManager = builder.securityContextManager;
 		defaultSource = builder.defaultSource;
 		defaultTargetDefinition = builder.defaultTargetDefinition;
 		defaultTargetPath = builder.defaultTargetPath;
@@ -1131,7 +1131,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 				.mappingType(mappingType)
 				.contextDescription(contextDescription)
 				.expressionFactory(expressionFactory)
-				.securityEnforcer(securityEnforcer)
+				.securityContextManager(securityContextManager)
 				.variables(variables)
 				.conditionMaskNew(conditionMaskNew)
 				.conditionMaskOld(conditionMaskOld)
@@ -1328,7 +1328,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		private ExpressionVariables variables = new ExpressionVariables();
 		private MappingType mappingType;
 		private ObjectResolver objectResolver;
-		private SecurityEnforcer securityEnforcer;
+		private SecurityContextManager securityContextManager;
 		private Source<?, ?> defaultSource;
 		private D defaultTargetDefinition;
 		private ItemPath defaultTargetPath;
@@ -1371,8 +1371,8 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			return this;
 		}
 
-		public Builder<V,D> securityEnforcer(SecurityEnforcer val) {
-			securityEnforcer = val;
+		public Builder<V,D> securityContextManager(SecurityContextManager val) {
+			securityContextManager = val;
 			return this;
 		}
 
@@ -1496,8 +1496,8 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			return objectResolver;
 		}
 
-		public SecurityEnforcer getSecurityEnforcer() {
-			return securityEnforcer;
+		public SecurityContextManager getSecurityContextManager() {
+			return securityContextManager;
 		}
 
 		public Source<?, ?> getDefaultSource() {
@@ -1704,11 +1704,6 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		@Deprecated
 		public void setObjectResolver(ObjectResolver objectResolver) {
 			this.objectResolver = objectResolver;
-		}
-
-		@Deprecated
-		public void setSecurityEnforcer(SecurityEnforcer securityEnforcer) {
-			this.securityEnforcer = securityEnforcer;
 		}
 
 		@Deprecated

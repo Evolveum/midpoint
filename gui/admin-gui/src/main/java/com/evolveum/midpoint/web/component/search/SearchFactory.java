@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -176,7 +177,7 @@ public class SearchFactory {
                 return modelServiceLocator.getModelInteractionService().getEditObjectDefinition(
                         empty, AuthorizationPhaseType.REQUEST, task, result);
             }
-        } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {
+        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException ex) {
             result.recordFatalError(ex.getMessage());
             throw new SystemException();
         }

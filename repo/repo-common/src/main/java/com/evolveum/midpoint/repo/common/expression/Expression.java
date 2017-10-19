@@ -39,7 +39,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -64,12 +64,12 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 	final private D outputDefinition;
 	final private PrismContext prismContext;
 	final private ObjectResolver objectResolver;
-	final private SecurityEnforcer securityEnforcer;
+	final private SecurityContextManager securityContextManager;
 	private List<ExpressionEvaluator<V,D>> evaluators = new ArrayList<>(1);
 
 	private static final Trace LOGGER = TraceManager.getTrace(Expression.class);
 
-	public Expression(ExpressionType expressionType, D outputDefinition, ObjectResolver objectResolver, SecurityEnforcer securityEnforcer, PrismContext prismContext) {
+	public Expression(ExpressionType expressionType, D outputDefinition, ObjectResolver objectResolver, SecurityContextManager securityContextManager, PrismContext prismContext) {
 		//Validate.notNull(outputDefinition, "null outputDefinition");
 		Validate.notNull(objectResolver, "null objectResolver");
 		Validate.notNull(prismContext, "null prismContext");
@@ -77,7 +77,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		this.outputDefinition = outputDefinition;
 		this.objectResolver = objectResolver;
 		this.prismContext = prismContext;
-		this.securityEnforcer = securityEnforcer;
+		this.securityContextManager = securityContextManager;
 	}
 
 	public void parse(ExpressionFactory factory, String contextDescription, Task task, OperationResult result)
@@ -154,7 +154,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 
 				try {
 
-					outputTriple = securityEnforcer.runAs(() -> {
+					outputTriple = securityContextManager.runAs(() -> {
 						try {
 							return evaluateExpressionEvaluators(contextWithProcessedVariables);
 						} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
@@ -301,7 +301,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		ExpressionVariables newVariables = new ExpressionVariables();
 
 		// We need to add actor variable before we switch user identity (runAs)
-		ExpressionUtil.addActorVariable(newVariables, securityEnforcer);
+		ExpressionUtil.addActorVariable(newVariables, securityContextManager);
 		boolean actorDefined = newVariables.get(ExpressionConstants.VAR_ACTOR) != null;
 
 		for (Entry<QName,Object> entry: variables.entrySet()) {

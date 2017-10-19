@@ -37,7 +37,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -180,7 +180,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		H resultHandler;
 		try {
 			resultHandler = createHandler(runResult, coordinatorTask, opResult);
-		} catch (SecurityViolationException|SchemaException|RuntimeException e) {
+		} catch (Throwable e) {
 			LOGGER.error("{}: Error while creating a result handler: {}", taskName, e.getMessage(), e);
 			opResult.recordFatalError("Error while creating a result handler: " + e.getMessage(), e);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
@@ -483,7 +483,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     protected abstract Class<? extends ObjectType> getType(Task task);
 
     protected abstract  H createHandler(TaskRunResult runResult, Task coordinatorTask,
-			OperationResult opResult) throws SchemaException, SecurityViolationException;
+			OperationResult opResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException;
 
 	/**
 	 * Used to properly initialize the "run", which is kind of task instance. The result handler is already created at this stage.

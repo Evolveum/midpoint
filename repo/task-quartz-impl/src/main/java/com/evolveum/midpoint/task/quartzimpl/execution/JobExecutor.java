@@ -170,8 +170,8 @@ public class JobExecutor implements InterruptableJob {
 			PrismObject<UserType> taskOwner = task.getOwner();
 			try {
 				// just to be sure we won't run the owner-setting login with any garbage security context (see MID-4160)
-				taskManagerImpl.getSecurityEnforcer().setupPreAuthenticatedSecurityContext((Authentication) null);
-				taskManagerImpl.getSecurityEnforcer().setupPreAuthenticatedSecurityContext(taskOwner);
+				taskManagerImpl.getSecurityContextManager().setupPreAuthenticatedSecurityContext((Authentication) null);
+				taskManagerImpl.getSecurityContextManager().setupPreAuthenticatedSecurityContext(taskOwner);
 			} catch (SchemaException e) {
 	            LoggingUtils.logUnexpectedException(LOGGER, "Task with OID {} cannot be executed: error setting security context", e, oid);
 	            return;
@@ -203,7 +203,7 @@ public class JobExecutor implements InterruptableJob {
 				taskManagerImpl.notifyTaskThreadFinish(task);
 			} finally {
 				// "logout" this thread
-				taskManagerImpl.getSecurityEnforcer().setupPreAuthenticatedSecurityContext((Authentication) null);
+				taskManagerImpl.getSecurityContextManager().setupPreAuthenticatedSecurityContext((Authentication) null);
 			}
 		}
 

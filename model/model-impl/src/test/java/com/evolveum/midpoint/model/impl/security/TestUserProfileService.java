@@ -109,7 +109,7 @@ public class TestUserProfileService extends AbstractInternalModelIntegrationTest
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
-		MidPointPrincipal principal = securityEnforcer.getPrincipal();
+		MidPointPrincipal principal = securityContextManager.getPrincipal();
 		Collection<DelegatorWithOtherPrivilegesLimitations> delegators = principal.getDelegatorWithOtherPrivilegesLimitationsCollection();
 		display("delegators with other privileges limitations", delegators);
 		if (expectedLimitations == null) {

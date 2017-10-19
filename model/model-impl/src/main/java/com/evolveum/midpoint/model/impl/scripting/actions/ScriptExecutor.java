@@ -59,10 +59,8 @@ public class ScriptExecutor extends BaseActionExecutor {
 
     //private static final Trace LOGGER = TraceManager.getTrace(ScriptExecutor.class);
 
-	@Autowired
-	private ScriptExpressionFactory scriptExpressionFactory;
-	@Autowired
-	private ExpressionFactory expressionFactory;
+	@Autowired private ScriptExpressionFactory scriptExpressionFactory;
+	@Autowired private ExpressionFactory expressionFactory;
 
     private static final String NAME = "execute-script";
     private static final String PARAM_SCRIPT = "script";
@@ -204,7 +202,7 @@ public class ScriptExecutor extends BaseActionExecutor {
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, input);
 		variables.addVariableDefinition(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
-		ExpressionUtil.addActorVariable(variables, securityEnforcer);
+		ExpressionUtil.addActorVariable(variables, securityContextManager);
 		externalVariables.forEach((k, v) -> variables.addVariableDefinition(new QName(NS_C, k), cloneIfNecessary(k, v)));
 
 		List<?> rv = Utils.evaluateScript(scriptExpression, null, variables, true, "in '"+NAME+"' action", context.getTask(), result);

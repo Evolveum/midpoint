@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.repo.common.expression.AbstractAutowiredExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -32,16 +33,25 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsIsExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author semancik
  *
  */
-public class AsIsExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
+@Component
+public class AsIsExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
 
-	private PrismContext prismContext;
-	private Protector protector;
+	@Autowired private PrismContext prismContext;
+	@Autowired private Protector protector;
 
+	// Used by Spring
+	public AsIsExpressionEvaluatorFactory() {
+		super();
+	}
+	
+	// Used in tests
 	public AsIsExpressionEvaluatorFactory(PrismContext prismContext, Protector protector) {
 		super();
 		this.prismContext = prismContext;

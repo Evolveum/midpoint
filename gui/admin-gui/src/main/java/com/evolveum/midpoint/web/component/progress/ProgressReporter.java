@@ -23,8 +23,9 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -163,7 +164,7 @@ public class ProgressReporter implements Serializable {
     private void executeChangesAsync(final Collection<ObjectDelta<? extends ObjectType>> deltas, final boolean previewOnly,
 			final ModelExecuteOptions options, final Task task, final OperationResult result, AjaxRequestTarget target,
 			final ModelService modelService, final ModelInteractionService modelInteractionService) {
-		final SecurityEnforcer enforcer = parentPage.getSecurityEnforcer();
+		final SecurityContextManager enforcer = parentPage.getSecurityContextManager();
 		final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
 		asyncOperationResult = null;

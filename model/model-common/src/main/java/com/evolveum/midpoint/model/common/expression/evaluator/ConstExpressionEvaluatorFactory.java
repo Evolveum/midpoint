@@ -21,12 +21,15 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.repo.common.expression.AbstractAutowiredExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -41,13 +44,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
  * @author semancik
  *
  */
-public class ConstExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
+@Component
+public class ConstExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
 
-	private Protector protector;
-	private ConstantsManager constantsManager;
-	private PrismContext prismContext;
+	@Autowired private Protector protector;
+	@Autowired private ConstantsManager constantsManager;
+	@Autowired private PrismContext prismContext;
+	
+	// Used by spring
+	public ConstExpressionEvaluatorFactory() {
+		super();
+	}
 
-	public ConstExpressionEvaluatorFactory(Protector protector, ConstantsManager constantsManager, PrismContext prismContext) {
+	// Used in tests
+	public ConstExpressionEvaluatorFactory(Protector protector, ConstantsManager constantsManager,
+			PrismContext prismContext) {
 		super();
 		this.protector = protector;
 		this.constantsManager = constantsManager;

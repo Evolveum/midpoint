@@ -273,7 +273,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
                 }
             }
             result.computeStatusIfUnknown();
-        } catch (ScriptExecutionException|JAXBException|SchemaException|RuntimeException|SecurityViolationException e) {
+        } catch (ScriptExecutionException | JAXBException | SchemaException | RuntimeException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException e) {
             result.recordFatalError(e.getMessage(), e);
             LoggingUtils.logException(LOGGER, "Exception while executing script", e);
         }
