@@ -50,9 +50,6 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
 						getModelObject().getPath().append(AssignmentType.F_POLICY_RULE).append(PolicyRuleType.F_POLICY_CONSTRAINTS));
 		PrismContainerPanel<PolicyConstraintsType> constraintsContainer = new PrismContainerPanel(ID_CONTAINERS, constraintsModel,
 				false, form, null, pageBase);
-//		PrismPanel<PolicyRuleType> constraintsContainer = new PrismPanel(ID_CONTAINERS,
-//				new ContainerWrapperListFromObjectWrapperModel<AssignmentType, F>(pageBase.getObjectModel(), collectConstraintContainersToShow()),
-//				null, form, null, pageBase) ;
 		constraintsContainer.setOutputMarkupId(true);
 		containers.add(constraintsContainer);
 		add(constraintsContainer);

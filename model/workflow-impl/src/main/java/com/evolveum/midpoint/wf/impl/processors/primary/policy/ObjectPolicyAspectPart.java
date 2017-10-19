@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -78,7 +79,7 @@ public class ObjectPolicyAspectPart {
 	<T extends ObjectType> void extractObjectBasedInstructions(@NotNull ObjectTreeDeltas<T> objectTreeDeltas,
 			@Nullable PrismObject<UserType> requester, @NotNull List<PcpChildWfTaskCreationInstruction<?>> instructions,
 			@NotNull ModelInvocationContext<T> ctx, @NotNull OperationResult result)
-			throws SchemaException {
+			throws SchemaException, ObjectNotFoundException {
 
 		ObjectDelta<T> focusDelta = objectTreeDeltas.getFocusChange();
 		LensFocusContext<T> focusContext = (LensFocusContext<T>) ctx.modelContext.getFocusContext();
@@ -104,6 +105,7 @@ public class ObjectPolicyAspectPart {
 				}
 				LOGGER.trace("Remaining delta:\n{}", debugDumpLazily(focusDelta));
 				ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
+				builder.setProcessSpecification(processSpecificationEntry);
 				for (Pair<ApprovalPolicyActionType, EvaluatedPolicyRule> actionWithRule : processSpecificationEntry.actionsWithRules) {
 					ApprovalPolicyActionType approvalAction = actionWithRule.getLeft();
 					builder.add(main.getSchemaFromAction(approvalAction), approvalAction.getCompositionStrategy(), object, actionWithRule.getRight());
