@@ -27,8 +27,41 @@
     	<name>helloWorld</name>
     	<script>
     		 	<code>
+    		 	    log.info("I'm in Hello World! function");
     		 		return "hello world!"
     		 	</code>
     	</script>
     </function>
+	<function>
+		<name>getDrink</name>
+		<parameter>
+			<name>country</name>
+			<type>xsd:string</type>
+		</parameter>
+		<script>
+			<code>
+				log.error("locality: "+country)
+				def fixedDrink = []
+				if (account) {
+					log.error("account:\n"+basic.debugDump(account,1))
+					def drink = basic.getAttributeValues(account, 'drink')
+					log.error("drink(1): "+drink)
+					if (drink != null) {
+						drink.each {
+							if (!it?.startsWith('rum')) {
+								fixedDrink.add(it)
+							}
+						}
+						log.error("fixedDrink(2): "+fixedDrink)
+						if (country != null) {
+							fixedDrink.add('rum from ' + country);
+						}
+						log.error("fixedDrink(3): "+fixedDrink)
+					}
+				}
+				log.error("fixedDrink(4): "+fixedDrink)
+				return fixedDrink			
+			</code>
+		</script>
+	</function>
 </functionLibrary>

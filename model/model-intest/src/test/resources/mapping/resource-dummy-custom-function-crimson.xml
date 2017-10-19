@@ -69,7 +69,9 @@
 					<expression>
 						<script>
 							<code>
-								myLib.execute("helloWorld", null);
+								name = myLib.execute("helloWorld", null);
+								log.info("custom library name: " + name)
+								return name;
 							</code>
 						</script>
 					</expression>
@@ -127,27 +129,7 @@
 					<expression>
 						<script> <!-- MID-3661, MID-3674 -->
 							<code>
-								log.error("locality: "+locality)
-								def fixedDrink = []
-								if (account) {
-									log.error("account:\n"+basic.debugDump(account,1))
-									def drink = basic.getAttributeValues(account, 'drink')
-									log.error("drink(1): "+drink)
-									if (drink != null) {
-										drink.each {
-											if (!it?.startsWith('rum')) {
-												fixedDrink.add(it)
-											}
-										}
-										log.error("fixedDrink(2): "+fixedDrink)
-										if (locality != null) {
-											fixedDrink.add('rum from ' + locality);
-										}
-										log.error("fixedDrink(3): "+fixedDrink)
-									}
-								}
-								log.error("fixedDrink(4): "+fixedDrink)
-								return fixedDrink
+								return myLib.execute("getDrink", {"country" : locality})
 							</code>
 						</script>
 					</expression>
