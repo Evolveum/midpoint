@@ -2,8 +2,12 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -172,10 +176,20 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		childContainersSelectorPanel.add(new AjaxButton(ID_ADD_BUTTON, createStringResource("prismValuePanel.add")) {
 			@Override
 			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-				isChildContainersSelectorPanelVisible = false;
-				ajaxRequestTarget.add(getChildContainersSelectorPanel().getParent());
+				addNewContainerValuePerformed(ajaxRequestTarget);
 			}
 		});
+	}
+
+	protected void addNewContainerValuePerformed(AjaxRequestTarget ajaxRequestTarget){
+		isChildContainersSelectorPanelVisible = false;
+		getModelObject().addNewChildContainerValue(getSelectedContainerQName(), getPageBase());
+		ajaxRequestTarget.add(getChildContainersSelectorPanel().getParent());
+	}
+
+	private QName getSelectedContainerQName(){
+		DropDownChoicePanel<QName> panel = (DropDownChoicePanel)getChildContainersSelectorPanel().get(ID_CHILD_CONTAINERS_LIST);
+		return panel.getModel().getObject();
 	}
 
 	private WebMarkupContainer getChildContainersSelectorPanel(){

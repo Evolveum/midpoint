@@ -163,12 +163,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         	   } else {
         		   assignmentType.setTargetRef(ref);
         	   }
-        	   ContainerValueWrapper<AssignmentType> newAssignmentValueWrapper = createNewAssignmentContainerValueWrapper(newAssignment);
-//        	   getModelObject().getValues().add(newAssignmentValueWrapper);
-               
-//               ContainerValueWrapper<AssignmentType> valueWrapper = factory.createContainerValueWrapper(getModelObject(), newAssignment.asPrismContainerValue(),
-//                       ValueStatus.ADDED, new ItemPath(FocusType.F_ASSIGNMENT));
-//               getModelObject().getValues().add(valueWrapper);
+        	   createNewAssignmentContainerValueWrapper(newAssignment);
            }
 
            refreshTable(target);
