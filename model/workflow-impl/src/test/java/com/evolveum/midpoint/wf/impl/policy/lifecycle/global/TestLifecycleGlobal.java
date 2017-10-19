@@ -21,27 +21,29 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.wf.impl.policy.ApprovalInstruction;
+import com.evolveum.midpoint.wf.impl.policy.ExpectedTask;
+import com.evolveum.midpoint.wf.impl.policy.ExpectedWorkItem;
 import com.evolveum.midpoint.wf.impl.policy.lifecycle.AbstractTestLifecycle;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import org.testng.annotations.Test;
 
-import javax.xml.namespace.QName;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+import static com.evolveum.midpoint.prism.util.CloneUtil.cloneCollectionMembers;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 
@@ -52,6 +54,8 @@ import static org.testng.AssertJUnit.assertFalse;
  */
 public class TestLifecycleGlobal extends AbstractTestLifecycle {
 
+	private static final File GLOBAL_POLICY_RULES_FILE = new File(TEST_LIFECYCLE_RESOURCE_DIR, "global-policy-rules.xml");
+
 	@Override
 	protected boolean approveObjectAdd() {
 		return true;
@@ -60,103 +64,15 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-
 		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
+	}
 
-		// couldn't use updateSystemConfiguration because users' OIDs are not known yet at that time
-		GlobalPolicyRuleType ruleAll =
-				new GlobalPolicyRuleType(prismContext)
-					.name("all-modifications")
-					.beginPolicyConstraints()
-						.beginModification()
-						.<PolicyConstraintsType>end()
-					.<GlobalPolicyRuleType>end()
-					.beginPolicyActions()
-						.beginApproval()
-							.beginApprovalSchema()
-								.beginLevel()
-									.approverRelation(new QName("owner"))		// intentionally no namespace
-									.outcomeIfNoApprovers(ApprovalLevelOutcomeType.APPROVE)
-								.<ApprovalSchemaType>end()
-							.<ApprovalPolicyActionType>end()
-						.<PolicyActionsType>end()
-					.<GlobalPolicyRuleType>end()
-					.beginFocusSelector()
-						.type(RoleType.COMPLEX_TYPE)
-					.end();
-
-		GlobalPolicyRuleType ruleAllAdditions =
-				new GlobalPolicyRuleType(prismContext)
-					.name("all-additions")
-					.beginPolicyConstraints()
-						.beginModification()
-							.operation(ChangeTypeType.ADD)
-						.<PolicyConstraintsType>end()
-					.<GlobalPolicyRuleType>end()
-					.beginPolicyActions()
-						.beginApproval()
-							.approverRef(userLead1Oid, UserType.COMPLEX_TYPE)
-						.<PolicyActionsType>end()
-					.<GlobalPolicyRuleType>end()
-					.beginFocusSelector()
-						.type(RoleType.COMPLEX_TYPE)
-					.end();
-
-		GlobalPolicyRuleType ruleModificationOfRiskLevel =
-				new GlobalPolicyRuleType(prismContext)
-					.name("modification-of-risk-level")
-					.beginPolicyConstraints()
-						.beginModification()
-							.item(new ItemPath(RoleType.F_RISK_LEVEL).asItemPathType())
-						.<PolicyConstraintsType>end()
-					.<GlobalPolicyRuleType>end()
-					.beginPolicyActions()
-						.beginApproval()
-							.beginProcessSpecification()
-								.beginDeltaFrom()
-									.item(new ItemPath(RoleType.F_RISK_LEVEL).asItemPathType())
-								.<WfProcessSpecificationType>end()
-							.<ApprovalPolicyActionType>end()
-							.approverRef(userLead2Oid, UserType.COMPLEX_TYPE)
-						.<PolicyActionsType>end()
-					.<GlobalPolicyRuleType>end()
-					.beginFocusSelector()
-						.type(RoleType.COMPLEX_TYPE)
-					.end();
-
-		GlobalPolicyRuleType ruleModificationOfApproverRef =
-				new GlobalPolicyRuleType(prismContext)
-					.name("modification-of-approverRef")        // to be multivalued
-					.beginPolicyConstraints()
-						.beginModification()
-							.item(new ItemPath(RoleType.F_APPROVER_REF).asItemPathType())
-						.<PolicyConstraintsType>end()
-					.<GlobalPolicyRuleType>end()
-					.beginPolicyActions()
-						.beginApproval()
-							.beginProcessSpecification()
-								.beginDeltaFrom()
-									.itemValue(new ItemPath(RoleType.F_APPROVER_REF).asItemPathType())
-								.<WfProcessSpecificationType>end()
-							.<ApprovalPolicyActionType>end()
-							.approverRef(userLead3Oid, UserType.COMPLEX_TYPE)
-						.<PolicyActionsType>end()
-					.<GlobalPolicyRuleType>end()
-					.beginFocusSelector()
-						.type(RoleType.COMPLEX_TYPE)
-					.end();
-
-		List<ItemDelta<?, ?>> deltas =
-				DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
-						.item(SystemConfigurationType.F_GLOBAL_POLICY_RULE)
-						.replace(ruleAll, ruleAllAdditions, ruleModificationOfRiskLevel, ruleModificationOfApproverRef)
-						.asItemDeltas();
-		repositoryService.modifyObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), deltas, initResult);
-
-		systemObjectCache.invalidateCaches();
-
-		IntegrationTestTools.display("System configuration",
-				getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value()));
+	@Override
+	protected void updateSystemConfiguration(SystemConfigurationType systemConfiguration) throws SchemaException, IOException {
+		super.updateSystemConfiguration(systemConfiguration);
+		PrismObject<SystemConfigurationType> rulesContainer = prismContext.parserFor(GLOBAL_POLICY_RULES_FILE).parse();
+		systemConfiguration.getGlobalPolicyRule().clear();
+		systemConfiguration.getGlobalPolicyRule().addAll(cloneCollectionMembers(rulesContainer.asObjectable().getGlobalPolicyRule()));
 	}
 
 	private String roleJudgeOid;
@@ -213,9 +129,26 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				login(userAdministrator);
+			public boolean strictlySequentialApprovals() {
 				return true;
+			}
+
+			@Override
+			public List<ApprovalInstruction> getApprovalSequence() {
+				List<ApprovalInstruction> instructions = new ArrayList<>();
+				// this is step 2 in riskLevel part (first step is owner that is skipped)
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Setting riskLevel")), true, USER_ADMINISTRATOR_OID));
+				// this is step 3 in riskLevel part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userLead2Oid, null, new ExpectedTask(null, "Setting riskLevel")), true, USER_ADMINISTRATOR_OID));
+				// this is step 2 in main part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userLead1Oid, null, new ExpectedTask(null, "Adding role judge")), true, USER_ADMINISTRATOR_OID));
+				// this is step 3 in main part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Adding role judge")), true, USER_ADMINISTRATOR_OID));
+				return instructions;
 			}
 		}, 2);
 
@@ -289,9 +222,32 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				login(userAdministrator);
+			public boolean strictlySequentialApprovals() {
 				return true;
+			}
+
+			@Override
+			public List<ApprovalInstruction> getApprovalSequence() {
+				List<ApprovalInstruction> instructions = new ArrayList<>();
+				// this is step 1 in 1st approverRef part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 2 in 1st approverRef part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userLead3Oid, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 1 in 2nd approverRef part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 2 in 2nd approverRef part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userLead3Oid, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 1 in main part (owner)
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userJudgeOwnerOid, null, new ExpectedTask(null, "Modifying role judge")), true, USER_ADMINISTRATOR_OID));
+				// this is step 2 in main part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Modifying role judge")), true, USER_ADMINISTRATOR_OID));
+				return instructions;
 			}
 		}, 3);
 
@@ -359,9 +315,38 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				login(userAdministrator);
+			public boolean strictlySequentialApprovals() {
 				return true;
+			}
+
+			@Override
+			public List<ApprovalInstruction> getApprovalSequence() {
+				List<ApprovalInstruction> instructions = new ArrayList<>();
+				// this is step 2 in riskLevel part (first step is owner that is skipped)
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Setting riskLevel")), true, USER_ADMINISTRATOR_OID));
+				// this is step 3 in riskLevel part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userLead2Oid, null, new ExpectedTask(null, "Setting riskLevel")), true, USER_ADMINISTRATOR_OID));
+				// this is step 1 in approverRef part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 2 in approverRef part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userLead3Oid, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 1 in approverRef part (2nd)
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 2 in approverRef part (2nd)
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userLead3Oid, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 2 in main part (first step is owner that is skipped)
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userLead1Oid, null, new ExpectedTask(null, "Adding role captain")), true, USER_ADMINISTRATOR_OID));
+				// this is step 3 in main part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Adding role captain")), true, USER_ADMINISTRATOR_OID));
+				return instructions;
 			}
 		}, 4);
 
@@ -388,7 +373,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 
 		ObjectDelta<RoleType> captainDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
 				.item(RoleType.F_APPROVER_REF)
-						.delete(CloneUtil.cloneCollectionMembers(captainBefore.findReference(RoleType.F_APPROVER_REF).getValues()))
+						.delete(cloneCollectionMembers(captainBefore.findReference(RoleType.F_APPROVER_REF).getValues()))
 				.asObjectDeltaCast(roleCaptainOid);
 
 		executeTest(TEST_NAME, new TestDetails() {
@@ -426,9 +411,27 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				login(userAdministrator);
+			public boolean strictlySequentialApprovals() {
 				return true;
+			}
+
+			@SuppressWarnings("Duplicates")
+			@Override
+			public List<ApprovalInstruction> getApprovalSequence() {
+				List<ApprovalInstruction> instructions = new ArrayList<>();
+				// this is step 1 in approverRef part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 2 in approverRef part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userLead3Oid, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 1 in approverRef part (2nd)
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 2 in approverRef part (2nd)
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userLead3Oid, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				return instructions;
 			}
 		}, 2);
 
@@ -492,9 +495,38 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				login(userAdministrator);
+			public boolean strictlySequentialApprovals() {
 				return true;
+			}
+
+			@Override
+			public List<ApprovalInstruction> getApprovalSequence() {
+				List<ApprovalInstruction> instructions = new ArrayList<>();
+				// this is step 2 in riskLevel part (first step is owner that is skipped)
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Setting riskLevel")), true, USER_ADMINISTRATOR_OID));
+				// this is step 3 in riskLevel part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userLead2Oid, null, new ExpectedTask(null, "Setting riskLevel")), true, USER_ADMINISTRATOR_OID));
+				// this is step 1 in approverRef part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 2 in approverRef part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userLead3Oid, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 1 in approverRef part (2nd)
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 2 in approverRef part (2nd)
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userLead3Oid, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 2 in main part (first step is owner that is skipped)
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userLead1Oid, null, new ExpectedTask(null, "Adding role thief")), true, USER_ADMINISTRATOR_OID));
+				// this is step 3 in main part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Adding role thief")), true, USER_ADMINISTRATOR_OID));
+				return instructions;
 			}
 		}, 4);
 
@@ -521,7 +553,7 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 
 		ObjectDelta<RoleType> captainDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
 				.item(RoleType.F_APPROVER_REF)
-				.delete(CloneUtil.cloneCollectionMembers(thiefBefore.findReference(RoleType.F_APPROVER_REF).getValues()))
+				.delete(cloneCollectionMembers(thiefBefore.findReference(RoleType.F_APPROVER_REF).getValues()))
 				.asObjectDeltaCast(roleThiefOid);
 
 		executeTest(TEST_NAME, new TestDetails() {
@@ -556,9 +588,27 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				login(userAdministrator);
+			public boolean strictlySequentialApprovals() {
 				return true;
+			}
+
+			@SuppressWarnings("Duplicates")
+			@Override
+			public List<ApprovalInstruction> getApprovalSequence() {
+				List<ApprovalInstruction> instructions = new ArrayList<>();
+				// this is step 1 in approverRef part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 2 in approverRef part
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userLead3Oid, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 1 in approverRef part (2nd)
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				// this is step 2 in approverRef part (2nd)
+				instructions.add(new ApprovalInstruction(
+						new ExpectedWorkItem(userLead3Oid, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
+				return instructions;
 			}
 		}, 2);
 
