@@ -34,6 +34,7 @@ import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @PageDescriptor(url = "/admin/case", encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = PageAdminCases.AUTH_CASES_ALL,
@@ -48,6 +49,7 @@ public class PageCase  extends PageAdminCases {
     private static final String DOT_CLASS = PageCase.class.getName() + ".";
     private static final String OPERATION_LOAD_CASE = DOT_CLASS + "loadCase";
     private static final String OPERATION_SAVE_CASE = DOT_CLASS + "saveCase";
+    private static final String DEFAULT_OPERATOR_OID = "00000000-0000-0000-0000-000000000002";  // administrator
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_CASE = "case";
@@ -194,12 +196,16 @@ public class PageCase  extends PageAdminCases {
         LOGGER.debug("Saving case changes.");
 
         OperationResult result = new OperationResult(OPERATION_SAVE_CASE);
+        Task task = createSimpleTask(OPERATION_SAVE_CASE);
         try {
             WebComponentUtil.revive(caseModel, getPrismContext());
-            ObjectWrapper wrapper = caseModel.getObject();
+            ObjectWrapper<CaseType> wrapper = caseModel.getObject();
             ObjectDelta<CaseType> delta = wrapper.getObjectDelta();
             if (delta == null) {
                 return;
+            }
+            if (delta.isAdd()) {
+                createCaseWorkItems(delta.getObjectToAdd().asObjectable(), task, result);
             }
             if (delta.getPrismContext() == null) {
                 getPrismContext().adopt(delta);
@@ -213,7 +219,6 @@ public class PageCase  extends PageAdminCases {
             }
             WebComponentUtil.encryptCredentials(delta, true, getMidpointApplication());
 
-            Task task = createSimpleTask(OPERATION_SAVE_CASE);
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
             deltas.add(delta);
 
@@ -231,6 +236,35 @@ public class PageCase  extends PageAdminCases {
             showResult(result);
 
             redirectBack();
+        }
+    }
+
+    private void createCaseWorkItems(CaseType caseInstance, Task task, OperationResult result) {
+        PrismObject<ResourceType> resource;
+        ObjectReferenceType resourceRef = caseInstance.getObjectRef();
+        if (resourceRef != null) {
+            String resourceOid = resourceRef.getOid();
+            resource = WebModelServiceUtils.loadObject(ResourceType.class, resourceOid, PageCase.this, task, result);
+
+            if (resource != null) {
+                // If resource exists, create work items for each resource business operator
+                ResourceBusinessConfigurationType businessConfiguration = resource.asObjectable().getBusiness();
+                List<ObjectReferenceType> operators = new ArrayList<>();
+                if (businessConfiguration != null) {
+                    operators.addAll(businessConfiguration.getOperatorRef());
+                }
+                if (operators.isEmpty()) {
+                    operators.add(new ObjectReferenceType().oid(DEFAULT_OPERATOR_OID).type(UserType.COMPLEX_TYPE));
+                }
+                for (ObjectReferenceType operator : operators) {
+                    CaseWorkItemType workItem = new CaseWorkItemType(getPrismContext())
+                            .originalAssigneeRef(operator.clone())
+                            .assigneeRef(operator.clone())
+                            .name(caseInstance.getName().getOrig());
+                    caseInstance.getWorkItem().add(workItem);
+                    // TODO deadline and maybe other fields
+                }
+            }
         }
     }
 
