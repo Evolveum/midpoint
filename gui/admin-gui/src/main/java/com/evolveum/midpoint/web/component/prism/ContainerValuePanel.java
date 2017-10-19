@@ -79,7 +79,15 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 				target.add(ContainerValuePanel.this);
 			}
 
-    	};
+			@Override
+            protected void addNewContainerValuePerformed(AjaxRequestTarget ajaxRequestTarget){
+                super.addNewContainerValuePerformed(ajaxRequestTarget);
+                addOrReplaceProperties(model, form, isPanelVisible, true);
+                ajaxRequestTarget.add(ContainerValuePanel.this);
+            }
+
+
+        };
         header.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;
 

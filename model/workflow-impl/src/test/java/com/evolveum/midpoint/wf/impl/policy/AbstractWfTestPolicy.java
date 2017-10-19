@@ -67,16 +67,17 @@ import org.springframework.test.context.ContextConfiguration;
 
 import javax.xml.namespace.QName;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
+import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -244,7 +245,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		return userAdministrator;
 	}
 
-	protected void updateSystemConfiguration(SystemConfigurationType systemConfiguration) {
+	protected void updateSystemConfiguration(SystemConfigurationType systemConfiguration) throws SchemaException, IOException {
 		// nothing to do by default
 	}
 
@@ -544,7 +545,11 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		}
 
 		protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-			return true;
+			return null;
+		}
+
+		public boolean strictlySequentialApprovals() {
+			return false;
 		}
 
 		public List<ApprovalInstruction> getApprovalSequence() {
@@ -661,14 +666,20 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 				List<WorkItemType> currentWorkItems = modelService
 						.searchContainers(WorkItemType.class, null, options1, modelTask, result);
 				boolean matched = false;
+
+				Collection<ApprovalInstruction> instructionsToConsider = testDetails.strictlySequentialApprovals()
+						? singleton(instructions.get(0))
+						: instructions;
+
 				main:
-				for (ApprovalInstruction approvalInstruction : instructions) {
+				for (ApprovalInstruction approvalInstruction : instructionsToConsider) {
 					for (WorkItemType workItem : currentWorkItems) {
 						if (approvalInstruction.matches(workItem)) {
 							if (approvalInstruction.beforeApproval != null) {
 								approvalInstruction.beforeApproval.run();
 							}
 							login(getUserFromRepo(approvalInstruction.approverOid));
+							System.out.println("Completing work item " + workItem.getExternalId() + " using " + approvalInstruction);
 							workflowManager.completeWorkItem(workItem.getExternalId(), approvalInstruction.approval, null,
 									null, null, result);
 							if (approvalInstruction.afterApproval != null) {
@@ -682,7 +693,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 					}
 				}
 				if (!matched) {
-					fail("None of approval instructions " + instructions + " matched any of current work items: "
+					fail("None of approval instructions " + instructionsToConsider + " matched any of current work items: "
 							+ currentWorkItems);
 				}
 			}

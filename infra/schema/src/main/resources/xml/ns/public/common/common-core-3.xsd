@@ -11005,7 +11005,14 @@
                     		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="stringPolicy" type="c:StringPolicyType" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="stringPolicy" type="tns:StringPolicyType" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="prohibitedValues" type="tns:ProhibitedValuesType" minOccurs="0" maxOccurs="1">
+                    	<xsd:annotation>
+                    		<xsd:appinfo>
+                    			<a:since>3.7</a:since>
+                    		</xsd:appinfo>
+                    	</xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="minOccurs" type="xsd:string" minOccurs="0" default="0">
                     	<xsd:annotation>
                     		<xsd:documentation>
@@ -11224,6 +11231,61 @@
         </xsd:sequence>
     </xsd:complexType>
     
+    <xsd:complexType name="ProhibitedValuesType">
+    	 <xsd:annotation>
+            <xsd:appinfo>
+				<a:container/>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>    
+        <xsd:sequence>
+            <xsd:element name="item" type="tns:ProhibitedValueItemType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProhibitedValueItemType">
+    	 <xsd:annotation>
+            <xsd:appinfo>
+				<a:container/>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>    
+        <xsd:sequence>
+            <xsd:element name="origin" type="tns:ValuePolicyOriginType" minOccurs="0" maxOccurs="1" default="subject"/>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1"/>
+            <!-- TODO: matching (exact, norm, case ignore, partial, ...), matching parameters ( 3 characters difference ) -->
+        </xsd:sequence>
+    </xsd:complexType>
+    
+        <xsd:simpleType name="ValuePolicyOriginType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="subject">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SUBJECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="persona">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PERSONA"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- owner? ("reverse" persona) -->
+        </xsd:restriction>
+    </xsd:simpleType>
+    
 
     <xsd:complexType name="OperationResultType">
         <xsd:annotation>
@@ -11250,19 +11312,12 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="localizedMessage" type="tns:LocalizedMessageType" minOccurs="0"/>
+            <xsd:element name="localizedMessage" type="tns:LocalizableMessageType" minOccurs="0"/>
             <xsd:element name="details" type="xsd:string" minOccurs="0"/>
             <xsd:element name="partialResults" type="tns:OperationResultType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="operationResult" type="tns:OperationResultType"/>
-
-    <xsd:complexType name="LocalizedMessageType">
-        <xsd:sequence>
-            <xsd:element name="key" type="xsd:string"/>
-            <xsd:element name="argument" type="xsd:anySimpleType" minOccurs="0" maxOccurs="unbounded"/>
-        </xsd:sequence>
-    </xsd:complexType>
 
     <xsd:complexType name="ParamsType">
         <xsd:sequence>
@@ -11950,8 +12005,33 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="feedbackMessagesHook" type="tns:FeedbackMessagesHookType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Specifies scripting hook which can modify operation results or messages
+							before they are shown in UI.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+	<xsd:complexType name="FeedbackMessagesHookType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="operationResultHook" type="tns:ExpressionType" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
     
     <xsd:complexType name="DashboardLayoutType">
         <xsd:annotation>

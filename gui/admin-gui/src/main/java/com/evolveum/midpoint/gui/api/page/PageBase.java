@@ -36,12 +36,18 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.report.api.ReportManager;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -113,6 +119,7 @@ import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -1037,6 +1044,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
+        Object scriptResult = executeResultScriptHook(result);
+        if (scriptResult instanceof OperationResult) {
+            result = (OperationResult) scriptResult;
+        }
+
         OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
         opResult.determineBackgroundTaskVisibility(this);
         switch (opResult.getStatus()) {
@@ -1063,6 +1075,56 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         }
         return opResult;
+    }
+
+    private OperationResult executeResultScriptHook(OperationResult result) {
+        AdminGuiConfigurationType adminGuiConfiguration = getAdminGuiConfiguration();
+        if (adminGuiConfiguration == null || adminGuiConfiguration.getFeedbackMessagesHook() == null) {
+            return result;
+        }
+
+        FeedbackMessagesHookType hook = adminGuiConfiguration.getFeedbackMessagesHook();
+        ExpressionType expressionType = hook.getOperationResultHook();
+        if (expressionType == null) {
+            return result;
+        }
+
+        String contextDesc = "operation result (" + result.getOperation() + ") script hook";
+
+        Task task = getPageTask();
+        OperationResult topResult = task.getResult();
+        try {
+            ExpressionFactory factory = getExpressionFactory();
+            Expression expression = factory.makeExpression(expressionType, null, contextDesc, task, topResult);
+
+            ExpressionVariables variables = new ExpressionVariables();
+            variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, result);
+
+            ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task, topResult);
+            PrismValueDeltaSetTriple<PrismPropertyValue<?>> outputTriple = expression.evaluate(context);
+            if (outputTriple == null) {
+                return null;
+            }
+
+            Collection<PrismPropertyValue<?>> values = outputTriple.getNonNegativeValues();
+            if (values == null || values.isEmpty()) {
+                return null;
+            }
+
+            if (values.size() > 1) {
+                throw new SchemaException("Expression " + contextDesc + " produced more than one value");
+            }
+
+            return values.iterator().next().getRealValue();
+        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
+            result.recordFatalError(e);
+            LoggingUtils.logUnexpectedException(LOGGER, contextDesc, e);
+            if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
+                throw new SystemException(e.getMessage(), e);
+            } else {
+                return topResult;
+            }
+        }
     }
 
     // common result processing

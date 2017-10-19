@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.*;
 
+import com.evolveum.midpoint.wf.impl.processors.primary.policy.ProcessSpecifications.ProcessSpecification;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 import static java.util.Comparator.naturalOrder;
 
@@ -42,14 +43,23 @@ import static java.util.Comparator.naturalOrder;
  */
 class ApprovalSchemaBuilder {
 
+	private ProcessSpecification processSpecification;
+
+	void setProcessSpecification(ProcessSpecification processSpecification) {
+		this.processSpecification = processSpecification;
+	}
+
 	class Result {
 		@NotNull final ApprovalSchemaType schemaType;
 		@NotNull final SchemaAttachedPolicyRulesType attachedRules;
+		final ProcessSpecification processSpecification;
 
 		public Result(@NotNull ApprovalSchemaType schemaType,
-				@NotNull SchemaAttachedPolicyRulesType attachedRules) {
+				@NotNull SchemaAttachedPolicyRulesType attachedRules,
+				ProcessSpecification processSpecification) {
 			this.schemaType = schemaType;
 			this.attachedRules = attachedRules;
+			this.processSpecification = processSpecification;
 		}
 	}
 
@@ -94,7 +104,7 @@ class ApprovalSchemaBuilder {
 	@NotNull private final BasePrimaryChangeAspect primaryChangeAspect;
 	@NotNull private final ApprovalSchemaHelper approvalSchemaHelper;
 
-	ApprovalSchemaBuilder(@NotNull BasePrimaryChangeAspect primaryChangeAspect, ApprovalSchemaHelper approvalSchemaHelper) {
+	ApprovalSchemaBuilder(@NotNull BasePrimaryChangeAspect primaryChangeAspect, @NotNull ApprovalSchemaHelper approvalSchemaHelper) {
 		this.primaryChangeAspect = primaryChangeAspect;
 		this.approvalSchemaHelper = approvalSchemaHelper;
 	}
@@ -159,7 +169,7 @@ class ApprovalSchemaBuilder {
 			processFragmentGroup(fragmentMergeGroup, schemaType, attachedRules, ctx, result);
 		}
 
-		return new Result(schemaType, attachedRules);
+		return new Result(schemaType, attachedRules, processSpecification);
 	}
 
 	private void checkExclusivity(List<Fragment> fragmentMergeGroup) {
