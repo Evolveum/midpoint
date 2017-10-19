@@ -31,6 +31,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
@@ -38,6 +39,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -81,7 +83,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 	}
 
 	@Override
-	protected void updateSystemConfiguration(SystemConfigurationType systemConfiguration) {
+	protected void updateSystemConfiguration(SystemConfigurationType systemConfiguration) throws SchemaException, IOException {
 		super.updateSystemConfiguration(systemConfiguration);
 		systemConfiguration.getWorkflowConfiguration()
 				.beginExecutionTasks()
