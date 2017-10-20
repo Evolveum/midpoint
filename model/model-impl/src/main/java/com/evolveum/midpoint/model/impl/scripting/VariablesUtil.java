@@ -32,9 +32,12 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingVariableDefinitionType;
@@ -73,7 +76,7 @@ public class VariablesUtil {
 	static Map<String, Object> initialPreparation(Map<String, Object> initialVariables,
 			ScriptingVariablesDefinitionType derivedVariables, ExpressionFactory expressionFactory, ObjectResolver objectResolver,
 			PrismContext prismContext, Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		HashMap<String, Object> rv = new HashMap<>();
 		addProvidedVariables(rv, initialVariables, task);
 		addDerivedVariables(rv, derivedVariables,
@@ -90,7 +93,7 @@ public class VariablesUtil {
 
 	private static void addDerivedVariables(HashMap<String, Object> resultingVariables,
 			ScriptingVariablesDefinitionType definitions, VariableResolutionContext ctx, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (definitions == null) {
 			return;
 		}
@@ -129,7 +132,7 @@ public class VariablesUtil {
 
 	private static Object variableFromOtherExpression(HashMap<String, Object> resultingVariables,
 			ScriptingVariableDefinitionType definition, VariableResolutionContext ctx, String shortDesc,
-			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ItemDefinition<?> outputDefinition = determineOutputDefinition(definition, ctx, shortDesc);
 		Expression<PrismValue, ItemDefinition<?>> expression = ctx.expressionFactory
 				.makeExpression(definition.getExpression(), outputDefinition, shortDesc, ctx.task, result);
