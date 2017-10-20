@@ -15,65 +15,122 @@
  */
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import org.apache.commons.collections4.CollectionUtils;
+
+import com.evolveum.midpoint.prism.DefaultReferencableImpl;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 
 /**
- * @author semancik
+ * @author katkav
  *
  */
-public class AssociationWrapper {
-//	extends PropertyWrapper<PrismContainer<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> {
+public class AssociationWrapper extends ContainerWrapper<ShadowAssociationType> {
+
+	private static transient Trace LOGGER = TraceManager.getTrace(AssociationWrapper.class);
+	
+	AssociationWrapper(PrismContainer<ShadowAssociationType> container, ContainerStatus status, ItemPath path) {
+		super(container, status, path);	
+	}
+
+	private static final long serialVersionUID = 1L;
+	
+	@Override
+	public PrismContainer<ShadowAssociationType> createContainerAddDelta() throws SchemaException {
+		if (CollectionUtils.isEmpty(getValues())) {
+			return null;
+		}
+		
+		PrismContainer<ShadowAssociationType> shadowAssociation = getItemDefinition().instantiate();
+		
+		//we know that there is always only one value
+		ContainerValueWrapper<ShadowAssociationType> containerValueWrappers = getValues().iterator().next();
+		for (ItemWrapper itemWrapper : containerValueWrappers.getItems()) {
+			
+			if (!(itemWrapper instanceof ReferenceWrapper)) {
+				LOGGER.warn("Item in shadow association value wrapper is not an reference. Should not happen.");
+				continue;
+			}
+			
+			ReferenceWrapper refWrapper = (ReferenceWrapper) itemWrapper;
+			if (!refWrapper.hasChanged()) {
+				return null;
+			}
+			
+			PrismReference updatedRef = refWrapper.getUpdatedItem(getItem().getPrismContext());
+			
+			for (PrismReferenceValue updatedRefValue : updatedRef.getValues()) {
+				ShadowAssociationType shadowAssociationType = new ShadowAssociationType();
+				shadowAssociationType.setName(refWrapper.getName());
+				shadowAssociationType.setShadowRef(ObjectTypeUtil.createObjectRef(updatedRefValue));
+				shadowAssociation.add(shadowAssociationType.asPrismContainerValue());
+			}
+			
+ 		}
+		
+		if (shadowAssociation.isEmpty() || shadowAssociation.getValues().isEmpty()) {
+			return null;
+		}
+		return shadowAssociation;
+	}
+	
+	@Override
+	public <O extends ObjectType> void collectModifications(ObjectDelta<O> delta) throws SchemaException {
+		
+		if (CollectionUtils.isEmpty(getValues())) {
+			return;
+		}
+		
+		ContainerValueWrapper<ShadowAssociationType> containerValueWrappers = getValues().iterator().next();
+		
+		for (ItemWrapper itemWrapper : containerValueWrappers.getItems()) {
+			
+			if (!(itemWrapper instanceof ReferenceWrapper)) {
+				LOGGER.warn("Item in shadow association value wrapper is not an reference. Should not happen.");
+				continue;
+			}
+			
+			ReferenceWrapper refWrapper = (ReferenceWrapper) itemWrapper;
+			if (!refWrapper.hasChanged()) {
+				continue;
+			}
+			
+			for (ValueWrapper refValue : refWrapper.getValues()) {
+				
+				PrismReferenceValue prismRefValue = (PrismReferenceValue) refValue.getValue();
+				ShadowAssociationType shadowAssociationType = new ShadowAssociationType();
+				shadowAssociationType.setName(refWrapper.getName());
+				shadowAssociationType.setShadowRef(ObjectTypeUtil.createObjectRef(prismRefValue));
+				switch (refValue.getStatus()) {
+					case ADDED:
+						if (!refValue.hasValueChanged()) {
+							continue;
+						}
+						delta.addModificationAddContainer(refWrapper.getPath(), shadowAssociationType);
+						break;
+					case DELETED:
+						delta.addModificationDeleteContainer(refWrapper.getPath(), shadowAssociationType);
+					default:
+						break;
+				}
+
+				
+				
+			}
+		}
+		
+	}
+			
+	
 }
-//	private static final long serialVersionUID = 1L;
-//
-//	private static final Trace LOGGER = TraceManager.getTrace(AssociationWrapper.class);
-//
-//	private RefinedAssociationDefinition assocRDef;
-//
-//	public AssociationWrapper(ContainerValueWrapper<ShadowAssociationType> container, PrismContainer<ShadowAssociationType> property,
-//			boolean readonly, ValueStatus status, RefinedAssociationDefinition assocRDef) {
-//		super(container, property, readonly, status);
-//		this.assocRDef = assocRDef;
-//	}
-//
-//	@Override
-//	public ValueWrapper createAddedValue() {
-//		// TODO Auto-generated method stub
-//		return super.createAddedValue();
-//	}
-//	@Override
-//	public ValueWrapper<ShadowAssociationType> createAddedValue() {
-//		PrismContainer<ShadowAssociationType> container = (PrismContainer<ShadowAssociationType>)getItem();
-//		PrismContainerValue<ShadowAssociationType> cval = container.createNewValue();
-//        ValueWrapper<ShadowAssociationType> wrapper = new ValueWrapper<>(this, cval, ValueStatus.ADDED);
-//
-//        return wrapper;
-//	}
-//
-//	@Override
-//	public String getDisplayName() {
-//		if (assocRDef != null) {
-//			String displayName = assocRDef.getDisplayName();
-//			if (displayName != null) {
-//				return displayName;
-//			}
-//		}
-//		return super.getDisplayName();
-//	}
-//
-//	public RefinedAssociationDefinition getRefinedAssociationDefinition() {
-//		return assocRDef;
-//	}
-//
-//	@Override
-//	protected String getDebugName() {
-//		return "AssociationWrapper";
-//	}
-//
-//}
+

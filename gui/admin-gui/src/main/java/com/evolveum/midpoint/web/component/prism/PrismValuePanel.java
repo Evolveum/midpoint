@@ -672,49 +672,7 @@ public class PrismValuePanel extends Panel {
 				}
 			};
 
-        } else if (item instanceof PrismContainer<?>) {
-//        	AssociationWrapper itemWrapper = (AssociationWrapper) valueWrapperModel.getObject().getItem();
-//        	final PrismContainer container = (PrismContainer) item;
-//        	PrismContainerDefinition definition = container.getDefinition();
-//            QName valueType = definition.getTypeName();
-//
-//            if (ShadowAssociationType.COMPLEX_TYPE.equals(valueType)) {
-//
-//	            PrismContext prismContext = item.getPrismContext();
-//	            if (prismContext == null) {
-//	                prismContext = pageBase.getPrismContext();
-//	            }
-//
-//	            ContainerWrapper<Containerable>itemWrapper.getParent();
-//	            ShadowType shadowType = ((ShadowType)itemWrapper.getParent().asObjectable());
-//	            PrismObject<ResourceType> resource = shadowType.getResource().asPrismObject();
-//	            // HACK. The revive should not be here. Revive is no good. The next use of the resource will
-//	            // cause parsing of resource schema. We need some centralized place to maintain live cached copies
-//	            // of resources.
-//	            try {
-//					resource.revive(prismContext);
-//				} catch (SchemaException e) {
-//					throw new SystemException(e.getMessage(), e);
-//				}
-//	            RefinedResourceSchema refinedSchema;
-//	            CompositeRefinedObjectClassDefinition rOcDef;
-//	            try {
-//					refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-//					rOcDef = refinedSchema.determineCompositeObjectClassDefinition(shadowType.asPrismObject());
-//				} catch (SchemaException e) {
-//					throw new SystemException(e.getMessage(),e);
-//				}
-//	            RefinedAssociationDefinition assocDef = itemWrapper.getRefinedAssociationDefinition();
-//	            RefinedObjectClassDefinition assocTargetDef = assocDef.getAssociationTarget();
-//
-//	            ObjectQuery query = getAssociationsSearchQuery(prismContext, resource,
-//	            		assocTargetDef.getTypeName(), assocTargetDef.getKind());
-//
-//	            List values = item.getValues();
-//	            return new AssociationValueChoicePanel(id, valueWrapperModel, values, false, ShadowType.class,
-//	            		query, assocTargetDef);
-//            }
-        }
+        } 
 
         return panel;
     }
