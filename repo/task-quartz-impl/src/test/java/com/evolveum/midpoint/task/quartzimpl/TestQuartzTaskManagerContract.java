@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,9 +86,11 @@ import static org.testng.AssertJUnit.*;
 @ContextConfiguration(locations = {"classpath:ctx-task.xml",
         "classpath:ctx-task-test.xml",
         "classpath:ctx-repo-cache.xml",
+        "classpath:ctx-repo-common.xml",
+        "classpath:ctx-security.xml",
+        "classpath:ctx-expression-test.xml",
         "classpath*:ctx-repository-test.xml",
         "classpath:ctx-audit.xml",
-        "classpath:ctx-security.xml",
         "classpath:ctx-common.xml",
         "classpath:ctx-configuration-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

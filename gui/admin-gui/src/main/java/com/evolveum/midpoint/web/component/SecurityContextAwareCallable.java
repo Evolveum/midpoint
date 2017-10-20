@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,14 @@
 
 package com.evolveum.midpoint.web.component;
 
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
 import org.apache.wicket.Session;
 import org.apache.wicket.ThreadContext;
 import org.springframework.security.core.Authentication;
+
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 
 import java.util.concurrent.Callable;
 
@@ -30,24 +32,24 @@ import java.util.concurrent.Callable;
  */
 public abstract class SecurityContextAwareCallable<V> implements Callable<V> {
 
-    private SecurityEnforcer enforcer;
+    private SecurityContextManager securityContextManager;
     private Authentication authentication;
 
-    protected SecurityContextAwareCallable(SecurityEnforcer enforcer, Authentication authentication) {
-        Validate.notNull(enforcer, "Security enforcer must not be null.");
+    protected SecurityContextAwareCallable(SecurityContextManager securityContextManager, Authentication authentication) {
+        Validate.notNull(securityContextManager, "Security enforcer must not be null.");
 
-        this.enforcer = enforcer;
+        this.securityContextManager = securityContextManager;
         this.authentication = authentication;
     }
 
     @Override
     public final V call() throws Exception {
-        enforcer.setupPreAuthenticatedSecurityContext(authentication);
+    	securityContextManager.setupPreAuthenticatedSecurityContext(authentication);
 
         try {
             return callWithContextPrepared();
         } finally {
-            enforcer.setupPreAuthenticatedSecurityContext((Authentication) null);
+        	securityContextManager.setupPreAuthenticatedSecurityContext((Authentication) null);
             //todo cleanup security context
         }
     }

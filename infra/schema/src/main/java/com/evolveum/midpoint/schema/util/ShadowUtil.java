@@ -655,7 +655,11 @@ public class ShadowUtil {
 					}
 				}
 			} else {
-				return attributesContainer.findAttribute(SchemaConstants.ICFS_NAME).getValue(String.class).getValue();
+				ResourceAttribute<String> nameAttribute = attributesContainer.findAttribute(SchemaConstants.ICFS_NAME);
+				if (nameAttribute == null) {
+					throw new SchemaException("Could not determine shadow name.");
+				}
+				return nameAttribute.getValue(String.class).getValue();
 			}
 			// Identifier is not usable as name
 			// TODO: better identification of a problem

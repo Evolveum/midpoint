@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -118,7 +119,7 @@ public class ObjectWrapperFactory {
                 PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
                 Validate.notNull(resource, "No resource object in the resourceRef");
                 objectClassDefinitionForEditing = modelServiceLocator.getModelInteractionService().getEditObjectClassDefinition(
-                        (PrismObject<ShadowType>) object, resource, authorizationPhase);
+                        (PrismObject<ShadowType>) object, resource, authorizationPhase, task, result);
                 if (objectClassDefinitionForEditing != null) {
                 	object.findOrCreateContainer(ShadowType.F_ATTRIBUTES).applyDefinition((PrismContainerDefinition) objectClassDefinitionForEditing.toResourceAttributeContainerDefinition());;
                 }
@@ -126,7 +127,7 @@ public class ObjectWrapperFactory {
             }
             return createObjectWrapper(displayName, description, object, objectDefinitionForEditing,
                     objectClassDefinitionForEditing, status, result);
-        } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {
+        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException ex) {
             throw new SystemException(ex);
         }
     }

@@ -36,7 +36,7 @@ import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -51,6 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -79,7 +80,8 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 
 	@Nullable
 	@Autowired(required = false) // missing in some tests (maybe)
-	private SecurityEnforcer securityEnforcer;
+	@Qualifier("securityContextManager")
+	private SecurityContextManager securityContextManager;
 
 	@Autowired
 	private PrismContext prismContext;
@@ -170,8 +172,8 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 		}
 
 		HttpConnectionInformation connInfo = SecurityUtil.getCurrentConnectionInformation();
-		if (connInfo == null && securityEnforcer != null) {
-			connInfo = securityEnforcer.getStoredConnectionInformation();
+		if (connInfo == null && securityContextManager != null) {
+			connInfo = securityContextManager.getStoredConnectionInformation();
 		}
 		if (connInfo != null) {
 			if (record.getSessionIdentifier() == null) {

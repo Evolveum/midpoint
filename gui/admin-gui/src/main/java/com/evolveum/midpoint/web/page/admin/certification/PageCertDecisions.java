@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ public class PageCertDecisions extends PageAdminCertification {
 
     private String getCurrentUserOid() {
         try {
-            return getSecurityEnforcer().getPrincipal().getOid();
+            return getSecurityContextManager().getPrincipal().getOid();
         } catch (SecurityViolationException e) {
             // TODO handle more cleanly
             throw new SystemException("Couldn't get currently logged user OID", e);

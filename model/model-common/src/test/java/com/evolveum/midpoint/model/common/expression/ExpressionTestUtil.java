@@ -38,7 +38,7 @@ import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 
 /**
@@ -56,35 +56,38 @@ public class ExpressionTestUtil {
 	}
 
 	public static ExpressionFactory createInitializedExpressionFactory(ObjectResolver resolver, ProtectorImpl protector,
-			PrismContext prismContext, SecurityEnforcer securityEnforcer) {
-    	ExpressionFactory expressionFactory = new ExpressionFactory(securityEnforcer, prismContext);
+			PrismContext prismContext, SecurityContextManager securityContextManager) {
+    	ExpressionFactory expressionFactory = new ExpressionFactory(securityContextManager, prismContext);
     	expressionFactory.setObjectResolver(resolver);
 
+    	// NOTE: we need to register the evaluator factories to expressionFactory manually here
+    	// this is not spring-wired test. PostConstruct methods are not ivoked here
+    	
     	// asIs
     	AsIsExpressionEvaluatorFactory asIsFactory = new AsIsExpressionEvaluatorFactory(prismContext, protector);
-    	expressionFactory.addEvaluatorFactory(asIsFactory);
+    	expressionFactory.registerEvaluatorFactory(asIsFactory);
     	expressionFactory.setDefaultEvaluatorFactory(asIsFactory);
 
     	// value
     	LiteralExpressionEvaluatorFactory valueFactory = new LiteralExpressionEvaluatorFactory(prismContext);
-    	expressionFactory.addEvaluatorFactory(valueFactory);
+    	expressionFactory.registerEvaluatorFactory(valueFactory);
 
 		// const
     	ConstantsManager constManager = new ConstantsManager(createConfiguration());
     	ConstExpressionEvaluatorFactory constFactory = new ConstExpressionEvaluatorFactory(protector, constManager, prismContext);
-    	expressionFactory.addEvaluatorFactory(constFactory);
+    	expressionFactory.registerEvaluatorFactory(constFactory);
 
     	// path
-    	PathExpressionEvaluatorFactory pathFactory = new PathExpressionEvaluatorFactory(prismContext, protector);
+    	PathExpressionEvaluatorFactory pathFactory = new PathExpressionEvaluatorFactory(expressionFactory, prismContext, protector);
     	pathFactory.setObjectResolver(resolver);
-    	expressionFactory.addEvaluatorFactory(pathFactory);
+    	expressionFactory.registerEvaluatorFactory(pathFactory);
 
     	// generate
     	ValuePolicyProcessor valuePolicyGenerator = new ValuePolicyProcessor();
     	valuePolicyGenerator.setExpressionFactory(expressionFactory);
-    	GenerateExpressionEvaluatorFactory generateFactory = new GenerateExpressionEvaluatorFactory(protector, valuePolicyGenerator, prismContext);
+    	GenerateExpressionEvaluatorFactory generateFactory = new GenerateExpressionEvaluatorFactory(expressionFactory, protector, valuePolicyGenerator, prismContext);
     	generateFactory.setObjectResolver(resolver);
-    	expressionFactory.addEvaluatorFactory(generateFactory);
+    	expressionFactory.registerEvaluatorFactory(generateFactory);
 
     	// script
     	Collection<FunctionLibrary> functions = new ArrayList<FunctionLibrary>();
@@ -97,8 +100,8 @@ public class ExpressionTestUtil {
         scriptExpressionFactory.registerEvaluator(XPathScriptEvaluator.XPATH_LANGUAGE_URL, xpathEvaluator);
         Jsr223ScriptEvaluator groovyEvaluator = new Jsr223ScriptEvaluator("Groovy", prismContext, protector);
         scriptExpressionFactory.registerEvaluator(groovyEvaluator.getLanguageUrl(), groovyEvaluator);
-        ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory = new ScriptExpressionEvaluatorFactory(scriptExpressionFactory, securityEnforcer);
-        expressionFactory.addEvaluatorFactory(scriptExpressionEvaluatorFactory);
+        ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory = new ScriptExpressionEvaluatorFactory(scriptExpressionFactory, securityContextManager);
+        expressionFactory.registerEvaluatorFactory(scriptExpressionEvaluatorFactory);
 
         return expressionFactory;
 	}

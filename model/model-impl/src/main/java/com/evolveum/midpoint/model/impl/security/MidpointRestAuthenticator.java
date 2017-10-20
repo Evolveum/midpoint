@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.security;
 
-import java.io.IOException;
-
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -46,7 +44,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -62,20 +61,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public abstract class MidpointRestAuthenticator<T extends AbstractAuthenticationContext> {
 
-
 	private static final Trace LOGGER = TraceManager.getTrace(MidpointRestAuthenticator.class);
 
-	@Autowired(required = true)
-	private SecurityEnforcer securityEnforcer;
-
-	@Autowired(required = true)
-	private SecurityHelper securityHelper;
-
-	@Autowired(required=true)
-	private TaskManager taskManager;
-
-	@Autowired(required=true)
-	private ModelService model;
+	@Autowired private SecurityContextManager securityContextManager;
+	@Autowired private SecurityEnforcer securityEnforcer;
+	@Autowired private SecurityHelper securityHelper;
+	@Autowired private TaskManager taskManager;
+	@Autowired private ModelService model;
 
 	protected abstract AuthenticationEvaluator<T> getAuthenticationEvaluator();
 	protected abstract T createAuthenticationContext(AuthorizationPolicy policy, ContainerRequestContext requestCtx);
@@ -161,7 +153,7 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 
 	   private boolean authorizeUser(UserType user, PrismObject<UserType> proxyUser, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx) {
 	    	try {
-	        	securityEnforcer.setupPreAuthenticatedSecurityContext(user.asPrismObject());
+	    		securityContextManager.setupPreAuthenticatedSecurityContext(user.asPrismObject());
 	        } catch (SchemaException e) {
 				securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Schema error: "+e.getMessage());
 				requestCtx.abortWith(Response.status(Status.BAD_REQUEST).build());
@@ -173,27 +165,30 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 	        return authorizeUser(AuthorizationConstants.AUTZ_REST_ALL_URL, user, null, enteredUsername, connEnv, requestCtx);
 	    }
 
-	    private boolean authorizeUser(String authorization, UserType user, PrismObject<UserType> proxyUser, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx){
-	    	OperationResult authorizeResult = new OperationResult("Rest authentication/authorization operation.");
+	    private boolean authorizeUser(String authorization, UserType user, PrismObject<UserType> proxyUser, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx) {
+	    	Task task = taskManager.createTaskInstance(MidpointRestAuthenticator.class.getName() + ".authorizeUser");
 	    	try {
-				securityEnforcer.authorize(authorization, null, proxyUser, null, null, null, authorizeResult);
+	    		securityEnforcer.authorize(authorization, null, proxyUser, null, null, null, task, task.getResult());
 			} catch (SecurityViolationException e){
 				securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Not authorized");
 				requestCtx.abortWith(Response.status(Status.FORBIDDEN).build());
 				return false;
-			} catch (SchemaException e) {
-				securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Schema error: "+e.getMessage());
+			} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
+				securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Internal error: "+e.getMessage());
 				requestCtx.abortWith(Response.status(Status.BAD_REQUEST).build());
 				return false;
 			}
 	    	return true;
 	    }
 
+	    public SecurityContextManager getSecurityContextManager() {
+			return securityContextManager;
+		}
+
 	    public SecurityEnforcer getSecurityEnforcer() {
 			return securityEnforcer;
 		}
-
-	    public ModelService getModel() {
+		public ModelService getModel() {
 			return model;
 		}
 

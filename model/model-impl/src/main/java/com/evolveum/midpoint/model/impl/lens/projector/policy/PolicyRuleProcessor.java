@@ -263,7 +263,7 @@ public class PolicyRuleProcessor {
 		LOGGER.trace("Checking {} global policy rules", globalPolicyRuleList.size());
 		for (GlobalPolicyRuleType globalPolicyRule: globalPolicyRuleList) {
 			ObjectSelectorType focusSelector = globalPolicyRule.getFocusSelector();
-			if (repositoryService.selectorMatches(focusSelector, focus, LOGGER, "Global policy rule "+globalPolicyRule.getName()+": ")) {
+			if (repositoryService.selectorMatches(focusSelector, focus, null, LOGGER, "Global policy rule "+globalPolicyRule.getName()+": ")) {
 				if (isRuleConditionTrue(globalPolicyRule, focus, null, context, task, result)) {
 					rules.add(new EvaluatedPolicyRuleImpl(globalPolicyRule, null, prismContext));
 				} else {
@@ -492,7 +492,7 @@ public class PolicyRuleProcessor {
 		LOGGER.trace("Checking {} global policy rules for selection to assignments", globalPolicyRuleList.size());
 		for (GlobalPolicyRuleType globalPolicyRule: systemConfiguration.asObjectable().getGlobalPolicyRule()) {
 			ObjectSelectorType focusSelector = globalPolicyRule.getFocusSelector();
-			if (!repositoryService.selectorMatches(focusSelector, focus, LOGGER,
+			if (!repositoryService.selectorMatches(focusSelector, focus, null, LOGGER,
 					"Global policy rule "+globalPolicyRule.getName()+" focus selector: ")) {
 				LOGGER.trace("Skipping global policy rule {} because focus selector did not match: {}", globalPolicyRule.getName(), globalPolicyRule);
 				continue;
@@ -507,7 +507,7 @@ public class PolicyRuleProcessor {
 						continue;
 					}
 					if (!repositoryService.selectorMatches(globalPolicyRule.getTargetSelector(),
-							target.getTarget(), LOGGER, "Global policy rule "+globalPolicyRule.getName()+" target selector: ")) {
+							target.getTarget(), null, LOGGER, "Global policy rule "+globalPolicyRule.getName()+" target selector: ")) {
 						LOGGER.trace("Skipping global policy rule {} because target selector did not match: {}", globalPolicyRule.getName(), globalPolicyRule);
 						continue;
 					}

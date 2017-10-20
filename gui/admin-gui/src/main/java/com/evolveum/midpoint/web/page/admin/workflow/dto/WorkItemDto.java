@@ -424,7 +424,7 @@ public class WorkItemDto extends Selectable {
 			Class<? extends ObjectType> clazz = ObjectTypes.getObjectTypeFromTypeQName(delta.getObjectType())
 					.getClassDefinition();
 			Task task = pageBase.createSimpleTask("getObject");
-			PrismObject<?> object = pageBase.getSecurityEnforcer().runPrivileged(() ->
+			PrismObject<?> object = pageBase.runPrivileged(() ->
 					WebModelServiceUtils.loadObject(clazz, oid, pageBase, task, task.getResult()));
 			if (object != null) {
 				focus = (ObjectType) object.asObjectable();

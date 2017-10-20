@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 Evolveum
+ * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,9 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -77,7 +77,7 @@ public class SchemaTransformer {
 	public <T extends ObjectType> void applySchemasAndSecurityToObjectTypes(List<T> objectTypes,
 			GetOperationOptions rootOptions, Collection<SelectorOptions<GetOperationOptions>> options,
 			AuthorizationPhaseType phase, Task task, OperationResult result)
-					throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException {
+					throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 		for (int i = 0; i < objectTypes.size(); i++) {
 			PrismObject<T> object = (PrismObject<T>) objectTypes.get(i).asPrismObject();
 			object = object.cloneIfImmutable();
@@ -103,7 +103,7 @@ public class SchemaTransformer {
 	public <C extends Containerable, T extends ObjectType>
 	SearchResultList<C> applySchemasAndSecurityToContainers(SearchResultList<C> originalResultList, Class<T> parentObjectType, QName childItemName,
 			GetOperationOptions rootOptions, Collection<SelectorOptions<GetOperationOptions>> options, AuthorizationPhaseType phase, Task task, OperationResult result)
-			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ConfigurationException {
+			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
 
 		List<C> newValues = new ArrayList<>();
 		Map<PrismObject<T>,Object> processedParents = new IdentityHashMap<>();
@@ -146,7 +146,7 @@ public class SchemaTransformer {
 		OperationResult subresult = new OperationResult(SchemaTransformer.class.getName()+".applySchemasAndSecurityToObjects");
 		try {
             applySchemasAndSecurity(object, rootOptions, options, phase, task, subresult);
-        } catch (IllegalArgumentException|IllegalStateException|SchemaException |ConfigurationException |ObjectNotFoundException e) {
+        } catch (IllegalArgumentException|IllegalStateException|SchemaException |ConfigurationException |ObjectNotFoundException | ExpressionEvaluationException e) {
             LOGGER.error("Error post-processing object {}: {}", object, e.getMessage(), e);
             OperationResultType fetchResult = object.asObjectable().getFetchResult();
             if (fetchResult == null) {
@@ -164,32 +164,32 @@ public class SchemaTransformer {
         }
 	}
 	
-	private <O extends ObjectType> void authorizeOptions(GetOperationOptions rootOptions, PrismObject<O> object, ObjectDelta<O> delta, AuthorizationPhaseType phase, OperationResult result)
-			throws SchemaException, SecurityViolationException {
+	private <O extends ObjectType> void authorizeOptions(GetOperationOptions rootOptions, PrismObject<O> object, ObjectDelta<O> delta, AuthorizationPhaseType phase, Task task, OperationResult result)
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
 		if (GetOperationOptions.isRaw(rootOptions)) {
-			securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), phase, object, delta, null, null, result);
+			securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), phase, object, delta, null, null, task, result);
 		}
 	}
 
 	/**
 	 * Validate the objects, apply security to the object definition, remove any non-visible properties (security),
 	 * apply object template definitions and so on. This method is called for
-	 * any object that is returned from the Model Service.
+	 * any object that is returned from the Model Service. 
 	 */
 	public <O extends ObjectType> void applySchemasAndSecurity(PrismObject<O> object, GetOperationOptions rootOptions,
 			Collection<SelectorOptions<GetOperationOptions>> options,
 			AuthorizationPhaseType phase, Task task, OperationResult parentResult)
-					throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+					throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 		LOGGER.trace("applySchemasAndSecurity starting");
     	OperationResult result = parentResult.createMinorSubresult(SchemaTransformer.class.getName()+".applySchemasAndSecurity");
-    	authorizeOptions(rootOptions, object, null, phase, result);
+    	authorizeOptions(rootOptions, object, null, phase, task, result);
     	validateObject(object, rootOptions, result);
 
     	PrismObjectDefinition<O> objectDefinition = object.deepCloneDefinition(true);
 
     	ObjectSecurityConstraints securityConstraints;
     	try {
-	    	securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
+	    	securityConstraints = securityEnforcer.compileSecurityConstraints(object, null, task, result);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Security constraints for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
 			}
