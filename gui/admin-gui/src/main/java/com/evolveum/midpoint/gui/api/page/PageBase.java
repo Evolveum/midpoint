@@ -119,7 +119,6 @@ import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -158,7 +157,6 @@ import org.w3c.dom.Node;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
-import java.awt.*;
 import java.io.Serializable;
 import java.util.*;
 import java.util.List;
@@ -1044,10 +1042,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
-        Object scriptResult = executeResultScriptHook(result);
-        if (scriptResult instanceof OperationResult) {
-            result = (OperationResult) scriptResult;
+        OperationResult scriptResult = executeResultScriptHook(result);
+        if (scriptResult == null) {
+            return null;
         }
+
+        result = scriptResult;
 
         OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
         opResult.determineBackgroundTaskVisibility(this);
@@ -1095,10 +1095,15 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         OperationResult topResult = task.getResult();
         try {
             ExpressionFactory factory = getExpressionFactory();
-            Expression expression = factory.makeExpression(expressionType, null, contextDesc, task, topResult);
+            PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinitionImpl<>(
+                    ExpressionConstants.OUTPUT_ELEMENT_NAME, OperationResultType.COMPLEX_TYPE, getPrismContext());
+            Expression expression = factory.makeExpression(expressionType, outputDefinition, contextDesc, task, topResult);
 
             ExpressionVariables variables = new ExpressionVariables();
-            variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, result);
+
+            OperationResultType resultType = result.createOperationResultType();
+
+            variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, resultType);
 
             ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task, topResult);
             PrismValueDeltaSetTriple<PrismPropertyValue<?>> outputTriple = expression.evaluate(context);
@@ -1115,9 +1120,18 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 throw new SchemaException("Expression " + contextDesc + " produced more than one value");
             }
 
-            return values.iterator().next().getRealValue();
+            OperationResultType newResultType = values.iterator().next().getRealValue();
+            if (newResultType == null) {
+                return null;
+            }
+
+            return OperationResult.createOperationResult(newResultType);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
-            result.recordFatalError(e);
+            topResult.recordFatalError(e);
+            if (StringUtils.isEmpty(result.getMessage())) {
+                topResult.setMessage("Couldn't process operation result script hook.");
+            }
+            topResult.addSubresult(result);
             LoggingUtils.logUnexpectedException(LOGGER, contextDesc, e);
             if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
                 throw new SystemException(e.getMessage(), e);
