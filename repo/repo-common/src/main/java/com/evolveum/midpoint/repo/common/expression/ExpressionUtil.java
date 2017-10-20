@@ -219,6 +219,7 @@ public class ExpressionUtil {
 		}
 	}
 
+	// TODO what about collections of values?
 	public static Object convertVariableValue(Object originalValue, String variableName, ObjectResolver objectResolver,
 			String contextDescription, PrismContext prismContext, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
 		if (originalValue instanceof PrismValue) {

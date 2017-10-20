@@ -214,6 +214,9 @@ class DomToSchemaPostProcessor {
 		if (isPropertyContainer(complexType)) {
 			ctd.setContainerMarker(true);
 		}
+		if (isObjectReference(complexType)) {
+			ctd.setReferenceMarker(true);
+		}
 
 		ctd.setDefaultNamespace(getDefaultNamespace(complexType));
 		ctd.setIgnoredNamespaces(getIgnoredNamespaces(complexType));

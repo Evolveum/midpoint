@@ -20,7 +20,6 @@ import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -40,9 +39,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import static java.util.Collections.emptyMap;
 
 /**
  * @author mederly
@@ -78,9 +77,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
         try {
             task.startCollectingOperationStatsFromZero(true, false, true);
             task.setProgress(0);
-	        Map<String, Object> initialVariables = new HashMap<>();
-	        initialVariables.put(ExpressionConstants.VAR_TASK.getLocalPart(), task.getTaskPrismObject().asObjectable());
-            ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptProperty.getRealValue(), initialVariables, task, result);
+            ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptProperty.getRealValue(), emptyMap(), task, result);
             LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
             LOGGER.debug("Execution result:\n", executionResult.getConsoleOutput());
             result.computeStatus();
