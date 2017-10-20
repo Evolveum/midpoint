@@ -56,6 +56,7 @@ public class CaseWorkItemDto extends Selectable {
     public static final String F_STATE = "state";
     public static final String F_COMMENT = "comment";
     public static final String F_OUTCOME = "outcome";
+    public static final String F_PROOF = "proof";
 
     @NotNull private final CaseWorkItemType workItem;
 
@@ -97,12 +98,12 @@ public class CaseWorkItemDto extends Selectable {
         return _case;
     }
 
-    public String getComment() {
-        return WorkItemTypeUtil.getComment(workItem);
-    }
-
     public String getOutcome() {
         return WorkItemTypeUtil.getOutcome(workItem);
+    }
+
+    public String getComment() {
+        return WorkItemTypeUtil.getComment(workItem);
     }
 
     public void setComment(String value) {
@@ -110,6 +111,18 @@ public class CaseWorkItemDto extends Selectable {
             workItem.beginOutput().comment(value);
         } else {
             workItem.getOutput().comment(value);
+        }
+    }
+
+    public byte[] getProof() {
+        return WorkItemTypeUtil.getProof(workItem);
+    }
+
+    public void setProof(byte[] value) {
+        if (workItem.getOutput() == null) {
+            workItem.beginOutput().proof(value);
+        } else {
+            workItem.getOutput().proof(value);
         }
     }
 

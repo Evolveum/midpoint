@@ -20,18 +20,14 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.CaseManagementService;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -41,11 +37,10 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DefaultAjaxSubmitButton;
-import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
+import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseDto;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDto;
-import com.evolveum.midpoint.web.page.admin.workflow.WorkItemPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -56,13 +51,17 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.upload.FileUpload;
+import org.apache.wicket.markup.html.form.upload.FileUploadField;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Collection;
-import java.util.List;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OBJECT_REF;
@@ -88,6 +87,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
     private static final Trace LOGGER = TraceManager.getTrace(PageCaseWorkItem.class);
 	private static final String ID_DELTA_PANEL = "deltaPanel";
 	private static final String ID_MAIN_FORM = "mainForm";
+	private static final String ID_CASE_WORK_ITEM_FORM = "caseWorkItemForm";
 	private static final String ID_CASE_NAME = "caseName";
 	private static final String ID_CASE_DESCRIPTION = "caseDescription";
 	private static final String ID_CASE_RESOURCE = "caseResource";
@@ -104,6 +104,9 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 	private static final String ID_CASE_WORK_ITEM_DEADLINE = "caseWorkItemDeadline";
 	private static final String ID_CASE_WORK_ITEM_OUTCOME = "caseWorkItemOutcome";
 	private static final String ID_CASE_WORK_ITEM_COMMENT = "caseWorkItemComment";
+	private static final String ID_CASE_WORK_ITEM_FORM_COMMENT = "caseWorkItemFormComment";
+	private static final String ID_CASE_WORK_ITEM_FORM_PROOF = "caseWorkItemFormProof";
+	private static final String ID_CASE_WORK_ITEM_PROOF = "caseWorkItemProof";
 	private static final String ID_BACK_BUTTON = "backButton";
 	private static final String ID_CLOSE_CASE_BUTTON = "closeCaseButton";
 
@@ -154,9 +157,6 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 		OperationResult result = task.getResult();
 		CaseDto caseDto = null;
 		try {
-			final ObjectQuery query = QueryBuilder.queryFor(CaseType.class, getPrismContext())
-					.id(caseId)
-					.build();
 			final Collection<SelectorOptions<GetOperationOptions>> options =
 					resolveItemsNamed(F_OBJECT_REF);
 			PrismObject<CaseType> caseObject = WebModelServiceUtils.loadObject(CaseType.class, caseId, options,
@@ -217,13 +217,39 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 		mainForm.add(new Label(ID_CASE_STATE, new PropertyModel<>(caseDtoModel, CaseDto.F_STATE)));
 
 		// Case Work Item Details
-//		mainForm.add(new Label(ID_CASE_WORK_ITEM_NAME, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_NAME)));
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_ASSIGNEES, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_ASSIGNEES)));
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_ORIGINAL_ASSIGNEE, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_ORIGINAL_ASSIGNEE)));
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_CLOSE_TIMESTAMP, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_CLOSE_TIMESTAMP)));
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_DEADLINE, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_DEADLINE)));
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_OUTCOME, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_OUTCOME)));
-		mainForm.add(new TextArea<>(ID_CASE_WORK_ITEM_COMMENT, new PropertyModel<String>(caseWorkItemDtoModel, CaseWorkItemDto.F_COMMENT)));
+		mainForm.add(new Label(ID_CASE_WORK_ITEM_COMMENT, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_COMMENT)));
+		Panel proofPanel = new UploadDownloadPanel(ID_CASE_WORK_ITEM_PROOF, true){
+			@Override
+			public InputStream getStream() {
+				return new ByteArrayInputStream(caseWorkItemDtoModel.getObject().getProof());
+			}
+		};
+		proofPanel.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return caseWorkItemDtoModel.getObject().getProof() != null;
+			}
+		});
+		mainForm.add(proofPanel);
+
+		// Case Work Item Form
+		WebMarkupContainer caseWorkItemForm = new WebMarkupContainer(ID_CASE_WORK_ITEM_FORM);
+		TextArea commentField = new TextArea<>(ID_CASE_WORK_ITEM_FORM_COMMENT, new PropertyModel<String>(caseWorkItemDtoModel, CaseWorkItemDto.F_COMMENT));
+		caseWorkItemForm.add(commentField);
+		FileUploadField proofUpload = new FileUploadField(ID_CASE_WORK_ITEM_FORM_PROOF);
+		caseWorkItemForm.add(proofUpload);
+		caseWorkItemForm.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return caseDtoModel.getObject().getState() == null || !caseDtoModel.getObject().getState().equals(SchemaConstants.CASE_STATE_CLOSED);
+			}
+		});
+		mainForm.add(caseWorkItemForm);
 
 		initDeltaPanel(mainForm);
         initButtons(mainForm);
@@ -256,7 +282,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				cancelPerformed(target);
+				cancelPerformed();
 			}
 		};
 		mainForm.add(back);
@@ -272,7 +298,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 		mainForm.add(closeCase);
     }
 
-    private void cancelPerformed(AjaxRequestTarget target) {
+    private void cancelPerformed() {
         redirectBack();
     }
 
@@ -280,11 +306,19 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
         OperationResult result = new OperationResult(OPERATION_SAVE_CASE_WORK_ITEM);
         Task task = createSimpleTask(OPERATION_SAVE_CASE_WORK_ITEM);
         try {
+
 			CaseWorkItemDto dto = caseWorkItemDtoModel.getObject();
 			CaseManagementService cms = getCaseManagementService();
 			AbstractWorkItemOutputType output = new AbstractWorkItemOutputType()
 					.comment(dto.getComment())
 					.outcome("SUCCESS");
+			FileUploadField proofUploadField = (FileUploadField) get(ID_MAIN_FORM).get(ID_CASE_WORK_ITEM_FORM).get(ID_CASE_WORK_ITEM_FORM_PROOF);
+			if (proofUploadField != null) {
+				FileUpload proof = proofUploadField.getFileUpload();
+				if (proof != null) {
+					output = output.proof(proof.getBytes());
+				}
+			}
 			cms.completeWorkItem(caseId, caseWorkItemId, output, task, result);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't close case work item.", ex);

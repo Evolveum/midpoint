@@ -47,6 +47,16 @@
                                 <td><wicket:message key="PageCaseWorkItem.caseWorkItem.closeTimestamp"/></td>
                                 <td><div wicket:id="caseWorkItemCloseTimestamp" /></td>
                             </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.caseWorkItem.proof"/></td>
+                                <td>
+                                    <div wicket:id="caseWorkItemProof"></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><wicket:message key="PageCaseWorkItem.caseWorkItem.comment"/></td>
+                                <td><div wicket:id="caseWorkItemComment" /></td>
+                            </tr>
                         </table>
                     </div>
                 </div>
@@ -93,9 +103,14 @@
             </div>
         </div>
 
-        <h3><wicket:message key="PageCaseWorkItem.caseWorkItem.comment"/></h3>
-        <textarea wicket:id="caseWorkItemComment" class="form-control input-sm" rows="2"></textarea>
-        <p/>
+        <div  wicket:id="caseWorkItemForm">
+            <h4><wicket:message key="PageCaseWorkItem.caseWorkItem.comment"/></h4>
+            <textarea wicket:id="caseWorkItemFormComment" class="form-control input-sm" rows="2"></textarea>
+            <p/>
+            <h4><wicket:message key="PageCaseWorkItem.caseWorkItem.proof"/></h4>
+            <input type="file" wicket:id="caseWorkItemFormProof" class="input-sm"/>
+            <p/>
+        </div>
 
         <div class="main-button-bar" style="padding-top: 15px">     <!-- TODO some implicit way of inserting the padding? -->
             <a class="btn btn-default" wicket:id="backButton" />
