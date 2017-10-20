@@ -823,14 +823,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 				source.recompute();
 
 				// Override existing sources (e.g. default source)
-				Iterator<Source<?,?>> iterator = sources.iterator();
-				while (iterator.hasNext()) {
-					Source<?,?> next = iterator.next();
-					if (next.getName().equals(source.getName())) {
-						iterator.remove();
-					}
-				}
-
+				sources.removeIf(next -> next.getName().equals(source.getName()));
 				sources.add(source);
 			}
 		}

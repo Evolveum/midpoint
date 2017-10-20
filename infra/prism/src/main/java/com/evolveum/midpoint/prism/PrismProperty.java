@@ -275,6 +275,12 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
     	addValue(pval);
     }
 
+    public void addRealValues(T... valuesToAdd) {
+	    for (T valueToAdd : valuesToAdd) {
+		    addRealValue(valueToAdd);
+	    }
+    }
+
     public boolean deleteValues(Collection<PrismPropertyValue<T>> pValuesToDelete) {
 		checkMutability();
 		boolean changed = false;

@@ -97,8 +97,8 @@ public class PrismObjectValue<O extends Objectable> extends PrismContainerValue<
 
 	@Override
 	public PrismObjectValue<O> clone() {
-		PrismObjectValue<O> clone = new PrismObjectValue<O>(
-				getOriginType(), getOriginObject(), getParent(), getId(), null, this.prismContext, oid, version);
+		PrismObjectValue<O> clone = new PrismObjectValue<>(
+				getOriginType(), getOriginObject(), getParent(), getId(), complexTypeDefinition, this.prismContext, oid, version);
 		copyValues(clone);
 		return clone;
 	}

@@ -412,31 +412,6 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		}
 	}
 
-	public <O extends ObjectType> void collectDeleteDelta(ObjectDelta<O> delta,  PrismContext prismContext) throws SchemaException {
-
-		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
-			if (ValueStatus.DELETED.equals(itemWrapper.getStatus())){
-				ContainerDelta<C> containerDelta = new ContainerDelta(ItemPath.EMPTY_PATH, itemWrapper.getDefinition().getName(),
-						itemWrapper.getDefinition(), prismContext);
-				containerDelta.addValuesToDelete(itemWrapper.getContainerValue().clone());
-				delta.addModification(containerDelta);
-			}
-		}
-	}
-
-	public <O extends ObjectType> void collectAddDelta(ObjectDelta<O> delta, PrismContext prismContext) throws SchemaException {
-		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
-			if (ValueStatus.ADDED.equals(itemWrapper.getStatus())) {
-				ContainerDelta<C> containerDelta = new ContainerDelta(ItemPath.EMPTY_PATH, itemWrapper.getDefinition().getName(),
-						itemWrapper.getDefinition(), prismContext);
-				containerDelta.addValueToAdd(itemWrapper.getContainerValue().clone());
-				if (!containerDelta.isEmpty()){
-					delta.addModification(containerDelta);
-				}
-			}
-		}
-	}
-
 	@Override
 	public boolean checkRequired(PageBase pageBase) {
 		boolean rv = true;

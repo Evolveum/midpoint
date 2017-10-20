@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -116,10 +117,36 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 				editValuePerformed(values, target);
 			}
 		};
+		
+		edit.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isEnabled() {
+				return isEditButtonEnabled();
+			}
+		});
 		textWrapper.add(edit);
 		add(textWrapper);
 
         initButtons();
+    }
+    
+    protected boolean isEditButtonEnabled() {
+    	T value = getModelObject();
+    	
+    	if (value == null) {
+    		return true;
+    	}
+    	
+    	if (value instanceof PrismReferenceValue) {
+    		return ((PrismReferenceValue) value).isEmpty();
+    	}
+    	
+    	if (value instanceof ObjectReferenceType) {
+    		PrismReferenceValue refVal = ((ObjectReferenceType) value).asReferenceValue();
+    		return refVal.isEmpty();
+    	}
+    	
+    	return false;
     }
 
 	protected void replaceIfEmpty(ObjectType object) {
@@ -134,18 +161,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 		ObjectQuery query = new ObjectQuery();
 		// TODO we should add to filter currently displayed value
 		// not to be displayed on ObjectSelectionPanel instead of saved value
-		// for (PrismReferenceValue ref : values) {
-		// if (ref != null) {
-		// if (ref.getOid() != null && !ref.getOid().isEmpty()) {
-		// oidList.add(ref.getOid());
-		// }
-		// }
-		// }
-
-		// if (isediting) {
-		// oidList.add(orgModel.getObject().getObject().asObjectable().getOid());
-		// }
-
+		
 		if (oidList.isEmpty()) {
 			ObjectFilter customFilter = createCustomFilter();
 			if (customFilter != null) {

@@ -103,6 +103,54 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="ScriptingVariablesDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of scripting variables.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="variable" type="tns:ScriptingVariableDefinitionType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- This is similar to c:VariableBindingDefinitionType but it might be defined not only by path but by any other expression.
+         Also, the "set" item (of ValueSetDefinitionType) has no meaning here. So we decided to create a separate data type
+         for this variable definition -->
+    <xsd:complexType name="ScriptingVariableDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of a scripting variable.
+                Expression types other than path-based ones are to be considered EXPERIMENTAL.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" />
+            <xsd:element name="description" type="xsd:string" minOccurs="0" />
+            <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the variable. Can be omitted for path expressions. EXPERIMENTAL.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Multiplicity specification. Can be omitted for path expressions. EXPERIMENTAL.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="expression" type="c:ExpressionType" />
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:element name="scriptingExpression" type="tns:ScriptingExpressionType"  />        <!-- constants have to be treated separately -->
     <xsd:element name="expression" type="tns:ScriptingExpressionType" substitutionGroup="tns:scriptingExpression">
 		<xsd:annotation>
@@ -476,6 +524,13 @@
             <xsd:element ref="tns:scriptingExpression"/>
             <xsd:element name="input" type="tns:ValueListType" minOccurs="0"/>
             <xsd:element name="options" type="tns:ScriptingExpressionEvaluationOptionsType" minOccurs="0"/>
+            <xsd:element name="variables" type="tns:ScriptingVariablesDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="executeScript" type="tns:ExecuteScriptType" />		<!-- collides with executeScript in extension, but let's ignore it for the moment -->

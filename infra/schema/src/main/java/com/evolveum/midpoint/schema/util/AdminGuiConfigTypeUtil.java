@@ -121,6 +121,10 @@ public class AdminGuiConfigTypeUtil {
 				}
 			}
 		}
+
+		if (adminGuiConfiguration.getFeedbackMessagesHook() != null) {
+			composite.setFeedbackMessagesHook(adminGuiConfiguration.getFeedbackMessagesHook().clone());
+		}
 	}
 
 	private static void joinForms(ObjectFormsType objectForms, ObjectFormType newForm) {

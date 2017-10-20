@@ -38,6 +38,7 @@
 	<name>Create user</name>
 	<extension xmlns:se="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
 			   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			   xsi:type="c:ExtensionType">
 		<se:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
 			<s:action>
@@ -51,6 +52,14 @@
 					<familyName>Doe</familyName>
 				</s:value>
 			</s:input>
+			<s:variables>
+				<s:variable>
+					<s:name>test</s:name>
+					<s:expression>
+						<c:value xsi:type="xsd:int">12345</c:value>
+					</s:expression>
+				</s:variable>
+			</s:variables>
 		</se:executeScript>
 	</extension>
 	<taskIdentifier>1507208317101:451769069</taskIdentifier>

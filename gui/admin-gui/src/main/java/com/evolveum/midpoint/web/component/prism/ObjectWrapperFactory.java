@@ -16,25 +16,42 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinitionImpl;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
-import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -47,16 +64,22 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHistoryEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SubjectedObjectSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-
-import org.apache.commons.lang.Validate;
-
-import javax.xml.namespace.QName;
-
-import java.util.*;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -266,33 +289,53 @@ public class ObjectWrapperFactory {
 			ContainerWrapperFactory cwf = new ContainerWrapperFactory(modelServiceLocator);
 
 			PrismContainer prismContainer = parentContainer.findContainer(def.getName());
-
-			ContainerWrapper<C> container;
-			if (prismContainer != null) {
-				container = cwf.createContainerWrapper(prismContainer, ContainerStatus.MODIFYING, newPath);
-			} else {
-				prismContainer = containerDef.instantiate();
-				container = cwf.createContainerWrapper(prismContainer, ContainerStatus.ADDING, newPath);
-			}
 			
-			 if (SchemaConstants.PATH_ASSOCIATION.equivalent(newPath)) {
-		        	ObjectFilter filter = getAssociationsSearchFilter((PrismObject<ShadowType>) oWrapper.getObject());
-		        	
-		        	container.setFilter(filter);
-		        	
-		        	container.getValues().forEach(containerValueWrapper -> {
-		        		ReferenceWrapper shadowRefWrapper = (ReferenceWrapper) containerValueWrapper.findPropertyWrapper(ShadowAssociationType.F_SHADOW_REF);
-		        		if (shadowRefWrapper != null) {
-		        			shadowRefWrapper.setFilter(filter);
-		        		}
-		        	});
-
-			 }
-
-			 result.addSubresult(cwf.getResult());
+			ContainerWrapper<C>  container = createContainerWrapper(oWrapper.getObject(), prismContainer, containerDef, cwf, newPath);
+			result.addSubresult(cwf.getResult());
+			if (container != null) {
 				containerWrappers.add(container);
+			}
 				
 		}
+	}
+	
+	private <O extends ObjectType, C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismObject<O> object, PrismContainer<C> prismContainer, PrismContainerDefinition<C> containerDef, ContainerWrapperFactory cwf, ItemPath newPath) throws SchemaException{
+		if (ShadowAssociationType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {
+			ObjectType objectType = object.asObjectable();
+			ShadowType shadow = null;
+			if (objectType instanceof ShadowType) {
+				shadow = (ShadowType) objectType;
+			} else {
+				throw new SchemaException("Something very strange happenned. Association contianer in the " + objectType.getClass().getSimpleName() + "?");
+			}
+			Task task = modelServiceLocator.createSimpleTask("Load resource ref");
+			//TODO: is it safe to case modelServiceLocator to pageBase?
+			PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(shadow.getResourceRef(), (PageBase) modelServiceLocator, task, result);
+			
+			result.computeStatusIfUnknown();
+			if (!result.isAcceptable()) {
+				LOGGER.error("Cannot find resource referenced from shadow. {}", result.getMessage());
+				result.recordPartialError("Could not find resource referenced from shadow.");
+				return null;
+			}
+			
+			ContainerWrapper<C> container;
+			if (prismContainer != null) {
+				return (ContainerWrapper<C>) cwf.createAssociationWrapper(resource, shadow.getKind(), shadow.getIntent(), (PrismContainer<ShadowAssociationType>) prismContainer, ContainerStatus.MODIFYING, newPath);
+			}
+			prismContainer = containerDef.instantiate();
+			return (ContainerWrapper<C>) cwf.createAssociationWrapper(resource, shadow.getKind(), shadow.getIntent(), (PrismContainer<ShadowAssociationType>) prismContainer, ContainerStatus.ADDING, newPath);
+			
+		}
+
+		ContainerWrapper<C> container;
+		if (prismContainer != null) {
+			return cwf.createContainerWrapper(prismContainer, ContainerStatus.MODIFYING, newPath);
+		}
+		
+		prismContainer = containerDef.instantiate();
+		return cwf.createContainerWrapper(prismContainer, ContainerStatus.ADDING, newPath);
+		
 	}
 	
 	 private ObjectFilter getAssociationsSearchFilter(PrismObject<ShadowType> shadow) {

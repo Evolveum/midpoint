@@ -45,6 +45,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 
 	private static final long serialVersionUID = 2655797837209175037L;
 	@NotNull private final List<ItemDefinition> itemDefinitions = new ArrayList<>();
+	private boolean referenceMarker;
 	private boolean containerMarker;
 	private boolean objectMarker;
 	private boolean xsdAnyMarker;
@@ -97,6 +98,15 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 
 	public void setExtensionForType(QName extensionForType) {
 		this.extensionForType = extensionForType;
+	}
+
+	@Override
+	public boolean isReferenceMarker() {
+		return referenceMarker;
+	}
+
+	public void setReferenceMarker(boolean referenceMarker) {
+		this.referenceMarker = referenceMarker;
 	}
 
 	@Override
