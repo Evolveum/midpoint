@@ -772,7 +772,7 @@ public class LensUtil {
 			LensElementContext<?> accountContext, IterationSpecificationType iterationType,
 			int iteration, ExpressionFactory expressionFactory, ExpressionVariables variables,
 			Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (iterationType == null) {
 			return formatIterationTokenDefault(iteration);
 		}
@@ -822,7 +822,7 @@ public class LensUtil {
     		LensElementContext<?> accountContext, IterationSpecificationType iterationType,
     		int iteration, String iterationToken, boolean beforeIteration,
 			ExpressionFactory expressionFactory, ExpressionVariables variables, Task task, OperationResult result)
-					throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+					throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (iterationType == null) {
 			return true;
 		}
@@ -1296,7 +1296,7 @@ public class LensUtil {
 	public static boolean evaluateBoolean(ExpressionType expressionBean, ExpressionVariables expressionVariables,
 			String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
 			OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
 				task, result,
 				DOMUtil.XSD_BOOLEAN, false);
@@ -1305,7 +1305,7 @@ public class LensUtil {
 	public static String evaluateString(ExpressionType expressionBean, ExpressionVariables expressionVariables,
 			String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
 			OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
 				task, result,
 				DOMUtil.XSD_STRING, null);
@@ -1315,7 +1315,7 @@ public class LensUtil {
 			String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
 			OperationResult result, QName typeName,
 			T defaultValue)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PrismPropertyDefinition<T> resultDef = new PrismPropertyDefinitionImpl<>(
 				new QName(SchemaConstants.NS_C, "result"), typeName, prismContext);
 		Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =

@@ -1166,7 +1166,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			decisions =
 					pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(operationObject, targetRefObject, task, result);
 
-		} catch (SchemaException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException ex){
+		} catch (SchemaException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException ex){
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security decisions for assignment items.", ex);
 		}
 		return decisions;

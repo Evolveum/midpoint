@@ -116,11 +116,11 @@ public interface ModelInteractionService {
      * @param object object to edit
      * @return schema with correctly set constraint parts or null
      */
-    <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException;
+    <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
 
-    PrismObjectDefinition<ShadowType> getEditShadowDefinition(ResourceShadowDiscriminator discr, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException;
+    PrismObjectDefinition<ShadowType> getEditShadowDefinition(ResourceShadowDiscriminator discr, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
 
-    RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException;
+    RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
     /**
      * <p>
@@ -141,7 +141,7 @@ public interface ModelInteractionService {
      *
      * @param focus Object of the operation. The object (usually user) to whom the roles should be assigned.
      */
-    <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException;
+    <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
 
     /**
      * TODO
@@ -159,7 +159,7 @@ public interface ModelInteractionService {
      * @param object object of the operation (user)
      * @param target target of the operation (role, org, service that is being assigned)
      */
-    <O extends ObjectType,R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException;
+    <O extends ObjectType,R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     SecurityPolicyType getSecurityPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
@@ -258,8 +258,8 @@ public interface ModelInteractionService {
 	 * @return
 	 * @throws ExpressionEvaluationException
 	 */
-	<O extends ObjectType> String generateValue(StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
-			PrismObject<O> object, String shortDesc, Task task, OperationResult inputResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException;
+	<O extends ObjectType> String generateValue(ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
+			PrismObject<O> object, String shortDesc, Task task, OperationResult inputResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	<O extends ObjectType> void generateValue(
 			PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task, OperationResult parentResult) throws ObjectNotFoundException,

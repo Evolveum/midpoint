@@ -30,6 +30,8 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -91,7 +93,7 @@ public class WorkItemManager {
 
     public void completeWorkItem(String workItemId, String outcome, String comment, ObjectDelta additionalDelta,
 			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult)
-			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_COMPLETE_WORK_ITEM);
         result.addParam("workItemId", workItemId);
@@ -136,7 +138,7 @@ public class WorkItemManager {
 			//formService.submitTaskFormData(workItemId, propertiesToSubmit);
 			Map<String, Object> variables = new HashMap<>(propertiesToSubmit);
 			taskService.complete(workItemId, variables, true);
-		} catch (SecurityViolationException|SchemaException|RuntimeException e) {
+		} catch (SecurityViolationException | SchemaException | RuntimeException | CommunicationException | ConfigurationException e) {
 			result.recordFatalError("Couldn't complete the work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
 		} finally {
@@ -234,7 +236,7 @@ public class WorkItemManager {
 	public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
 			WorkItemEscalationLevelType escalation, Duration newDuration, WorkItemEventCauseInformationType causeInformation,
 			OperationResult parentResult)
-			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException {
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEM);
 		result.addParam("workItemId", workItemId);
 		result.addArbitraryObjectAsParam("escalation", escalation);
@@ -314,7 +316,7 @@ public class WorkItemManager {
 			WorkItemAllocationChangeOperationInfo operationInfoAfter =
 					new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputiesBefore, assigneesAndDeputiesAfter);
 			wfTaskController.notifyWorkItemAllocationChangeNewActors(workItemAfter, operationInfoAfter, sourceInfo, wfTaskAfter, result);
-		} catch (SecurityViolationException|RuntimeException|ObjectNotFoundException|SchemaException e) {
+		} catch (SecurityViolationException | RuntimeException | ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException e) {
 			result.recordFatalError("Couldn't delegate/escalate work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
 		} finally {

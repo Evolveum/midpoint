@@ -30,6 +30,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -234,7 +236,7 @@ public class PageTaskController implements Serializable {
 					WebComponentUtil.getOrigStringFromPoly(SecurityUtils.getPrincipalUser().getName()),
 					task, result);
 			result.computeStatusIfUnknown();
-		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException | RuntimeException e) {
+		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop approval process instance {}", e, instanceId);
 			result.recordFatalError("Couldn't stop approval process instance " + instanceId + ": " + e.getMessage(), e);
 		}

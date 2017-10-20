@@ -22,6 +22,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -133,7 +135,7 @@ public class PageBulkAction extends PageAdminConfiguration {
                         getScriptingService().evaluateExpressionInBackground((ScriptingExpressionType) parsed, task, result);
                     }
                     result.recordStatus(OperationResultStatus.IN_PROGRESS, task.getName() + " has been successfully submitted to execution");
-                } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException e) {
+                } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
                     result.recordFatalError("Couldn't submit bulk action to execution", e);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit bulk action to execution", e);
                 }
@@ -147,7 +149,7 @@ public class PageBulkAction extends PageAdminConfiguration {
                     result.recordStatus(OperationResultStatus.SUCCESS, "Action executed. Returned " + executionResult.getDataOutput().size() + " item(s). Console and data output available via 'Export to XML' function.");
                     result.addReturn("console", executionResult.getConsoleOutput());
                     result.addArbitraryObjectCollectionAsReturn("data", executionResult.getDataOutput());
-                } catch (ScriptExecutionException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException e) {
+                } catch (ScriptExecutionException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
                     result.recordFatalError("Couldn't execute bulk action", e);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute bulk action", e);
                 }

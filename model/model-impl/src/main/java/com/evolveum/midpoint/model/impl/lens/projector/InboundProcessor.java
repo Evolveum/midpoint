@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.Source;
-import com.evolveum.midpoint.repo.common.expression.StringPolicyResolver;
+import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
 import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.common.filter.FilterManager;
 import com.evolveum.midpoint.common.refinery.PropertyLimitations;
@@ -223,7 +223,7 @@ public class InboundProcessor {
 	private <F extends FocusType> boolean processAttributeInbound(QName accountAttributeName,
 			ObjectDelta<ShadowType> aPrioriProjectionDelta, final LensProjectionContext projContext,
             RefinedObjectClassDefinition projectionDefinition, final LensContext<F> context,
-            XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
+            XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, CommunicationException {
 
 		PrismObject<ShadowType> projCurrent = projContext.getObjectCurrent();
         PrismObject<ShadowType> projNew = projContext.getObjectNew();
@@ -341,7 +341,7 @@ public class InboundProcessor {
 	private <F extends FocusType> void processAuxiliaryObjectClassInbound(
 			ObjectDelta<ShadowType> aPrioriProjectionDelta, final LensProjectionContext projContext,
             RefinedObjectClassDefinition projectionDefinition, final LensContext<F> context,
-            XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
+            XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, CommunicationException {
 
         ResourceBidirectionalMappingAndDefinitionType auxiliaryObjectClassMappings = projectionDefinition.getAuxiliaryObjectClassMappings();
         if (auxiliaryObjectClassMappings == null) {
@@ -506,7 +506,7 @@ public class InboundProcessor {
     private <A, F extends FocusType, V extends PrismValue,D extends ItemDefinition> ItemDelta<V,D> evaluateInboundMapping(final LensContext<F> context,
     		MappingType inboundMappingType,
     		QName accountAttributeName, PrismProperty<A> oldAccountProperty, PropertyDelta<A> attributeAPrioriDelta,
-            PrismObject<F> focusNew, PrismObject<ShadowType> account, ResourceType resource, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, ConfigurationException {
+            PrismObject<F> focusNew, PrismObject<ShadowType> account, ResourceType resource, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException, CommunicationException {
 
     	if (oldAccountProperty != null && oldAccountProperty.hasRaw()) {
         	throw new SystemException("Property "+oldAccountProperty+" has raw parsing state, such property cannot be used in inbound expressions");
@@ -528,7 +528,7 @@ public class InboundProcessor {
     			.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account)
 				.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account)
 				.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource)
-				.stringPolicyResolver(createStringPolicyResolver(context, task, result))
+				.valuePolicyResolver(createStringPolicyResolver(context, task, result))
 				.originType(OriginType.INBOUND)
 				.originObject(resource)
 				.build();
@@ -668,8 +668,8 @@ public class InboundProcessor {
         return outputFocusItemDelta.isEmpty() ? null : outputFocusItemDelta;
     }
 
-	private <F extends ObjectType> StringPolicyResolver createStringPolicyResolver(final LensContext<F> context, final Task task, final OperationResult result) {
-		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+	private <F extends ObjectType> ValuePolicyResolver createStringPolicyResolver(final LensContext<F> context, final Task task, final OperationResult result) {
+		ValuePolicyResolver stringPolicyResolver = new ValuePolicyResolver() {
 			private ItemPath outputPath;
 			private ItemDefinition outputDefinition;
 			@Override
@@ -683,7 +683,7 @@ public class InboundProcessor {
 			}
 
 			@Override
-			public StringPolicyType resolve() {
+			public ValuePolicyType resolve() {
 				if (!outputDefinition.getName().equals(PasswordType.F_VALUE)) {
 					return null;
 				}
@@ -691,7 +691,7 @@ public class InboundProcessor {
 				if (passwordPolicy == null) {
 					return null;
 				}
-				return passwordPolicy.getStringPolicy();
+				return passwordPolicy;
 			}
 		};
 		return stringPolicyResolver;
@@ -808,7 +808,7 @@ public class InboundProcessor {
 				builder = builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew)
 						.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew)
 						.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projContext.getResource())
-						.stringPolicyResolver(createStringPolicyResolver(context, task, opResult))
+						.valuePolicyResolver(createStringPolicyResolver(context, task, opResult))
 						.originType(OriginType.INBOUND)
 						.originObject(projContext.getResource());
 

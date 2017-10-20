@@ -48,9 +48,12 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -265,7 +268,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 getString("PageSelfCredentials.resourceMidpoint"), WebComponentUtil.isActivationEnabled(user), true);
     }
 
-    private PasswordAccountDto createPasswordAccountDto(PrismObject<ShadowType> account, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException {
+    private PasswordAccountDto createPasswordAccountDto(PrismObject<ShadowType> account, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         PrismReference resourceRef = account.findReference(ShadowType.F_RESOURCE_REF);
         String resourceName;
         if (resourceRef == null || resourceRef.getValue() == null || resourceRef.getValue().getObject() == null) {
@@ -422,7 +425,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 //
 //    }
 
-    private boolean getPasswordOutbound(PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException {
+    private boolean getPasswordOutbound(PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         try {
             RefinedObjectClassDefinition rOCDef = getModelInteractionService().getEditObjectClassDefinition(shadow,
                     shadow.asObjectable().getResource().asPrismObject(),

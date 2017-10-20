@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -69,7 +71,7 @@ public class ReindexTaskHandler extends AbstractSearchIterativeTaskHandler<Objec
 
 	@Override
 	protected ReindexResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask, OperationResult opResult)
-			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, coordinatorTask, opResult);
         return new ReindexResultHandler(coordinatorTask, ReindexTaskHandler.class.getName(),
 				"reindex", "reindex", taskManager, repositoryService);

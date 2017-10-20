@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.util;
 
 import java.util.Collection;
@@ -8,6 +23,8 @@ import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -36,7 +53,7 @@ public class TaskOperationUtils {
                     result.recordWarning("Task suspension has been successfully requested; please check for its completion using task list.");
                 }
             }
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't suspend the task", e);
         }
 
@@ -54,7 +71,7 @@ public class TaskOperationUtils {
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "The task has been successfully resumed.");
             }
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't resume the task", e);
         }
 
@@ -71,7 +88,7 @@ public class TaskOperationUtils {
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "The task has been successfully scheduled to run.");
             }
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't schedule the task", e);
         }
 

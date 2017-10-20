@@ -21,6 +21,8 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -63,7 +65,7 @@ public interface CertificationManager {
      * @throws ExpressionEvaluationException 
      */
     AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException;
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * Opens the next review stage in the certification campaign.
@@ -77,7 +79,7 @@ public interface CertificationManager {
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations. 
      */
-    void openNextStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException;
+    void openNextStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * Opens the next stage in the certification campaign.
@@ -90,8 +92,9 @@ public interface CertificationManager {
      * @param stageNumber Stage that has to be closed. This has to be the current stage.
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations. 
+     * 
      */
-    void closeCurrentStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException;
+    void closeCurrentStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * Starts the remediation phase for the campaign.
@@ -101,7 +104,7 @@ public interface CertificationManager {
      * @param task
      * @param result 
      */
-    void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
+    void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * Closes a campaign.
@@ -110,7 +113,7 @@ public interface CertificationManager {
      * @param task
      * @param result 
      */
-    void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
+    void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * Returns a set of certification decisions for currently logged-in user.
@@ -155,11 +158,11 @@ public interface CertificationManager {
      */
     List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery caseQuery, boolean notDecidedOnly,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException;
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     int countOpenWorkItems(ObjectQuery caseQuery, boolean notDecidedOnly,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException;
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * Records a particular decision of a reviewer.
@@ -173,7 +176,7 @@ public interface CertificationManager {
      */
     void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response,
             String comment,
-            Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
+            Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * Provides statistical information about outcomes of cases in a given campaign.
@@ -187,7 +190,7 @@ public interface CertificationManager {
      * @return filled-in statistics object 
      */
     AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     void registerCertificationEventListener(AccessCertificationEventListener listener);
 }

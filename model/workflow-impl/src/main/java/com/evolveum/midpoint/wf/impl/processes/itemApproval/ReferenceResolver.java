@@ -16,9 +16,12 @@
 
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import javax.xml.namespace.QName;
@@ -31,5 +34,5 @@ import java.util.List;
 public interface ReferenceResolver {
 	// must returns parent-less references
 	List<ObjectReferenceType> resolveReference(ObjectReferenceType reference, String sourceDescription)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException;
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 }

@@ -19,6 +19,9 @@ import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.model.common.stringpolicy.AbstractValuePolicyOriginResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -33,19 +36,24 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.repo.common.expression.StringPolicyResolver;
+import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.RandomString;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
@@ -63,7 +71,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 	private PrismContext prismContext;
 	private ObjectResolver objectResolver;
 	private ValuePolicyProcessor valuePolicyGenerator;
-	private StringPolicyType elementStringPolicy;
+	private ValuePolicyType elementValuePolicy;
 
 	GenerateExpressionEvaluator(GenerateExpressionEvaluatorType generateEvaluatorType, D outputDefinition,
 			Protector protector, ObjectResolver objectResolver, ValuePolicyProcessor valuePolicyGenerator, PrismContext prismContext) {
@@ -75,8 +83,12 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		this.prismContext = prismContext;
 	}
 
-	private boolean isNotEmptyMinLength(StringPolicyType policy) {
-		Integer minLength = policy.getLimitations().getMinLength();
+	private boolean isNotEmptyMinLength(ValuePolicyType policy) {
+		StringPolicyType stringPolicy = policy.getStringPolicy();
+		if (stringPolicy == null) {
+			return false;
+		}
+		Integer minLength = stringPolicy.getLimitations().getMinLength();
 		if (minLength != null) {
 			if (minLength.intValue() == 0) {
 				return false;
@@ -96,17 +108,17 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 	 */
 	@Override
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		StringPolicyType stringPolicyType = null;
+		ValuePolicyType valuePolicyType = null;
 
 
 		ObjectReferenceType generateEvaluatorValuePolicyRef = generateEvaluatorType.getValuePolicyRef();
 		if (generateEvaluatorValuePolicyRef != null) {
 			if (generateEvaluatorType.getValuePolicyRef() != null) {
-	        	ValuePolicyType valuePolicyType = objectResolver.resolve(generateEvaluatorValuePolicyRef, ValuePolicyType.class,
+	        	ValuePolicyType resolvedValuePolicyType = objectResolver.resolve(generateEvaluatorValuePolicyRef, ValuePolicyType.class,
 	        			null, "resolving value policy reference in generateExpressionEvaluator", context.getTask(), context.getResult());
-	        	stringPolicyType = valuePolicyType.getStringPolicy();
+	        	valuePolicyType = resolvedValuePolicyType;
 	        }
 
 		}
@@ -116,14 +128,14 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		// it must be resolved all time the value is generated..if it was not
 		// resolved each time, the cached policy would be used and so bad values
 		// would be generated
-		if (stringPolicyType == null) {
-			StringPolicyResolver stringPolicyResolver = context.getStringPolicyResolver();
-			if (stringPolicyResolver != null) {
-				stringPolicyType = stringPolicyResolver.resolve();
+		if (valuePolicyType == null) {
+			ValuePolicyResolver valuePolicyResolver = context.getValuePolicyResolver();
+			if (valuePolicyResolver != null) {
+				valuePolicyType = valuePolicyResolver.resolve();
 			}
 		}
 
-		elementStringPolicy = stringPolicyType;
+		elementValuePolicy = valuePolicyType;
 		// } else {
 		// stringPolicyType = elementStringPolicy;
 		// }
@@ -134,21 +146,21 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		Item<V, D> output = outputDefinition.instantiate();
 		if (mode == null || mode == GenerateExpressionEvaluatorModeType.POLICY) {
 
-			PrismObject<? extends ObjectType> object = getObject(context);
+			AbstractValuePolicyOriginResolver<? extends ObjectType> originResolver = getOriginResolver(context);
 
 			// TODO: generate value based on stringPolicyType (if not null)
-			if (stringPolicyType != null) {
-				if (isNotEmptyMinLength(stringPolicyType)) {
-					stringValue = valuePolicyGenerator.generate(output.getPath(), stringPolicyType, DEFAULT_LENGTH, true, object,
+			if (valuePolicyType != null) {
+				if (isNotEmptyMinLength(valuePolicyType)) {
+					stringValue = valuePolicyGenerator.generate(output.getPath(), valuePolicyType, DEFAULT_LENGTH, true, originResolver,
 							context.getContextDescription(), context.getTask(), context.getResult());
 				} else {
-					stringValue = valuePolicyGenerator.generate(output.getPath(), stringPolicyType, DEFAULT_LENGTH, false, object,
+					stringValue = valuePolicyGenerator.generate(output.getPath(), valuePolicyType, DEFAULT_LENGTH, false, originResolver,
 							context.getContextDescription(), context.getTask(), context.getResult());
 				}
 				context.getResult().computeStatus();
 				if (context.getResult().isError()) {
 					throw new ExpressionEvaluationException("Failed to generate value according to policy: "
-							+ stringPolicyType.getDescription() + ". " + context.getResult().getMessage());
+							+ valuePolicyType.getDescription() + ". " + context.getResult().getMessage());
 				}
 			}
 
@@ -182,17 +194,17 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
 	// determine object from the variables
 	@SuppressWarnings("unchecked")
-	private <O extends ObjectType> PrismObject<O> getObject(ExpressionEvaluationContext params) throws SchemaException {
+	private <O extends ObjectType> AbstractValuePolicyOriginResolver<O> getOriginResolver(ExpressionEvaluationContext params) throws SchemaException {
 		ExpressionVariables variables = params.getVariables();
 		if (variables == null) {
 			return null;
 		}
 		PrismObject<O> object = variables.getObjectNew(ExpressionConstants.VAR_PROJECTION);
 		if (object != null) {
-			return object;
+			return (AbstractValuePolicyOriginResolver<O>) new ShadowValuePolicyOriginResolver((PrismObject<ShadowType>) object, objectResolver);
 		}
 		object = variables.getObjectNew(ExpressionConstants.VAR_FOCUS);
-		return object;
+		return (AbstractValuePolicyOriginResolver<O>) new UserValuePolicyOriginResolver((PrismObject<UserType>) object, objectResolver);
 	}
 
 	/*
@@ -203,17 +215,10 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 	 */
 	@Override
 	public String shortDebugDump() {
-		if (elementStringPolicy != null) {
-			return "generate: " + toHumanReadableString(elementStringPolicy);
+		if (elementValuePolicy != null) {
+			return "generate: " + elementValuePolicy;
 		}
 		return "generate";
-	}
-
-	private String toHumanReadableString(StringPolicyType stringPolicy) {
-		if (stringPolicy.getDescription() != null) {
-			return "StringPolicy: " + StringUtils.abbreviate(stringPolicy.getDescription(), 60);
-		}
-		return "StringPolicy";
 	}
 
 }

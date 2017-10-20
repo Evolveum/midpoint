@@ -29,9 +29,12 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -100,7 +103,7 @@ public class ModelExpressionThreadLocalHolder {
 	// TODO move to better place
 	public static PrismValueDeltaSetTriple<?> evaluateAnyExpressionInContext(Expression<?, ?> expression,
 			ExpressionEvaluationContext context, Task task, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
 		try {
 			return expression.evaluate(context);
@@ -111,7 +114,7 @@ public class ModelExpressionThreadLocalHolder {
 
 	public static <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateExpressionInContext(Expression<PrismPropertyValue<T>,
 			PrismPropertyDefinition<T>> expression, ExpressionEvaluationContext context, Task task, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
 		try {
 			return expression.evaluate(context);
@@ -122,7 +125,7 @@ public class ModelExpressionThreadLocalHolder {
 
 	public static PrismValueDeltaSetTriple<PrismReferenceValue> evaluateRefExpressionInContext(Expression<PrismReferenceValue,
 			PrismReferenceDefinition> expression, ExpressionEvaluationContext context, Task task, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
 		try {
 			return expression.evaluate(context);
@@ -134,7 +137,7 @@ public class ModelExpressionThreadLocalHolder {
 	public static <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateExpressionInContext(Expression<PrismPropertyValue<T>,
 			PrismPropertyDefinition<T>> expression, ExpressionEvaluationContext context,
 			LensContext<?> lensContext, LensProjectionContext projectionContext, Task task, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(lensContext, projectionContext, task, result);
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
 		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple;

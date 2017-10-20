@@ -49,7 +49,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.Source;
-import com.evolveum.midpoint.repo.common.expression.StringPolicyResolver;
+import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
 import com.evolveum.midpoint.repo.common.expression.ValueSetDefinition;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -60,9 +60,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -98,7 +101,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	private final OriginType originType;
 	private final ObjectType originObject;
 	private final FilterManager<Filter> filterManager;
-	private final StringPolicyResolver stringPolicyResolver;
+	private final ValuePolicyResolver stringPolicyResolver;
 	private final boolean conditionMaskOld;
 	private final boolean conditionMaskNew;
 	private final XMLGregorianCalendar defaultReferenceTime;
@@ -146,7 +149,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		originType = builder.originType;
 		originObject = builder.originObject;
 		filterManager = builder.filterManager;
-		stringPolicyResolver = builder.stringPolicyResolver;
+		stringPolicyResolver = builder.valuePolicyResolver;
 		conditionMaskOld = builder.conditionMaskOld;
 		conditionMaskNew = builder.conditionMaskNew;
 		defaultReferenceTime = builder.defaultReferenceTime;
@@ -282,7 +285,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		return filterManager;
 	}
 
-	public StringPolicyResolver getStringPolicyResolver() {
+	public ValuePolicyResolver getStringPolicyResolver() {
 		return stringPolicyResolver;
 	}
 
@@ -346,7 +349,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	}
 
 	// TODO: rename to evaluateAll
-	public void evaluate(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	public void evaluate(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 		prepare(task, parentResult);
 
 //		if (!isActivated()) {
@@ -392,7 +395,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	}
 
 	// TODO: rename to evaluate
-	public void evaluateBody(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	public void evaluateBody(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		assertState(MappingEvaluationState.PREPARED);
 
@@ -442,7 +445,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			result.recordSuccess();
 			traceSuccess(conditionResultOld, conditionResultNew);
 
-		} catch (ExpressionEvaluationException | ObjectNotFoundException | RuntimeException | SchemaException | Error e) {
+		} catch (Throwable e) {
 			result.recordFatalError(e);
 			traceFailure(e);
 			throw e;
@@ -450,7 +453,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	}
 
 	private void checkRange(Task task, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		VariableBindingDefinitionType target = mappingType.getTarget();
 		if (target != null && target.getSet() != null) {
 			checkRangeTarget(task, result);
@@ -461,7 +464,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	}
 
 	private void checkRangeTarget(Task task, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (originalTargetValues == null) {
 			throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
 		}
@@ -491,7 +494,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	}
 
 	private void checkRangeLegacy(Task task, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (originalTargetValues == null) {
 			throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
 		}
@@ -503,7 +506,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		}
 	}
 
-	private boolean isInRange(V value, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	private boolean isInRange(V value, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		@NotNull ValueSetSpecificationType range = mappingType.getRange();
 		if (range.getIsInSetExpression() == null) {
 			return false;
@@ -893,6 +896,12 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 					throw (ExpressionEvaluationException)cause;
 				} else if (cause instanceof ObjectNotFoundException) {
 					throw (ObjectNotFoundException)cause;
+				} else if (cause instanceof CommunicationException) {
+					throw (ObjectNotFoundException)cause;
+				} else if (cause instanceof ConfigurationException) {
+					throw (ObjectNotFoundException)cause;
+				} else if (cause instanceof SecurityViolationException) {
+					throw (ObjectNotFoundException)cause;
 				}
 			}
 		}
@@ -991,7 +1000,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		}
 	}
 
-	private void evaluateCondition(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+	private void evaluateCondition(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionType conditionExpressionType = mappingType.getCondition();
 		if (conditionExpressionType == null) {
 			// True -> True
@@ -1004,7 +1013,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 				"condition in "+getMappingContextDescription(), task, result);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables,
 				"condition in "+getMappingContextDescription(), task, result);
-		context.setStringPolicyResolver(stringPolicyResolver);
+		context.setValuePolicyResolver(stringPolicyResolver);
 		context.setExpressionFactory(expressionFactory);
 		context.setDefaultSource(defaultSource);
 		context.setDefaultTargetContext(getTargetContext());
@@ -1014,7 +1023,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	}
 
 
-	private void evaluateExpression(Task task, OperationResult result, boolean conditionResultOld, boolean conditionResultNew) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+	private void evaluateExpression(Task task, OperationResult result, boolean conditionResultOld, boolean conditionResultNew) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionType expressionType = null;
 		if (mappingType != null) {
 			expressionType = mappingType.getExpression();
@@ -1026,7 +1035,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		context.setDefaultSource(defaultSource);
 		context.setSkipEvaluationMinus(!conditionResultOld);
 		context.setSkipEvaluationPlus(!conditionResultNew);
-		context.setStringPolicyResolver(stringPolicyResolver);
+		context.setValuePolicyResolver(stringPolicyResolver);
 		context.setExpressionFactory(expressionFactory);
 		context.setDefaultTargetContext(getTargetContext());
 		context.setRefinedObjectClassDefinition(getRefinedObjectClassDefinition());
@@ -1332,7 +1341,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		private OriginType originType;
 		private ObjectType originObject;
 		private FilterManager<Filter> filterManager;
-		private StringPolicyResolver stringPolicyResolver;
+		private ValuePolicyResolver valuePolicyResolver;
 		private boolean conditionMaskOld = true;
 		private boolean conditionMaskNew = true;
 		private XMLGregorianCalendar now;
@@ -1419,8 +1428,8 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			return this;
 		}
 
-		public Builder<V,D> stringPolicyResolver(StringPolicyResolver val) {
-			stringPolicyResolver = val;
+		public Builder<V,D> valuePolicyResolver(ValuePolicyResolver val) {
+			valuePolicyResolver = val;
 			return this;
 		}
 
@@ -1533,8 +1542,8 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			return filterManager;
 		}
 
-		public StringPolicyResolver getStringPolicyResolver() {
-			return stringPolicyResolver;
+		public ValuePolicyResolver getValuePolicyResolver() {
+			return valuePolicyResolver;
 		}
 
 		public boolean isConditionMaskOld() {
@@ -1747,8 +1756,8 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 
 		@Deprecated
 		public void setStringPolicyResolver(
-				StringPolicyResolver stringPolicyResolver) {
-			this.stringPolicyResolver = stringPolicyResolver;
+				ValuePolicyResolver stringPolicyResolver) {
+			this.valuePolicyResolver = stringPolicyResolver;
 		}
 
 		@Deprecated

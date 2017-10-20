@@ -334,7 +334,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     ObjectQuery query = QueryUtils.filterForAssignees(q, getPrincipal(),
                             OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS).build();
                     return getModelService().countContainers(WorkItemType.class, query, null, task, task.getResult());
-                } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException e) {
+                } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load work item count", e);
                     return null;
                 }
@@ -538,25 +538,25 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return pageTask;
     }
     
-    public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+    public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	return isAuthorized(operationUrl, null, null, null, null, null);
     }
     
     public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	Task task = getPageTask();
     	return getSecurityEnforcer().isAuthorized(operationUrl, phase, object, delta, target, ownerResolver, task, task.getResult());
     }
 
     public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, OperationResult result)
-			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
     	getSecurityEnforcer().authorize(operationUrl, phase, object, delta, target, ownerResolver, getPageTask(), result);
     }
 
     public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver)
-			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
     	Task task = getPageTask();
     	getSecurityEnforcer().authorize(operationUrl, phase, object, delta, target, ownerResolver, task, task.getResult());
     }
@@ -1126,7 +1126,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
 
             return OperationResult.createOperationResult(newResultType);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
+        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             topResult.recordFatalError(e);
             if (StringUtils.isEmpty(result.getMessage())) {
                 topResult.setMessage("Couldn't process operation result script hook.");
@@ -1751,7 +1751,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             return isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
                     AuthorizationPhaseType.REQUEST, object == null ? null : object.asPrismObject(),
                     null, null, null);
-        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException ex) {
+        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't solve authorization for New organization menu item", ex);
         }
         return false;

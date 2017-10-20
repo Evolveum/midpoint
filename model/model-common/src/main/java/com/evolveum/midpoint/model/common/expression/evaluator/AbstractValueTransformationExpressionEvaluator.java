@@ -41,9 +41,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.Processor;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -80,7 +83,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 	 */
 	@Override
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
-            ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         PrismValueDeltaSetTriple<V> outputTriple;
 
@@ -170,7 +173,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 
 	private PrismValueDeltaSetTriple<V> evaluateAbsoluteExpression(Collection<Source<?,?>> sources,
 			ExpressionVariables variables, ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		PrismValueDeltaSetTriple<V> outputTriple;
 
@@ -227,7 +230,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 
 	private Collection<V> evaluateScriptExpression(Collection<Source<?,?>> sources,
 			ExpressionVariables variables, String contextDescription, boolean useNew, ExpressionEvaluationContext params,
-			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		ExpressionVariables scriptVariables = new ExpressionVariables();
 		if (useNew) {
@@ -292,7 +295,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 
     protected abstract List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination,
 			boolean useNew, ExpressionEvaluationContext context, String contextDescription, Task task, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	private Object getRealContent(Item<?,?> item, ItemPath residualPath) {
 		if (residualPath == null || residualPath.isEmpty()) {
@@ -318,7 +321,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 			final ExpressionVariables variables, final boolean skipEvaluationMinus, final boolean skipEvaluationPlus,
 			final Boolean includeNulls, final ExpressionEvaluationContext evaluationContext, final String contextDescription,
 			final Task task, final OperationResult result)
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		List<Collection<? extends PrismValue>> valueCollections = new ArrayList<>(sourceTriples.size());
 		for (SourceTriple<?,?> sourceTriple: sourceTriples) {
@@ -416,6 +419,15 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 			} catch (RuntimeException e) {
 				throw new TunnelException(new RuntimeException(e.getMessage()+
 						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+			} catch (CommunicationException e) {
+				throw new TunnelException(new CommunicationException(e.getMessage()+
+						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+			} catch (ConfigurationException e) {
+				throw new TunnelException(new ConfigurationException(e.getMessage()+
+						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+			} catch (SecurityViolationException e) {
+				throw new TunnelException(new SecurityViolationException(e.getMessage()+
+						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
 			}
 
 			outputTriple.addAllToSet(valueDestination, scriptResults);
@@ -431,6 +443,12 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 			} else if (originalException instanceof SchemaException) {
 				throw (SchemaException)originalException;
 			} else if (originalException instanceof RuntimeException) {
+				throw (CommunicationException)originalException;
+			} else if (originalException instanceof CommunicationException) {
+				throw (ConfigurationException)originalException;
+			} else if (originalException instanceof ConfigurationException) {
+				throw (SecurityViolationException)originalException;
+			} else if (originalException instanceof SecurityViolationException) {
 				throw (RuntimeException)originalException;
 			} else {
 				throw new IllegalStateException("Unexpected exception: "+e+": "+e.getMessage(),e);

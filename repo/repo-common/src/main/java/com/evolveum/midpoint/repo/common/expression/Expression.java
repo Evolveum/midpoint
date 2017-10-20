@@ -41,9 +41,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -123,7 +126,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 	}
 
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
-			ExpressionEvaluationException, ObjectNotFoundException {
+			ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		ExpressionVariables processedVariables = null;
 
@@ -157,7 +160,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 					outputTriple = securityContextManager.runAs(() -> {
 						try {
 							return evaluateExpressionEvaluators(contextWithProcessedVariables);
-						} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
+						} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 							throw new TunnelException(e);
 						}
 					}, userType.asPrismObject());
@@ -179,6 +182,15 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 					if (e instanceof ObjectNotFoundException) {
 						throw (ObjectNotFoundException)e;
 					}
+					if (e instanceof CommunicationException) {
+						throw (CommunicationException)e;
+					}
+					if (e instanceof ConfigurationException) {
+						throw (ConfigurationException)e;
+					}
+					if (e instanceof SecurityViolationException) {
+						throw (SecurityViolationException)e;
+					}
 					throw te;
 				}
 
@@ -187,7 +199,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 			traceSuccess(context, processedVariables, outputTriple);
 			return outputTriple;
 
-		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | RuntimeException | Error e) {
+		} catch (Throwable e) {
 			traceFailure(context, processedVariables, e);
 			throw e;
 		}
@@ -195,7 +207,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 
 
 	private PrismValueDeltaSetTriple<V> evaluateExpressionEvaluators(ExpressionEvaluationContext contextWithProcessedVariables)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		for (ExpressionEvaluator<?,?> evaluator: evaluators) {
 			PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) evaluator.evaluate(contextWithProcessedVariables);

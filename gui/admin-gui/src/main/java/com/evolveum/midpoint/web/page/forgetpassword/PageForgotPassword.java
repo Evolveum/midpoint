@@ -449,7 +449,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 							SchemaConstants.PATH_NONCE, getPrismContext(), nonceType);
 
 					WebModelServiceUtils.save(nonceDelta, result, task, PageForgotPassword.this);
-				} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
+				} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 					result.recordFatalError("Failed to generate nonce for user");
 					LoggingUtils.logException(LOGGER, "Failed to generate nonce for user: " + e.getMessage(),
 							e);
@@ -464,7 +464,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 
 	private <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy, Task task,
 			PrismObject<O> user, OperationResult result)
-					throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+					throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ValuePolicyType policy = null;
 
 		if (noncePolicy != null && noncePolicy.getValuePolicyRef() != null) {
@@ -473,8 +473,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 			policy = valuePolicy.asObjectable();
 		}
 
-		return getModelInteractionService().generateValue(policy != null ? policy.getStringPolicy() : null,
-				24, false, user, "nonce generation", task, result);
+		return getModelInteractionService().generateValue(policy, 24, false, user, "nonce generation", task, result);
 	}
 
 }

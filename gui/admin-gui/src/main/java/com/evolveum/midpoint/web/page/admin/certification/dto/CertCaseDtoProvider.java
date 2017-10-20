@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -131,14 +132,14 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
         this.campaignOid = campaignOid;
     }
 
-    private List<AccessCertificationCaseType> searchCases(String campaignOid, ObjectPaging paging, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private List<AccessCertificationCaseType> searchCases(String campaignOid, ObjectPaging paging, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException {
         InOidFilter inOidFilter = InOidFilter.createOwnerHasOidIn(campaignOid);
         ObjectQuery query = createFinalQuery(inOidFilter);
         query.setPaging(paging);
         return getModel().searchContainers(AccessCertificationCaseType.class, query, options, task, result);
     }
 
-    private int countCases(String campaignOid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private int countCases(String campaignOid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException {
         InOidFilter inOidFilter = InOidFilter.createOwnerHasOidIn(campaignOid);
         ObjectQuery query = createFinalQuery(inOidFilter);
         return getModel().countContainers(AccessCertificationCaseType.class, query, options, task, result);

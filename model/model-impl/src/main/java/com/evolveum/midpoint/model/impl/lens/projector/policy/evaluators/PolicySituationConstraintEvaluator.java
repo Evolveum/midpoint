@@ -27,9 +27,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.TreeNode;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolicyConstraintType;
@@ -55,7 +58,7 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
 	@Override
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<PolicySituationPolicyConstraintType> constraint,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		// For assignments we consider only directly attached "situation" policy rules. In the future, we might configure this.
 		// So, if someone wants to report (forward) triggers from a target, he must ensure that a particular
@@ -79,7 +82,7 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
 
 	private LocalizableMessage createMessage(Collection<EvaluatedPolicyRule> sourceRules,
 			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		// determine if there's a single message that could be retrieved
 		List<TreeNode<LocalizableMessage>> messageTrees = sourceRules.stream()
 				.flatMap(r -> r.extractMessages().stream())
@@ -97,7 +100,7 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
 
 	private LocalizableMessage createShortMessage(Collection<EvaluatedPolicyRule> sourceRules,
 			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		// determine if there's a single message that could be retrieved
 		List<TreeNode<LocalizableMessage>> messageTrees = sourceRules.stream()
 				.flatMap(r -> r.extractShortMessages().stream())

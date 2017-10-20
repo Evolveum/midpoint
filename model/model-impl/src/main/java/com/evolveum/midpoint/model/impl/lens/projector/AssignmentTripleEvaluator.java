@@ -133,7 +133,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 		assignmentEvaluator.reset();
 	}
 
-	public DeltaSetTriple<EvaluatedAssignmentImpl<F>> processAllAssignments() throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
+	public DeltaSetTriple<EvaluatedAssignmentImpl<F>> processAllAssignments() throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		LensFocusContext<F> focusContext = context.getFocusContext();
 
@@ -168,7 +168,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 
     private void processAssignment(DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
     		ObjectDelta<F> focusDelta, ContainerDelta<AssignmentType> assignmentDelta, SmartAssignmentElement assignmentElement)
-    				throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
+    				throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		final LensFocusContext<F> focusContext = context.getFocusContext();
     	final PrismContainerValue<AssignmentType> assignmentCVal = assignmentElement.getAssignmentCVal();
@@ -492,7 +492,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 
     private <F extends FocusType> EvaluatedAssignmentImpl<F> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
     		PlusMinusZero mode, boolean evaluateOld, LensContext<F> context, ObjectType source, AssignmentEvaluator<F> assignmentEvaluator,
-			String assignmentPlacementDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
+			String assignmentPlacementDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 		OperationResult result = parentResult.createMinorSubresult(AssignmentProcessor.class.getSimpleName()+".evaluateAssignment");
 		result.addParam("assignmentDescription", assignmentPlacementDesc);
         try{
@@ -534,14 +534,14 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
 			}
         	return null;
-        } catch (ExpressionEvaluationException | PolicyViolationException e) {
+        } catch (ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException  e) {
         	AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
         	if (LOGGER.isTraceEnabled()) {
         		LOGGER.trace("Processing of assignment resulted in error {}: {}", e, SchemaDebugUtil.prettyPrint(assignmentType));
             }
         	result.recordFatalError(e);
         	throw e;
-        }
+		}
 	}
 
 	/**

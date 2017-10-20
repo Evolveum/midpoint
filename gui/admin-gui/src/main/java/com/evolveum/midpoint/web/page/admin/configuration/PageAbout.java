@@ -29,6 +29,8 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -342,7 +344,7 @@ public class PageAbout extends PageAdminConfiguration {
         try {
             Task task = createSimpleTask(OPERATION_TEST_REPOSITORY_CHECK_ORG_CLOSURE);
             getModelDiagnosticService().repositoryTestOrgClosureConsistency(task, true, result);
-        } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException e) {
+        } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | ConfigurationException | CommunicationException e) {
             result.recordFatalError(e);
         } finally {
             result.computeStatusIfUnknown();
@@ -369,7 +371,7 @@ public class PageAbout extends PageAdminConfiguration {
 			task.setName("Reindex repository objects");
 			taskManager.switchToBackground(task, result);
 			result.setBackgroundTaskOid(task.getOid());
-        } catch (SecurityViolationException | SchemaException|RuntimeException | ExpressionEvaluationException | ObjectNotFoundException e) {
+        } catch (SecurityViolationException | SchemaException|RuntimeException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
             result.recordFatalError(e);
         } finally {
             result.computeStatusIfUnknown();
@@ -393,7 +395,7 @@ public class PageAbout extends PageAdminConfiguration {
         try {
             WorkflowService workflowService = getWorkflowService();
             workflowService.cleanupActivitiProcesses(task, result);
-        } catch (SecurityViolationException | SchemaException|RuntimeException | ExpressionEvaluationException | ObjectNotFoundException e) {
+        } catch (SecurityViolationException | SchemaException|RuntimeException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
             result.recordFatalError(e);
         } finally {
             result.computeStatusIfUnknown();

@@ -38,9 +38,12 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -149,7 +152,7 @@ public class CustomNotifier extends BaseHandler {
 		try {
 			messages = evaluateExpression(config.getExpression(), variables,
 					"message expression", task, result);
-		} catch (ObjectNotFoundException|SchemaException|ExpressionEvaluationException e) {
+		} catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			throw new SystemException("Couldn't evaluate custom notifier expression: " + e.getMessage(), e);
 		}
 		if (messages == null || messages.isEmpty()) {
@@ -162,7 +165,7 @@ public class CustomNotifier extends BaseHandler {
 
 	private List<NotificationMessageType> evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
 			String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
-			ExpressionEvaluationException {
+			ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		QName resultName = new QName(SchemaConstants.NS_C, "result");
 		PrismPropertyDefinition<NotificationMessageType> resultDef =

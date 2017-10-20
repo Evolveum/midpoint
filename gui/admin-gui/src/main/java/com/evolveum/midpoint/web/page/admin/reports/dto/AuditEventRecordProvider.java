@@ -30,6 +30,8 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -107,7 +109,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		try {
 			Task task = getPage().createSimpleTask("internalSize");
 			count = getAuditService().countObjects(query, parameters, task, task.getResult());
-		} catch (SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
+		} catch (SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
 			// TODO: proper error handling (MID-3536)
 			throw new SystemException(e.getMessage(), e);
 		}
@@ -139,7 +141,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 			Task task = getPage().createSimpleTask("listRecords");
 			auditRecords = getAuditService().listRecords(parameterQuery, parameters,
 					task, task.getResult());
-		} catch (SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
+		} catch (SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
 			// TODO: proper error handling (MID-3536)
 			throw new SystemException(e.getMessage(), e);
 		}

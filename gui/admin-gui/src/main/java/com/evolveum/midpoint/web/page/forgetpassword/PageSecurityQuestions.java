@@ -484,7 +484,7 @@ public class PageSecurityQuestions extends PageBase {
 							systemConfig.asObjectable().getGlobalPasswordPolicyRef().getOid(), options, task,
 							result);
 					LOGGER.trace("password policy {}", valPolicy);
-					newPassword = getModelInteractionService().generateValue(valPolicy.asObjectable().getStringPolicy(),
+					newPassword = getModelInteractionService().generateValue(valPolicy.asObjectable(),
 							valPolicy.asObjectable().getStringPolicy().getLimitations().getMinLength(), false,
 							user.asPrismObject(), "security questions password generation", task, result);
 				} else {

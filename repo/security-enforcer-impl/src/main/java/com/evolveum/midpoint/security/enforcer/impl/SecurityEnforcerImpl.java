@@ -86,6 +86,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -137,7 +139,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	@Override
 	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		MidPointPrincipal midPointPrincipal = getMidPointPrincipal();
 		if (phase == null) {
 			if (!isAuthorizedInternal(midPointPrincipal, operationUrl, AuthorizationPhaseType.REQUEST, object, delta, target, ownerResolver, task, result)) {
@@ -151,7 +153,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	private <O extends ObjectType, T extends ObjectType> boolean isAuthorizedInternal(MidPointPrincipal midPointPrincipal, String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (AuthorizationConstants.AUTZ_NO_ACCESS_URL.equals(operationUrl)){
 			return false;
@@ -363,7 +365,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	@Override
 	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver,
-			Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		boolean allow = isAuthorized(operationUrl, phase, object, delta, target, ownerResolver, task, result);
 		if (!allow) {
 			failAuthorization(operationUrl, phase, object, delta, target, result);
@@ -390,7 +392,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 
 	private <O extends ObjectType> boolean isApplicable(List<OwnedObjectSelectorType> objectSpecTypes, PrismObject<O> object,
-			MidPointPrincipal midPointPrincipal, OwnerResolver ownerResolver, String desc, String autzHumanReadableDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			MidPointPrincipal midPointPrincipal, OwnerResolver ownerResolver, String desc, String autzHumanReadableDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (objectSpecTypes != null && !objectSpecTypes.isEmpty()) {
 			if (object == null) {
 				LOGGER.trace("  {} not applicable for null {}", autzHumanReadableDesc, desc);
@@ -409,7 +411,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 
 	private <O extends ObjectType> boolean isApplicable(SubjectedObjectSelectorType objectSelector, PrismObject<O> object,
-			MidPointPrincipal principal, OwnerResolver ownerResolver, String desc, String autzHumanReadableDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			MidPointPrincipal principal, OwnerResolver ownerResolver, String desc, String autzHumanReadableDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ObjectFilterExpressionEvaluator filterExpressionEvaluator = createFilterEvaluator(principal, desc, autzHumanReadableDesc, task, result);
 		if (!repositoryService.selectorMatches(objectSelector, object, filterExpressionEvaluator, LOGGER, "  " + autzHumanReadableDesc + " not applicable for " + desc + " because of ")) {
 			return false;
@@ -578,7 +580,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 	
 	private <O extends ObjectType> ObjectFilter parseAndEvaluateFilter(MidPointPrincipal principal, PrismObjectDefinition<O> objectDefinition, 
-			SearchFilterType specFilterType, String objectTargetDesc, String autzHumanReadableDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			SearchFilterType specFilterType, String objectTargetDesc, String autzHumanReadableDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ObjectFilter specFilter = QueryJaxbConvertor.createObjectFilter(objectDefinition, specFilterType, prismContext);
 		if (specFilter == null) {
 			return null;
@@ -737,7 +739,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			boolean isAuthorized;
 			try {
 				isAuthorized = isAuthorized(configAction, null, null, null, null, null, task, task.getResult());
-			} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
+			} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 				throw new SystemException(e.getMessage(), e);
 			}
 			if (isAuthorized) {
@@ -832,7 +834,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 
 	@Override
-	public <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	public <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		MidPointPrincipal principal = getMidPointPrincipal();
 		if (object == null) {
 			throw new IllegalArgumentException("Cannot compile security constraints of null object");
@@ -944,7 +946,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	@Override
 	public <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
-			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		MidPointPrincipal principal = getMidPointPrincipal();
 		LOGGER.trace("AUTZ: evaluating search pre-process principal={}, searchResultType={}, object={}: orig filter {}",
 				principal, searchResultType, object, origFilter);
@@ -975,7 +977,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	@Override
 	public <T extends ObjectType, O extends ObjectType> boolean canSearch(String operationUrl,
 			AuthorizationPhaseType phase, Class<T> searchResultType, PrismObject<O> object, boolean includeSpecial, ObjectFilter filter, Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		MidPointPrincipal principal = getMidPointPrincipal();
 		LOGGER.trace("AUTZ: evaluating search permission principal={}, searchResultType={}, object={}: filter {}",
 				principal, searchResultType, object, filter);
@@ -1003,7 +1005,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	private <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilterInternal(MidPointPrincipal principal, String operationUrl,
 			AuthorizationPhaseType phase, boolean includeNullPhase,
-			Class<T> objectType, PrismObject<O> object, boolean includeSpecial, ObjectFilter origFilter, String desc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			Class<T> objectType, PrismObject<O> object, boolean includeSpecial, ObjectFilter origFilter, String desc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Collection<Authorization> authorities = getAuthorities(principal);
 
@@ -1441,7 +1443,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	@Override
 	public <O extends ObjectType, R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(MidPointPrincipal midPointPrincipal,
-			String operationUrl, PrismObject<O> object, PrismObject<R> target, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			String operationUrl, PrismObject<O> object, PrismObject<R> target, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		ItemSecurityDecisions decisions = new ItemSecurityDecisions();
 

@@ -186,7 +186,7 @@ public class AccCertCaseOperationsHelper {
         ResultHandler<F> resultHandler = (object, parentResult) -> {
 			try {
 				caseList.addAll(handler.createCasesForObject(object, campaign, task, parentResult));
-			} catch (ExpressionEvaluationException|ObjectNotFoundException|SchemaException e) {
+			} catch (ExpressionEvaluationException|ObjectNotFoundException|SchemaException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 				// TODO process the exception more intelligently
 				throw new SystemException("Cannot create certification case for object " + toShortString(object.asObjectable()) + ": " + e.getMessage(), e);
 			}

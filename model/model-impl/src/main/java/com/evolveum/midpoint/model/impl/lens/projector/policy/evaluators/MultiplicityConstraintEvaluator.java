@@ -38,9 +38,12 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -72,7 +75,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 
 	@Override
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<MultiplicityPolicyConstraintType> constraint,
-			PolicyRuleEvaluationContext<F> rctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			PolicyRuleEvaluationContext<F> rctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (rctx instanceof ObjectPolicyRuleEvaluationContext) {
 			return evaluateForObject(constraint, (ObjectPolicyRuleEvaluationContext<F>) rctx, result);
@@ -86,7 +89,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 	// TODO shouldn't we return all triggers?
 	private <F extends FocusType> EvaluatedPolicyRuleTrigger evaluateForObject(
 			JAXBElement<MultiplicityPolicyConstraintType> constraint,
-			ObjectPolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			ObjectPolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PrismObject<? extends ObjectType> target = ctx.focusContext.getObjectAny();
 		if (target == null || !(target.asObjectable() instanceof AbstractRoleType)) {
 			return null;
@@ -140,7 +143,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 
 	private <F extends FocusType> EvaluatedPolicyRuleTrigger evaluateForAssignment(
 			JAXBElement<MultiplicityPolicyConstraintType> constraint,
-			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (!ctx.isDirect) {
 			return null;
 		}
@@ -158,7 +161,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 
 	private <F extends FocusType> EvaluatedPolicyRuleTrigger<MultiplicityPolicyConstraintType> checkAssigneeConstraints(JAXBElement<MultiplicityPolicyConstraintType> constraint,
 			LensContext<F> context, EvaluatedAssignment<F> assignment, PlusMinusZero plusMinus,
-			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PrismObject<?> target = assignment.getTarget();
 		if (target == null || !(target.asObjectable() instanceof AbstractRoleType)) {
 			return null;
@@ -241,7 +244,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 	private <F extends FocusType> LocalizableMessage getMessage(MultiplicityPolicyConstraintType constraint,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result, String key1, String key2,
 			PrismObject<?> target, Object... args)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + key1 + key2)
 				.arg(ObjectTypeUtil.createTechnicalObjectSpecification(target))
@@ -253,7 +256,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 	private <F extends FocusType> LocalizableMessage getShortMessage(MultiplicityPolicyConstraintType constraint,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result, String key1, String key2,
 			PrismObject<?> target, Object... args)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + key1 + key2)
 				.arg(ObjectTypeUtil.createObjectSpecification(target))

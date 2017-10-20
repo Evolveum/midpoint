@@ -21,6 +21,8 @@ import com.evolveum.midpoint.notifications.api.events.AccessCertificationEvent;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -99,7 +101,7 @@ public class CertHelper {
         AccessCertificationCasesStatisticsType stat;
         try {
             stat = certificationManager.getCampaignStatistics(campaign.getOid(), false, task, result);
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ObjectAlreadyExistsException | ExpressionEvaluationException | RuntimeException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ObjectAlreadyExistsException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get campaign statistics", e);
             sb.append("Couldn't get campaign statistics because of ").append(e);
             return;

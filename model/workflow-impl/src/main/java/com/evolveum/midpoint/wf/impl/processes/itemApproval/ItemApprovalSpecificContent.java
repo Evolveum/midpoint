@@ -21,9 +21,12 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
@@ -80,7 +83,7 @@ public class ItemApprovalSpecificContent implements ProcessSpecificContent {
 	@Override
 	public boolean checkEmpty(PcpChildWfTaskCreationInstruction instruction,
 			WfStageComputeHelper stageComputeHelper, ModelInvocationContext ctx, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<ApprovalStageDefinitionType> stages = WfContextUtil.getStages(approvalSchemaType);
 		// first pass: if there is any stage that is obviously not skippable, let's return false without checking the expressions
 		for (ApprovalStageDefinitionType stage : stages) {
@@ -100,7 +103,7 @@ public class ItemApprovalSpecificContent implements ProcessSpecificContent {
 
 	private String evaluateAutoCompleteExpression(ApprovalStageDefinitionType stageDef, PcpChildWfTaskCreationInstruction instruction,
 			WfStageComputeHelper stageComputeHelper, ModelInvocationContext ctx, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionVariables variables = stageComputeHelper.getDefaultVariables(instruction.getWfContext(), ctx.taskFromModel.getChannel(), result);
 		return stageComputeHelper.evaluateAutoCompleteExpression(stageDef, variables, ctx.taskFromModel, result);
 	}

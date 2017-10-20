@@ -1310,7 +1310,7 @@ public class Clockwork {
 				sb.toString());
 	}
 
-	private <F extends ObjectType> void authorizeContextRequest(LensContext<F> context, Task task, OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private <F extends ObjectType> void authorizeContextRequest(LensContext<F> context, Task task, OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		OperationResult result = parentResult.createMinorSubresult(Clockwork.class.getName()+".authorizeRequest");
 		LOGGER.trace("Authorizing request");
 		try {
@@ -1335,7 +1335,7 @@ public class Clockwork {
 	}
 
 	private <F extends ObjectType, O extends ObjectType> ObjectSecurityConstraints authorizeElementContext(LensContext<F> context, LensElementContext<O> elementContext,
-			OwnerResolver ownerResolver, boolean isFocus, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			OwnerResolver ownerResolver, boolean isFocus, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		ObjectDelta<O> primaryDelta = elementContext.getPrimaryDelta();
 		// If there is no delta then there is no request to authorize
 		if (primaryDelta != null) {
@@ -1460,7 +1460,7 @@ public class Clockwork {
 	}
 
 	private <F extends ObjectType,O extends ObjectType> void authorizeAssignmentRequest(LensContext<F> context, String assignActionUrl, PrismObject<O> object,
-			OwnerResolver ownerResolver, PlusMinusZero plusMinusZero, boolean prohibitPolicies, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			OwnerResolver ownerResolver, PlusMinusZero plusMinusZero, boolean prohibitPolicies, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		// This is *request* authorization. Therefore we care only about primary delta.
 		ObjectDelta<F> focusPrimaryDelta = context.getFocusContext().getPrimaryDelta();
 		if (focusPrimaryDelta == null) {

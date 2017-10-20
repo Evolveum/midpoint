@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,12 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +70,7 @@ public class ExpressionHandler {
 	private XPathScriptEvaluator xpathEvaluator = null;
 
 	public String evaluateExpression(ShadowType shadow, ExpressionType expressionType,
-			String shortDesc, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			String shortDesc, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Validate.notNull(shadow, "Resource object shadow must not be null.");
 		Validate.notNull(expressionType, "Expression must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
@@ -98,7 +101,7 @@ public class ExpressionHandler {
 
 	public boolean evaluateConfirmationExpression(UserType user, ShadowType shadow,
 			ExpressionType expressionType, Task task, OperationResult result)
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(shadow, "Resource object shadow must not be null.");
 		Validate.notNull(expressionType, "Expression must not be null.");

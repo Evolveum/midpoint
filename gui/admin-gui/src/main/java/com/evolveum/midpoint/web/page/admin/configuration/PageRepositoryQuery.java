@@ -36,9 +36,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -153,7 +156,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 		boolean admin;
 		try {
 			admin = isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null);
-		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | RuntimeException e) {
+		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine admin authorization -- continuing as non-admin", e);
 			admin = false;
 		}
@@ -497,7 +500,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 	}
 
 	private void updateRequestWithMidpointQuery(RepositoryQueryDiagRequest request, QName objectType, String queryText,
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PrismContext prismContext = getPrismContext();
 		if (objectType == null) {
 			objectType = ObjectType.COMPLEX_TYPE;

@@ -18,6 +18,8 @@ package com.evolveum.midpoint.model.api;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -41,17 +43,17 @@ public interface WorkflowService {
 	 * @param parentResult
 	 */
     void completeWorkItem(String workItemId, boolean decision, String comment, ObjectDelta additionalDelta,
-			OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException;
+			OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     void stopProcessInstance(String instanceId, String username, Task task, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException;
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     void claimWorkItem(String workItemId, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException;
 
     void releaseWorkItem(String workItemId, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException;
 
     void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException;
+			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-    void cleanupActivitiProcesses(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException;
+    void cleanupActivitiProcesses(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 }

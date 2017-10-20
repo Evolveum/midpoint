@@ -174,7 +174,7 @@ public class OpResult implements Serializable, Visitable {
 				backgroundTaskVisible = true;
 				return;
 			}
-		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
+		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			backgroundTaskVisible = false;
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine background task visibility", e);
 			return;

@@ -25,6 +25,8 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -177,7 +179,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
             try {
                 workflowService.stopProcessInstance(instance.getProcessInstanceId(),
                         WebComponentUtil.getOrigStringFromPoly(user.getName()), task, result);
-            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException | RuntimeException ex) {
+            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException ex) {
                 result.createSubresult(OPERATION_STOP_PROCESS_INSTANCE).recordPartialError("Couldn't stop process instance " + instance.getName(), ex);
             }
         }

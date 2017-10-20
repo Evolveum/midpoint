@@ -134,7 +134,7 @@ public class CertificationManagerImpl implements CertificationManager {
 
     @Override
     public AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Validate.notNull(definitionOid, "definitionOid");
         Validate.notNull(task, "task");
         Validate.notNull(parentResult, "parentResult");
@@ -203,7 +203,7 @@ public class CertificationManagerImpl implements CertificationManager {
 			updateHelper.addObject(newCampaign, task, result);
 			openNextStage(newCampaign.getOid(), 1, task, result);
 			result.computeStatus();
-		} catch (RuntimeException|SchemaException|ObjectNotFoundException|SecurityViolationException|ObjectAlreadyExistsException|ExpressionEvaluationException e) {
+		} catch (RuntimeException|SchemaException|ObjectNotFoundException|SecurityViolationException|ObjectAlreadyExistsException|ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
 			result.recordFatalError("Couldn't create ad-hoc certification campaign: " + e.getMessage(), e);
 			throw new SystemException("Couldn't create ad-hoc certification campaign: " + e.getMessage(), e);
 		}
@@ -212,7 +212,7 @@ public class CertificationManagerImpl implements CertificationManager {
 
 
     @Override
-    public void openNextStage(String campaignOid, int requestedStageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+    public void openNextStage(String campaignOid, int requestedStageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Validate.notNull(campaignOid, "campaignOid");
         Validate.notNull(task, "task");
         Validate.notNull(parentResult, "parentResult");
@@ -266,7 +266,7 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public void closeCurrentStage(String campaignOid, int stageNumberToClose, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+    public void closeCurrentStage(String campaignOid, int stageNumberToClose, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Validate.notNull(campaignOid, "campaignOid");
         Validate.notNull(task, "task");
         Validate.notNull(parentResult, "parentResult");
@@ -309,7 +309,7 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public void startRemediation(String campaignOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+    public void startRemediation(String campaignOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Validate.notNull(campaignOid, "campaignOid");
         Validate.notNull(task, "task");
         Validate.notNull(parentResult, "parentResult");
@@ -370,7 +370,7 @@ public class CertificationManagerImpl implements CertificationManager {
     @Override
     public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_SEARCH_OPEN_WORK_ITEMS);
 
@@ -390,7 +390,7 @@ public class CertificationManagerImpl implements CertificationManager {
     @Override
     public int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_COUNT_OPEN_WORK_ITEMS);
 
@@ -410,7 +410,7 @@ public class CertificationManagerImpl implements CertificationManager {
     @Override
     public void recordDecision(@NotNull String campaignOid, long caseId, long workItemId, @Nullable AccessCertificationResponseType response,
 			@Nullable String comment, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
-			SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+			SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_RECORD_DECISION);
         try {
@@ -429,7 +429,7 @@ public class CertificationManagerImpl implements CertificationManager {
             @NotNull DelegateWorkItemActionType delegateAction, Task task,
             OperationResult parentResult)
 			throws SchemaException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-			ObjectAlreadyExistsException {
+			ObjectAlreadyExistsException, ConfigurationException, CommunicationException {
 		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEMS);
 		result.addParam("campaignOid", campaignOid);
 		result.addArbitraryObjectCollectionAsParam("workItems", workItems);	// TODO only IDs?
@@ -448,7 +448,7 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public void closeCampaign(String campaignOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+    public void closeCampaign(String campaignOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Validate.notNull(campaignOid, "campaignOid");
         Validate.notNull(task, "task");
         Validate.notNull(parentResult, "parentResult");
@@ -470,7 +470,7 @@ public class CertificationManagerImpl implements CertificationManager {
 
     // this method delegates the authorization to the model
     @Override
-    public AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+    public AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Validate.notNull(campaignOid, "campaignOid");
         Validate.notNull(task, "task");
         Validate.notNull(parentResult, "parentResult");
@@ -505,7 +505,7 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
 	private int getCount(String campaignOid, Integer stage, AccessCertificationResponseType response, boolean onlyRemedied, Task task,
-			OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
+			OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		QName outcomeItem;
 		String responseUri = OutcomeUtils.toUri(response);
 		S_FilterEntry entry;
