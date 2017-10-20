@@ -102,11 +102,11 @@ public interface ModelDiagnosticService {
 	/**
 	 * Execute arbitrary mapping.
 	 *
-	 * EXPERIMENTAL
+	 * EXPERIMENTAL 
 	 */
 	MappingEvaluationResponseType evaluateMapping(MappingEvaluationRequestType request, Task task, OperationResult parentResult)
 			throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
-			ObjectNotFoundException;
+			ObjectNotFoundException, CommunicationException, ConfigurationException;
 	/**
 	 * Exports data model
 	 *

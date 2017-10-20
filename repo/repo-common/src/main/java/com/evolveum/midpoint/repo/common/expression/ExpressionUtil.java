@@ -51,6 +51,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -400,7 +402,7 @@ public class ExpressionUtil {
 	public static ObjectQuery evaluateQueryExpressions(ObjectQuery origQuery, ExpressionVariables variables,
 			ExpressionFactory expressionFactory, PrismContext prismContext, String shortDesc, Task task,
 			OperationResult result)
-					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (origQuery == null) {
 			return null;
 		}
@@ -414,7 +416,7 @@ public class ExpressionUtil {
 	public static ObjectFilter evaluateFilterExpressions(ObjectFilter origFilter,
 			ExpressionVariables variables, ExpressionFactory expressionFactory, PrismContext prismContext,
 			String shortDesc, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (origFilter == null) {
 			return null;
 		}
@@ -442,7 +444,7 @@ public class ExpressionUtil {
 	private static ObjectFilter evaluateFilterExpressionsInternal(ObjectFilter filter,
 			ExpressionVariables variables, ExpressionFactory expressionFactory, PrismContext prismContext,
 			String shortDesc, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (filter == null) {
 			return null;
 		}
@@ -662,7 +664,7 @@ public class ExpressionUtil {
 	private static <V extends PrismValue> V evaluateExpression(ExpressionVariables variables,
 			PrismContext prismContext, ExpressionType expressionType, ObjectFilter filter,
 			ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
-					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		// TODO refactor after new query engine is implemented
 		ItemDefinition outputDefinition = null;
@@ -686,7 +688,7 @@ public class ExpressionUtil {
 	public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(
 			ExpressionVariables variables, D outputDefinition, ExpressionType expressionType,
 			ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
-					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition,
 				shortDesc, task, parentResult);
@@ -715,7 +717,7 @@ public class ExpressionUtil {
 	private static Collection<String> evaluateStringExpression(ExpressionVariables variables,
 			PrismContext prismContext, ExpressionType expressionType, ExpressionFactory expressionFactory,
 			String shortDesc, Task task, OperationResult parentResult)
-					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		PrismPropertyDefinitionImpl<String> outputDefinition = new PrismPropertyDefinitionImpl(
 				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING, prismContext);
@@ -744,7 +746,7 @@ public class ExpressionUtil {
 	public static PrismPropertyValue<Boolean> evaluateCondition(ExpressionVariables variables,
 			ExpressionType expressionType, ExpressionFactory expressionFactory, String shortDesc, Task task,
 			OperationResult parentResult)
-					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ItemDefinition outputDefinition = new PrismPropertyDefinitionImpl(
 				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN,
 				expressionFactory.getPrismContext());

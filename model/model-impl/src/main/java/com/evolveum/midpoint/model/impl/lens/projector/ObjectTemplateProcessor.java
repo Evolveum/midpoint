@@ -71,11 +71,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -124,7 +127,7 @@ public class ObjectTemplateProcessor {
 	 */
 	public <F extends FocusType> void processTemplate(LensContext<F> context, ObjectTemplateMappingEvaluationPhaseType phase,
 			XMLGregorianCalendar now, Task task, OperationResult result)
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, ObjectAlreadyExistsException {
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, ObjectAlreadyExistsException, SecurityViolationException, ConfigurationException, CommunicationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext.isDelete()) {
     		LOGGER.trace("Skipping processing of object template: focus delete");
@@ -201,7 +204,7 @@ public class ObjectTemplateProcessor {
 	public <F extends FocusType, T extends FocusType> Collection<ItemDelta<?,?>> processObjectMapping(LensContext<F> context,
 			ObjectTemplateType objectMappingType, ObjectDeltaObject<F> focusOdo, PrismObject<T> target, ObjectDelta<T> targetAPrioriDelta,
 			String contextDesc, XMLGregorianCalendar now, Task task, OperationResult result)
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, ObjectAlreadyExistsException {
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, ObjectAlreadyExistsException, SecurityViolationException, ConfigurationException, CommunicationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 
 		int iteration = 0;
@@ -385,7 +388,7 @@ public class ObjectTemplateProcessor {
 			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
 			int iteration, String iterationToken,
 			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		LOGGER.trace("Collecting triples from {}", objectTemplateType);
 
@@ -527,7 +530,7 @@ public class ObjectTemplateProcessor {
 			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
 			int iteration, String iterationToken,
 			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		XMLGregorianCalendar nextRecomputeTime = null;
 

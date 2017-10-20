@@ -52,6 +52,7 @@ import org.jetbrains.annotations.NotNull;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -91,6 +92,8 @@ import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.model.common.stringpolicy.AbstractValuePolicyOriginResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -132,6 +135,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
@@ -260,6 +264,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Autowired protected SecurityEnforcer securityEnforcer;
 	@Autowired protected MidpointFunctions libraryMidpointFunctions;
 	@Autowired protected ValuePolicyProcessor valuePolicyProcessor;
+	
+	@Autowired(required = false)
+	@Qualifier("modelObjectResolver")
+	protected ObjectResolver modelObjectResolver;
 
 	@Autowired(required = false)
 	protected NotificationManager notificationManager;
@@ -4505,22 +4513,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         		task, result, passPolicyRef);
 	}
 
-	protected void assertPasswordCompliesWithPolicy(PrismObject<UserType> user, String passwordPolicyOid) throws EncryptionException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+	protected void assertPasswordCompliesWithPolicy(PrismObject<UserType> user, String passwordPolicyOid) throws EncryptionException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Task task = createTask("assertPasswordCompliesWithPolicy");
 		OperationResult result = task.getResult();
 		assertPasswordCompliesWithPolicy(user, passwordPolicyOid, task, result);
 		assertSuccess(result);
 	}
 
-	protected void assertPasswordCompliesWithPolicy(PrismObject<UserType> user, String passwordPolicyOid, Task task, OperationResult result) throws EncryptionException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+	protected void assertPasswordCompliesWithPolicy(PrismObject<UserType> user, String passwordPolicyOid, Task task, OperationResult result) throws EncryptionException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		String password = getPassword(user);
 		display("Password of "+user, password);
 		PrismObject<ValuePolicyType> passwordPolicy = repositoryService.getObject(ValuePolicyType.class, passwordPolicyOid, null, result);
 		StringBuilder messageBuilder = new StringBuilder();
-		boolean valid = valuePolicyProcessor.validateValue(password, passwordPolicy.asObjectable(), user, messageBuilder, "validating password of "+user, task, result);
+		boolean valid = valuePolicyProcessor.validateValue(password, passwordPolicy.asObjectable(), createUserOriginResolver(user), messageBuilder, "validating password of "+user, task, result);
 		if (!valid) {
 			fail("Password for "+user+" does not comply with password policy: "+messageBuilder.toString());
 		}
+	}
+
+	protected UserValuePolicyOriginResolver createUserOriginResolver(PrismObject<UserType> user) {
+		if (user == null) {
+			return null;
+		}
+		return new UserValuePolicyOriginResolver(user, modelObjectResolver);
 	}
 
 	protected XMLGregorianCalendar getTimestamp(String duration) {

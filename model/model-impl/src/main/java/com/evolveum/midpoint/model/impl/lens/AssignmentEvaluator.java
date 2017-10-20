@@ -59,10 +59,13 @@ import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -204,7 +207,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	public EvaluatedAssignmentImpl<F> evaluate(
 			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
 			PlusMinusZero primaryAssignmentMode, boolean evaluateOld, ObjectType source, String sourceDescription, Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		assertSourceNotNull(source, assignmentIdi);
 
@@ -269,7 +272,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	 * Note: this parameter could be perhaps renamed to "tripleMode" or "destination" or something like that.
 	 */
 	private void evaluateFromSegment(AssignmentPathSegmentImpl segment, PlusMinusZero relativeMode, EvaluationContext ctx)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("*** Evaluate from segment: {}", segment);
 			LOGGER.trace("*** Evaluation order - standard:   {}, matching: {}", segment.getEvaluationOrder(), segment.isMatchingOrder());
@@ -321,7 +324,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	// "content" means "payload + targets" here
 	private <O extends ObjectType> boolean evaluateSegmentContent(AssignmentPathSegmentImpl segment,
 			PlusMinusZero relativeMode, EvaluationContext ctx)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		assert ctx.assignmentPath.last() == segment;
 
@@ -507,7 +510,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 	
 	private void evaluateFocusMappings(AssignmentPathSegmentImpl segment, EvaluationContext ctx)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
 		assertSourceNotNull(segment.source, ctx.evalAssignment);
 
 		AssignmentType assignmentType = getAssignmentType(segment, ctx);
@@ -561,7 +564,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	@NotNull
-	private <O extends ObjectType> List<PrismObject<O>> getTargets(AssignmentPathSegmentImpl segment, EvaluationContext ctx) throws SchemaException, ExpressionEvaluationException {
+	private <O extends ObjectType> List<PrismObject<O>> getTargets(AssignmentPathSegmentImpl segment, EvaluationContext ctx) throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		AssignmentType assignmentType = getAssignmentType(segment, ctx);
 		if (assignmentType.getTarget() != null) {
 			return Collections.singletonList((PrismObject<O>) assignmentType.getTarget().asPrismObject());
@@ -584,7 +587,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	@NotNull
 	private <O extends ObjectType> List<PrismObject<O>> resolveTargets(AssignmentPathSegmentImpl segment, EvaluationContext ctx)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		AssignmentType assignmentType = getAssignmentType(segment, ctx);
 		ObjectReferenceType targetRef = assignmentType.getTargetRef();
 		String oid = targetRef.getOid();
@@ -625,7 +628,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	@NotNull
 	private <O extends ObjectType> List<PrismObject<O>> resolveTargetsFromFilter(Class<O> targetClass,
 			SearchFilterType filter, AssignmentPathSegmentImpl segment,
-			EvaluationContext ctx) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
+			EvaluationContext ctx) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException{
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(lensContext, null, ctx.task, ctx.result));
 		try {
 			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(ctx.result);
@@ -651,7 +654,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 	private void evaluateSegmentTarget(AssignmentPathSegmentImpl segment, PlusMinusZero relativeMode, boolean isValid,
 			FocusType targetType, QName relation, EvaluationContext ctx)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 		assertSourceNotNull(segment.source, ctx.evalAssignment);
 
 		assert ctx.assignmentPath.last() == segment;
@@ -777,7 +780,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	private void evaluateAssignment(AssignmentPathSegmentImpl segment, PlusMinusZero mode, boolean isValid, EvaluationContext ctx,
 			FocusType targetType, QName relation, AssignmentType roleAssignment)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		ObjectType orderOneObject = getOrderOneObject(segment);
 
@@ -818,7 +821,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	private void evaluateInducement(AssignmentPathSegmentImpl segment, PlusMinusZero mode, boolean isValid, EvaluationContext ctx,
 			FocusType targetType, AssignmentType inducement)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		ObjectType orderOneObject = getOrderOneObject(segment);
 
@@ -1153,7 +1156,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	public PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateCondition(MappingType condition,
 			AssignmentType sourceAssignment, ObjectType source, AssignmentPathVariables assignmentPathVariables,
-			EvaluationContext ctx) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			EvaluationContext ctx) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 		String desc;
 		if (sourceAssignment == null) {
 			desc = "condition in " + source; 

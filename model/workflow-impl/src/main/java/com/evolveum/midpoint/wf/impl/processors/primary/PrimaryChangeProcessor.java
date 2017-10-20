@@ -103,7 +103,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 	// beware, may damage model context during execution
 	public List<PcpChildWfTaskCreationInstruction> previewModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType,
 			@NotNull Task opTask, @NotNull OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<PcpChildWfTaskCreationInstruction> rv = new ArrayList<>();
 		previewOrProcessModelInvocation(context, wfConfigurationType, true, rv, opTask, result);
 		return rv;
@@ -112,7 +112,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     @Override
     public HookOperationMode processModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType,
 			@NotNull Task taskFromModel, @NotNull OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	if (context.getState() != PRIMARY) {
     		return null;
 	    }
@@ -124,7 +124,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 		    WfConfigurationType wfConfigurationType,
 		    boolean previewOnly, List<PcpChildWfTaskCreationInstruction> childTaskInstructionsHolder, @NotNull Task taskFromModel,
 		    @NotNull OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         if (context.getFocusContext() == null) {
             return null;
@@ -163,7 +163,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     private void removeEmptyProcesses(List<PcpChildWfTaskCreationInstruction> instructions, ModelInvocationContext ctx,
-            OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+            OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		for (Iterator<PcpChildWfTaskCreationInstruction> iterator = instructions.iterator(); iterator.hasNext(); ) {
 			PcpChildWfTaskCreationInstruction instruction = iterator.next();
 			instruction.createProcessorContent();		// brutal hack

@@ -40,10 +40,13 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -92,7 +95,7 @@ public class ObjectValuePolicyEvaluator {
 
 	private ItemPath valueItemPath;
 
-	private PrismObject<UserType> object;
+	private AbstractValuePolicyOriginResolver originResolver;
 
 	// We need to get old credential as a configuration. We cannot determine it
 	// from the "object". E.g. in case of addition the object is the new object that
@@ -151,12 +154,12 @@ public class ObjectValuePolicyEvaluator {
 		this.valueItemPath = valueItemPath;
 	}
 
-	public PrismObject<UserType> getObject() {
-		return object;
+	public AbstractValuePolicyOriginResolver getOriginResolver() {
+		return originResolver;
 	}
 
-	public void setObject(PrismObject<UserType> object) {
-		this.object = object;
+	public void setOriginResolver(AbstractValuePolicyOriginResolver originResolver) {
+		this.originResolver = originResolver;
 	}
 
 	public AbstractCredentialType getOldCredentialType() {
@@ -183,12 +186,12 @@ public class ObjectValuePolicyEvaluator {
 		this.task = task;
 	}
 
-	public OperationResult validateProtectedStringValue(ProtectedStringType value) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	public OperationResult validateProtectedStringValue(ProtectedStringType value) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		String clearValue = getClearValue(value);
 		return validateStringValue(clearValue);
 	}
 
-	public OperationResult validateStringValue(String clearValue) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	public OperationResult validateStringValue(String clearValue) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		OperationResult result = new OperationResult(OPERATION_VALIDATE_VALUE);
 		// TODO: later we need to replace the string message with something more structured.
 		// something that can be localized
@@ -286,7 +289,7 @@ public class ObjectValuePolicyEvaluator {
 		}
 	}
 
-	private void validateStringPolicy(String clearValue, StringBuilder messageBuilder, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private void validateStringPolicy(String clearValue, StringBuilder messageBuilder, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (clearValue == null) {
 			int minOccurs = getMinOccurs();
@@ -306,7 +309,7 @@ public class ObjectValuePolicyEvaluator {
 			return;
 		}
 
-		valuePolicyProcessor.validateValue(clearValue, valuePolicy, object, messageBuilder,
+		valuePolicyProcessor.validateValue(clearValue, valuePolicy, originResolver, messageBuilder,
 				"user " + shortDesc + " value policy validation", task, result);
 	}
 

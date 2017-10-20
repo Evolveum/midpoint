@@ -33,9 +33,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -422,7 +425,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 
 	public <F extends FocusType> void computeEnabledActions(@Nullable PolicyRuleEvaluationContext<F> rctx, PrismObject<F> object,
 			ExpressionFactory expressionFactory, PrismContext prismContext, Task task, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<PolicyActionType> allActions = PolicyRuleTypeUtil.getAllActions(policyRuleType.getPolicyActions());
 		for (PolicyActionType action : allActions) {
 			if (action.getCondition() != null) {

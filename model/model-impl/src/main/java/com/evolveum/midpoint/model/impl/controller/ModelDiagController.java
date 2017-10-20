@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -178,7 +178,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 	public MappingEvaluationResponseType evaluateMapping(MappingEvaluationRequestType request, Task task,
 			OperationResult parentResult)
 			throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
-			ObjectNotFoundException {
+			ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException {
 		OperationResult result = parentResult.createSubresult(EXECUTE_REPOSITORY_QUERY);
 		try {
 			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);

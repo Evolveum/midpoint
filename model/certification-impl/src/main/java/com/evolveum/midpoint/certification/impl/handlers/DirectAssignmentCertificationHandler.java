@@ -67,7 +67,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
 
     // converts assignments to cases
     @Override
-    public <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> objectPrism, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> objectPrism, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         AccessCertificationAssignmentReviewScopeType assignmentScope = null;
         if (campaign.getScopeDefinition() instanceof AccessCertificationAssignmentReviewScopeType) {
@@ -92,7 +92,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
     }
 
     private void processAssignment(AssignmentType assignment, boolean isInducement, AccessCertificationAssignmentReviewScopeType scope,
-                                   AccessCertificationCampaignType campaign, ObjectType object, List<AccessCertificationCaseType> caseList, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+                                   AccessCertificationCampaignType campaign, ObjectType object, List<AccessCertificationCaseType> caseList, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         AccessCertificationAssignmentCaseType assignmentCase = new AccessCertificationAssignmentCaseType(prismContext);
         assignmentCase.setAssignment(assignment.clone());
         assignmentCase.setIsInducement(isInducement);
@@ -133,7 +133,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
                 .stream().anyMatch(r -> ObjectTypeUtil.relationMatches(r, assignmentRelation));
     }
 
-    private boolean itemSelectionExpressionAccepts(AssignmentType assignment, boolean isInducement, ObjectType object, AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    private boolean itemSelectionExpressionAccepts(AssignmentType assignment, boolean isInducement, ObjectType object, AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         AccessCertificationObjectBasedScopeType scope = null;
         if (campaign.getScopeDefinition() instanceof AccessCertificationObjectBasedScopeType) {
             scope = (AccessCertificationObjectBasedScopeType) (campaign.getScopeDefinition());

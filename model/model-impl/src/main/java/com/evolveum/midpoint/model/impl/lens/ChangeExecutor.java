@@ -1556,7 +1556,7 @@ public class ChangeExecutor {
 			ExpressionVariables variables, LensContext<?> context,
 			LensElementContext<?> objectContext, Task task,
 			OperationResult result)
-					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		OperationProvisioningScriptsType outScripts = new OperationProvisioningScriptsType();
 
 		if (resourceScripts != null) {
@@ -1593,7 +1593,7 @@ public class ChangeExecutor {
 	}
 
 	private boolean evaluateScriptCondition(OperationProvisioningScriptType script,
-			ExpressionVariables variables, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			ExpressionVariables variables, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionType condition = script.getCondition();
 		if (condition == null) {
 			return true;
@@ -1614,7 +1614,7 @@ public class ChangeExecutor {
 			ExpressionVariables variables, LensContext<?> context,
 			LensElementContext<?> objectContext, Task task,
 			OperationResult result)
-					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
 

@@ -33,6 +33,9 @@ import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.common.stringpolicy.AbstractValuePolicyOriginResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelCrudService;
 import com.evolveum.midpoint.model.impl.lens.*;
@@ -830,9 +833,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public <O extends ObjectType> String generateValue(StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
-			PrismObject<O> object, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
-		return policyProcessor.generate(null, policy, defaultLength, generateMinimalSize, object, shortDesc, task, parentResult);
+	public <O extends ObjectType> String generateValue(ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
+			PrismObject<O> object, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return policyProcessor.generate(null, policy, defaultLength, generateMinimalSize, createOriginResolver(object, parentResult), shortDesc, task, parentResult);
 	}
 
 	@Override
@@ -975,7 +978,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 //			throw new SchemaException("No value policy for " + targetPath);
 		}
 
-		String newValue = policyProcessor.generate(targetPath, stringPolicy, 10, object,
+		String newValue = policyProcessor.generate(targetPath, valuePolicy, 10, false, createOriginResolver(object, result),
 				"generating value for" + targetPath, task, result);
 		policyItemDefinition.setValue(newValue);
 	}
@@ -1133,7 +1136,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			OperationResult result = parentResult.createSubresult(OPERATION_VALIDATE_VALUE + ".value");
 			if (path != null ) result.addArbitraryObjectAsParam("path", path);
 			result.addParam("valueToValidate", newValue);
-			if (!policyProcessor.validateValue(newValue, stringPolicy, object, "validate value " + (path!= null ? "for " + path : "") + " for " + object + " value " + valueToValidate, task, result)) {
+			if (!policyProcessor.validateValue(newValue, stringPolicy, createOriginResolver(object, result), "validate value " + (path!= null ? "for " + path : "") + " for " + object + " value " + valueToValidate, task, result)) {
 				result.recordFatalError("Validation for value " + newValue + " against policy " + stringPolicy + " failed");
 				LOGGER.error("Validation for value {} against policy {} failed", newValue, stringPolicy);
 			}
@@ -1145,6 +1148,21 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 		return parentResult.isAcceptable();
 
+	}
+
+	private <O extends ObjectType> AbstractValuePolicyOriginResolver<O> createOriginResolver(PrismObject<O> object, OperationResult result) throws SchemaException {
+		if (object == null) {
+			return null;
+		}
+		if (object.canRepresent(UserType.class)) {
+			return (AbstractValuePolicyOriginResolver<O>) new UserValuePolicyOriginResolver((PrismObject<UserType>) object, objectResolver);
+		}
+		if (object.canRepresent(ShadowType.class)) {
+			return (AbstractValuePolicyOriginResolver<O>) new ShadowValuePolicyOriginResolver((PrismObject<ShadowType>) object, objectResolver);
+		}
+		SchemaException e = new SchemaException("Unsupport object type "+object);
+		result.recordFatalError(e);
+		throw e;
 	}
 
 	private boolean isSupportedType(QName type) {

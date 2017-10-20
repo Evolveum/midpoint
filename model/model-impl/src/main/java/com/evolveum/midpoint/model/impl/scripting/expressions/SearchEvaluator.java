@@ -118,7 +118,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
 				    objectQuery = ExpressionUtil
 						    .evaluateQueryExpressions(unresolvedObjectQuery, variables, expressionFactory, prismContext,
 								    "bulk action query", context.getTask(), globalResult);
-			    } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
+			    } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 				    // TODO continue on any error?
 				    throw new ScriptExecutionException("Couldn't evaluate expressions in object query: " + e.getMessage(), e);
 			    }

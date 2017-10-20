@@ -30,9 +30,12 @@ import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -72,21 +75,21 @@ public class ConstraintEvaluatorHelper {
 
 	public boolean evaluateBoolean(ExpressionType expressionBean, ExpressionVariables expressionVariables,
 			String contextDescription, Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		return LensUtil.evaluateBoolean(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
 				task, result);
 	}
 
 	public String evaluateString(ExpressionType expressionBean, ExpressionVariables expressionVariables,
 			String contextDescription, Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		return LensUtil.evaluateString(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
 				task, result);
 	}
 
 	public <F extends FocusType> LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionVariables var = createExpressionVariables(rctx);
 		LocalizableMessageType rv = new LocalizableMessageType();
 		if (template.getKey() != null) {
@@ -118,7 +121,7 @@ public class ConstraintEvaluatorHelper {
 	public <F extends FocusType> LocalizableMessage createLocalizableMessage(
 			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> rctx,
 			LocalizableMessage builtInMessage, OperationResult result) throws ExpressionEvaluationException,
-			ObjectNotFoundException, SchemaException {
+			ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (constraint.getPresentation() != null && constraint.getPresentation().getMessage() != null) {
 			LocalizableMessageType messageType =
 					createLocalizableMessageType(constraint.getPresentation().getMessage(), rctx, result);
@@ -139,7 +142,7 @@ public class ConstraintEvaluatorHelper {
 	public <F extends FocusType> LocalizableMessage createLocalizableShortMessage(
 			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> rctx,
 			LocalizableMessage builtInMessage, OperationResult result) throws ExpressionEvaluationException,
-			ObjectNotFoundException, SchemaException {
+			ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (constraint.getPresentation() != null && constraint.getPresentation().getShortMessage() != null) {
 			LocalizableMessageType messageType =
 					createLocalizableMessageType(constraint.getPresentation().getShortMessage(), rctx, result);

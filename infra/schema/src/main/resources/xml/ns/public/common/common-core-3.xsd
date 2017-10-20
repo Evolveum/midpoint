@@ -11140,7 +11140,7 @@
 			</xsd:appinfo>
         </xsd:annotation>    
         <xsd:sequence>
-            <xsd:element name="origin" type="tns:ValuePolicyOriginType" minOccurs="0" maxOccurs="1" default="subject"/>
+            <xsd:element name="origin" type="tns:ValuePolicyOriginType" minOccurs="0" maxOccurs="1" default="object"/>
             <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1"/>
             <!-- TODO: matching (exact, norm, case ignore, partial, ...), matching parameters ( 3 characters difference ) -->
         </xsd:sequence>
@@ -11157,21 +11157,45 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="subject">
+            <xsd:enumeration value="object">
                 <xsd:annotation>
+                	<xsd:documentation>
+                		Object is the orgin. Object usually means the user.
+                		E.g. in case of password policy, object is the user
+                		who's password is changed. 
+                	</xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SUBJECT"/>
+                        <jaxb:typesafeEnumMember name="OBJECT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="persona">
                 <xsd:annotation>
+                	<xsd:documentation>
+                		Object's persona is the origin.
+                		E.g. in case of password policy all user personas
+                		will be scanned.
+                	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="PERSONA"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <!-- owner? ("reverse" persona) -->
+            <xsd:enumeration value="owner">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Object's owner is the origin.
+                		E.g. in case of user password policy all personas that
+                		point to this user will be scanned. In case of
+                		account password policy the user who owns the
+                		account is scanned.
+                		Note: owner for accounts is not implemented yet
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OWNER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
     

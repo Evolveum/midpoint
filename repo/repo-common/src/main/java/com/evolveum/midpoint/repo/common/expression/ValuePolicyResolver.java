@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.common.expression;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
  *
@@ -26,12 +27,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
  * @author semancik
  *
  */
-public interface StringPolicyResolver {
+public interface ValuePolicyResolver {
 
 	void setOutputDefinition(ItemDefinition outputDefinition);
 
 	void setOutputPath(ItemPath outputPath);
 
-	StringPolicyType resolve();
+	ValuePolicyType resolve();
 
 }

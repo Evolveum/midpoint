@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,12 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -179,7 +182,7 @@ public class WfHook implements ChangeHook {
                     if (hookOperationMode != null) {
                         return hookOperationMode;
                     }
-                } catch (ObjectNotFoundException|SchemaException|RuntimeException|ExpressionEvaluationException e) {
+                } catch (ObjectNotFoundException|SchemaException|RuntimeException|ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Exception while running change processor {}", e, changeProcessor.getClass().getName());
                     result.recordFatalError("Exception while running change processor " + changeProcessor.getClass(), e);
                     return HookOperationMode.ERROR;

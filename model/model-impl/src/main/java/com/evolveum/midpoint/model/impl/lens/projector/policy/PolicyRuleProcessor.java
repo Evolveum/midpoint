@@ -97,7 +97,7 @@ public class PolicyRuleProcessor {
 	public <F extends FocusType> void evaluateAssignmentPolicyRules(LensContext<F> context,
 			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
 			Task task, OperationResult result)
-			throws PolicyViolationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws PolicyViolationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.union()) {
 			RulesEvaluationContext globalCtx = new RulesEvaluationContext();
@@ -181,7 +181,7 @@ public class PolicyRuleProcessor {
 	//region ------------------------------------------------------------------ Focus policy rules
 	public <F extends FocusType> void evaluateObjectPolicyRules(LensContext<F> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result)
-			throws PolicyViolationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws PolicyViolationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null) {
 			return;
@@ -230,7 +230,7 @@ public class PolicyRuleProcessor {
 
 	private <F extends FocusType> void evaluateFocusRule(EvaluatedPolicyRule rule, LensContext<F> context,
 			RulesEvaluationContext globalCtx, Task task, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		evaluateRule(new ObjectPolicyRuleEvaluationContext<>(rule, globalCtx, context, task), result);
 	}
 
@@ -246,7 +246,7 @@ public class PolicyRuleProcessor {
 
 	private <F extends FocusType> void collectGlobalObjectRules(List<EvaluatedPolicyRule> rules, LensContext<F> context,
 			Task task, OperationResult result)
-			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
 		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
 		if (systemConfiguration == null) {
 			return;
@@ -307,7 +307,7 @@ public class PolicyRuleProcessor {
 	 * Evaluates given policy rule in a given context.
 	 */
 	private <F extends FocusType> void evaluateRule(PolicyRuleEvaluationContext<F> ctx, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Evaluating policy rule {} in {}", ctx.policyRule.toShortString(), ctx.getShortDescription());
 		}
@@ -338,7 +338,7 @@ public class PolicyRuleProcessor {
 	@NotNull
 	public <F extends FocusType> List<EvaluatedPolicyRuleTrigger<?>> evaluateConstraints(PolicyConstraintsType constraints,
 			boolean allMustApply, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (constraints == null) {
 			return Collections.emptyList();
 		}
@@ -475,7 +475,7 @@ public class PolicyRuleProcessor {
 
 	public <F extends FocusType> void addGlobalPolicyRulesToAssignments(LensContext<F> context,
 			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
 		if (systemConfiguration == null) {
@@ -529,7 +529,7 @@ public class PolicyRuleProcessor {
 
 	private <F extends FocusType> boolean isRuleConditionTrue(GlobalPolicyRuleType globalPolicyRule, PrismObject<F> focus,
 			EvaluatedAssignmentImpl<F> evaluatedAssignment, LensContext<F> context, Task task, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 		MappingType condition = globalPolicyRule.getCondition();
 		if (condition == null) {
 			return true;

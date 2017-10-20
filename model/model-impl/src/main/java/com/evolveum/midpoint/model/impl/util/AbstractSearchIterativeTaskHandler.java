@@ -240,7 +240,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 					ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 				}
 			}
-		} catch (SchemaException|ObjectNotFoundException|ExpressionEvaluationException e) {
+		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			logErrorAndSetResult(runResult, resultHandler, "Error while evaluating expressions in a search filter", e,
 					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
 			return runResult;

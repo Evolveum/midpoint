@@ -34,9 +34,12 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -106,11 +109,7 @@ public abstract class BaseHelper {
         Throwable failReason;
         try {
             return evaluateBooleanExpression(expressionType, expressionVariables, shortDesc, task, result);
-        } catch (ObjectNotFoundException e) {
-            failReason = e;
-        } catch (SchemaException e) {
-            failReason = e;
-        } catch (ExpressionEvaluationException e) {
+        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             failReason = e;
         }
 
@@ -120,7 +119,7 @@ public abstract class BaseHelper {
     }
 
     protected boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, String shortDesc,
-    		Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+    		Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<Boolean> resultDef = new PrismPropertyDefinitionImpl(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
@@ -145,11 +144,7 @@ public abstract class BaseHelper {
         Throwable failReason;
         try {
             return evaluateExpression(expressionType, expressionVariables, shortDesc, task, result);
-        } catch (ObjectNotFoundException e) {
-            failReason = e;
-        } catch (SchemaException e) {
-            failReason = e;
-        } catch (ExpressionEvaluationException e) {
+        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             failReason = e;
         }
 
@@ -159,7 +154,7 @@ public abstract class BaseHelper {
     }
 
     private List<String> evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
-    		String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+    		String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<String> resultDef = new PrismPropertyDefinitionImpl(resultName, DOMUtil.XSD_STRING, prismContext);

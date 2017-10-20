@@ -537,14 +537,14 @@ public class AssignmentProcessor {
 
 
     private <F extends FocusType> void evaluateConstructions(LensContext<F> context,
-    		DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    		DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
     	evaluateConstructions(context, evaluatedAssignmentTriple.getZeroSet(), task, result);
     	evaluateConstructions(context, evaluatedAssignmentTriple.getPlusSet(), task, result);
     	evaluateConstructions(context, evaluatedAssignmentTriple.getMinusSet(), task, result);
     }
 
     private <F extends FocusType> void evaluateConstructions(LensContext<F> context,
-    		Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    		Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
     	if (evaluatedAssignments == null) {
     		return;
     	}

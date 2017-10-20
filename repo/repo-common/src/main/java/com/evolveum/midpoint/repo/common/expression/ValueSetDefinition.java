@@ -15,22 +15,21 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
-import java.util.Collection;
-
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueSetDefinitionType;
@@ -63,7 +62,7 @@ public class ValueSetDefinition {
 				shortDesc, task, result);
 	}
 
-	public <IV extends PrismValue> boolean contains(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+	public <IV extends PrismValue> boolean contains(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		return evalCondition(pval.getRealValue());
 	}
 
@@ -73,12 +72,12 @@ public class ValueSetDefinition {
 	public <IV extends PrismValue> boolean containsTunnel(IV pval) {
 		try {
 			return contains(pval);
-		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
+		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			throw new TunnelException(e);
 		}
 	}
 
-	private boolean evalCondition(Object value) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+	private boolean evalCondition(Object value) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, value);
 		if (additionalVariableName != null) {

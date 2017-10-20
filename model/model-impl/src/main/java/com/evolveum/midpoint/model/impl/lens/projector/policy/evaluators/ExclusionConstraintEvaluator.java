@@ -37,10 +37,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -76,7 +79,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 	@Override
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<ExclusionPolicyConstraintType> constraint,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
 			return null;
@@ -139,7 +142,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 			@NotNull EvaluatedAssignmentImpl<F> assignmentB, EvaluatedAssignmentTargetImpl targetB,
 			ExclusionPolicyConstraintType constraint, EvaluatedPolicyRule policyRule,
 			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		AssignmentPath pathA = policyRule.getAssignmentPath();
 		AssignmentPath pathB = targetB.getAssignmentPath();
@@ -156,7 +159,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 	@NotNull
 	private <F extends FocusType> LocalizableMessage createMessage(String infoA, String infoB,
 			ExclusionPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
 				.args(infoA, infoB)
@@ -167,7 +170,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 	@NotNull
 	private <F extends FocusType> LocalizableMessage createShortMessage(String infoA, String infoB,
 			ExclusionPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
 				.args(infoA, infoB)
