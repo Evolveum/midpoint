@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.common.util;
 
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -47,7 +47,7 @@ public abstract class AbstractModelWebService {
 	@Autowired protected TaskManager taskManager;
 	@Autowired protected AuditService auditService;
 	@Autowired protected PrismContext prismContext;
-	@Autowired protected SecurityEnforcer securityEnforcer;
+	@Autowired protected SecurityContextManager securityContextManager;
 
 	protected void setTaskOwner(Task task) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

@@ -22,6 +22,9 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -1756,6 +1759,110 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 
 		assertJackDummyPirateAccount();
 	}
+
+	@Test
+	public void test249JackUnassignAll() throws Exception {
+		unassignAll("test249JackUnassignAll");
+		assertNoDummyAccount(USER_JACK_USERNAME);
+	}
+
+	/**
+	 *  MID-4198
+	 */
+	@Test
+	public void test250JackAssignFocusExistsResource() throws Exception {
+		final String TEST_NAME = "test250JackAssignFocusExistsResource";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User jack before", userBefore);
+
+		ActivationType activation = new ActivationType();
+		activation.setValidFrom(getTimestamp("PT10M"));
+		AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(resourceDummyFocusExists).activation(activation);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(assignment)
+				.asObjectDeltaCast(USER_JACK_OID);
+		executeChanges(delta, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User jack after", userAfter);
+		assertAssignments(userAfter, 1);
+		assertLinks(userAfter, 0);
+
+		assertNoDummyAccount(RESOURCE_DUMMY_FOCUS_EXISTS_NAME, USER_JACK_USERNAME);
+	}
+
+	/**
+	 * MID-4198 "Disabled assignments project value in certain cases"
+	 */
+	@Test
+	public void test252RecomputeJack() throws Exception {
+		final String TEST_NAME = "test252RecomputeJack";
+		displayTestTitle(TEST_NAME);
+
+		Task task =  createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User jack before", userBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		recomputeUser(USER_JACK_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User jack after", userAfter);
+		assertAssignments(userAfter, 1);
+		assertLinks(userAfter, 0);
+
+		assertNoDummyAccount(RESOURCE_DUMMY_FOCUS_EXISTS_NAME, USER_JACK_USERNAME);
+	}
+
+	/**
+	 * MID-4198 "Disabled assignments project value in certain cases"
+	 */
+	@Test
+	public void test254ReconcileJack() throws Exception {
+		final String TEST_NAME = "test254ReconcileJack";
+		displayTestTitle(TEST_NAME);
+
+		Task task =  createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User jack before", userBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(USER_JACK_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User jack after", userAfter);
+		assertAssignments(userAfter, 1);
+		assertLinks(userAfter, 0);
+
+		assertNoDummyAccount(RESOURCE_DUMMY_FOCUS_EXISTS_NAME, USER_JACK_USERNAME);
+	}
+
 
 	private void assertJackDummyPirateAccount() throws Exception {
 		assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);

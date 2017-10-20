@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 Evolveum
+ * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,33 +47,6 @@ public class SecurityUtil {
 	private static final Trace LOGGER = TraceManager.getTrace(SecurityUtil.class);
 
 	@NotNull private static List<String> remoteHostAddressHeaders = Collections.emptyList();
-
-	/**
-	 * Returns principal representing currently logged-in user. Returns null if the user is anonymous.
-	 */
-	public static MidPointPrincipal getPrincipal() throws SecurityViolationException {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		if (authentication == null) {
-			SecurityViolationException ex = new SecurityViolationException("No authentication");
-			LOGGER.error("No authentication", ex);
-			throw ex;
-		}
-		Object principalObject = authentication.getPrincipal();
-		if (!(principalObject instanceof MidPointPrincipal)) {
-			if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principalObject)) {
-				return null;
-			} else {
-				throw new IllegalArgumentException("Expected that spring security principal will be of type "+
-					MidPointPrincipal.class.getName()+" but it was "+ MiscUtil.getObjectName(principalObject));
-			}
-		}
-		return (MidPointPrincipal) principalObject;
-	}
-
-	public static boolean isAuthenticated() {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		return (authentication != null);
-	}
 
 	public static Collection<String> getActions(Collection<ConfigAttribute> configAttributes) {
 		Collection<String> actions = new ArrayList<String>(configAttributes.size());
@@ -347,5 +320,32 @@ public class SecurityUtil {
 	private static String getAddressFromHeader(String name, String value) {
 		String[] split = StringUtils.split(value, ",");
 		return StringUtils.trim(split[0]);
+	}
+
+	/**
+	 * Returns principal representing currently logged-in user. Returns null if the user is anonymous.
+	 */
+	public static MidPointPrincipal getPrincipal() throws SecurityViolationException {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null) {
+			SecurityViolationException ex = new SecurityViolationException("No authentication");
+			LOGGER.error("No authentication", ex);
+			throw ex;
+		}
+		Object principalObject = authentication.getPrincipal();
+		if (!(principalObject instanceof MidPointPrincipal)) {
+			if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principalObject)) {
+				return null;
+			} else {
+				throw new IllegalArgumentException("Expected that spring security principal will be of type "+
+					MidPointPrincipal.class.getName()+" but it was "+ MiscUtil.getObjectName(principalObject));
+			}
+		}
+		return (MidPointPrincipal) principalObject;
+	}
+
+	public static boolean isAuthenticated() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		return (authentication != null);
 	}
 }

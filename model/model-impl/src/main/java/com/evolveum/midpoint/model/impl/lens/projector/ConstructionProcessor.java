@@ -88,6 +88,7 @@ public class ConstructionProcessor {
             ConstructionPack<T> plusConstructionPack = constructionMapTriple.getPlusMap().get(key);
 
             if (LOGGER.isTraceEnabled()) {
+            	LOGGER.trace("Processing construction packs for {}", key.toHumanReadableDescription());
 	            if (zeroConstructionPack == null) {
 	            	LOGGER.trace("ZERO construction pack: null");
 	            } else {
@@ -111,7 +112,7 @@ public class ConstructionProcessor {
 	            	LOGGER.trace("Construction {}: assigned (valid)", desc);
 	            	consumer.onAssigned(key, desc);
 	            } else if (zeroConstructionPack != null && zeroConstructionPack.hasValidAssignment()) {
-	            	LOGGER.trace("Construction {}: unchanged (valid) + assignned (invalid)", desc);
+	            	LOGGER.trace("Construction {}: unchanged (valid) + assigned (invalid)", desc);
 	            	consumer.onUnchangedValid(key, desc);
 	            } else {
 	            	// Just ignore it, do not even create projection context

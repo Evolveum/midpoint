@@ -44,6 +44,8 @@
         <module>task-quartz-impl</module>
     	<module>security-api</module>
     	<module>security-impl</module>
+    	<module>security-enforcer-api</module>
+    	<module>security-enforcer-impl</module>
     </modules>
     <dependencies> 
     	<dependency> <!-- Not used, but required for surefire plugin not to complain -->

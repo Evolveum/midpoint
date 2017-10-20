@@ -41,12 +41,11 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Holder;
@@ -562,26 +561,26 @@ public class ExpressionUtil {
 				return evaluatedFilter;
 
 			} catch (RuntimeException ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".",
+				LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + PrettyPrinter.prettyPrint(valueExpression) + ".",
 						ex);
 				throw new SystemException(
-						"Couldn't evaluate expression" + valueExpression + ": " + ex.getMessage(), ex);
+						"Couldn't evaluate expression" + PrettyPrinter.prettyPrint(valueExpression) + ": " + ex.getMessage(), ex);
 
 			} catch (SchemaException ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".",
+				LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + PrettyPrinter.prettyPrint(valueExpression) + ".",
 						ex);
 				throw new SchemaException(
-						"Couldn't evaluate expression" + valueExpression + ": " + ex.getMessage(), ex);
+						"Couldn't evaluate expression" + PrettyPrinter.prettyPrint(valueExpression) + ": " + ex.getMessage(), ex);
 			} catch (ObjectNotFoundException ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".",
+				LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + PrettyPrinter.prettyPrint(valueExpression) + ".",
 						ex);
 				throw new ObjectNotFoundException(
-						"Couldn't evaluate expression" + valueExpression + ": " + ex.getMessage(), ex);
+						"Couldn't evaluate expression" + PrettyPrinter.prettyPrint(valueExpression) + ": " + ex.getMessage(), ex);
 			} catch (ExpressionEvaluationException ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".",
+				LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + PrettyPrinter.prettyPrint(valueExpression) + ".",
 						ex);
 				throw new ExpressionEvaluationException(
-						"Couldn't evaluate expression" + valueExpression + ": " + ex.getMessage(), ex);
+						"Couldn't evaluate expression " + PrettyPrinter.prettyPrint(valueExpression) + ": " + ex.getMessage(), ex);
 			}
 
 		} else if (filter instanceof ExistsFilter) {
@@ -835,30 +834,33 @@ public class ExpressionUtil {
 		throw new IllegalStateException("notreached");
 	}
 
-	public static void addActorVariable(ExpressionVariables scriptVariables, SecurityEnforcer securityEnforcer) {
+	public static void addActorVariable(ExpressionVariables scriptVariables, SecurityContextManager securityContextManager) {
 		// There can already be a value, because for mappings, we create the
 		// variable before parsing sources.
 		// For other scripts we do it just before the execution, to catch all
 		// possible places where scripts can be executed.
 
-		UserType oldActor = (UserType) scriptVariables.get(ExpressionConstants.VAR_ACTOR);
+		PrismObject<UserType> oldActor = (PrismObject<UserType>) scriptVariables.get(ExpressionConstants.VAR_ACTOR);
 		if (oldActor != null) {
 			return;
 		}
 
-		UserType actor = null;
+		PrismObject<UserType> actor = null;
 		try {
-			if (securityEnforcer != null) {
-				if (!securityEnforcer.isAuthenticated()) {
+			if (securityContextManager != null) {
+				if (!securityContextManager.isAuthenticated()) {
 					// This is most likely evaluation of role
 					// condition before
 					// the authentication is complete.
 					scriptVariables.addVariableDefinition(ExpressionConstants.VAR_ACTOR, null);
 					return;
 				}
-				MidPointPrincipal principal = securityEnforcer.getPrincipal();
+				MidPointPrincipal principal = securityContextManager.getPrincipal();
 				if (principal != null) {
-					actor = principal.getUser();
+					UserType principalUser = principal.getUser();
+					if (principalUser != null) {
+						actor = principalUser.asPrismObject();
+					}
 				}
 			}
 			if (actor == null) {

@@ -219,7 +219,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 					try {
 						// TODO: the modify authorization here is probably wrong.
 						// It is a model autz. UI autz should be here instead?
-						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.READ.getUrl(),
+						isVisible = getPageBase().isAuthorized(ModelAuthorizationAction.READ.getUrl(),
 								AuthorizationPhaseType.REQUEST, managerWrapper.getObject(), null, null, null);
 					} catch (Exception ex) {
 						LoggingUtils.logUnexpectedException(LOGGER, "Failed to check authorization for #read operation on object " +
@@ -257,7 +257,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 					try {
 						// TODO: the modify authorization here is probably wrong.
 						// It is a model autz. UI autz should be here instead?
-						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.UNASSIGN.getUrl(), null,
+						isVisible = getPageBase().isAuthorized(ModelAuthorizationAction.UNASSIGN.getUrl(), null,
 								managerWrapper.getObject(), null, getModelObject().asPrismObject(), null);
 					} catch (Exception ex) {
 						LoggingUtils.logUnexpectedException(LOGGER, "Failed to check authorization for #unassign operation on object " +
@@ -288,7 +288,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 					try {
 						// TODO: the modify authorization here is probably wrong.
 						// It is a model autz. UI autz should be here instead?
-						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.DELETE.getUrl(), null,
+						isVisible = getPageBase().isAuthorized(ModelAuthorizationAction.DELETE.getUrl(), null,
 								managerWrapper.getObject(), null, null, null);
 					} catch (Exception ex) {
 						LoggingUtils.logUnexpectedException(LOGGER, "Failed to check authorization for #delete operation on object " +

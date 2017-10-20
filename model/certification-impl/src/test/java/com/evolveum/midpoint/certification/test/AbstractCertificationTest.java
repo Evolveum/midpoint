@@ -404,7 +404,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 			login(getUser(reviewerOid));
 			realReviewerOid = reviewerOid;
 		} else {
-			realReviewerOid = securityEnforcer.getPrincipal().getOid();
+			realReviewerOid = securityContextManager.getPrincipal().getOid();
 		}
 		List<AccessCertificationWorkItemType> workItems = _case.getWorkItem().stream()
 				.filter(wi -> ObjectTypeUtil.containsOid(wi.getAssigneeRef(), realReviewerOid))
@@ -543,7 +543,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		return campaign;
 	}
 
-	private int countCampaignCases(String campaignOid) throws SchemaException, SecurityViolationException {
+	private int countCampaignCases(String campaignOid) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(AbstractCertificationTest.class.getName() + ".countCampaignCases");
 		OperationResult result = task.getResult();
 		ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)

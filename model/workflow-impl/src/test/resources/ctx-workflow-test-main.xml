@@ -39,6 +39,7 @@
     <import resource="ctx-model-common.xml"/>
     <import resource="classpath*:ctx-repository-test.xml"/>
     <import resource="ctx-repo-cache.xml"/>
+    <import resource="ctx-repo-common.xml"/>
     <import resource="ctx-configuration-test.xml"/>
     <import resource="ctx-provisioning.xml"/>
     <import resource="ctx-common.xml"/>

@@ -212,10 +212,24 @@ public class PageWorkItem extends PageAdminWorkItems {
     private void initButtons(Form mainForm) {
 
         VisibleBehaviour isAllowedToSubmit = new VisibleBehaviour(() ->
-				getWorkflowManager().isCurrentUserAuthorizedToSubmit(workItemDtoModel.getObject().getWorkItem()));
+				{
+					try {
+						return getWorkflowManager().isCurrentUserAuthorizedToSubmit(workItemDtoModel.getObject().getWorkItem(), getPageTask(), getPageTask().getResult());
+					} catch (ObjectNotFoundException | ExpressionEvaluationException e) {
+						LoggingUtils.logUnexpectedException(LOGGER, "Authorization error: " + e.getMessage(), e);
+						return false;
+					}
+				});
 
 		VisibleBehaviour isAllowedToDelegate = new VisibleBehaviour(() ->
-				getWorkflowManager().isCurrentUserAuthorizedToDelegate(workItemDtoModel.getObject().getWorkItem()));
+				{
+					try {
+						return getWorkflowManager().isCurrentUserAuthorizedToDelegate(workItemDtoModel.getObject().getWorkItem(), getPageTask(), getPageTask().getResult());
+					} catch (ObjectNotFoundException | ExpressionEvaluationException e) {
+						LoggingUtils.logUnexpectedException(LOGGER, "Authorization error: " + e.getMessage(), e);
+						return false;
+					}
+				});
 
 		VisibleBehaviour isAllowedToClaim = new VisibleBehaviour(() ->
 				workItemDtoModel.getObject().getWorkItem().getAssigneeRef() == null &&

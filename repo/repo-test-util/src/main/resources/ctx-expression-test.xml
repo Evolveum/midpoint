@@ -30,30 +30,12 @@
 	<!-- Definition of basic expression factory - just with simple evaluators -->
 	
 	<bean id="repoObjectResolver" class="com.evolveum.midpoint.test.RepoObjectResolver" />
-    
-    <bean id="literalExpressionEvaluatorFactory" class="com.evolveum.midpoint.repo.common.expression.evaluator.LiteralExpressionEvaluatorFactory"
-          scope="singleton">
-          <constructor-arg name="prismContext" ref="prismContext"/>
-    </bean>
-    
-    <bean id="asisExpressionEvaluatorFactory" 
-          class="com.evolveum.midpoint.repo.common.expression.evaluator.AsIsExpressionEvaluatorFactory"
-          scope="singleton">
-          <constructor-arg name="prismContext" ref="prismContext"/>
-          <constructor-arg name="protector" ref="protector"/>
-    </bean>
-    
+            
     <bean id="expressionFactory" class="com.evolveum.midpoint.repo.common.expression.ExpressionFactory" 
     		scope="singleton">
-        <constructor-arg ref="securityEnforcer"/>
+        <constructor-arg ref="securityContextManager"/>
         <constructor-arg ref="prismContext"/>
-        <property name="evaluatorFactories">
-        	<list>
-        		<ref bean="literalExpressionEvaluatorFactory"/>
-        		<ref bean="asisExpressionEvaluatorFactory"/>
-        	</list>
-        </property>
-        <property name="defaultEvaluatorFactory" ref="asisExpressionEvaluatorFactory"/>
+        <property name="defaultEvaluatorFactory" ref="asIsExpressionEvaluatorFactory"/>
 		<property name="objectResolver" ref="repoObjectResolver"/>
     </bean>
     

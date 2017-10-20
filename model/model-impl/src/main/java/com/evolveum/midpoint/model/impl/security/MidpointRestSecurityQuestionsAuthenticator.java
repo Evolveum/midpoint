@@ -171,7 +171,7 @@ public class MidpointRestSecurityQuestionsAuthenticator extends MidpointRestAuth
 	}
 
 	private SearchResultList<PrismObject<UserType>> searchUser(String userName) {
-		return getSecurityEnforcer().runPrivileged(new Producer<SearchResultList<PrismObject<UserType>>>() {
+		return getSecurityContextManager().runPrivileged(new Producer<SearchResultList<PrismObject<UserType>>>() {
 			@Override
 			public SearchResultList<PrismObject<UserType>> run() {
 				Task task = getTaskManager().createTaskInstance("Search user by name");
@@ -194,7 +194,7 @@ public class MidpointRestSecurityQuestionsAuthenticator extends MidpointRestAuth
 	}
 
 	private List<SecurityQuestionDefinitionType> getQuestions(PrismObject<UserType> user) {
-		return getSecurityEnforcer().runPrivileged(new Producer<List<SecurityQuestionDefinitionType>>() {
+		return getSecurityContextManager().runPrivileged(new Producer<List<SecurityQuestionDefinitionType>>() {
 
 			@Override
 			public List<SecurityQuestionDefinitionType> run() {

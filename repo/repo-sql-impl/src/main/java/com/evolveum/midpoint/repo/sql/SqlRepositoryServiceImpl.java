@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sql.helpers.*;
 import com.evolveum.midpoint.repo.sql.query2.matcher.DefaultMatcher;
 import com.evolveum.midpoint.repo.sql.query2.matcher.PolyStringMatcher;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -952,7 +954,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 	@Override
 	public <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector,
-			PrismObject<O> object, Trace logger, String logMessagePrefix) throws SchemaException {
+			PrismObject<O> object, ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		if (objectSelector == null) {
 			logger.trace("{} null object specification", logMessagePrefix);
 			return false;
@@ -972,6 +974,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		// Filter
 		if (specFilterType != null) {
 			ObjectFilter specFilter = QueryJaxbConvertor.createObjectFilter(object.getCompileTimeClass(), specFilterType, object.getPrismContext());
+			if (filterEvaluator != null) {
+				specFilter = filterEvaluator.evaluate(specFilter);
+			}
             ObjectTypeUtil.normalizeFilter(specFilter);		//  we assume object is already normalized
             if (specFilter != null) {
 				ObjectQueryUtil.assertPropertyOnly(specFilter, logMessagePrefix + " filter is not property-only filter");

@@ -416,6 +416,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	protected static final String ORG_TYPE_FUNCTIONAL = "functional";
 	protected static final String ORG_TYPE_PROJECT = "project";
+	
+	protected static final File CUSTOM_LIBRARY_FILE = new File(COMMON_DIR, "custom-library.xml");
 
 	protected static final File SERVICE_SHIP_SEA_MONKEY_FILE = new File(COMMON_DIR, "service-ship-sea-monkey.xml");
 	protected static final String SERVICE_SHIP_SEA_MONKEY_OID = "914b94be-1901-11e6-9269-972ee32cd8db";

@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- LIGHT CRIMSON dummy resource for testing. Has mostly STRONG, non-tolerant mappings.
+     Also some strange absolute-like mappings. It is stripped down to test proper loading
+     of full shadows for these absolute-like mappings. E.g. it has no iteration expression.
+     MID-3674 -->
+
+<resource oid="aa5d09b4-54d9-11e7-8888-576137828ab7"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+								  
+	<name>Dummy Resource Custom Function Crimson</name>
+	<connectorRef type="ConnectorType">
+		<filter>
+			<q:and>
+				<q:equal>
+					<q:path>connectorType</q:path>
+					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+				</q:equal>
+				<q:equal>
+					<q:path>connectorVersion</q:path>
+					<q:value>2.0</q:value>
+				</q:equal>
+			</q:and>
+		</filter>
+	</connectorRef>
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+					   
+		<icfc:configurationProperties>
+			<icfi:instanceId>customFunction</icfi:instanceId>
+		</icfc:configurationProperties>
+
+	</connectorConfiguration>
+	
+	<schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
+			<displayName>Default Account</displayName>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<outbound>
+				    <source>
+				    	<path>$user/name</path>
+				    </source>
+					<expression>
+						<script>
+							<code>
+								map = new HashMap();
+								map.put("name", name);
+								name = myLib.execute("getName", map);
+								log.info("custom library name: " + name)
+								return name;
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>icfs:uid</ref>
+				<displayName>UID</displayName>
+			</attribute>
+			<attribute>
+				<ref>ri:fullname</ref>
+				<displayName>Full Name</displayName>
+				<tolerant>false</tolerant>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>fullName</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:weapon</ref>
+				<tolerant>false</tolerant>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>extension/weapon</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:location</ref>
+				<displayName>Location</displayName>
+				<tolerant>false</tolerant>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>locality</path>
+					</source>
+					<expression>
+						<function>
+							<libraryRef oid="c0c010c0-d34d-b33f-f00d-999999999999" type="FunctionLibraryType"/>
+							<function>
+								<name>getLocality</name>
+								<parameter>
+									<name>location</name>
+									<value>locality</value>
+								</parameter>
+							</function>
+						</function>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:ship</ref>
+				<displayName>Ship</displayName>
+				<tolerant>false</tolerant>
+			</attribute>
+			<attribute>
+				<ref>ri:drink</ref>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>locality</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								log.info("locality: "+locality)
+								fixedDrink ="";
+								if (locality != null) {
+									map = new HashMap()
+									map.put("country", locality)
+									fixedDrink = myLib.execute("addCountry", map)
+								}
+								log.info("drink: "+fixedDrink)
+								return fixedDrink
+							 
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:quote</ref>
+				<displayName>Quote</displayName>
+				<tolerant>false</tolerant>
+			</attribute>
+			<attribute>
+                <ref>ri:gossip</ref>
+                <displayName>Gossip</displayName>
+                <description>The only tolerant attribute here</description>
+                <tolerant>true</tolerant>
+            </attribute>
+            <attribute>
+                <ref>ri:water</ref>
+                <tolerant>false</tolerant>
+            </attribute>
+            
+            <iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+
+			<activation>
+            	<administrativeStatus>
+                    <outbound/>
+            	</administrativeStatus>
+            </activation>
+			<credentials>
+                <password>
+                    <outbound>
+                    	<strength>strong</strength>
+                    </outbound>
+                </password>
+            </credentials>
+		</objectType>
+	</schemaHandling>
+	
+</resource>

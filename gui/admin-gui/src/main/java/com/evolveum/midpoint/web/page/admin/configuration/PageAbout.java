@@ -29,6 +29,8 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -340,7 +342,7 @@ public class PageAbout extends PageAdminConfiguration {
         try {
             Task task = createSimpleTask(OPERATION_TEST_REPOSITORY_CHECK_ORG_CLOSURE);
             getModelDiagnosticService().repositoryTestOrgClosureConsistency(task, true, result);
-        } catch (SchemaException|SecurityViolationException e) {
+        } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException e) {
             result.recordFatalError(e);
         } finally {
             result.computeStatusIfUnknown();
@@ -361,13 +363,13 @@ public class PageAbout extends PageAdminConfiguration {
 			} else {
 				task.setOwner(user.getUser().asPrismObject());
 			}
-			getSecurityEnforcer().authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
+			authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
 			task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
 			task.setHandlerUri(ModelPublicConstants.REINDEX_TASK_HANDLER_URI);
 			task.setName("Reindex repository objects");
 			taskManager.switchToBackground(task, result);
 			result.setBackgroundTaskOid(task.getOid());
-        } catch (SecurityViolationException|SchemaException|RuntimeException e) {
+        } catch (SecurityViolationException | SchemaException|RuntimeException | ExpressionEvaluationException | ObjectNotFoundException e) {
             result.recordFatalError(e);
         } finally {
             result.computeStatusIfUnknown();
@@ -386,11 +388,12 @@ public class PageAbout extends PageAdminConfiguration {
     }
 
     private void cleanupActivitiProcessesPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_CLEANUP_ACTIVITI_PROCESSES);
+		Task task = getTaskManager().createTaskInstance(OPERATION_CLEANUP_ACTIVITI_PROCESSES);
+        OperationResult result = task.getResult();
         try {
             WorkflowService workflowService = getWorkflowService();
-            workflowService.cleanupActivitiProcesses(result);
-        } catch (SecurityViolationException|SchemaException|RuntimeException e) {
+            workflowService.cleanupActivitiProcesses(task, result);
+        } catch (SecurityViolationException | SchemaException|RuntimeException | ExpressionEvaluationException | ObjectNotFoundException e) {
             result.recordFatalError(e);
         } finally {
             result.computeStatusIfUnknown();

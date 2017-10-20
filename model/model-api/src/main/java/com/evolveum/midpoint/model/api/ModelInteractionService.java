@@ -115,13 +115,12 @@ public interface ModelInteractionService {
      *
      * @param object object to edit
      * @return schema with correctly set constraint parts or null
-     * @throws SchemaException
      */
-    <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException;
+    <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException;
 
-    PrismObjectDefinition<ShadowType> getEditShadowDefinition(ResourceShadowDiscriminator discr, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException;
+    PrismObjectDefinition<ShadowType> getEditShadowDefinition(ResourceShadowDiscriminator discr, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException;
 
-    RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase) throws SchemaException;
+    RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException;
 
     /**
      * <p>
@@ -142,7 +141,7 @@ public interface ModelInteractionService {
      *
      * @param focus Object of the operation. The object (usually user) to whom the roles should be assigned.
      */
-    <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException;
+    <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException;
 
     /**
      * TODO
@@ -160,7 +159,7 @@ public interface ModelInteractionService {
      * @param object object of the operation (user)
      * @param target target of the operation (role, org, service that is being assigned)
      */
-    <O extends ObjectType,R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(PrismObject<O> object, PrismObject<R> target) throws SchemaException, SecurityViolationException;
+    <O extends ObjectType,R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException;
 
     SecurityPolicyType getSecurityPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 

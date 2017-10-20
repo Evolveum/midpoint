@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.evolveum.midpoint.notifications.api.events.AccessCertificationEvent;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -98,7 +99,7 @@ public class CertHelper {
         AccessCertificationCasesStatisticsType stat;
         try {
             stat = certificationManager.getCampaignStatistics(campaign.getOid(), false, task, result);
-        } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|ObjectAlreadyExistsException|RuntimeException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ObjectAlreadyExistsException | ExpressionEvaluationException | RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get campaign statistics", e);
             sb.append("Couldn't get campaign statistics because of ").append(e);
             return;

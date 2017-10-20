@@ -29,7 +29,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -117,6 +118,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 			public SecurityEnforcer getSecurityEnforcer() {
 				return securityEnforcer;
 			}
+			
+			@Override
+			public SecurityContextManager getSecurityContextManager() {
+				return securityContextManager;
+			}
 
 			@Override
 			public AdminGuiConfigurationType getAdminGuiConfiguration() {
@@ -137,6 +143,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 			public ExpressionFactory getExpressionFactory() {
 				return expressionFactory;
 			}
+
 		};
 	}
 
