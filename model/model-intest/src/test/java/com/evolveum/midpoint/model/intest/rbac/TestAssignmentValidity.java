@@ -1806,7 +1806,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	/**
 	 * MID-4198 "Disabled assignments project value in certain cases"
 	 */
-	@Test(enabled = false)
+	@Test
 	public void test252RecomputeJack() throws Exception {
 		final String TEST_NAME = "test252RecomputeJack";
 		displayTestTitle(TEST_NAME);
@@ -1836,7 +1836,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	/**
 	 * MID-4198 "Disabled assignments project value in certain cases"
 	 */
-	@Test(enabled = false)
+	@Test
 	public void test254ReconcileJack() throws Exception {
 		final String TEST_NAME = "test254ReconcileJack";
 		displayTestTitle(TEST_NAME);

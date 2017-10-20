@@ -98,7 +98,11 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
         return prismContext;
     }
 
-    //endregion
+    // experimental
+	public QName getExplicitTypeName() {
+		return explicitTypeName;
+	}
+	//endregion
 
     //region Parsing and serialization
     // itemDefinition may be null; in that case we do the best what we can

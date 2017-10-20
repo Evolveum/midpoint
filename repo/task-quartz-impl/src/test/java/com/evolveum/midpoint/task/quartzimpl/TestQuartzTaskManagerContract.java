@@ -1701,6 +1701,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
 		task2 = getTaskType(task2.getOid(), result);
 		assertNull("Second task was started even if it should not be", task2.getLastRunStartTimestamp());
+		// this one may occasionally fail because of a race condition (nextRetryTimestamp is derived from quartz scheduling data;
+        // and if the task2 is just being rescheduled because of a group limitation it might be temporarily null)
 		assertNotNull("Next retry time is not set for second task", task2.getNextRetryTimestamp());
 
 		// now finish first task and check the second one is started

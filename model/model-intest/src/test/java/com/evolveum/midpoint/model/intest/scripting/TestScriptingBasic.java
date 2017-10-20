@@ -49,7 +49,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 import org.testng.collections.Sets;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
@@ -57,6 +56,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyMap;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -98,7 +98,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 	private static final File GENERATE_PASSWORDS_2_FILE = new File(TEST_DIR, "generate-passwords-2.xml");
 	private static final File GENERATE_PASSWORDS_3_FILE = new File(TEST_DIR, "generate-passwords-3.xml");
 	private static final File ECHO_FILE = new File(TEST_DIR, "echo.xml");
+	private static final File USE_VARIABLES_FILE = new File(TEST_DIR, "use-variables.xml");
 	private static final QName USER_NAME_TASK_EXTENSION_PROPERTY = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "userName");
+	private static final QName STUDY_GROUP_TASK_EXTENSION_PROPERTY = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "studyGroup");
 
 	@Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
@@ -164,7 +166,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType executeScript = parseRealValue(ECHO_FILE);
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), task, result);
 
 		// THEN
 		dumpOutput(output, result);
@@ -172,7 +174,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		PipelineData data = output.getFinalOutput();
 		assertEquals("Unexpected # of items in output", 4, data.getData().size());
 
-		// TODO check correct serialization (MID-
+		// TODO check correct serialization
 	}
 
 
@@ -749,11 +751,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		Task task = createTask(DOT_CLASS + TEST_NAME);
 	    task.setOwner(getUser(USER_ADMINISTRATOR_OID));
 		OperationResult result = task.getResult();
-		JAXBElement<ScriptingExpressionType> expression = prismContext.parserFor(SCRIPTING_USERS_IN_BACKGROUND_FILE).parseRealValueToJaxbElement();
+		ExecuteScriptType exec = prismContext.parserFor(SCRIPTING_USERS_IN_BACKGROUND_FILE).parseRealValue();
 
 		// WHEN
 
-	    ExecuteScriptType exec = new ExecuteScriptType().scriptingExpression(expression);
 	    task.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, exec);
 	    task.getTaskPrismObject()
 			    .findContainer(TaskType.F_EXTENSION)
@@ -826,7 +827,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType executeScript = parseRealValue(GENERATE_PASSWORDS_2_FILE);
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), task, result);
 
 		// THEN
         dumpOutput(output, result);
@@ -852,7 +853,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecuteScriptType executeScript = parseRealValue(GENERATE_PASSWORDS_3_FILE);
 
 		// WHEN
-		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, task, result);
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), task, result);
 
 		// THEN
         dumpOutput(output, result);
@@ -935,7 +936,39 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		}
     }
 
-    private void assertNoOutputData(ExecutionContext output) {
+	@Test
+	public void test550UseVariables() throws Exception {
+		final String TEST_NAME = "test550UseVariables";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
+		OperationResult result = task.getResult();
+		ExecuteScriptType executeScript = parseRealValue(USE_VARIABLES_FILE);
+
+		PrismContainer<Containerable> taskExtension = task.getTaskPrismObject().findOrCreateContainer(TaskType.F_EXTENSION);
+		taskExtension
+				.findOrCreateProperty(USER_NAME_TASK_EXTENSION_PROPERTY)
+				.addRealValue("user1");
+		taskExtension
+				.findOrCreateProperty(STUDY_GROUP_TASK_EXTENSION_PROPERTY)
+				.addRealValues("group1", "group2", "group3");
+
+		// WHEN
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, emptyMap(), task, result);
+
+		// THEN
+		dumpOutput(output, result);
+		result.computeStatus();
+		PipelineData data = output.getFinalOutput();
+		assertEquals("Unexpected # of items in output", 1, data.getData().size());
+
+		String returned = data.getData().get(0).getValue().getRealValue();
+		assertEquals("Wrong returned status", "ok", returned);
+	}
+
+
+	private void assertNoOutputData(ExecutionContext output) {
         assertTrue("Script returned unexpected data", output.getFinalOutput() == null || output.getFinalOutput().getData().isEmpty());
     }
 
