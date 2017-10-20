@@ -173,7 +173,7 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 				securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Not authorized");
 				requestCtx.abortWith(Response.status(Status.FORBIDDEN).build());
 				return false;
-			} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
+			} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
 				securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Internal error: "+e.getMessage());
 				requestCtx.abortWith(Response.status(Status.BAD_REQUEST).build());
 				return false;

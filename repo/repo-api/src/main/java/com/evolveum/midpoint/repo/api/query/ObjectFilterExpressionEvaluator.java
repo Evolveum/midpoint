@@ -16,9 +16,12 @@
 package com.evolveum.midpoint.repo.api.query;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 /**
  * Functional interface to inject filter evaluation code.
@@ -29,6 +32,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 @FunctionalInterface
 public interface ObjectFilterExpressionEvaluator {
 	
-	ObjectFilter evaluate(ObjectFilter filter) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException;
+	ObjectFilter evaluate(ObjectFilter filter) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 }

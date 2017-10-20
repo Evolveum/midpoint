@@ -52,6 +52,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -531,7 +533,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         assertAssignments(hermanReconstructed, 2);
     }
 
-    private String assertObjectAuditRecords(String oid, int expectedNumberOfRecords) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+    private String assertObjectAuditRecords(String oid, int expectedNumberOfRecords) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
     	Task task = createTask("assertObjectAuditRecords");
         OperationResult result = task.getResult();
     	List<AuditEventRecord> auditRecords = getObjectAuditRecords(oid, task, result);
@@ -541,7 +543,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 	}
 
 	private void assertRecordsFromPrevious(XMLGregorianCalendar from, XMLGregorianCalendar to,
-			int expectedNumberOfRecords) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			int expectedNumberOfRecords) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Task task = createTask("assertRecordsFromPrevious");
         OperationResult result = task.getResult();
         List<AuditEventRecord> auditRecordsSincePrevious = getAuditRecordsFromTo(from, to, task, result);
@@ -549,7 +551,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong number of audit records (previous)", expectedNumberOfRecords, auditRecordsSincePrevious.size());
     }
 
-	private void assertRecordsFromInitial(XMLGregorianCalendar to, int expectedNumberOfRecords) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private void assertRecordsFromInitial(XMLGregorianCalendar to, int expectedNumberOfRecords) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Task task = createTask("assertRecordsFromInitial");
         OperationResult result = task.getResult();
         List<AuditEventRecord> auditRecordsSincePrevious = getAuditRecordsFromTo(initialTs, to, task, result);

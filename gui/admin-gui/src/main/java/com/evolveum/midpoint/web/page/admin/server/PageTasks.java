@@ -36,6 +36,8 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -1120,7 +1122,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                     result.recordWarning("Task(s) suspension has been successfully requested; please check for its completion using task list.");
                 }
             }
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't suspend the task(s)", e);
         }
         showResult(result);
@@ -1152,7 +1154,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully resumed.");
             }
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't resume the task(s)", e);
         }
         showResult(result);
@@ -1183,7 +1185,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully scheduled.");
             }
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't schedule the task(s)", e);
         }
         showResult(result);
@@ -1227,7 +1229,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                             "their completion using task list.");
                 }
             }
-        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException e) {
+        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't stop schedulers due", e);
         }
         showResult(result);
@@ -1259,7 +1261,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully started.");
             }
-        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException e) {
+        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't start the scheduler(s)", e);
         }
 
@@ -1291,7 +1293,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully stopped.");
             }
-        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException e) {
+        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't stop the scheduler(s)", e);
         }
         showResult(result);
@@ -1370,7 +1372,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                     result.recordWarning("Deactivation of service threads on local node have been successfully requested; however, some of the tasks are still running. Please check their completion using task list.");
                 }
             }
-        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException e) {
+        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't deactivate service threads on this node", e);
         }
         showResult(result);
@@ -1389,7 +1391,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "Service threads on local node have been successfully reactivated.");
             }
-        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException e) {
+        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't reactivate service threads on local node", e);
         }
         showResult(result);
@@ -1414,7 +1416,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             if (result.isSuccess()) {       // brutal hack - the subresult's message contains statistics
                 result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
             }
-        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException e) {
+        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't synchronize tasks", e);
         }
         showResult(result);
@@ -1433,7 +1435,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			if (result.isSuccess()) {       // brutal hack - the subresult's message contains statistics
 				result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
 			}
-		} catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException e) {
+		} catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
 			result.recordFatalError("Couldn't synchronize tasks", e);
 		}
 		showResult(result);
@@ -1543,7 +1545,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully deleted.");
             }
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't delete the task(s)", e);
         }
         showResult(result);

@@ -294,7 +294,7 @@ public class MiscDataUtil {
 		}
 	}
 
-    public boolean isAuthorized(WorkItemType workItem, RequestedOperation operation, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException {
+    public boolean isAuthorized(WorkItemType workItem, RequestedOperation operation, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         MidPointPrincipal principal;
 		try {
 			principal = securityContextManager.getPrincipal();

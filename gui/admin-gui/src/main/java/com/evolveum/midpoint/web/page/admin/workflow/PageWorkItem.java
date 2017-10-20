@@ -215,7 +215,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 				{
 					try {
 						return getWorkflowManager().isCurrentUserAuthorizedToSubmit(workItemDtoModel.getObject().getWorkItem(), getPageTask(), getPageTask().getResult());
-					} catch (ObjectNotFoundException | ExpressionEvaluationException e) {
+					} catch (ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 						LoggingUtils.logUnexpectedException(LOGGER, "Authorization error: " + e.getMessage(), e);
 						return false;
 					}
@@ -225,7 +225,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 				{
 					try {
 						return getWorkflowManager().isCurrentUserAuthorizedToDelegate(workItemDtoModel.getObject().getWorkItem(), getPageTask(), getPageTask().getResult());
-					} catch (ObjectNotFoundException | ExpressionEvaluationException e) {
+					} catch (ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 						LoggingUtils.logUnexpectedException(LOGGER, "Authorization error: " + e.getMessage(), e);
 						return false;
 					}

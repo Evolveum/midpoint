@@ -97,7 +97,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
                 }
             }
 
-        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException ex) {
+        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | CommunicationException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing work items", ex);
             result.recordFatalError("Couldn't list work items.", ex);
         }
@@ -137,7 +137,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         try {
             ObjectQuery query = createQuery(result);
             count = getModel().countContainers(WorkItemType.class, query, null, task, result);
-        } catch (SchemaException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException e) {
+        } catch (SchemaException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             throw new SystemException("Couldn't count work items: " + e.getMessage(), e);
         }
 

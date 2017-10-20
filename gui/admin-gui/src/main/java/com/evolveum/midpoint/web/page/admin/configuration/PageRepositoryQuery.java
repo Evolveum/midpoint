@@ -156,7 +156,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 		boolean admin;
 		try {
 			admin = isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null);
-		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | RuntimeException e) {
+		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine admin authorization -- continuing as non-admin", e);
 			admin = false;
 		}

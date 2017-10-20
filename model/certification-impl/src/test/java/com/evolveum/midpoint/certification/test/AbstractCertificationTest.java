@@ -543,7 +543,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		return campaign;
 	}
 
-	private int countCampaignCases(String campaignOid) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
+	private int countCampaignCases(String campaignOid) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(AbstractCertificationTest.class.getName() + ".countCampaignCases");
 		OperationResult result = task.getResult();
 		ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)

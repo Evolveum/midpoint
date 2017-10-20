@@ -483,7 +483,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     protected abstract Class<? extends ObjectType> getType(Task task);
 
     protected abstract  H createHandler(TaskRunResult runResult, Task coordinatorTask,
-			OperationResult opResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException;
+			OperationResult opResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 	/**
 	 * Used to properly initialize the "run", which is kind of task instance. The result handler is already created at this stage.

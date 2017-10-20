@@ -34,9 +34,12 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionExpressionEvaluatorType;
@@ -46,20 +49,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 
 /**
+ * @author katkav
  * @author semancik
- *
  */
 public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
 		implements ExpressionEvaluator<V, D> {
-
-	public static final int DEFAULT_LENGTH = 8;
 
 	private FunctionExpressionEvaluatorType functionEvaluatorType;
 	private D outputDefinition;
 	private Protector protector;
 	private PrismContext prismContext;
 	private ObjectResolver objectResolver;
-	private StringPolicyType elementStringPolicy;
 
 	FunctionExpressionEvaluator(FunctionExpressionEvaluatorType generateEvaluatorType, D outputDefinition,
 			Protector protector, ObjectResolver objectResolver, PrismContext prismContext) {
@@ -81,7 +81,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 	 */
 	@Override
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 
 		List<ExpressionType> expressions;
@@ -184,6 +184,10 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 	 */
 	@Override
 	public String shortDebugDump() {
+		FunctionType functionType = functionEvaluatorType.getFunction();
+		if (functionType != null) {
+			return "function: " + functionEvaluatorType.getFunction().getName();
+		}
 		return "function";
 	}
 

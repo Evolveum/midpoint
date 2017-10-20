@@ -48,9 +48,12 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
@@ -179,7 +182,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 			try {
 				isAuthorized = securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_WS_ALL_URL, AuthorizationPhaseType.REQUEST, null, null, null, null, task, result);
 				LOGGER.trace("Determined authorization for web service access (action: {}): {}", AuthorizationConstants.AUTZ_WS_ALL_URL, isAuthorized);
-			} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
+			} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 				LOGGER.debug("Access to web service denied for user '{}': internal error: {}",
 						username, e.getMessage(), e);
 				message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
@@ -191,7 +194,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 				try {
 					isAuthorized = securityEnforcer.isAuthorized(action, AuthorizationPhaseType.REQUEST, null, null, null, null, task, result);
 					LOGGER.trace("Determined authorization for web service operation {} (action: {}): {}", operationName, action, isAuthorized);
-				} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
+				} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 					LOGGER.debug("Access to web service denied for user '{}': schema error: {}",
 							username, e.getMessage(), e);
 					message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);

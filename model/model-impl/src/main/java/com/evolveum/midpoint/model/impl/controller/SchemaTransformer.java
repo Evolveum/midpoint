@@ -77,7 +77,7 @@ public class SchemaTransformer {
 	public <T extends ObjectType> void applySchemasAndSecurityToObjectTypes(List<T> objectTypes,
 			GetOperationOptions rootOptions, Collection<SelectorOptions<GetOperationOptions>> options,
 			AuthorizationPhaseType phase, Task task, OperationResult result)
-					throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+					throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
 		for (int i = 0; i < objectTypes.size(); i++) {
 			PrismObject<T> object = (PrismObject<T>) objectTypes.get(i).asPrismObject();
 			object = object.cloneIfImmutable();
@@ -103,7 +103,7 @@ public class SchemaTransformer {
 	public <C extends Containerable, T extends ObjectType>
 	SearchResultList<C> applySchemasAndSecurityToContainers(SearchResultList<C> originalResultList, Class<T> parentObjectType, QName childItemName,
 			GetOperationOptions rootOptions, Collection<SelectorOptions<GetOperationOptions>> options, AuthorizationPhaseType phase, Task task, OperationResult result)
-			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
 
 		List<C> newValues = new ArrayList<>();
 		Map<PrismObject<T>,Object> processedParents = new IdentityHashMap<>();
@@ -146,7 +146,7 @@ public class SchemaTransformer {
 		OperationResult subresult = new OperationResult(SchemaTransformer.class.getName()+".applySchemasAndSecurityToObjects");
 		try {
             applySchemasAndSecurity(object, rootOptions, options, phase, task, subresult);
-        } catch (IllegalArgumentException|IllegalStateException|SchemaException |ConfigurationException |ObjectNotFoundException | ExpressionEvaluationException e) {
+        } catch (IllegalArgumentException | IllegalStateException | SchemaException |ConfigurationException |ObjectNotFoundException | ExpressionEvaluationException | CommunicationException e) {
             LOGGER.error("Error post-processing object {}: {}", object, e.getMessage(), e);
             OperationResultType fetchResult = object.asObjectable().getFetchResult();
             if (fetchResult == null) {
@@ -161,11 +161,11 @@ public class SchemaTransformer {
         	// Leaving it in the result set may leak information.
         	result.recordFatalError(e);
         	throw e;
-        }
+		}
 	}
 	
 	private <O extends ObjectType> void authorizeOptions(GetOperationOptions rootOptions, PrismObject<O> object, ObjectDelta<O> delta, AuthorizationPhaseType phase, Task task, OperationResult result)
-			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		if (GetOperationOptions.isRaw(rootOptions)) {
 			securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), phase, object, delta, null, null, task, result);
 		}
@@ -174,12 +174,12 @@ public class SchemaTransformer {
 	/**
 	 * Validate the objects, apply security to the object definition, remove any non-visible properties (security),
 	 * apply object template definitions and so on. This method is called for
-	 * any object that is returned from the Model Service. 
+	 * any object that is returned from the Model Service.  
 	 */
 	public <O extends ObjectType> void applySchemasAndSecurity(PrismObject<O> object, GetOperationOptions rootOptions,
 			Collection<SelectorOptions<GetOperationOptions>> options,
 			AuthorizationPhaseType phase, Task task, OperationResult parentResult)
-					throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+					throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
 		LOGGER.trace("applySchemasAndSecurity starting");
     	OperationResult result = parentResult.createMinorSubresult(SchemaTransformer.class.getName()+".applySchemasAndSecurity");
     	authorizeOptions(rootOptions, object, null, phase, task, result);

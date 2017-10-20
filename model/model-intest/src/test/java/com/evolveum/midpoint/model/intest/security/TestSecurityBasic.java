@@ -590,7 +590,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGlobalStateUntouched();
 	}
 
-	private void assertJackEditSchemaReadAllModifySome(PrismObject<UserType> userJack) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+	private void assertJackEditSchemaReadAllModifySome(PrismObject<UserType> userJack) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
 		display("Jack's edit schema", userJackEditSchema);
 		assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);
@@ -677,7 +677,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 		assertAssignmentsWithTargets(userJack, 1);
     }
 
-    private void assertJackEditSchemaReadSomeModifySome(PrismObject<UserType> userJack) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+    private void assertJackEditSchemaReadSomeModifySome(PrismObject<UserType> userJack) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
     	PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
 		display("Jack's edit schema", userJackEditSchema);
 		assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);

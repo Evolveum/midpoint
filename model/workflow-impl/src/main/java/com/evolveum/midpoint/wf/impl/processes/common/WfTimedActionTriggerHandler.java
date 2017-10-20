@@ -148,7 +148,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 	}
 
 	private void executeCompleteAction(WorkItemType workItem, CompleteWorkItemActionType completeAction,
-			OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
+			OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		WorkItemOutcomeType outcome = completeAction.getOutcome() != null ? ApprovalUtils.fromUri(completeAction.getOutcome()) : WorkItemOutcomeType.REJECT;
 		workItemManager.completeWorkItem(workItem.getExternalId(), ApprovalUtils.toUri(outcome),
 				null, null, WfContextUtil.createCause(completeAction), result);
