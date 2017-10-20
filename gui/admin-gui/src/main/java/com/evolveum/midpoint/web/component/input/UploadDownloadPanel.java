@@ -68,6 +68,13 @@ public class UploadDownloadPanel extends InputPanel {
                 UploadDownloadPanel.this.uploadFilePerformed(target);
             }
         } );
+        fileUpload.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible() {
+                return !isReadOnly;
+
+            }
+        });
         fileUpload.setOutputMarkupId(true);
         add(fileUpload);
 
@@ -88,22 +95,21 @@ public class UploadDownloadPanel extends InputPanel {
             }
         });
 
-        add(new AjaxSubmitButton(ID_BUTTON_DELETE) {
+        AjaxSubmitButton delete = new AjaxSubmitButton(ID_BUTTON_DELETE) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 removeFilePerformed(target);
             }
-        });
-
-        add(new VisibleEnableBehaviour(){
+        };
+        delete.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible() {
                 return !isReadOnly;
 
             }
-
         });
+        add(delete);
     }
 
     @Override
