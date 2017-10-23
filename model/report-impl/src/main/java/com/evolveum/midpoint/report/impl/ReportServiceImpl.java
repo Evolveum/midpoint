@@ -85,7 +85,7 @@ public class ReportServiceImpl implements ReportService {
 
 	@Override
 	public ObjectQuery parseQuery(String query, Map<QName, Object> parameters) throws SchemaException,
-			ObjectNotFoundException, ExpressionEvaluationException {
+			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (StringUtils.isBlank(query)) {
 			return null;
 		}
@@ -115,7 +115,7 @@ public class ReportServiceImpl implements ReportService {
 			parsedQuery = ObjectQuery.createObjectQuery(f);
 
 			LOGGER.trace("query dump {}", parsedQuery.debugDump());
-		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
+		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			// TODO Auto-generated catch block
 			throw e;
 		} finally {

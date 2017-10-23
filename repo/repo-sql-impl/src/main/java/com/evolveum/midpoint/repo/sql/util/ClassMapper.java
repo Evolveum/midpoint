@@ -68,6 +68,7 @@ public final class ClassMapper {
         types.put(ObjectTypes.SERVICE, RObjectType.SERVICE);
         types.put(ObjectTypes.FORM, RObjectType.FORM);
         types.put(ObjectTypes.CASE, RObjectType.CASE);
+        types.put(ObjectTypes.FUNCTION_LIBRARY, RObjectType.FUNCTION_LIBRARY);
 
         for (ObjectTypes type : ObjectTypes.values()) {
             if (!types.containsKey(type)) {

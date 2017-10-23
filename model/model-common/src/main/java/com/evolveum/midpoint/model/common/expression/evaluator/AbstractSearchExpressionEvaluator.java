@@ -54,7 +54,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -95,8 +95,8 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 
 	protected AbstractSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType,
 												D outputDefinition, Protector protector, ObjectResolver objectResolver,
-												ModelService modelService, PrismContext prismContext, SecurityEnforcer securityEnforcer) {
-		super(expressionEvaluatorType, securityEnforcer);
+												ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager) {
+		super(expressionEvaluatorType, securityContextManager);
 		this.outputDefinition = outputDefinition;
 		this.prismContext = prismContext;
 		this.protector = protector;
@@ -127,7 +127,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 	@Override
 	protected List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination, boolean useNew,
 			ExpressionEvaluationContext context, String contextDescription, Task task, OperationResult result)
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 //		if (LOGGER.isTraceEnabled()) {
 //			LOGGER.trace("transformSingleValue in {}\nvariables:\n{}\nvalueDestination: {}\nuseNew: {}",
@@ -366,7 +366,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 	// e.g parameters, activation for assignment etc.
 	protected <C extends Containerable> List<ItemDelta<V,D>> collectAdditionalAttributes(PopulateType fromPopulate,
 			D outputDefinition, ExpressionVariables variables, ExpressionEvaluationContext params,
-			String contextDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			String contextDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (!(outputDefinition instanceof PrismContainerDefinition)) {
 			return null;
@@ -391,7 +391,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 
 	private <O extends ObjectType> String createOnDemand(Class<O> targetTypeClass, ExpressionVariables variables,
 			ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Going to create assignment targets on demand, variables:\n{}", variables.formatVariables());
 		}
@@ -433,7 +433,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 
 	private <IV extends PrismValue, ID extends ItemDefinition, C extends Containerable> ItemDelta<IV,ID> evaluatePopulateExpression(PopulateItemType populateItem,
 			ExpressionVariables variables, ExpressionEvaluationContext params, PrismContainerDefinition<C> objectDefinition,
-			String contextDescription, boolean evaluateMinus, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			String contextDescription, boolean evaluateMinus, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionType expressionType = populateItem.getExpression();
 		if (expressionType == null) {
 			LOGGER.warn("No expression in populateObject in assignment expression in {}, "
@@ -465,7 +465,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables,
 				expressionDesc, task, result);
 		context.setExpressionFactory(expressionFactory);
-		context.setStringPolicyResolver(params.getStringPolicyResolver());
+		context.setValuePolicyResolver(params.getValuePolicyResolver());
 		context.setDefaultTargetContext(params.getDefaultTargetContext());
 		context.setSkipEvaluationMinus(true);
 		context.setSkipEvaluationPlus(false);

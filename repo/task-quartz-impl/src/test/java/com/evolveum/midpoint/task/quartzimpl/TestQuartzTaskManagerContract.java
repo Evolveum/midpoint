@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,9 +86,11 @@ import static org.testng.AssertJUnit.*;
 @ContextConfiguration(locations = {"classpath:ctx-task.xml",
         "classpath:ctx-task-test.xml",
         "classpath:ctx-repo-cache.xml",
+        "classpath:ctx-repo-common.xml",
+        "classpath:ctx-security.xml",
+        "classpath:ctx-expression-test.xml",
         "classpath*:ctx-repository-test.xml",
         "classpath:ctx-audit.xml",
-        "classpath:ctx-security.xml",
         "classpath:ctx-common.xml",
         "classpath:ctx-configuration-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -1699,6 +1701,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
 		task2 = getTaskType(task2.getOid(), result);
 		assertNull("Second task was started even if it should not be", task2.getLastRunStartTimestamp());
+		// this one may occasionally fail because of a race condition (nextRetryTimestamp is derived from quartz scheduling data;
+        // and if the task2 is just being rescheduled because of a group limitation it might be temporarily null)
 		assertNotNull("Next retry time is not set for second task", task2.getNextRetryTimestamp());
 
 		// now finish first task and check the second one is started

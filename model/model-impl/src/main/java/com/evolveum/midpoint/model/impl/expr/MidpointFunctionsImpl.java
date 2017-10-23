@@ -56,7 +56,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
@@ -100,38 +100,20 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidpointFunctionsImpl.class);
 
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private ModelService modelService;
-
-    @Autowired ModelInteractionService modelInteractionService;
-
-    @Autowired
-    private ModelObjectResolver modelObjectResolver;
+    @Autowired private PrismContext prismContext;
+    @Autowired private ModelService modelService;
+    @Autowired private ModelInteractionService modelInteractionService;
+    @Autowired private ModelObjectResolver modelObjectResolver;
+    @Autowired private ProvisioningService provisioningService;
+    @Autowired private SecurityContextManager securityContextManager;
+    @Autowired private transient Protector protector;
+    @Autowired private OrgStructFunctionsImpl orgStructFunctions;
+	@Autowired private WorkflowService workflowService;
+	@Autowired private ConstantsManager constantsManager;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
-
-    @Autowired
-    private ProvisioningService provisioningService;
-
-    @Autowired
-    private SecurityEnforcer securityEnforcer;
-
-    @Autowired
-    private transient Protector protector;
-
-    @Autowired
-    private OrgStructFunctionsImpl orgStructFunctions;
-
-	@Autowired
-	private WorkflowService workflowService;
-
-	@Autowired
-	private ConstantsManager constantsManager;
 
 	public String hello(String name) {
         return "Hello "+name;
@@ -937,7 +919,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	}
 
 	@Override
-	public PrismObject<UserType> findShadowOwner(String accountOid) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException {
+	public PrismObject<UserType> findShadowOwner(String accountOid) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
 		return modelService.findShadowOwner(accountOid, getCurrentTask(), getCurrentResult());
 	}
 
@@ -1295,7 +1277,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	}
 
 	public MidPointPrincipal getPrincipal() throws SecurityViolationException {
-		return securityEnforcer.getPrincipal();
+		return securityContextManager.getPrincipal();
 	}
 
 	@Override

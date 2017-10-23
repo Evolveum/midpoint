@@ -30,9 +30,12 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -96,7 +99,7 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
             	String contextDesc = "flexible label "+path+" expression";
         		try {
 					return getExpressionValue(expressionType, contextDesc, task, result);
-				} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
+				} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 					result.recordFatalError(e);
 					LoggingUtils.logUnexpectedException(LOGGER, contextDesc, e, path);
 					if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
@@ -123,7 +126,7 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
         return getStringRealValue(property != null ? property.getRealValue() : null);
     }
 
-    private String getExpressionValue(ExpressionType expressionType, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    private String getExpressionValue(ExpressionType expressionType, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
     	C object = model.getObject();
     	ExpressionFactory expressionFactory = serviceLocator.getExpressionFactory();

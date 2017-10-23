@@ -28,9 +28,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -54,7 +57,7 @@ public class WfExpressionEvaluationHelper {
 
 	public List<ObjectReferenceType> evaluateRefExpressions(List<ExpressionType> expressions,
 			ExpressionVariables variables, String contextDescription,
-			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<ObjectReferenceType> retval = new ArrayList<>();
 		for (ExpressionType expression : expressions) {
 			retval.addAll(evaluateRefExpression(expression, variables, contextDescription, task, result));
@@ -64,7 +67,7 @@ public class WfExpressionEvaluationHelper {
 
 	public List<ObjectReferenceType> evaluateRefExpression(ExpressionType expressionType, ExpressionVariables variables,
 			String contextDescription, Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		return evaluateExpression(expressionType, variables, contextDescription, ObjectReferenceType.class,
 				ObjectReferenceType.COMPLEX_TYPE, ExpressionUtil.createRefConvertor(UserType.COMPLEX_TYPE), task, result);
 	}
@@ -75,7 +78,7 @@ public class WfExpressionEvaluationHelper {
 			String contextDescription, Class<T> clazz, QName typeName,
 			Function<Object, Object> additionalConvertor, Task task,
 			OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionFactory expressionFactory = getExpressionFactory();
 		PrismContext prismContext = expressionFactory.getPrismContext();
 		ItemDefinition<?> resultDef;
@@ -110,7 +113,7 @@ public class WfExpressionEvaluationHelper {
 
 	public boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
 			String contextDescription, Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Collection<Boolean> values = evaluateExpression(expressionType, expressionVariables, contextDescription,
 				Boolean.class, DOMUtil.XSD_BOOLEAN, null, task, result);
 		return MiscUtil.getSingleValue(values, false, contextDescription);

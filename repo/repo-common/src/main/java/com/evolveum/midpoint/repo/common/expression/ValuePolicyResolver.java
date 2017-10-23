@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2014 Evolveum
+/*
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.security.api;
+package com.evolveum.midpoint.repo.common.expression;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
-public interface ObjectSecurityConstraints extends DebugDumpable {
+/**
+ *
+ * Built for lazy resolving.
+ *
+ * @author semancik
+ *
+ */
+public interface ValuePolicyResolver {
 
-	AuthorizationDecisionType getActionDecision(String actionUrl, AuthorizationPhaseType phase);
+	void setOutputDefinition(ItemDefinition outputDefinition);
 
-	AuthorizationDecisionType findItemDecision(ItemPath itemPath, String actionUrl, AuthorizationPhaseType phase);
+	void setOutputPath(ItemPath outputPath);
 
-	boolean hasNoItemDecisions();
+	ValuePolicyType resolve();
 
 }

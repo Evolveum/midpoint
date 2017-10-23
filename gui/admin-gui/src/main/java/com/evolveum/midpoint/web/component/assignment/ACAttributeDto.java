@@ -93,7 +93,7 @@ public class ACAttributeDto implements Serializable {
             return null;
         }
 
-        Item item = StaticExpressionUtil.parseValueElements(elements, definition, "gui", context);
+        Item item = StaticExpressionUtil.parseValueElements(elements, definition, "gui");
         return item.getValues();
     }
 

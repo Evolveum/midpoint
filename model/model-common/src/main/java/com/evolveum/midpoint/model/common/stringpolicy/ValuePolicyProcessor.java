@@ -29,6 +29,7 @@ package com.evolveum.midpoint.model.common.stringpolicy;
  */
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,30 +37,40 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.mutable.MutableBoolean;
 import org.apache.commons.lang.text.StrBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CharacterClassType;
@@ -68,9 +79,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordLifeTimeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProhibitedValueItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProhibitedValuesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringLimitType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 @Component
 public class ValuePolicyProcessor {
@@ -86,13 +101,14 @@ public class ValuePolicyProcessor {
 	
 	private ItemPath path;
 	
-	@Autowired
-	private ExpressionFactory expressionFactory;
+	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private Protector protector;
 
 	public ExpressionFactory getExpressionFactory() {
 		return expressionFactory;
 	}
 
+	// Used in tests
 	public void setExpressionFactory(ExpressionFactory expressionFactory) {
 		this.expressionFactory = expressionFactory;
 	}
@@ -108,18 +124,15 @@ public class ValuePolicyProcessor {
 		return path;
 	}
 
-	public <O extends ObjectType> String generate(ItemPath path, @NotNull StringPolicyType policy, int defaultLength, PrismObject<O> object, String shortDesc, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
-		return generate(path, policy, defaultLength, false, object, shortDesc, task, result);
-	}
-
-	public <O extends ObjectType>  String generate(ItemPath path, @NotNull StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
-			PrismObject<O> object, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+	public <O extends ObjectType>  String generate(ItemPath path, @NotNull ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
+			AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		setPath(path);
 		OperationResult result = parentResult.createSubresult(OP_GENERATE);
 		
+		StringPolicyType stringPolicy = policy.getStringPolicy();
 		int maxAttempts = DEFAULT_MAX_ATTEMPTS;
-		if (policy.getLimitations() != null && policy.getLimitations().getMaxAttempts() != null) {
-			maxAttempts = policy.getLimitations().getMaxAttempts(); 
+		if (stringPolicy.getLimitations() != null && stringPolicy.getLimitations().getMaxAttempts() != null) {
+			maxAttempts = stringPolicy.getLimitations().getMaxAttempts(); 
 		}
 		if (maxAttempts < 1) {
 			ExpressionEvaluationException e = new ExpressionEvaluationException("Illegal number of maximum value genaration attemps: "+maxAttempts);
@@ -133,7 +146,7 @@ public class ValuePolicyProcessor {
 			if (result.isError()) {
 				throw new ExpressionEvaluationException(result.getMessage());
 			}
-			if (checkAttempt(generatedValue, policy, object, shortDesc, task, result)) {
+			if (checkAttempt(generatedValue, policy, originResolver, shortDesc, task, result)) {
 				break;
 			}
 			LOGGER.trace("Generator attempt {}: check failed", attempt);
@@ -150,12 +163,12 @@ public class ValuePolicyProcessor {
 	}
 	
 	public <O extends ObjectType> boolean validateValue(String newValue, ValuePolicyType pp, 
-			PrismObject<O> object, String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		return validateValue(newValue, pp, object, new StringBuilder(), shortDesc, task, parentResult);
+			AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return validateValue(newValue, pp, originResolver, new StringBuilder(), shortDesc, task, parentResult);
 	}
 	
 	public <O extends ObjectType> boolean validateValue(String newValue, ValuePolicyType pp, 
-			PrismObject<O> object, StringBuilder message, String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			AbstractValuePolicyOriginResolver<O> originResolver, StringBuilder message, String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(pp, "Value policy must not be null.");
 
@@ -212,7 +225,9 @@ public class ValuePolicyProcessor {
 		}
 		testInvalidCharacters(passwd, allValidChars, result, message);
 		
-		testCheckExpression(newValue, lims, object, shortDesc, task, result, message);
+		testCheckExpression(newValue, lims, originResolver, shortDesc, task, result, message);
+		
+		testProhibitedValues(newValue, pp.getProhibitedValues(), originResolver, shortDesc, task, result, message);
 
 		if (message.toString() == null || message.toString().isEmpty()) {
 			result.computeStatus();
@@ -409,8 +424,8 @@ public class ValuePolicyProcessor {
 
 	}
 	
-	private <O extends ObjectType> void testCheckExpression(String newPassword, LimitationsType lims, PrismObject<O> object,
-			String shortDesc, Task task, OperationResult result, StringBuilder message) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private <O extends ObjectType> void testCheckExpression(String newPassword, LimitationsType lims, AbstractValuePolicyOriginResolver<O> originResolver,
+			String shortDesc, Task task, OperationResult result, StringBuilder message) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		List<CheckExpressionType> checkExpressions = lims.getCheckExpression();
 		if (checkExpressions.isEmpty()) {
@@ -421,7 +436,7 @@ public class ValuePolicyProcessor {
 			if (expressionType == null) {
 				return;
 			}
-			if (!checkExpression(newPassword, expressionType, object, shortDesc, task, result)) {
+			if (!checkExpression(newPassword, expressionType, originResolver, shortDesc, task, result)) {
 				String msg = checkExpression.getFailureMessage();
 				if (msg == null) {
 					msg = "Check expression failed";
@@ -435,9 +450,92 @@ public class ValuePolicyProcessor {
 
 	}
 	
-	private String generateAttempt(StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
+	private <O extends ObjectType, R extends ObjectType> void testProhibitedValues(String newPassword, ProhibitedValuesType prohibitedValuesType, AbstractValuePolicyOriginResolver<O> originResolver,
+			String shortDesc, Task task, OperationResult result, StringBuilder message) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+		if (prohibitedValuesType == null || originResolver == null) {
+			return;
+		}
+		
+		Consumer<ProhibitedValueItemType> failAction = (prohibitedItemType) -> {
+			String msg = "The value is prohibited. Choose a different value.";
+			result.addSubresult(new OperationResult("Prohibited value",
+					OperationResultStatus.FATAL_ERROR, msg));
+			message.append(msg);
+			message.append("\n");
+		};
+		checkProhibitedValues(newPassword, prohibitedValuesType, originResolver, failAction, shortDesc, task, result);
+		
+	}
+	
+	private <O extends ObjectType, R extends ObjectType> boolean checkProhibitedValues(String newPassword, ProhibitedValuesType prohibitedValuesType, AbstractValuePolicyOriginResolver<O> originResolver,
+			Consumer<ProhibitedValueItemType> failAction, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+		if (prohibitedValuesType == null || originResolver == null) {
+			return true;
+		}
+		
+		MutableBoolean isAcceptable = new MutableBoolean(true);
+		for (ProhibitedValueItemType prohibitedItemType: prohibitedValuesType.getItem()) {
+			
+			ItemPathType itemPathType = prohibitedItemType.getPath();
+			if (itemPathType == null) {
+				throw new SchemaException("No item path defined in prohibited item in "+shortDesc);
+			}
+			ItemPath itemPath = itemPathType.getItemPath();
+			
+			ResultHandler<R> handler = (object, objectResult) -> {
+				
+				PrismProperty<Object> objectProperty = object.findProperty(itemPath);
+				if (objectProperty == null) {
+					return true;
+				}
+				
+				if (isMatching(newPassword, objectProperty)) {
+					if (failAction != null) {
+						failAction.accept(prohibitedItemType);
+					}
+					isAcceptable.setValue(false);
+					return false;
+				}
+				
+				return true;
+			};
+			originResolver.resolve(handler, prohibitedItemType.getOrigin(), shortDesc, task, result);			
+		}
+
+		return isAcceptable.booleanValue();
+	}
+	
+	private boolean isMatching(String newPassword, PrismProperty<Object> objectProperty) {
+		for (Object objectRealValue: objectProperty.getRealValues()) {
+			if (objectRealValue instanceof String) {
+				if (newPassword.equals(objectRealValue)) {
+					return true;
+				}
+			} else if (objectRealValue instanceof ProtectedStringType) {
+				ProtectedStringType newPasswordPs = new ProtectedStringType();
+				newPasswordPs.setClearValue(newPassword);
+				try {
+					if (protector.compare(newPasswordPs, (ProtectedStringType)objectRealValue)) {
+						return true;
+					}
+				} catch (SchemaException | EncryptionException e) {
+					throw new SystemException(e);
+				}
+			} else {
+				if (newPassword.equals(objectRealValue.toString())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private String generateAttempt(ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
 			OperationResult result) {
 
+		StringPolicyType stringPolicy = policy.getStringPolicy();
 		// if (policy.getLimitations() != null &&
 		// policy.getLimitations().getMinLength() != null){
 		// generateMinimalSize = true;
@@ -451,26 +549,26 @@ public class ValuePolicyProcessor {
 		int minLen = defaultLength;
 		int maxLen = defaultLength;
 		int unique = defaultLength / 2;
-		if (policy != null) {
-			for (StringLimitType l : policy.getLimitations().getLimit()) {
+		if (stringPolicy != null) {
+			for (StringLimitType l : stringPolicy.getLimitations().getLimit()) {
 				if (null != l.getCharacterClass().getValue()) {
 					lims.put(l, StringPolicyUtils.stringTokenizer(l.getCharacterClass().getValue()));
 				} else {
 					lims.put(l, StringPolicyUtils.stringTokenizer(StringPolicyUtils.collectCharacterClass(
-							policy.getCharacterClass(), l.getCharacterClass().getRef())));
+							stringPolicy.getCharacterClass(), l.getCharacterClass().getRef())));
 				}
 			}
 
 			// Get global limitations
-			minLen = policy.getLimitations().getMinLength() == null ? 0
-					: policy.getLimitations().getMinLength().intValue();
+			minLen = stringPolicy.getLimitations().getMinLength() == null ? 0
+					: stringPolicy.getLimitations().getMinLength().intValue();
 			if (minLen != 0 && minLen > defaultLength) {
 				defaultLength = minLen;
 			}
-			maxLen = (policy.getLimitations().getMaxLength() == null ? 0
-					: policy.getLimitations().getMaxLength().intValue());
-			unique = policy.getLimitations().getMinUniqueChars() == null ? minLen
-					: policy.getLimitations().getMinUniqueChars().intValue();
+			maxLen = (stringPolicy.getLimitations().getMaxLength() == null ? 0
+					: stringPolicy.getLimitations().getMaxLength().intValue());
+			unique = stringPolicy.getLimitations().getMinUniqueChars() == null ? minLen
+					: stringPolicy.getLimitations().getMinUniqueChars().intValue();
 
 		} 
 		// test correctness of definition
@@ -519,12 +617,12 @@ public class ValuePolicyProcessor {
 			if (null == intersectionCharacters || intersectionCharacters.size() == 0) {
 				result.recordFatalError(
 						"No intersection for required first character sets in value policy:"
-								+ policy.getDescription());
+								+ stringPolicy.getDescription());
 				// Log error
 				if (LOGGER.isErrorEnabled()) {
 					LOGGER.error(
 							"Unable to generate value for " + getPath() + ": No intersection for required first character sets in value policy: ["
-									+ policy.getDescription()
+									+ stringPolicy.getDescription()
 									+ "] following character limitation and sets are used:");
 					for (StringLimitType l : mustBeFirst.keySet()) {
 						StrBuilder tmp = new StrBuilder();
@@ -672,34 +770,40 @@ public class ValuePolicyProcessor {
 		return sb.toString();
 	}
 
-	private <O extends ObjectType> boolean checkAttempt(String generatedValue, StringPolicyType policy, PrismObject<O> object, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		LimitationsType limitationsType = policy.getLimitations();
-		if (limitationsType == null) {
-			return true;
+	private <O extends ObjectType> boolean checkAttempt(String generatedValue, ValuePolicyType policy, AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		StringPolicyType stringPolicy = policy.getStringPolicy();
+		if (stringPolicy != null) {
+			LimitationsType limitationsType = stringPolicy.getLimitations();
+			if (limitationsType != null) {
+				List<CheckExpressionType> checkExpressionTypes = limitationsType.getCheckExpression();
+				if (!checkExpressions(generatedValue, checkExpressionTypes, originResolver, shortDesc, task, result)) {
+					LOGGER.trace("Check expression returned false for generated value in {}", shortDesc);
+					return false;
+				}
+			}
 		}
-		List<CheckExpressionType> checkExpressionTypes = limitationsType.getCheckExpression();
-		if (!checkExpressions(generatedValue, checkExpressionTypes, object, shortDesc, task, result)) {
-			LOGGER.trace("Check expression returned false for generated value in {}", shortDesc);
+		if (!checkProhibitedValues(generatedValue, policy.getProhibitedValues(), originResolver, null, shortDesc, task, result)) {
+			LOGGER.trace("Generated value is prohibited in {}", shortDesc);
 			return false;
 		}
 		// TODO Check pattern
 		return true;
 	}
 	
-	private <O extends ObjectType> boolean checkExpressions(String generatedValue, List<CheckExpressionType> checkExpressionTypes, PrismObject<O> object, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private <O extends ObjectType> boolean checkExpressions(String generatedValue, List<CheckExpressionType> checkExpressionTypes, AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		for (CheckExpressionType checkExpressionType: checkExpressionTypes) {
 			ExpressionType expression = checkExpressionType.getExpression();
-			if (!checkExpression(generatedValue, expression, object, shortDesc, task, result)) {
+			if (!checkExpression(generatedValue, expression, originResolver, shortDesc, task, result)) {
 				return false;
 			}
 		}
 		return true;
 	}
 
-	public <O extends ObjectType> boolean checkExpression(String generatedValue, ExpressionType checkExpression, PrismObject<O> object, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	public <O extends ObjectType> boolean checkExpression(String generatedValue, ExpressionType checkExpression, AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, generatedValue);
-		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object);
+		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, originResolver == null ? null : originResolver.getObject());
 		PrismPropertyValue<Boolean> output = ExpressionUtil.evaluateCondition(variables, checkExpression, expressionFactory, shortDesc, task, result);
 		return ExpressionUtil.getBooleanConditionOutput(output);
 	}

@@ -6940,7 +6940,28 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Name of the function
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="parameter" type="tns:ExpressionParameterType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Function input parameters
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="returnType" type="xsd:QName" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Name of the function
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="trace" type="xsd:boolean" minOccurs="0" maxOccurs="1">
             	<xsd:annotation>
@@ -7013,6 +7034,41 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
+    
+    <xsd:complexType name="ExpressionParameterType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Describes input parameters to the expression. 
+    		</xsd:documentation>
+    		<xsd:appinfo>
+    			<a:since>3.7</a:since>
+    			<a:container/>
+    		</xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:sequence>
+    		<xsd:element name="name" type="xsd:string" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Name of the parameter
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="type" type="xsd:QName" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Parameter type
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="value" type="tns:ExpressionType" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Parameter type
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    	</xsd:sequence>
+    </xsd:complexType>
     
     <xsd:simpleType name="ExpressionReturnMultiplicityType">
         <xsd:annotation>
@@ -7216,7 +7272,42 @@
 
 	<xsd:element name="const" type="tns:ConstExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
-    <xsd:complexType name="GenerateExpressionEvaluatorType">
+	<xsd:complexType name="FunctionExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Evaluates custom defined functions from Function Library
+            </xsd:documentation>
+            <xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="libraryRef" type="tns:ObjectReferenceType" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Reference to the library where is the function
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="name" type="xsd:string" minOccurs="1">
+				<xsd:annotation>
+        			<xsd:documentation>
+        				Name of the function to use
+        			</xsd:documentation>
+        		</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="parameter" type="tns:ExpressionParameterType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+        			<xsd:documentation>
+        				Parameters
+        			</xsd:documentation>
+        		</xsd:annotation>
+			</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+	<xsd:element name="function" type="tns:FunctionExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+	
+	<xsd:complexType name="GenerateExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>
                 Generate value according to a policy that is associated with the property/attribute.
@@ -11140,7 +11231,7 @@
 			</xsd:appinfo>
         </xsd:annotation>    
         <xsd:sequence>
-            <xsd:element name="origin" type="tns:ValuePolicyOriginType" minOccurs="0" maxOccurs="1" default="subject"/>
+            <xsd:element name="origin" type="tns:ValuePolicyOriginType" minOccurs="0" maxOccurs="1" default="object"/>
             <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1"/>
             <!-- TODO: matching (exact, norm, case ignore, partial, ...), matching parameters ( 3 characters difference ) -->
         </xsd:sequence>
@@ -11157,21 +11248,45 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="subject">
+            <xsd:enumeration value="object">
                 <xsd:annotation>
+                	<xsd:documentation>
+                		Object is the orgin. Object usually means the user.
+                		E.g. in case of password policy, object is the user
+                		who's password is changed. 
+                	</xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SUBJECT"/>
+                        <jaxb:typesafeEnumMember name="OBJECT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="persona">
                 <xsd:annotation>
+                	<xsd:documentation>
+                		Object's persona is the origin.
+                		E.g. in case of password policy all user personas
+                		will be scanned.
+                	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="PERSONA"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <!-- owner? ("reverse" persona) -->
+            <xsd:enumeration value="owner">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Object's owner is the origin.
+                		E.g. in case of user password policy all personas that
+                		point to this user will be scanned. In case of
+                		account password policy the user who owns the
+                		account is scanned.
+                		Note: owner for accounts is not implemented yet
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OWNER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
     
@@ -11690,6 +11805,27 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:complexType name="FunctionLibraryType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Define reusable functions
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		 <xsd:complexContent>
+            <xsd:extension base="c:ObjectType">
+                <xsd:sequence>
+                	<xsd:element name="function" type="tns:ExpressionType" minOccurs="0" maxOccurs="unbounded"/>
+            	</xsd:sequence>
+            </xsd:extension>
+       </xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="functionLibrary" type="tns:FunctionLibraryType" substitutionGroup="c:object"/>
+	
+	
 
 	<xsd:complexType name="InternalsConfigurationType">
         <xsd:annotation>

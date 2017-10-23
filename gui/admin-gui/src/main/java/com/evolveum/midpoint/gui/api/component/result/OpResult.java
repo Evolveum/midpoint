@@ -170,11 +170,11 @@ public class OpResult implements Serializable, Visitable {
 			return;
 		}
 		try {
-			if (pageBase.getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
+			if (pageBase.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL)) {
 				backgroundTaskVisible = true;
 				return;
 			}
-		} catch (SchemaException e) {
+		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			backgroundTaskVisible = false;
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine background task visibility", e);
 			return;

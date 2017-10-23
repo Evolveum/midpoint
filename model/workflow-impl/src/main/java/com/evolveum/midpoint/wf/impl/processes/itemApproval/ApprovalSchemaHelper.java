@@ -17,9 +17,12 @@
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.stereotype.Component;
@@ -60,7 +63,7 @@ public class ApprovalSchemaHelper {
 			if (stageDef.getGroupExpansion() == null) {
 				stageDef.setGroupExpansion(GroupExpansionType.BY_CLAIMING_WORK_ITEMS);
 			}
-		} catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException e) {
+		} catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			throw new SystemException("Couldn't prepare approval schema for execution: " + e.getMessage(), e); // todo propagate these exceptions?
 		}
 	}

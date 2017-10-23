@@ -110,7 +110,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 				}
 				executeActions(actions, workItem, wfTask, triggerScannerTask, result);
 			}
-		} catch (RuntimeException|ObjectNotFoundException|SchemaException|SecurityViolationException|ExpressionEvaluationException e) {
+		} catch (RuntimeException | ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
 			String message = "Exception while handling work item trigger for ID " + workItemId + ": " + e.getMessage();
 			result.recordFatalError(message, e);
 			throw new SystemException(message, e);
@@ -132,7 +132,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 
 	private void executeActions(WorkItemActionsType actions, WorkItemType workItem, Task wfTask, Task triggerScannerTask,
 			OperationResult result)
-			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		for (WorkItemNotificationActionType notificationAction : actions.getNotify()) {
 			executeNotificationAction(workItem, notificationAction, wfTask, result);
 		}
@@ -148,7 +148,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 	}
 
 	private void executeCompleteAction(WorkItemType workItem, CompleteWorkItemActionType completeAction,
-			OperationResult result) throws SchemaException, SecurityViolationException {
+			OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		WorkItemOutcomeType outcome = completeAction.getOutcome() != null ? ApprovalUtils.fromUri(completeAction.getOutcome()) : WorkItemOutcomeType.REJECT;
 		workItemManager.completeWorkItem(workItem.getExternalId(), ApprovalUtils.toUri(outcome),
 				null, null, WfContextUtil.createCause(completeAction), result);
@@ -156,7 +156,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 
 	private void executeDelegateAction(WorkItemType workItem, DelegateWorkItemActionType delegateAction, boolean escalate,
 			Task wfTask, Task triggerScannerTask, OperationResult result)
-			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		WorkItemEscalationLevelType escLevel = escalate ? WfContextUtil.createEscalationLevelInformation(delegateAction) : null;
 		List<ObjectReferenceType> delegates = computeDelegateTo(delegateAction, workItem, wfTask, triggerScannerTask, result);
 		workItemManager.delegateWorkItem(workItem.getExternalId(), delegates,
@@ -166,7 +166,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 
 	private List<ObjectReferenceType> computeDelegateTo(DelegateWorkItemActionType delegateAction, WorkItemType workItem,
 			Task wfTask, Task triggerScannerTask, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<ObjectReferenceType> rv = new ArrayList<>();
 		rv.addAll(CloneUtil.cloneCollectionMembers(delegateAction.getApproverRef()));
 		if (!delegateAction.getApproverExpression().isEmpty()) {

@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2010-2013 Evolveum
+/**
+ * Copyright (c) 2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.repo.common.expression;
-
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 
 /**
- *
- * Built for lazy resolving.
- *
+ * Low-level security functions. Those are security functions that
+ * deal with the basic concepts of authentication, task ownership,
+ * security context and so on.
+ * 
  * @author semancik
  *
  */
-public interface StringPolicyResolver {
-
-	void setOutputDefinition(ItemDefinition outputDefinition);
-
-	void setOutputPath(ItemPath outputPath);
-
-	StringPolicyType resolve();
-
-}
+package com.evolveum.midpoint.security.api;

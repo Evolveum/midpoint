@@ -133,7 +133,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 							new ContainerWrapperListFromObjectWrapperModel(objectWrapperModel, 
 									Arrays.asList(new ItemPath(ShadowType.F_ATTRIBUTES), 
 											SchemaConstants.PATH_ACTIVATION, SchemaConstants.PATH_PASSWORD
-											/*,new ItemPath(ShadowType.F_ASSOCIATION ) */)), packageRef,
+											,new ItemPath(ShadowType.F_ASSOCIATION ))), packageRef,
 							getMainForm(), null, getPageBase());
 				} else {
 					shadowPanel = new SimpleErrorPanel<ShadowType>(ID_SHADOW, item.getModel()) {

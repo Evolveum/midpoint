@@ -366,7 +366,12 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		return refinedObjectClassDefinition.isContainerMarker();
 	}
 
-    @Override
+	@Override
+	public boolean isReferenceMarker() {
+		return refinedObjectClassDefinition.isReferenceMarker();
+	}
+
+	@Override
 	public boolean isPrimaryIdentifier(QName attrName) {
 		return refinedObjectClassDefinition.isPrimaryIdentifier(attrName);
 	}

@@ -321,7 +321,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 	}
 
 	public void evaluate(Task task, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
 		assignmentPathVariables = LensUtil.computeAssignmentPathVariables(getAssignmentPath());
 		evaluateKindIntentObjectClass(task, result);
 		evaluateAttributes(task, result);
@@ -381,7 +381,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 	}
 
 	private void evaluateAttributes(Task task, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 		attributeMappings = new ArrayList<>();
 		// LOGGER.trace("Assignments used for account construction for {} ({}):
 		// {}", new Object[]{this.resource,
@@ -412,7 +412,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 
 	private <T> Mapping<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluateAttribute(
 			ResourceAttributeDefinitionType attribudeDefinitionType, Task task, OperationResult result)
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 		QName attrName = ItemPathUtil.getOnlySegmentQName(attribudeDefinitionType.getRef());
 		if (attrName == null) {
 			throw new SchemaException("Missing 'ref' in attribute construction in account construction in "
@@ -477,7 +477,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 	}
 
 	private void evaluateAssociations(Task task, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 		associationMappings = new ArrayList<>();
 		for (ResourceObjectAssociationType associationDefinitionType : getConstructionType().getAssociation()) {
 			QName assocName = ItemPathUtil.getOnlySegmentQName(associationDefinitionType.getRef());
@@ -500,7 +500,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 
 	private Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluateAssociation(
 			ResourceObjectAssociationType associationDefinitionType, Task task, OperationResult result)
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 		QName assocName = ItemPathUtil.getOnlySegmentQName(associationDefinitionType.getRef());
 		if (assocName == null) {
 			throw new SchemaException("Missing 'ref' in association in construction in " + getSource());
@@ -535,7 +535,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 	private <V extends PrismValue, D extends ItemDefinition> Mapping<V, D> evaluateMapping(
 			Mapping.Builder<V, D> builder, QName mappingQName, D outputDefinition,
 			RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result)
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		if (!builder.isApplicableToChannel(getChannel())) {
 			return null;

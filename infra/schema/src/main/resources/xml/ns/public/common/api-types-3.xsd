@@ -220,6 +220,7 @@
         </xsd:sequence>
         <xsd:attribute name="count" type="xsd:int"/>
     </xsd:complexType>
+    <xsd:element name="objectList" type="tns:ObjectListType"/>
     
     <xsd:complexType name="ResourceObjectShadowListType">
         <xsd:sequence>

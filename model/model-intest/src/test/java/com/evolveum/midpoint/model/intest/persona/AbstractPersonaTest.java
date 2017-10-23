@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.intest;
+package com.evolveum.midpoint.model.intest.persona;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -59,6 +59,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -105,29 +106,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestPersona extends AbstractInitializedModelIntegrationTest {
+public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegrationTest {
 
 	public static final File TEST_DIR = new File("src/test/resources/persona");
 
-	private static final String USER_JACK_GIVEN_NAME_NEW = "Jackie";
+	protected static final String USER_JACK_GIVEN_NAME_NEW = "Jackie";
+	
+	protected static final String USER_PASSWORD_2_CLEAR = "bl4ckP3arl";
+	protected static final String USER_PASSWORD_3_CLEAR = "wh3r3sTheRum";
 
-	String userJackAdminPersonaOid;
+	protected String userJackAdminPersonaOid;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
 		super.initSystem(initTask, initResult);
-		InternalMonitor.reset();
-//		InternalMonitor.setTraceShadowFetchOperation(true);
-//		InternalMonitor.setTraceResourceSchemaOperations(true);
-		InternalMonitor.setTrace(InternalOperationClasses.PRISM_OBJECT_CLONES, true);
 
-		addObject(OBJECT_TEMPLATE_PERSONA_ADMIN_FILE);
+		addObject(getPersonaObjectTemplateFile());
 		addObject(ROLE_PERSONA_ADMIN_FILE);
 
 		// Persona full name is computed by using this ordinary user template
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_OID, initResult);
+		
+		rememberSteadyResources();
 	}
+	
+	protected abstract File getPersonaObjectTemplateFile();
 
     @Test
     public void test100AssignRolePersonaAdminToJack() throws Exception {
@@ -159,10 +163,12 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         // Full name is computed by using ordinary user template
         assertUser(persona, userJackAdminPersonaOid, toAdminPersonaUsername(USER_JACK_USERNAME), USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
         assertSubtype(persona, "admin");
-        assertUserPassword(persona, USER_JACK_PASSWORD);
+        assertPersonaInitialPassword(persona, USER_JACK_PASSWORD);
 
         assertSteadyResources();
 	}
+    
+    protected abstract void assertPersonaInitialPassword(PrismObject<UserType> persona, String userPassword) throws Exception;
 
     @Test
     public void test102RecomputeUserJack() throws Exception {
@@ -256,7 +262,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         display("Persona", persona);
         assertUser(persona, userJackAdminPersonaOid, toAdminPersonaUsername(USER_JACK_USERNAME), USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
         assertSubtype(persona, "admin");
-        assertUserPassword(persona, USER_JACK_PASSWORD);
+        assertPersonaInitialPassword(persona, USER_JACK_PASSWORD);
 
         assertSteadyResources();
 	}
@@ -290,7 +296,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         // Full name mapping in ordinary user template is weak, fullname is not changed
         assertUser(persona, userJackAdminPersonaOid, toAdminPersonaUsername(USER_JACK_USERNAME), USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
         assertSubtype(persona, "admin");
-        assertUserPassword(persona, USER_JACK_PASSWORD);
+        assertPersonaInitialPassword(persona, USER_JACK_PASSWORD);
 
         assertSteadyResources();
 	}
@@ -298,7 +304,120 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
     // TODO: recompute, reconcile (both user and persona)
 
     // TODO: change password
+    
+    @Test
+    public void test140ModifyUserJackPassword() throws Exception {
+		final String TEST_NAME = "test140ModifyUserJackPassword";
+        displayTestTitle(TEST_NAME);
 
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_2_CLEAR, task, result);
+
+		// THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after change execution", userAfter);
+		assertUser(userAfter, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
+
+		assertUserPassword(userAfter, USER_PASSWORD_2_CLEAR);
+		assertPasswordMetadata(userAfter, false, startCal, endCal);
+		assertPasswordHistoryEntries(userAfter);
+		
+		PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
+		assertPersonaAfterUserPasswordChange(persona, USER_JACK_PASSWORD, USER_PASSWORD_2_CLEAR);
+	}
+
+    protected abstract void assertPersonaAfterUserPasswordChange(PrismObject<UserType> persona, String oldPersonaPassword, String newUserPassword) throws Exception;
+
+    @Test
+    public void test142ModifyPersonaPassword() throws Exception {
+		final String TEST_NAME = "test142ModifyPersonaPassword";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        PrismObject<UserType> personaBefore = assertLinkedPersona(userBefore, UserType.class, "admin");
+
+        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        modifyUserChangePassword(personaBefore.getOid(), USER_PASSWORD_3_CLEAR, task, result);
+
+		// THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after change execution", userAfter);
+		assertUser(userAfter, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
+
+		assertUserPassword(userAfter, USER_PASSWORD_2_CLEAR);
+		assertPasswordMetadata(userAfter, false, null, startCal);
+		assertPasswordHistoryEntries(userAfter);
+		
+		PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
+		assertPersonaAfterPersonaPasswordChange(persona, USER_PASSWORD_3_CLEAR, startCal, endCal);
+	}
+
+    protected void assertPersonaAfterPersonaPasswordChange(PrismObject<UserType> persona, String newPersonaPassword, XMLGregorianCalendar startCal, XMLGregorianCalendar endCal) throws Exception {
+    	assertUserPassword(persona, newPersonaPassword);
+    	assertPasswordMetadata(persona, false, startCal, endCal);
+    }
+    
+    @Test
+    public void test145ModifyPersonaPasswordBack() throws Exception {
+		final String TEST_NAME = "test145ModifyPersonaPasswordBack";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        PrismObject<UserType> personaBefore = assertLinkedPersona(userBefore, UserType.class, "admin");
+
+        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        modifyUserChangePassword(personaBefore.getOid(), USER_PASSWORD_2_CLEAR, task, result);
+
+		// THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after change execution", userAfter);
+		assertUser(userAfter, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
+
+		assertUserPassword(userAfter, USER_PASSWORD_2_CLEAR);
+		assertPasswordMetadata(userAfter, false, null, startCal);
+		assertPasswordHistoryEntries(userAfter);
+		
+		PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
+		assertPersonaAfterPersonaPasswordChange(persona, USER_PASSWORD_2_CLEAR, startCal, endCal);
+	}
+
+    
     // TODO: assign some accouts/roles to user and persona, make sure they are independent
 
     // TODO: independent change in the persona
@@ -323,7 +442,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
 		assertUser(userAfter, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
-		assertUserPassword(userAfter, USER_JACK_PASSWORD);
+		assertUserPassword(userAfter, USER_PASSWORD_2_CLEAR);
 
         assertLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 0);

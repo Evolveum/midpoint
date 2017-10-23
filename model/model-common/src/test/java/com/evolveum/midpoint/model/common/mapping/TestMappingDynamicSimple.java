@@ -1190,7 +1190,7 @@ public class TestMappingDynamicSimple {
     	final String TEST_NAME = "testGenerateDefault";
     	TestUtil.displayTestTitle(TEST_NAME);
 
-    	final StringPolicyType stringPolicy = evaluator.getStringPolicy();
+    	final ValuePolicyType stringPolicy = evaluator.getValuePolicy();
     	// GIVEN
     	Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping("mapping-generate.xml",
     			TEST_NAME, stringPolicy, "employeeNumber", null);
@@ -1263,7 +1263,7 @@ public class TestMappingDynamicSimple {
     	// This is just for validation. The expression has to resolve reference of its own
     	PrismObject<ValuePolicyType> valuePolicy = PrismTestUtil.parseObject(
     			new File(MidPointTestConstants.OBJECTS_DIR, policyFileName));
-    	final StringPolicyType stringPolicy = valuePolicy.asObjectable().getStringPolicy();
+    	final ValuePolicyType stringPolicy = valuePolicy.asObjectable();
     	// GIVEN
     	Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping(mappingFileName,
     			TEST_NAME, stringPolicy, "employeeNumber", null);
@@ -1303,7 +1303,8 @@ public class TestMappingDynamicSimple {
 		assertFalse("Generated the same value", value1.equals(value2));
     }
 
-	private void assertGeneratedValue(String value, StringPolicyType stringPolicy, String pattern, boolean ignoreMin, boolean ignoreMax) {
+	private void assertGeneratedValue(String value, ValuePolicyType valuePolicy, String pattern, boolean ignoreMin, boolean ignoreMax) {
+		StringPolicyType stringPolicy = valuePolicy.getStringPolicy();
 		if (stringPolicy == null) {
 			assertEquals("Unexpected generated value length", GenerateExpressionEvaluator.DEFAULT_LENGTH, value.length());
 		} else {
@@ -1348,10 +1349,10 @@ public class TestMappingDynamicSimple {
     	// This is just for validation. The expression has to resolve reference of its own
     	PrismObject<ValuePolicyType> valuePolicy = PrismTestUtil.parseObject(
     			new File(MidPointTestConstants.OBJECTS_DIR, policyFileName));
-    	final StringPolicyType stringPolicy = valuePolicy.asObjectable().getStringPolicy();
+    	final ValuePolicyType valuePolicyType = valuePolicy.asObjectable();
     	// GIVEN
     	Mapping<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = evaluator.<T>createMappingBuilder(mappingFileName,
-    			TEST_NAME, stringPolicy, new ItemPath(
+    			TEST_NAME, valuePolicyType, new ItemPath(
     					UserType.F_EXTENSION,
     					new QName(NS_EXTENSION, extensionPropName)), null)
 				.build();
@@ -1371,12 +1372,12 @@ public class TestMappingDynamicSimple {
 		System.out.println("Generated value (1): " + value1);
 		assertNotNull("Generated null value", value1);
 		// We need to ignore the minLength. Conversion string -> number -> string may lose the leading zeroes
-		assertGeneratedValue(value1.toString(), stringPolicy, PATTERN_NUMERIC, true, false);
+		assertGeneratedValue(value1.toString(), valuePolicyType, PATTERN_NUMERIC, true, false);
 
 		// GIVEN (2)
 
 		mapping = evaluator.<T>createMappingBuilder(mappingFileName,
-    			TEST_NAME, stringPolicy, new ItemPath(
+    			TEST_NAME, valuePolicyType, new ItemPath(
     					UserType.F_EXTENSION,
     					new QName(NS_EXTENSION, extensionPropName)), null)
 				.build();
@@ -1394,7 +1395,7 @@ public class TestMappingDynamicSimple {
 		PrismAsserts.assertTripleNoMinus(outputTriple);
 
 		assertFalse("Generated the same value", value1.equals(value2));
-		assertGeneratedValue(value1.toString(), stringPolicy, PATTERN_NUMERIC, true, false);
+		assertGeneratedValue(value1.toString(), valuePolicyType, PATTERN_NUMERIC, true, false);
     }
 
 	@Test

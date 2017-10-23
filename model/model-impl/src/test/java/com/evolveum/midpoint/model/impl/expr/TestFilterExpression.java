@@ -284,7 +284,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
 	private ObjectFilter evaluateExpressionAssertFilter(String filename,
 			String input, Class<? extends ObjectFilter> expectedType,
-			Task task, OperationResult result) throws SchemaException, IOException, ObjectNotFoundException, ExpressionEvaluationException {
+			Task task, OperationResult result) throws SchemaException, IOException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		SearchFilterType filterType = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, filename), SearchFilterType.COMPLEX_TYPE);

@@ -38,7 +38,7 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -71,7 +71,7 @@ public class AccCertCaseOperationsHelper {
     @Autowired private AccCertReviewersHelper reviewersHelper;
     @Autowired private PrismContext prismContext;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
-    @Autowired private SecurityEnforcer securityEnforcer;
+    @Autowired private SecurityContextManager securityContextManager;
     @Autowired private AccCertGeneralHelper generalHelper;
 	@Autowired private AccCertResponseComputationHelper computationHelper;
 	@Autowired private AccCertQueryHelper queryHelper;
@@ -98,7 +98,7 @@ public class AccCertCaseOperationsHelper {
 			response = null;
 		}
 
-		ObjectReferenceType responderRef = ObjectTypeUtil.createObjectRef(securityEnforcer.getPrincipal().getUser());
+		ObjectReferenceType responderRef = ObjectTypeUtil.createObjectRef(securityContextManager.getPrincipal().getUser());
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		ItemPath workItemPath = new ItemPath(F_CASE, caseId, F_WORK_ITEM, workItemId);
 		Collection<ItemDelta<?,?>> deltaList = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
@@ -186,7 +186,7 @@ public class AccCertCaseOperationsHelper {
         ResultHandler<F> resultHandler = (object, parentResult) -> {
 			try {
 				caseList.addAll(handler.createCasesForObject(object, campaign, task, parentResult));
-			} catch (ExpressionEvaluationException|ObjectNotFoundException|SchemaException e) {
+			} catch (ExpressionEvaluationException|ObjectNotFoundException|SchemaException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 				// TODO process the exception more intelligently
 				throw new SystemException("Cannot create certification case for object " + toShortString(object.asObjectable()) + ": " + e.getMessage(), e);
 			}

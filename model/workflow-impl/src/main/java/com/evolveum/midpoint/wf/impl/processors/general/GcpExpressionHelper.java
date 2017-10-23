@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,12 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -71,13 +74,13 @@ public class GcpExpressionHelper {
         boolean start;
         try {
             start = evaluateBooleanExpression(conditionExpression, variables, "workflow activation condition", taskFromModel, result);
-        } catch (ObjectNotFoundException|ExpressionEvaluationException e) {
+        } catch (ObjectNotFoundException|ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             throw new SystemException("Couldn't evaluate generalChangeProcessor activation condition", e);
         }
         return start;
     }
 
-    private boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, String opContext, Task taskFromModel, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+    private boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, String opContext, Task taskFromModel, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         PrismContext prismContext = expressionFactory.getPrismContext();
         QName resultName = new QName(SchemaConstants.NS_C, "result");

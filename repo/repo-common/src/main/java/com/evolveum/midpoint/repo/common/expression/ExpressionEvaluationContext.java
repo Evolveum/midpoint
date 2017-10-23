@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public class ExpressionEvaluationContext {
 	private ExpressionVariables variables;
 	private boolean skipEvaluationPlus = false;
 	private boolean skipEvaluationMinus = false;
-	private StringPolicyResolver stringPolicyResolver;
+	private ValuePolicyResolver valuePolicyResolver;
 	private ExpressionFactory expressionFactory;
 	private PrismObjectDefinition<?> defaultTargetContext;
 	private RefinedObjectClassDefinition refinedObjectClassDefinition;
@@ -101,12 +101,12 @@ public class ExpressionEvaluationContext {
 		this.skipEvaluationMinus = skipEvaluationMinus;
 	}
 
-	public StringPolicyResolver getStringPolicyResolver() {
-		return stringPolicyResolver;
+	public ValuePolicyResolver getValuePolicyResolver() {
+		return valuePolicyResolver;
 	}
 
-	public void setStringPolicyResolver(StringPolicyResolver stringPolicyResolver) {
-		this.stringPolicyResolver = stringPolicyResolver;
+	public void setValuePolicyResolver(ValuePolicyResolver valuePolicyResolver) {
+		this.valuePolicyResolver = valuePolicyResolver;
 	}
 
 	public ExpressionFactory getExpressionFactory() {
@@ -177,7 +177,7 @@ public class ExpressionEvaluationContext {
 		ExpressionEvaluationContext clone = new ExpressionEvaluationContext(sources, variables, contextDescription, task, result);
 		clone.skipEvaluationMinus = this.skipEvaluationMinus;
 		clone.skipEvaluationPlus = this.skipEvaluationPlus;
-		clone.stringPolicyResolver = this.stringPolicyResolver;
+		clone.valuePolicyResolver = this.valuePolicyResolver;
 		clone.expressionFactory = this.expressionFactory;
 		clone.defaultSource = this.defaultSource;
 		clone.refinedObjectClassDefinition = this.refinedObjectClassDefinition;

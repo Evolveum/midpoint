@@ -59,12 +59,12 @@
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>task-api</artifactId>
+			<artifactId>security-api</artifactId>
 			<version>3.7-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>security-api</artifactId>
+			<artifactId>task-api</artifactId>
 			<version>3.7-SNAPSHOT</version>
 		</dependency>
         <dependency>
@@ -136,6 +136,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>security-impl</artifactId>
+			<version>3.7-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
 			<scope>test</scope>
@@ -153,7 +159,7 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>security-impl</artifactId>
+            <artifactId>repo-common</artifactId>
             <version>3.7-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>

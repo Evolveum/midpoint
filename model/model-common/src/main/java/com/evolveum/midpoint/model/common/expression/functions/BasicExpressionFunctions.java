@@ -974,4 +974,8 @@ public class BasicExpressionFunctions {
     	return DebugUtil.debugDump(o, indent);
     }
 
+    public static XMLGregorianCalendar fromNow(String timeSpec) {
+    	return XmlTypeConverter.fromNow(XmlTypeConverter.createDuration(timeSpec));
+    }
+
 }

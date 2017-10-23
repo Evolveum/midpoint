@@ -688,4 +688,9 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	public boolean isShared() {
 		return false;
 	}
+
+	@Override
+	public boolean isReferenceMarker() {
+		return structuralObjectClassDefinition.isReferenceMarker();
+	}
 }

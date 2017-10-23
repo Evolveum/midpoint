@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -106,7 +106,7 @@ public class AccCertUpdateHelper {
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
-    @Autowired private SecurityEnforcer securityEnforcer;
+    @Autowired private SecurityContextManager securityContextManager;
     @Autowired private AccCertGeneralHelper generalHelper;
     @Autowired protected AccCertQueryHelper queryHelper;
     @Autowired private AccCertCaseOperationsHelper caseHelper;
@@ -127,7 +127,7 @@ public class AccCertUpdateHelper {
         }
 
         newCampaign.setDescription(definition.getDescription());
-        newCampaign.setOwnerRef(securityEnforcer.getPrincipal().toObjectReference());
+        newCampaign.setOwnerRef(securityContextManager.getPrincipal().toObjectReference());
         newCampaign.setTenantRef(definition.getTenantRef());
         newCampaign.setDefinitionRef(ObjectTypeUtil.createObjectRef(definition));
 
@@ -385,7 +385,7 @@ public class AccCertUpdateHelper {
 			SecurityViolationException {
         LOGGER.info("Going to delegate {} work item(s) in campaign {}", workItems.size(), campaignOid);
 
-		MidPointPrincipal principal = securityEnforcer.getPrincipal();
+		MidPointPrincipal principal = securityContextManager.getPrincipal();
 		result.addContext("user", toShortString(principal.getUser()));
 		ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getUser());
 
@@ -447,7 +447,7 @@ public class AccCertUpdateHelper {
 			WorkItemEventCauseInformationType causeInformation, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException,
 			SecurityViolationException {
-		MidPointPrincipal principal = securityEnforcer.getPrincipal();
+		MidPointPrincipal principal = securityContextManager.getPrincipal();
 		result.addContext("user", toShortString(principal.getUser()));
 		ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getUser());
 

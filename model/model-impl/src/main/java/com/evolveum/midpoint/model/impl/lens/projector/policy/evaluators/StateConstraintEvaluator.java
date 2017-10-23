@@ -35,9 +35,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -80,7 +83,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 	@Override
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluate(JAXBElement<StatePolicyConstraintType> constraint,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_ASSIGNMENT_STATE)) {
 			if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
@@ -97,7 +100,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 
 	private <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluateForObject(StatePolicyConstraintType constraint,
 			PolicyRuleEvaluationContext<F> ctx, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		int count =
 				(constraint.getFilter() != null ? 1 : 0)
@@ -153,7 +156,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 
 	private <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluateForAssignment(StatePolicyConstraintType constraint,
 			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (constraint.getFilter() != null) {
 			throw new UnsupportedOperationException("Filter is not supported for assignment state constraints yet.");
 		}
@@ -176,7 +179,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 	@NotNull
 	private <F extends FocusType> LocalizableMessage createMessage(String constraintKeyPrefix,
 			StatePolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<Object> args = new ArrayList<>();
 		args.add(evaluatorHelper.createBeforeAfterMessage(ctx));
 		String keySuffix;
@@ -196,7 +199,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 	@NotNull
 	private <F extends FocusType> LocalizableMessage createShortMessage(String constraintKeyPrefix,
 			StatePolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<Object> args = new ArrayList<>();
 		args.add(evaluatorHelper.createBeforeAfterMessage(ctx));
 		String keySuffix;
