@@ -1239,7 +1239,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 
 		LocalizableMessage localizableMessage = null;
-		LocalizableMessageType message = result.getLocalizedMessage();
+		LocalizableMessageType message = result.getUserFriendlyMessage();
 		if (message != null) {
 			localizableMessage = LocalizationUtil.parseLocalizableMessageType(message);
 		}
@@ -1309,7 +1309,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
 		if (opResult.getUserFriendlyMessage() != null) {
 			LocalizableMessageType msg = LocalizationUtil.createLocalizableMessageType(opResult.getUserFriendlyMessage());
-			resultType.setLocalizedMessage(msg);
+			resultType.setUserFriendlyMessage(msg);
 		}
 
 		resultType.setParams(ParamsTypeUtil.toParamsType(opResult.getParams()));
