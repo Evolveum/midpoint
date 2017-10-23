@@ -432,6 +432,10 @@ public class ContainerWrapperFactory {
         names.add(OrgType.F_APPROVER_EXPRESSION);
         names.add(OrgType.F_AUTOMATICALLY_APPROVED);
         names.add(OrgType.F_CONDITION);
+        // focus
+        names.add(FocusType.F_LINK);
+        names.add(FocusType.F_LINK_REF);
+        names.add(FocusType.F_PERSONA_REF);
 
         for (QName name : names) {
             if (name.equals(def.getName())) {

@@ -152,7 +152,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		ExpressionVariables functionVariables = new ExpressionVariables();
 		
 		for (ExpressionParameterType param : functionEvaluatorType.getParameter()) {
-			ExpressionType valueExpression = param.getValue();
+			ExpressionType valueExpression = param.getExpression();
 			OperationResult variableResult = result.createMinorSubresult(FunctionExpressionEvaluator.class.getSimpleName() + ".resolveVariable");
 			try {
 				variableResult.addArbitraryObjectAsParam("valueExpression", valueExpression);
