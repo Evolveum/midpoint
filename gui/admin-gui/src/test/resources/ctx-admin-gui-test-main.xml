@@ -30,11 +30,13 @@
     <import resource="classpath:ctx-configuration.xml" />
     <import resource="classpath*:ctx-repository-test.xml" />
     <import resource="classpath:ctx-repo-cache.xml" />
+    <import resource="classpath:ctx-repo-common.xml" />
     <import resource="ctx-configuration-test.xml"/>
     <import resource="classpath:ctx-task.xml" />
     <import resource="classpath:ctx-provisioning.xml" />
     <import resource="classpath:ctx-audit.xml" />
     <import resource="classpath:ctx-security.xml" />
+    <import resource="classpath:ctx-security-enforcer.xml" />
     <import resource="classpath:ctx-model.xml" />
     <import resource="classpath:ctx-model-common.xml" />
     <import resource="classpath:ctx-model-test.xml" />

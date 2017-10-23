@@ -15,14 +15,36 @@
  */
 package com.evolveum.midpoint.model.common.expression.script;
 
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -38,23 +60,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
-import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-
-import static org.testng.AssertJUnit.*;
-
 /**
  * @author semancik
  */
@@ -68,7 +73,7 @@ public class TestScriptCaching {
 
 	 protected ScriptExpressionFactory scriptExpressionfactory;
 	 protected ScriptEvaluator evaluator;
-
+	 
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -139,7 +144,7 @@ public class TestScriptCaching {
     	ScriptExpressionEvaluatorType scriptType = parseScriptType(filname);
     	ItemDefinition outputDefinition = new PrismPropertyDefinitionImpl(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
-    	ScriptExpression scriptExpression = scriptExpressionfactory.createScriptExpression(scriptType, outputDefinition, desc);
+    	ScriptExpression scriptExpression = createScriptExpression(scriptType, outputDefinition, desc);
 
         ExpressionVariables variables = ExpressionVariables.create(
 				new QName(NS_WHATEVER, "foo"), "FOO",
@@ -161,6 +166,14 @@ public class TestScriptCaching {
     	return (endTime - startTime);
     }
 
+	private ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition, String shortDesc) throws ExpressionSyntaxException {
+		ScriptExpression expression = new ScriptExpression(scriptExpressionfactory.getEvaluators().get(expressionType.getLanguage()), expressionType);
+		expression.setOutputDefinition(outputDefinition);
+		expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
+		expression.setFunctions(scriptExpressionfactory.getFunctions());
+		return expression;
+	}
+	
     private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException, JAXBException {
 		ScriptExpressionEvaluatorType expressionType = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);

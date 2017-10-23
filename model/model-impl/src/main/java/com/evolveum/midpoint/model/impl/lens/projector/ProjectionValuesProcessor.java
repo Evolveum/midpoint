@@ -494,7 +494,7 @@ public class ProjectionValuesProcessor {
 
 	private <F extends ObjectType> String formatIterationToken(LensContext<F> context,
 			LensProjectionContext accountContext, int iteration, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceObjectTypeDefinitionType();
 		if (accDef == null) {
 			return LensUtil.formatIterationTokenDefault(iteration);
@@ -515,7 +515,7 @@ public class ProjectionValuesProcessor {
 	private <F extends ObjectType> boolean evaluateIterationCondition(LensContext<F> context,
 			LensProjectionContext accountContext, int iteration, String iterationToken,
 			boolean beforeIteration, Task task, OperationResult result)
-					throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+					throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceObjectTypeDefinitionType();
 		if (accDef == null) {
 			return true;

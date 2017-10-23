@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.scripting;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
+import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.scripting.expressions.FilterContentEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.expressions.SearchEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.expressions.SelectEvaluator;
@@ -25,11 +26,17 @@ import com.evolveum.midpoint.model.impl.scripting.helpers.ScriptingJaxbUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
@@ -65,6 +72,8 @@ public class ScriptingExpressionEvaluator {
     @Autowired private FilterContentEvaluator filterContentEvaluator;
     @Autowired private ModelService modelService;
     @Autowired private PrismContext prismContext;
+    @Autowired private ModelObjectResolver modelObjectResolver;
+    @Autowired private ExpressionFactory expressionFactory;
 
     private ObjectFactory objectFactory = new ObjectFactory();
 
@@ -130,62 +139,43 @@ public class ScriptingExpressionEvaluator {
         result.computeStatus();
     }
 
-    /**
-     * Entry point to _synchronous_ script execution, with no input data.
-     *
-     * @param expression Scripting expression to execute.
-     * @param task Task in context of which the script should execute (in foreground!)
-     * @param result Operation result
-     * @return ExecutionContext, from which the caller can retrieve the output data via getFinalOutput() method,
-     *         and the console output via getConsoleOutput() method.
-     */
-
-    public ExecutionContext evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException {
-        ExecutionContext context = evaluateExpression(expression, PipelineData.createEmpty(), null, emptyMap(), false, task, result);
-        context.computeResults();
-        return context;
-    }
-
-
-	public ExecutionContext evaluateExpression(@NotNull ExecuteScriptType executeScript, Task task, OperationResult result) throws ScriptExecutionException {
-        return evaluateExpression(executeScript, emptyMap(), task, result);
-    }
-
-    // TEMPORARY!
+	/**
+	 * Main entry point.
+	 */
 	public ExecutionContext evaluateExpression(@NotNull ExecuteScriptType executeScript, Map<String, Object> initialVariables, Task task, OperationResult result) throws ScriptExecutionException {
-		Validate.notNull(executeScript.getScriptingExpression(), "Scripting expression must be present");
-        Map<String, Object> frozenVariables = VariablesUtil.initialPreparation(initialVariables);
-        ExecutionContext context = evaluateExpression(executeScript.getScriptingExpression().getValue(),
-                PipelineData.parseFrom(executeScript.getInput(), frozenVariables, prismContext), executeScript.getOptions(), frozenVariables, false, task, result);
-        context.computeResults();
-        return context;
+		return evaluateExpression(executeScript, initialVariables, false, task, result);
     }
 
-    // VERY TEMPORARY!
+	/**
+	 * Entry point for privileged execution.
+	 * Note that privileged execution means
+	 */
 	public ExecutionContext evaluateExpressionPrivileged(@NotNull ExecuteScriptType executeScript, @NotNull Map<String, Object> initialVariables, Task task, OperationResult result) throws ScriptExecutionException {
-		Validate.notNull(executeScript.getScriptingExpression(), "Scripting expression must be present");
-        Map<String, Object> frozenVariables = VariablesUtil.initialPreparation(initialVariables);
-        ExecutionContext context = evaluateExpression(executeScript.getScriptingExpression().getValue(),
-                PipelineData.parseFrom(executeScript.getInput(), frozenVariables, prismContext), executeScript.getOptions(), frozenVariables, true, task, result);
-        context.computeResults();
-        return context;
-    }
+		return evaluateExpression(executeScript, initialVariables, true, task, result);
+	}
 
-    // main entry point from the outside
-	private ExecutionContext evaluateExpression(ScriptingExpressionType expression, PipelineData data,
-            ScriptingExpressionEvaluationOptionsType options, Map<String, Object> frozenInitialVariables,
-            boolean privileged, Task task, OperationResult result) throws ScriptExecutionException {
-		ExecutionContext context = new ExecutionContext(options, task, this, privileged, frozenInitialVariables);
-		PipelineData output;
+	/**
+	 * Convenience method (if we don't have full ExecuteScriptType).
+	 */
+	public ExecutionContext evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException {
+		return evaluateExpression(createExecuteScriptCommand(expression), emptyMap(), task, result);
+	}
+
+	private ExecutionContext evaluateExpression(@NotNull ExecuteScriptType executeScript, Map<String, Object> initialVariables, boolean privileged, Task task, OperationResult result) throws ScriptExecutionException {
+		Validate.notNull(executeScript.getScriptingExpression(), "Scripting expression must be present");
 		try {
-			output = evaluateExpression(expression, data, context, result);
-		} catch (RuntimeException e) {
+			Map<String, Object> frozenVariables = VariablesUtil.initialPreparation(initialVariables, executeScript.getVariables(), expressionFactory, modelObjectResolver, prismContext, task, result);
+			PipelineData pipelineData = PipelineData.parseFrom(executeScript.getInput(), frozenVariables, prismContext);
+			ExecutionContext context = new ExecutionContext(executeScript.getOptions(), task, this, privileged, frozenVariables);
+			PipelineData output = evaluateExpression(executeScript.getScriptingExpression().getValue(), pipelineData, context, result);
+			context.setFinalOutput(output);
+			result.computeStatusIfUnknown();
+			context.computeResults();
+			return context;
+		} catch (ExpressionEvaluationException | SchemaException | ObjectNotFoundException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			result.recordFatalError("Couldn't execute script", e);
 			throw new ScriptExecutionException("Couldn't execute script: " + e.getMessage(), e);
 		}
-		result.computeStatusIfUnknown();
-		context.setFinalOutput(output);
-		return context;
 	}
 
 	// not to be called from outside

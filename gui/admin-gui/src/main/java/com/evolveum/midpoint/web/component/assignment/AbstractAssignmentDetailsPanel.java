@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -45,11 +46,6 @@ import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperMod
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
  * Created by honchar
@@ -59,7 +55,7 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 
     private final static String ID_DISPLAY_NAME = "displayName";
     private final static String ID_ACTIVATION_PANEL = "activationPanel";
-    private final static String ID_CONTAINERS = "otherContainers";
+    protected final static String ID_CONTAINERS = "otherContainers";
 
     public AbstractAssignmentDetailsPanel(String id, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel){
         super(id, assignmentModel);
@@ -103,33 +99,35 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
     	displayNamePanel.setOutputMarkupId(true);
     	add(displayNamePanel);
 
-		
+
 		PageAdminObjectDetails<F> pageBase = (PageAdminObjectDetails<F>)getPageBase();
-		
+
 		ItemPath assignmentPath = getModelObject().getPath();
 //		ContainerValueWrapperFromObjectWrapperModel<AssignmentType, F> assignmentModel =
 //				new ContainerValueWrapperFromObjectWrapperModel<AssignmentType, F>(pageBase.getObjectModel(), assignmentPath);
-		
+
 		Form form = new Form<>("form");
 
 		ContainerValueWrapper<AssignmentType> containerWrapper = getModelObject();
 		if (containerWrapper == null){}
-		
+
 		ContainerValuePanel<AssignmentType> assignmentPanel = new ContainerValuePanel("basic", getModel(), true, form,
 				itemWrapper -> getAssignmentBasicTabVisibity(itemWrapper, assignmentPath), pageBase);
 		add(assignmentPanel);
-		
-		
+
+
 		ContainerWrapperFromObjectWrapperModel<ActivationType, F> activationModel = new ContainerWrapperFromObjectWrapperModel<ActivationType, F>(pageBase.getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
-		PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<>(ID_ACTIVATION_PANEL, activationModel, false, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath), pageBase);
+		PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<>(ID_ACTIVATION_PANEL, activationModel, true, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath), pageBase);
 		add(acitvationContainer);
 		
-		
+		initContainersPanel(form, pageBase);
+    }
+
+    protected void initContainersPanel(Form form, PageAdminObjectDetails<F> pageBase){
 		PrismPanel<AssignmentType> containers = new PrismPanel<>(ID_CONTAINERS, new ContainerWrapperListFromObjectWrapperModel<AssignmentType, F>(pageBase.getObjectModel(), collectContainersToShow()),
 				null, form, null, pageBase) ;
 		add(containers);
-		
-    }
+	}
     
     protected ItemPath getAssignmentPath() {
     	return getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
@@ -147,9 +145,12 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 		}
 		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_TARGET_REF));
 		
-		if (OrgType.COMPLEX_TYPE.equals(targetType)) {
+		if (OrgType.COMPLEX_TYPE.equals(targetType) || AssignmentsUtil.isPolicyRuleAssignment(getModelObject().getContainerValue().asContainerable())) {
 			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_TENANT_REF));
 			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_ORG_REF));
+		}
+		if (AssignmentsUtil.isPolicyRuleAssignment(getModelObject().getContainerValue().asContainerable())){
+			pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_FOCUS_TYPE));
 		}
 		
 		if (assignment.getConstruction() == null) {

@@ -17,12 +17,18 @@ package com.evolveum.midpoint.testing.story;
 
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -32,20 +38,21 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
+import javax.xml.namespace.QName;
+
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.*;
 
 /**
  * @author Radovan Semancik
@@ -121,5 +128,52 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 	protected void assertUserJack(PrismObject<UserType> userJack) {
 		assertUser(userJack, USER_JACK_OID, USER_JACK_USERNAME, "Jack Sparrow", "Jack", "Sparrow");
 	}
+
+	//region TODO deduplicate with AbstractWfTestPolicy
+
+	public void displayWorkItems(String title, List<WorkItemType> workItems) {
+		workItems.forEach(wi -> display(title, wi));
+	}
+
+	protected WorkItemType getWorkItem(Task task, OperationResult result) throws Exception {
+		SearchResultList<WorkItemType> itemsAll = getWorkItems(task, result);
+		if (itemsAll.size() != 1) {
+			System.out.println("Unexpected # of work items: " + itemsAll.size());
+			for (WorkItemType workItem : itemsAll) {
+				System.out.println(PrismUtil.serializeQuietly(prismContext, workItem));
+			}
+		}
+		assertEquals("Wrong # of total work items", 1, itemsAll.size());
+		return itemsAll.get(0);
+	}
+
+	protected SearchResultList<WorkItemType> getWorkItems(Task task, OperationResult result) throws Exception {
+		return modelService.searchContainers(WorkItemType.class, null, null, task, result);
+	}
+
+	protected ObjectReferenceType ort(String oid) {
+		return ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER);
+	}
+
+	protected PrismReferenceValue prv(String oid) {
+		return ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER).asReferenceValue();
+	}
+
+	protected PrismReference ref(List<ObjectReferenceType> orts) {
+		PrismReference rv = new PrismReference(new QName("dummy"));
+		orts.forEach(ort -> rv.add(ort.asReferenceValue().clone()));
+		return rv;
+	}
+
+	protected PrismReference ref(ObjectReferenceType ort) {
+		return ref(Collections.singletonList(ort));
+	}
+
+	protected Map<String, WorkItemType> sortByOriginalAssignee(Collection<WorkItemType> workItems) {
+		Map<String, WorkItemType> rv = new HashMap<>();
+		workItems.forEach(wi -> rv.put(wi.getOriginalAssigneeRef().getOid(), wi));
+		return rv;
+	}
+	//endregion
 
 }

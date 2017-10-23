@@ -114,7 +114,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 		return expressionParameters;
 	}
 
-	protected abstract Object getParsedQuery(String query, Map<QName, Object> expressionParameters) throws  SchemaException, ObjectNotFoundException, ExpressionEvaluationException;
+	protected abstract Object getParsedQuery(String query, Map<QName, Object> expressionParameters) throws  SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	protected String getParsedScript(String script){
 		String normalized = script.replace("<code>", "");
@@ -152,7 +152,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 					script = getParsedScript(s);
 				}
 			}
-		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
+		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			// TODO Auto-generated catch block
 			throw new SystemException(e.getMessage(), e);
 		}

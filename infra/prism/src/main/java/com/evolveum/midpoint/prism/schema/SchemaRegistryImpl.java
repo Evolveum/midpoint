@@ -1516,10 +1516,85 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	}
 
 	@Override
+	public QName unifyTypes(QName type1, QName type2) {
+		if (type1 == null) {
+			return type2;
+		} else if (type2 == null) {
+			return type1;
+		}
+
+		if (isAssignableFrom(type1, type2)) {
+			return type1;
+		} else if (isAssignableFrom(type2, type1)) {
+			return type2;
+		} else {
+			return null;
+		}
+	}
+
+	@Override
 	public boolean isContainer(QName typeName) {
 		Class<?> clazz = determineClassForType(typeName);
 		return clazz != null && Containerable.class.isAssignableFrom(clazz);
 	}
 
+	@Override
+	public ItemDefinition<?> createAdHocDefinition(QName elementName, QName typeName, int minOccurs, int maxOccurs) {
+		Collection<? extends TypeDefinition> typeDefinitions = findTypeDefinitionsByType(typeName);
+		if (typeDefinitions.size() == 0) {
+			// wild guess: create a prism property definition; maybe it will fit
+			return createAdHocPropertyDefinition(elementName, typeName, minOccurs, maxOccurs);
+		} else if (typeDefinitions.size() == 1) {
+			TypeDefinition typeDefinition = typeDefinitions.iterator().next();
+			if (typeDefinition instanceof SimpleTypeDefinition) {
+				return createAdHocPropertyDefinition(elementName, typeName, minOccurs, maxOccurs);
+			} else if (typeDefinition instanceof ComplexTypeDefinition) {
+				ComplexTypeDefinition ctd = (ComplexTypeDefinition) typeDefinition;
+				if (ctd.isObjectMarker()) {
+					return createAdHocObjectDefinition(elementName, ctd, minOccurs, maxOccurs);
+				} else if (ctd.isContainerMarker()) {
+					return createAdHocContainerDefinition(elementName, ctd, minOccurs, maxOccurs);
+				} else if (ctd.isReferenceMarker()) {
+					return createAdHocReferenceDefinition(elementName, ctd, minOccurs, maxOccurs);
+				} else {
+					return createAdHocPropertyDefinition(elementName, typeName, minOccurs, maxOccurs);
+				}
+			} else {
+				throw new IllegalStateException("Creation of ad-hoc definition from this type definition is not supported: " + typeDefinition);
+			}
+		} else {
+			// TODO check if these definitions are compatible
+			throw new IllegalStateException("More than one definition for type: " + typeName);
+		}
+	}
+
+	private PrismPropertyDefinition<?> createAdHocPropertyDefinition(QName elementName, QName typeName, int minOccurs, int maxOccurs) {
+		PrismPropertyDefinitionImpl<?> def = new PrismPropertyDefinitionImpl<>(elementName, typeName, prismContext);
+		def.setMinOccurs(minOccurs);
+		def.setMaxOccurs(maxOccurs);
+		return def;
+	}
+
+	private PrismReferenceDefinition createAdHocReferenceDefinition(QName elementName, ComplexTypeDefinition ctd, int minOccurs, int maxOccurs) {
+		PrismReferenceDefinitionImpl def = new PrismReferenceDefinitionImpl(elementName, ctd.getTypeName(), prismContext);
+		def.setMinOccurs(minOccurs);
+		def.setMaxOccurs(maxOccurs);
+		return def;
+	}
+
+	private PrismContainerDefinition<?> createAdHocContainerDefinition(QName elementName, ComplexTypeDefinition ctd, int minOccurs, int maxOccurs) {
+		PrismContainerDefinitionImpl<?> def = new PrismContainerDefinitionImpl<>(elementName, ctd, prismContext);
+		def.setMinOccurs(minOccurs);
+		def.setMaxOccurs(maxOccurs);
+		return def;
+	}
+
+	private PrismObjectDefinition<?> createAdHocObjectDefinition(QName elementName, ComplexTypeDefinition ctd, int minOccurs, int maxOccurs) {
+		//noinspection unchecked
+		PrismObjectDefinitionImpl<?> def = new PrismObjectDefinitionImpl(elementName, ctd, prismContext, ctd.getCompileTimeClass());
+		def.setMinOccurs(minOccurs);        // not much relevant for POD
+		def.setMaxOccurs(maxOccurs);        // not much relevant for POD
+		return def;
+	}
 	//endregion
 }

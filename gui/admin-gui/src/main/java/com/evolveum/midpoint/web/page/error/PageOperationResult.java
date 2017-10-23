@@ -34,7 +34,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
  */
 @PageDescriptor(url = "/result")
 public class PageOperationResult extends PageBase {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     private static final String ID_BACK = "back";
 
@@ -54,21 +54,24 @@ public class PageOperationResult extends PageBase {
     }
 
     private void initLayout() {
-    	if (result != null) {
-    		OpResult opresult = showResult(result);
-    		opresult.setShowMoreAll(true);
-    	}
+        if (result != null) {
+            OpResult opresult = showResult(result);
+            if (opresult != null) {
+                opresult.setShowMoreAll(true);
+            } else {
+                warn(getString("PageOperationResult.noResultAvailable"));
+            }
+        }
 
-    	AjaxButton back = new AjaxButton(ID_BACK, createStringResource("PageError.button.back")) {
-			private static final long serialVersionUID = 1L;
+        AjaxButton back = new AjaxButton(ID_BACK, createStringResource("PageError.button.back")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public void onClick(AjaxRequestTarget target) {
                 backPerformed(target);
             }
         };
         add(back);
-
     }
 
     private void backPerformed(AjaxRequestTarget target) {

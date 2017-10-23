@@ -1141,7 +1141,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="processInstanceId" type="xsd:string">
+            <xsd:element name="processInstanceId" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Internal identifier of a process instance, assigned by the underlying workflow engine
@@ -1149,22 +1149,34 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="processName" type="xsd:string">
+            <xsd:element name="processName" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Name of the process definition, e.g. "ItemApproval".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="processInstanceName" type="xsd:string">
+            <xsd:element name="processInstanceName" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Name of the process instance. It is defined by the code that starts
                         the process instance and should describe the purpose of the process
                         instance as precisely as possible. An example: "Approving adding Webmaster to JoeDoe".
+						Might be absent, if localizableProcessName is defined.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+			<xsd:element name="localizableProcessInstanceName" type="tns:LocalizableMessageType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Localizable name of the process instance. To be used e.g. in GUI.
+						May consist of more parts. (But this situation should be avoided if possible.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

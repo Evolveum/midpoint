@@ -38,8 +38,10 @@ import java.util.*;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType.*;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 /**
  * @author mederly
@@ -140,25 +142,40 @@ public class PolicyRuleTypeUtil {
 		}
 	}
 
-	public static String toShortString(PolicyActionsType actions) {
+	public static String toShortString(PolicyActionsType actions, List<PolicyActionType> enabledActions) {
 		if (actions == null) {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder();
 		if (actions.getEnforcement() != null) {
-			sb.append("enforce ");
+			sb.append("enforce");
+			if (filterActions(enabledActions, EnforcementPolicyActionType.class).isEmpty()) {
+				sb.append("X");
+			}
 		}
 		if (!actions.getApproval().isEmpty()) {
-			sb.append("approve ");
+			sb.append(" approve");
+			if (filterActions(enabledActions, ApprovalPolicyActionType.class).isEmpty()) {
+				sb.append("X");
+			}
 		}
 		if (actions.getRemediation() != null) {
-			sb.append("remedy ");
+			sb.append(" remedy");
+			if (filterActions(enabledActions, RemediationPolicyActionType.class).isEmpty()) {
+				sb.append("X");
+			}
 		}
 		if (actions.getCertification() != null) {
-			sb.append("certify ");
+			sb.append(" certify");
+			if (filterActions(enabledActions, CertificationPolicyActionType.class).isEmpty()) {
+				sb.append("X");
+			}
 		}
 		if (!actions.getNotification().isEmpty()) {
-			sb.append("notify ");
+			sb.append(" notify");
+			if (filterActions(enabledActions, NotificationPolicyActionType.class).isEmpty()) {
+				sb.append("X");
+			}
 		}
 		return sb.toString().trim();
 	}
@@ -208,112 +225,112 @@ public class PolicyRuleTypeUtil {
 		}
 	}
 
-	// Generates identifiers and references for triggers.
-	// Cannot modify original objects!
-	public static List<EvaluatedPolicyRuleTriggerType> pack(List<EvaluatedPolicyRuleTriggerType> baseTriggers) {
-		List<EvaluatedPolicyRuleTriggerType> rv = new ArrayList<>();
-		Map<EvaluatedPolicyRuleTriggerType, Integer> identifierMap = new HashMap<>();
-		int id = 1;
-		for (EvaluatedPolicyRuleTriggerType trigger : baseTriggers) {
-			EvaluatedPolicyRuleTriggerType clone = trigger.clone();
-			clone.setTriggerId(id);
-			rv.add(clone);
-			identifierMap.put(trigger, id);
-			id++;
-		}
-		for (EvaluatedPolicyRuleTriggerType trigger : rv) {
-			if (trigger instanceof EvaluatedSituationTriggerType) {
-				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
-				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
-					pack(sourceRule.getTrigger(), identifierMap);
-				}
-			}
-		}
-		return rv;
-	}
-
-	private static void pack(List<EvaluatedPolicyRuleTriggerType> triggers, Map<EvaluatedPolicyRuleTriggerType, Integer> identifierMap) {
-		List<EvaluatedPolicyRuleTriggerType> packed = new ArrayList<>();
-		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
-			packed.add(pack(trigger, identifierMap));
-			if (trigger instanceof EvaluatedSituationTriggerType) {
-				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
-				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
-					pack(sourceRule.getTrigger(), identifierMap);
-				}
-			}
-		}
-		triggers.clear();
-		triggers.addAll(packed);
-	}
-
-	private static EvaluatedPolicyRuleTriggerType pack(EvaluatedPolicyRuleTriggerType trigger, Map<EvaluatedPolicyRuleTriggerType, Integer> identifierMap) {
-		Integer identifier = identifierMap.get(trigger);
-		if (identifier != null) {
-			return new EvaluatedPolicyRuleTriggerType().ref(identifier);
-		} else {
-			LOGGER.warn("Problem while packing evaluated trigger {}: it is not present within base triggers", trigger);
-			return trigger;
-		}
-	}
-
-	// Replaces referenced triggers by actual values. Deletes all identifiers, so the triggers could be compared.
-	// Cannot modify original objects!
-	public static List<EvaluatedPolicyRuleTriggerType> unpack(List<EvaluatedPolicyRuleTriggerType> triggers) {
-		List<EvaluatedPolicyRuleTriggerType> rv = CloneUtil.cloneCollectionMembers(triggers);
-		unpack(rv, triggers);
-		visit(rv, t -> t.triggerId(null));
-		return rv;
-	}
-
-	private static void unpack(List<EvaluatedPolicyRuleTriggerType> triggers,
-			List<EvaluatedPolicyRuleTriggerType> baseTriggers) {
-		List<EvaluatedPolicyRuleTriggerType> unpacked = new ArrayList<>();
-		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
-			unpacked.add(unpack(trigger, baseTriggers));
-			if (trigger instanceof EvaluatedSituationTriggerType) {
-				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
-				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
-					unpack(sourceRule.getTrigger(), baseTriggers);
-				}
-			}
-		}
-		triggers.clear();
-		triggers.addAll(unpacked);
-	}
-
-	private static EvaluatedPolicyRuleTriggerType unpack(EvaluatedPolicyRuleTriggerType trigger,
-			List<EvaluatedPolicyRuleTriggerType> baseTriggers) {
-		if (trigger.getRef() == null) {
-			return trigger;
-		}
-		EvaluatedPolicyRuleTriggerType found = findByIdentifier(baseTriggers, trigger.getRef());
-		if (found == null) {
-			LOGGER.warn("Problem while unpacking evaluated trigger {}: referenced trigger with id {} is not present among base triggers",
-					trigger, trigger.getRef());
-			return trigger;
-		} else {
-			return found;
-		}
-	}
-
-	public static boolean canBePacked(List<EvaluatedPolicyRuleTriggerType> triggers) {
-		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
-			if (trigger instanceof EvaluatedSituationTriggerType) {
-				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
-				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
-					if (sourceRule.getTrigger().stream().anyMatch(t -> t.getRef() == null)) {
-						return true;
-					}
-				}
-			}
-		}
-		return false;
-	}
-
-	private static EvaluatedPolicyRuleTriggerType findByIdentifier(List<EvaluatedPolicyRuleTriggerType> triggers, int identifier) {
-		return triggers.stream().filter(t -> t.getTriggerId() != null && t.getTriggerId() == identifier).findFirst().orElse(null);
-	}
+//	// Generates identifiers and references for triggers.
+//	// Cannot modify original objects!
+//	public static List<EvaluatedPolicyRuleTriggerType> pack(List<EvaluatedPolicyRuleTriggerType> baseTriggers) {
+//		List<EvaluatedPolicyRuleTriggerType> rv = new ArrayList<>();
+//		Map<EvaluatedPolicyRuleTriggerType, Integer> identifierMap = new HashMap<>();
+//		int id = 1;
+//		for (EvaluatedPolicyRuleTriggerType trigger : baseTriggers) {
+//			EvaluatedPolicyRuleTriggerType clone = trigger.clone();
+//			clone.setTriggerId(id);
+//			rv.add(clone);
+//			identifierMap.put(trigger, id);
+//			id++;
+//		}
+//		for (EvaluatedPolicyRuleTriggerType trigger : rv) {
+//			if (trigger instanceof EvaluatedSituationTriggerType) {
+//				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
+//				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
+//					pack(sourceRule.getTrigger(), identifierMap);
+//				}
+//			}
+//		}
+//		return rv;
+//	}
+//
+//	private static void pack(List<EvaluatedPolicyRuleTriggerType> triggers, Map<EvaluatedPolicyRuleTriggerType, Integer> identifierMap) {
+//		List<EvaluatedPolicyRuleTriggerType> packed = new ArrayList<>();
+//		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
+//			packed.add(pack(trigger, identifierMap));
+//			if (trigger instanceof EvaluatedSituationTriggerType) {
+//				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
+//				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
+//					pack(sourceRule.getTrigger(), identifierMap);
+//				}
+//			}
+//		}
+//		triggers.clear();
+//		triggers.addAll(packed);
+//	}
+//
+//	private static EvaluatedPolicyRuleTriggerType pack(EvaluatedPolicyRuleTriggerType trigger, Map<EvaluatedPolicyRuleTriggerType, Integer> identifierMap) {
+//		Integer identifier = identifierMap.get(trigger);
+//		if (identifier != null) {
+//			return new EvaluatedPolicyRuleTriggerType().ref(identifier);
+//		} else {
+//			LOGGER.warn("Problem while packing evaluated trigger {}: it is not present within base triggers", trigger);
+//			return trigger;
+//		}
+//	}
+//
+//	// Replaces referenced triggers by actual values. Deletes all identifiers, so the triggers could be compared.
+//	// Cannot modify original objects!
+//	public static List<EvaluatedPolicyRuleTriggerType> unpack(List<EvaluatedPolicyRuleTriggerType> triggers) {
+//		List<EvaluatedPolicyRuleTriggerType> rv = CloneUtil.cloneCollectionMembers(triggers);
+//		unpack(rv, triggers);
+//		visit(rv, t -> t.triggerId(null));
+//		return rv;
+//	}
+//
+//	private static void unpack(List<EvaluatedPolicyRuleTriggerType> triggers,
+//			List<EvaluatedPolicyRuleTriggerType> baseTriggers) {
+//		List<EvaluatedPolicyRuleTriggerType> unpacked = new ArrayList<>();
+//		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
+//			unpacked.add(unpack(trigger, baseTriggers));
+//			if (trigger instanceof EvaluatedSituationTriggerType) {
+//				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
+//				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
+//					unpack(sourceRule.getTrigger(), baseTriggers);
+//				}
+//			}
+//		}
+//		triggers.clear();
+//		triggers.addAll(unpacked);
+//	}
+//
+//	private static EvaluatedPolicyRuleTriggerType unpack(EvaluatedPolicyRuleTriggerType trigger,
+//			List<EvaluatedPolicyRuleTriggerType> baseTriggers) {
+//		if (trigger.getRef() == null) {
+//			return trigger;
+//		}
+//		EvaluatedPolicyRuleTriggerType found = findByIdentifier(baseTriggers, trigger.getRef());
+//		if (found == null) {
+//			LOGGER.warn("Problem while unpacking evaluated trigger {}: referenced trigger with id {} is not present among base triggers",
+//					trigger, trigger.getRef());
+//			return trigger;
+//		} else {
+//			return found;
+//		}
+//	}
+//
+//	public static boolean canBePacked(List<EvaluatedPolicyRuleTriggerType> triggers) {
+//		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
+//			if (trigger instanceof EvaluatedSituationTriggerType) {
+//				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
+//				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
+//					if (sourceRule.getTrigger().stream().anyMatch(t -> t.getRef() == null)) {
+//						return true;
+//					}
+//				}
+//			}
+//		}
+//		return false;
+//	}
+//
+//	private static EvaluatedPolicyRuleTriggerType findByIdentifier(List<EvaluatedPolicyRuleTriggerType> triggers, int identifier) {
+//		return triggers.stream().filter(t -> t.getTriggerId() != null && t.getTriggerId() == identifier).findFirst().orElse(null);
+//	}
 
 	public static boolean triggerCollectionsEqual(Collection<EvaluatedPolicyRuleTriggerType> triggers,
 			Collection<EvaluatedPolicyRuleTriggerType> currentTriggersUnpacked) {
@@ -332,12 +349,37 @@ public class PolicyRuleTypeUtil {
 					&& Objects.equals(st1.getConstraintKind(), st2.getConstraintKind())
 					&& Objects.equals(st1.getConstraint(), st2.getConstraint())
 					&& Objects.equals(st1.getMessage(), st2.getMessage())
+					&& Objects.equals(st1.getShortMessage(), st2.getShortMessage())
+					&& Objects.equals(st1.getPresentationOrder(), st2.getPresentationOrder())
 					&& Objects.equals(st1.getAssignmentPath(), st2.getAssignmentPath())
 					&& Objects.equals(st1.getDirectOwnerRef(), st2.getDirectOwnerRef())
 					&& Objects.equals(st1.getDirectOwnerDisplayName(), st2.getDirectOwnerDisplayName())
 					&& MiscUtil.unorderedCollectionEquals(st1.getSourceRule(), st2.getSourceRule());
 		};
 		return MiscUtil.unorderedCollectionEquals(currentTriggersUnpacked, triggers, comparator);
+	}
+
+	public static List<PolicyActionType> getAllActions(PolicyActionsType actions) {
+		List<PolicyActionType> rv = new ArrayList<>();
+		if (actions == null) {
+			return rv;
+		}
+		addIgnoreNull(rv, actions.getEnforcement());
+		rv.addAll(actions.getApproval());
+		addIgnoreNull(rv, actions.getRecord());
+		rv.addAll(actions.getNotification());
+		addIgnoreNull(rv, actions.getCertification());
+		addIgnoreNull(rv, actions.getPrune());
+		addIgnoreNull(rv, actions.getRemediation());
+		return rv;
+	}
+
+	public static <T extends PolicyActionType> List<T> filterActions(List<PolicyActionType> actions, Class<T> clazz) {
+		//noinspection unchecked
+		return actions.stream()
+				.filter(a -> clazz.isAssignableFrom(a.getClass()))
+				.map(a -> (T) a)
+				.collect(Collectors.toList());
 	}
 
 	@FunctionalInterface

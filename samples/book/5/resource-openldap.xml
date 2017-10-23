@@ -84,6 +84,7 @@
                 <displayName>Distinguished Name</displayName>
                 <limitations>
                     <minOccurs>0</minOccurs>
+                    <maxOccurs>1</maxOccurs>
                 </limitations>
                 <outbound>
                     <source>
@@ -107,6 +108,7 @@
                 <displayName>Common Name</displayName>
                 <limitations>
                     <minOccurs>0</minOccurs>
+                    <maxOccurs>1</maxOccurs>
                 </limitations>
                 <outbound>
                     <source>
@@ -119,6 +121,7 @@
                 <displayName>Surname</displayName>
                 <limitations>
                     <minOccurs>0</minOccurs>
+                    <maxOccurs>1</maxOccurs>
                 </limitations>
                 <outbound>
                     <source>
@@ -129,6 +132,9 @@
             <attribute>
                 <ref>ri:givenName</ref>
                 <displayName>Given Name</displayName>
+                <limitations>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
                 <outbound>
                     <source>
                         <path>$focus/givenName</path>
@@ -138,6 +144,9 @@
             <attribute>
                 <ref>ri:uid</ref>
                 <displayName>Login Name</displayName>
+                <limitations>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
                 <outbound>
                     <strength>weak</strength>
                     <source>
@@ -147,6 +156,9 @@
             </attribute>
             <attribute>
                 <ref>ri:description</ref>
+                <limitations>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
                 <outbound>
                     <strength>weak</strength>
                     <expression>
@@ -170,7 +182,7 @@
         </objectType>
         
     </schemaHandling>
-
+    
     <synchronization>
         <objectSynchronization>
             <objectClass>ri:inetOrgPerson</objectClass>
@@ -188,21 +200,24 @@
                 </q:equal>
             </correlation>
 
-
             <reaction>
                 <situation>linked</situation>
                 <synchronize>true</synchronize>
             </reaction>
             <reaction>
+                <situation>unmatched</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteShadow</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
                 <situation>deleted</situation>
-                <synchronize>true</synchronize>
                 <action>
                     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>unlinked</situation>
-                <synchronize>true</synchronize>
                 <action>
                     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
                 </action>

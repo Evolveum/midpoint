@@ -35,7 +35,7 @@
         <policySituation>somepolicysituation1</policySituation>
         <policySituation>somepolicysituation2</policySituation>
 
-        <trigger id="2">
+        <trigger id="4">
             <handlerUri>http://triggerUri</handlerUri>
             <timestamp>2013-05-07T10:38:21.350+02:00</timestamp>
         </trigger>
@@ -380,7 +380,7 @@
             </definition>
         </schema>
 		<schemaHandling>
-			<objectType>
+			<objectType id="1">
 				<intent>default</intent>
 				<displayName>Default Account</displayName>
 				<default>true</default>
@@ -977,11 +977,11 @@
                  <details>false</details>
              </auditing>
          </logging>
-         <objectTemplate>
+         <objectTemplate id="1">
              <type>c:UserType</type>
              <objectTemplateRef oid="1234" type="c:ObjectTemplateType"/>
          </objectTemplate>
-         <objectTemplate>
+         <objectTemplate id="2">
              <type>c:ResourceType</type>
              <objectTemplateRef oid="5678" type="c:ObjectTemplateType"/>
          </objectTemplate>
@@ -1030,7 +1030,7 @@
             <decision>allow</decision>
             <action>http://example.com/uri1</action>
             <action>http://example.com/uri2</action>
-            <object>
+            <object id="7">
             	<description>object description</description>
             	<type>c:UserType</type>
             	<filter>
@@ -1043,7 +1043,7 @@
 				<special>self</special>
             </object>
             <item>c:name</item>
-            <target>
+            <target id="6">
             	<description>target description</description>
             	<type>c:UserType</type>
             	<filter>
@@ -1272,6 +1272,7 @@
         	</limitations>
     	</stringPolicy>
 	</valuePolicy>
+
     <securityPolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
         <name>Security policy</name>
         <description>Security policy example</description>
@@ -1282,7 +1283,7 @@
         		<passwordPolicyRef oid="SECURITY-0000-0000-0000-000000000003" type="c:ValuePolicyType"/>
         	</password>
         	<securityQuestions>
-        		<question>
+        		<question id="1">
         			<identifier>http://example.com/uri3</identifier>
         			<enabled>false</enabled>
         		</question>
@@ -1400,7 +1401,7 @@
         <remediationDefinition>
             <style>automated</style>
         </remediationDefinition>
-        <stageDefinition>
+        <stageDefinition id="7">
             <number>1</number>
             <name>Administrator's review</name>
             <description>In this stage, the administrator has to review all the assignments of all users.</description>
@@ -1408,7 +1409,7 @@
             <notifyBeforeDeadline>PT48H</notifyBeforeDeadline>
             <notifyBeforeDeadline>PT12H</notifyBeforeDeadline>
             <notifyOnlyWhenNoDecision>true</notifyOnlyWhenNoDecision>
-            <reviewerSpecification>
+            <reviewerSpecification id="12">
                 <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></defaultReviewerRef>
             </reviewerSpecification>
         </stageDefinition>
@@ -1622,7 +1623,7 @@
             <decision>allow</decision>
             <action>http://example.com/uri1</action>
             <action>http://example.com/uri2</action>
-            <object>
+            <object id="5">
                 <description>object description</description>
                 <type>c:UserType</type>
                 <filter>
@@ -1635,7 +1636,7 @@
                 <special>self</special>
             </object>
             <item>c:name</item>
-            <target>
+            <target id="6">
                 <description>target description</description>
                 <type>c:UserType</type>
                 <filter>

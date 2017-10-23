@@ -26,6 +26,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
@@ -56,13 +57,6 @@ import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman
@@ -581,6 +575,22 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 	}
 
+	public void addNewChildContainerValue(QName path, PageBase pageBase){
+		ContainerWrapper<C> childContainerWrapper = getContainer().findContainerWrapper(new ItemPath(getPath(), path));
+		boolean isSingleValue = childContainerWrapper.getItemDefinition().isSingleValue();
+		if (isSingleValue){
+			return;
+		}
+		PrismContainerValue<C> newContainerValue = childContainerWrapper.getItem().createNewValue();
+		ContainerWrapperFactory factory = new ContainerWrapperFactory(pageBase);
+		ContainerValueWrapper newValueWrapper = factory.createContainerValueWrapper(childContainerWrapper,
+				newContainerValue,
+				ValueStatus.ADDED, new ItemPath(path));
+		newValueWrapper.setShowEmpty(true, false);
+		childContainerWrapper.getValues().add(newValueWrapper);
+
+	}
+
 	private Item createItem(PropertyOrReferenceWrapper itemWrapper, ItemDefinition propertyDef) {
 		List<PrismValue> prismValues = new ArrayList<>();
 		for (Object vWrapper : itemWrapper.getValues()) {
@@ -620,14 +630,18 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			return false;
 		}
 
+		if (def.isDeprecated() && containerValue.isEmpty()) {
+			return false;
+		}
+		
 		if (def.getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
 			return isShowMetadata();
 		}
-
-		// TODO: emphasized
+		
+			// TODO: emphasized
 		switch (status) {
 			case NOT_CHANGED:
-				return isNotEmptyAndCanReadAndModify(def) || showEmptyCanReadAndModify(def);
+				return canReadAndModify(def) || showEmptyCanReadAndModify(def);
 			case ADDED:
 				return emphasizedAndCanAdd(def) || showEmptyAndCanAdd(def);
 		}
@@ -635,7 +649,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return false;
 	}
 
-	private boolean isNotEmptyAndCanReadAndModify(PrismContainerDefinition<C> def) {
+	private boolean canReadAndModify(PrismContainerDefinition<C> def) {
 		return def.canRead() && def.canModify();
 	}
 
@@ -694,15 +708,20 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return null;
 	}
 
-	public ContainerWrapper<C> findContainerWrapper(ItemPath path) {
+	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(ItemPath path) {
 		Validate.notNull(path, "QName must not be null.");
 		for (ItemWrapper wrapper : getItems()) {
 			if (!(wrapper instanceof ContainerWrapper)) {
 				continue;
 			}
-			ContainerWrapper<C> containerWrapper = (ContainerWrapper<C>) wrapper;
+			ContainerWrapper<T> containerWrapper = (ContainerWrapper<T>) wrapper;
 			if (containerWrapper.getPath().equivalent(path)) {
 				return containerWrapper;
+			} else {
+				ContainerWrapper<T> childrenContainer = containerWrapper.findContainerWrapper(path);
+				if (childrenContainer != null){
+					return childrenContainer;
+				}
 			}
 		}
 		return null;
@@ -718,6 +737,33 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 		}
 		return null;
+	}
+
+	public boolean containsMultivalueContainer(){
+		for (ItemWrapper wrapper : getItems()) {
+			if (!(wrapper instanceof ContainerWrapper)) {
+				continue;
+			}
+			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue() &&
+					((ContainerWrapper<C>) wrapper).isVisible()){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public List<QName> getChildMultivalueContainersPaths(){
+		List<QName> pathList = new ArrayList<>();
+		for (ItemWrapper wrapper : getItems()) {
+			if (!(wrapper instanceof ContainerWrapper)) {
+				continue;
+			}
+			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue() &&
+					canReadAndModify(((ContainerWrapper<C>) wrapper).getItemDefinition())){
+				pathList.add(((ContainerWrapper<C>) wrapper).getName());
+			}
+		}
+		return pathList;
 	}
 
 	public String getDisplayName() {

@@ -340,6 +340,11 @@
             <version>3.7-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>security-enforcer-api</artifactId>
+            <version>3.7-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>workflow-api</artifactId>
             <version>3.7-SNAPSHOT</version>
@@ -420,6 +425,12 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-impl</artifactId>
+            <version>3.7-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>security-enforcer-impl</artifactId>
             <version>3.7-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>

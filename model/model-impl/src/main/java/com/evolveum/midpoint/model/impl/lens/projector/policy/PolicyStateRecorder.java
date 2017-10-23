@@ -116,7 +116,7 @@ public class PolicyStateRecorder {
 		ComputationResult cr = new ComputationResult();
 		for (EvaluatedPolicyRule rule : rulesToRecord) {
 			cr.newPolicySituations.add(rule.getPolicySituation());
-			RecordPolicyActionType recordAction = rule.getActions().getRecord();
+			RecordPolicyActionType recordAction = rule.getEnabledAction(RecordPolicyActionType.class);
 			if (recordAction.getPolicyRules() != TriggeredPolicyRulesStorageStrategyType.NONE) {
 				PolicyRuleExternalizationOptions externalizationOptions = new PolicyRuleExternalizationOptions(
 						recordAction.getPolicyRules(), false, true);

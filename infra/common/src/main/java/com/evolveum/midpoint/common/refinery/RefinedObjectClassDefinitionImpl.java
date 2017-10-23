@@ -638,6 +638,11 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	}
 
 	@Override
+	public boolean isReferenceMarker() {
+		return originalObjectClassDefinition.isReferenceMarker();			// most probably false
+	}
+
+	@Override
 	public boolean isContainerMarker() {
 		return originalObjectClassDefinition.isContainerMarker();			// most probably false
 	}

@@ -43,6 +43,7 @@
     <import resource="classpath:ctx-common.xml"/>
     <import resource="classpath:ctx-security.xml"/>
     <import resource="classpath*:ctx-repository-test.xml"/>
+    <import resource="classpath:ctx-repo-common.xml"/>
     <import resource="classpath:ctx-repo-cache.xml"/>
     <import resource="classpath:ctx-configuration-test.xml"/>
     <import resource="classpath:ctx-expression-test.xml"/>

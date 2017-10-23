@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.gui.api.page;
 
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -35,12 +36,19 @@ import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.report.api.ReportManager;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -48,7 +56,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.OwnerResolver;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -148,7 +158,6 @@ import org.w3c.dom.Node;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
-import java.awt.*;
 import java.io.Serializable;
 import java.util.*;
 import java.util.List;
@@ -259,12 +268,18 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
+    
+    @SpringBean
+    private SecurityContextManager securityContextManager;
 
     @SpringBean
     private MidpointFormValidatorRegistry formValidatorRegistry;
 
     @SpringBean(name = "modelObjectResolver")
     private ObjectResolver modelObjectResolver;
+
+    @SpringBean
+    private LocalizationService localizationService;
 
     private List<Breadcrumb> breadcrumbs;
 
@@ -323,7 +338,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     ObjectQuery query = QueryUtils.filterForAssignees(q, getPrincipal(),
                             OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS).build();
                     return getModelService().countContainers(WorkItemType.class, query, null, task, task.getResult());
-                } catch (SchemaException | SecurityViolationException e) {
+                } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load work item count", e);
                     return null;
                 }
@@ -340,7 +355,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     OperationResult result = task.getResult();
                     return acs.countOpenWorkItems(new ObjectQuery(), true, null, task, result);
                 } catch (SchemaException | SecurityViolationException | ObjectNotFoundException
-                        | ConfigurationException | CommunicationException e) {
+                        | ConfigurationException | CommunicationException | ExpressionEvaluationException e) {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load certification work item count", e);
                     return null;
                 }
@@ -422,6 +437,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return application.getWebApplicationConfiguration();
     }
 
+    public LocalizationService getLocalizationService() {
+        return localizationService;
+    }
+
     public PrismContext getPrismContext() {
         return getMidpointApplication().getPrismContext();
     }
@@ -485,6 +504,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public SecurityEnforcer getSecurityEnforcer() {
         return securityEnforcer;
     }
+    
+    @Override
+    public SecurityContextManager getSecurityContextManager() {
+        return securityContextManager;
+    }
 
     @Override
     public ModelInteractionService getModelInteractionService() {
@@ -521,7 +545,31 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
         return pageTask;
     }
+    
+    public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	return isAuthorized(operationUrl, null, null, null, null, null);
+    }
+    
+    public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	Task task = getPageTask();
+    	return getSecurityEnforcer().isAuthorized(operationUrl, phase, object, delta, target, ownerResolver, task, task.getResult());
+    }
 
+    public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, OperationResult result)
+			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    	getSecurityEnforcer().authorize(operationUrl, phase, object, delta, target, ownerResolver, getPageTask(), result);
+    }
+
+    public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver)
+			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    	Task task = getPageTask();
+    	getSecurityEnforcer().authorize(operationUrl, phase, object, delta, target, ownerResolver, task, task.getResult());
+    }
+
+    
     public MidpointFormValidatorRegistry getFormValidatorRegistry() {
         return formValidatorRegistry;
     }
@@ -1002,6 +1050,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
+        OperationResult scriptResult = executeResultScriptHook(result);
+        if (scriptResult == null) {
+            return null;
+        }
+
+        result = scriptResult;
+
         OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
         opResult.determineBackgroundTaskVisibility(this);
         switch (opResult.getStatus()) {
@@ -1028,6 +1083,70 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         }
         return opResult;
+    }
+
+    private OperationResult executeResultScriptHook(OperationResult result) {
+        AdminGuiConfigurationType adminGuiConfiguration = getAdminGuiConfiguration();
+        if (adminGuiConfiguration == null || adminGuiConfiguration.getFeedbackMessagesHook() == null) {
+            return result;
+        }
+
+        FeedbackMessagesHookType hook = adminGuiConfiguration.getFeedbackMessagesHook();
+        ExpressionType expressionType = hook.getOperationResultHook();
+        if (expressionType == null) {
+            return result;
+        }
+
+        String contextDesc = "operation result (" + result.getOperation() + ") script hook";
+
+        Task task = getPageTask();
+        OperationResult topResult = task.getResult();
+        try {
+            ExpressionFactory factory = getExpressionFactory();
+            PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinitionImpl<>(
+                    ExpressionConstants.OUTPUT_ELEMENT_NAME, OperationResultType.COMPLEX_TYPE, getPrismContext());
+            Expression expression = factory.makeExpression(expressionType, outputDefinition, contextDesc, task, topResult);
+
+            ExpressionVariables variables = new ExpressionVariables();
+
+            OperationResultType resultType = result.createOperationResultType();
+
+            variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, resultType);
+
+            ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task, topResult);
+            PrismValueDeltaSetTriple<PrismPropertyValue<?>> outputTriple = expression.evaluate(context);
+            if (outputTriple == null) {
+                return null;
+            }
+
+            Collection<PrismPropertyValue<?>> values = outputTriple.getNonNegativeValues();
+            if (values == null || values.isEmpty()) {
+                return null;
+            }
+
+            if (values.size() > 1) {
+                throw new SchemaException("Expression " + contextDesc + " produced more than one value");
+            }
+
+            OperationResultType newResultType = values.iterator().next().getRealValue();
+            if (newResultType == null) {
+                return null;
+            }
+
+            return OperationResult.createOperationResult(newResultType);
+        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+            topResult.recordFatalError(e);
+            if (StringUtils.isEmpty(result.getMessage())) {
+                topResult.setMessage("Couldn't process operation result script hook.");
+            }
+            topResult.addSubresult(result);
+            LoggingUtils.logUnexpectedException(LOGGER, contextDesc, e);
+            if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
+                throw new SystemException(e.getMessage(), e);
+            } else {
+                return topResult;
+            }
+        }
     }
 
     // common result processing
@@ -1637,10 +1756,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
             // TODO: the modify authorization here is probably wrong.
             // It is a model autz. UI autz should be here instead?
-            return getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
+            return isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
                     AuthorizationPhaseType.REQUEST, object == null ? null : object.asPrismObject(),
                     null, null, null);
-        } catch (SchemaException ex) {
+        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't solve authorization for New organization menu item", ex);
         }
         return false;
@@ -1878,8 +1997,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
     }
 
-    protected <T> T runPrivileged(Producer<T> producer) {
-        return securityEnforcer.runPrivileged(producer);
+    public <T> T runPrivileged(Producer<T> producer) {
+        return securityContextManager.runPrivileged(producer);
     }
 
     public void setBreadcrumbs(List<Breadcrumb> breadcrumbs) {

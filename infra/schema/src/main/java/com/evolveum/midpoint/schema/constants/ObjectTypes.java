@@ -99,6 +99,9 @@ public enum ObjectTypes {
 
     CASE(CaseType.COMPLEX_TYPE, SchemaConstantsGenerated.C_CASE, CaseType.class, ObjectManager.EMULATED,
             "cases"),
+    
+    FUNCTION_LIBRARY(FunctionLibraryType.COMPLEX_TYPE, SchemaConstantsGenerated.C_FUNCTION_LIBRARY, FunctionLibraryType.class, ObjectManager.MODEL,
+            "functionLibraries"),
 
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
@@ -221,14 +224,22 @@ public enum ObjectTypes {
         return getObjectType(objectType).getObjectTypeUri();
     }
 
-    public static Class<? extends ObjectType> getObjectTypeClass(String objectType) {
+    public static Class<? extends ObjectType> getObjectTypeClass(String typeNameLocal) {
         for (ObjectTypes type : values()) {
-            if (type.getValue().equals(objectType)) {
+            if (type.getValue().equals(typeNameLocal)) {
                 return type.getClassDefinition();
             }
         }
+        throw new IllegalArgumentException("Unsupported object type " + typeNameLocal);
+    }
 
-        throw new IllegalArgumentException("Unsupported object type " + objectType);
+    public static Class<? extends ObjectType> getObjectTypeClass(QName typeName) {
+        for (ObjectTypes type : values()) {
+            if (QNameUtil.match(type.getTypeQName(), typeName)) {
+                return type.getClassDefinition();
+            }
+        }
+        throw new IllegalArgumentException("Unsupported object type " + typeName);
     }
 
     @SuppressWarnings("unchecked")

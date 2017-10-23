@@ -18,18 +18,26 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.R_AtomicFilter;
+import com.evolveum.midpoint.prism.query.builder.R_Filter;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -39,6 +47,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.filefilter.AndFileFilter;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -56,6 +66,7 @@ public class ContainerWrapperFactory {
 
     private static final String DOT_CLASS = ContainerWrapperFactory.class.getName() + ".";
     private static final String CREATE_PROPERTIES = DOT_CLASS + "createProperties";
+    private static final String CREATE_ASSOCIATION_WRAPPER = DOT_CLASS + "createAssociationWrapper";
 
     private static final List<QName> INHERITED_OBJECT_ATTRIBUTES = Arrays.asList(
             ObjectType.F_NAME,
@@ -88,7 +99,7 @@ public class ContainerWrapperFactory {
                                                                               ItemPath path) {
 
         result = new OperationResult(CREATE_PROPERTIES);
-
+        
         ContainerWrapper<C> cWrapper = new ContainerWrapper(container, status, path);
         
         List<ContainerValueWrapper<C>> containerValues = createContainerValues(cWrapper, path);
@@ -96,6 +107,74 @@ public class ContainerWrapperFactory {
         cWrapper.computeStripes();
         
        return cWrapper;
+    }
+    
+    public AssociationWrapper createAssociationWrapper(PrismObject<ResourceType> resource, ShadowKindType kind, String shadowIntent, PrismContainer<ShadowAssociationType> association, ContainerStatus status, ItemPath path) throws SchemaException {
+        result = new OperationResult(CREATE_ASSOCIATION_WRAPPER);
+    	//we need to switch association wrapper to single value
+    	//the transformation will be as following:
+    	// we have single value ShadowAssociationType, and from each shadowAssociationType we will create
+    	// property - name of the property will be association type(QName) and the value will be shadowRef
+    	PrismContainerDefinition<ShadowAssociationType> associationDefinition = association.getDefinition().clone();
+    	associationDefinition.setMaxOccurs(1);
+    	
+    	RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
+		RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(kind, shadowIntent);
+		Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = oc.getAssociationDefinitions();
+		
+		if (CollectionUtils.isEmpty(refinedAssociationDefinitions)) {
+			LOGGER.debug("Association for {}/{} not supported by resource {}", kind, shadowIntent, resource);
+			return null;
+		}
+    	
+    	PrismContainer<ShadowAssociationType> shadowAssociationTransformed = associationDefinition.instantiate();
+    	AssociationWrapper associationWrapper = new AssociationWrapper(shadowAssociationTransformed, status, path);
+    	
+    	ContainerValueWrapper<ShadowAssociationType> shadowValueWrapper = new ContainerValueWrapper<>(associationWrapper,
+				shadowAssociationTransformed.createNewValue(),
+				ContainerStatus.ADDING == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, path);
+		
+		List<ItemWrapper> associationValuesWrappers = new ArrayList<>();
+		for (RefinedAssociationDefinition refinedAssocationDefinition: refinedAssociationDefinitions) {
+			PrismReferenceDefinitionImpl shadowRefDef = new PrismReferenceDefinitionImpl(refinedAssocationDefinition.getName(), ObjectReferenceType.COMPLEX_TYPE, modelServiceLocator.getPrismContext());
+			shadowRefDef.setMaxOccurs(-1);
+			shadowRefDef.setTargetTypeName(ShadowType.COMPLEX_TYPE);
+			PrismReference shadowAss = shadowRefDef.instantiate();
+			ItemPath itemPath = null;
+			for (PrismContainerValue<ShadowAssociationType> shadowAssociation : association.getValues()) {
+				if (shadowAssociation.asContainerable().getName().equals(refinedAssocationDefinition.getName())) {
+					itemPath = shadowAssociation.getPath();
+					shadowAss.add(shadowAssociation.findReference(ShadowAssociationType.F_SHADOW_REF).getValue().clone());
+				}
+			}
+			
+			if (itemPath == null) {
+				itemPath = new ItemPath(ShadowType.F_ASSOCIATION);
+			}
+			
+			
+			ReferenceWrapper associationValueWrapper = new ReferenceWrapper(shadowValueWrapper, shadowAss, false, shadowAss.isEmpty() ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, itemPath);
+			associationValueWrapper.setDisplayName(refinedAssocationDefinition.getDisplayName());
+			S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, modelServiceLocator.getPrismContext());
+			List<ObjectFilter> orFilterClauses = new ArrayList<>();
+			refinedAssocationDefinition.getIntents()
+					.forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
+			OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
+
+			AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssocationDefinition.getKind()).and()
+					.item(ShadowType.F_RESOURCE_REF).ref(resource.getOid(), ResourceType.COMPLEX_TYPE).buildFilter();
+			filter.addCondition(intentFilter);
+			associationValueWrapper.setFilter(filter);
+			
+			associationValuesWrappers.add(associationValueWrapper);
+		}
+		
+		shadowValueWrapper.setProperties(associationValuesWrappers);
+		associationWrapper.setProperties(Arrays.asList(shadowValueWrapper));
+		
+		result.computeStatus();
+		return associationWrapper;
+		
     }
     
    public <C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readonly) {
@@ -116,7 +195,7 @@ public class ContainerWrapperFactory {
 	    	List<ContainerValueWrapper<C>> containerValueWrappers = new ArrayList<>();
 	    	PrismContainer<C> container = cWrapper.getItem();
 	    	
-	    	if (container.getValues().isEmpty() && !(new ItemPath(FocusType.F_ASSIGNMENT)).equivalent(container.getPath())) {
+	    	if (container.getValues().isEmpty() && container.isSingleValue()) {
 	    		PrismContainerValue<C> pcv = container.createNewValue();
 	    		 ContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(cWrapper, pcv, ValueStatus.ADDED, cWrapper.getPath());
 	    		
@@ -288,14 +367,19 @@ public class ContainerWrapperFactory {
 		PrismContainer<C> container = containerValue.findContainer(def.getName());
 
 		// TODO: hack, temporary because of recurcive dependecies
-		if (PolicyConstraintsType.COMPLEX_TYPE.equals(def.getTypeName())) {
-			return createPolicyConstraintsContainer(container, def, cWrapper);
+		if (PolicyConstraintsType.F_AND.equals(def.getName()) || PolicyConstraintsType.F_OR.equals(def.getName()) ||
+				PolicyConstraintsType.F_NOT.equals(def.getName()) || PolicyConstraintsType.F_TRANSITION.equals(def.getName())) {
+			return null;
 		}
 		
 		if (container != null && onlyEmpty) {
 			return null;
 		}
-		
+
+//		if (!def.isSingleValue() && (container == null || container.isEmpty())){
+//			return null;
+//		}
+
 		if (container == null) {
 			PrismContainer<C> newContainer;
 			try {
@@ -309,16 +393,7 @@ public class ContainerWrapperFactory {
 		}
 		return createContainerWrapper(container, cWrapper.getStatus() == ValueStatus.ADDED ? ContainerStatus.ADDING: ContainerStatus.MODIFYING, container.getPath());
 	}
-	
-	private <C extends Containerable> ContainerWrapper<C> createPolicyConstraintsContainer(PrismContainer<C> policyConstraintsContainer, PrismContainerDefinition<C> def, ContainerValueWrapper<C> parentContainer) {
-		if (policyConstraintsContainer != null) {
-			return createContainerWrapper(policyConstraintsContainer, ContainerStatus.MODIFYING, policyConstraintsContainer.getPath());
-		}
-		
-		return null;
-		
-	}
-	
+
 	private <C extends Containerable> boolean isItemReadOnly(ItemDefinition def, ContainerValueWrapper<C> cWrapper) {
 		if (cWrapper == null || cWrapper.getStatus() == ValueStatus.NOT_CHANGED) {
 
@@ -329,250 +404,6 @@ public class ContainerWrapperFactory {
 		
 	}
 
-//private void createShadowContainer(PrismContainerDefinition containerDefinition, ContainerWrapper containerWrapper, PrismContainerDefinition definition) throws SchemaException {
-//	QName name = containerDefinition.getName();
-//
-//	if (ShadowType.F_ATTRIBUTES.equals(name)) {
-//			definition = null;//containerWrapper.getObject().getRefinedAttributeDefinition();
-//
-//			if (definition == null) {
-//				PrismReference resourceRef = containerWrapper.getItem().findReference(ShadowType.F_RESOURCE_REF);
-//				PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
-//
-////				definition = modelServiceLocator
-////						.getModelInteractionService()
-////						.getEditObjectClassDefinition((PrismObject<ShadowType>) containerWrapper.getObject().getObject(), resource,
-////								AuthorizationPhaseType.REQUEST)
-////						.toResourceAttributeContainerDefinition();
-//
-//				if (LOGGER.isTraceEnabled()) {
-//					LOGGER.trace("Refined account def:\n{}", definition.debugDump());
-//				}
-//			}
-//		
-//	
-//	} else {
-//		definition = containerDefinition;
-//	}
-//}
-
-//    public <C extends Containerable> ContainerWrapper<C> createCustomContainerWrapper(C container, ContainerStatus status, ItemPath path,
-//                                                                                      boolean readonly, boolean showInheritedAttributes) {
-//
-//		result = new OperationResult(CREATE_PROPERTIES);
-//
-//		PrismContainer<C> containerValue = container.asPrismContainerValue().getContainer();
-//
-//		ContainerWrapper cWrapper = new ContainerWrapper(containerValue, status, path, readonly, showInheritedAttributes);
-//
-//		List<ItemWrapper> properties = createProperties(container, containerValue.getDefinition(), cWrapper);
-//		cWrapper.setProperties(properties);
-//
-//		cWrapper.computeStripes();
-//
-//		return cWrapper;
-//    }
-
-//private <C extends Containerable> List<ItemWrapper> createProperties(C container, PrismContainerDefinition definition, ContainerWrapper<Containerable> cWrapper) {
-//	 Collection<ItemDefinition> propertyDefinitions = definition.getDefinitions();
-//
-//	 List<ItemWrapper> properties = new ArrayList<>();
-//	 for (ItemDefinition itemDef : propertyDefinitions) {
-//         //TODO temporary decision to hide adminGuiConfiguration attribute (MID-3305)
-//         if (itemDef != null && itemDef.getName() != null && itemDef.getName().getLocalPart() != null &&
-//                 itemDef.getName().getLocalPart().equals("adminGuiConfiguration")){
-//             continue;
-//         }
-//         if (itemDef instanceof PrismPropertyDefinition) {
-//
-//             PrismPropertyDefinition def = (PrismPropertyDefinition) itemDef;
-//             if (def.isIgnored() || skipProperty(def)) {
-//                 continue;
-//             }
-//             if (!cWrapper.isShowInheritedObjectAttributes()
-//                     && INHERITED_OBJECT_ATTRIBUTES.contains(def.getName())) {
-//                 continue;
-//             }
-//
-//             PrismProperty property = container.asPrismContainerValue().findProperty(def.getName());
-//             boolean propertyIsReadOnly;
-//             // decision is based on parent object status, not this
-//             // container's one (because container can be added also
-//             // to an existing object)
-//             if (cWrapper.getStatus() == ContainerStatus.MODIFYING) {
-//
-//                 propertyIsReadOnly = cWrapper.isReadonly() || !def.canModify();
-//             } else {
-//                 propertyIsReadOnly = cWrapper.isReadonly() || !def.canAdd();
-//             }
-//             if (property == null) {
-//                 properties.add(new PropertyWrapper(cWrapper, def.instantiate(), propertyIsReadOnly,
-//                         ValueStatus.ADDED));
-//             } else {
-//                 properties.add(new PropertyWrapper(cWrapper, property, propertyIsReadOnly,
-//                         ValueStatus.NOT_CHANGED));
-//             }
-//         } else if (itemDef instanceof PrismReferenceDefinition) {
-//             PrismReferenceDefinition def = (PrismReferenceDefinition) itemDef;
-//
-//             if (INHERITED_OBJECT_ATTRIBUTES.contains(def.getName())) {
-//                 continue;
-//             }
-//
-//             PrismReference reference = container.asPrismContainerValue().findReference(def.getName());
-//             boolean propertyIsReadOnly;
-//             // decision is based on parent object status, not this
-//             // container's one (because container can be added also
-//             // to an existing object)
-//             if (cWrapper.getStatus() == ContainerStatus.MODIFYING) {
-//
-//                 propertyIsReadOnly = !def.canModify();
-//             } else {
-//                 propertyIsReadOnly = !def.canAdd();
-//             }
-//             if (reference == null) {
-//                 properties.add(new ReferenceWrapper(cWrapper, def.instantiate(), propertyIsReadOnly,
-//                         ValueStatus.ADDED));
-//             } else {
-//                 properties.add(new ReferenceWrapper(cWrapper, reference, propertyIsReadOnly,
-//                         ValueStatus.NOT_CHANGED));
-//             }
-//
-//         }
-//     }
-//
-//	 Collections.sort(properties, new ItemWrapperComparator());
-//
-//        return properties;
-//
-//}
-
-//	private boolean isShadowAssociation(ContainerWrapper cWrapper) {
-////        ObjectWrapper oWrapper = cWrapper.getObject();
-////		if (oWrapper == null) {
-////			return false;
-////		}
-//        PrismContainer container = cWrapper.getItem();
-////
-//        if (!ShadowType.class.isAssignableFrom(container.getCompileTimeClass())) {
-//            return false;
-//        }
-//
-//        if (!ShadowType.F_ASSOCIATION.equals(container.getElementName())) {
-//            return false;
-//        }
-//
-//        return true;
-//    }
-//
-//    private boolean isShadowActivation(ContainerWrapper cWrapper) {
-////        ObjectWrapper oWrapper = cWrapper.getObject();
-////		if (oWrapper == null) {
-////			return false;
-////		}
-//        PrismContainer oWrapper = cWrapper.getItem();
-//       
-//        if (!ShadowType.class.isAssignableFrom(oWrapper.getCompileTimeClass())) {
-//            return false;
-//        }
-//
-//        if (!ShadowType.F_ACTIVATION.equals(oWrapper.getElementName())) {
-//            return false;
-//        }
-//
-//        return true;
-//    }
-//
-//    private boolean hasActivationCapability(ContainerWrapper cWrapper, PrismPropertyDefinition def) {
-//        PrismContainer oWrapper = cWrapper.getItem();
-//        if (!(oWrapper instanceof PrismObject)) {
-//        	return false;
-//        }
-//        ObjectType objectType = (ObjectType) ((PrismObject)oWrapper).asObjectable();
-//        if (!(objectType instanceof ShadowType)) {
-//        	return false;
-//        }
-//
-//        ShadowType shadow = (ShadowType) objectType;
-//        ActivationCapabilityType cap = ResourceTypeUtil.getEffectiveCapability(shadow.getResource(),
-//                ActivationCapabilityType.class);
-//
-//        if (ActivationType.F_VALID_FROM.equals(def.getName()) && CapabilityUtil.getEffectiveActivationValidFrom(cap) == null) {
-//            return false;
-//        }
-//
-//        if (ActivationType.F_VALID_TO.equals(def.getName()) && CapabilityUtil.getEffectiveActivationValidTo(cap) == null) {
-//            return false;
-//        }
-//
-//        if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(def.getName()) && CapabilityUtil.getEffectiveActivationStatus(cap) == null) {
-//            return false;
-//        }
-//
-//        return true;
-//    }
-
-    // FIXME temporary - brutal hack - the following three methods are copied from
-    // AddRoleAssignmentAspect - Pavol M.
-
-//    private String formatAssignmentBrief(AssignmentType assignment) {
-//        StringBuilder sb = new StringBuilder();
-//        if (assignment.getTarget() != null) {
-//            sb.append(assignment.getTarget().getName());
-//        } else {
-//            sb.append(assignment.getTargetRef().getOid());
-//        }
-//        if (assignment.getActivation() != null
-//                && (assignment.getActivation().getValidFrom() != null || assignment.getActivation()
-//                .getValidTo() != null)) {
-//            sb.append(" ");
-//            sb.append("(");
-//            sb.append(formatTimeIntervalBrief(assignment));
-//            sb.append(")");
-//        }
-//        if (assignment.getActivation() != null) {
-//            switch (assignment.getActivation().getEffectiveStatus()) {
-//                case ARCHIVED:
-//                    sb.append(", archived");
-//                    break; // TODO i18n
-//                case ENABLED:
-//                    sb.append(", enabled");
-//                    break;
-//                case DISABLED:
-//                    sb.append(", disabled");
-//                    break;
-//            }
-//        }
-//        return sb.toString();
-//    }
-//
-//    public static String formatTimeIntervalBrief(AssignmentType assignment) {
-//        StringBuilder sb = new StringBuilder();
-//        if (assignment != null
-//                && assignment.getActivation() != null
-//                && (assignment.getActivation().getValidFrom() != null || assignment.getActivation()
-//                .getValidTo() != null)) {
-//            if (assignment.getActivation().getValidFrom() != null
-//                    && assignment.getActivation().getValidTo() != null) {
-//                sb.append(formatTime(assignment.getActivation().getValidFrom()));
-//                sb.append("-");
-//                sb.append(formatTime(assignment.getActivation().getValidTo()));
-//            } else if (assignment.getActivation().getValidFrom() != null) {
-//                sb.append("from ");
-//                sb.append(formatTime(assignment.getActivation().getValidFrom()));
-//            } else {
-//                sb.append("to ");
-//                sb.append(formatTime(assignment.getActivation().getValidTo()));
-//            }
-//        }
-//        return sb.toString();
-//    }
-//
-//    private static String formatTime(XMLGregorianCalendar time) {
-//        DateFormat formatter = DateFormat.getDateInstance();
-//        return formatter.format(time.toGregorianCalendar().getTime());
-//    }
-
     /**
      * This methods check if we want to show property in form (e.g.
      * failedLogins, fetchResult, lastFailedLoginTimestamp must be invisible)
@@ -582,6 +413,9 @@ public class ContainerWrapperFactory {
      */
     @Deprecated
     private boolean skipProperty(ItemDefinition<? extends Item> def) {
+    	if (def == null){
+    		return true;
+		}
         final List<QName> names = new ArrayList<>();
         names.add(PasswordType.F_FAILED_LOGINS);
         names.add(PasswordType.F_LAST_FAILED_LOGIN);
@@ -598,6 +432,10 @@ public class ContainerWrapperFactory {
         names.add(OrgType.F_APPROVER_EXPRESSION);
         names.add(OrgType.F_AUTOMATICALLY_APPROVED);
         names.add(OrgType.F_CONDITION);
+        // focus
+        names.add(FocusType.F_LINK);
+        names.add(FocusType.F_LINK_REF);
+        names.add(FocusType.F_PERSONA_REF);
 
         for (QName name : names) {
             if (name.equals(def.getName())) {

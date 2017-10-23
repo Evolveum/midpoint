@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -52,7 +53,7 @@ public class ScriptExpression {
 	private Function<Object, Object> additionalConvertor;
     private ObjectResolver objectResolver;
     private Collection<FunctionLibrary> functions;
-
+    
     private static final Trace LOGGER = TraceManager.getTrace(ScriptExpression.class);
 	private static final int MAX_CODE_CHARS = 42;
 
@@ -92,7 +93,7 @@ public class ScriptExpression {
 	public void setAdditionalConvertor(Function<Object, Object> additionalConvertor) {
 		this.additionalConvertor = additionalConvertor;
 	}
-
+	
 	public <V extends PrismValue> List<V> evaluate(ExpressionVariables variables, ScriptExpressionReturnTypeType suggestedReturnType,
 			boolean useNew, String contextDescription, Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {

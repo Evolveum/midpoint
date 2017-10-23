@@ -45,6 +45,8 @@ public interface AssignmentPathSegment extends DebugDumpable, ShortDumpable {
 	// TODO its use is a bit questionable; it might return null, when evaluating negative-mode assignments
 	AssignmentType getAssignmentNew();
 
+	AssignmentType getAssignmentAny();
+
 	/**
 	 * True if the segment corresponds to assignment. False if it's an inducement.
 	 */

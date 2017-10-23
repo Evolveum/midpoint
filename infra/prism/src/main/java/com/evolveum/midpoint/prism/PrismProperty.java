@@ -130,6 +130,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         return (List) getValues();
     }
 
+    @NotNull
     @Override
     public Collection<T> getRealValues() {
 		Collection<T> realValues = new ArrayList<T>(getValues().size());
@@ -272,6 +273,12 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
     public void addRealValue(T valueToAdd) {
     	PrismPropertyValue<T> pval = new PrismPropertyValue<T>(valueToAdd);
     	addValue(pval);
+    }
+
+    public void addRealValues(T... valuesToAdd) {
+	    for (T valueToAdd : valuesToAdd) {
+		    addRealValue(valueToAdd);
+	    }
     }
 
     public boolean deleteValues(Collection<PrismPropertyValue<T>> pValuesToDelete) {

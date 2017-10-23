@@ -25,9 +25,12 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
@@ -53,7 +56,7 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
 	@Override
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<TransitionPolicyConstraintType> constraintElement,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		TransitionPolicyConstraintType trans = constraintElement.getValue();
 		List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
@@ -62,7 +65,9 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
 					&& evaluateState(trans, rctx, ObjectState.AFTER, trans.isStateAfter(), triggers, result);
 		if (match) {
 			return new EvaluatedTransitionTrigger(PolicyConstraintKindType.TRANSITION, trans,
-					createMessage(constraintElement.getValue(), rctx, result), triggers);
+					createMessage(constraintElement.getValue(), rctx, result),
+					createShortMessage(constraintElement.getValue(), rctx, result),
+					triggers);
 		} else {
 			return null;
 		}
@@ -71,7 +76,7 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
 	private <F extends FocusType> boolean evaluateState(TransitionPolicyConstraintType trans,
 			PolicyRuleEvaluationContext<F> rctx, ObjectState state, Boolean expected,
 			List<EvaluatedPolicyRuleTrigger<?>> triggers, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (expected == null) {
 			return true;
 		}
@@ -84,10 +89,18 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
 	}
 
 	private LocalizableMessage createMessage(AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
+	}
+
+	private LocalizableMessage createShortMessage(AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
+				.build();
+		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
 	}
 }

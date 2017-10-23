@@ -36,7 +36,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
@@ -86,6 +87,7 @@ public class MiscDataUtil {
     @Autowired private PrismContext prismContext;
 	@Autowired private TaskManager taskManager;
 	@Autowired private SecurityEnforcer securityEnforcer;
+	@Autowired private SecurityContextManager securityContextManager;
 	@Autowired private WfConfiguration wfConfiguration;
 	@Autowired private ActivitiEngine activitiEngine;
 	@Autowired private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
@@ -292,10 +294,10 @@ public class MiscDataUtil {
 		}
 	}
 
-    public boolean isAuthorized(WorkItemType workItem, RequestedOperation operation) {
+    public boolean isAuthorized(WorkItemType workItem, RequestedOperation operation, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         MidPointPrincipal principal;
 		try {
-			principal = securityEnforcer.getPrincipal();
+			principal = securityContextManager.getPrincipal();
 		} catch (SecurityViolationException e) {
 			return false;
 		}
@@ -303,10 +305,10 @@ public class MiscDataUtil {
             return false;
         }
 		try {
-			if (securityEnforcer.isAuthorized(operation.actionAll.getUrl(), null, null, null, null, null)) {
+			if (securityEnforcer.isAuthorized(operation.actionAll.getUrl(), null, null, null, null, null, task, result)) {
 				return true;
 			}
-			if (operation.actionOwn != null && !securityEnforcer.isAuthorized(operation.actionOwn.getUrl(), null, null, null, null, null)) {
+			if (operation.actionOwn != null && !securityEnforcer.isAuthorized(operation.actionOwn.getUrl(), null, null, null, null, null, task, result)) {
 				return false;
 			}
 		} catch (SchemaException e) {
@@ -370,7 +372,7 @@ public class MiscDataUtil {
     public boolean isAuthorizedToClaim(String taskId) {
         MidPointPrincipal principal;
         try {
-            principal = securityEnforcer.getPrincipal();
+            principal = securityContextManager.getPrincipal();
         } catch (SecurityViolationException e) {
             return false;
         }

@@ -27,16 +27,78 @@
 					<expression>
 						<script>
 							<code>
-								log.info('Evaluating rule on {}', object)
-								this.binding.variables.each {k,v -> log.info('{} = {}', k, v)}
-								!object.employeeType.contains('10')
+								log.info('### Evaluating rule on {}', object)
+								//this.binding.variables.each {k,v -> log.info('{} = {}', k, v)}
+								def path = ruleEvaluationContext.policyRule.assignmentPath
+								log.info('### Assignment path:\n{}', path.debugDump())
+								def extension = path.collectExtensions(1)
+								log.info('### Extension:\n{}', extension?.asPrismContainerValue().debugDump())
+
+								for (int i = 1; i &lt; 10; i++) {
+									def attribute = basic.getPropertyValue(extension, "attribute$i")
+									def expectedValue = basic.getPropertyValue(extension, "value$i")
+									if (attribute != null) {
+										def realValue = basic.getPropertyValue(object, attribute)
+										log.info('*** checking {}: expected: "{}", real: "{}"', attribute, expectedValue, realValue)
+										if (!Objects.equals(expectedValue, realValue)) {
+											return true
+										}
+									}
+								}
+								return false
 							</code>
 						</script>
 					</expression>
 				</objectState>
 			</policyConstraints>
 			<policyActions>
-				<enforcement/>
+				<enforcement>
+					<condition>
+						<script>
+							<code>
+								def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(1)
+								log.info('### enforcement:Extension:\n{}', extension?.asPrismContainerValue().debugDump())
+								def remediatorRef = basic.getPropertyValue(extension, "remediatorRef")
+								log.info('### enforcement:remediatorRef = {}', remediatorRef)
+								remediatorRef == null
+							</code>
+						</script>
+					</condition>
+				</enforcement>
+				<approval>
+					<condition>
+						<script>
+							<code>
+								def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(1)
+								log.info('### approval:Extension:\n{}', extension?.asPrismContainerValue().debugDump())
+								def remediatorRef = basic.getPropertyValue(extension, "remediatorRef")
+								log.info('### approval:remediatorRef = {}', remediatorRef)
+								remediatorRef != null
+							</code>
+						</script>
+					</condition>
+					<approvalSchema>
+						<stage>
+							<approverExpression>
+								<script>
+									<code>
+										import com.evolveum.midpoint.schema.util.*
+										log.info('### workflow context:\n{}', workflowContext.asPrismContainerValue().debugDump())
+										def rules = WfContextUtil.getRulesForStage(workflowContext, stageDefinition.number)
+										log.info('rules found: {}', rules)
+										def approvers = rules.collectMany { rule ->
+											def ext = midpoint.collectExtensions(rule.assignmentPath, 1)
+											def remediatorRef = basic.getPropertyValue(ext, "remediatorRef")
+											remediatorRef != null ? [remediatorRef.clone()] : []
+										}
+										log.info('approvers found: {}', approvers)
+										approvers
+									</code>
+								</script>
+							</approverExpression>
+						</stage>
+					</approvalSchema>
+				</approval>
 			</policyActions>
 			<evaluationTarget>assignment</evaluationTarget>
 		</policyRule>

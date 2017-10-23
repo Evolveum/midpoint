@@ -20,10 +20,10 @@
 	  oid="d3d029f2-09b4-4b32-9abb-fe4d98b9f4fe">
 	<name>k10-tpu-10</name>
 	<extension>
-		<ext:attribute1>employeeType</ext:attribute1>
+		<ext:attribute1>extension/tpu</ext:attribute1>
 		<ext:value1>10</ext:value1>
 	</extension>
 	<assignment>
-		<targetRef oid="db0eadd1-3e2b-4dad-801e-80700f2d11e5" type="RoleType"/>
+		<targetRef oid="db0eadd1-3e2b-4dad-801e-80700f2d11e5" type="RoleType"/> <!-- k10 -->
 	</assignment>
 </role>

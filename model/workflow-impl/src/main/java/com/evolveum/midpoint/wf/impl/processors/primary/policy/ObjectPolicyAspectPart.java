@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.policy;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -25,7 +26,11 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -40,7 +45,6 @@ import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.velocity.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,10 +52,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
+import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
-import static com.evolveum.midpoint.wf.impl.util.MiscDataUtil.getFocusObjectName;
+import static com.evolveum.midpoint.wf.impl.util.MiscDataUtil.getFocusObjectNewOrOld;
 import static java.util.Collections.singletonList;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 /**
  * @author mederly
@@ -67,11 +74,12 @@ public class ObjectPolicyAspectPart {
 	@Autowired protected PrismContext prismContext;
 	@Autowired protected ItemApprovalProcessInterface itemApprovalProcessInterface;
 	@Autowired protected BaseConfigurationHelper baseConfigurationHelper;
+	@Autowired protected LocalizationService localizationService;
 
 	<T extends ObjectType> void extractObjectBasedInstructions(@NotNull ObjectTreeDeltas<T> objectTreeDeltas,
 			@Nullable PrismObject<UserType> requester, @NotNull List<PcpChildWfTaskCreationInstruction<?>> instructions,
 			@NotNull ModelInvocationContext<T> ctx, @NotNull OperationResult result)
-			throws SchemaException {
+			throws SchemaException, ObjectNotFoundException {
 
 		ObjectDelta<T> focusDelta = objectTreeDeltas.getFocusChange();
 		LensFocusContext<T> focusContext = (LensFocusContext<T>) ctx.modelContext.getFocusContext();
@@ -81,10 +89,10 @@ public class ObjectPolicyAspectPart {
 		List<EvaluatedPolicyRule> triggeredApprovalActionRules = main.selectTriggeredApprovalActionRules(focusContext.getPolicyRules());
 		LOGGER.trace("extractObjectBasedInstructions: triggeredApprovalActionRules:\n{}", debugDumpLazily(triggeredApprovalActionRules));
 
-		// default rule
 		if (!triggeredApprovalActionRules.isEmpty()) {
 			addObjectOidIfNeeded(focusDelta, ctx.modelContext);
-			ProcessSpecifications processSpecifications = ProcessSpecifications.createFromRules(triggeredApprovalActionRules);
+			ProcessSpecifications processSpecifications = ProcessSpecifications.createFromRules(triggeredApprovalActionRules, prismContext);
+			LOGGER.trace("Process specifications:\n{}", debugDumpLazily(processSpecifications));
 			for (ProcessSpecification processSpecificationEntry : processSpecifications.getSpecifications()) {
 				if (focusDelta.isEmpty()) {
 					break;  // we're done
@@ -97,6 +105,7 @@ public class ObjectPolicyAspectPart {
 				}
 				LOGGER.trace("Remaining delta:\n{}", debugDumpLazily(focusDelta));
 				ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
+				builder.setProcessSpecification(processSpecificationEntry);
 				for (Pair<ApprovalPolicyActionType, EvaluatedPolicyRule> actionWithRule : processSpecificationEntry.actionsWithRules) {
 					ApprovalPolicyActionType approvalAction = actionWithRule.getLeft();
 					builder.add(main.getSchemaFromAction(approvalAction), approvalAction.getCompositionStrategy(), object, actionWithRule.getRight());
@@ -104,6 +113,7 @@ public class ObjectPolicyAspectPart {
 				buildSchemaForObject(requester, instructions, ctx, result, deltasToApprove, builder);
 			}
 		} else if (baseConfigurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != DefaultApprovalPolicyRulesUsageType.NEVER) {
+			// default rule
 			ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
 			if (builder.addPredefined(object, SchemaConstants.ORG_OWNER, result)) {
 				LOGGER.trace("Added default approval action, as no explicit one was found");
@@ -145,11 +155,11 @@ public class ObjectPolicyAspectPart {
 			if (sourceSpec == null || sourceSpec.getItem().isEmpty() && sourceSpec.getItemValue() == null) {
 				return addWholeDelta(focusDelta, rv);
 			} else if (!sourceSpec.getItem().isEmpty()) {
-				ObjectDelta.FactorOutResult<T> out = focusDelta.factorOut(ItemPathType.toItemPathList(sourceSpec.getItem()), false);
-				rv.addAll(out.offsprings);
+				ObjectDelta.FactorOutResultSingle<T> out = focusDelta.factorOut(ItemPathType.toItemPathList(sourceSpec.getItem()), false);
+				addIgnoreNull(rv, out.offspring);
 			} else {
 				assert sourceSpec.getItemValue() != null;
-				ObjectDelta.FactorOutResult<T> out = focusDelta.factorOutValues(sourceSpec.getItemValue().getItemPath(), false);
+				ObjectDelta.FactorOutResultMulti<T> out = focusDelta.factorOutValues(sourceSpec.getItemValue().getItemPath(), false);
 				rv.addAll(out.offsprings);
 			}
 		}
@@ -169,22 +179,14 @@ public class ObjectPolicyAspectPart {
 			PrismObject<UserType> requester, OperationResult result) throws SchemaException {
 
 		for (ObjectDelta<T> deltaToApprove : deltasToApprove) {
-			//String objectOid = getFocusObjectOid(modelContext);
-			String objectName = getFocusObjectName(modelContext);
-
-			String opName;
-			if (deltaToApprove.isAdd()) {
-				opName = "addition";
-			} else if (deltaToApprove.isDelete()) {
-				opName = "deletion";
-			} else {
-				opName = "modification";
+			LocalizableMessage processName = main.createProcessName(builderResult);
+			if (processName == null) {
+				processName = createDefaultProcessName(modelContext, deltaToApprove);
 			}
-
-			String approvalTaskName = "Approve " + opName + " of " + objectName;
+			String processNameInDefaultLocale = localizationService.translate(processName, Locale.getDefault());
 
 			PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> instruction =
-					PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(main.getChangeProcessor(), approvalTaskName,
+					PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(main.getChangeProcessor(), processNameInDefaultLocale,
 							builderResult.schemaType, builderResult.attachedRules);
 
 			instruction.prepareCommonAttributes(main, modelContext, requester);
@@ -194,8 +196,8 @@ public class ObjectPolicyAspectPart {
 			instruction.setObjectRef(modelContext, result);
 
 			String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
-			instruction.setTaskName("Approval " + andExecuting + "of " + opName + " of " + objectName);
-			instruction.setProcessInstanceName(StringUtils.capitalizeFirstLetter(opName) + " of " + objectName);
+			instruction.setTaskName("Approval " + andExecuting + "of: " + processNameInDefaultLocale);
+			instruction.setProcessInstanceName(processNameInDefaultLocale);
 
 			itemApprovalProcessInterface.prepareStartInstruction(instruction);
 
@@ -203,7 +205,24 @@ public class ObjectPolicyAspectPart {
 		}
 	}
 
-//	private ObjectDelta<?> subtractModifications(@NotNull ObjectDelta<?> focusDelta, @NotNull Set<ItemPath> itemPaths) {
+	private <T extends ObjectType> LocalizableMessage createDefaultProcessName(ModelContext<T> modelContext,
+			ObjectDelta<T> deltaToApprove) {
+		ObjectType focus = getFocusObjectNewOrOld(modelContext);
+		String opKey;
+		if (deltaToApprove.isAdd()) {
+			opKey = "Added";
+		} else if (deltaToApprove.isDelete()) {
+			opKey = "Deleted";
+		} else {
+			opKey = "Modified";
+		}
+		return new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + "objectModification.toBe" + opKey)
+				.args(ObjectTypeUtil.createObjectSpecification(asPrismObject(focus)))
+				.build();
+	}
+
+	//	private ObjectDelta<?> subtractModifications(@NotNull ObjectDelta<?> focusDelta, @NotNull Set<ItemPath> itemPaths) {
 //		if (itemPaths.isEmpty()) {
 //			ObjectDelta<?> originalDelta = focusDelta.clone();
 //			focusDelta.clear();

@@ -23,7 +23,9 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.stringpolicy.AbstractValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ObjectValuePolicyEvaluator;
+import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -47,13 +49,18 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PartiallyResolvedDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -63,6 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHistoryEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
@@ -226,14 +234,14 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	
 	private ObjectValuePolicyEvaluator getObjectValuePolicyEvaluator() {
 		if (objectValuePolicyEvaluator == null) {
-			PrismObject<UserType> user = getUser();
+			AbstractValuePolicyOriginResolver originResolver = getOriginResolver();
 			
 			objectValuePolicyEvaluator = new ObjectValuePolicyEvaluator();
 			objectValuePolicyEvaluator.setNow(now);
-			objectValuePolicyEvaluator.setObject(user);
+			objectValuePolicyEvaluator.setOriginResolver(originResolver);
 			objectValuePolicyEvaluator.setProtector(protector);
 			objectValuePolicyEvaluator.setSecurityPolicy(getSecurityPolicy());
-			objectValuePolicyEvaluator.setShortDesc(getCredentialHumanReadableName() + " for " + user);
+			objectValuePolicyEvaluator.setShortDesc(getCredentialHumanReadableName() + " for " + originResolver.getObject());
 			objectValuePolicyEvaluator.setTask(task);
 			objectValuePolicyEvaluator.setValueItemPath(getCredentialValuePath());
 			objectValuePolicyEvaluator.setValuePolicyProcessor(valuePolicyProcessor);
@@ -248,11 +256,11 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	}
 
 	
-	private PrismObject<UserType> getUser() {
-		return context.getFocusContext().getObjectAny();
+	private UserValuePolicyOriginResolver getOriginResolver() {
+		return new UserValuePolicyOriginResolver(context.getFocusContext().getObjectAny(), resolver);
 	}
 
-	public void process() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+	public void process() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LensFocusContext<UserType> focusContext = context.getFocusContext();
 		PrismObject<UserType> focus = focusContext.getObjectAny();
 		
@@ -309,7 +317,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	 * E.g. $user/credentials/password, $user/credentials/securityQuestions   
 	 */
 	protected void processCredentialContainerValue(PrismObject<UserType> focus, PrismContainerValue<R> cVal)
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		addMissingMetadata(cVal);
 		validateCredentialContainerValues(cVal);
 	}
@@ -321,9 +329,9 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	 *      $user/credentials/securityQuestions/questionAnswer/questionAnswer
 	 *      
 	 *  This implementation is OK for the password, nonce and similar simple cases. It needs to be
-	 *  overridden for more complex cases.
+	 *  overridden for more complex cases. 
 	 */
-	protected void processValueDelta(ObjectDelta<UserType> focusDelta) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	protected void processValueDelta(ObjectDelta<UserType> focusDelta) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PropertyDelta<ProtectedStringType> valueDelta = focusDelta.findPropertyDelta(getCredentialValuePath());
 		if (valueDelta == null) {
 			LOGGER.trace("Skipping processing {} policies. User delta does not contain value change.", getCredentialHumanReadableName());
@@ -333,7 +341,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		processPropertyValueCollection(valueDelta.getValuesToReplace());
 	}
 	
-	private void processPropertyValueCollection(Collection<PrismPropertyValue<ProtectedStringType>> collection) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private void processPropertyValueCollection(Collection<PrismPropertyValue<ProtectedStringType>> collection) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (collection == null) {
 			return;
 		}
@@ -342,7 +350,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		}
 	}
 
-	protected void validateCredentialContainerValues(PrismContainerValue<R> cVal) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	protected void validateCredentialContainerValues(PrismContainerValue<R> cVal) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PrismProperty<ProtectedStringType> credentialValueProperty = cVal.findProperty(getCredentialRelativeValuePath());
 		if (credentialValueProperty != null) {
 			for (PrismPropertyValue<ProtectedStringType> credentialValuePropertyValue : credentialValueProperty.getValues()) {
@@ -351,7 +359,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		}
 	}
 
-	protected void validateProtectedStringValue(ProtectedStringType value) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	protected void validateProtectedStringValue(ProtectedStringType value) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		OperationResult validationResult = getObjectValuePolicyEvaluator().validateProtectedStringValue(value);
 		result.addSubresult(validationResult);

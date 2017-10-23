@@ -114,12 +114,10 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 		return (compileTimeClass.isAssignableFrom(getCompileTimeClass()));
 	}
 
+	@NotNull
     @Override
     public Collection<C> getRealValues() {
-		if (getValues() == null) {
-			return null;
-		}
-		List<C> realValues = new ArrayList<>(getValues().size());
+	    List<C> realValues = new ArrayList<>(getValues().size());
 		for (PrismContainerValue<C> value : getValues()) {
 			realValues.add(value.asContainerable());
 		}

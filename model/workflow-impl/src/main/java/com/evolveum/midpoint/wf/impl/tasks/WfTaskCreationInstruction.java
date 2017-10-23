@@ -25,10 +25,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -158,6 +160,12 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 
 	public void setProcessInstanceName(String name) {
 		wfContext.setProcessInstanceName(name);
+	}
+
+	public void setLocalizableProcessInstanceName(LocalizableMessage name) {
+    	if (name != null) {
+		    wfContext.getLocalizableProcessInstanceName().add(LocalizationUtil.createLocalizableMessageType(name));
+	    }
 	}
 
     public void setTaskName(String taskName) {

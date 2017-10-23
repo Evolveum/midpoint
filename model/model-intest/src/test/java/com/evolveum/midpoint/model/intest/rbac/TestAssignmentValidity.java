@@ -22,6 +22,9 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -1344,6 +1347,522 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 		unassignAll("test189JackUnassignAll");
 	}
 
+	/**
+	 * Preparation for MID-4198 "Disabled assignments project value in certain cases"
+	 */
+	@Test
+	public void test200JackAssignCurrentPirateFutureSailor() throws Exception {
+		final String TEST_NAME = "test200JackAssignCurrentPirateFutureSailor";
+		displayTestTitle(TEST_NAME);
+
+		Task task =  createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User jack before", userBefore);
+
+		ActivationType activationType = new ActivationType();
+		activationType.setValidFrom(getTimestamp("P1M"));
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+		assignRole(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, activationType, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User jack after", userAfter);
+		assertAssignments(userAfter, 2);
+		AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_STRONG_SAILOR_OID);
+		assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.DISABLED);
+		assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
+		assertDelegatedRef(userAfter);
+
+		assertJackDummyPirateAccount();     // no sailor!
+	}
+
+	/**
+	 * MID-4198 "Disabled assignments project value in certain cases"
+	 */
+	@Test
+	public void test202RecomputeJack() throws Exception {
+		final String TEST_NAME = "test202RecomputeJack";
+		displayTestTitle(TEST_NAME);
+
+		Task task =  createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User jack before", userBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		recomputeUser(USER_JACK_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User jack after", userAfter);
+		assertAssignments(userAfter, 2);
+		assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
+		assertDelegatedRef(userAfter);
+
+		assertJackDummyPirateAccount();     // still there should be no sailor
+	}
+
+	/**
+	 * MID-4198 "Disabled assignments project value in certain cases"
+	 */
+	@Test
+	public void test204ReconcileJack() throws Exception {
+		final String TEST_NAME = "test204ReconcileJack";
+		displayTestTitle(TEST_NAME);
+
+		Task task =  createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User jack before", userBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(USER_JACK_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User jack after", userAfter);
+		assertAssignments(userAfter, 2);
+		assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
+		assertDelegatedRef(userAfter);
+
+		assertJackDummyPirateAccount();     // still there should be no sailor
+	}
+
+	@Test
+	public void test209JackUnassignAll() throws Exception {
+		unassignAll("test209JackUnassignAll");
+	}
+
+	/**
+	 * The same as test200-204 but with ROLE_STRONG_RICH_SAILOR
+	 *
+	 * Preparation for MID-4198 "Disabled assignments project value in certain cases"
+	 */
+	@Test
+	public void test210JackAssignCurrentPirateFutureRichSailor() throws Exception {
+		final String TEST_NAME = "test210JackAssignCurrentPirateFutureRichSailor";
+		displayTestTitle(TEST_NAME);
+
+		Task task =  createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User jack before", userBefore);
+
+		ActivationType activationType = new ActivationType();
+		activationType.setValidFrom(getTimestamp("P1M"));
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+		assignRole(USER_JACK_OID, ROLE_STRONG_RICH_SAILOR_OID, activationType, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User jack after", userAfter);
+		assertAssignments(userAfter, 2);
+		AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_STRONG_RICH_SAILOR_OID);
+		assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.DISABLED);
+		assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
+		assertDelegatedRef(userAfter);
+
+		assertJackDummyPirateAccount();     // no sailor!
+	}
+
+	/**
+	 * MID-4198 "Disabled assignments project value in certain cases"
+	 */
+	@Test
+	public void test212RecomputeJack() throws Exception {
+		final String TEST_NAME = "test212RecomputeJack";
+		displayTestTitle(TEST_NAME);
+
+		Task task =  createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User jack before", userBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		recomputeUser(USER_JACK_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User jack after", userAfter);
+		assertAssignments(userAfter, 2);
+		assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
+		assertDelegatedRef(userAfter);
+
+		assertJackDummyPirateAccount();     // still there should be no sailor
+	}
+
+	/**
+	 * MID-4198 "Disabled assignments project value in certain cases"
+	 */
+	@Test
+	public void test214ReconcileJack() throws Exception {
+		final String TEST_NAME = "test214ReconcileJack";
+		displayTestTitle(TEST_NAME);
+
+		Task task =  createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User jack before", userBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(USER_JACK_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User jack after", userAfter);
+		assertAssignments(userAfter, 2);
+		assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
+		assertDelegatedRef(userAfter);
+
+		assertJackDummyPirateAccount();     // still there should be no sailor
+	}
+
+	@Test
+	public void test219JackUnassignAll() throws Exception {
+		unassignAll("test219JackUnassignAll");
+	}
+
+	/**
+	 * Just verifying that account presence honors assignment validity (checked as part of MID-4199 evaluation)
+	 */
+	@Test
+	public void test220JackAssignFutureRichSailor() throws Exception {
+		final String TEST_NAME = "test220JackAssignFutureRichSailor";
+		displayTestTitle(TEST_NAME);
+
+		Task task =  createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		unassignAll(TEST_NAME);
+
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User jack before", userBefore);
+
+		ActivationType activationType = new ActivationType();
+		activationType.setValidFrom(getTimestamp("P1M"));
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignRole(USER_JACK_OID, ROLE_STRONG_RICH_SAILOR_OID, activationType, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User jack after", userAfter);
+		assertAssignments(userAfter, 1);
+		AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_STRONG_RICH_SAILOR_OID);
+		assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.DISABLED);
+		assertRoleMembershipRef(userAfter);
+		assertDelegatedRef(userAfter);
+
+		assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+
+	@Test
+	public void test229JackUnassignAll() throws Exception {
+		unassignAll("test229JackUnassignAll");
+		assertNoDummyAccount(USER_JACK_USERNAME);
+	}
+
+	/**
+	 * Attribute-granting assignment that loses its validity. Resource account is granted by another (enabled) assignment.
+	 */
+	@Test
+	public void test230JackAssignRoleStrongRichSailorValidTo() throws Exception {
+		final String TEST_NAME = "test230JackAssignRoleStrongRichSailorValidTo";
+		displayTestTitle(TEST_NAME);
+
+		Task task =  createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User jack before", userBefore);
+
+		ActivationType activationType = new ActivationType();
+		jackPirateValidTo = getTimestamp("PT10M");
+		activationType.setValidTo(jackPirateValidTo);
+
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		// beware of the order: weapon is weak and is set differently by role (cutlass) and resource (from user extension: pistol, mouth)
+		// the assert expects cutlass, so the pirate role assignment must go first
+		assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+		assignRole(USER_JACK_OID, ROLE_STRONG_RICH_SAILOR_OID, activationType, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User jack after", userAfter);
+		assertModifyMetadata(userAfter, startTs, endTs);
+		assertAssignments(userAfter, 2);
+		AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_STRONG_RICH_SAILOR_OID);
+		assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.ENABLED);
+		assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID, ROLE_STRONG_RICH_SAILOR_OID);
+		assertDelegatedRef(userAfter);
+
+		assertJackDummyPirateRichSailorAccount();
+	}
+
+	/**
+	 * Sailor assignment expires.
+	 */
+
+	@Test
+    public void test232Forward15min() throws Exception {
+		final String TEST_NAME = "test232Forward15min";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        clockForward("PT15M");
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        assertAssignments(userAfter, 2);
+        AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_STRONG_RICH_SAILOR_OID);
+        assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.DISABLED);
+        assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
+
+        assertJackDummyPirateAccount();
+	}
+
+	@Test
+	public void test239JackUnassignAll() throws Exception {
+		unassignAll("test239JackUnassignAll");
+		assertNoDummyAccount(USER_JACK_USERNAME);
+	}
+
+	/**
+	 * Attribute-granting assignment that loses its validity. Resource account is granted by another (enabled) assignment.
+	 * Using non-strong (normal i.e. relative) mappings.
+	 */
+	@Test
+	public void test240JackAssignRoleRichSailorValidTo() throws Exception {
+		final String TEST_NAME = "test240JackAssignRoleRichSailorValidTo";
+		displayTestTitle(TEST_NAME);
+
+		Task task =  createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User jack before", userBefore);
+
+		ActivationType activationType = new ActivationType();
+		jackPirateValidTo = getTimestamp("PT10M");
+		activationType.setValidTo(jackPirateValidTo);
+
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		// beware of the order: weapon is weak and is set differently by role (cutlass) and resource (from user extension: pistol, mouth)
+		// the assert expects cutlass, so the pirate role assignment must go first
+		assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+		assignRole(USER_JACK_OID, ROLE_RICH_SAILOR_OID, activationType, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User jack after", userAfter);
+		assertModifyMetadata(userAfter, startTs, endTs);
+		assertAssignments(userAfter, 2);
+		AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_RICH_SAILOR_OID);
+		assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.ENABLED);
+		assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID, ROLE_RICH_SAILOR_OID);
+		assertDelegatedRef(userAfter);
+
+		assertJackDummyPirateRichSailorAccount();
+	}
+
+	/**
+	 * Sailor assignment expires.
+	 */
+
+	@Test
+	public void test242Forward15min() throws Exception {
+		final String TEST_NAME = "test242Forward15min";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		clockForward("PT15M");
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		recomputeUser(USER_JACK_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User jack after", userAfter);
+		assertAssignments(userAfter, 2);
+		AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_RICH_SAILOR_OID);
+		assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.DISABLED);
+		assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
+
+		assertJackDummyPirateAccount();
+	}
+
+	@Test
+	public void test249JackUnassignAll() throws Exception {
+		unassignAll("test249JackUnassignAll");
+		assertNoDummyAccount(USER_JACK_USERNAME);
+	}
+
+	/**
+	 *  MID-4198
+	 */
+	@Test
+	public void test250JackAssignFocusExistsResource() throws Exception {
+		final String TEST_NAME = "test250JackAssignFocusExistsResource";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User jack before", userBefore);
+
+		ActivationType activation = new ActivationType();
+		activation.setValidFrom(getTimestamp("PT10M"));
+		AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(resourceDummyFocusExists).activation(activation);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(assignment)
+				.asObjectDeltaCast(USER_JACK_OID);
+		executeChanges(delta, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User jack after", userAfter);
+		assertAssignments(userAfter, 1);
+		assertLinks(userAfter, 0);
+
+		assertNoDummyAccount(RESOURCE_DUMMY_FOCUS_EXISTS_NAME, USER_JACK_USERNAME);
+	}
+
+	/**
+	 * MID-4198 "Disabled assignments project value in certain cases"
+	 */
+	@Test
+	public void test252RecomputeJack() throws Exception {
+		final String TEST_NAME = "test252RecomputeJack";
+		displayTestTitle(TEST_NAME);
+
+		Task task =  createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User jack before", userBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		recomputeUser(USER_JACK_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User jack after", userAfter);
+		assertAssignments(userAfter, 1);
+		assertLinks(userAfter, 0);
+
+		assertNoDummyAccount(RESOURCE_DUMMY_FOCUS_EXISTS_NAME, USER_JACK_USERNAME);
+	}
+
+	/**
+	 * MID-4198 "Disabled assignments project value in certain cases"
+	 */
+	@Test
+	public void test254ReconcileJack() throws Exception {
+		final String TEST_NAME = "test254ReconcileJack";
+		displayTestTitle(TEST_NAME);
+
+		Task task =  createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User jack before", userBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(USER_JACK_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User jack after", userAfter);
+		assertAssignments(userAfter, 1);
+		assertLinks(userAfter, 0);
+
+		assertNoDummyAccount(RESOURCE_DUMMY_FOCUS_EXISTS_NAME, USER_JACK_USERNAME);
+	}
+
 
 	private void assertJackDummyPirateAccount() throws Exception {
 		assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -1355,8 +1874,11 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, ROLE_PIRATE_WEAPON);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Caribbean has ever seen");
+        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME);
 	}
 
 	private void assertJackDummySailorAccount() throws Exception {
@@ -1381,6 +1903,25 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Jack Sparrow is the best pirate Caribbean has ever seen");
+	}
+
+	private void assertJackDummyPirateRichSailorAccount() throws Exception {
+		assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, ROLE_PIRATE_TITLE);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, USER_JACK_LOCALITY);
+        // Outbound mapping for weapon is weak, therefore the mapping in role should override it
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, ROLE_PIRATE_WEAPON);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
+        		"Jack Sparrow is the best pirate Caribbean has ever seen");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME,
+		        DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME,
+        		1000000);
 	}
 
 	private void assertJackDummyPirateSingerAccount() throws Exception {

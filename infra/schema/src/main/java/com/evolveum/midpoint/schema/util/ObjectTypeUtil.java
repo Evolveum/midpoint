@@ -27,6 +27,8 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -734,5 +736,51 @@ public class ObjectTypeUtil {
 	public static boolean matchOnOid(ObjectReferenceType ref1, ObjectReferenceType ref2) {
 		return ref1 != null && ref2 != null && ref1.getOid() != null && ref2.getOid() != null
 				&& ref1.getOid().equals(ref2.getOid());
+	}
+
+	public static void mergeExtension(PrismContainerValue<?> dstExtensionContainerValue, PrismContainerValue<?> srcExtensionContainerValue) throws SchemaException {
+		for (Item<?,?> srcExtensionItem: srcExtensionContainerValue.getItems()) {
+			Item<?,?> magicItem = dstExtensionContainerValue.findItem(srcExtensionItem.getElementName());
+			if (magicItem == null) {
+				//noinspection unchecked
+				dstExtensionContainerValue.add(srcExtensionItem.clone());
+			}
+		}
+	}
+
+	public static LocalizableMessage createTechnicalObjectSpecification(PrismObject<?> object) {
+		if (object != null) {
+			return new LocalizableMessageBuilder()
+					.key(SchemaConstants.TECHNICAL_OBJECT_SPECIFICATION_KEY)
+					.arg(createObjectTypeSpecification(object.asObjectable().getClass().getSimpleName()))
+					.arg(object.asObjectable().getName())
+					.arg(object.getOid())
+					.build();
+		} else {
+			return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!
+		}
+	}
+
+	public static LocalizableMessage createObjectSpecification(PrismObject<?> object) {
+		if (object != null) {
+			return new LocalizableMessageBuilder()
+					.key(SchemaConstants.OBJECT_SPECIFICATION_KEY)
+					.arg(createObjectTypeSpecification(object.asObjectable().getClass().getSimpleName()))
+					.arg(object.asObjectable().getName())
+					.build();
+		} else {
+			return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!
+		}
+	}
+
+	public static LocalizableMessage createObjectTypeSpecification(QName type) {
+		return createObjectTypeSpecification(type != null ? type.getLocalPart() : null);
+	}
+
+	public static LocalizableMessage createObjectTypeSpecification(String objectClassName) {
+		return new LocalizableMessageBuilder()
+						.key(SchemaConstants.OBJECT_TYPE_LOWERCASE_KEY_PREFIX + objectClassName)
+						.fallbackMessage(objectClassName)
+						.build();
 	}
 }

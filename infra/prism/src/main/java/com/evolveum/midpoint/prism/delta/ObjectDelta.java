@@ -1624,16 +1624,27 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 		return rv;
 	}
 
-	public static class FactorOutResult<T extends Objectable> {
+	public static class FactorOutResultMulti<T extends Objectable> {
 		public final ObjectDelta<T> remainder;
 		public final List<ObjectDelta<T>> offsprings = new ArrayList<>();
 
-		public FactorOutResult(ObjectDelta<T> remainder) {
+		public FactorOutResultMulti(ObjectDelta<T> remainder) {
 			this.remainder = remainder;
 		}
 	}
 
-	public FactorOutResult<T> factorOut(Collection<ItemPath> paths, boolean cloneDelta) {
+	public static class FactorOutResultSingle<T extends Objectable> {
+		public final ObjectDelta<T> remainder;
+		public final ObjectDelta<T> offspring;
+
+		public FactorOutResultSingle(ObjectDelta<T> remainder, ObjectDelta<T> offspring) {
+			this.remainder = remainder;
+			this.offspring = offspring;
+		}
+	}
+
+	@NotNull
+	public FactorOutResultSingle<T> factorOut(Collection<ItemPath> paths, boolean cloneDelta) {
 		if (isAdd()) {
 			return factorOutForAddDelta(paths, cloneDelta);
 		} else if (isDelete()) {
@@ -1643,7 +1654,8 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 		}
 	}
 
-	public FactorOutResult<T> factorOutValues(ItemPath path, boolean cloneDelta) throws SchemaException {
+	@NotNull
+	public FactorOutResultMulti<T> factorOutValues(ItemPath path, boolean cloneDelta) throws SchemaException {
 		if (isAdd()) {
 			return factorOutValuesForAddDelta(path, cloneDelta);
 		} else if (isDelete()) {
@@ -1662,9 +1674,9 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 	 * involving splitting value-to-be-added into remainder and offspring delta. It's probably doable,
 	 * but some conditions would have to be met, e.g. inducement to be added must have an ID.
 	 */
-	private FactorOutResult<T> factorOutForModifyDelta(Collection<ItemPath> paths, boolean cloneDelta) {
+	private FactorOutResultSingle<T> factorOutForModifyDelta(Collection<ItemPath> paths, boolean cloneDelta) {
 		ObjectDelta<T> remainder = cloneIfRequested(cloneDelta);
-		FactorOutResult<T> rv = new FactorOutResult<>(remainder);
+		ObjectDelta<T> offspring = null;
 		List<ItemDelta<?, ?>> modificationsFound = new ArrayList<>();
 		for (Iterator<? extends ItemDelta<?, ?>> iterator = remainder.modifications.iterator(); iterator.hasNext(); ) {
 			ItemDelta<?, ?> modification = iterator.next();
@@ -1674,14 +1686,13 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 			}
 		}
 		if (!modificationsFound.isEmpty()) {
-			ObjectDelta<T> offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
+			offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
 			modificationsFound.forEach(offspring::addModification);
-			rv.offsprings.add(offspring);
 		}
-		return rv;
+		return new FactorOutResultSingle<>(remainder, offspring);
 	}
 
-	private FactorOutResult<T> factorOutForAddDelta(Collection<ItemPath> paths, boolean cloneDelta) {
+	private FactorOutResultSingle<T> factorOutForAddDelta(Collection<ItemPath> paths, boolean cloneDelta) {
 		List<Item<?, ?>> itemsFound = new ArrayList<>();
 		for (ItemPath path : paths) {
 			Item<?, ?> item = objectToAdd.findItem(path);
@@ -1690,17 +1701,15 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 			}
 		}
 		if (itemsFound.isEmpty()) {
-			return new FactorOutResult<>(this);
+			return new FactorOutResultSingle<>(this, null);
 		}
 		ObjectDelta<T> remainder = cloneIfRequested(cloneDelta);
-		FactorOutResult<T> rv = new FactorOutResult<>(remainder);
 		ObjectDelta<T> offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
 		for (Item<?, ?> item : itemsFound) {
 			remainder.getObjectToAdd().remove(item);
 			offspring.addModification(ItemDelta.createAddDeltaFor(item));
 		}
-		rv.offsprings.add(offspring);
-		return rv;
+		return new FactorOutResultSingle<>(remainder, offspring);
 	}
 
 	private ObjectDelta<T> cloneIfRequested(boolean cloneDelta) {
@@ -1716,9 +1725,9 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 	 * involving splitting value-to-be-added into remainder and offspring delta. It's probably doable,
 	 * but some conditions would have to be met, e.g. inducement to be added must have an ID.
 	 */
-	private FactorOutResult<T> factorOutValuesForModifyDelta(ItemPath path, boolean cloneDelta) throws SchemaException {
+	private FactorOutResultMulti<T> factorOutValuesForModifyDelta(ItemPath path, boolean cloneDelta) throws SchemaException {
 		ObjectDelta<T> remainder = cloneIfRequested(cloneDelta);
-		FactorOutResult<T> rv = new FactorOutResult<>(remainder);
+		FactorOutResultMulti<T> rv = new FactorOutResultMulti<>(remainder);
 
 		MultiValuedMap<Long, ItemDelta<?, ?>> modificationsForId = new ArrayListValuedHashMap<>();
 		PrismObjectDefinition<T> objDef = objectTypeClass != null ? prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectTypeClass) : null;
@@ -1766,7 +1775,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 		return rv;
 	}
 
-	private ItemDelta createNewDelta(FactorOutResult<T> rv, ItemDelta<?, ?> modification)
+	private ItemDelta createNewDelta(FactorOutResultMulti<T> rv, ItemDelta<?, ?> modification)
 			throws SchemaException {
 		ObjectDelta<T> offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
 		ItemDelta delta = modification.getDefinition().instantiate().createDelta(modification.getPath());
@@ -1775,14 +1784,14 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 		return delta;
 	}
 
-	private FactorOutResult<T> factorOutValuesForAddDelta(ItemPath path, boolean cloneDelta) {
+	private FactorOutResultMulti<T> factorOutValuesForAddDelta(ItemPath path, boolean cloneDelta) {
 		Item<?, ?> item = objectToAdd.findItem(path);
 		if (item == null || item.isEmpty()) {
-			return new FactorOutResult<>(this);
+			return new FactorOutResultMulti<>(this);
 		}
 		ObjectDelta<T> remainder = cloneIfRequested(cloneDelta);
 		remainder.getObjectToAdd().remove(item);
-		FactorOutResult<T> rv = new FactorOutResult<>(remainder);
+		FactorOutResultMulti<T> rv = new FactorOutResultMulti<>(remainder);
 		for (PrismValue value : item.getValues()) {
 			ObjectDelta<T> offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
 			offspring.addModification(ItemDelta.createAddDeltaFor(item, value));

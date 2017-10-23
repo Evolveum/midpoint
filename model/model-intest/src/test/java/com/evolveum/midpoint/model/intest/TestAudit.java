@@ -52,6 +52,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
@@ -108,10 +112,13 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         displayTestTitle(TEST_NAME);
 
         assertTrue(modelAuditService.supportsRetrieval());
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
         // WHEN
         List<AuditEventRecord> allRecords = modelAuditService.listRecords("from RAuditEventRecord as aer where 1=1 ",
-				new HashMap<>(), new OperationResult(TEST_NAME));
+				new HashMap<>(), task, result);
 
         // THEN
         display("all records", allRecords);
@@ -526,22 +533,28 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         assertAssignments(hermanReconstructed, 2);
     }
 
-    private String assertObjectAuditRecords(String oid, int expectedNumberOfRecords) throws SecurityViolationException, SchemaException {
-    	List<AuditEventRecord> auditRecords = getObjectAuditRecords(oid);
+    private String assertObjectAuditRecords(String oid, int expectedNumberOfRecords) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    	Task task = createTask("assertObjectAuditRecords");
+        OperationResult result = task.getResult();
+    	List<AuditEventRecord> auditRecords = getObjectAuditRecords(oid, task, result);
         display("Object records", auditRecords);
         assertEquals("Wrong number of jack audit records", expectedNumberOfRecords, auditRecords.size());
         return auditRecords.get(auditRecords.size() - 1).getEventIdentifier();
 	}
 
 	private void assertRecordsFromPrevious(XMLGregorianCalendar from, XMLGregorianCalendar to,
-			int expectedNumberOfRecords) throws SecurityViolationException, SchemaException {
-        List<AuditEventRecord> auditRecordsSincePrevious = getAuditRecordsFromTo(from, to);
+			int expectedNumberOfRecords) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		Task task = createTask("assertRecordsFromPrevious");
+        OperationResult result = task.getResult();
+        List<AuditEventRecord> auditRecordsSincePrevious = getAuditRecordsFromTo(from, to, task, result);
         display("From/to records (previous)", auditRecordsSincePrevious);
         assertEquals("Wrong number of audit records (previous)", expectedNumberOfRecords, auditRecordsSincePrevious.size());
     }
 
-	private void assertRecordsFromInitial(XMLGregorianCalendar to, int expectedNumberOfRecords) throws SecurityViolationException, SchemaException {
-        List<AuditEventRecord> auditRecordsSincePrevious = getAuditRecordsFromTo(initialTs, to);
+	private void assertRecordsFromInitial(XMLGregorianCalendar to, int expectedNumberOfRecords) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		Task task = createTask("assertRecordsFromInitial");
+        OperationResult result = task.getResult();
+        List<AuditEventRecord> auditRecordsSincePrevious = getAuditRecordsFromTo(initialTs, to, task, result);
         display("From/to records (initial)", auditRecordsSincePrevious);
         assertEquals("Wrong number of audit records (initial)", expectedNumberOfRecords, auditRecordsSincePrevious.size());
     }

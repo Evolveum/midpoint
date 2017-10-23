@@ -385,7 +385,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected <T> void assertDummyAttributeValues(DummyObject object, String attributeName, T... expectedValues) {
 		Set<T> attributeValues = (Set<T>) object.getAttributeValues(attributeName, expectedValues[0].getClass());
 		assertNotNull("No attribute "+attributeName+" in "+object.getShortTypeName()+" "+object, attributeValues);
-		TestUtil.assertSetEquals("Wroung values of attribute "+attributeName+" in "+object.getShortTypeName()+" "+object, attributeValues, expectedValues);
+		TestUtil.assertSetEquals("Wrong values of attribute "+attributeName+" in "+object.getShortTypeName()+" "+object, attributeValues, expectedValues);
 	}
 
 	protected void assertNoDummyAttribute(DummyObject object, String attributeName) {

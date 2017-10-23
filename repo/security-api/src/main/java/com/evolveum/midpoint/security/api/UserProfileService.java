@@ -25,6 +25,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * Service that exposes security functions for GUI and other spring-security-enabled authentication front-ends.
  *
+ * This would be more appropriate in the security-impl. But we need it as low as this.
+ * Otherwise there is a dependency cycle (task->security->repo-common->task)
+ * Moving this to task yields better cohesion. So, it may in fact belong here.
+ *
  * @author lazyman
  * @author Igor Farinic
  * @author Radovan Semancik

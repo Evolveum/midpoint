@@ -25,9 +25,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -138,10 +141,15 @@ public class WfStageComputeHelper {
 			Task opTask, OperationResult opResult) {
 		ComputationResult rv = new ComputationResult();
 		ExpressionVariables expressionVariables = null;
+		VariablesProvider enhancedVariablesProvider = () -> {
+			ExpressionVariables variables = variablesProvider.get();
+			variables.addVariableDefinition(ExpressionConstants.VAR_STAGE_DEFINITION, stageDef);
+			return variables;
+		};
 
 		if (stageDef.getAutomaticallyApproved() != null) {
 			try {
-				expressionVariables = variablesProvider.get();
+				expressionVariables = enhancedVariablesProvider.get();
 				boolean preApproved = evaluationHelper.evaluateBooleanExpression(stageDef.getAutomaticallyApproved(), expressionVariables,
 						"automatic approval expression", opTask, opResult);
 				LOGGER.trace("Pre-approved = {} for stage {}", preApproved, stageDef);
@@ -157,7 +165,7 @@ public class WfStageComputeHelper {
 		if (rv.predeterminedOutcome == null && stageDef.getAutomaticallyCompleted() != null) {
 			try {
 				if (expressionVariables == null) {
-					expressionVariables = variablesProvider.get();
+					expressionVariables = enhancedVariablesProvider.get();
 				}
 				String outcome = evaluateAutoCompleteExpression(stageDef, expressionVariables, opTask, opResult);
 				if (outcome != null) {
@@ -177,11 +185,11 @@ public class WfStageComputeHelper {
 			if (!stageDef.getApproverExpression().isEmpty()) {
 				try {
 					if (expressionVariables == null) {
-						expressionVariables = variablesProvider.get();
+						expressionVariables = enhancedVariablesProvider.get();
 					}
 					rv.approverRefs.addAll(evaluationHelper.evaluateRefExpressions(stageDef.getApproverExpression(), expressionVariables,
 							"resolving approver expression", opTask, opResult));
-				} catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | RuntimeException e) {
+				} catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 					throw new SystemException("Couldn't evaluate approvers expressions", e);
 				}
 			}
@@ -204,7 +212,7 @@ public class WfStageComputeHelper {
 	}
 
 	public String evaluateAutoCompleteExpression(ApprovalStageDefinitionType stageDef, ExpressionVariables variables,
-			Task opTask, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			Task opTask, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<String> outcomes = evaluationHelper.evaluateExpression(stageDef.getAutomaticallyCompleted(), variables,
 				"automatic completion expression", String.class,
 				DOMUtil.XSD_STRING, createOutcomeConvertor(), opTask, result);

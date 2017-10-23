@@ -22,6 +22,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -49,15 +50,6 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -506,14 +498,15 @@ public interface MidpointFunctions {
 	 * @throws ObjectNotFoundException
 	 *             specified account was not found
 	 * @throws SchemaException 
-	 * @throws SecurityViolationException 
+	 * @throws SecurityViolationException  
+	 * @throws CommunicationException 
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 * @throws SystemException
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	PrismObject<UserType> findShadowOwner(String accountOid) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException;
+	PrismObject<UserType> findShadowOwner(String accountOid) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException;
 
 	/**
 	 * <p>
@@ -1080,4 +1073,8 @@ public interface MidpointFunctions {
 	String createAccountActivationLink(UserType userType);
 	
 	String getConst(String name);
+
+	ExtensionType collectExtensions(AssignmentPathType path, int startAt)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException;
 }

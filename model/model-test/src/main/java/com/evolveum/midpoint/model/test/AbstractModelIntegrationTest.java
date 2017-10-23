@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.test;
 
+import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -44,12 +45,14 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -89,23 +92,11 @@ import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.model.common.stringpolicy.AbstractValuePolicyOriginResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -144,6 +135,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
@@ -152,8 +144,9 @@ import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
@@ -168,6 +161,7 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.FailableProcessor;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -270,8 +264,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Autowired protected PrismContext prismContext;
     @Autowired protected DummyTransport dummyTransport;
 	@Autowired protected SecurityEnforcer securityEnforcer;
+	@Autowired protected SecurityContextManager securityContextManager;
 	@Autowired protected MidpointFunctions libraryMidpointFunctions;
 	@Autowired protected ValuePolicyProcessor valuePolicyProcessor;
+	
+	@Autowired(required = false)
+	@Qualifier("modelObjectResolver")
+	protected ObjectResolver modelObjectResolver;
 
 	@Autowired(required = false)
 	protected NotificationManager notificationManager;
@@ -923,6 +922,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		unassignRole(userOid, roleOid, task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
+	}
+
+	protected void unassignRoleByAssignmentValue(PrismObject<? extends FocusType> focus, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		AssignmentType assignment = findAssignmentByTargetRequired(focus, roleOid);
+		ObjectDelta<? extends FocusType> delta = DeltaBuilder.deltaFor(focus.getCompileTimeClass(), prismContext)
+				.item(FocusType.F_ASSIGNMENT)
+				.delete(assignment.clone())
+				.asObjectDeltaCast(focus.getOid());
+		modelService.executeChanges(singleton(delta), null, task, result);
 	}
 
 	protected void unassignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
@@ -2920,7 +2930,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			taskManager.resumeTask(task, result);
 		} else if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
 			LOGGER.debug("Task {} is closed, scheduling it to run now", task);
-			taskManager.scheduleTasksNow(Collections.singleton(taskOid), result);
+			taskManager.scheduleTasksNow(singleton(taskOid), result);
 		} else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
 			if (taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier()) != null) {
 				// Task is really executing. Let's wait until it finishes; hopefully it won't start again (TODO)
@@ -2928,7 +2938,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				waitForTaskFinish(taskOid, false);
 			}
 			LOGGER.debug("Task {} is finished, scheduling it to run now", task);
-			taskManager.scheduleTasksNow(Collections.singleton(taskOid), result);
+			taskManager.scheduleTasksNow(singleton(taskOid), result);
 		} else {
 			throw new IllegalStateException("Task " + task + " cannot be restarted, because its state is: " + task.getExecutionStatus());
 		}
@@ -3340,6 +3350,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected DummyAccount assertDummyAccount(String dummyInstanceName, String username, String fullname, Boolean active) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		// display("account", account);
 		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
 		assertEquals("Wrong fullname for dummy("+dummyInstanceName+") account "+username, fullname, account.getAttributeValue("fullname"));
 		assertEquals("Wrong activation for dummy(" + dummyInstanceName + ") account " + username, active, account.isEnabled());
@@ -3795,6 +3806,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		task.setChannel(DEFAULT_CHANNEL);
 		return task;
 	}
+	
+	protected Task createTask(String operationName, MidPointPrincipal principal) {
+		Task task = super.createTask(operationName);
+		task.setOwner(principal.getUser().asPrismObject());
+		task.setChannel(DEFAULT_CHANNEL);
+		return task;
+	}
 
 	protected void modifyRoleAddConstruction(String roleOid, long inducementId, String resourceOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".modifyRoleAddConstruction");
@@ -3916,18 +3934,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, null, task, result);
 	}
 
-	protected void assertAuthorized(MidPointPrincipal principal, String action) throws SchemaException {
-		assertAuthorized(principal, action, null);
-		assertAuthorized(principal, action, AuthorizationPhaseType.REQUEST);
-		assertAuthorized(principal, action, AuthorizationPhaseType.EXECUTION);
+	protected void assertAuthorized(MidPointPrincipal principal, String action) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Task task = createTask("assertAuthorized", principal);
+		assertAuthorized(principal, action, null, task, task.getResult());
+		assertAuthorized(principal, action, AuthorizationPhaseType.REQUEST, task, task.getResult());
+		assertAuthorized(principal, action, AuthorizationPhaseType.EXECUTION, task, task.getResult());
+		assertSuccess(task.getResult());
 	}
 
-	protected void assertAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase) throws SchemaException {
+	protected void assertAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Task task = createTask("assertAuthorized", principal);
+		assertAuthorized(principal, action, phase, task, task.getResult());
+		assertSuccess(task.getResult());
+	}
+	
+	protected void assertAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		SecurityContext origContext = SecurityContextHolder.getContext();
 		createSecurityContext(principal);
 		try {
 			assertTrue("AuthorizationEvaluator.isAuthorized: Principal "+principal+" NOT authorized for action "+action,
-					securityEnforcer.isAuthorized(action, phase, null, null, null, null));
+					securityEnforcer.isAuthorized(action, phase, null, null, null, null, task, result));
 			if (phase == null) {
 				securityEnforcer.decide(SecurityContextHolder.getContext().getAuthentication(), createSecureObject(),
 					createConfigAttributes(action));
@@ -3937,16 +3963,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
-	protected void assertNotAuthorized(MidPointPrincipal principal, String action) throws SchemaException {
-		assertNotAuthorized(principal, action, null);
-		assertNotAuthorized(principal, action, AuthorizationPhaseType.REQUEST);
-		assertNotAuthorized(principal, action, AuthorizationPhaseType.EXECUTION);
+	protected void assertNotAuthorized(MidPointPrincipal principal, String action) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Task task = createTask("assertNotAuthorized", principal);
+		assertNotAuthorized(principal, action, null, task, task.getResult());
+		assertNotAuthorized(principal, action, AuthorizationPhaseType.REQUEST, task, task.getResult());
+		assertNotAuthorized(principal, action, AuthorizationPhaseType.EXECUTION, task, task.getResult());
+		assertSuccess(task.getResult());
 	}
 
-	protected void assertNotAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase) throws SchemaException {
+	protected void assertNotAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Task task = createTask("assertNotAuthorized", principal);
+		assertNotAuthorized(principal, action, phase, task, task.getResult());
+		assertSuccess(task.getResult());
+	}
+	
+	protected void assertNotAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		SecurityContext origContext = SecurityContextHolder.getContext();
 		createSecurityContext(principal);
-		boolean isAuthorized = securityEnforcer.isAuthorized(action, phase, null, null, null, null);
+		boolean isAuthorized = securityEnforcer.isAuthorized(action, phase, null, null, null, null, task, result);
 		SecurityContextHolder.setContext(origContext);
 		assertFalse("AuthorizationEvaluator.isAuthorized: Principal " + principal + " IS authorized for action " + action + " (" + phase + ") but he should not be", isAuthorized);
 	}
@@ -4033,7 +4067,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return attrs;
 	}
 
-	protected <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+	protected <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".getEditObjectDefinition");
 		OperationResult result = task.getResult();
 		PrismObjectDefinition<O> editSchema = modelInteractionService.getEditObjectDefinition(object, null, task, result);
@@ -4042,13 +4076,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return editSchema;
 	}
 
-	protected <F extends FocusType> void assertRoleTypes(PrismObject<F> focus, String... expectedRoleTypes) throws ObjectNotFoundException, SchemaException, ConfigurationException {
+	protected <F extends FocusType> void assertRoleTypes(PrismObject<F> focus, String... expectedRoleTypes) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		assertRoleTypes(getAssignableRoleSpecification(focus), expectedRoleTypes);
 	}
 
-	protected <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus) throws ObjectNotFoundException, SchemaException, ConfigurationException {
-		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".getAssignableRoleSpecification");
-		RoleSelectionSpecification spec = modelInteractionService.getAssignableRoleSpecification(focus, result);
+	protected <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".getAssignableRoleSpecification");
+		OperationResult result = task.getResult();
+		RoleSelectionSpecification spec = modelInteractionService.getAssignableRoleSpecification(focus, task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		return spec;
@@ -4078,12 +4113,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         	}
         }
 	}
+	
+	protected void assertAllowRequestItems(String userOid, String targetRoleOid, AuthorizationDecisionType expectedDefaultDecision, 
+			QName... expectedAllowedItemQNames) throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".assertAllowRequestItems");
+        OperationResult result = task.getResult();
+        assertAllowRequestItems(userOid, targetRoleOid, expectedDefaultDecision, task, result, expectedAllowedItemQNames);
+        assertSuccess(result);
+	}
 
-	protected void assertAllowRequestItems(String userOid, String targetRoleOid, AuthorizationDecisionType expectedDefaultDecision, QName... expectedAllowedItemQNames) throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+	protected void assertAllowRequestItems(String userOid, String targetRoleOid, AuthorizationDecisionType expectedDefaultDecision, 
+			Task task, OperationResult result, QName... expectedAllowedItemQNames) throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<UserType> user = getUser(userOid);
 		PrismObject<RoleType> target = getRole(targetRoleOid);
 
-		ItemSecurityDecisions decisions = modelInteractionService.getAllowedRequestAssignmentItems(user, target);
+		ItemSecurityDecisions decisions = modelInteractionService.getAllowedRequestAssignmentItems(user, target, task, result);
 		display("Request decisions for "+target, decisions);
 		assertEquals("Wrong assign default decision", expectedDefaultDecision, decisions.getDefaultDecision());
 		assertEquals("Unexpected number of allowed items", expectedAllowedItemQNames.length, decisions.getItemDecisionMap().size());
@@ -4194,42 +4238,44 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertEquals("Wrong executionStatus in "+task, TaskExecutionStatusType.CLOSED, task.asObjectable().getExecutionStatus());
 	}
 
-	protected List<AuditEventRecord> getAllAuditRecords(OperationResult result) throws SecurityViolationException, SchemaException {
+	protected List<AuditEventRecord> getAllAuditRecords(Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Map<String,Object> params = new HashMap<>();
-		return modelAuditService.listRecords("from RAuditEventRecord as aer order by aer.timestamp asc", params, result);
+		return modelAuditService.listRecords("from RAuditEventRecord as aer order by aer.timestamp asc", params, task, result);
 	}
 
-	protected List<AuditEventRecord> getObjectAuditRecords(String oid) throws SecurityViolationException, SchemaException {
-		OperationResult result = new OperationResult("getObjectAuditRecords");
-		return getObjectAuditRecords(oid, result);
+	protected List<AuditEventRecord> getObjectAuditRecords(String oid) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		Task task = createTask("getObjectAuditRecords");
+		OperationResult result = task.getResult();
+		return getObjectAuditRecords(oid, task, result);
 	}
 
-	protected List<AuditEventRecord> getObjectAuditRecords(String oid, OperationResult result) throws SecurityViolationException, SchemaException {
+	protected List<AuditEventRecord> getObjectAuditRecords(String oid, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Map<String,Object> params = new HashMap<>();
 		params.put("targetOid", oid);
 		return modelAuditService.listRecords("from RAuditEventRecord as aer where (aer.targetOid = :targetOid) order by aer.timestamp asc",
-        		params, result);
+        		params, task, result);
 	}
 
-	protected List<AuditEventRecord> getParamAuditRecords(String paramName, String paramValue, OperationResult result) throws SecurityViolationException, SchemaException {
+	protected List<AuditEventRecord> getParamAuditRecords(String paramName, String paramValue, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Map<String,Object> params = new HashMap<>();
 		params.put("paramName", paramName);
 		params.put("paramValue", paramValue);
 		return modelAuditService.listRecords("from RAuditEventRecord as aer left join aer.propertyValues as pv where (pv.name = :paramName and pv.value = :paramValue) order by aer.timestamp asc",
-        		params, result);
+        		params, task, result);
 	}
 
-	protected List<AuditEventRecord> getAuditRecordsFromTo(XMLGregorianCalendar from, XMLGregorianCalendar to) throws SecurityViolationException, SchemaException {
-		OperationResult result = new OperationResult("getAuditRecordsFromTo");
-		return getAuditRecordsFromTo(from, to, result);
+	protected List<AuditEventRecord> getAuditRecordsFromTo(XMLGregorianCalendar from, XMLGregorianCalendar to) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		Task task = createTask("getAuditRecordsFromTo");
+		OperationResult result = task.getResult();
+		return getAuditRecordsFromTo(from, to, task, result);
 	}
 
-	protected List<AuditEventRecord> getAuditRecordsFromTo(XMLGregorianCalendar from, XMLGregorianCalendar to, OperationResult result) throws SecurityViolationException, SchemaException {
+	protected List<AuditEventRecord> getAuditRecordsFromTo(XMLGregorianCalendar from, XMLGregorianCalendar to, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Map<String,Object> params = new HashMap<>();
 		params.put("from", from);
 		params.put("to", to);
 		return modelAuditService.listRecords("from RAuditEventRecord as aer where (aer.timestamp >= :from) and (aer.timestamp <= :to) order by aer.timestamp asc",
-        		params, result);
+        		params, task, result);
 	}
 
 	protected void checkUserApprovers(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -4394,7 +4440,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 						.item(TaskType.F_SCHEDULE).replace()
 						.asItemDeltas(),
 				result);
-		taskManager.resumeTasks(Collections.singleton(taskOid), result);
+		taskManager.resumeTasks(singleton(taskOid), result);
 	}
 
 	protected void repoAddObjects(List<ObjectType> objects, OperationResult result)
@@ -4505,22 +4551,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         		task, result, passPolicyRef);
 	}
 
-	protected void assertPasswordCompliesWithPolicy(PrismObject<UserType> user, String passwordPolicyOid) throws EncryptionException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+	protected void assertPasswordCompliesWithPolicy(PrismObject<UserType> user, String passwordPolicyOid) throws EncryptionException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Task task = createTask("assertPasswordCompliesWithPolicy");
 		OperationResult result = task.getResult();
 		assertPasswordCompliesWithPolicy(user, passwordPolicyOid, task, result);
 		assertSuccess(result);
 	}
 
-	protected void assertPasswordCompliesWithPolicy(PrismObject<UserType> user, String passwordPolicyOid, Task task, OperationResult result) throws EncryptionException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+	protected void assertPasswordCompliesWithPolicy(PrismObject<UserType> user, String passwordPolicyOid, Task task, OperationResult result) throws EncryptionException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		String password = getPassword(user);
 		display("Password of "+user, password);
 		PrismObject<ValuePolicyType> passwordPolicy = repositoryService.getObject(ValuePolicyType.class, passwordPolicyOid, null, result);
 		StringBuilder messageBuilder = new StringBuilder();
-		boolean valid = valuePolicyProcessor.validateValue(password, passwordPolicy.asObjectable(), user, messageBuilder, "validating password of "+user, task, result);
+		boolean valid = valuePolicyProcessor.validateValue(password, passwordPolicy.asObjectable(), createUserOriginResolver(user), messageBuilder, "validating password of "+user, task, result);
 		if (!valid) {
 			fail("Password for "+user+" does not comply with password policy: "+messageBuilder.toString());
 		}
+	}
+
+	protected UserValuePolicyOriginResolver createUserOriginResolver(PrismObject<UserType> user) {
+		if (user == null) {
+			return null;
+		}
+		return new UserValuePolicyOriginResolver(user, modelObjectResolver);
 	}
 
 	protected XMLGregorianCalendar getTimestamp(String duration) {
@@ -4598,6 +4651,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected TestCtx createContext(Object testCase, String testName) {
 		return new TestCtx(testCase, testName);
+	}
+	
+	protected <T> T runPrivileged(Producer<T> producer) {
+		return securityContextManager.runPrivileged(producer);
 	}
 
 }

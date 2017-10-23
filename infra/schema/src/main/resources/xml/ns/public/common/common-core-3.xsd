@@ -3461,6 +3461,9 @@
                         <xsd:documentation>
                             Policy rule that should be applied to the target object.
                         </xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>AssignmentType.policyRule</a:displayName>
+						</xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
 
@@ -6937,8 +6940,41 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Name of the expression (function). The name is used for several purposed.
+						If the expression is a function in a function library then this name identifies
+						the function (the name must be unique in the whole library).
+						But even if the expression is not part of the library the name may still be used
+						for diagnostic purposes.
+						
+						Note: There are no formal limitations about the characters used in the
+						name, length of the name and so on. However, special characters in the function
+						name may prohibit reasonable use of the function in some scripting languages.
+						Therefore the recommendation is to use only aplhanumeric names and to avoid
+						white spaces in the names. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="parameter" type="tns:ExpressionParameterType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Function input parameters
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="returnType" type="xsd:QName" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Formal definition of function return type. It may not be specified
+						if the expression is used in places where the return type can be
+						automatically determined (e.g. mappings).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="trace" type="xsd:boolean" minOccurs="0" maxOccurs="1">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -7010,6 +7046,41 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
+    
+    <xsd:complexType name="ExpressionParameterType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Describes input parameters to the expression. 
+    		</xsd:documentation>
+    		<xsd:appinfo>
+    			<a:since>3.7</a:since>
+    			<a:container/>
+    		</xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:sequence>
+    		<xsd:element name="name" type="xsd:string" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Name of the parameter
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="type" type="xsd:QName" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Parameter type
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Expression that determines parameter value.
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    	</xsd:sequence>
+    </xsd:complexType>
     
     <xsd:simpleType name="ExpressionReturnMultiplicityType">
         <xsd:annotation>
@@ -7213,7 +7284,42 @@
 
 	<xsd:element name="const" type="tns:ConstExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
-    <xsd:complexType name="GenerateExpressionEvaluatorType">
+	<xsd:complexType name="FunctionExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Evaluates custom defined functions from Function Library
+            </xsd:documentation>
+            <xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="libraryRef" type="tns:ObjectReferenceType" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Reference to the library where is the function
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="name" type="xsd:string" minOccurs="1">
+				<xsd:annotation>
+        			<xsd:documentation>
+        				Name of the function to use
+        			</xsd:documentation>
+        		</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="parameter" type="tns:ExpressionParameterType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+        			<xsd:documentation>
+        				Parameters
+        			</xsd:documentation>
+        		</xsd:annotation>
+			</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+	<xsd:element name="function" type="tns:FunctionExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+	
+	<xsd:complexType name="GenerateExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>
                 Generate value according to a policy that is associated with the property/attribute.
@@ -9034,6 +9140,8 @@
                             </xsd:documentation>
                              <xsd:appinfo>
                                 <a:displayName>AbstractRoleType.owner</a:displayName>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>3.7</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -9048,6 +9156,8 @@
                             </xsd:documentation>
                              <xsd:appinfo>
                                 <a:displayName>AbstractRoleType.approver</a:displayName>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>3.7</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -9158,6 +9268,20 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="dataProtection" type="tns:DataProtectionType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Specifies the GDPR related attributes
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+                                <a:displayName>AbstractRoleType.dataProtection</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -9228,6 +9352,193 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+    
+     <xsd:complexType name="DataProtectionType">
+     	<xsd:annotation>
+     		<xsd:documentation>
+     			<p>
+     				Container which specify legal content for the role related to the GDPR.
+     				E.g which law enforce the presence of the attribute, who is a recipient 
+     				of the data, to which purposes are data used etc.
+     			</p>
+     		</xsd:documentation>
+     		<xsd:appinfo>
+     			<a:container/>
+     			<a:since>3.7</a:since>
+     		</xsd:appinfo>
+     	</xsd:annotation>
+     	<xsd:sequence>
+     		<xsd:element name="controllerName" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					Name of the company, organization which controls data processing
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.controllerName</a:displayName>
+		               	<a:displayOrder>100</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="controllerContact" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					Contact information about company, organization which controls data processing
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.controllerContact</a:displayName>
+		               	<a:displayOrder>110</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="dpoContact" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					Contact information for data privacy oficier
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.dpoContact</a:displayName>
+		               	<a:displayOrder>120</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="processingPurposesDescription" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					<p>
+     						Purposes for processing, e.g marketing, contract,...
+     					</p>
+     					<p>
+     						This is a free-form field that can be used to describe data processing
+     						purposes in a human-readable form suitable to be displayed to user.
+     						This is NOT structured information. Structurted information schema
+     						is planned for future midPoint releases.
+     					</p>
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.processingPurposesDescription</a:displayName>
+		               	<a:displayOrder>130</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="legitimateInterestDescription" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					<p>
+	     					Legitimate interest for data processing. This may be a legislation that allows
+	     					data processing, consent or other lawful basis.
+     					</p>
+     					<p>
+     						This is a free-form field that can be used to describe legitimate
+     						interests in a human-readable form suitable to be displayed to user.
+     						This is NOT structured information. Structurted information schema
+     						is planned for future midPoint releases.
+     					</p>
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.legitimateInterestDescription</a:displayName>
+		               	<a:displayOrder>140</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="dataRecipientDescription" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					<p>
+	     					Contains information about recipient of the data.
+     					</p>
+     					<p>
+     						This is a free-form field that can be used to describe recipients
+     						in a human-readable form suitable to be displayed to user.
+     						This is NOT structured information. Structurted information schema
+     						is planned for future midPoint releases.
+     					</p>
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.dataRecipientDescription</a:displayName>
+		               	<a:displayOrder>150</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="periodOfStorageDescription" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					<p>
+	     					How long we need to store the data (e.g after the employee left the organization)
+     					</p>
+     					<p>
+     						This is a free-form field that can be used to describe storage period
+     						in a human-readable form suitable to be displayed to user.
+     						This is NOT structured information. Structurted information schema
+     						is planned for future midPoint releases.
+     					</p>
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.periodOfStorageDescription</a:displayName>
+		               	<a:displayOrder>160</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="dataErasureDescription" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					<p>
+	     					Desription of data erasure practices, especially the period for data erasure.
+     					</p>
+     					<p>
+     						This is a free-form field that can be used to describe data erasure
+     						in a human-readable form suitable to be displayed to user.
+     						This is NOT structured information. Structurted information schema
+     						is planned for future midPoint releases.
+     					</p>
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.dataErasureDescription</a:displayName>
+		               	<a:displayOrder>170</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="automatedDecisionMakingDescription" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					<p>
+     						Description whether automated decision making (e.g. profilig) is part of the
+     						data processing.
+     					</p>
+     					<p>
+     						This is a free-form field that can be used to describe automated decision making
+     						in a human-readable form suitable to be displayed to user.
+     						This is NOT structured information. Structurted information schema
+     						is planned for future midPoint releases.
+     					</p>
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.automatedDecisionMakingDescription</a:displayName>
+		               	<a:displayOrder>180</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="securityMeasuresDescription" type="xsd:string" minOccurs="0">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					<p>
+     						Description of the security measures that apply to data processing
+     						(e.g. pseudonymization, confidentiality, ...)
+     					</p>
+     					<p>
+     						This is a free-form field that can be used to describe security measures
+     						in a human-readable form suitable to be displayed to user.
+     						This is NOT structured information. Structurted information schema
+     						is planned for future midPoint releases.
+     					</p>
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>DataProtectionType.securityMeasuresDescription</a:displayName>
+		               	<a:displayOrder>190</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     	</xsd:sequence>
+     </xsd:complexType>
 
     <xsd:complexType name="AuthorizationType">
         <xsd:annotation>
@@ -10690,7 +11001,14 @@
                     		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="stringPolicy" type="c:StringPolicyType" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="stringPolicy" type="tns:StringPolicyType" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="prohibitedValues" type="tns:ProhibitedValuesType" minOccurs="0" maxOccurs="1">
+                    	<xsd:annotation>
+                    		<xsd:appinfo>
+                    			<a:since>3.7</a:since>
+                    		</xsd:appinfo>
+                    	</xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="minOccurs" type="xsd:string" minOccurs="0" default="0">
                     	<xsd:annotation>
                     		<xsd:documentation>
@@ -10909,6 +11227,85 @@
         </xsd:sequence>
     </xsd:complexType>
     
+    <xsd:complexType name="ProhibitedValuesType">
+    	 <xsd:annotation>
+            <xsd:appinfo>
+				<a:container/>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>    
+        <xsd:sequence>
+            <xsd:element name="item" type="tns:ProhibitedValueItemType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProhibitedValueItemType">
+    	 <xsd:annotation>
+            <xsd:appinfo>
+				<a:container/>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>    
+        <xsd:sequence>
+            <xsd:element name="origin" type="tns:ValuePolicyOriginType" minOccurs="0" maxOccurs="1" default="object"/>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1"/>
+            <!-- TODO: matching (exact, norm, case ignore, partial, ...), matching parameters ( 3 characters difference ) -->
+        </xsd:sequence>
+    </xsd:complexType>
+    
+        <xsd:simpleType name="ValuePolicyOriginType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="object">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Object is the orgin. Object usually means the user.
+                		E.g. in case of password policy, object is the user
+                		who's password is changed. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="persona">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Object's persona is the origin.
+                		E.g. in case of password policy all user personas
+                		will be scanned.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PERSONA"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="owner">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Object's owner is the origin.
+                		E.g. in case of user password policy all personas that
+                		point to this user will be scanned. In case of
+                		account password policy the user who owns the
+                		account is scanned.
+                		Note: owner for accounts is not implemented yet
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OWNER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
 
     <xsd:complexType name="OperationResultType">
         <xsd:annotation>
@@ -10935,19 +11332,12 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="localizedMessage" type="tns:LocalizedMessageType" minOccurs="0"/>
+            <xsd:element name="userFriendlyMessage" type="tns:LocalizableMessageType" minOccurs="0"/>
             <xsd:element name="details" type="xsd:string" minOccurs="0"/>
             <xsd:element name="partialResults" type="tns:OperationResultType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="operationResult" type="tns:OperationResultType"/>
-
-    <xsd:complexType name="LocalizedMessageType">
-        <xsd:sequence>
-            <xsd:element name="key" type="xsd:string"/>
-            <xsd:element name="argument" type="xsd:anySimpleType" minOccurs="0" maxOccurs="unbounded"/>
-        </xsd:sequence>
-    </xsd:complexType>
 
     <xsd:complexType name="ParamsType">
         <xsd:sequence>
@@ -11431,6 +11821,27 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:complexType name="FunctionLibraryType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Define reusable functions
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		 <xsd:complexContent>
+            <xsd:extension base="c:ObjectType">
+                <xsd:sequence>
+                	<xsd:element name="function" type="tns:ExpressionType" minOccurs="0" maxOccurs="unbounded"/>
+            	</xsd:sequence>
+            </xsd:extension>
+       </xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="functionLibrary" type="tns:FunctionLibraryType" substitutionGroup="c:object"/>
+	
+	
 
 	<xsd:complexType name="InternalsConfigurationType">
         <xsd:annotation>
@@ -11614,8 +12025,33 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="feedbackMessagesHook" type="tns:FeedbackMessagesHookType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Specifies scripting hook which can modify operation results or messages
+							before they are shown in UI.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+	<xsd:complexType name="FeedbackMessagesHookType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="operationResultHook" type="tns:ExpressionType" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
     
     <xsd:complexType name="DashboardLayoutType">
         <xsd:annotation>
@@ -12808,7 +13244,10 @@
     				<xsd:documentation>
     					Constraints to be applied to selected objects.
     				</xsd:documentation>
-    			</xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>PolicyRuleType.policyConstraints</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
     		</xsd:element>
     		<xsd:element name="policySituation" type="xsd:anyURI" minOccurs="0">
     			<xsd:annotation>

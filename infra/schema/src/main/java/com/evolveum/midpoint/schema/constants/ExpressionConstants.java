@@ -45,7 +45,19 @@ public class ExpressionConstants {
 	public static final QName VAR_MODEL_CONTEXT = new QName(SchemaConstants.NS_C, "modelContext");
 	public static final QName VAR_PRISM_CONTEXT = new QName(SchemaConstants.NS_C, "prismContext");
 	public static final QName VAR_CONFIGURATION = new QName(SchemaConstants.NS_C, "configuration");
+	
+	/**
+	 * User that is currently executing the operation.
+	 */
     public static final QName VAR_ACTOR = new QName(SchemaConstants.NS_C, "actor");
+    
+    /**
+     * Subject of an authorization. This is usually the same as actor. But it may be different
+     * in some exotic use cases (e.g. if administrator needs to evaluate authorizations of
+     * a different user.
+     */
+    public static final QName VAR_SUBJECT = new QName(SchemaConstants.NS_C, "subject");
+    
 	public static final QName VAR_VALUE = new QName(SchemaConstants.NS_C, "value");
 	public static final QName VAR_ORGS = new QName(SchemaConstants.NS_C, "orgs");
 
@@ -94,4 +106,5 @@ public class ExpressionConstants {
 	public static final QName VAR_WORKFLOW_CONTEXT = new QName(SchemaConstants.NS_C, "workflowContext");
 	public static final QName VAR_TASK = new QName(SchemaConstants.NS_C, "task");
 	public static final QName VAR_RULE_EVALUATION_CONTEXT = new QName(SchemaConstants.NS_C, "ruleEvaluationContext");
+	public static final QName VAR_STAGE_DEFINITION = new QName(SchemaConstants.NS_C, "stageDefinition");
 }

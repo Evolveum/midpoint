@@ -590,7 +590,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGlobalStateUntouched();
 	}
 
-	private void assertJackEditSchemaReadAllModifySome(PrismObject<UserType> userJack) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+	private void assertJackEditSchemaReadAllModifySome(PrismObject<UserType> userJack) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
 		display("Jack's edit schema", userJackEditSchema);
 		assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);
@@ -677,7 +677,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 		assertAssignmentsWithTargets(userJack, 1);
     }
 
-    private void assertJackEditSchemaReadSomeModifySome(PrismObject<UserType> userJack) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+    private void assertJackEditSchemaReadSomeModifySome(PrismObject<UserType> userJack) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
     	PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
 		display("Jack's edit schema", userJackEditSchema);
 		assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);
@@ -1490,7 +1490,9 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetAllow(ShadowType.class, accountOid);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, accountOid);
         display("Jack's shadow", shadow);
-        RefinedObjectClassDefinition rOcDef = modelInteractionService.getEditObjectClassDefinition(shadow, getDummyResourceObject(), null);
+        
+        Task task = createTask(TEST_NAME);
+        RefinedObjectClassDefinition rOcDef = modelInteractionService.getEditObjectClassDefinition(shadow, getDummyResourceObject(), null, task, task.getResult());
         display("Refined objectclass def", rOcDef);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_UID, true, false, false);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_NAME, true, true, true);
@@ -1505,7 +1507,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         // Linked to jack
         assertAllow("add jack's account to jack",
-        		(task, result) -> modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_RED_FILE, task, result));
+        		(t, result) -> modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_RED_FILE, t, result));
 
         user = getUser(USER_JACK_OID);
         display("Jack after red account link", user);
@@ -1514,7 +1516,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         // Linked to other user
         assertDeny("add gyubrush's account",
-        		(task, result) -> modifyUserAddAccount(USER_LARGO_OID, ACCOUNT_HERMAN_DUMMY_FILE, task, result));
+        		(t, result) -> modifyUserAddAccount(USER_LARGO_OID, ACCOUNT_HERMAN_DUMMY_FILE, t, result));
 
         assertDeleteAllow(ShadowType.class, accountRedOid);
         assertDeleteDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
@@ -1555,7 +1557,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetAllow(ShadowType.class, accountOid);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, accountOid);
         display("Jack's shadow", shadow);
-        RefinedObjectClassDefinition rOcDef = modelInteractionService.getEditObjectClassDefinition(shadow, getDummyResourceObject(), null);
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        RefinedObjectClassDefinition rOcDef = modelInteractionService.getEditObjectClassDefinition(shadow, getDummyResourceObject(), null, task, result);
         display("Refined objectclass def", rOcDef);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_UID, true, false, false);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_NAME, true, false, false);
@@ -1573,8 +1578,6 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertPasswordChangeDeny(UserType.class, USER_JACK_OID, "nbusr123");
         assertPasswordChangeDeny(UserType.class, USER_GUYBRUSH_OID, "nbusr123");
 
-        Task task = taskManager.createTaskInstance(TEST_NAME);
-        OperationResult result = task.getResult();
 		PrismObjectDefinition<UserType> rDef = modelInteractionService.getEditObjectDefinition(user, AuthorizationPhaseType.REQUEST, task, result);
 		assertItemFlags(rDef, PASSWORD_PATH, true, false, false);
 
@@ -1637,7 +1640,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetAllow(ShadowType.class, accountOid);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, accountOid);
         display("Jack's shadow", shadow);
-        RefinedObjectClassDefinition rOcDef = modelInteractionService.getEditObjectClassDefinition(shadow, getDummyResourceObject(), null);
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        RefinedObjectClassDefinition rOcDef = modelInteractionService.getEditObjectClassDefinition(shadow, getDummyResourceObject(), null, task, result);
         display("Refined objectclass def", rOcDef);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_UID, true, false, false);
         assertAttributeFlags(rOcDef, SchemaConstants.ICFS_NAME, true, false, false);
@@ -1655,8 +1661,6 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertPasswordChangeAllow(UserType.class, USER_JACK_OID, "nbusr123");
         assertPasswordChangeDeny(UserType.class, USER_GUYBRUSH_OID, "nbusr123");
         
-        Task task = taskManager.createTaskInstance(TEST_NAME);
-        OperationResult result = task.getResult();
 		PrismObjectDefinition<UserType> rDef = modelInteractionService.getEditObjectDefinition(user, AuthorizationPhaseType.REQUEST, task, result);
 		assertItemFlags(rDef, PASSWORD_PATH, true, false, false);
 
@@ -2744,7 +2748,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertNoAccess(userJack);
 
         // WHEN (security context elevated)
-        securityEnforcer.runPrivileged(() -> {
+        runPrivileged(() -> {
 				try {
 
 					assertSuperuserAccess(NUMBER_OF_ALL_USERS + 1);
@@ -2775,7 +2779,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertNoAccess(userJack);
 
         // WHEN (security context elevated)
-        securityEnforcer.runPrivileged(() -> {
+        runPrivileged(() -> {
 				try {
 
 					assertSuperuserAccess(NUMBER_OF_ALL_USERS + 1);
@@ -2803,7 +2807,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         loginAnonymous();
 
         // WHEN (security context elevated)
-        securityEnforcer.runPrivileged(() -> {
+        runPrivileged(() -> {
 
 				// do nothing.
 			

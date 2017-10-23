@@ -68,6 +68,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME = "location";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME = "loot";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME = "treasure";
+	public static final String DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME = "wealth";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME = "ship";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME = "weapon";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME = "drink";
@@ -162,6 +163,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		lootAttrDef.setReturnedByDefault(false);
 		DummyAttributeDefinition treasureAttrDef = addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME, String.class, false, false);
 		treasureAttrDef.setReturnedByDefault(false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME, Integer.class, false, false);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, String.class, false, true);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, String.class, false, true);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, String.class, false, true);
@@ -285,7 +287,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		if (checkDisplayOrder) {
 			// TODO: fix, see MID-2642
 			assertTrue("Wrong displayOrder for attribute fullName: "+fullnameDef.getDisplayOrder(),
-					fullnameDef.getDisplayOrder() == 200 || fullnameDef.getDisplayOrder() == 250);
+					fullnameDef.getDisplayOrder() == 200 || fullnameDef.getDisplayOrder() == 250 || fullnameDef.getDisplayOrder() == 260);
 		}
 
 		// GROUP
@@ -314,7 +316,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	}
 
 	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder) {
-		assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, checkDisplayOrder, 17);
+		assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, checkDisplayOrder, 18);
 	}
 
 	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder, int numberOfAccountDefinitions) {
@@ -325,7 +327,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		ObjectClassComplexTypeDefinition accountObjectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
 		assertNotNull("No AccountObjectClass definition", accountObjectClassDef);
 		assertTrue("Default account definition is not same as AccountObjectClass", accountDef == accountObjectClassDef);
-		assertEquals("Unexpected number of defnitions", numberOfAccountDefinitions, accountDef.getDefinitions().size());
+		assertEquals("Unexpected number of definitions", numberOfAccountDefinitions, accountDef.getDefinitions().size());
 		ResourceAttributeDefinition treasureDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME);
 		assertFalse("Treasure IS returned by default and should not be", treasureDef.isReturnedByDefault());
 		assertEquals("Unexpected kind in account definition", ShadowKindType.ACCOUNT, accountDef.getKind());

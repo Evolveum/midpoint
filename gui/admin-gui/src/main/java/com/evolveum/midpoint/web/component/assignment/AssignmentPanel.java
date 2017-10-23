@@ -16,15 +16,18 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -48,7 +51,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -88,6 +90,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	private final static String ID_CANCEL_BUTTON = "cancelButton";
 
 	protected boolean assignmentDetailsVisible;
+	private List<ContainerValueWrapper<AssignmentType>> detailsPanelAssignmentsList = new ArrayList<>();
 
 	public AssignmentPanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
 		super(id, assignmentContainerWrapperModel);
@@ -278,46 +281,49 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			@Override
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-				
-				List<ItemWrapper> assignmentItems = rowModel.getObject().getItems();//ContainerValue().findContainer(AssignmentType.F_ACTIVATION);
-				ItemWrapper activationItem = null;
-				for (ItemWrapper wrapper : assignmentItems){
-					if (wrapper.getPath().containsName(AssignmentType.F_ACTIVATION)){
-						activationItem = wrapper;
-						break;
-					}
-				}
+
+				ContainerValueWrapper<AssignmentType> assignmentContainer = rowModel.getObject();
+				ContainerWrapper<ActivationType> activationContainer = assignmentContainer.findContainerWrapper(assignmentContainer.getPath().append(new ItemPath(AssignmentType.F_ACTIVATION)));
 				ActivationStatusType administrativeStatus = null;
 				XMLGregorianCalendar validFrom = null;
 				XMLGregorianCalendar validTo = null;
-				if (activationItem != null){
-					List<ContainerValueWrapper<ActivationType>> activationsList = activationItem.getValues();
-					if (activationsList != null && activationsList.size() > 0){
-						List<ItemWrapper> activation = activationsList.get(0).getItems();
-						if (activation != null && activation.size() > 0) {
-							for (ItemWrapper activationProperty : activation) {
-								if (activationProperty.getValues() != null && activationProperty.getValues().size() > 0) {
-									List<ValueWrapper> values = activationProperty.getValues();
-									if (values.get(0).getValue() != null && values.get(0).getValue().getRealValue() != null) {
-										if (activationProperty.getPath().containsName(ActivationType.F_ADMINISTRATIVE_STATUS)) {
-											administrativeStatus = (ActivationStatusType) values.get(0).getValue().getRealValue();
-											continue;
-										}
-										if (activationProperty.getPath().containsName(ActivationType.F_VALID_FROM)) {
-											validFrom = (XMLGregorianCalendar) values.get(0).getValue().getRealValue();
-											continue;
-										}
-										if (activationProperty.getPath().containsName(ActivationType.F_VALID_TO)) {
-											validTo = (XMLGregorianCalendar) values.get(0).getValue().getRealValue();
-											continue;
-										}
-									}
-								}
-							}
+				ActivationType activation = null;
+				String lifecycleStatus = "";
+				PropertyOrReferenceWrapper lifecycleStatusProperty = assignmentContainer.findPropertyWrapper(AssignmentType.F_LIFECYCLE_STATE);
+				if (lifecycleStatusProperty != null && lifecycleStatusProperty.getValues() != null){
+					Iterator<ValueWrapper> iter = lifecycleStatusProperty.getValues().iterator();
+					if (iter.hasNext()){
+						lifecycleStatus = (String) iter.next().getValue().getRealValue();
+					}
+				}
+				if (activationContainer != null){
+					activation = new ActivationType();
+					PropertyOrReferenceWrapper administrativeStatusProperty = activationContainer.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
+					if (administrativeStatusProperty != null && administrativeStatusProperty.getValues() != null){
+						Iterator<ValueWrapper> iter = administrativeStatusProperty.getValues().iterator();
+						if (iter.hasNext()){
+							administrativeStatus = (ActivationStatusType) iter.next().getValue().getRealValue();
+							activation.setAdministrativeStatus(administrativeStatus);
+						}
+					}
+					PropertyOrReferenceWrapper validFromProperty = activationContainer.findPropertyWrapper(ActivationType.F_VALID_FROM);
+					if (validFromProperty != null && validFromProperty.getValues() != null){
+						Iterator<ValueWrapper> iter = validFromProperty.getValues().iterator();
+						if (iter.hasNext()){
+							validFrom = (XMLGregorianCalendar) iter.next().getValue().getRealValue();
+							activation.setValidFrom(validFrom);
+						}
+					}
+					PropertyOrReferenceWrapper validToProperty = activationContainer.findPropertyWrapper(ActivationType.F_VALID_TO);
+					if (validToProperty != null && validToProperty.getValues() != null){
+						Iterator<ValueWrapper> iter = validToProperty.getValues().iterator();
+						if (iter.hasNext()){
+							validTo = (XMLGregorianCalendar) iter.next().getValue().getRealValue();
+							activation.setValidTo(validTo);
 						}
 					}
 				}
-				item.add(new Label(componentId, AssignmentsUtil.createActivationTitleModel(administrativeStatus, validFrom, validTo, AssignmentPanel.this).getObject()));
+				item.add(new Label(componentId, Model.of(WebModelServiceUtils.getEffectiveStatus(lifecycleStatus, activation, getPageBase()))));
 			}
         });
         columns.addAll(initColumns());
@@ -327,7 +333,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	protected abstract List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns();
 
 	protected abstract void newAssignmentClickPerformed(AjaxRequestTarget target);
-	
+
 	protected void initCustomLayout(WebMarkupContainer assignmentsContainer) {
 
 	}
@@ -347,18 +353,15 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 		add(details);
 
-		IModel<List<ContainerValueWrapper<AssignmentType>>> selectedAssignmnetList = new AbstractReadOnlyModel<List<ContainerValueWrapper<AssignmentType>>>() {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public List<ContainerValueWrapper<AssignmentType>> getObject() {
-				return getModelObject().getValues().stream().filter(v -> v.isSelected()).collect(Collectors.toList());
-			}
-		};
-
 		ListView<ContainerValueWrapper<AssignmentType>> assignmentDetailsView = new ListView<ContainerValueWrapper<AssignmentType>>(ID_ASSIGNMENTS_DETAILS,
-				selectedAssignmnetList) {
+				new AbstractReadOnlyModel<List<ContainerValueWrapper<AssignmentType>>>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public List<ContainerValueWrapper<AssignmentType>> getObject() {
+						return detailsPanelAssignmentsList;
+					}
+				}) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -383,7 +386,6 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				assignmentDetailsVisible = false;
-				getSelectedAssignments().stream().forEach(a -> a.setSelected(false));
 				refreshTable(target);
 				target.add(AssignmentPanel.this);
 			}
@@ -397,7 +399,6 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			@Override
 			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 				assignmentDetailsVisible = false;
-//				getSelectedAssignments().stream().forEach(a -> {a.revertChanges(); a.setSelected(false);});
 				ajaxRequestTarget.add(AssignmentPanel.this);
 			}
 		};
@@ -466,15 +467,15 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	protected void assignmentDetailsPerformed(AjaxRequestTarget target, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
 		assignmentDetailsVisible = true;
-//		getModelObject().forEach(a -> a.setSelected(false));
-		rowModel.getObject().setSelected(true);
+		detailsPanelAssignmentsList.clear();
+		detailsPanelAssignmentsList.add(rowModel.getObject());
 		target.add(AssignmentPanel.this);
 	}
 
 	protected void assignmentDetailsPerformed(AjaxRequestTarget target, List<ContainerValueWrapper<AssignmentType>> rowModel) {
 		assignmentDetailsVisible = true;
-//		getModelObject().forEach(a -> a.setSelected(false));
-		rowModel.stream().forEach(a -> a.setSelected(true));
+		detailsPanelAssignmentsList.clear();
+		detailsPanelAssignmentsList.addAll(rowModel);
 		target.add(AssignmentPanel.this);
 	}
 
@@ -491,14 +492,9 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			return;
 		}
 		toDelete.forEach(value -> value.setStatus(ValueStatus.DELETED));
-//		for (ContainerValueWrapper<AssignmentType> assignmentContainerWrapper : getModelObject().getValues()){
-//			if (toDelete.contains(assignmentContainerWrapper)){
-//				assignmentContainerWrapper.setStatus(ValueStatus.DELETED);
-//			}
-//		}
 		refreshTable(target);
 	}
-	
+
 	protected ContainerValueWrapper<AssignmentType> createNewAssignmentContainerValueWrapper(PrismContainerValue<AssignmentType> newAssignment) {
 		ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
 		ContainerValueWrapper<AssignmentType> valueWrapper = factory.createContainerValueWrapper(getModelObject(), newAssignment,

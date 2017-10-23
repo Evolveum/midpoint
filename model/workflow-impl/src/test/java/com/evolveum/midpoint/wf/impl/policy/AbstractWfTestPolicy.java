@@ -67,16 +67,17 @@ import org.springframework.test.context.ContextConfiguration;
 
 import javax.xml.namespace.QName;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
+import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -239,7 +240,12 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		userTemplateAssigningRole1aOidAfter = repoAddObjectFromFile(USER_TEMPLATE_ASSIGNING_ROLE_1A_AFTER, initResult).getOid();
 	}
 
-	protected void updateSystemConfiguration(SystemConfigurationType systemConfiguration) {
+	@Override
+	protected PrismObject<UserType> getDefaultActor() {
+		return userAdministrator;
+	}
+
+	protected void updateSystemConfiguration(SystemConfigurationType systemConfiguration) throws SchemaException, IOException {
 		// nothing to do by default
 	}
 
@@ -325,7 +331,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 					ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
 					assertTrue("Non-empty primary focus delta: " + realDelta0.debugDump(), realDelta0.isEmpty());
 					assertNoObject(object);
-					ExpectedTask expectedTask = new ExpectedTask(null, "Addition of " + object.getName().getOrig());
+					ExpectedTask expectedTask = new ExpectedTask(null, "Adding role " + object.getName().getOrig());
 					ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(assigneeOid, null, expectedTask);
 					assertWfContextAfterClockworkRun(rootTask, subtasks, workItems, result,
 							null,
@@ -480,7 +486,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	}
 
 	protected WorkItemType getWorkItem(Task task, OperationResult result)
-			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
 		//Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.resolveItemsNamed(WorkItemType.F_TASK_REF);
 		SearchResultList<WorkItemType> itemsAll = modelService.searchContainers(WorkItemType.class, null, null, task, result);
 		if (itemsAll.size() != 1) {
@@ -539,7 +545,11 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		}
 
 		protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-			return true;
+			return null;
+		}
+
+		public boolean strictlySequentialApprovals() {
+			return false;
 		}
 
 		public List<ApprovalInstruction> getApprovalSequence() {
@@ -656,14 +666,20 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 				List<WorkItemType> currentWorkItems = modelService
 						.searchContainers(WorkItemType.class, null, options1, modelTask, result);
 				boolean matched = false;
+
+				Collection<ApprovalInstruction> instructionsToConsider = testDetails.strictlySequentialApprovals()
+						? singleton(instructions.get(0))
+						: instructions;
+
 				main:
-				for (ApprovalInstruction approvalInstruction : instructions) {
+				for (ApprovalInstruction approvalInstruction : instructionsToConsider) {
 					for (WorkItemType workItem : currentWorkItems) {
 						if (approvalInstruction.matches(workItem)) {
 							if (approvalInstruction.beforeApproval != null) {
 								approvalInstruction.beforeApproval.run();
 							}
 							login(getUserFromRepo(approvalInstruction.approverOid));
+							System.out.println("Completing work item " + workItem.getExternalId() + " using " + approvalInstruction);
 							workflowManager.completeWorkItem(workItem.getExternalId(), approvalInstruction.approval, null,
 									null, null, result);
 							if (approvalInstruction.afterApproval != null) {
@@ -677,7 +693,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 					}
 				}
 				if (!matched) {
-					fail("None of approval instructions " + instructions + " matched any of current work items: "
+					fail("None of approval instructions " + instructionsToConsider + " matched any of current work items: "
 							+ currentWorkItems);
 				}
 			}
@@ -863,21 +879,22 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		protected List<ExpectedWorkItem> getExpectedWorkItems() { return null; }
 
 		protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception { }
+		// mutually exclusive with getApprovalSequence
 		protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception { return true; }
 
-		protected void sortSubtasks(List<Task> subtasks) {
-			Collections.sort(subtasks, Comparator.comparing(this::getCompareKey));
+		private void sortSubtasks(List<Task> subtasks) {
+			subtasks.sort(Comparator.comparing(this::getCompareKey));
 		}
 
-		protected void sortWorkItems(List<WorkItemType> workItems) {
-			Collections.sort(workItems, Comparator.comparing(this::getCompareKey));
+		private void sortWorkItems(List<WorkItemType> workItems) {
+			workItems.sort(Comparator.comparing(this::getCompareKey));
 		}
 
-		protected String getCompareKey(Task task) {
+		private String getCompareKey(Task task) {
 			return task.getTaskPrismObject().asObjectable().getWorkflowContext().getTargetRef().getOid();
 		}
 
-		protected String getCompareKey(WorkItemType workItem) {
+		private String getCompareKey(WorkItemType workItem) {
 			return workItem.getOriginalAssigneeRef().getOid();
 		}
 
@@ -1005,7 +1022,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	}
 
 	protected void checkVisibleWorkItem(ExpectedWorkItem expectedWorkItem, int count, Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
+			throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException {
 		S_AtomicFilterExit q = QueryUtils
 				.filterForAssignees(QueryBuilder.queryFor(WorkItemType.class, prismContext), SecurityUtil.getPrincipal(),
 						OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS);

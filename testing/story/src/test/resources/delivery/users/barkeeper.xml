@@ -18,9 +18,13 @@
 <user oid="b87eb285-b4ae-43c0-9e4c-7ba651de81fa"
 	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/delivery/ext"
 	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
 	<name>barkeeper</name>
+	<extension>
+		<ext:tpu>10</ext:tpu>
+	</extension>
 	<parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
 	<assignment id="1">
 		<targetRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
@@ -42,7 +46,6 @@
 	<givenName>Barkeeper</givenName>
 	<familyName>Scumm</familyName>
 	<emailAddress>barkeeper@evolveum.com</emailAddress>
-	<employeeType>10</employeeType>
 	<credentials>
 		<password>
 			<value>a123456</value>

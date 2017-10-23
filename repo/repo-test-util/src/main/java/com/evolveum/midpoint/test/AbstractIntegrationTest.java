@@ -1364,6 +1364,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		ProtectedStringType protectedActualPassword = password.getValue();
 		assertProtectedString("Password for "+user, expectedClearPassword, protectedActualPassword, storageType);
 	}
+	
+	protected void assertUserNoPassword(PrismObject<UserType> user) throws EncryptionException, SchemaException {
+		UserType userType = user.asObjectable();
+		CredentialsType creds = userType.getCredentials();
+		if (creds != null) {
+			PasswordType password = creds.getPassword();
+			if (password != null) {
+				assertNull("Unexpected password value in "+user, password.getValue());
+			}
+		}
+	}
 
 	protected void assertProtectedString(String message, String expectedClearValue, ProtectedStringType actualValue, CredentialsStorageTypeType storageType) throws EncryptionException, SchemaException {
 		switch (storageType) {
@@ -1830,7 +1841,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected void assertNoPendingOperation(PrismObject<ShadowType> shadow) {
 		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
-		assertEquals("Wroung number of pending operations in "+shadow, 0, pendingOperations.size());
+		assertEquals("Wrong number of pending operations in "+shadow, 0, pendingOperations.size());
 	}
 
 	protected void assertCase(String oid, String expectedState) throws ObjectNotFoundException, SchemaException {
@@ -2136,10 +2147,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			if (threads[i].isAlive()) {
 				System.out.println("Waiting for " + threads[i]);
 				threads[i].join(timeout);
-				Throwable threadException = threads[i].getException();
-				if (threadException != null) {
-					throw new AssertionError("Test thread "+i+" failed: "+threadException.getMessage(), threadException);
-				}
+			}
+			Throwable threadException = threads[i].getException();
+			if (threadException != null) {
+				throw new AssertionError("Test thread "+i+" failed: "+threadException.getMessage(), threadException);
 			}
 		}
 	}

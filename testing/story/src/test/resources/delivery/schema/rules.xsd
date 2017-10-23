@@ -86,4 +86,23 @@
         </xsd:sequence>
     </xsd:complexType>
 
+	<!-- user extension -->
+
+	<xsd:complexType name="UserExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:UserType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="tpu" type="xsd:string" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:appinfo>
+            			<a:indexed>true</a:indexed>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
 </xsd:schema>

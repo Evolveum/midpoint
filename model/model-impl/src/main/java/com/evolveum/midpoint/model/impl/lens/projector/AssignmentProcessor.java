@@ -374,12 +374,10 @@ public class AssignmentProcessor {
 					if (projectionContext == null) {
 						if (processOnlyExistingProjCxts) {
 							LOGGER.trace("Projection {} skip: unchanged (invalid), processOnlyExistingProjCxts", desc);
-							return;
+						} else {
+							LOGGER.trace("Projection {} skip: unchanged (invalid) and does not exist in current lens context", desc);
 						}
-						// The projection should exist before the change but it does not
-						// This happens during reconciliation if there is an inconsistency.
-						// Pretend that the assignment was just added. That should do.
-						projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+						return;
 					}
 					LOGGER.trace("Projection {} illegal: unchanged (invalid)", desc);
 					projectionContext.setLegal(false);
@@ -537,14 +535,14 @@ public class AssignmentProcessor {
 
 
     private <F extends FocusType> void evaluateConstructions(LensContext<F> context,
-    		DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    		DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
     	evaluateConstructions(context, evaluatedAssignmentTriple.getZeroSet(), task, result);
     	evaluateConstructions(context, evaluatedAssignmentTriple.getPlusSet(), task, result);
     	evaluateConstructions(context, evaluatedAssignmentTriple.getMinusSet(), task, result);
     }
 
     private <F extends FocusType> void evaluateConstructions(LensContext<F> context,
-    		Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    		Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
     	if (evaluatedAssignments == null) {
     		return;
     	}

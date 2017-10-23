@@ -66,7 +66,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.OwnerResolver;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -1232,7 +1232,7 @@ public class ChangeExecutor {
 		OwnerResolver ownerResolver = createOwnerResolver(context, task, result);
 		try {
 			securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(),
-					AuthorizationPhaseType.EXECUTION, objectToAdd, null, null, ownerResolver, result);
+					AuthorizationPhaseType.EXECUTION, objectToAdd, null, null, ownerResolver, task, result);
 
 			T objectTypeToAdd = objectToAdd.asObjectable();
 
@@ -1297,7 +1297,7 @@ public class ChangeExecutor {
 		OwnerResolver ownerResolver = createOwnerResolver(context, task, result);
 		try {
 			securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(),
-					AuthorizationPhaseType.EXECUTION, objectOld, null, null, ownerResolver, result);
+					AuthorizationPhaseType.EXECUTION, objectOld, null, null, ownerResolver, task, result);
 
 			if (TaskType.class.isAssignableFrom(objectTypeClass)) {
 				taskManager.deleteTask(oid, result);
@@ -1350,7 +1350,7 @@ public class ChangeExecutor {
 		OwnerResolver ownerResolver = createOwnerResolver(context, task, result);
 		try {
 			securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(),
-					AuthorizationPhaseType.EXECUTION, objectNew, delta, null, ownerResolver, result);
+					AuthorizationPhaseType.EXECUTION, objectNew, delta, null, ownerResolver, task, result);
 
 			metadataManager.applyMetadataModify(delta, objectContext, objectTypeClass,
 					clock.currentTimeXMLGregorianCalendar(), task, context, result);
@@ -1556,7 +1556,7 @@ public class ChangeExecutor {
 			ExpressionVariables variables, LensContext<?> context,
 			LensElementContext<?> objectContext, Task task,
 			OperationResult result)
-					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		OperationProvisioningScriptsType outScripts = new OperationProvisioningScriptsType();
 
 		if (resourceScripts != null) {
@@ -1593,7 +1593,7 @@ public class ChangeExecutor {
 	}
 
 	private boolean evaluateScriptCondition(OperationProvisioningScriptType script,
-			ExpressionVariables variables, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			ExpressionVariables variables, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionType condition = script.getCondition();
 		if (condition == null) {
 			return true;
@@ -1614,7 +1614,7 @@ public class ChangeExecutor {
 			ExpressionVariables variables, LensContext<?> context,
 			LensElementContext<?> objectContext, Task task,
 			OperationResult result)
-					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
 

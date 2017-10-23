@@ -361,6 +361,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO. EXPERIMENTAL.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:long"/>
 	</xsd:complexType>
@@ -1104,6 +1111,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            When should this action be applied?
+                        </p>
+                    </xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1144,24 +1163,24 @@
         <xsd:complexContent>
             <xsd:extension base="tns:PolicyActionType">
                 <xsd:sequence>
+					<xsd:element name="processSpecification" type="c:WfProcessSpecificationType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								TODO
+								EXPERIMENTAL
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+								<a:experimental>true</a:experimental>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
                     <xsd:element name="compositionStrategy" type="c:ApprovalCompositionStrategyType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 How should be this approval policy action composed with other ones that
                                 might be related to the same item (object or assignment)?
                             </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-					<xsd:element name="processSpecification" type="c:WfProcessSpecificationType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-								EXPERIMENTAL
-                            </xsd:documentation>
-							<xsd:appinfo>
-								<a:since>3.7</a:since>
-								<a:experimental>true</a:experimental>
-							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 					<xsd:choice>
@@ -1357,10 +1376,10 @@
         </xsd:annotation>
         <xsd:sequence>
 	        <xsd:choice>
-		        <xsd:element name="ref" type="xsd:string" minOccurs="1">
+		        <xsd:element name="ref" type="xsd:string" minOccurs="0">
 			        <xsd:annotation>
 				        <xsd:documentation>
-					        Reference to existing process specification. NOT IMPLEMENTED YET
+					        Reference to existing process specification.
 				        </xsd:documentation>
 			        </xsd:annotation>
 		        </xsd:element>
@@ -1368,7 +1387,7 @@
 			        <xsd:element name="name" type="xsd:string" minOccurs="0">
 				        <xsd:annotation>
 					        <xsd:documentation>
-						        Name for this process specification. NOT IMPLEMENTED YET
+						        Name for this process specification.
 					        </xsd:documentation>
 				        </xsd:annotation>
 			        </xsd:element>
@@ -1389,14 +1408,7 @@
 			        <xsd:element name="includeAction" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
 				        <xsd:annotation>
 					        <xsd:documentation>
-						        What approval actions to include during approval schema creation for this process. NOT IMPLEMENTED YET
-					        </xsd:documentation>
-				        </xsd:annotation>
-			        </xsd:element>
-			        <xsd:element name="excludeAction" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-				        <xsd:annotation>
-					        <xsd:documentation>
-						        What approval actions to exclude during approval schema creation for this process. NOT IMPLEMENTED YET
+						        What approval actions to include during approval schema creation for this process.
 					        </xsd:documentation>
 				        </xsd:annotation>
 			        </xsd:element>

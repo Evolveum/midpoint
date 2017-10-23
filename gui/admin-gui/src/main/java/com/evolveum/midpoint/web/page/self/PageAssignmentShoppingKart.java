@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -120,7 +121,7 @@ public class PageAssignmentShoppingKart extends PageSelf {
             initShoppingCartConfigurationDto();
             getRoleCatalogStorage().setShoppingCartConfigurationDto(shoppingCartConfigurationDto);
         }
-        if (StringUtils.isEmpty(getRoleCatalogStorage().getSelectedOid())){
+        if (StringUtils.isEmpty(getRoleCatalogStorage().getSelectedOid()) && shoppingCartConfigurationDto != null) {
             getRoleCatalogStorage().setSelectedOid(shoppingCartConfigurationDto.getRoleCatalogOid());
         }
         initModels();
@@ -373,11 +374,6 @@ public class PageAssignmentShoppingKart extends PageSelf {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected ObjectFilter getUserQueryFilter(){
-                return getAssignableRolesFilter();
-            }
-
-            @Override
             protected void singleUserSelectionPerformed(AjaxRequestTarget target, UserType user){
                 super.singleUserSelectionPerformed(target, user);
                 viewTypeModel.setObject(AssignmentViewType.USER_TYPE);
@@ -522,11 +518,12 @@ public class PageAssignmentShoppingKart extends PageSelf {
     private ObjectFilter getAssignableRolesFilter() {
         ObjectFilter filter = null;
         LOGGER.debug("Loading roles which the current user has right to assign");
-        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNABLE_ROLES);
+        Task task = createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
+        OperationResult result = task.getResult();
         try {
             ModelInteractionService mis = getModelInteractionService();
             RoleSelectionSpecification roleSpec =
-                    mis.getAssignableRoleSpecification(getTargetUser().asPrismObject(), result);
+                    mis.getAssignableRoleSpecification(getTargetUser().asPrismObject(), task, result);
             filter = roleSpec.getFilter();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);

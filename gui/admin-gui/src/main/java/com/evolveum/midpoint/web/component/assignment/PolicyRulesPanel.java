@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
@@ -78,7 +79,8 @@ public class PolicyRulesPanel extends AssignmentPanel {
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
                 PolicyRuleType policyRuleType = rowModel.getObject().getContainerValue().getValue().getPolicyRule();
-                cellItem.add(new MultiLineLabel(componentId, Model.of(PolicyRuleUtil.convertPolicyConstraintsContainerToString(policyRuleType, getParentPage()))));
+                String constraints = PolicyRuleTypeUtil.toShortString(policyRuleType.getPolicyConstraints());
+                cellItem.add(new MultiLineLabel(componentId, Model.of(constraints != null && !constraints.equals("null") ? constraints : "")));
             }
 
         });
@@ -101,7 +103,8 @@ public class PolicyRulesPanel extends AssignmentPanel {
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
             	PolicyRuleType policyRuleType = rowModel.getObject().getContainerValue().getValue().getPolicyRule();
-                cellItem.add(new MultiLineLabel(componentId, Model.of(PolicyRuleUtil.convertPolicyActionsContainerToString(policyRuleType))));
+            	String action = PolicyRuleTypeUtil.toShortString(policyRuleType.getPolicyActions(), new ArrayList<>());
+                cellItem.add(new MultiLineLabel(componentId, Model.of(action != null && !action.equals("null") ? action : "")));
             }
 
         });
@@ -149,10 +152,9 @@ public class PolicyRulesPanel extends AssignmentPanel {
 	@Override
 	protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
         PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
+        newAssignment.asContainerable().setPolicyRule(new PolicyRuleType());
         ContainerValueWrapper<AssignmentType> newAssignmentWrapper = createNewAssignmentContainerValueWrapper(newAssignment);
         assignmentDetailsPerformed(target, Arrays.asList(newAssignmentWrapper));
-//        refreshTable(target);
-       
 	}
 
 	@Override

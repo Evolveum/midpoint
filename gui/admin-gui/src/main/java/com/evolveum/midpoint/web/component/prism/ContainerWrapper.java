@@ -412,31 +412,6 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		}
 	}
 
-	public <O extends ObjectType> void collectDeleteDelta(ObjectDelta<O> delta,  PrismContext prismContext) throws SchemaException {
-
-		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
-			if (ValueStatus.DELETED.equals(itemWrapper.getStatus())){
-				ContainerDelta<C> containerDelta = new ContainerDelta(ItemPath.EMPTY_PATH, itemWrapper.getDefinition().getName(),
-						itemWrapper.getDefinition(), prismContext);
-				containerDelta.addValuesToDelete(itemWrapper.getContainerValue().clone());
-				delta.addModification(containerDelta);
-			}
-		}
-	}
-
-	public <O extends ObjectType> void collectAddDelta(ObjectDelta<O> delta, PrismContext prismContext) throws SchemaException {
-		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
-			if (ValueStatus.ADDED.equals(itemWrapper.getStatus())) {
-				ContainerDelta<C> containerDelta = new ContainerDelta(ItemPath.EMPTY_PATH, itemWrapper.getDefinition().getName(),
-						itemWrapper.getDefinition(), prismContext);
-				containerDelta.addValueToAdd(itemWrapper.getContainerValue().clone());
-				if (!containerDelta.isEmpty()){
-					delta.addModification(containerDelta);
-				}
-			}
-		}
-	}
-
 	@Override
 	public boolean checkRequired(PageBase pageBase) {
 		boolean rv = true;
@@ -480,6 +455,16 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		PrismContainerDefinition<C> def = getItemDefinition();
 
 		if (def.isIgnored() || (def.isOperational()) && (!def.getTypeName().equals(MetadataType.COMPLEX_TYPE))) {
+			return false;
+		}
+		
+		if (def.isDeprecated() && isEmpty()) {
+			return false;
+		}
+
+		//TODO: is this correct place? shouldn't we restrict creation for multivalue containers
+		//dirrectly in factory? this can plausible cause problems while computing deltas.
+		if (!getItem().isSingleValue() && isEmpty() && ContainerStatus.MODIFYING.equals(status)){
 			return false;
 		}
 

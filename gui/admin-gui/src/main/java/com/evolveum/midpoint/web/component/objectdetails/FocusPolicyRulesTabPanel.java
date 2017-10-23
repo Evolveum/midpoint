@@ -29,6 +29,7 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentPreviewDialog;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
@@ -66,29 +67,13 @@ public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObje
     }
 
     private void initLayout() {
-        ContainerWrapper<AssignmentType> assignmentsContainerWrapper = getObjectWrapper().findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
-
         WebMarkupContainer policyRules = new WebMarkupContainer(ID_POLICY_RULES_CONTAINER);
         policyRules.setOutputMarkupId(true);
         add(policyRules);
 
-        PolicyRulesPanel policyRulesPanel = new PolicyRulesPanel(ID_POLICY_RULES_PANEL, new AbstractReadOnlyModel<ContainerWrapper<AssignmentType>>() {
-            @Override
-            public ContainerWrapper<AssignmentType> getObject() {
-                return assignmentsContainerWrapper;
-            }
-        });
-        policyRules.add(policyRulesPanel);
-    }
+        PolicyRulesPanel policyRulesPanel = new PolicyRulesPanel(ID_POLICY_RULES_PANEL,
+                new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), new ItemPath(FocusType.F_ASSIGNMENT)));
 
-    private IModel<List<ContainerValueWrapper<AssignmentType>>> getPolicyRulesModel(ContainerWrapper<AssignmentType> assignmentsContainerWrapper){
-        List<ContainerValueWrapper<AssignmentType>> policyRuleList = new ArrayList<>();
-        assignmentsContainerWrapper.getValues().forEach(a -> {
-            if (AssignmentsUtil.isPolicyRuleAssignment(a.getContainerValue().getValue())){
-                policyRuleList.add(a);
-            }
-        });
-//		Collections.sort(consentsList);
-        return Model.ofList(policyRuleList);
+        policyRules.add(policyRulesPanel);
     }
 }

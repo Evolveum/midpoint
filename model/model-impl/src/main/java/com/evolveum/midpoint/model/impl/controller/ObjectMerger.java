@@ -196,7 +196,7 @@ public class ObjectMerger {
 
 	private <O extends ObjectType> void computeItemDeltas(final ObjectDelta<O> leftObjectDelta,
 			final PrismObject<O> objectLeft, final PrismObject<O> objectRight, final List<ItemPath> processedPaths,
-			MergeConfigurationType mergeConfiguration, final String mergeConfigurationName, final Task task, final OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException {
+			MergeConfigurationType mergeConfiguration, final String mergeConfigurationName, final Task task, final OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
 
 		for (ItemRefMergeConfigurationType itemMergeConfig: mergeConfiguration.getItem()) {
 			ItemPath itemPath = itemMergeConfig.getRef().getItemPath();
@@ -212,7 +212,7 @@ public class ObjectMerger {
 
 	private <O extends ObjectType> void computeDefaultDeltas(final ObjectDelta<O> leftObjectDelta,
 			final PrismObject<O> objectLeft, final PrismObject<O> objectRight, final List<ItemPath> processedPaths,
-			MergeConfigurationType mergeConfiguration, final String mergeConfigurationName, final Task task, final OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException {
+			MergeConfigurationType mergeConfiguration, final String mergeConfigurationName, final Task task, final OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
 
 		final ItemMergeConfigurationType defaultItemMergeConfig = mergeConfiguration.getDefault();
 		if (defaultItemMergeConfig != null) {
@@ -268,7 +268,7 @@ public class ObjectMerger {
 						try {
 							itemDelta = mergeItem(objectLeft, objectRight, mergeConfigurationName, defaultItemMergeConfig, itemPath,
 									task, result);
-						} catch (SchemaException | ConfigurationException | ExpressionEvaluationException | ObjectNotFoundException e) {
+						} catch (SchemaException | ConfigurationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | SecurityViolationException e) {
 							throw new TunnelException(e);
 						}
 						LOGGER.trace("Item {} delta (default): {}", itemPath, itemDelta);
@@ -291,6 +291,10 @@ public class ObjectMerger {
 					throw (ExpressionEvaluationException)te.getCause();
 				} else if (te.getCause() instanceof ObjectNotFoundException) {
 					throw (ObjectNotFoundException)te.getCause();
+				} else if (te.getCause() instanceof CommunicationException) {
+					throw (CommunicationException)te.getCause();
+				} else if (te.getCause() instanceof SecurityViolationException) {
+					throw (SecurityViolationException)te.getCause();
 				} else {
 					throw new SystemException("Unexpected exception: "+te, te);
 				}
@@ -525,7 +529,7 @@ public class ObjectMerger {
 
 	private <O extends ObjectType, I extends Item> ItemDelta mergeItem(PrismObject<O> objectLeft, PrismObject<O> objectRight,
 			String mergeConfigurationName, ItemMergeConfigurationType itemMergeConfig, ItemPath itemPath,
-			Task task, OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException {
+			Task task, OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
 		I itemLeft = (I) objectLeft.findItem(itemPath);
 		I itemRight = (I) objectRight.findItem(itemPath);
 		if (itemLeft == null && itemRight == null) {
@@ -648,7 +652,7 @@ public class ObjectMerger {
 
 	private <O extends ObjectType, I extends Item> Collection<PrismValue> getValuesToTake(PrismObject<O> objectLeft, PrismObject<O> objectRight,
 			String side, I origItem, MergeStategyType strategy, Expression<PrismValue, ItemDefinition> valueExpression, Task task, OperationResult result)
-					throws ConfigurationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+					throws ConfigurationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
 		if (origItem == null) {
 			return new ArrayList<>(0);
 		}
@@ -687,7 +691,7 @@ public class ObjectMerger {
 
 
 	private <O extends ObjectType> Collection<PrismValue> evaluateValueExpression(PrismObject<O> objectLeft, PrismObject<O> objectRight, String side, PrismValue origValue, Expression<PrismValue, ItemDefinition> valueExpression,
-			Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.addVariableDefinition(ExpressionConstants.VAR_SIDE, side);
 		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT_LEFT, side);

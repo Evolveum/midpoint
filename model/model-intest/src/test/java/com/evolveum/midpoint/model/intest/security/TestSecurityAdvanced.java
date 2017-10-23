@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -1177,6 +1178,91 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertGlobalStateUntouched();
 	}
 
+	/**
+	 * Role with object filter that has an expression.
+	 * No costCenter in user, no access.
+	 * MID-4191
+	 */
+	@Test
+    public void test220AutzJackRoleExpressionNoConstCenter() throws Exception {
+		final String TEST_NAME = "test220AutzJackRoleExpressionNoConstCenter";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_EXPRESSION_READ_ROLES_OID);
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        assertGetDeny(RoleType.class, ROLE_BUSINESS_1_OID);
+        assertGetDeny(RoleType.class, ROLE_BUSINESS_2_OID);
+        assertGetDeny(RoleType.class, ROLE_APPLICATION_1_OID);
+        assertGetDeny(RoleType.class, ROLE_EXPRESSION_READ_ROLES_OID);
+
+        assertSearchDeny(RoleType.class, null, null);
+        assertSearchDeny(RoleType.class, 
+        		queryFor(RoleType.class).item(RoleType.F_ROLE_TYPE).eq("business").build(),
+        		null);
+        assertSearchDeny(RoleType.class, 
+        		queryFor(RoleType.class).item(RoleType.F_ROLE_TYPE).eq("application").build(),
+        		null);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Role with object filter that has an expression.
+	 * MID-4191
+	 */
+	@Test
+    public void test222AutzJackRoleExpressionConstCenterBusiness() throws Exception {
+		final String TEST_NAME = "test222AutzJackRoleExpressionConstCenterBusiness";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_EXPRESSION_READ_ROLES_OID);
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        modifyUserReplace(USER_JACK_OID, UserType.F_COST_CENTER, task, result, "business");
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        assertGetAllow(RoleType.class, ROLE_BUSINESS_1_OID);
+        assertGetAllow(RoleType.class, ROLE_BUSINESS_2_OID);
+        assertGetDeny(RoleType.class, ROLE_APPLICATION_1_OID);
+        assertGetDeny(RoleType.class, ROLE_EXPRESSION_READ_ROLES_OID);
+
+        assertSearch(RoleType.class, null, 3);
+        assertSearch(RoleType.class, 
+        		queryFor(RoleType.class).item(RoleType.F_ROLE_TYPE).eq("business").build(), 3);
+        assertSearchDeny(RoleType.class, 
+        		queryFor(RoleType.class).item(RoleType.F_ROLE_TYPE).eq("application").build(),
+        		null);
+        
+        assertGlobalStateUntouched();
+	}
+
+	
     @Override
     protected void cleanupAutzTest(String userOid, int expectedAssignments) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
     	super.cleanupAutzTest(userOid, expectedAssignments);

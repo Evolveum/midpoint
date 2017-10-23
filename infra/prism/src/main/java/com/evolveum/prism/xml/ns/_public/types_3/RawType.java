@@ -45,6 +45,9 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
      */
 	private PrismValue parsed;
 
+	private QName explicitTypeName;
+	private boolean explicitTypeDeclaration;
+
     public RawType(PrismContext prismContext) {
         Validate.notNull(prismContext, "prismContext is not set - perhaps a forgotten call to adopt() somewhere?");
         this.prismContext = prismContext;
@@ -53,11 +56,22 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
     public RawType(XNode xnode, @NotNull PrismContext prismContext) {
         this(prismContext);
         this.xnode = xnode;
+        if (xnode != null) {
+	        this.explicitTypeName = xnode.getTypeQName();
+	        this.explicitTypeDeclaration = xnode.isExplicitTypeDeclaration();
+        }
     }
 
-	public RawType(PrismValue parsed, @NotNull PrismContext prismContext) {
+	public RawType(PrismValue parsed, QName explicitTypeName, @NotNull PrismContext prismContext) {
 		this.prismContext = prismContext;
 		this.parsed = parsed;
+		if (explicitTypeName != null) {
+			this.explicitTypeName = explicitTypeName;
+			this.explicitTypeDeclaration = true;        // todo
+		} else if (parsed != null && parsed.getTypeName() != null) {
+			this.explicitTypeName = parsed.getTypeName();
+			this.explicitTypeDeclaration = true;        // todo
+		}
 	}
 
 	@Override
@@ -84,7 +98,11 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
         return prismContext;
     }
 
-    //endregion
+    // experimental
+	public QName getExplicitTypeName() {
+		return explicitTypeName;
+	}
+	//endregion
 
     //region Parsing and serialization
     // itemDefinition may be null; in that case we do the best what we can
@@ -107,6 +125,8 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 				}
 				xnode = null;
 				parsed = value;
+				explicitTypeName = itemDefinition.getTypeName();
+				explicitTypeDeclaration = true; // todo
 				return (IV) parsed;
 			} else {
 				// we don't really want to set 'parsed', as we didn't performed real parsing
@@ -191,7 +211,10 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
             return xnode;
         } else if (parsed != null) {
             checkPrismContext();
-            return prismContext.xnodeSerializer().root(new QName("dummy")).serialize(parsed).getSubnode();
+	        XNode rv = prismContext.xnodeSerializer().root(new QName("dummy")).serialize(parsed).getSubnode();
+	        rv.setTypeQName(explicitTypeName);
+	        rv.setExplicitTypeDeclaration(explicitTypeDeclaration);
+	        return rv;
         } else {
             return null;            // or an exception here?
         }
@@ -206,6 +229,8 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
         } else if (parsed != null) {
             clone.parsed = parsed.clone();
         }
+        clone.explicitTypeName = explicitTypeName;
+        clone.explicitTypeDeclaration = explicitTypeDeclaration;
     	return clone;
     }
 
@@ -234,6 +259,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 		} else {
             return xnodeSerializationsAreEqual(other);
         }
+        // TODO explicit type declaration? (probably should be ignored as it is now)
     }
 
     private boolean xnodeSerializationsAreEqual(RawType other) {

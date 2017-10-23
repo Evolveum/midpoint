@@ -2450,9 +2450,7 @@ public abstract class ShadowCache {
 							entitlementRepoShadow = lookupOrCreateShadowInRepository(ctxEntitlement,
 									entitlementShadow, false, parentResult);
 						}
-						ObjectReferenceType shadowRefType = new ObjectReferenceType();
-						shadowRefType.setOid(entitlementRepoShadow.getOid());
-						shadowRefType.setType(ShadowType.COMPLEX_TYPE);
+						ObjectReferenceType shadowRefType = ObjectTypeUtil.createObjectRef(entitlementRepoShadow);
 						shadowAssociationType.setShadowRef(shadowRefType);
 					}
 				}

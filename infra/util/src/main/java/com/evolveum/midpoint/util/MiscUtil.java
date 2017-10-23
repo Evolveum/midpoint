@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.util;
 
+import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,6 +32,8 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -651,5 +654,30 @@ public class MiscUtil {
 
 	public static void throwExceptionAsUnchecked(Throwable t) {
 		MiscUtil.throwException(t);
+	}
+
+	@FunctionalInterface
+	public interface CheckedSupplier<T> {
+		T get() throws Exception;
+	}
+
+	public static <T> Supplier<T> exceptionsToRuntime(CheckedSupplier<T> checkedSupplier) {
+		return () -> {
+			try {
+				return checkedSupplier.get();
+			} catch (RuntimeException e) {
+				throw e;
+			} catch (Exception e) {
+				throw new SystemException(e);
+			}
+		};
+	}
+
+	public static <T> Collection<T> filter(Collection<T> input, Predicate<? super T> predicate) {
+		return input.stream().filter(predicate).collect(Collectors.toList());
+	}
+
+	public static <T> Set<T> filter(Set<T> input, Predicate<? super T> predicate) {
+		return input.stream().filter(predicate).collect(Collectors.toSet());
 	}
 }

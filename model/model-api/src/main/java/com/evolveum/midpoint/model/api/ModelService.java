@@ -25,6 +25,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -304,6 +305,7 @@ public interface ModelService {
 	 * @return owner of the account or null
 	 * @throws ObjectNotFoundException
 	 *             specified account was not found
+	 * @throws ExpressionEvaluationException  
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 * @throws SystemException
@@ -312,7 +314,7 @@ public interface ModelService {
 	 * @deprecated
 	 */
 	PrismObject<UserType> findShadowOwner(String shadowOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException;
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException;
 
 
 	/**
@@ -337,6 +339,8 @@ public interface ModelService {
 	 * @return owner of the account or null
 	 * @throws ObjectNotFoundException
 	 *             specified account was not found
+	 * @throws ExpressionEvaluationException 
+	 * @throws CommunicationException 
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 * @throws SystemException
@@ -344,7 +348,7 @@ public interface ModelService {
 	 *             state
 	 */
 	PrismObject<? extends FocusType> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException;
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException;
 
 	/**
 	 * <p>
@@ -463,16 +467,16 @@ public interface ModelService {
 	 * @param parentResult
 	 * @param <T>
 	 * @return
-	 * @throws SchemaException
+	 * @throws SchemaException  
 	 */
 	<T extends Containerable> SearchResultList<T> searchContainers(
 			Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException;
 
 	<T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
 			Task task, OperationResult parentResult)
-			throws SchemaException, SecurityViolationException;
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 	/**
 	 * <p>
@@ -659,10 +663,10 @@ public interface ModelService {
 	 * @param parentResult
 	 *            parentResult parent OperationResult (in/out)
 	 * @return discovered connectors
-	 * @throws CommunicationException error communicating with the connector host
+	 * @throws CommunicationException error communicating with the connector host 
 	 */
 	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, Task task, OperationResult parentResult)
-			throws CommunicationException, SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException;
+			throws CommunicationException, SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException;
 
 	/**
 	 * Finish initialization of the model and lower system components
@@ -715,4 +719,6 @@ public interface ModelService {
 			String mergeConfigurationName, Task task, OperationResult result)
 					throws ObjectNotFoundException, SchemaException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, PolicyViolationException, SecurityViolationException;
 
+	@NotNull
+	PrismContext getPrismContext();
 }

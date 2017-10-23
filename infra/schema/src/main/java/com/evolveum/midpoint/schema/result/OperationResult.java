@@ -19,7 +19,6 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.Map.Entry;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -28,28 +27,20 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.util.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizedMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
@@ -123,8 +114,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	private long token;
 	private String messageCode;
 	private String message;
-	private String localizationMessage;
-	private List<Serializable> localizationArguments;
+	private LocalizableMessage userFriendlyMessage;
 	private Throwable cause;
 	private int count = 1;
 	private int hiddenRecordsCount;
@@ -187,22 +177,14 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 
 	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
-			long token, String messageCode, String message, String localizationMessage, Throwable cause,
-			List<OperationResult> subresults) {
-		this(operation, params, status, token, messageCode, message, localizationMessage, null, cause,
+			long token, String messageCode, String message, LocalizableMessage userFriendlyMessage, Throwable cause, List<OperationResult> subresults) {
+		this(operation, params, null, null, status, token, messageCode, message, userFriendlyMessage, cause,
 				subresults);
 	}
 
-	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
-			long token, String messageCode, String message, String localizationMessage,
-			List<Serializable> localizationArguments, Throwable cause, List<OperationResult> subresults) {
-		this(operation, params, null, null, status, token, messageCode, message, localizationMessage, null, cause,
-				subresults);
-	}
-
-	public OperationResult(String operation, Map<String, Collection<String>> params, Map<String, Collection<String>> context, Map<String, Collection<String>> returns, OperationResultStatus status,
-			long token, String messageCode, String message, String localizationMessage,
-			List<Serializable> localizationArguments, Throwable cause, List<OperationResult> subresults) {
+	public OperationResult(String operation, Map<String, Collection<String>> params, Map<String, Collection<String>> context,
+						   Map<String, Collection<String>> returns, OperationResultStatus status, long token, String messageCode,
+						   String message, LocalizableMessage userFriendlyMessage, Throwable cause, List<OperationResult> subresults) {
 		if (StringUtils.isEmpty(operation)) {
 			throw new IllegalArgumentException("Operation argument must not be null or empty.");
 		}
@@ -217,8 +199,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		this.token = token;
 		this.messageCode = messageCode;
 		this.message = message;
-		this.localizationMessage = localizationMessage;
-		this.localizationArguments = localizationArguments;
+		this.userFriendlyMessage = userFriendlyMessage;
 		this.cause = cause;
 		this.subresults = subresults;
 		this.details = new ArrayList<>();
@@ -1079,18 +1060,12 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		this.message = message;
 	}
 
-	/**
-	 * @return Method returns message key for translation, can be null.
-	 */
-	public String getLocalizationMessage() {
-		return localizationMessage;
+	public LocalizableMessage getUserFriendlyMessage() {
+		return userFriendlyMessage;
 	}
 
-	/**
-	 * @return Method returns arguments if needed for localization, can be null.
-	 */
-	public List<Serializable> getLocalizationArguments() {
-		return localizationArguments;
+	public void setUserFriendlyMessage(LocalizableMessage userFriendlyMessage) {
+		this.userFriendlyMessage = userFriendlyMessage;
 	}
 
 	/**
@@ -1263,13 +1238,15 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			}
 		}
 
-		LocalizedMessageType message = result.getLocalizedMessage();
-		String localizedMessage = message == null ? null : message.getKey();
-		List<Serializable> localizedArguments = message == null ? null : (List<Serializable>) (List) message.getArgument();         // FIXME: brutal hack
+		LocalizableMessage localizableMessage = null;
+		LocalizableMessageType message = result.getUserFriendlyMessage();
+		if (message != null) {
+			localizableMessage = LocalizationUtil.parseLocalizableMessageType(message);
+		}
 
 		OperationResult opResult = new OperationResult(result.getOperation(), params, context, returns,
 				OperationResultStatus.parseStatusType(result.getStatus()), result.getToken(),
-				result.getMessageCode(), result.getMessage(), localizedMessage, localizedArguments, null,
+				result.getMessageCode(), result.getMessage(), localizableMessage,  null,
 				subresults);
 		opResult.setMinor(BooleanUtils.isTrue(result.isMinor()));
 		if (result.getCount() != null) {
@@ -1330,13 +1307,9 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			resultType.setDetails(detailsb.toString());
 		}
 
-		if (StringUtils.isNotEmpty(opResult.getLocalizationMessage())) {
-			LocalizedMessageType message = new LocalizedMessageType();
-			message.setKey(opResult.getLocalizationMessage());
-			if (opResult.getLocalizationArguments() != null) {
-				message.getArgument().addAll(opResult.getLocalizationArguments());
-			}
-			resultType.setLocalizedMessage(message);
+		if (opResult.getUserFriendlyMessage() != null) {
+			LocalizableMessageType msg = LocalizationUtil.createLocalizableMessageType(opResult.getUserFriendlyMessage());
+			resultType.setUserFriendlyMessage(msg);
 		}
 
 		resultType.setParams(ParamsTypeUtil.toParamsType(opResult.getParams()));
@@ -1734,8 +1707,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
         clone.token = token;
         clone.messageCode = messageCode;
         clone.message = message;
-        clone.localizationMessage = localizationMessage;
-        clone.localizationArguments = CloneUtil.clone(localizationArguments);
+        clone.userFriendlyMessage = CloneUtil.clone(userFriendlyMessage);
         clone.cause = CloneUtil.clone(cause);
         clone.count = count;
 		clone.hiddenRecordsCount = hiddenRecordsCount;
@@ -1782,8 +1754,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		result = prime * result + count;
 		result = prime * result + ((details == null) ? 0 : details.hashCode());
 		result = prime * result + hiddenRecordsCount;
-		result = prime * result + ((localizationArguments == null) ? 0 : localizationArguments.hashCode());
-		result = prime * result + ((localizationMessage == null) ? 0 : localizationMessage.hashCode());
+		result = prime * result + ((userFriendlyMessage == null) ? 0 : userFriendlyMessage.hashCode());
 		result = prime * result + ((message == null) ? 0 : message.hashCode());
 		result = prime * result + ((messageCode == null) ? 0 : messageCode.hashCode());
 		result = prime * result + (minor ? 1231 : 1237);
@@ -1845,18 +1816,11 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		if (hiddenRecordsCount != other.hiddenRecordsCount) {
 			return false;
 		}
-		if (localizationArguments == null) {
-			if (other.localizationArguments != null) {
+		if (userFriendlyMessage == null) {
+			if (other.userFriendlyMessage != null) {
 				return false;
 			}
-		} else if (!localizationArguments.equals(other.localizationArguments)) {
-			return false;
-		}
-		if (localizationMessage == null) {
-			if (other.localizationMessage != null) {
-				return false;
-			}
-		} else if (!localizationMessage.equals(other.localizationMessage)) {
+		} else if (!userFriendlyMessage.equals(other.userFriendlyMessage)) {
 			return false;
 		}
 		if (message == null) {

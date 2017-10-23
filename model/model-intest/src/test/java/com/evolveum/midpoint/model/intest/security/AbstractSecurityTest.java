@@ -320,6 +320,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected static final File ROLE_INDIRECT_PIRATE_FILE = new File(TEST_DIR, "role-indirect-pirate.xml");
 	protected static final String ROLE_INDIRECT_PIRATE_OID = "67680a40-582c-11e7-b5b1-abcfbb047b34";
+	
+	protected static final File ROLE_EXPRESSION_READ_ROLES_FILE = new File(TEST_DIR, "role-expression-read-roles.xml");
+	protected static final String ROLE_EXPRESSION_READ_ROLES_OID = "27058fde-b27e-11e7-b557-e7e43b583989";
 
 	protected static final File ORG_REQUESTABLE_FILE = new File(TEST_DIR,"org-requestable.xml");
 	protected static final String ORG_REQUESTABLE_OID = "8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2";
@@ -359,7 +362,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 64;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 65;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 
 	protected String userRumRogersOid;
@@ -438,6 +441,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_NONE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READ_SELF_MODIFY_ORGUNIT_FILE, initResult);
 		repoAddObjectFromFile(ROLE_INDIRECT_PIRATE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_EXPRESSION_READ_ROLES_FILE, initResult);
 
 		repoAddObjectFromFile(ORG_REQUESTABLE_FILE, initResult);
 		repoAddObjectFromFile(ORG_INDIRECT_PIRATE_FILE, initResult);
@@ -593,11 +597,12 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         cleanupAdd(USER_LECHUCK_FILE, task, result);
         cleanupAdd(USER_ESTEVAN_FILE, task, result);
 
-        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, task, result);
+        modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, task, result /* no value */);
+        modifyUserReplace(USER_JACK_OID, UserType.F_COST_CENTER, task, result /* no value */);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
         modifyUserReplace(userRumRogersOid, UserType.F_TITLE, task, result);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result, PrismTestUtil.createPolyString("Wannabe"));
-        modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM, task, result);
+        modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM, task, result  /* no value */);
         modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString(USER_JACK_GIVEN_NAME));
 
         unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
@@ -650,15 +655,15 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		assertReadDenyRaw();
 	}
 
-	protected void assertReadCertCasesDeny() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	protected void assertReadCertCasesDeny() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		assertReadCertCases(0);
 	}
 
-	protected void assertReadCertCasesAllow() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	protected void assertReadCertCasesAllow() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		assertReadCertCases(3);
 	}
 
-	protected void assertReadCertCases(int expectedNumber) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	protected void assertReadCertCases(int expectedNumber) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         assertContainerSearch(AccessCertificationCaseType.class, null, expectedNumber);
     }
 
@@ -806,7 +811,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		assertSearch(type, query, SelectorOptions.createCollection(GetOperationOptions.createRaw()), expectedResults);
 	}
 
-	protected <C extends Containerable> void assertContainerSearch(Class<C> type, ObjectQuery query, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	protected <C extends Containerable> void assertContainerSearch(Class<C> type, ObjectQuery query, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         assertContainerSearch(type, query, null, expectedResults);
     }
 
@@ -932,7 +937,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected <C extends Containerable>
     void assertContainerSearch(Class<C> type, ObjectQuery query,
-                               Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+                               Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertSearchContainers");
         OperationResult result = task.getResult();
         try {
@@ -1362,12 +1367,12 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 
 	protected void assertAuditReadDeny() throws Exception {
-		assertDeny("auditHistory", (task,result) -> getAllAuditRecords(result));
+		assertDeny("auditHistory", (task,result) -> getAllAuditRecords(task, result));
 	}
 
 	protected void assertAuditReadAllow() throws Exception {
 		assertAllow("auditHistory", (task,result) -> {
-			List<AuditEventRecord> auditRecords = getAllAuditRecords(result);
+			List<AuditEventRecord> auditRecords = getAllAuditRecords(task, result);
 			assertTrue("No audit records", auditRecords != null && !auditRecords.isEmpty());
 		});
 	}

@@ -398,7 +398,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	public ObjectSynchronizationType determineSynchronizationPolicy(ResourceType resourceType,
 			PrismObject<? extends ShadowType> currentShadow,
 			PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		SynchronizationType synchronization = resourceType.getSynchronization();
 		if (synchronization == null) {
@@ -416,7 +416,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	private boolean isPolicyApplicable(PrismObject<? extends ShadowType> currentShadow,
 			ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource,
 			PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (!SynchronizationUtils.isPolicyApplicable(currentShadow, synchronizationPolicy, resource)) {
 			return false;
@@ -434,7 +434,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	private Boolean evaluateSynchronizationPolicyCondition(ObjectSynchronizationType synchronizationPolicy,
 			PrismObject<? extends ShadowType> currentShadow, PrismObject<ResourceType> resource,
 			PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
-					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (synchronizationPolicy.getCondition() == null) {
 			return null;
 		}
@@ -589,7 +589,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			PrismObject<F> focus, ResourceType resourceType,
 			PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
 					throws ConfigurationException, SchemaException, ObjectNotFoundException,
-					ExpressionEvaluationException {
+					ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		ObjectSynchronizationType synchronizationPolicy = determineSynchronizationPolicy(resourceType, shadow,
 				configuration, task, result);
 		Class<F> focusClass;
@@ -617,7 +617,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			Class<F> focusType, ResourceObjectShadowChangeDescription change,
 			ObjectSynchronizationType synchronizationPolicy, PrismObject<F> owner,
 			SystemConfigurationType configurationType, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (ChangeType.DELETE.equals(getModificationType(change))) {
 			// account was deleted and we know it didn't have owner

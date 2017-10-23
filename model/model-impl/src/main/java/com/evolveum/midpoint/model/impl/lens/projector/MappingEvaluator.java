@@ -31,7 +31,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.Source;
-import com.evolveum.midpoint.repo.common.expression.StringPolicyResolver;
+import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
@@ -112,12 +112,12 @@ public class MappingEvaluator {
     public static final List<QName> FOCUS_VARIABLE_NAMES = Arrays.asList(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
 
 	public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
-			Mapping<V,D> mapping, LensContext<F> lensContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			Mapping<V,D> mapping, LensContext<F> lensContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
     	evaluateMapping(mapping, lensContext, null, task, parentResult);
     }
 
     public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
-			Mapping<V,D> mapping, LensContext<F> lensContext, LensProjectionContext projContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			Mapping<V,D> mapping, LensContext<F> lensContext, LensProjectionContext projContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
     	ExpressionEnvironment<F> env = new ExpressionEnvironment<>();
 		env.setLensContext(lensContext);
 		env.setProjectionContext(projContext);
@@ -627,7 +627,7 @@ public class MappingEvaluator {
 			return null;
 		}
 
-		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+		ValuePolicyResolver stringPolicyResolver = new ValuePolicyResolver() {
 			private ItemPath outputPath;
 			private ItemDefinition outputDefinition;
 			@Override
@@ -641,14 +641,14 @@ public class MappingEvaluator {
 			}
 
 			@Override
-			public StringPolicyType resolve() {
+			public ValuePolicyType resolve() {
 				// TODO need to switch to ObjectValuePolicyEvaluator
 				if (outputDefinition.getName().equals(PasswordType.F_VALUE)) {
 					ValuePolicyType passwordPolicy = credentialsProcessor.determinePasswordPolicy(context.getFocusContext(), task, result);
 					if (passwordPolicy == null) {
 						return null;
 					}
-					return passwordPolicy.getStringPolicy();
+					return passwordPolicy;
 				}
 				if (mappingType.getExpression() != null){
 					List<JAXBElement<?>> evaluators = mappingType.getExpression().getExpressionEvaluator();
@@ -661,7 +661,7 @@ public class MappingEvaluator {
 									ValuePolicyType valuePolicyType = mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class,
 											null, "resolving value policy for generate attribute "+ outputDefinition.getName()+" value", task, new OperationResult("Resolving value policy"));
 									if (valuePolicyType != null) {
-										return valuePolicyType.getStringPolicy();
+										return valuePolicyType;
 									}
 								} catch (CommonException ex) {
 									throw new SystemException(ex.getMessage(), ex);
@@ -692,7 +692,7 @@ public class MappingEvaluator {
 				.originalTargetValues(targetValues)
 				.originType(OriginType.USER_POLICY)
 				.originObject(originObject)
-				.stringPolicyResolver(stringPolicyResolver)
+				.valuePolicyResolver(stringPolicyResolver)
 				.rootNode(focusOdo)
 				.now(now);
 
