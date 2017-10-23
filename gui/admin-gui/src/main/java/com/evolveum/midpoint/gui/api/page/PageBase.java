@@ -1204,8 +1204,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		}
 
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
-				AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+				AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL,
+				AuthorizationConstants.AUTZ_UI_CASES_ALLOCATED_TO_ME_URL, AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
+				AuthorizationConstants.AUTZ_GUI_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
 			if (getWorkflowManager().isEnabled()) {
 				items.add(createWorkItemsItems());
 			}
@@ -1284,20 +1285,17 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				PageProcessInstancesAll.class);
 		submenu.add(menu);
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CASE_URL,
-				AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
-				AuthorizationConstants.AUTZ_GUI_ALL_URL,
-				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-			menu = new MenuItem(createStringResource("PageAdmin.menu.top.cases.list"), PageCasesAllocatedToMe.class);
-			submenu.add(menu);
-			menu = new MenuItem(createStringResource("PageAdmin.menu.top.caseWorkItems.list"), PageCaseWorkItemsAllocatedToMe.class);
-			submenu.add(menu);
-			menu = new MenuItem(createStringResource("PageAdmin.menu.top.caseWorkItems.listAll"), PageCaseWorkItemsAll.class);
-			submenu.add(menu);
-			createFocusPageViewMenu(submenu, "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
-			menu = new MenuItem(createStringResource("PageAdmin.menu.top.case.new"), PageCase.class);
-			submenu.add(menu);
-		}
+		menu = new MenuItem(createStringResource("PageAdmin.menu.top.cases.list"), PageCasesAllocatedToMe.class);
+		submenu.add(menu);
+		menu = new MenuItem(createStringResource("PageAdmin.menu.top.cases.listAll"), PageCasesAll.class);
+		submenu.add(menu);
+		menu = new MenuItem(createStringResource("PageAdmin.menu.top.caseWorkItems.list"), PageCaseWorkItemsAllocatedToMe.class);
+		submenu.add(menu);
+		menu = new MenuItem(createStringResource("PageAdmin.menu.top.caseWorkItems.listAll"), PageCaseWorkItemsAll.class);
+		submenu.add(menu);
+		createFocusPageViewMenu(submenu, "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
+		menu = new MenuItem(createStringResource("PageAdmin.menu.top.case.new"), PageCase.class);
+		submenu.add(menu);
 
 		return item;
 	}
