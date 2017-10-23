@@ -97,6 +97,8 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 	boolean isAbstract();
 
 	boolean isDeprecated();
+	
+	String getDeprecatedSince();
 
 	/**
 	 * True for definitions that are more important than others and that should be emphasized

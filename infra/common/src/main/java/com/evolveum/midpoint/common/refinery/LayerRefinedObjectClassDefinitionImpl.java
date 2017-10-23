@@ -466,6 +466,11 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	public boolean isDeprecated() {
 		return refinedObjectClassDefinition.isDeprecated();
 	}
+    
+    @Override
+    public String getDeprecatedSince() {
+    	return refinedObjectClassDefinition.getDeprecatedSince();
+    }
 
     @Override
 	public String getDocumentation() {
