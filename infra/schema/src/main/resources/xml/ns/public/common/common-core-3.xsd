@@ -1604,6 +1604,16 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="cleanupAfterCompletion" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If set, the task is automatically cleaned up after this time following its completion.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="nextRunStartTimestamp" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -9617,6 +9627,18 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+        	<xsd:element name="limitations" type="tns:AuthorizationLimitationsType" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Limitations of this authotization when it is applied to other authorizations.
+        				For example this specification may limit the power of attorney.
+        				It is only applicable to some authorization types.
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.7</a:since>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
         	<!-- TODO: more elements will be added in the future: condition, parameters -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
@@ -9685,7 +9707,8 @@
     <xsd:simpleType name="AuthorizationEnforcementStrategyType">
         <xsd:annotation>
         	<xsd:documentation>
-        		Specifies of when to enforce an authorization.
+        		Limitations of this authotization when it is applied to other authorizations.
+   				For example this specification may limit the power of attorney.
         	</xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -9726,6 +9749,45 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+    
+    <xsd:complexType name="AuthorizationLimitationsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                	Limitations of this authotization when it is applied to other authorizations.
+      				For example this specification may limit the power of attorney.
+       				It is only applicable to some authorization types.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="action" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Limitation of action. If any action is specified then the authorization
+        				is limited only to those actions.
+        				E.g. if this is applied to attorney authorization then only those
+        				actions from the object are considere to be delegated to attorney.
+        				Actions that are not part of this list are not delegated.
+        				If the list is empty then there is no limitation. All actions
+        				are delegated.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<!-- Those limitations may come in the future:
+        	<xsd:element name="object" type="tns:OwnedObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+        	</xsd:element>
+        	<xsd:element name="item" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">
+        	</xsd:element>
+        	<xsd:element name="target" type="tns:OwnedObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+        	</xsd:element>  -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+	</xsd:complexType>
 
 	<xsd:complexType name="ObjectSelectorType">
         <xsd:annotation>

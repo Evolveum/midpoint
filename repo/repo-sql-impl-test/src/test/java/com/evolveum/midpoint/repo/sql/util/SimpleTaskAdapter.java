@@ -845,4 +845,8 @@ public class SimpleTaskAdapter implements Task {
     public List<String> getLastFailures() {
         return Collections.emptyList();
     }
+
+    @Override
+    public void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) {
+    }
 }
