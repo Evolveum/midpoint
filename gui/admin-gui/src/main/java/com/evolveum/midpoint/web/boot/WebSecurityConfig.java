@@ -16,7 +16,8 @@
 
 package com.evolveum.midpoint.web.boot;
 
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.web.security.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
@@ -50,8 +51,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public MidPointGuiAuthorizationEvaluator accessDecisionManager(SecurityEnforcer securityEnforcer) {
-        return new MidPointGuiAuthorizationEvaluator(securityEnforcer);
+    public MidPointGuiAuthorizationEvaluator accessDecisionManager(SecurityEnforcer securityEnforcer,
+                                                                   SecurityContextManager securityContextManager) {
+        return new MidPointGuiAuthorizationEvaluator(securityEnforcer, securityContextManager);
     }
 
     @Profile("sso")
