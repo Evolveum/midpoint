@@ -8607,8 +8607,19 @@
                     <xsd:element name="iterationToken" type="xsd:string" minOccurs="0">
                     </xsd:element>
                     <xsd:element name="attributes" type="tns:ShadowAttributesType" minOccurs="0">
+	                    <xsd:annotation>
+	                    	<xsd:appinfo>
+	                    		<a:displayName>ShadowType.attributes</a:displayName>
+	                    	</xsd:appinfo>
+	                    </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="association" type="tns:ShadowAssociationType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="association" type="tns:ShadowAssociationType" minOccurs="0" maxOccurs="unbounded">
+                    	<xsd:annotation>
+                    		<xsd:appinfo>
+                    			<a:displayName>ShadowType.association</a:displayName>
+                    		</xsd:appinfo>
+                    	</xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="activation" type="tns:ActivationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
