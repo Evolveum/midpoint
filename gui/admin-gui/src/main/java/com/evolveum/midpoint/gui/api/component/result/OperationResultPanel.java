@@ -22,7 +22,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
+import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -254,24 +257,36 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 	}
 
 	private Label createMessage() {
-		Label message = null;
-		if (StringUtils.isNotBlank(getModelObject().getMessage())) {
-			PropertyModel<String> messageModel = new PropertyModel<String>(getModel(), "message");
-			message = new Label(ID_MESSAGE_LABEL, messageModel);
-		} else {
-			message = new Label(ID_MESSAGE_LABEL, new LoadableModel<Object>() {
-				private static final long serialVersionUID = 1L;
+		Label message = new Label(ID_MESSAGE_LABEL, new AbstractReadOnlyModel<String>() {
 
-				@Override
-				protected Object load() {
-					OpResult result = OperationResultPanel.this.getModelObject();
-					String resourceKey = OPERATION_RESOURCE_KEY_PREFIX + result.getOperation();
-					return getPage().getString(resourceKey, null, resourceKey);
+			@Override
+			public String getObject() {
+				OpResult result = OperationResultPanel.this.getModel().getObject();
+
+				PageBase page = getPageBase();
+
+				String msg = null;
+				if (result.getUserFriendlyMessage() != null) {
+					LocalizationService service = page.getLocalizationService();
+					Locale locale = page.getSession().getLocale();
+
+					msg = service.translate(result.getUserFriendlyMessage(), locale);
 				}
-			});
-		}
 
-		//message.setRenderBodyOnly(true);
+				if (StringUtils.isNotBlank(msg)) {
+					return msg;
+				}
+
+				msg = result.getMessage();
+				if (StringUtils.isNotBlank(msg)) {
+					return msg;
+				}
+
+				String resourceKey = OPERATION_RESOURCE_KEY_PREFIX + result.getOperation();
+				return page.getString(resourceKey, null, resourceKey);
+			}
+		});
+
 		message.setOutputMarkupId(true);
 		return message;
 	}

@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionParameterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionReturnMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 
@@ -77,8 +78,6 @@ public class CustomFunctions {
 
 		LOGGER.trace("fuction to execute {}", expression);
 		
-		
-		
 		try {
 			ExpressionVariables variables = new ExpressionVariables();
 			if (MapUtils.isNotEmpty(params)) {
@@ -95,6 +94,11 @@ public class CustomFunctions {
 			ItemDefinition outputDefinition = prismContext.getSchemaRegistry().findItemDefinitionByType(returnType);
 			if (outputDefinition == null) {
 				outputDefinition = new PrismPropertyDefinitionImpl<>(SchemaConstantsGenerated.C_VALUE, returnType, prismContext);
+			}
+			if (expression.getReturnMultiplicity() != null && expression.getReturnMultiplicity() == ExpressionReturnMultiplicityType.MULTI) {
+				outputDefinition.setMaxOccurs(-1);
+			} else {
+				outputDefinition.setMaxOccurs(1);
 			}
 			
 			return ExpressionUtil.evaluateExpression(variables, outputDefinition, expression, expressionFactory, "description", task, result);

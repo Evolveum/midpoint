@@ -630,11 +630,15 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			return false;
 		}
 
+		if (def.isDeprecated() && containerValue.isEmpty()) {
+			return false;
+		}
+		
 		if (def.getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
 			return isShowMetadata();
 		}
-
-		// TODO: emphasized
+		
+			// TODO: emphasized
 		switch (status) {
 			case NOT_CHANGED:
 				return canReadAndModify(def) || showEmptyCanReadAndModify(def);

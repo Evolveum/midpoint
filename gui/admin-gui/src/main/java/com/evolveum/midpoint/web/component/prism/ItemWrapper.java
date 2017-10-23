@@ -72,6 +72,10 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition, V> exten
      * Used to display the form elements with stripe in every other line.
      */
 	boolean isStripe();
+	
+	boolean isDeprecated();
+	
+	String getDeprecatedSince();
 
     void setStripe(boolean isStripe);
 

@@ -395,6 +395,13 @@ CREATE TABLE m_form (
   PRIMARY KEY (oid)
 );
 
+CREATE TABLE m_function_library (
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
+  oid       VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
+);
+
 CREATE TABLE m_generic_object (
   name_norm  VARCHAR(255),
   name_orig  VARCHAR(255),
@@ -867,6 +874,9 @@ CREATE INDEX iFocusEffective ON m_focus (effectiveStatus);
 ALTER TABLE m_form
   ADD CONSTRAINT uc_form_name UNIQUE (name_norm);
 
+ALTER TABLE m_function_library
+  ADD CONSTRAINT uc_function_library_name UNIQUE (name_norm);
+
 ALTER TABLE m_generic_object
 ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm);
 
@@ -1143,6 +1153,11 @@ REFERENCES m_focus;
 
 ALTER TABLE m_form
   ADD CONSTRAINT fk_form
+FOREIGN KEY (oid)
+REFERENCES m_object;
+
+ALTER TABLE m_function_library
+  ADD CONSTRAINT fk_function_library
 FOREIGN KEY (oid)
 REFERENCES m_object;
 

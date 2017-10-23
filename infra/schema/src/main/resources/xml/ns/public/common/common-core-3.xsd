@@ -6953,11 +6953,22 @@
         	<xsd:element name="name" type="xsd:string" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Name of the function
+						Name of the expression (function). The name is used for several purposed.
+						If the expression is a function in a function library then this name identifies
+						the function (the name must be unique in the whole library).
+						But even if the expression is not part of the library the name may still be used
+						for diagnostic purposes.
+						
+						Note: There are no formal limitations about the characters used in the
+						name, length of the name and so on. However, special characters in the function
+						name may prohibit reasonable use of the function in some scripting languages.
+						Therefore the recommendation is to use only aplhanumeric names and to avoid
+						white spaces in the names. 
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="parameter" type="tns:ExpressionParameterType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -6968,11 +6979,12 @@
 			<xsd:element name="returnType" type="xsd:QName" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Name of the function
+						Formal definition of function return type. It may not be specified
+						if the expression is used in places where the return type can be
+						automatically determined (e.g. mappings).
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-            <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="trace" type="xsd:boolean" minOccurs="0" maxOccurs="1">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -7070,10 +7082,10 @@
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
-    		<xsd:element name="value" type="xsd:anyURI" minOccurs="0">
+    		<xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
     			<xsd:annotation>
     				<xsd:documentation>
-    					Parameter type
+    					Expression that determines parameter value.
     				</xsd:documentation>
     			</xsd:annotation>
     		</xsd:element>
@@ -7299,28 +7311,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="function" type="tns:FunctionType" minOccurs="0">
-        		<xsd:annotation>
-        			<xsd:documentation>
-        				Name of the function to use
-        			</xsd:documentation>
-        		</xsd:annotation>
-        	</xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-	<xsd:element name="function" type="tns:FunctionExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
-	
-	<xsd:complexType name="FunctionType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Declaring the function to execute with function expression evaluator
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:since>3.7</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="name" type="xsd:string" minOccurs="1">
+        	<xsd:element name="name" type="xsd:string" minOccurs="1">
 				<xsd:annotation>
         			<xsd:documentation>
         				Name of the function to use
@@ -7334,10 +7325,11 @@
         			</xsd:documentation>
         		</xsd:annotation>
 			</xsd:element>
-		</xsd:sequence>
-	</xsd:complexType>
+        </xsd:sequence>
+    </xsd:complexType>
+	<xsd:element name="function" type="tns:FunctionExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 	
-    <xsd:complexType name="GenerateExpressionEvaluatorType">
+	<xsd:complexType name="GenerateExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>
                 Generate value according to a policy that is associated with the property/attribute.
@@ -9158,6 +9150,8 @@
                             </xsd:documentation>
                              <xsd:appinfo>
                                 <a:displayName>AbstractRoleType.owner</a:displayName>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>3.7</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -9172,6 +9166,8 @@
                             </xsd:documentation>
                              <xsd:appinfo>
                                 <a:displayName>AbstractRoleType.approver</a:displayName>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>3.7</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11346,7 +11342,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="localizedMessage" type="tns:LocalizableMessageType" minOccurs="0"/>
+            <xsd:element name="userFriendlyMessage" type="tns:LocalizableMessageType" minOccurs="0"/>
             <xsd:element name="details" type="xsd:string" minOccurs="0"/>
             <xsd:element name="partialResults" type="tns:OperationResultType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
