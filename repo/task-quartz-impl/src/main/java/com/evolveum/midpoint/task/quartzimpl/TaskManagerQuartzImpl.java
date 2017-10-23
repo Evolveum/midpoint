@@ -1686,14 +1686,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     // use with care (e.g. w.r.t. dependent tasks)
     public void closeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
         try {
-            // todo do in one modify operation
-			// todo deduplicate
 			OperationResult taskResult = updateTaskResult(task);
-			if (taskResult != null) {
-				task.setResultImmediate(taskResult, parentResult);
-			}
-            ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.CLOSED, parentResult);
-            ((TaskQuartzImpl) task).setCompletionTimestampImmediate(System.currentTimeMillis(), parentResult);
+			task.close(taskResult, true, parentResult);
         } finally {
             if (task.isPersistent()) {
                 executionManager.removeTaskFromQuartz(task.getOid(), parentResult);
@@ -1708,13 +1702,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 	// do not forget to kick dependent tasks when closing this one (currently only done in finishHandler)
     public void closeTaskWithoutSavingState(Task task, OperationResult parentResult) {
-		// todo deduplicate
 		OperationResult taskResult = updateTaskResult(task);
-		if (taskResult != null) {
-			task.setResult(taskResult);
+		try {
+			task.close(taskResult, false, parentResult);
+		} catch (ObjectNotFoundException | SchemaException e) {
+			throw new SystemException(e);       // shouldn't occur
 		}
-        ((TaskQuartzImpl) task).setExecutionStatus(TaskExecutionStatus.CLOSED);
-        ((TaskQuartzImpl) task).setCompletionTimestamp(System.currentTimeMillis());
         executionManager.removeTaskFromQuartz(task.getOid(), parentResult);
     }
 

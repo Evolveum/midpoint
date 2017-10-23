@@ -127,6 +127,11 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	public boolean isDeprecated() {
 		return structuralObjectClassDefinition.isDeprecated();
 	}
+	
+	@Override
+	public String getDeprecatedSince() {
+		return structuralObjectClassDefinition.getDeprecatedSince();
+	}
 
 	@Override
 	public Integer getDisplayOrder() {

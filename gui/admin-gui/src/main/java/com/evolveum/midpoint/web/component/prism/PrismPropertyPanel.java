@@ -56,6 +56,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 	private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
     private static final String ID_HAS_PENDING_MODIFICATION = "hasPendingModification";
     private static final String ID_HELP = "help";
+    private static final String ID_DEPRECATED = "deprecated";
     private static final String ID_LABEL = "label";
     private static final String ID_LABEL_CONTAINER = "labelContainer";
 
@@ -108,7 +109,20 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         add(labelContainer);
 
         final IModel<String> label = createDisplayName(model);
-        labelContainer.add(new Label(ID_LABEL, label));
+        Label displayName = new Label(ID_LABEL, label);
+        displayName.add(new AttributeModifier("style", new AbstractReadOnlyModel<String>() {
+        	
+        	private static final long serialVersionUID = 1L;
+
+			@Override
+        	public String getObject() {
+        		if (model.getObject().isDeprecated()) {
+        			return "text-decoration: line-through;";
+        		}
+        		return "text-decoration: none;";
+        	}
+		}));
+        labelContainer.add(displayName);
 
         final IModel<String> helpText = new LoadableModel<String>(false) {
         	private static final long serialVersionUID = 1L;
@@ -130,6 +144,37 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
             }
         });
         labelContainer.add(help);
+        
+        Label deprecated = new Label(ID_DEPRECATED);
+        deprecated.add(AttributeModifier.replace("deprecated", new AbstractReadOnlyModel<String>() {
+        	
+        	private static final long serialVersionUID = 1L;
+
+			@Override
+        	public String getObject() {
+        		return model.getObject().getDeprecatedSince();
+        	}
+		}));
+        deprecated.add(new InfoTooltipBehavior() {
+        	
+        	private static final long serialVersionUID = 1L;
+
+			@Override
+        	public String getCssClass() {
+        		return "fa fa-fw fa-warning text-warning";
+        	}
+        	
+        	
+        });
+        deprecated.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return model.getObject().isDeprecated();
+            }
+        });
+        labelContainer.add(deprecated);
 
         WebMarkupContainer required = new WebMarkupContainer("required");
         required.add(new VisibleEnableBehaviour() {

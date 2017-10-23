@@ -499,5 +499,15 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		// TODO Auto-generated method stub
 		
 	}
+	
+	@Override
+	public boolean isDeprecated() {
+		return getItemDefinition().isDeprecated();
+	}
 
+	@Override
+	public String getDeprecatedSince() {
+		return getItemDefinition().getDeprecatedSince();
+	}
+	
 }

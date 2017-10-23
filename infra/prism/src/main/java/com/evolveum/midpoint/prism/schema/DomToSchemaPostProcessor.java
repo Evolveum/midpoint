@@ -1041,6 +1041,12 @@ class DomToSchemaPostProcessor {
 		if (deprecated != null) {
 			itemDef.setDeprecated(deprecated);
 		}
+		
+		//deprecated since
+		Element deprecatedSince = SchemaProcessorUtil.getAnnotationElement(annotation, A_DEPRECATED_SINCE);
+		if (deprecatedSince != null) {
+			itemDef.setDeprecatedSince(deprecatedSince.getTextContent());
+		}
 
 		// operational
 		Boolean operational = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_OPERATIONAL);
