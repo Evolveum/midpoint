@@ -22,9 +22,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -42,11 +39,13 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -54,6 +53,7 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -64,14 +64,32 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.prism.CheckTableHeader;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.PrismPanel;
+import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
+import com.evolveum.midpoint.web.component.prism.SimpleErrorPanel;
+import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 
 /**
  * @author semancik
@@ -85,8 +103,6 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 	private static final String ID_SHADOW = "shadow";
 	private static final String ID_SHADOW_MENU = "shadowMenu";
 	private static final String ID_SHADOW_CHECK_ALL = "shadowCheckAll";
-
-	private static final String MODAL_ID_RESOURCE = "resourcePopup";
 
 	private static final String DOT_CLASS = FocusProjectionsTabPanel.class.getName() + ".";
 	private static final String OPERATION_ADD_ACCOUNT = DOT_CLASS + "addShadow";
@@ -121,7 +137,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			protected void populateItem(final ListItem<FocusSubwrapperDto<ShadowType>> item) {
 				PackageResourceReference packageRef;
 				final FocusSubwrapperDto<ShadowType> dto = item.getModelObject();
-				final PropertyModel<ObjectWrapper<F>> objectWrapperModel = new PropertyModel<ObjectWrapper<F>>(
+				final PropertyModel<ObjectWrapper<ShadowType>> objectWrapperModel = new PropertyModel<ObjectWrapper<ShadowType>>(
 						item.getModel(), "object");
 
 				final Panel shadowPanel;
@@ -130,11 +146,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 					packageRef = new PackageResourceReference(ImgResources.class, ImgResources.HDD_PRISM);
 
 					shadowPanel = new PrismPanel<F>(ID_SHADOW,
-							new ContainerWrapperListFromObjectWrapperModel(objectWrapperModel, 
-									Arrays.asList(new ItemPath(ShadowType.F_ATTRIBUTES), 
-											SchemaConstants.PATH_ACTIVATION, SchemaConstants.PATH_PASSWORD
-											,new ItemPath(ShadowType.F_ASSOCIATION ))), packageRef,
-							getMainForm(), null, getPageBase());
+							new ContainerWrapperListFromObjectWrapperModel<>(objectWrapperModel, 
+									WebComponentUtil.getShadowItemsToShow()), packageRef,
+							getMainForm(), itemWrapper -> WebComponentUtil.checkShadowActivationAndPasswordVisibility(itemWrapper, objectWrapperModel), getPageBase());
 				} else {
 					shadowPanel = new SimpleErrorPanel<ShadowType>(ID_SHADOW, item.getModel()) {
 						private static final long serialVersionUID = 1L;
@@ -166,7 +180,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
 				item.add(shadowPanel);
 
-				CheckTableHeader<F> shadowHeader = new CheckTableHeader<F>(ID_SHADOW_HEADER,
+				CheckTableHeader<ShadowType> shadowHeader = new CheckTableHeader<ShadowType>(ID_SHADOW_HEADER,
 						objectWrapperModel) {
 					private static final long serialVersionUID = 1L;
 
@@ -203,7 +217,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
 		shadows.add(projectionList);
 	}
-
+	
 	private void onExpandCollapse(AjaxRequestTarget target, IModel<FocusSubwrapperDto<ShadowType>> dtoModel) {
 		FocusSubwrapperDto<ShadowType> shadowWrapperDto = dtoModel.getObject();
 		ObjectWrapper<ShadowType> shadowWrapper = shadowWrapperDto.getObject();
@@ -276,7 +290,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 	private List<InlineMenuItem> createShadowMenu() {
 		List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
 
-		PrismObjectDefinition def = getObjectWrapper().getObject().getDefinition();
+		PrismObjectDefinition<F> def = getObjectWrapper().getObject().getDefinition();
 		PrismReferenceDefinition ref = def.findReferenceDefinition(UserType.F_LINK_REF);
 		InlineMenuItem item;
 		if (ref.canRead() && ref.canAdd()) {
@@ -293,10 +307,10 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 									pageBase.getMainPopupBodyId(), ResourceType.class, supportedTypes, true,
 									pageBase) {
 
+								private static final long serialVersionUID = 1L;
 								@Override
 								protected void addPerformed(AjaxRequestTarget target, QName type,
 										List<ResourceType> selected) {
-									// TODO Auto-generated method stub
 									FocusProjectionsTabPanel.this.addSelectedAccountPerformed(target,
 											selected);
 								}
@@ -309,9 +323,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			items.add(item);
 			items.add(new InlineMenuItem());
 		}
-		PrismPropertyDefinition prop = def
+		PrismPropertyDefinition<ActivationStatusType> administrativeStatus = def
 				.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-		if (prop.canRead() && prop.canModify()) {
+		if (administrativeStatus.canRead() && administrativeStatus.canModify()) {
 			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.enable"),
 					new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
@@ -350,8 +364,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 					});
 			items.add(item);
 		}
-		prop = def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
-		if (prop.canRead() && prop.canModify()) {
+		PrismPropertyDefinition<LockoutStatusType> locakoutStatus = def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
+		if (locakoutStatus.canRead() && locakoutStatus.canModify()) {
 			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlock"),
 					new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
@@ -364,8 +378,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 					});
 			items.add(item);
 		}
-		prop = def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-		if (prop.canRead() && prop.canModify()) {
+		if (administrativeStatus.canRead() && administrativeStatus.canModify()) {
 			items.add(new InlineMenuItem());
 			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.delete"),
 					new InlineMenuItemAction() {

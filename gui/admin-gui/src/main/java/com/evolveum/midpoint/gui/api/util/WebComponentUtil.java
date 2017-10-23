@@ -50,6 +50,8 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -136,6 +138,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -940,6 +943,7 @@ public final class WebComponentUtil {
 		if (object == null) {
 			return null;
 		}
+		
 		String displayName = getDisplayName(object);
 		return displayName != null ? displayName : getName(object);
 	}
@@ -2154,5 +2158,45 @@ public final class WebComponentUtil {
 					actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
 		}
 	}
+	
+	public static List<ItemPath> getShadowItemsToShow() {
+		return Arrays.asList(new ItemPath(ShadowType.F_ATTRIBUTES), SchemaConstants.PATH_ACTIVATION,
+				SchemaConstants.PATH_PASSWORD, new ItemPath(ShadowType.F_ASSOCIATION));
+	}
 
+	public static boolean checkShadowActivationAndPasswordVisibility(ItemWrapper itemWrapper, IModel<ObjectWrapper<ShadowType>> shadowModel) {
+		
+		ObjectWrapper<ShadowType> shadowWrapper = shadowModel.getObject();
+		PrismObject<ShadowType> shadow = shadowWrapper.getObject();
+		ShadowType shadowType = shadow.asObjectable();
+		
+		ResourceType resource = shadowType.getResource();
+		if (resource == null) {
+			//TODO: what to return if we don't have resource available?
+			return true;
+		}
+		
+		if (SchemaConstants.PATH_ACTIVATION.equivalent(itemWrapper.getPath())) {
+			return ResourceTypeUtil.isActivationCapabilityEnabled(resource);
+		}
+		
+		if (SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS.equivalent(itemWrapper.getPath())) {
+			return ResourceTypeUtil.isActivationStatusCapabilityEnabled(resource);
+		}
+		
+		if (SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS.equivalent(itemWrapper.getPath())) {
+			return ResourceTypeUtil.isActivationLockoutStatusCapabilityEnabled(resource);
+		}
+		
+		if (SchemaConstants.PATH_ACTIVATION_VALID_FROM.equivalent(itemWrapper.getPath()) || SchemaConstants.PATH_ACTIVATION_VALID_TO.equivalent(itemWrapper.getPath())) {
+			return ResourceTypeUtil.isActivationValidityCapabilityEnabled(resource);
+		}
+		
+		if (SchemaConstants.PATH_PASSWORD.equivalent(itemWrapper.getPath())) {
+			return ResourceTypeUtil.isPasswordCapabilityEnabled(resource);
+		}
+		
+		return true;
+		
+	}
 }
