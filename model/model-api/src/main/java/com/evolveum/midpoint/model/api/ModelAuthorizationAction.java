@@ -46,6 +46,7 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
 	ASSIGN("assign", "Assign", "ASSIGN_HELP"),
 	UNASSIGN("unassign", "Unassign", "UNASSIGN_HELP"),
 	DELEGATE("delegate", "Delegate", "DELEGATE_HELP"),
+	ATTORNEY("attroney", "Attorney", "ATTRONEY_HELP"),
     EXECUTE_SCRIPT("executeScript", "Execute script", "EXECUTE_SCRIPT_HELP"),
     CHANGE_CREDENTIALS("changeCredentials", "Change credentials", "CHANGE_CREDENTIALS_HELP"),
 
