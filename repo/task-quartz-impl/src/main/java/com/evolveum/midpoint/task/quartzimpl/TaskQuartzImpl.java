@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.EnvironmentalPerformanceInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
@@ -77,14 +78,18 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.concurrent.Future;
 
+import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.singleton;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 /**
  * Implementation of a Task.
@@ -380,11 +385,14 @@ public class TaskQuartzImpl implements Task {
 	private void processModificationNow(ItemDelta<?,?> delta, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		if (delta != null) {
-			Collection<ItemDelta<?,?>> deltas = new ArrayList<ItemDelta<?,?>>(1);
-			deltas.add(delta);
-			repositoryService.modifyObject(TaskType.class, getOid(), deltas, parentResult);
-			synchronizeWithQuartzIfNeeded(deltas, parentResult);
+			processModificationsNow(singleton(delta), parentResult);
 		}
+	}
+
+	private void processModificationsNow(Collection<ItemDelta<?,?>> deltas, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		repositoryService.modifyObject(TaskType.class, getOid(), deltas, parentResult);
+		synchronizeWithQuartzIfNeeded(deltas, parentResult);
 	}
 
 	private void processModificationBatched(ItemDelta<?,?> delta) {
@@ -534,17 +542,15 @@ public class TaskQuartzImpl implements Task {
 
     public void setResultTransient(OperationResult result) {
 		this.taskResult = result;
-        this.taskPrism.asObjectable().setResult(result.createOperationResultType());
+        this.taskPrism.asObjectable().setResult(result != null ? result.createOperationResultType() : null);
         setResultStatusTypeTransient(result != null ? result.getStatus().createStatusType() : null);
 	}
 
 	private PropertyDelta<?> setResultAndPrepareDelta(OperationResult result) {
 		setResultTransient(result);
 		if (isPersistent()) {
-			PropertyDelta<?> d = PropertyDelta.createReplaceDeltaOrEmptyDelta(taskManager.getTaskObjectDefinition(),
+			return PropertyDelta.createReplaceDeltaOrEmptyDelta(taskManager.getTaskObjectDefinition(),
 						TaskType.F_RESULT, result != null ? result.createOperationResultType() : null);
-			LOGGER.trace("setResult delta = " + d.debugDump());
-			return d;
 		} else {
 			return null;
 		}
@@ -1766,8 +1772,25 @@ public class TaskQuartzImpl implements Task {
     }
 
     /*
-      * Extension
-      */
+     *  Trigger
+     */
+
+	public void addTriggerTransient(TriggerType trigger) {
+		taskPrism.asObjectable().getTrigger().add(trigger);
+	}
+
+	private ItemDelta<?,?> addTriggerAndPrepareDelta(TriggerType trigger) throws SchemaException {
+		addTriggerTransient(trigger.clone());
+		return isPersistent() ?
+				DeltaBuilder.deltaFor(TaskType.class, getPrismContext())
+					.item(TaskType.F_TRIGGER).add(trigger.clone())
+					.asItemDelta()
+				: null;
+	}
+
+    /*
+     *  Extension
+     */
 
 	@Override
 	public PrismContainer<?> getExtension() {
@@ -2217,7 +2240,7 @@ public class TaskQuartzImpl implements Task {
 
 	public void setLastRunStartTimestampTransient(Long value) {
 		taskPrism.asObjectable().setLastRunStartTimestamp(
-				XmlTypeConverter.createXMLGregorianCalendar(value));
+				createXMLGregorianCalendar(value));
 	}
 
 	private PropertyDelta<?> setLastRunStartTimestampAndPrepareDelta(Long value) {
@@ -2254,7 +2277,7 @@ public class TaskQuartzImpl implements Task {
 
 	public void setLastRunFinishTimestampTransient(Long value) {
 		taskPrism.asObjectable().setLastRunFinishTimestamp(
-				XmlTypeConverter.createXMLGregorianCalendar(value));
+				createXMLGregorianCalendar(value));
 	}
 
 	private PropertyDelta<?> setLastRunFinishTimestampAndPrepareDelta(Long value) {
@@ -2291,7 +2314,7 @@ public class TaskQuartzImpl implements Task {
 
     public void setCompletionTimestampTransient(Long value) {
         taskPrism.asObjectable().setCompletionTimestamp(
-                XmlTypeConverter.createXMLGregorianCalendar(value));
+                createXMLGregorianCalendar(value));
     }
 
     private PropertyDelta<?> setCompletionTimestampAndPrepareDelta(Long value) {
@@ -2767,7 +2790,7 @@ public class TaskQuartzImpl implements Task {
 		rv.setIterativeTaskInformation(itit);
 		rv.setSynchronizationInformation(sit);
 		rv.setActionsExecutedInformation(aeit);
-		rv.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+		rv.setTimestamp(createXMLGregorianCalendar(new Date()));
 		return rv;
 	}
 
@@ -3024,6 +3047,32 @@ public class TaskQuartzImpl implements Task {
 			savePendingModifications(new OperationResult(DOT_INTERFACE + ".storeOperationStats"));    // TODO fixme
 		} catch (SchemaException|ObjectNotFoundException |ObjectAlreadyExistsException |RuntimeException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't store statistical information into task {}", e, this);
+		}
+	}
+
+	@Override
+	public void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		List<ItemDelta<?, ?>> deltas = new ArrayList<>();
+		if (taskResult != null) {
+			addIgnoreNull(deltas, setResultAndPrepareDelta(taskResult));
+		}
+		addIgnoreNull(deltas, setExecutionStatusAndPrepareDelta(TaskExecutionStatus.CLOSED));
+		addIgnoreNull(deltas, setCompletionTimestampAndPrepareDelta(System.currentTimeMillis()));
+		Duration cleanupAfterCompletion = taskPrism.asObjectable().getCleanupAfterCompletion();
+		if (cleanupAfterCompletion != null) {
+			TriggerType trigger = new TriggerType(getPrismContext())
+					.timestamp(XmlTypeConverter.fromNow(cleanupAfterCompletion))
+					.handlerUri(SchemaConstants.COMPLETED_TASK_CLEANUP_TRIGGER_HANDLER_URI);
+			addIgnoreNull(deltas, addTriggerAndPrepareDelta(trigger));      // we just ignore any other triggers (they will do nothing if launched too early)
+		}
+		if (saveState) {
+			try {
+				processModificationsNow(deltas, parentResult);
+			} catch (ObjectAlreadyExistsException e) {
+				throw new SystemException(e);
+			}
+		} else {
+			pendingModifications.addAll(deltas);
 		}
 	}
 }

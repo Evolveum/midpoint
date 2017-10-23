@@ -1011,4 +1011,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     WfContextType getWorkflowContext();
 
 	void setWorkflowContext(WfContextType context) throws SchemaException;
+
+	void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 }
