@@ -92,6 +92,11 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
         if (getItemDefinition().isOperational() && !isMetadataContainer()) {			// TODO ...or use itemDefinition instead?
 			return false;
 		} 
+        
+        if (getItemDefinition().isDeprecated() && isEmpty()) {
+        	return false;
+        }
+        
         switch (status) {
         	case ADDED : 
         		return canAddDefault() || canAddAndShowEmpty();
