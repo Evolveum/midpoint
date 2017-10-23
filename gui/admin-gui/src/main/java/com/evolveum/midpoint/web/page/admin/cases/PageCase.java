@@ -117,7 +117,7 @@ public class PageCase  extends PageAdminCases {
             } else {
                 getSession().error(getString("pageAdminFocus.message.cantNewFocus"));
             }
-            throw new RestartResponseException(PageCaseWorkItemsAll.class);
+            throw new RestartResponseException(PageCasesAll.class);
         }
 
         ObjectWrapper<CaseType> wrapper;
@@ -205,7 +205,11 @@ public class PageCase  extends PageAdminCases {
                 return;
             }
             if (delta.isAdd()) {
-                createCaseWorkItems(delta.getObjectToAdd().asObjectable(), task, result);
+                CaseType object = delta.getObjectToAdd().asObjectable();
+                createCaseWorkItems(object, task, result);
+                if (object.getState() == null || object.getState().isEmpty()) {
+                    object.setState("open");
+                }
             }
             if (delta.getPrismContext() == null) {
                 getPrismContext().adopt(delta);
