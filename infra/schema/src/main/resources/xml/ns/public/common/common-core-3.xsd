@@ -9140,6 +9140,8 @@
                             </xsd:documentation>
                              <xsd:appinfo>
                                 <a:displayName>AbstractRoleType.owner</a:displayName>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>3.7</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -9154,6 +9156,8 @@
                             </xsd:documentation>
                              <xsd:appinfo>
                                 <a:displayName>AbstractRoleType.approver</a:displayName>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>3.7</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
