@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
@@ -11,8 +11,10 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -24,6 +26,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -96,42 +99,57 @@ public abstract class PageCases extends PageAdminCases {
     }
 
     private void caseDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
+        LOGGER.trace("caseDetailsPerformed()");
+
         PageParameters pageParameters = new PageParameters();
         pageParameters.add(OnePageParameterEncoder.PARAMETER, caseInstance.getOid());
-        LOGGER.trace("caseDetailsPerformed()");
         navigateToNext(PageCase.class, pageParameters);
     }
 
     private List<IColumn<SelectableBean<CaseType>, String>> initColumns() {
         LOGGER.trace("initColumns()");
 
-
         List<IColumn<SelectableBean<CaseType>, String>> columns = new ArrayList<IColumn<SelectableBean<CaseType>, String>>();
 
         IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
         columns.add(column);
 
-        column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.objectRef"), "value.objectRef"){
+        column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.objectRef"), "objectRef"){
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
                 item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
                     @Override
                     public String getObject() {
-                        String resourceName = null;
+                        return getObjectRef(rowModel);
+                    }
+                }));
+            }
+        };
+        columns.add(column);
+
+        column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.actors"), "workItem.assigneeRef"){
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
+                item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                    @Override
+                    public String getObject() {
+                        String actors = null;
                         SelectableBean<CaseType> caseModel = rowModel.getObject();
                         if (caseModel != null) {
                             CaseType caseIntance = caseModel.getValue();
-                            LOGGER.debug("CASE caseIntance: {}", caseIntance);
                             if (caseIntance != null) {
-                                ObjectReferenceType resource = caseIntance.getObjectRef();
-                                if (resource != null) {
-                                    LOGGER.debug("CASE resource target name: {}", resource.getTargetName());
-                                    resourceName = resource.getTargetName() != null ? resource.getTargetName().getOrig() : resource.getOid();
-                                    LOGGER.debug("CASE resource name: {}", resourceName);
+                                List<CaseWorkItemType> caseWorkItemTypes = caseIntance.getWorkItem();
+                                List<String> actorsList = new ArrayList<String>();
+                                for (CaseWorkItemType caseWorkItem : caseWorkItemTypes) {
+                                    List<ObjectReferenceType> assignees = caseWorkItem.getAssigneeRef();
+                                    for (ObjectReferenceType actor : assignees) {
+                                        actorsList.add(actor.getTargetName() != null ? actor.getTargetName().getOrig() : actor.getOid());
+                                    }
                                 }
+                                actors = String.join(", ", actorsList);
                             }
                         }
-                        return resourceName;
+                        return actors;
                     }
                 }));
             }
@@ -147,35 +165,66 @@ public abstract class PageCases extends PageAdminCases {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
                                      String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
-                cellItem.add(new DateLabelComponent(componentId, new AbstractReadOnlyModel<Date>() {
-
-                    private static final long serialVersionUID = 1L;
+                CaseType object = rowModel.getObject().getValue();
+                MetadataType metadata = object != null ? object.getMetadata() : null;
+                XMLGregorianCalendar createdCal = metadata.getCreateTimestamp();
+                final Date created;
+                if (createdCal != null) {
+                    created = createdCal.toGregorianCalendar().getTime();
+//                    cellItem.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(created, DateLabelComponent.LONG_MEDIUM_STYLE)));
+//                    cellItem.add(new TooltipBehavior());
+                } else {
+                    created = null;
+                }
+                cellItem.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
                     @Override
-                    public Date getObject() {
-                        CaseType object = rowModel.getObject().getValue();
-                        MetadataType metadata = object != null ? object.getMetadata() : null;
-                        if (metadata == null) {
-                            return null;
-                        }
-
-                        return XmlTypeConverter.toDate(metadata.getCreateTimestamp());
+                    public String getObject() {
+                        return WebComponentUtil.getLocalizedDate(created, DateLabelComponent.LONG_MEDIUM_STYLE);
                     }
-                }, DateLabelComponent.LONG_MEDIUM_STYLE));
+                }));
             }
         };
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("pageCases.table.closeTimestamp"), "value.closeTimestamp");
+        column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.closeTimestamp"), "value.closeTimestamp") {
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
+                                     String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
+                CaseType object = rowModel.getObject().getValue();
+                XMLGregorianCalendar closedCal = object.getCloseTimestamp();
+                final Date closed;
+                if (closedCal != null) {
+                    closed = closedCal.toGregorianCalendar().getTime();
+//                    cellItem.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE)));
+//                    cellItem.add(new TooltipBehavior());
+                } else {
+                    closed = null;
+                }
+                cellItem.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                    @Override
+                    public String getObject() {
+                        return WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE);
+                    }
+                }));
+            }
+        };
         columns.add(column);
 
         column = new PropertyColumn(createStringResource("pageCases.table.state"), "value.state");
         columns.add(column);
 
-//
-//        column = new PropertyColumn(createStringResource("CaseType.closeTime"),
-//                CaseType.F_CLOSE_TIMESTAMP.getLocalPart(),  SelectableBean.F_VALUE + ".closeTime");
-//        columns.add(column);
-
         return columns;
+    }
+
+    private String getObjectRef(IModel<SelectableBean<CaseType>> caseModel) {
+        CaseType caseModelObject = caseModel.getObject().getValue();
+        if (caseModelObject.getObjectRef() == null) {
+            return "";
+        }
+        if (caseModelObject.getObjectRef().getTargetName() != null && StringUtils.isNotEmpty(caseModelObject.getObjectRef().getTargetName().getOrig())) {
+            return caseModelObject.getObjectRef().getTargetName().getOrig();
+        } else {
+            return caseModelObject.getObjectRef().getOid();
+        }
     }
 }
