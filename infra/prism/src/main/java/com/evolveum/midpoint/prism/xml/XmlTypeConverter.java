@@ -32,10 +32,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.bind.annotation.XmlEnumValue;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.datatype.*;
 import javax.xml.namespace.QName;
 
 import java.io.File;
@@ -652,4 +649,7 @@ public class XmlTypeConverter {
 		return o1.compare(o2);
 	}
 
+	public static boolean isBeforeNow(XMLGregorianCalendar time) {
+		return toMillis(time) < System.currentTimeMillis();
+	}
 }

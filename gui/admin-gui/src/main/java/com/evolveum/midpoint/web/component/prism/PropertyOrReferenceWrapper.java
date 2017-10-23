@@ -264,4 +264,14 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		pageBase.error("Item '" + getDisplayName() + "' must not be empty");
 		return false;
 	}
+	
+	@Override
+	public boolean isDeprecated() {
+		return getItemDefinition().isDeprecated();
+	}
+	
+	@Override
+	public String getDeprecatedSince() {
+		return getItemDefinition().getDeprecatedSince();
+	}
 }

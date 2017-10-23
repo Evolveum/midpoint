@@ -730,6 +730,11 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	public boolean isDeprecated() {
 		return originalObjectClassDefinition.isDeprecated();
 	}
+	
+	@Override
+	public String getDeprecatedSince() {
+		return originalObjectClassDefinition.getDeprecatedSince();
+	}
 
 	@Override
 	public boolean isEmphasized() {

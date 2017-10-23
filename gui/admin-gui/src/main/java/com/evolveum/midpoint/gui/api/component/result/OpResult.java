@@ -65,6 +65,7 @@ public class OpResult implements Serializable, Visitable {
 	private OpResult parent;
     private int count;
     private String xml;
+    private LocalizableMessage userFriendlyMessage;
 
 	// we assume there is at most one background task created (TODO revisit this assumption)
 	private String backgroundTaskOid;
@@ -75,6 +76,10 @@ public class OpResult implements Serializable, Visitable {
 
     private boolean alreadyShown;
 
+    public LocalizableMessage getUserFriendlyMessage() {
+        return userFriendlyMessage;
+    }
+
     public boolean isAlreadyShown() {
 		return alreadyShown;
 	}
@@ -83,24 +88,25 @@ public class OpResult implements Serializable, Visitable {
 		this.alreadyShown = alreadyShown;
 	}
 
-        public static OpResult getOpResult(PageBase page, OperationResult result){
+    public static OpResult getOpResult(PageBase page, OperationResult result) {
         OpResult opResult = new OpResult();
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
-        if (result.getCause() != null && result.getCause() instanceof CommonException){
-        	LocalizableMessage localizableMessage = ((CommonException) result.getCause()).getUserFriendlyMessage();
-        	if (localizableMessage != null) {
-		        opResult.message = WebComponentUtil.resolveLocalizableMessage(localizableMessage, page);
-        	}
+        if (result.getCause() != null && result.getCause() instanceof CommonException) {
+            LocalizableMessage localizableMessage = ((CommonException) result.getCause()).getUserFriendlyMessage();
+            if (localizableMessage != null) {
+                opResult.message = WebComponentUtil.resolveLocalizableMessage(localizableMessage, page);
+            }
         }
 
         if (opResult.message == null) {
-        	opResult.message = result.getMessage();
+            opResult.message = result.getMessage();
         }
         opResult.operation = result.getOperation();
         opResult.status = result.getStatus();
         opResult.count = result.getCount();
+        opResult.userFriendlyMessage = result.getUserFriendlyMessage();
 
         if (result.getCause() != null) {
             Throwable cause = result.getCause();
@@ -123,12 +129,12 @@ public class OpResult implements Serializable, Visitable {
             }
         }
 
-        if(result.getContext() != null){
-        	for (Map.Entry<String, Collection<String>> entry : result.getContext().entrySet()) {
+        if (result.getContext() != null) {
+            for (Map.Entry<String, Collection<String>> entry : result.getContext().entrySet()) {
                 String contextValue = null;
                 Collection<String> values = entry.getValue();
                 if (values != null) {
-                	contextValue = values.toString();
+                    contextValue = values.toString();
                 }
 
                 opResult.getContexts().add(new Context(entry.getKey(), contextValue));
@@ -137,24 +143,24 @@ public class OpResult implements Serializable, Visitable {
 
         if (result.getSubresults() != null) {
             for (OperationResult subresult : result.getSubresults()) {
-				OpResult subOpResult = OpResult.getOpResult(page, subresult);
-				opResult.getSubresults().add(subOpResult);
-				subOpResult.parent = opResult;
-				if (subOpResult.getBackgroundTaskOid() != null) {
-					opResult.backgroundTaskOid = subOpResult.getBackgroundTaskOid();
-				}
+                OpResult subOpResult = OpResult.getOpResult(page, subresult);
+                opResult.getSubresults().add(subOpResult);
+                subOpResult.parent = opResult;
+                if (subOpResult.getBackgroundTaskOid() != null) {
+                    opResult.backgroundTaskOid = subOpResult.getBackgroundTaskOid();
+                }
             }
         }
 
-		if (result.getBackgroundTaskOid() != null) {
-			opResult.backgroundTaskOid = result.getBackgroundTaskOid();
-		}
+        if (result.getBackgroundTaskOid() != null) {
+            opResult.backgroundTaskOid = result.getBackgroundTaskOid();
+        }
 
         try {
-        	OperationResultType resultType = result.createOperationResultType();
-        	ObjectFactory of = new ObjectFactory();
-			opResult.xml = page.getPrismContext().xmlSerializer().serialize(of.createOperationResult(resultType));
-		} catch (SchemaException|RuntimeException ex) {
+            OperationResultType resultType = result.createOperationResultType();
+            ObjectFactory of = new ObjectFactory();
+            opResult.xml = page.getPrismContext().xmlSerializer().serialize(of.createOperationResult(resultType));
+        } catch (SchemaException | RuntimeException ex) {
             String m = "Can't create xml: " + ex;
 //			error(m);
             opResult.xml = "<?xml version='1.0'?><message>" + StringEscapeUtils.escapeXml(m) + "</message>";

@@ -74,7 +74,7 @@ public abstract class OperationResultFactory {
 
 		ObjectFactory factory = new ObjectFactory();
 		LocalizableMessageType localizedMessageType = factory.createLocalizableMessageType();
-		result.setLocalizedMessage(localizedMessageType);
+		result.setUserFriendlyMessage(localizedMessageType);
 		localizedMessageType.setKey(localizedMessage);
 		if (localizedArguments == null || localizedArguments.length == 0) {
 			return result;

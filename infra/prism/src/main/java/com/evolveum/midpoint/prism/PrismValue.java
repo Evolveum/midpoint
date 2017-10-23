@@ -503,4 +503,14 @@ public abstract class PrismValue implements IPrismValue {
 		ItemDefinition definition = getDefinition();
 		return definition != null ? definition.getTypeName() : null;
 	}
+
+	public static PrismValue fromRealValue(Object realValue) {
+		if (realValue instanceof Containerable) {
+			return ((Containerable) realValue).asPrismContainerValue();
+		} else if (realValue instanceof Referencable) {
+			return ((Referencable) realValue).asReferenceValue();
+		} else {
+			return new PrismPropertyValue<>(realValue);
+		}
+	}
 }
