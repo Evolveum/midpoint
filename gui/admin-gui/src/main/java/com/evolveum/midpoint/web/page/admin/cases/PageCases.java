@@ -1,46 +1,38 @@
 package com.evolveum.midpoint.web.page.admin.cases;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.model.Model;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
  * @author acope on 9/14/17.
  */
-@PageDescriptor(
-    urls = {
-        @Url(mountUrl = "/admin/cases", matchUrlForSecurity = "/admin/cases")
-    }, action = {
-        @AuthorizationAction(actionUri = PageAdminCases.AUTH_CASES_ALL_LABEL,
-                label = PageAdminCases.AUTH_CASES_ALL_LABEL,
-                description = PageAdminCases.AUTH_CASES_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASES_URL,
-                label = "PageCases.auth.cases.label",
-                description = "PageCases.auth.cases.description")
-    })
-public class PageCases extends PageAdminCases {
+
+public abstract class PageCases extends PageAdminCases {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCases.class);
 
@@ -51,13 +43,10 @@ public class PageCases extends PageAdminCases {
     public static final String ID_MAIN_FORM = "mainForm";
     public static final String ID_CASES_TABLE = "table";
 
+    private boolean all;
 
-    public PageCases() {
-        this(true);
-    }
-
-    public PageCases(boolean clearPagingInSession) {
-        LOGGER.trace("initLayout()");
+    public PageCases(boolean all) {
+        this.all = all;
 
         initLayout();
     }
@@ -83,7 +72,7 @@ public class PageCases extends PageAdminCases {
 
             @Override
             protected void newObjectPerformed(AjaxRequestTarget target) {
-                navigateToNext(PageCases.class);
+                navigateToNext(PageCase.class);
             }
 
             @Override
@@ -98,7 +87,7 @@ public class PageCases extends PageAdminCases {
 
             @Override
             protected IColumn<SelectableBean<CaseType>, String> createActionsColumn() {
-                return PageCases.this.createActionsColumn();
+                return null;
             }
         };
         casePanel.setOutputMarkupId(true);
@@ -122,53 +111,71 @@ public class PageCases extends PageAdminCases {
         IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
         columns.add(column);
 
+        column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.objectRef"), "value.objectRef"){
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
+                item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                    @Override
+                    public String getObject() {
+                        String resourceName = null;
+                        SelectableBean<CaseType> caseModel = rowModel.getObject();
+                        if (caseModel != null) {
+                            CaseType caseIntance = caseModel.getValue();
+                            LOGGER.debug("CASE caseIntance: {}", caseIntance);
+                            if (caseIntance != null) {
+                                ObjectReferenceType resource = caseIntance.getObjectRef();
+                                if (resource != null) {
+                                    LOGGER.debug("CASE resource target name: {}", resource.getTargetName());
+                                    resourceName = resource.getTargetName() != null ? resource.getTargetName().getOrig() : resource.getOid();
+                                    LOGGER.debug("CASE resource name: {}", resourceName);
+                                }
+                            }
+                        }
+                        return resourceName;
+                    }
+                }));
+            }
+        };
+        columns.add(column);
+
+        column = new AbstractColumn<SelectableBean<CaseType>, String>(
+                createStringResource("pageCases.table.openTimestamp"),
+                "createTimestamp") {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
+                                     String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
+                cellItem.add(new DateLabelComponent(componentId, new AbstractReadOnlyModel<Date>() {
+
+                    private static final long serialVersionUID = 1L;
+                    @Override
+                    public Date getObject() {
+                        CaseType object = rowModel.getObject().getValue();
+                        MetadataType metadata = object != null ? object.getMetadata() : null;
+                        if (metadata == null) {
+                            return null;
+                        }
+
+                        return XmlTypeConverter.toDate(metadata.getCreateTimestamp());
+                    }
+                }, DateLabelComponent.LONG_MEDIUM_STYLE));
+            }
+        };
+        columns.add(column);
+
+        column = new PropertyColumn(createStringResource("pageCases.table.closeTimestamp"), "value.closeTimestamp");
+        columns.add(column);
+
         column = new PropertyColumn(createStringResource("pageCases.table.state"), "value.state");
         columns.add(column);
 
-//        column = new PropertyColumn(createStringResource("CaseType.event"),
-//                CaseType.F_EVENT.getLocalPart(),  SelectableBean.F_VALUE + ".event");
-//        columns.add(column);
 //
 //        column = new PropertyColumn(createStringResource("CaseType.closeTime"),
 //                CaseType.F_CLOSE_TIMESTAMP.getLocalPart(),  SelectableBean.F_VALUE + ".closeTime");
 //        columns.add(column);
 
         return columns;
-    }
-
-
-    private IColumn<SelectableBean<CaseType>, String> createActionsColumn() {
-        LOGGER.trace("createActionsColumn()");
-
-        return new InlineMenuButtonColumn<SelectableBean<CaseType>>(createInlineMenu(), 1, this) {
-            @Override
-            protected List<InlineMenuItem> getHeaderMenuItems() {
-                return new ArrayList<>();
-            }
-
-            @Override
-            protected int getHeaderNumberOfButtons() {
-                return 0;
-            }
-        };
-    }
-
-    private List<InlineMenuItem> createInlineMenu() {
-        LOGGER.trace("createInlineMenu()");
-        List<InlineMenuItem> menu = new ArrayList<>();
-        menu.add(new InlineMenuItem(createStringResource("pageCases.button.delete"),
-                new Model<Boolean>(true), new Model<Boolean>(true), false,
-                new ColumnMenuAction() {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-
-                    }
-                }, 0,
-                GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
-                DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
-
-        return menu;
-
     }
 }

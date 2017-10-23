@@ -11,7 +11,10 @@ import javax.xml.namespace.QName;
 public abstract class PageAdminCases extends PageAdmin {
 
     public static final String AUTH_CASES_ALL = AuthorizationConstants.AUTZ_UI_CASES_ALL_URL;
-    public static final String AUTH_CASES_ALL_LABEL = "PageAdminCases.auth.approvalsAll.label";
-    public static final String AUTH_CASES_ALL_DESCRIPTION = "PageAdminCases.auth.approvalsAll.description";
+    public static final String AUTH_CASES_ALL_LABEL = "PageAdminCases.auth.casesAll.label";
+    public static final String AUTH_CASES_ALL_DESCRIPTION = "PageAdminCases.auth.casesAll.description";
+    public static final String AUTH_CASES_ALLOCATED_TO_ME = AuthorizationConstants.AUTZ_UI_CASES_ALLOCATED_TO_ME_URL;
+    public static final String AUTH_CASES_ALLOCATED_TO_ME_LABEL = "PageAdminCases.auth.casesAllocatedToMe.label";
+    public static final String AUTH_CASES_ALLOCATED_TO_ME_DESCRIPTION = "PageAdminCases.auth.casesAllocatedToMe.description";
 
 }

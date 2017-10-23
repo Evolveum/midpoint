@@ -1288,6 +1288,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
 				AuthorizationConstants.AUTZ_GUI_ALL_URL,
 				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+			menu = new MenuItem(createStringResource("PageAdmin.menu.top.cases.list"), PageCasesAllocatedToMe.class);
+			submenu.add(menu);
 			menu = new MenuItem(createStringResource("PageAdmin.menu.top.caseWorkItems.list"), PageCaseWorkItemsAllocatedToMe.class);
 			submenu.add(menu);
 			menu = new MenuItem(createStringResource("PageAdmin.menu.top.caseWorkItems.listAll"), PageCaseWorkItemsAll.class);
