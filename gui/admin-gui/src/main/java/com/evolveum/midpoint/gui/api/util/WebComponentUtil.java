@@ -365,6 +365,9 @@ public final class WebComponentUtil {
 	}
 
 	private static Object[] resolveArguments(Object[] args, Component component) {
+		if (args == null){
+			return null;
+		}
 		Object[] rv = new Object[args.length];
 		for (int i = 0; i < args.length; i++) {
 			if (args[i] instanceof LocalizableMessage) {
