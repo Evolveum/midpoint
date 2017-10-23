@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -32,21 +34,29 @@ import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionParameterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionReturnMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 
 /**
  * @author katkav
@@ -54,6 +64,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
  */
 public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
 		implements ExpressionEvaluator<V, D> {
+	
+	private static final transient Trace LOGGER = TraceManager.getTrace(FunctionExpressionEvaluator.class); 
 
 	private FunctionExpressionEvaluatorType functionEvaluatorType;
 	private D outputDefinition;
@@ -80,7 +92,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 	 * com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context)
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 
@@ -92,24 +104,22 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 			throw new SchemaException("No functions library defined");
 		}
 		
+		OperationResult result = context.getResult().createMinorSubresult(FunctionExpressionEvaluator.class.getSimpleName() + ".resolveFunctionLibrary");
+		Task task = context.getTask();
+		
 			FunctionLibraryType functionLibraryType = objectResolver.resolve(functionLibraryRef, FunctionLibraryType.class,
-	        			null, "resolving value policy reference in generateExpressionEvaluator", context.getTask(), context.getResult());
+	        			null, "resolving value policy reference in generateExpressionEvaluator", task, result);
 				expressions = functionLibraryType.getFunction();
 	    
 		if (CollectionUtils.isEmpty(expressions)) {
 			throw new ObjectNotFoundException("No functions defined in referenced function library: " + functionLibraryType);
 		}
 
-		FunctionType functionType = functionEvaluatorType.getFunction();
 		
-		if (functionType == null) {
-			throw new SchemaException("No function declaration found in " + functionEvaluatorType);
-		}
-		
-		String functionName = functionType.getName();
+		String functionName = functionEvaluatorType.getName();
 		
 		if (StringUtils.isEmpty(functionName)) {
-			throw new SchemaException("Missing function name in " + functionType);
+			throw new SchemaException("Missing function name in " + functionEvaluatorType);
 		}
 		
 		List<ExpressionType> filteredExpressions = expressions.stream().filter(expression -> functionName.equals(expression.getName())).collect(Collectors.toList());
@@ -124,15 +134,38 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		
 		ExpressionType functionToExecute = determineFunctionToExecute(filteredExpressions);
 		
+		OperationResult functionExpressionResult = result.createMinorSubresult(FunctionExpressionEvaluator.class.getSimpleName() + ".makeExpression");
 		ExpressionFactory factory = context.getExpressionFactory();
-		Expression<V, D> expression = factory.makeExpression(functionToExecute, outputDefinition, "function execution", context.getTask(), context.getResult());
+		
+		Expression<V, D> expression;
+		try {
+			expression = factory.makeExpression(functionToExecute, outputDefinition, "function execution", task, functionExpressionResult);
+			functionExpressionResult.recordSuccess();
+		} catch (SchemaException | ObjectNotFoundException e) {
+			functionExpressionResult.recordFatalError("Cannot make expression for " + functionToExecute + ". Reason: " + e.getMessage(), e);
+			throw e;
+		}
 		
 		ExpressionVariables originVariables = context.getVariables();
 		
 		ExpressionEvaluationContext functionContext = context.shallowClone();
 		ExpressionVariables functionVariables = new ExpressionVariables();
 		
-		functionEvaluatorType.getFunction().getParameter().forEach(param -> functionVariables.addVariableDefinition(new QName(param.getName()), originVariables.get(new QName((String)param.getValue()))));
+		for (ExpressionParameterType param : functionEvaluatorType.getParameter()) {
+			ExpressionType valueExpression = param.getValue();
+			OperationResult variableResult = result.createMinorSubresult(FunctionExpressionEvaluator.class.getSimpleName() + ".resolveVariable");
+			try {
+				variableResult.addArbitraryObjectAsParam("valueExpression", valueExpression);
+				D variableOutputDefinition = determineVariableOutputDefinition(functionToExecute, param.getName(), context);
+				ExpressionUtil.evaluateExpression(originVariables, variableOutputDefinition, valueExpression, context.getExpressionFactory(), "resolve variable", task, variableResult);
+				variableResult.recordSuccess();
+			} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
+					| ConfigurationException | SecurityViolationException e) {
+				variableResult.recordFatalError("Failed to resolve variable: " + valueExpression + ". Reason: " + e.getMessage());
+				throw e;
+			}
+		}
+		
 		functionContext.setVariables(functionVariables);
 		
 		return expression.evaluate(context);
@@ -144,7 +177,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 			return filteredExpressions.iterator().next();
 		}
 		
-		List<ExpressionParameterType> functionParams = functionEvaluatorType.getFunction().getParameter();
+		List<ExpressionParameterType> functionParams = functionEvaluatorType.getParameter();
 		
 		for (ExpressionType filteredExpression : filteredExpressions) {
 			List<ExpressionParameterType> filteredExpressionParameters = filteredExpression.getParameter();
@@ -175,6 +208,53 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		}
 		return true;
 	}
+	
+	private D determineVariableOutputDefinition(ExpressionType functionToExecute, String paramName, ExpressionEvaluationContext context) throws SchemaException {
+		
+		ExpressionParameterType functionParameter = null;
+		for (ExpressionParameterType functionParam: functionToExecute.getParameter()) {
+			if (functionParam.getName().equals(paramName)) {
+				functionParameter = functionParam;
+				break;
+			}
+		}
+		
+		if (functionParameter == null) {
+			throw new SchemaException("Unexpected parameter " + paramName + " for function: " + functionToExecute);
+		}
+		
+		QName returnType = functionParameter.getType();
+		
+		if (returnType == null) {
+			throw new SchemaException("Cannot determine parameter output definition for " + functionParameter);
+		}
+		
+		
+			D returnTypeDef = (D) prismContext.getSchemaRegistry().findItemDefinitionByType(returnType);
+			if (returnTypeDef == null) {
+				returnTypeDef = (D) new PrismPropertyDefinitionImpl(SchemaConstantsGenerated.C_VALUE, returnType, prismContext);
+				returnTypeDef.setMaxOccurs(functionToExecute.getReturnMultiplicity() != null && functionToExecute.getReturnMultiplicity() == ExpressionReturnMultiplicityType.SINGLE ? 1 : -1);
+			}
+			
+			return returnTypeDef;
+		
+	
+	}
+	
+//	private D determineParamDefinitionFromSource(Collection<Source<?,?>> sources, String paramName) throws SchemaException {
+//		List<Source<?,?>> sourceParam = sources.stream().filter(s -> QNameUtil.match(s.getName(), new QName(paramName))).collect(Collectors.toList());
+//		
+//		if (sourceParam.size() == 0) {
+//			throw new SchemaException("Cannot find variable definition with name: " + paramName);
+//		}
+//		
+//		if (sourceParam.size() > 1) {
+//			throw new SchemaException("Found more than one variable with name: " + paramName);
+//		}
+//		
+//		Source<?,?> source = sourceParam.iterator().next();
+//		return (D) source.getDefinition();
+//	}
 
 	/*
 	 * (non-Javadoc)
@@ -184,11 +264,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 	 */
 	@Override
 	public String shortDebugDump() {
-		FunctionType functionType = functionEvaluatorType.getFunction();
-		if (functionType != null) {
-			return "function: " + functionEvaluatorType.getFunction().getName();
-		}
-		return "function";
+		return "function: " + functionEvaluatorType.getName();
 	}
 
 }
