@@ -90,13 +90,7 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.MultithreadRunner;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.FailableProcessor;
-import com.evolveum.midpoint.util.FailableRunnable;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -555,27 +549,47 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void assumeConflictResolutionAction(ConflictResolutionActionType action) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		SystemConfigurationType systemConfiguration = getSystemConfiguration();
 		List<ObjectPolicyConfigurationType> current = new ArrayList<>();
+		List<ObjectPolicyConfigurationType> currentForTasks = new ArrayList<>();
+		final ConflictResolutionActionType ACTION_FOR_TASKS = ConflictResolutionActionType.NONE;
 		for (ObjectPolicyConfigurationType c : systemConfiguration.getDefaultObjectPolicyConfiguration()) {
 			if (c.getType() == null && c.getSubtype() == null && c.getConflictResolution() != null) {
 				current.add(c);
+			} else if (QNameUtil.match(c.getType(), TaskType.COMPLEX_TYPE) && c.getSubtype() == null && c.getConflictResolution() != null) {
+				currentForTasks.add(c);
 			}
 		}
-		if (current.size() == 1 && current.get(0).getConflictResolution().getAction() == action) {
-			return;
+		List<ItemDelta<?, ?>> itemDeltas = new ArrayList<>();
+		if (current.size() != 1 || current.get(0).getConflictResolution().getAction() != action) {
+			ObjectPolicyConfigurationType newPolicy = new ObjectPolicyConfigurationType(prismContext)
+					.beginConflictResolution()
+						.action(action)
+					.end();
+			itemDeltas.add(DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
+					.item(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION)
+					.add(newPolicy)
+					.deleteRealValues(current)
+					.asItemDelta());
 		}
-
-		ObjectPolicyConfigurationType newPolicy = new ObjectPolicyConfigurationType(prismContext).beginConflictResolution().action(action).end();
-		List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
-				.item(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION)
-				.add(newPolicy)
-				.deleteRealValues(current)
-				.asItemDeltas();
-		OperationResult result = new OperationResult("assumeConflictResolutionAction");
-		repositoryService.modifyObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), itemDeltas, result);
-		invalidateSystemObjectsCache();
-		display("Applying conflict resolution action result", result);
-		result.computeStatus();
-		TestUtil.assertSuccess("Applying conflict resolution action failed (result)", result);
+		if (currentForTasks.size() != 1 || currentForTasks.get(0).getConflictResolution().getAction() != ACTION_FOR_TASKS) {
+			ObjectPolicyConfigurationType newPolicyForTasks = new ObjectPolicyConfigurationType(prismContext)
+					.type(TaskType.COMPLEX_TYPE)
+					.beginConflictResolution()
+						.action(ACTION_FOR_TASKS)
+					.end();
+			itemDeltas.add(DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
+					.item(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION)
+					.add(newPolicyForTasks)
+					.deleteRealValues(currentForTasks)
+					.asItemDelta());
+		}
+		if (!itemDeltas.isEmpty()) {
+			OperationResult result = new OperationResult("assumeConflictResolutionAction");
+			repositoryService.modifyObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), itemDeltas, result);
+			invalidateSystemObjectsCache();
+			display("Applying conflict resolution action result", result);
+			result.computeStatus();
+			TestUtil.assertSuccess("Applying conflict resolution action failed (result)", result);
+		}
 	}
 
 	protected void assumeResourceAssigmentPolicy(String resourceOid, AssignmentPolicyEnforcementType policy, boolean legalize) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException{
