@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -104,6 +105,11 @@ public class TestCaseManagement extends AbstractInternalModelIntegrationTest {
 		SearchResultList<CaseWorkItemType> workItems = controller.searchContainers(CaseWorkItemType.class, null, null, task, result);
 		display("objects", workItems);
 		assertEquals(4, workItems.size());
+
+		display("case for work item 0", CaseTypeUtil.getCaseChecked(workItems.get(0)));
+		display("case for work item 1", CaseTypeUtil.getCaseChecked(workItems.get(1)));
+		display("case for work item 2", CaseTypeUtil.getCaseChecked(workItems.get(2)));
+		display("case for work item 3", CaseTypeUtil.getCaseChecked(workItems.get(3)));
 	}
 
 	@Test
