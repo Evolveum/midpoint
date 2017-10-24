@@ -82,7 +82,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers("/fonts/**");
 
         web.ignoring().antMatchers("/wro/**");
-        web.ignoring().antMatchers("/less/**"); //todo should be there probably
+        web.ignoring().antMatchers("/less/**");
 
         web.ignoring().antMatchers("/wicket/resource/**");
     }
