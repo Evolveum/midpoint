@@ -2,5 +2,13 @@ spring:
   application:
     name: MidPoint
 
+server:
+  display-name: MidPoint
+  session:
+    cookie:
+      max-age: 900
+  tomcat:
+    basedir: ${midpoint.home}
+
 # more properties with default values can be found here:
 # https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
