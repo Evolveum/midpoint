@@ -322,6 +322,7 @@ CREATE TABLE m_case (
   objectRef_relation  VARCHAR(157),
   objectRef_targetOid VARCHAR(36),
   objectRef_type      INT4,
+  state               VARCHAR(255),
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -331,6 +332,9 @@ CREATE TABLE m_case_wi (
   owner_oid              VARCHAR(36) NOT NULL,
   closeTimestamp         TIMESTAMP,
   deadline               TIMESTAMP,
+  originalAssigneeRef_relation  VARCHAR(157),
+  originalAssigneeRef_targetOid VARCHAR(36),
+  originalAssigneeRef_type      INT4,
   outcome                VARCHAR(255),
   performerRef_relation  VARCHAR(157),
   performerRef_targetOid VARCHAR(36),

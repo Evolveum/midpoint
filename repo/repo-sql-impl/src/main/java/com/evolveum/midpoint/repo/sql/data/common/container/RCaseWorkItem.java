@@ -66,6 +66,7 @@ public class RCaseWorkItem implements Container<RCase> {
     private Integer id;
 
     private Integer stageNumber;
+    private REmbeddedReference originalAssigneeRef;
     private Set<RCaseWorkItemReference> assigneeRef = new HashSet<>();
     private REmbeddedReference performerRef;
     private String outcome;
@@ -121,6 +122,15 @@ public class RCaseWorkItem implements Container<RCase> {
 
 	public void setStageNumber(Integer stageNumber) {
 		this.stageNumber = stageNumber;
+	}
+
+	@Embedded
+	public REmbeddedReference getOriginalAssigneeRef() {
+		return originalAssigneeRef;
+	}
+
+	public void setOriginalAssigneeRef(REmbeddedReference originalAssigneeRef) {
+		this.originalAssigneeRef = originalAssigneeRef;
 	}
 
 	@JaxbName(localPart = "assigneeRef")
@@ -227,6 +237,7 @@ public class RCaseWorkItem implements Container<RCase> {
 		}
 		rWorkItem.setId(idInt);
 		rWorkItem.setStageNumber(workItem.getStageNumber());
+		rWorkItem.setOriginalAssigneeRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getOriginalAssigneeRef(), context.prismContext));
         rWorkItem.getAssigneeRef().addAll(RCaseWorkItemReference.safeListReferenceToSet(
                 workItem.getAssigneeRef(), context.prismContext, rWorkItem));
         rWorkItem.setPerformerRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getPerformerRef(), context.prismContext));

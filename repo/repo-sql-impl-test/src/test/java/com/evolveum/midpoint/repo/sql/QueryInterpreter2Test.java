@@ -4195,6 +4195,212 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
+    @Test
+    public void testAdHoc120CaseByState() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(CaseType.class, prismContext)
+                    .item(CaseType.F_STATE).eq("a")
+                    .asc(CaseType.F_STATE)
+                    .build();
+            String real = getInterpretedQuery2(session, CaseType.class, query);
+            String expected = "select\n"
+                    + "  c.oid,\n"
+                    + "  c.fullObject,\n"
+                    + "  c.stringsCount,\n"
+                    + "  c.longsCount,\n"
+                    + "  c.datesCount,\n"
+                    + "  c.referencesCount,\n"
+                    + "  c.polysCount,\n"
+                    + "  c.booleansCount\n"
+                    + "from\n"
+                    + "  RCase c\n"
+                    + "where\n"
+                    + "  c.state = :state\n"
+                    + "order by c.state asc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void testAdHoc121WorkItemByCaseState() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(CaseWorkItemType.class, prismContext)
+                    .item(PrismConstants.T_PARENT, CaseType.F_STATE).eq("a")
+                    .asc(PrismConstants.T_PARENT, CaseType.F_STATE)
+                    .build();
+            String real = getInterpretedQuery2(session, CaseWorkItemType.class, query);
+            String expected = "select\n"
+                    + "  c.ownerOid,\n"
+                    + "  c.id\n"
+                    + "from\n"
+                    + "  RCaseWorkItem c\n"
+                    + "    left join c.owner o\n"
+                    + "where\n"
+                    + "  o.state = :state\n"
+                    + "order by o.state asc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void testAdHoc122WorkItemByOriginalAssigneeName() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(CaseWorkItemType.class, prismContext)
+                    .item(CaseWorkItemType.F_ORIGINAL_ASSIGNEE_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME).containsPoly("a").matchingNorm()
+                    .asc(CaseWorkItemType.F_ORIGINAL_ASSIGNEE_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME)
+                    .build();
+            String real = getInterpretedQuery2(session, CaseWorkItemType.class, query);
+            String expected = "select\n"
+                    + "  c.ownerOid,\n"
+                    + "  c.id\n"
+                    + "from\n"
+                    + "  RCaseWorkItem c\n"
+                    + "    left join c.originalAssigneeRef.target t\n"
+                    + "where\n"
+                    + "  t.name.norm like :norm\n"
+                    + "order by t.name.orig asc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void testAdHoc123WorkItemByResourceName() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(CaseWorkItemType.class, prismContext)
+                    .item(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME).containsPoly("a").matchingNorm()
+                    .asc(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME)
+                    .build();
+            String real = getInterpretedQuery2(session, CaseWorkItemType.class, query);
+            String expected = "select\n"
+                    + "  c.ownerOid,\n"
+                    + "  c.id\n"
+                    + "from\n"
+                    + "  RCaseWorkItem c\n"
+                    + "    left join c.owner o\n"
+                    + "    left join o.objectRef.target t\n"
+                    + "where\n"
+                    + "  t.name.norm like :norm\n"
+                    + "order by t.name.orig asc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void testAdHoc124WorkItemByCaseCreatedTimestamp() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(CaseWorkItemType.class, prismContext)
+                    .desc(PrismConstants.T_PARENT, CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
+                    .build();
+            String real = getInterpretedQuery2(session, CaseWorkItemType.class, query);
+            String expected = "select\n"
+                    + "  c.ownerOid,\n"
+                    + "  c.id\n"
+                    + "from\n"
+                    + "  RCaseWorkItem c\n"
+                    + "    left join c.owner o\n"
+                    + "order by o.createTimestamp desc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void testAdHoc125WorkItemByDeadline() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(CaseWorkItemType.class, prismContext)
+                    .desc(CaseWorkItemType.F_DEADLINE)
+                    .build();
+            String real = getInterpretedQuery2(session, CaseWorkItemType.class, query);
+            String expected = "select\n"
+                    + "  c.ownerOid,\n"
+                    + "  c.id\n"
+                    + "from\n"
+                    + "  RCaseWorkItem c\n"
+                    + "order by c.deadline desc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void testAdHoc126WorkItemByCloseTimestamp() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(CaseWorkItemType.class, prismContext)
+                    .desc(CaseWorkItemType.F_CLOSE_TIMESTAMP)
+                    .build();
+            String real = getInterpretedQuery2(session, CaseWorkItemType.class, query);
+            String expected = "select\n"
+                    + "  c.ownerOid,\n"
+                    + "  c.id\n"
+                    + "from\n"
+                    + "  RCaseWorkItem c\n"
+                    + "order by c.closeTimestamp desc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test(enabled = false)          // exists does not work with references
+    public void testAdHoc127WorkItemByAssignee() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(CaseWorkItemType.class, prismContext)
+                    .exists(CaseWorkItemType.F_ASSIGNEE_REF)
+                        .item(PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME).containsPoly("a").matchingNorm()
+                    .build();
+            String real = getInterpretedQuery2(session, CaseWorkItemType.class, query);
+            String expected = "select\n"
+                    + "  c.ownerOid,\n"
+                    + "  c.id\n"
+                    + "from\n"
+                    + "  RCaseWorkItem c\n"
+                    + "order by c.closeTimestamp desc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test(enabled = false)          // exists does not work with references
+    public void testAdHoc128CaseByAssignee() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(CaseType.class, prismContext)
+                    .exists(CaseType.F_WORK_ITEM)
+                        .exists(CaseWorkItemType.F_ASSIGNEE_REF)
+                            .item(PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME).containsPoly("a").matchingNorm()
+                    .build();
+            String real = getInterpretedQuery2(session, CaseWorkItemType.class, query);
+            String expected = "select\n"
+                    + "  c.ownerOid,\n"
+                    + "  c.id\n"
+                    + "from\n"
+                    + "  RCaseWorkItem c\n"
+                    + "order by c.closeTimestamp desc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
     private Collection<SelectorOptions<GetOperationOptions>> distinct() {
         return createCollection(createDistinct());
     }

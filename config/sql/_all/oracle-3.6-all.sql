@@ -325,6 +325,7 @@ CREATE TABLE m_case (
   objectRef_relation  VARCHAR2(157 CHAR),
   objectRef_targetOid VARCHAR2(36 CHAR),
   objectRef_type      NUMBER(10, 0),
+  state               VARCHAR2(255 CHAR),
   oid       VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
@@ -334,6 +335,9 @@ CREATE TABLE m_case_wi (
   owner_oid              VARCHAR2(36 CHAR) NOT NULL,
   closeTimestamp         TIMESTAMP,
   deadline               TIMESTAMP,
+  originalAssigneeRef_relation  VARCHAR2(157 CHAR),
+  originalAssigneeRef_targetOid VARCHAR2(36 CHAR),
+  originalAssigneeRef_type      NUMBER(10, 0),
   outcome                VARCHAR2(255 CHAR),
   performerRef_relation  VARCHAR2(157 CHAR),
   performerRef_targetOid VARCHAR2(36 CHAR),

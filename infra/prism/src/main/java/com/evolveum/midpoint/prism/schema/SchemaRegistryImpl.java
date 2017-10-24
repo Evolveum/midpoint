@@ -1017,7 +1017,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	}
 
 	@Override
-	public PrismObjectDefinition determineReferencedObjectDefinition(QName targetTypeName, ItemPath rest) {
+	public PrismObjectDefinition determineReferencedObjectDefinition(@NotNull QName targetTypeName, ItemPath rest) {
 		// TEMPORARY HACK -- TODO FIXME
 		PrismObjectDefinition def = findObjectDefinitionByType(targetTypeName);
 		if (def == null) {
