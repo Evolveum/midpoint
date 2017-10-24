@@ -7,6 +7,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -171,14 +172,17 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		add(childContainersSelectorPanel);
 
 		List<QName> pathsList = getModelObject().getChildMultivalueContainersPaths();
-		childContainersSelectorPanel.add(new DropDownChoicePanel<QName>(ID_CHILD_CONTAINERS_LIST,
-				Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList)));
+		DropDownChoicePanel multivalueContainersList = new DropDownChoicePanel<QName>(ID_CHILD_CONTAINERS_LIST,
+				Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList));
+		multivalueContainersList.setOutputMarkupId(true);
+		multivalueContainersList.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		childContainersSelectorPanel.add(new AjaxButton(ID_ADD_BUTTON, createStringResource("prismValuePanel.add")) {
 			@Override
 			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 				addNewContainerValuePerformed(ajaxRequestTarget);
 			}
 		});
+		childContainersSelectorPanel.add(multivalueContainersList);
 	}
 
 	protected void addNewContainerValuePerformed(AjaxRequestTarget ajaxRequestTarget){
