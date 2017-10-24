@@ -24,12 +24,12 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
  * @author bpowers
  */
 @PageDescriptor(url = "/admin/caseWorkItemsAllocatedToMe", action = {
-        @AuthorizationAction(actionUri = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL,
-                label = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL_LABEL,
-                description = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
-                label = "PageCaseWorkItemsAllocatedToMe.auth.myCaseWorkItems.label",
-                description = "PageCaseWorkItemsAllocatedToMe.auth.myCaseWorkItems.description")})
+        @AuthorizationAction(actionUri = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALLOCATED_TO_ME,
+                label = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALLOCATED_TO_ME_LABEL,
+                description = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALLOCATED_TO_ME_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALLOCATED_TO_ME_URL,
+                label = "PageCaseWorkItems.auth.caseWorkItemsAllocatedToMe.label",
+                description = "PageCaseWorkItems.auth.caseWorkItemsAllocatedToMe.description")})
 public class PageCaseWorkItemsAllocatedToMe extends PageCaseWorkItems {
 
     public PageCaseWorkItemsAllocatedToMe() {

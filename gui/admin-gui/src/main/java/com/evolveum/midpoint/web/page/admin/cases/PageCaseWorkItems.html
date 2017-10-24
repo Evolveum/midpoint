@@ -18,17 +18,23 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm" class="form-inline">
-        <div wicket:id="caseWorkItemsTable"/>
-    </form>
+
+    <div wicket:id="caseWorkItemsTable"/>
 
     <wicket:fragment wicket:id="tableHeader">
-        <form class="form-inline pull-right search-form" wicket:id="searchForm">
+        <form class="form-inline search-form" wicket:id="searchFilterForm">
+            <div class="form-group">
+                <label><wicket:message key="PageCaseWorkItems.search.resource" /></label>
+                <span wicket:id="filterResource" />
+            </div>
+            <div class="form-group">
+                <label><wicket:message key="PageCaseWorkItems.search.includeClosedCases" /></label>
+                <span wicket:id="filterIncludeClosedCases" />
+            </div>
         </form>
     </wicket:fragment>
 
     <div class="main-button-bar" style="padding-top: 15px">
-        <a class="btn btn-default" wicket:id="backButton" />
         <a class="btn btn-success" wicket:id="createCaseButton"/>
     </div>
 </wicket:extend>

@@ -1206,6 +1206,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
 				AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL,
 				AuthorizationConstants.AUTZ_UI_CASES_ALLOCATED_TO_ME_URL, AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
+				AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALLOCATED_TO_ME_URL, AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALL_URL,
 				AuthorizationConstants.AUTZ_GUI_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
 			if (getWorkflowManager().isEnabled()) {
 				items.add(createWorkItemsItems());

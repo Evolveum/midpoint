@@ -53,8 +53,6 @@ public class CaseWorkItemDtoProvider extends BaseSortableDataProvider<CaseWorkIt
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
 
-    private boolean notDecidedOnly;
-
     public CaseWorkItemDtoProvider(Component component) {
         super(component, false);        // TODO make this cache-able
     }
@@ -81,8 +79,8 @@ public class CaseWorkItemDtoProvider extends BaseSortableDataProvider<CaseWorkIt
                 getAvailableData().add(new CaseWorkItemDto(workItem));
             }
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't list decisions.", ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list decisions", ex);
+            result.recordFatalError("Couldn't list case work items.", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list case work items", ex);
         } finally {
             result.computeStatusIfUnknown();
         }
@@ -125,15 +123,6 @@ public class CaseWorkItemDtoProvider extends BaseSortableDataProvider<CaseWorkIt
         }
         LOGGER.trace("end::internalSize()");
         return count;
-    }
-
-    @SuppressWarnings("unused")
-    public boolean isNotDecidedOnly() {
-        return notDecidedOnly;
-    }
-
-    public void setNotDecidedOnly(boolean notDecidedOnly) {
-        this.notDecidedOnly = notDecidedOnly;
     }
 
     @NotNull

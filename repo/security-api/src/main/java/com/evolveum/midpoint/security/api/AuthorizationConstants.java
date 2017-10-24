@@ -269,8 +269,11 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_CASE_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "caseDetails");
     public static final String AUTZ_UI_CASE_DETAILS_URL = NS_AUTHORIZATION_UI + "#caseDetails";
 
-	public static final String AUTZ_UI_MY_CASE_WORK_ITEMS_URL = NS_AUTHORIZATION_UI + "#myCaseWorkItems";
-	public static final String AUTZ_UI_ALL_CASE_WORK_ITEMS_URL = NS_AUTHORIZATION_UI + "#allCaseWorkItems";
+	public static final QName AUTZ_UI_CASE_WORK_ITEMS_ALLOCATED_TO_ME_QNAME = new QName(NS_AUTHORIZATION_UI, "caseWorkItemsAllocatedToMe");
+	public static final String AUTZ_UI_CASE_WORK_ITEMS_ALLOCATED_TO_ME_URL = NS_AUTHORIZATION_UI + "#caseWorkItemsAllocatedToMe";
+
+	public static final QName AUTZ_UI_CASE_WORK_ITEMS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "caseWorkItemsAll");
+	public static final String AUTZ_UI_CASE_WORK_ITEMS_ALL_URL = NS_AUTHORIZATION_UI + "#caseWorkItemsAll";
 	public static final String AUTZ_UI_CASE_WORK_ITEM_URL = NS_AUTHORIZATION_UI + "#caseWorkItem";
 
 

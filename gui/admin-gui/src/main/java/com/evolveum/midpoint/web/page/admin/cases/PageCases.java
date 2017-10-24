@@ -127,7 +127,7 @@ public abstract class PageCases extends PageAdminCases {
         };
         columns.add(column);
 
-        column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.actors"), "workItem.assigneeRef"){
+        column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.actors")){
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
                 item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
@@ -158,7 +158,7 @@ public abstract class PageCases extends PageAdminCases {
 
         column = new AbstractColumn<SelectableBean<CaseType>, String>(
                 createStringResource("pageCases.table.openTimestamp"),
-                "createTimestamp") {
+                MetadataType.F_CREATE_TIMESTAMP.getLocalPart()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -186,7 +186,7 @@ public abstract class PageCases extends PageAdminCases {
         };
         columns.add(column);
 
-        column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.closeTimestamp"), "value.closeTimestamp") {
+        column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.closeTimestamp"), CaseType.F_CLOSE_TIMESTAMP.getLocalPart(), "value.closeTimestamp") {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
                                      String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
@@ -210,7 +210,7 @@ public abstract class PageCases extends PageAdminCases {
         };
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("pageCases.table.state"), "value.state");
+        column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state");
         columns.add(column);
 
         return columns;

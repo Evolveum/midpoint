@@ -27,9 +27,9 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
         @AuthorizationAction(actionUri = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL,
                 label = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL_LABEL,
                 description = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ALL_CASE_WORK_ITEMS_URL,
-                label = "PageCaseWorkItemsAll.auth.allCaseWorkItems.label",
-                description = "PageCaseWorkItemsAll.auth.allCaseWorkItems.description")})
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALL_URL,
+                label = "PageCaseWorkItems.auth.caseWorkItemsAll.label",
+                description = "PageCaseWorkItems.auth.caseWorkItemsAll.description")})
 public class PageCaseWorkItemsAll extends PageCaseWorkItems {
 
     public PageCaseWorkItemsAll() {

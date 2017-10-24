@@ -18,32 +18,29 @@ package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
-import com.evolveum.midpoint.web.component.DefaultAjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDtoProvider;
 import com.evolveum.midpoint.web.page.admin.cases.dto.SearchingUtils;
-import com.evolveum.midpoint.web.page.admin.certification.dto.CertWorkItemDto;
+import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -54,20 +51,21 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
@@ -84,16 +82,19 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
     private static final Trace LOGGER = TraceManager.getTrace(PageCaseWorkItems.class);
 
     private static final String DOT_CLASS = PageCaseWorkItems.class.getName() + ".";
-    private static final String OPERATION_RECORD_ACTION = DOT_CLASS + "recordAction";
-    private static final String OPERATION_RECORD_ACTION_SELECTED = DOT_CLASS + "recordActionSelected";
     private static final String PARAMETER_CASE_ID = "caseId";
     private static final String PARAMETER_CASE_WORK_ITEM_ID = "caseWorkItemId";
 
-    private static final String ID_MAIN_FORM = "mainForm";
+    // Search Form
+    private static final String ID_SEARCH_FILTER_FORM = "searchFilterForm";
+    private static final String ID_SEARCH_FILTER_RESOURCE = "filterResource";
+    private static final String ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES = "filterIncludeClosedCases";
+    // Data Table
     private static final String ID_CASE_WORK_ITEMS_TABLE = "caseWorkItemsTable";
-    private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_TABLE_HEADER = "tableHeader";
-    private static final String ID_BACK_BUTTON = "backButton";
+    private static final String ID_TABLE_BOX = "box";
+    private static final String ID_TABLE_BOX_HEADER = "header";
+    // Buttons
     private static final String ID_CREATE_CASE_BUTTON = "createCaseButton";
 
     private IModel<Boolean> showNotDecidedOnlyModel = new Model<>(false);
@@ -119,16 +120,27 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
     }
 
     private ObjectQuery createQuery() throws SchemaException {
+        ObjectQuery query;
         boolean authorizedToSeeAll = isAuthorized(ModelAuthorizationAction.READ_ALL_WORK_ITEMS.getUrl());
         S_FilterEntryOrEmpty q = QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext());
+//        S_AtomicFilterExit query = queryStart.asc(PrismConstants.T_PARENT, CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).;
         if (all && authorizedToSeeAll) {
-            return q.build();
+            query = q.build();
         } else {
             // not authorized to see all => sees only allocated to him (not quite what is expected, but sufficient for the time being)
-            return QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
+            query = QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
                     OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS)
-                    .and().item(CaseType.F_CLOSE_TIMESTAMP).isNull().build();
+                    .and().item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull().build();
         }
+        CheckBoxPanel includeClosedCases = (CheckBoxPanel) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES);
+        if (includeClosedCases == null || !includeClosedCases.getValue()) {
+            query.addFilter(
+                    QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
+                            .item(PrismConstants.T_PARENT, CaseType.F_STATE).eq("open").build().getFilter()
+            );
+        }
+
+        return query;
     }
 
     private String getCurrentUserOid() {
@@ -143,8 +155,6 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
 
     //region Layout
     private void initLayout() {
-        Form mainForm = new Form(ID_MAIN_FORM);
-        add(mainForm);
         CaseWorkItemDtoProvider provider = createProvider();
         int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL);
         BoxedTablePanel<CaseWorkItemDto> table = new BoxedTablePanel<CaseWorkItemDto>(ID_CASE_WORK_ITEMS_TABLE, provider, initColumns(),
@@ -152,13 +162,14 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
-                return new SearchFragment(headerId, ID_TABLE_HEADER, PageCaseWorkItems.this, showNotDecidedOnlyModel);
+                return new SearchFragment(headerId, ID_TABLE_HEADER, PageCaseWorkItems.this, PageCaseWorkItems.this);
             }
         };
         table.setShowPaging(true);
         table.setOutputMarkupId(true);
         table.setItemsPerPage(itemsPerPage);        // really don't know why this is necessary, as e.g. in PageRoles the size setting works without it
-        mainForm.add(table);
+        add(table);
+
         initButtons();
     }
 
@@ -166,9 +177,6 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         List<IColumn<CaseWorkItemDto, String>> columns = new ArrayList<>();
 
         IColumn<CaseWorkItemDto, String> column;
-
-        column = new CheckBoxHeaderColumn<>();
-        columns.add(column);
 
         column = new LinkColumn<CaseWorkItemDto>(createStringResource("PageCaseWorkItems.table.description"), CaseWorkItemDto.F_DESCRIPTION) {
             @Override
@@ -265,24 +273,21 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         columns.add(column);
 
         column = new PropertyColumn<>(
-                createStringResource("PageCaseWorkItems.table.state"), CaseWorkItemDto.F_STATE);
+                createStringResource("PageCaseWorkItems.table.state"), SearchingUtils.CASE_STATE, CaseWorkItemDto.F_STATE);
         columns.add(column);
 
         return columns;
     }
 
     private Table getCaseWorkItemsTable() {
-        return (Table) get(createComponentPath(ID_MAIN_FORM, ID_CASE_WORK_ITEMS_TABLE));
+        return (Table) get(createComponentPath(ID_CASE_WORK_ITEMS_TABLE));
     }
-    private void initButtons() {
-        AjaxButton back = new AjaxButton(ID_BACK_BUTTON, createStringResource("PageCaseWorkItems.button.back")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                cancelPerformed(target);
-            }
-        };
-        add(back);
 
+    private Panel getCaseWorkItemsSearchField(String id) {
+        return (Panel) get(createComponentPath(ID_CASE_WORK_ITEMS_TABLE, ID_TABLE_BOX, ID_TABLE_BOX_HEADER, ID_SEARCH_FILTER_FORM, id));
+    }
+
+    private void initButtons() {
         AjaxButton createCase = new AjaxButton(ID_CREATE_CASE_BUTTON, createStringResource("PageCaseWorkItems.button.createCase")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -292,20 +297,71 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         };
         add(createCase);
     }
+
+    private <V> DropDownChoice<V> createDropDown(String id, IModel<V> defaultModel, final List<V> values,
+                                                 IChoiceRenderer<V> renderer) {
+        DropDownChoice<V> listSelect = new DropDownChoice<V>(id, defaultModel,
+                new AbstractReadOnlyModel<List<V>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public List<V> getObject() {
+                        return values;
+                    }
+                }, renderer);
+
+//        listSelect.add(new OnChangeAjaxBehavior() {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected void onUpdate(AjaxRequestTarget target) {
+//                searchFilterPerformed(target);
+//            }
+//        });
+
+        return listSelect;
+    }
+
+    private ChooseTypePanel<ResourceType> createResourcePanel(String id) {
+
+        ChooseTypePanel<ResourceType> resourceSelector = new ChooseTypePanel<ResourceType>(id, Model.of(new ObjectViewDto())) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void executeCustomAction(AjaxRequestTarget target, ResourceType object) {
+                searchFilterPerformed(target);
+            }
+
+            @Override
+            protected void executeCustomRemoveAction(AjaxRequestTarget target) {
+                searchFilterPerformed(target);
+            }
+
+            @Override
+            protected ObjectQuery getChooseQuery() {
+                ObjectFilter resourceFilter = QueryBuilder.queryFor(ResourceType.class, getPrismContext()).buildFilter();
+
+                return ObjectQuery.createObjectQuery(NotFilter.createNot(resourceFilter));
+            }
+
+            @Override
+            protected boolean isSearchEnabled() {
+                return true;
+            }
+
+            @Override
+            public Class<ResourceType> getObjectTypeClass() {
+                return ResourceType.class;
+            }
+        };
+
+        return resourceSelector;
+
+    }
     //endregion
 
     //region Actions
-
-    private void cancelPerformed(AjaxRequestTarget target) {
-        redirectBack();
-    }
-
-    private void caseDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
-        PageParameters pageParameters = new PageParameters();
-        pageParameters.add(OnePageParameterEncoder.PARAMETER, caseInstance.getOid());
-        LOGGER.trace("caseDetailsPerformed()");
-        navigateToNext(PageCase.class, pageParameters);
-    }
 
     private void searchFilterPerformed(AjaxRequestTarget target) {
         ObjectQuery query;
@@ -320,7 +376,6 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         DataTable table = panel.getDataTable();
         CaseWorkItemDtoProvider provider = (CaseWorkItemDtoProvider) table.getDataProvider();
         provider.setQuery(query);
-        provider.setNotDecidedOnly(Boolean.TRUE.equals(showNotDecidedOnlyModel.getObject()));
         table.setCurrentPage(0);
 
         target.add(getFeedbackPanel());
@@ -329,18 +384,45 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
     //endregion
 
     private static class SearchFragment extends Fragment {
-
-        public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
-                              IModel<Boolean> model) {
-            super(id, markupId, markupProvider, model);
+        PageCaseWorkItems page;
+        public SearchFragment(String id, String markupId, MarkupContainer markupProvider, PageCaseWorkItems page) {
+            super(id, markupId, markupProvider);
+            this.page = page;
 
             initLayout();
         }
 
         private void initLayout() {
-            final Form searchForm = new Form(ID_SEARCH_FORM);
-            add(searchForm);
-            searchForm.setOutputMarkupId(true);
+            final Form searchFilterForm = new Form(ID_SEARCH_FILTER_FORM);
+            add(searchFilterForm);
+            searchFilterForm.setOutputMarkupId(true);
+
+            ChooseTypePanel<ResourceType> resource = page.createResourcePanel(ID_SEARCH_FILTER_RESOURCE);
+            searchFilterForm.add(resource);
+//
+//        project.add(new VisibleEnableBehaviour() {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public boolean isVisible() {
+//                return isRole();
+//            }
+//        });
+
+            CheckBoxPanel includeClosedCases = new CheckBoxPanel(ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES, new Model<Boolean>(false)) {
+                private static final long serialVersionUID = 1L;
+
+                public void onUpdate(AjaxRequestTarget target) {
+                    LOGGER.error("ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES UPDATED");
+                    if (page != null) {
+                        page.searchFilterPerformed(target);
+                    } else {
+                        LOGGER.error("PageCaseWorkItems not found");
+                    }
+                }
+            };
+            searchFilterForm.add(includeClosedCases);
 
             final IModel<Boolean> model = (IModel<Boolean>) getDefaultModel();
         }
@@ -350,8 +432,9 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
 
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {
-                    PageCaseWorkItems page = (PageCaseWorkItems) getPage();
-                    page.searchFilterPerformed(target);
+                    LOGGER.debug("PAGE: {}", page);
+                    LOGGER.debug("SearchFragment.this.page: {}", SearchFragment.this.page);
+                    SearchFragment.this.page.searchFilterPerformed(target);
                 }
             };
         }

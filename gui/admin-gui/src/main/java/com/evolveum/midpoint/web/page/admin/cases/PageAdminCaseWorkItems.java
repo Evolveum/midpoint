@@ -25,7 +25,10 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
  */
 public class PageAdminCaseWorkItems extends PageAdmin {
 
-    public static final String AUTH_CASE_WORK_ITEMS_ALL = AuthorizationConstants.AUTZ_UI_ALL_CASE_WORK_ITEMS_URL;
-    public static final String AUTH_CASE_WORK_ITEMS_ALL_LABEL = "PageAdminCaseWorkItems.auth.casesAll.label";
-    public static final String AUTH_CASE_WORK_ITEMS_ALL_DESCRIPTION = "PageAdminCaseWorkItems.auth.casesAll.description";
+    public static final String AUTH_CASE_WORK_ITEMS_ALL = AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALL_URL;
+    public static final String AUTH_CASE_WORK_ITEMS_ALL_LABEL = "PageAdminCaseWorkItems.auth.caseWorkItemsAll.label";
+    public static final String AUTH_CASE_WORK_ITEMS_ALL_DESCRIPTION = "PageAdminCaseWorkItems.auth.caseWorkItemsAll.description";
+    public static final String AUTH_CASE_WORK_ITEMS_ALLOCATED_TO_ME = AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALLOCATED_TO_ME_URL;
+    public static final String AUTH_CASE_WORK_ITEMS_ALLOCATED_TO_ME_LABEL = "PageAdminCaseWorkItems.auth.caseWorkItemsAllocatedToMe.label";
+    public static final String AUTH_CASE_WORK_ITEMS_ALLOCATED_TO_ME_DESCRIPTION = "PageAdminCaseWorkItems.auth.caseWorkItemsAllocatedToMe.description";
 }

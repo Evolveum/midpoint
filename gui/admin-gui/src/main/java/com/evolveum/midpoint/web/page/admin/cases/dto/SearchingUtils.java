@@ -17,9 +17,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
-import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT_LOCAL_PART;
-import static com.evolveum.midpoint.prism.PrismConstants.A_PROPERTY_CONTAINER;
-import static com.evolveum.midpoint.prism.PrismConstants.NS_TYPES;
 
 /**
  * TODO better class name
