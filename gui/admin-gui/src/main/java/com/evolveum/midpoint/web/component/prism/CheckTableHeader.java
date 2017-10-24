@@ -223,13 +223,6 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
                 if (fetchResult != null && !WebComponentUtil.isSuccessOrHandledError(fetchResult)) {
                     return true;
                 }
-                //TODO: do we need to check overall status????
-                //[PM] you're absolutely right - see MID-3951. The result contains results of fetching all shadows. So I'm commenting the code out.
-//                OperationResult result = getModelObject().getResult();
-//                result.computeStatusIfUnknown();
-//                if (result != null && !WebComponentUtil.isSuccessOrHandledError(result)) {
-//                    return true;
-//                }
                 return false;
             }
         };
@@ -237,12 +230,39 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
 
     private String getDisplayName() {
         ObjectWrapper<O> wrapper = getModel().getObject();
+        PrismObject<O> object = wrapper.getObject();
+        if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())) {
+        	ShadowType shadow = (ShadowType) object.asObjectable();
+        	String resourceName = null;
+        	if (shadow.getResource() != null) {
+        		resourceName = WebComponentUtil.getOrigStringFromPoly(shadow.getResource().getName());
+        	}
+        	if (resourceName == null) {
+        		resourceName = WebComponentUtil.getName(shadow.getResourceRef());
+        	}
+        	
+        	return translate(resourceName);
+        }
+        
         String key = wrapper.getDisplayName();
         return translate(key);
     }
 
     private String getDescription() {
         ObjectWrapper<O> wrapper = getModel().getObject();
+        PrismObject<O> object = wrapper.getObject();
+        if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())) {
+        	ShadowType shadow = (ShadowType) object.asObjectable();
+        	String description = shadow.getIntent();
+        	
+        	if (StringUtils.isNotBlank(description)) {
+        		description += ", " + shadow.getName();
+        	} else {
+        		description = WebComponentUtil.getOrigStringFromPoly(shadow.getName());
+        	}
+        	return translate(description);
+        }
+        
         String key = wrapper.getDescription();
         return translate(key);
     }
@@ -252,7 +272,6 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
             key = "";
         }
         return PageBase.createStringResourceStatic(getPage(), key).getString();
-//        return new StringResourceModel(key, getPage(), null, key).getString();
     }
 
     protected void onClickPerformed(AjaxRequestTarget target) {
@@ -262,7 +281,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
 
     protected void onShowMorePerformed(AjaxRequestTarget target){
         showResult(getModelObject().getFetchResult());
-        showResult(getModelObject().getResult());
+//        showResult(getModelObject().getResult());
 
         target.add(getPageBase().getFeedbackPanel());
     }
