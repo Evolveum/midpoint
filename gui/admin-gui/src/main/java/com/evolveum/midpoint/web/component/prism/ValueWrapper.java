@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -47,7 +48,8 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 //    private PrismPropertyValue<T> value;
 //    private PrismPropertyValue<T> oldValue;
     private ValueStatus status;
-
+    private boolean isEditEnabled = true;
+    
     public ValueWrapper(PropertyOrReferenceWrapper property, PrismValue value) {
         this(property, value, ValueStatus.NOT_CHANGED);
     }
@@ -110,7 +112,19 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 
         this.oldValue = oldValue;
     }
-
+    
+    public void setEditEnabled(boolean isEditEnabled) {
+		this.isEditEnabled = isEditEnabled;
+	}
+	
+	public boolean isEditEnabled() {
+		if (getItem().isDeprecated()) {
+			return false;
+		}
+		return isEditEnabled;
+	}
+	
+    
     public ItemWrapper getItem() {
         return item;
     }

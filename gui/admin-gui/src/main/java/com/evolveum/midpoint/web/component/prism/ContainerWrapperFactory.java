@@ -39,11 +39,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 
@@ -166,6 +168,10 @@ public class ContainerWrapperFactory {
 			filter.addCondition(intentFilter);
 			associationValueWrapper.setFilter(filter);
 			
+			for (ValueWrapper valueWrapper : associationValueWrapper.getValues()) {
+				valueWrapper.setEditEnabled(isEmpty(valueWrapper));
+			}
+			associationValueWrapper.setTargetTypes(Arrays.asList(ShadowType.COMPLEX_TYPE));
 			associationValuesWrappers.add(associationValueWrapper);
 		}
 		
@@ -175,6 +181,15 @@ public class ContainerWrapperFactory {
 		result.computeStatus();
 		return associationWrapper;
 		
+    }
+    
+    private boolean isEmpty(ValueWrapper shadowAssociationRef) {
+    	if (shadowAssociationRef == null) {
+    		return true;
+    	}
+    	
+    	return shadowAssociationRef.isEmpty();
+    	
     }
     
    public <C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readonly) {
@@ -342,20 +357,25 @@ public class ContainerWrapperFactory {
         	return null;
         }
           
+        ReferenceWrapper refWrapper = null;
         if (reference == null) {
         	PrismReference newReference = def.instantiate();
-//        	try {
-//				containerValue.add(newReference);
-//			} catch (SchemaException e) {
-//				LoggingUtils.logException(LOGGER, "Failed to create new reference " + def, e);
-//				return null;
-//			}
-            return new ReferenceWrapper(cWrapper, newReference, propertyIsReadOnly,
+        	refWrapper = new ReferenceWrapper(cWrapper, newReference, propertyIsReadOnly,
                     ValueStatus.ADDED, cWrapper.getPath().append(newReference.getPath()));
+        } else {
+        
+        	refWrapper = new ReferenceWrapper(cWrapper, reference, propertyIsReadOnly,
+        		cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, reference.getPath());
         }
         
-        return new ReferenceWrapper(cWrapper, reference, propertyIsReadOnly,
-        		cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, reference.getPath());
+        //TODO: other special cases?
+	     if (QNameUtil.match(AbstractRoleType.F_APPROVER_REF, def.getName()) || QNameUtil.match(AbstractRoleType.F_APPROVER_REF, def.getName())) {
+	    	 refWrapper.setTargetTypes(Arrays.asList(FocusType.COMPLEX_TYPE, OrgType.COMPLEX_TYPE));
+	     } else {
+	    	 refWrapper.setTargetTypes(Arrays.asList(def.getTargetTypeName()));
+	     }
+	     
+	     return refWrapper;
         
 	}
 	
