@@ -45,10 +45,10 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
 	protected void initContainersPanel(Form form, PageAdminObjectDetails<F> pageBase){
 				RepeatingView containers = new RepeatingView(ID_CONTAINERS);
 
-		ContainerWrapperFromObjectWrapperModel<PolicyConstraintsType, F> constraintsModel =
+		ContainerWrapperFromObjectWrapperModel<PolicyConstraintsType, F> policyRuleModel =
 				new ContainerWrapperFromObjectWrapperModel<PolicyConstraintsType, F>(pageBase.getObjectModel(),
-						getModelObject().getPath().append(AssignmentType.F_POLICY_RULE).append(PolicyRuleType.F_POLICY_CONSTRAINTS));
-		PrismContainerPanel<PolicyConstraintsType> constraintsContainer = new PrismContainerPanel(ID_CONTAINERS, constraintsModel,
+						getModelObject().getPath().append(AssignmentType.F_POLICY_RULE));
+		PrismContainerPanel<PolicyRuleType> constraintsContainer = new PrismContainerPanel(ID_CONTAINERS, policyRuleModel,
 				false, form, null, pageBase);
 		constraintsContainer.setOutputMarkupId(true);
 		containers.add(constraintsContainer);

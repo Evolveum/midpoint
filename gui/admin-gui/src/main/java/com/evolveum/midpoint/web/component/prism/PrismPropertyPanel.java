@@ -140,7 +140,8 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
                 IW wrapper = model.getObject();
                 ItemDefinition def = wrapper.getItemDefinition();
 
-                if (ObjectType.F_NAME.equals(def.getName())) {
+                if (ObjectType.F_NAME.equals(def.getName()) && model.getObject().getParent() != null &&
+                        model.getObject().getParent().isMain()) {
                     //fix for "name as required" MID-789
                     return true;
                 }
