@@ -13,9 +13,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="be835a70-e3f4-11e6-82cb-9b47ebe57b11"
+<role oid="4a678382-e3f4-11e6-8c3d-cfd3dba8168f"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-    <name>Autographic</name>
+    <name>Autocratic</name>
+    <roleType>auto</roleType> <!-- may be used for mapping range -->
 </role>

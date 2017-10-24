@@ -275,6 +275,18 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File ROLE_PERSONA_ADMIN_FILE = new File(COMMON_DIR, "role-persona-admin.xml");
 	protected static final String ROLE_PERSONA_ADMIN_OID = "16813ae6-2c0a-11e7-91fc-8333c244329e";
 
+	protected static final File ROLE_AUTOMATIC_FILE = new File(COMMON_DIR, "role-automatic.xml");
+	protected static final String ROLE_AUTOMATIC_OID = "8fdb56d8-e3f3-11e6-8be9-cb9862ab7c04";
+
+	protected static final File ROLE_AUTOCRATIC_FILE = new File(COMMON_DIR, "role-autocratic.xml");
+	protected static final String ROLE_AUTOCRATIC_OID = "4a678382-e3f4-11e6-8c3d-cfd3dba8168f";
+
+	protected static final File ROLE_AUTODIDACTIC_FILE = new File(COMMON_DIR, "role-autodidactic.xml");
+	protected static final String ROLE_AUTODIDACTIC_OID = "a4f941dc-e3f4-11e6-8eba-9fe432784017";
+
+	protected static final File ROLE_AUTOGRAPHIC_FILE = new File(COMMON_DIR, "role-autographic.xml");
+	protected static final String ROLE_AUTOGRAPHIC_OID = "be835a70-e3f4-11e6-82cb-9b47ebe57b11";
+	
 	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	protected static final String USER_JACK_USERNAME = "jack";
@@ -532,6 +544,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		login(userAdministrator);
 	}
 
+	protected int getNumberOfUsers() {
+		return 1; // Administrator
+	}
+	
 	protected int getNumberOfRoles() {
 		return 1; // Superuser role
 	}

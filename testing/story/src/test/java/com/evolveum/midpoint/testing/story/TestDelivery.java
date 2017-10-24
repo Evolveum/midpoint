@@ -260,6 +260,9 @@ public class TestDelivery extends AbstractStoryTest {
 		assertAssignedRole(userBobOid, roleIt1Oid, task, result);
 	}
 
+	/**
+	 * IT-3 = k10-tpu-10-rem-elaine, k10-cc-1900-rem-administrator
+	 */
 	@Test
 	public void test130Assign_IT_3() throws Exception {
 		final String TEST_NAME = "test130Assign_IT_3";

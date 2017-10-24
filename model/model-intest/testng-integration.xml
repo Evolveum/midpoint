@@ -38,8 +38,9 @@
             <class name="com.evolveum.midpoint.model.intest.TestStrangeCases"/>
             <class name="com.evolveum.midpoint.model.intest.TestMisc"/>
             <class name="com.evolveum.midpoint.model.intest.TestResources"/>
-            <class name="com.evolveum.midpoint.model.intest.TestMapping"/>
-            <class name="com.evolveum.midpoint.model.intest.TestMappingInbound"/>
+            <class name="com.evolveum.midpoint.model.intest.mapping.TestMapping"/>
+            <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingInbound"/>
+            <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingAutoInbound"/>
             <class name="com.evolveum.midpoint.model.intest.TestInbounds"/>
             <class name="com.evolveum.midpoint.model.intest.TestVolatility"/>
             <class name="com.evolveum.midpoint.model.intest.TestTriggerTask"/>
