@@ -17,8 +17,22 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
-<wicket:extend>
-	<div wicket:id="tabPanel" class="nav-tabs-custom"/>
-</wicket:extend>
+<wicket:panel>
+    <div class="row">
+
+            <h3><wicket:message key="PageInternals.title.internalsConfig"/></h3>
+            <form wicket:id="form" class="form-horizontal">
+                <div class="form-group" wicket:id="consistencyChecks"/>
+                <div class="form-group" wicket:id="encryptionChecks"/>
+                <div class="form-group" wicket:id="readEncryptionChecks"/>
+                <div class="form-group" wicket:id="tolerateUndeclaredPrefixes"/>
+
+                <div class="main-button-bar">
+                    <a class="btn btn-primary" wicket:id="updateInternalsConfig"/>
+                </div>
+            </form>
+        </div>
+
+</wicket:panel>
 </body>
 </html>
