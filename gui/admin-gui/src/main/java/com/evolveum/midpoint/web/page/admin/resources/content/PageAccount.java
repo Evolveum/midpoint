@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
@@ -121,7 +123,7 @@ public class PageAccount extends PageAdminResources {
 		} catch (SchemaException e) {
 			throw new SystemException(e.getMessage(), e);
 		}
-//        wrapper.setShowEmpty(false);
+        wrapper.setShowEmpty(false);
         return wrapper;
     }
 
@@ -141,20 +143,15 @@ public class PageAccount extends PageAdminResources {
         });
         mainForm.add(protectedMessage);
 
-        PrismPanel<ShadowType> userForm = new PrismPanel<ShadowType>("account", new ContainerWrapperListFromObjectWrapperModel<>(accountModel, getItemsToShow()), new PackageResourceReference(
+        PrismPanel<ShadowType> userForm = new PrismPanel<ShadowType>("account", new ContainerWrapperListFromObjectWrapperModel<>(accountModel, WebComponentUtil.getShadowItemsToShow()), new PackageResourceReference(
                 ImgResources.class, ImgResources.HDD_PRISM), mainForm, 
-        		null, this);
+        		itemWrapper -> WebComponentUtil.checkShadowActivationAndPasswordVisibility(itemWrapper, accountModel), this);
         mainForm.add(userForm);
         
         initButtons(mainForm);
     }
     
-    private List<ItemPath> getItemsToShow() {
-    	return Arrays.asList(new ItemPath(ShadowType.F_ATTRIBUTES), 
-    			SchemaConstants.PATH_ACTIVATION, SchemaConstants.PATH_PASSWORD,
-    			new ItemPath(ShadowType.F_ASSOCIATION));
-    }
-
+       
     private void initButtons(Form mainForm) {
         AjaxSubmitButton save = new AjaxSubmitButton("save", createStringResource("pageAccount.button.save")) {
 

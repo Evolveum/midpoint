@@ -199,7 +199,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 
 	public String getDisplayName() {
 		if (displayName == null) {
-			return WebComponentUtil.getName(object);
+			return WebComponentUtil.getDisplayNameOrName(object);
 		}
 		return displayName;
 	}

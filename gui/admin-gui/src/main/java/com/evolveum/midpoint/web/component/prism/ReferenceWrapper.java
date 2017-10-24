@@ -22,16 +22,21 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.namespace.QName;
 
 public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference, PrismReferenceDefinition> implements Serializable {
 
 	private static final long serialVersionUID = 3132143219403214903L;
 	
 	private ObjectFilter filter;
+	
+	private List<QName> targetTypes;
 
 	public ReferenceWrapper(ContainerValueWrapper container, PrismReference reference, boolean readonly, ValueStatus status) {
 		super(container, reference, readonly, status, null);
@@ -67,7 +72,15 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 
 		return values;
 	}
-
+	
+	public void setTargetTypes(List<QName> targetTypes) {
+		this.targetTypes = targetTypes;
+	}
+	
+	public List<QName> getTargetTypes() {
+		return targetTypes;
+	}
+	
 	@Override
 	public ValueWrapper createAddedValue() {
 		PrismReferenceValue prv = new PrismReferenceValue();
@@ -82,7 +95,7 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 	public void setFilter(ObjectFilter filter) {
 		this.filter = filter;
 	}
-
+	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();

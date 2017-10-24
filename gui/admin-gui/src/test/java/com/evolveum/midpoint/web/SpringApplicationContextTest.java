@@ -30,9 +30,10 @@ import static org.testng.AssertJUnit.assertNotNull;
  *
  * @author lazyman
  */
-@ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/ctx-webapp.xml",
-        "file:src/main/webapp/WEB-INF/ctx-init.xml",
-        "file:src/main/webapp/WEB-INF/ctx-security.xml",
+@ContextConfiguration(locations = {
+        "classpath:ctx-webapp.xml",
+        "classpath:ctx-init.xml",
+        "classpath:ctx-security.xml",
         "classpath:ctx-repo-cache.xml",
         "classpath*:ctx-repository-test.xml",
         "classpath:ctx-task.xml",

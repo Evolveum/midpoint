@@ -577,6 +577,13 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			} catch (IOException ex) {
 				LOGGER.trace("Unable load: " + u + " [" + ex.getMessage() + "]");
 			}
+// tomcat
+// toString >>> jar:file:/<ABSOLUTE_PATH_TO_TOMCAT_WEBAPPS>/midpoint/WEB-INF/lib/connector-csv-2.1-SNAPSHOT.jar!/META-INF/MANIFEST.MF
+// getPath  >>>     file:/<ABSOLUTE_PATH_TO_TOMCAT_WEBAPPS>/WEB-INF/lib/connector-csv-2.1-SNAPSHOT.jar!/META-INF/MANIFEST.MF
+
+// boot
+// toString >>> jar:file:/<ABSOLUTE_PATH_TO_WAR_FOLDER>/midpoint.war!/WEB-INF/lib/connector-csv-2.1-SNAPSHOT.jar!/META-INF/MANIFEST.MF
+// getPath  >>>     file:/<ABSOLUTE_PATH_TO_WAR_FOLDER>/midpoint.war!/WEB-INF/lib/connector-csv-2.1-SNAPSHOT.jar!/META-INF/MANIFEST.MF
 
 			if (null != prop.get("ConnectorBundle-Name")) {
 				LOGGER.info("Discovered ICF bundle on CLASSPATH: " + prop.get("ConnectorBundle-Name") + " version: "
@@ -584,7 +591,12 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 				// hack to split MANIFEST from name
 				try {
-                                        String upath = u.getPath();
+                    String upath = u.toString();
+                    if (upath.split("!/").length != 3) {
+                    	// we're running standard war in application server
+                    	upath = u.getPath();
+					}
+
 					URL tmp = new URL(toUrl(upath.substring(0, upath.lastIndexOf("!"))));
 					if (isThisBundleCompatible(tmp)) {
 						bundle.add(tmp);
