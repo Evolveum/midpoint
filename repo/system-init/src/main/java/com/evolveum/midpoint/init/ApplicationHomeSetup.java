@@ -27,13 +27,9 @@ import java.net.URISyntaxException;
 
 public class ApplicationHomeSetup {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ApplicationHomeSetup.class);
-    private String midpointHomeSystemPropertyName;
+    private static final Trace LOGGER = TraceManager.getTrace(ApplicationHomeSetup.class);
 
     public void init(String midpointHomeSystemPropertyName) {
-
-        this.midpointHomeSystemPropertyName = midpointHomeSystemPropertyName;
-
         LOGGER.info(midpointHomeSystemPropertyName + " = " + System.getProperty(midpointHomeSystemPropertyName));
         System.out.println(midpointHomeSystemPropertyName + " = " + System.getProperty(midpointHomeSystemPropertyName));
 
@@ -41,7 +37,6 @@ public class ApplicationHomeSetup {
 
         createMidpointHomeDirectories(midpointHomePath);
         setupMidpointHomeDirectory(midpointHomePath);
-
     }
     
     /**
@@ -50,7 +45,6 @@ public class ApplicationHomeSetup {
      * Directory information based on: http://wiki.evolveum.com/display/midPoint/midpoint.home+-+directory+structure
      */
     private void createMidpointHomeDirectories(String midpointHomePath) {
-    	
     	if (!checkDirectoryExistence(midpointHomePath)) {
             createDir(midpointHomePath);
         }
@@ -65,7 +59,8 @@ public class ApplicationHomeSetup {
                 midpointHomePath + "schema",
                 midpointHomePath + "import",
                 midpointHomePath + "export",
-                midpointHomePath + "tmp"
+                midpointHomePath + "tmp",
+                midpointHomePath + "lib"
         };
 
         for (String directory : directories) {
@@ -85,7 +80,6 @@ public class ApplicationHomeSetup {
 		}
     	
     }
-
 
     private boolean checkDirectoryExistence(String dir) {
         File d = new File(dir);

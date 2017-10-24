@@ -48,9 +48,9 @@ public final class DescriptorLoader implements DebugDumpable {
 
     private static Map<String, DisplayableValue<String>[]> actions = new HashMap<>();
     private static Map<String, Class> urlClassMap = new HashMap<>();
-
-    private String baseFileName = "/WEB-INF/descriptor.xml";
-    private String customFileName = "/WEB-INF/classes/descriptor.xml";
+    
+    private String baseFileName = "/descriptor.xml";
+    private String customFileName = "/descriptor.xml";
 
     public static Map<String, DisplayableValue<String>[]> getActions() {
         return actions;
@@ -79,8 +79,8 @@ public final class DescriptorLoader implements DebugDumpable {
 	public void loadData(MidPointApplication application) {
         LOGGER.debug("Loading data from descriptor files.");
 
-        try (InputStream baseInput = application.getServletContext().getResourceAsStream(baseFileName);
-             InputStream customInput = application.getServletContext().getResourceAsStream(customFileName)) {
+        try (InputStream baseInput = DescriptorLoader.class.getResourceAsStream(baseFileName);
+             InputStream customInput = DescriptorLoader.class.getResourceAsStream(customFileName)) {
             if (baseInput == null) {
                 LOGGER.error("Couldn't find " + baseFileName + " file, can't load application menu and other stuff.");
             }

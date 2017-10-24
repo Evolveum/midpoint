@@ -59,6 +59,7 @@ public abstract class DefinitionImpl implements Definition {
 	protected String help;
     protected String documentation;
     protected boolean deprecated = false;
+    protected String deprecatedSince;
 
     /**
      * whether an item is inherited from a supertype (experimental feature)
@@ -122,6 +123,15 @@ public abstract class DefinitionImpl implements Definition {
 
 	public void setDeprecated(boolean deprecated) {
 		this.deprecated = deprecated;
+	}
+	
+	@Override
+	public String getDeprecatedSince() {
+		return deprecatedSince;
+	}
+	
+	public void setDeprecatedSince(String deprecatedSince) {
+		this.deprecatedSince = deprecatedSince;
 	}
 
     public void setInherited(boolean inherited) {

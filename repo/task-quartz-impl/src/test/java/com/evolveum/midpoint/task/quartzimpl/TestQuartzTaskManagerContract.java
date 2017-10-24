@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -592,14 +593,23 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // .. it should be closed
         AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task1.getExecutionStatus());
 
+        assertNotNull(task1.getCompletionTimestamp());
+        List<TriggerType> triggers = task1.getTaskPrismObject().asObjectable().getTrigger();
+        assertEquals(1, triggers.size());
+        TriggerType trigger = triggers.get(0);
+        long delta = XmlTypeConverter.toMillis(trigger.getTimestamp()) - task1.getCompletionTimestamp();
+        if (Math.abs(delta - 10000) > 1000) {
+            fail("Auto cleanup timestamp was not computed correctly. Delta should be 10000, is " + delta);
+        }
+
         // .. and released
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task1.getExclusivityStatus());
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull("LastRunStartTimestamp is null", task1.getLastRunStartTimestamp());
-        assertFalse("LastRunStartTimestamp is 0", task1.getLastRunStartTimestamp().longValue() == 0);
+        assertFalse("LastRunStartTimestamp is 0", task1.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertNotNull("LastRunFinishTimestamp is null", task1.getLastRunFinishTimestamp());
-        assertFalse("LastRunFinishTimestamp is 0", task1.getLastRunFinishTimestamp().longValue() == 0);
+        assertFalse("LastRunFinishTimestamp is 0", task1.getLastRunFinishTimestamp() == 0);
 
         // The progress should be more than 0 as the task has run at least once
         AssertJUnit.assertTrue("Task reported no progress", task1.getProgress() > 0);

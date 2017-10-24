@@ -78,6 +78,7 @@ public class PrismConstants {
 	public static final QName A_OBJECT_REFERENCE_TARGET_TYPE = new QName(NS_ANNOTATION, "objectReferenceTargetType");
 	public static final QName A_COMPOSITE = new QName(NS_ANNOTATION, "composite");
 	public static final QName A_DEPRECATED = new QName(NS_ANNOTATION, "deprecated");
+	public static final QName A_DEPRECATED_SINCE = new QName(NS_ANNOTATION, "deprecatedSince");
 	public static final QName A_LABEL = new QName(NS_ANNOTATION, "label");
 	public static final QName A_MATCHING_RULE = new QName(NS_ANNOTATION, "matchingRule");
 	public static final QName A_EMPHASIZED = new QName(NS_ANNOTATION, "emphasized");

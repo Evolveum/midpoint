@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: MidPoint
+
+# more properties with default values can be found here:
+# https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
