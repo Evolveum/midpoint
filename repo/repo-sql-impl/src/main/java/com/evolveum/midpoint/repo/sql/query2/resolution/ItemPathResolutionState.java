@@ -112,7 +112,7 @@ public class ItemPathResolutionState implements DebugDumpable {
         String newHqlPath = hqlDataInstance.getHqlPath();
         if (linkDefinition.hasJpaRepresentation()) {
             if (singletonOnly && linkDefinition.isMultivalued()) {
-                throw new QueryException("Collections are not allowable for right-side paths");     // TODO better message + context
+                throw new QueryException("Collections are not allowable for right-side paths nor for dereferencing");     // TODO better message + context
             }
             if (!linkDefinition.isEmbedded() || linkDefinition.isMultivalued()) {
                 LOGGER.trace("Adding join for '{}' to context", linkDefinition);

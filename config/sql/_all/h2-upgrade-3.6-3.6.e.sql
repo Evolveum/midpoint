@@ -39,3 +39,10 @@ ALTER TABLE m_case_wi_reference
   ADD CONSTRAINT fk_case_wi_reference_owner
 FOREIGN KEY (owner_id, owner_owner_oid)
 REFERENCES m_case_wi;
+
+-- -------------------------------
+
+ALTER TABLE m_case ADD state VARCHAR(255);
+ALTER TABLE m_case_wi ADD originalAssigneeRef_relation  VARCHAR(157);
+ALTER TABLE m_case_wi ADD originalAssigneeRef_targetOid VARCHAR(36);
+ALTER TABLE m_case_wi ADD originalAssigneeRef_type      INTEGER;
