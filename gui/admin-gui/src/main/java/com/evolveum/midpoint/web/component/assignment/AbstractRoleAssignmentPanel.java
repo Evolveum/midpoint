@@ -131,7 +131,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
        @Override
     protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
     	   TypedAssignablePanel<RoleType> panel = new TypedAssignablePanel<RoleType>(
-                   getPageBase().getMainPopupBodyId(), RoleType.class, true, getPageBase()) {
+                   getPageBase().getMainPopupBodyId(), RoleType.class) {
 
     		   private static final long serialVersionUID = 1L;
 

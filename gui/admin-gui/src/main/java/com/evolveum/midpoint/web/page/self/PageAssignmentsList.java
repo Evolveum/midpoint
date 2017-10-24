@@ -110,7 +110,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         add(mainForm);
 
         AssignmentTablePanel panel = new AssignmentTablePanel<UserType>(ID_ASSIGNMENT_TABLE_PANEL,
-                createStringResource("FocusType.assignment"), assignmentsModel, PageAssignmentsList.this){
+                assignmentsModel){
             @Override
             protected List<InlineMenuItem> createAssignmentMenu() {
                 List<InlineMenuItem> items = new ArrayList<>();
@@ -126,6 +126,11 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                 items.add(item);
                 return items;
             }
+            
+            @Override
+            		public IModel<String> getLabel() {
+            			return createStringResource("FocusType.assignment");
+            		}
         };
         mainForm.add(panel);
 
