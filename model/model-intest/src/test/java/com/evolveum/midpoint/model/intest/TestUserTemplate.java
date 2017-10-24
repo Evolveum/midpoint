@@ -86,18 +86,6 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_RASTAMAN_FILE = new File(TEST_DIR, "role-rastaman.xml");
 	protected static final String ROLE_RASTAMAN_OID = "81ac6b8c-225c-11e6-ab0f-87a169c85cca";
 
-	protected static final File ROLE_AUTOMATIC_FILE = new File(TEST_DIR, "role-automatic.xml");
-	protected static final String ROLE_AUTOMATIC_OID = "8fdb56d8-e3f3-11e6-8be9-cb9862ab7c04";
-
-	protected static final File ROLE_AUTOCRATIC_FILE = new File(TEST_DIR, "role-autocratic.xml");
-	protected static final String ROLE_AUTOCRATIC_OID = "4a678382-e3f4-11e6-8c3d-cfd3dba8168f";
-
-	protected static final File ROLE_AUTODIDACTIC_FILE = new File(TEST_DIR, "role-autodidactic.xml");
-	protected static final String ROLE_AUTODIDACTIC_OID = "a4f941dc-e3f4-11e6-8eba-9fe432784017";
-
-	protected static final File ROLE_AUTOGRAPHIC_FILE = new File(TEST_DIR, "role-autographic.xml");
-	protected static final String ROLE_AUTOGRAPHIC_OID = "be835a70-e3f4-11e6-82cb-9b47ebe57b11";
-
 	protected static final File USER_TEMPLATE_MAROONED_FILE = new File(TEST_DIR, "user-template-marooned.xml");
 	protected static final String USER_TEMPLATE_MAROONED_OID = "766215e8-5f1e-11e6-94bb-c3b21af53235";
 
