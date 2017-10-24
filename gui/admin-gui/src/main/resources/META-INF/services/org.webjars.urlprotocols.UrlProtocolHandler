@@ -1,11 +1,11 @@
 #
-# Copyright (c) 2010-2013 Evolveum
+# Copyright (c) 2010-2017 Evolveum
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,12 +14,9 @@
 # limitations under the License.
 #
 
-managerFactoryClassName=ro.isdc.wro.manager.factory.ConfigurableWroManagerFactory
-preProcessors=cssUrlRewriting,cssImport,semicolonAppender
-postProcessors=less4j
+# Workaround class for wro4j resources loading until https://github.com/webjars/webjars-locator/issues/104 is fixed.
 
-# disabling cache for developing purposes only, more configuration options
-# http://code.google.com/p/wro4j/wiki/ConfigurationOptions
-disableCache=false
-
-uriLocators=servletContext,uri,classpath,webjar
+#org.webjars.urlprotocols.FatJarUrlProtocolHandler
+com.evolveum.midpoint.web.util.CustomJarUrlProtocolHandler
+#org.webjars.urlprotocols.JarUrlProtocolHandler
+org.webjars.urlprotocols.FileUrlProtocolHandler

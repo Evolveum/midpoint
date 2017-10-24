@@ -16,17 +16,24 @@
   -->
 
 <configuration>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
+        </layout>
+    </appender>
+
     <appender name="IDM_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!--See http://logback.qos.ch/manual/appenders.html#RollingFileAppender-->
         <!--and http://logback.qos.ch/manual/appenders.html#TimeBasedRollingPolicy-->
         <!--for further documentation-->
         <Append>true</Append>
-        <File>${catalina.base}/logs/idm.log</File>
+        <File>${midpoint.home}/logs/idm.log</File>
         <encoder>
             <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>${midpoint.home}/logs/idm-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>100MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
@@ -41,12 +48,12 @@
         <!--and http://logback.qos.ch/manual/appenders.html#TimeBasedRollingPolicy-->
         <!--for further documentation-->
         <Append>true</Append>
-        <File>${catalina.base}/logs/idm-profile.log</File>
+        <File>${midpoint.home}/logs/idm-profile.log</File>
         <encoder>
             <pattern>%date %level: %msg%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${catalina.base}/logs/idm-profile-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>${midpoint.home}/logs/idm-profile-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>100MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
@@ -64,8 +71,10 @@
     <logger name="com.evolveum.midpoint.web.util.MidPointProfilingServletFilter" level="TRACE">
         <appender-ref ref="IDM-PROFILE_LOG"/>
     </logger>
+
     <root level="WARN">
         <appender-ref ref="IDM_LOG"/>
+        <appender-ref ref="CONSOLE"/>
     </root>
 </configuration>
 

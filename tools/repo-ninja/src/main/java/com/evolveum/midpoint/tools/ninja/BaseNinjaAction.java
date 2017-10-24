@@ -23,9 +23,15 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public abstract class BaseNinjaAction {
 
-    public static final String[] CONTEXTS = {"classpath:ctx-ninja.xml", "classpath:ctx-common.xml",
-            "classpath:ctx-configuration.xml", "classpath*:ctx-repository.xml", "classpath:ctx-repo-cache.xml",
-            "classpath:ctx-audit.xml", "classpath:ctx-security.xml"};
+    public static final String[] CONTEXTS = {
+            "classpath:ctx-ninja.xml",
+            "classpath:ctx-common.xml",
+            "classpath:ctx-configuration.xml",
+            "classpath*:ctx-repository.xml",
+            "classpath:ctx-repo-cache.xml",
+            "classpath:ctx-audit.xml",
+            "classpath:ctx-security.xml"
+    };
 
     protected void destroyContext(ClassPathXmlApplicationContext context) {
         if (context != null) {
