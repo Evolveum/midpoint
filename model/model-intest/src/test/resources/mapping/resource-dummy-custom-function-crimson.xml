@@ -119,9 +119,9 @@
 							<name>getLocality</name>
 							<parameter>
 								<name>location</name>
-								<value>
+								<expression>
 									<path>locality</path>
-								</value>
+								</expression>
 							</parameter>
 						</function>
 					</expression>
