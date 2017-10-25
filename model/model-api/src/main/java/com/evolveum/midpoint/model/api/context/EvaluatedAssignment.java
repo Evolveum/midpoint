@@ -33,11 +33,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfiguratio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable {
 
 	AssignmentType getAssignmentType();
+
+	Long getAssignmentId();
 
 	Collection<Authorization> getAuthorizations();
 

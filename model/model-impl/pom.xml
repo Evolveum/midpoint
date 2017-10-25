@@ -86,6 +86,7 @@
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>system-init</artifactId>
 			<version>3.7-SNAPSHOT</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
@@ -130,6 +131,11 @@
         <dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>security-api</artifactId>
+			<version>3.7-SNAPSHOT</version>
+		</dependency>
+        <dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>security-enforcer-api</artifactId>
 			<version>3.7-SNAPSHOT</version>
 		</dependency>
 		<dependency>
@@ -315,6 +321,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>security-enforcer-impl</artifactId>
+			<version>3.7-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-test</artifactId>
 			<version>3.7-SNAPSHOT</version>
@@ -385,12 +397,6 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>system-init</artifactId>
-			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

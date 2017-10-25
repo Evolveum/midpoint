@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -63,6 +64,9 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	private List<ContainerValueWrapper<C>> values;
 
 	private boolean readonly;
+	
+	//TODO: HACK to have custom filter for association contianer here becasue of creating new association:
+	private ObjectFilter filter;
 
 	ContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path) {
 		Validate.notNull(container, "container must not be null.");
@@ -93,13 +97,21 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 			}
 		}
 	}
+	
+	public ObjectFilter getFilter() {
+		return filter;
+	}
+	
+	public void setFilter(ObjectFilter filter) {
+		this.filter = filter;
+	}
 
 	@Override
 	public PrismContainerDefinition<C> getItemDefinition() {
 		return container.getDefinition();
 	}
-
-	public ContainerStatus getStatus() {
+	
+		public ContainerStatus getStatus() {
 		return status;
 	}
 
@@ -283,16 +295,16 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return getItem().isEmpty();
 	}
 
-	public void addValue(boolean showEmpty) {
-		getValues().add(createItem(showEmpty));
+	public void addValue(ContainerValueWrapper<C> newValue) {
+		getValues().add(newValue);
 	}
 
-	public ContainerValueWrapper<C> createItem(boolean showEmpty) {
-		PrismContainerValue<C> pcv = container.createNewValue();
-		ContainerValueWrapper<C> wrapper = new ContainerValueWrapper<C>(this, pcv, ValueStatus.ADDED, pcv.getPath());
-		wrapper.setShowEmpty(showEmpty, true);
-		return wrapper;
-	}
+//	public ContainerValueWrapper<C> createItem(boolean showEmpty) {
+//		PrismContainerValue<C> pcv = container.createNewValue();
+//		ContainerValueWrapper<C> wrapper = new ContainerValueWrapper<C>(this, pcv, ValueStatus.ADDED, pcv.getPath());
+//		wrapper.setShowEmpty(showEmpty, true);
+//		return wrapper;
+//	}
 
 	public void sort(final PageBase pageBase) {
 		for (ContainerValueWrapper<C> valueWrapper : getValues()) {
@@ -345,28 +357,36 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		// Does not make much sense, but it is given by the interface
 	}
 
-	public PrismContainer createContainerAddDelta() throws SchemaException {
+	public PrismContainer<C> createContainerAddDelta() throws SchemaException {
 
-		PrismContainer containerAdd = container.clone();
+		PrismContainer<C> containerAdd = container.clone();
 
 		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
 			if (!itemWrapper.hasChanged()) {
 				continue;
 			}
-			if (itemWrapper.isMain()) {
-				containerAdd.setValue(itemWrapper.createContainerValueAddDelta());
+			
+			PrismContainerValue<C> newContainerValue = itemWrapper.createContainerValueAddDelta();
+			
+			if (newContainerValue == null) {
 				continue;
 			}
-			containerAdd.add(itemWrapper.createContainerValueAddDelta());
+			
+			if (itemWrapper.isMain()) {
+				containerAdd.setValue(newContainerValue);
+				continue;
+			}
+			
+			if (containerAdd.isSingleValue()) {
+				containerAdd.replace(newContainerValue);
+			} else {
+				containerAdd.add(newContainerValue);
+			}
 		}
 		return containerAdd;
 	}
 
 	public <O extends ObjectType> void collectModifications(ObjectDelta<O> delta) throws SchemaException {
-
-		if (!hasChanged()) {
-			return;
-		}
 
 		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
 			if (!itemWrapper.hasChanged()) {
@@ -386,52 +406,9 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 					itemWrapper.collectModifications(delta);
 					break;
 				case DELETED:
-					delta.addModificationDeleteContainer(itemWrapper.getPath(), itemWrapper.getContainerValue().clone());
+					delta.addModificationDeleteContainer(getPath(), itemWrapper.getContainerValue().clone());
 					break;
 			}
-		}
-	}
-
-	public <O extends ObjectType> void collectDeleteDelta(ObjectDelta<O> delta,  PrismContext prismContext) throws SchemaException {
-
-		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
-			if (ValueStatus.DELETED.equals(itemWrapper.getStatus())){
-				ContainerDelta<C> containerDelta = new ContainerDelta(ItemPath.EMPTY_PATH, itemWrapper.getDefinition().getName(),
-						itemWrapper.getDefinition(), prismContext);
-				containerDelta.addValuesToDelete(itemWrapper.getContainerValue().clone());
-				delta.addModification(containerDelta);
-			}
-		}
-	}
-
-	public <O extends ObjectType> void collectAddDelta(ObjectDelta<O> delta,  ItemPath propertyPath,
-													   PrismContainerDefinition def, PrismContext prismContext) throws SchemaException {
-
-		ContainerDelta containerDelta = new ContainerDelta(propertyPath, def.getName(), def, prismContext);
-
-		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
-			if (ValueStatus.ADDED.equals(itemWrapper.getStatus())) {
-				itemWrapper.getContainerValue().applyDefinition(def, false);
-				containerDelta.addValueToAdd(itemWrapper.getContainerValue().clone());
-
-			}
-		}
-//		ContainerDelta<C> containerDelta = delta.createContainerModification(propertyPath);
-//
-//		List<PrismContainerValue> containerValuesToAdd = new ArrayList<>();
-//
-//		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
-//			if (ValueStatus.ADDED.equals(itemWrapper.getStatus())){
-//				containerValuesToAdd.add(itemWrapper.getContainerValue().clone());
-
-//				ContainerDelta<C> containerDelta = new ContainerDelta(new ItemPath(FocusType.F_ASSIGNMENT), itemWrapper.getDefinition().getName(),
-//						itemWrapper.getDefinition(), prismContext);
-//				containerDelta.addValuesToAdd(itemWrapper.getContainerValue().clone());
-//			}
-//		}
-//		containerDelta.addValuesToAdd(containerValuesToAdd.toArray(new PrismContainerValue[containerValuesToAdd.size()]));
-		if (!containerDelta.isEmpty()){
-			delta.addModification(containerDelta);
 		}
 	}
 
@@ -480,6 +457,16 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		if (def.isIgnored() || (def.isOperational()) && (!def.getTypeName().equals(MetadataType.COMPLEX_TYPE))) {
 			return false;
 		}
+		
+		if (def.isDeprecated() && isEmpty()) {
+			return false;
+		}
+
+		//TODO: is this correct place? shouldn't we restrict creation for multivalue containers
+		//dirrectly in factory? this can plausible cause problems while computing deltas.
+		if (!getItem().isSingleValue() && isEmpty() && ContainerStatus.MODIFYING.equals(status)){
+			return false;
+		}
 
 		switch (status) {
 			case MODIFYING:
@@ -507,4 +494,20 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return def.canAdd() && def.isEmphasized();
 	}
 
+	@Override
+	public void addValue(boolean showEmpty) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	@Override
+	public boolean isDeprecated() {
+		return getItemDefinition().isDeprecated();
+	}
+
+	@Override
+	public String getDeprecatedSince() {
+		return getItemDefinition().getDeprecatedSince();
+	}
+	
 }

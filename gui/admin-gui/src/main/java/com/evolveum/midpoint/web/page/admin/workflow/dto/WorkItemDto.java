@@ -384,12 +384,12 @@ public class WorkItemDto extends Selectable {
 		if (wfc == null) {
 			return triggers;
 		}
-		List<AlreadyShownTriggerRecord> triggersAlreadyShown = new ArrayList<>();
+		EvaluatedTriggerGroupDto.UniquenessFilter uniquenessFilter = new EvaluatedTriggerGroupDto.UniquenessFilter();
 		List<List<EvaluatedPolicyRuleType>> rulesPerStageList = WfContextUtil.getRulesPerStage(wfc);
 		for (int i = 0; i < rulesPerStageList.size(); i++) {
 			Integer stageNumber = i + 1;
 			boolean highlighted = stageNumber.equals(wfc.getStageNumber());
-			EvaluatedTriggerGroupDto group = EvaluatedTriggerGroupDto.createFrom(rulesPerStageList.get(i), highlighted, triggersAlreadyShown);
+			EvaluatedTriggerGroupDto group = EvaluatedTriggerGroupDto.initializeFromRules(rulesPerStageList.get(i), highlighted, uniquenessFilter);
 			triggers.add(group);
 		}
 		return triggers;
@@ -424,7 +424,7 @@ public class WorkItemDto extends Selectable {
 			Class<? extends ObjectType> clazz = ObjectTypes.getObjectTypeFromTypeQName(delta.getObjectType())
 					.getClassDefinition();
 			Task task = pageBase.createSimpleTask("getObject");
-			PrismObject<?> object = pageBase.getSecurityEnforcer().runPrivileged(() ->
+			PrismObject<?> object = pageBase.runPrivileged(() ->
 					WebModelServiceUtils.loadObject(clazz, oid, pageBase, task, task.getResult()));
 			if (object != null) {
 				focus = (ObjectType) object.asObjectable();

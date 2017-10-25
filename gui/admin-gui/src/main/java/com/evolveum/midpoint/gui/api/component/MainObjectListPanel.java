@@ -206,8 +206,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
                     boolean isVisible = false;
                     try {
-                        isVisible = ((PageBase) getPage()).getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.IMPORT_OBJECTS.getUrl(),
-                                null, null, null, null, null)
+                        isVisible = ((PageBase) getPage()).isAuthorized(ModelAuthorizationAction.IMPORT_OBJECTS.getUrl())
                                 && WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL,
                                 AuthorizationConstants.AUTZ_UI_CONFIGURATION_IMPORT_URL);
                     } catch (Exception ex){

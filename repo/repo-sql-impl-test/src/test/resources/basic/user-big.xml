@@ -52,6 +52,15 @@
         <construction>
             <resourceRef oid="00000000-0000-0000-0000-0000000000e1"/>
         </construction>
+        <policyRule>
+            <policyConstraints>
+                <objectState>
+                    <expression>
+                        <value>1234</value>
+                    </expression>
+                </objectState>
+            </policyConstraints>
+        </policyRule>
     </assignment>
     <assignment id="2">
         <metadata>

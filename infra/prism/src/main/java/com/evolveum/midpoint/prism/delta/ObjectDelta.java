@@ -26,17 +26,22 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
  * Relative difference (delta) of the object.
@@ -55,6 +60,8 @@ import java.util.stream.Collectors;
  * @see PropertyDelta
  */
 public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitable, PathVisitable, Serializable {
+
+	private static final Trace LOGGER = TraceManager.getTrace(ObjectDelta.class);
 
     private static final long serialVersionUID = -528560467958335366L;
 
@@ -1617,6 +1624,182 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 		return rv;
 	}
 
+	public static class FactorOutResultMulti<T extends Objectable> {
+		public final ObjectDelta<T> remainder;
+		public final List<ObjectDelta<T>> offsprings = new ArrayList<>();
+
+		public FactorOutResultMulti(ObjectDelta<T> remainder) {
+			this.remainder = remainder;
+		}
+	}
+
+	public static class FactorOutResultSingle<T extends Objectable> {
+		public final ObjectDelta<T> remainder;
+		public final ObjectDelta<T> offspring;
+
+		public FactorOutResultSingle(ObjectDelta<T> remainder, ObjectDelta<T> offspring) {
+			this.remainder = remainder;
+			this.offspring = offspring;
+		}
+	}
+
+	@NotNull
+	public FactorOutResultSingle<T> factorOut(Collection<ItemPath> paths, boolean cloneDelta) {
+		if (isAdd()) {
+			return factorOutForAddDelta(paths, cloneDelta);
+		} else if (isDelete()) {
+			throw new UnsupportedOperationException("factorOut is not supported for delete deltas");
+		} else {
+			return factorOutForModifyDelta(paths, cloneDelta);
+		}
+	}
+
+	@NotNull
+	public FactorOutResultMulti<T> factorOutValues(ItemPath path, boolean cloneDelta) throws SchemaException {
+		if (isAdd()) {
+			return factorOutValuesForAddDelta(path, cloneDelta);
+		} else if (isDelete()) {
+			throw new UnsupportedOperationException("factorOut is not supported for delete deltas");
+		} else {
+			return factorOutValuesForModifyDelta(path, cloneDelta);
+		}
+	}
+
+	/**
+	 * Works if we are looking e.g. for modification to inducement item,
+	 * and delta contains e.g. REPLACE(inducement[1]/validTo, "...").
+	 *
+	 * Does NOT work the way around: if we are looking for modification to inducement/validTo and
+	 * delta contains e.g. ADD(inducement, ...). In such a case we would need to do more complex processing,
+	 * involving splitting value-to-be-added into remainder and offspring delta. It's probably doable,
+	 * but some conditions would have to be met, e.g. inducement to be added must have an ID.
+	 */
+	private FactorOutResultSingle<T> factorOutForModifyDelta(Collection<ItemPath> paths, boolean cloneDelta) {
+		ObjectDelta<T> remainder = cloneIfRequested(cloneDelta);
+		ObjectDelta<T> offspring = null;
+		List<ItemDelta<?, ?>> modificationsFound = new ArrayList<>();
+		for (Iterator<? extends ItemDelta<?, ?>> iterator = remainder.modifications.iterator(); iterator.hasNext(); ) {
+			ItemDelta<?, ?> modification = iterator.next();
+			if (ItemPath.containsSubpathOrEquivalent(paths, modification.getPath())) {
+				modificationsFound.add(modification);
+				iterator.remove();
+			}
+		}
+		if (!modificationsFound.isEmpty()) {
+			offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
+			modificationsFound.forEach(offspring::addModification);
+		}
+		return new FactorOutResultSingle<>(remainder, offspring);
+	}
+
+	private FactorOutResultSingle<T> factorOutForAddDelta(Collection<ItemPath> paths, boolean cloneDelta) {
+		List<Item<?, ?>> itemsFound = new ArrayList<>();
+		for (ItemPath path : paths) {
+			Item<?, ?> item = objectToAdd.findItem(path);
+			if (item != null && !item.isEmpty()) {
+				itemsFound.add(item);
+			}
+		}
+		if (itemsFound.isEmpty()) {
+			return new FactorOutResultSingle<>(this, null);
+		}
+		ObjectDelta<T> remainder = cloneIfRequested(cloneDelta);
+		ObjectDelta<T> offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
+		for (Item<?, ?> item : itemsFound) {
+			remainder.getObjectToAdd().remove(item);
+			offspring.addModification(ItemDelta.createAddDeltaFor(item));
+		}
+		return new FactorOutResultSingle<>(remainder, offspring);
+	}
+
+	private ObjectDelta<T> cloneIfRequested(boolean cloneDelta) {
+		return cloneDelta ? clone() : this;
+	}
+
+	/**
+	 * Works if we are looking e.g. for modification to inducement item,
+	 * and delta contains e.g. REPLACE(inducement[1]/validTo, "...").
+	 *
+	 * Does NOT work the way around: if we are looking for modification to inducement/validTo and
+	 * delta contains e.g. ADD(inducement, ...). In such a case we would need to do more complex processing,
+	 * involving splitting value-to-be-added into remainder and offspring delta. It's probably doable,
+	 * but some conditions would have to be met, e.g. inducement to be added must have an ID.
+	 */
+	private FactorOutResultMulti<T> factorOutValuesForModifyDelta(ItemPath path, boolean cloneDelta) throws SchemaException {
+		ObjectDelta<T> remainder = cloneIfRequested(cloneDelta);
+		FactorOutResultMulti<T> rv = new FactorOutResultMulti<>(remainder);
+
+		MultiValuedMap<Long, ItemDelta<?, ?>> modificationsForId = new ArrayListValuedHashMap<>();
+		PrismObjectDefinition<T> objDef = objectTypeClass != null ? prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectTypeClass) : null;
+		ItemDefinition itemDef = objDef != null ? objDef.findItemDefinition(path) : null;
+		Boolean isSingle = itemDef != null ? itemDef.isSingleValue() : null;
+		if (isSingle == null) {
+			LOGGER.warn("Couldn't find definition for {}:{}", objectTypeClass, path);
+			isSingle = false;
+		}
+		for (Iterator<? extends ItemDelta<?, ?>> iterator = remainder.modifications.iterator(); iterator.hasNext(); ) {
+			ItemDelta<?, ?> modification = iterator.next();
+			if (path.equivalent(modification.getPath())) {
+				if (modification.isReplace()) {
+					throw new UnsupportedOperationException("Cannot factor out values for replace item delta. Path = "
+							+ path + ", modification = " + modification);
+				}
+				for (PrismValue prismValue : emptyIfNull(modification.getValuesToAdd())) {
+					//noinspection unchecked
+					createNewDelta(rv, modification).addValueToAdd(prismValue.clone());
+				}
+				for (PrismValue prismValue : emptyIfNull(modification.getValuesToDelete())) {
+					//noinspection unchecked
+					createNewDelta(rv, modification).addValueToDelete(prismValue.clone());
+				}
+				iterator.remove();
+			} else if (path.isSubPath(modification.getPath())) {
+				// e.g. factoring inducement, having REPLACE(inducement[x]/activation/validTo, ...) or ADD(inducement[x]/activation)
+				ItemPath remainingPath = modification.getPath().remainder(path);
+				Long id = remainingPath.getFirstIdSegment() != null ? remainingPath.getFirstIdSegment().getId() : null;
+				modificationsForId.put(id, modification);
+				iterator.remove();
+			}
+		}
+		if (Boolean.TRUE.equals(isSingle)) {
+			ObjectDelta<T> offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
+			modificationsForId.values().forEach(mod -> offspring.addModification(mod));
+			rv.offsprings.add(offspring);
+		} else {
+			for (Long id : modificationsForId.keySet()) {
+				ObjectDelta<T> offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
+				modificationsForId.get(id).forEach(mod -> offspring.addModification(mod));
+				rv.offsprings.add(offspring);
+			}
+		}
+		return rv;
+	}
+
+	private ItemDelta createNewDelta(FactorOutResultMulti<T> rv, ItemDelta<?, ?> modification)
+			throws SchemaException {
+		ObjectDelta<T> offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
+		ItemDelta delta = modification.getDefinition().instantiate().createDelta(modification.getPath());
+		offspring.addModification(delta);
+		rv.offsprings.add(offspring);
+		return delta;
+	}
+
+	private FactorOutResultMulti<T> factorOutValuesForAddDelta(ItemPath path, boolean cloneDelta) {
+		Item<?, ?> item = objectToAdd.findItem(path);
+		if (item == null || item.isEmpty()) {
+			return new FactorOutResultMulti<>(this);
+		}
+		ObjectDelta<T> remainder = cloneIfRequested(cloneDelta);
+		remainder.getObjectToAdd().remove(item);
+		FactorOutResultMulti<T> rv = new FactorOutResultMulti<>(remainder);
+		for (PrismValue value : item.getValues()) {
+			ObjectDelta<T> offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
+			offspring.addModification(ItemDelta.createAddDeltaFor(item, value));
+			rv.offsprings.add(offspring);
+		}
+		return rv;
+	}
+
 	/**
 	 * Checks if the delta tries to add (or set) a 'value' for the item identified by 'itemPath'. If yes, it removes it.
 	 *
@@ -1648,8 +1831,8 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 				if (!fromMinusSet) {
 					if (dryRun) {
 						wasPresent = wasPresent
-								|| CollectionUtils.emptyIfNull(itemDelta.getValuesToAdd()).contains(value)
-								|| CollectionUtils.emptyIfNull(itemDelta.getValuesToReplace()).contains(value);
+								|| emptyIfNull(itemDelta.getValuesToAdd()).contains(value)
+								|| emptyIfNull(itemDelta.getValuesToReplace()).contains(value);
 					} else {
 						boolean removed1 = itemDelta.removeValueToAdd(value);
 						boolean removed2 = itemDelta.removeValueToReplace(value);
@@ -1660,7 +1843,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 						throw new UnsupportedOperationException("Couldn't subtract 'value to be deleted' from REPLACE itemDelta: " + itemDelta);
 					}
 					if (dryRun) {
-						wasPresent = wasPresent || CollectionUtils.emptyIfNull(itemDelta.getValuesToDelete()).contains(value);
+						wasPresent = wasPresent || emptyIfNull(itemDelta.getValuesToDelete()).contains(value);
 					} else {
 						wasPresent = wasPresent || itemDelta.removeValueToDelete(value);
 					}
@@ -1741,6 +1924,21 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 			} else {
 				return Collections.emptyList();
 			}
+		}
+	}
+
+	public void clear() {
+		if (isAdd()) {
+			setObjectToAdd(null);
+		} else if (isModify()) {
+			modifications.clear();
+		} else if (isDelete()) {
+			// hack: convert to empty ADD delta
+			setChangeType(ChangeType.ADD);
+			setObjectToAdd(null);
+			setOid(null);
+		} else {
+			throw new IllegalStateException("Unsupported delta type: " + getChangeType());
 		}
 	}
 }

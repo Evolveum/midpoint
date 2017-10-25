@@ -36,6 +36,8 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -1108,9 +1110,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     }
 
     private void suspendTasksPerformed(AjaxRequestTarget target, List<String> oidList) {
-        OperationResult result = new OperationResult(OPERATION_SUSPEND_TASKS);
+    	Task opTask = createSimpleTask(OPERATION_SUSPEND_TASKS);
+        OperationResult result = opTask.getResult();
         try {
-            boolean suspended = getTaskService().suspendTasks(oidList, WAIT_FOR_TASK_STOP, result);
+            boolean suspended = getTaskService().suspendTasks(oidList, WAIT_FOR_TASK_STOP, opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 if (suspended) {
@@ -1119,7 +1122,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                     result.recordWarning("Task(s) suspension has been successfully requested; please check for its completion using task list.");
                 }
             }
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | RuntimeException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't suspend the task(s)", e);
         }
         showResult(result);
@@ -1143,14 +1146,15 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     }
 
     private void resumeTasksPerformed(AjaxRequestTarget target, List<String> oids) {
-        OperationResult result = new OperationResult(OPERATION_RESUME_TASKS);
+    	Task opTask = createSimpleTask(OPERATION_RESUME_TASKS);
+        OperationResult result = opTask.getResult();
         try {
-            getTaskService().resumeTasks(oids, result);
+            getTaskService().resumeTasks(oids, opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully resumed.");
             }
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | RuntimeException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't resume the task(s)", e);
         }
         showResult(result);
@@ -1173,14 +1177,15 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     }
 
     private void scheduleTasksPerformed(AjaxRequestTarget target, List<String> oids) {
-        OperationResult result = new OperationResult(OPERATION_SCHEDULE_TASKS);
+    	Task opTask = createSimpleTask(OPERATION_SCHEDULE_TASKS);
+        OperationResult result = opTask.getResult();
         try {
-            getTaskService().scheduleTasksNow(oids, result);
+            getTaskService().scheduleTasksNow(oids, opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully scheduled.");
             }
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | RuntimeException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't schedule the task(s)", e);
         }
         showResult(result);
@@ -1209,9 +1214,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     }
 
     private void stopSchedulersAndTasksPerformed(AjaxRequestTarget target, List<String> identifiers) {
-        OperationResult result = new OperationResult(OPERATION_STOP_SCHEDULERS_AND_TASKS);
+    	Task opTask = createSimpleTask(OPERATION_STOP_SCHEDULERS_AND_TASKS);
+        OperationResult result = opTask.getResult();
         try {
-            boolean suspended = getTaskService().stopSchedulersAndTasks(identifiers, WAIT_FOR_TASK_STOP, result);
+            boolean suspended = getTaskService().stopSchedulersAndTasks(identifiers, WAIT_FOR_TASK_STOP, opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 if (suspended) {
@@ -1223,7 +1229,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                             "their completion using task list.");
                 }
             }
-        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | RuntimeException e) {
+        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't stop schedulers due", e);
         }
         showResult(result);
@@ -1247,14 +1253,15 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     }
 
     private void startSchedulersPerformed(AjaxRequestTarget target, List<String> identifiers) {
-        OperationResult result = new OperationResult(OPERATION_START_SCHEDULERS);
+    	Task opTask = createSimpleTask(OPERATION_START_SCHEDULERS);
+        OperationResult result = opTask.getResult();
         try {
-            getTaskService().startSchedulers(identifiers, result);
+            getTaskService().startSchedulers(identifiers, opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully started.");
             }
-        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | RuntimeException e) {
+        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't start the scheduler(s)", e);
         }
 
@@ -1278,14 +1285,15 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     }
 
     private void stopSchedulersPerformed(AjaxRequestTarget target, List<String> identifiers) {
-        OperationResult result = new OperationResult(OPERATION_STOP_SCHEDULERS);
+    	Task opTask = createSimpleTask(OPERATION_STOP_SCHEDULERS);
+        OperationResult result = opTask.getResult();
         try {
-            getTaskService().stopSchedulers(identifiers, result);
+            getTaskService().stopSchedulers(identifiers, opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "Selected node scheduler(s) have been successfully stopped.");
             }
-        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | RuntimeException e) {
+        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't stop the scheduler(s)", e);
         }
         showResult(result);
@@ -1351,10 +1359,11 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
     //region Diagnostics actions
     private void deactivateServiceThreadsPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_DEACTIVATE_SERVICE_THREADS);
+    	Task opTask = createSimpleTask(OPERATION_DEACTIVATE_SERVICE_THREADS);
+        OperationResult result = opTask.getResult();
 
         try {
-            boolean stopped = getTaskService().deactivateServiceThreads(WAIT_FOR_TASK_STOP, result);
+            boolean stopped = getTaskService().deactivateServiceThreads(WAIT_FOR_TASK_STOP, opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 if (stopped) {
@@ -1363,7 +1372,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                     result.recordWarning("Deactivation of service threads on local node have been successfully requested; however, some of the tasks are still running. Please check their completion using task list.");
                 }
             }
-        } catch (RuntimeException | SchemaException | SecurityViolationException e) {
+        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't deactivate service threads on this node", e);
         }
         showResult(result);
@@ -1373,15 +1382,16 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     }
 
     private void reactivateServiceThreadsPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_REACTIVATE_SERVICE_THREADS);
+    	Task opTask = createSimpleTask(OPERATION_REACTIVATE_SERVICE_THREADS);
+        OperationResult result = opTask.getResult();
 
         try {
-            getTaskService().reactivateServiceThreads(result);
+            getTaskService().reactivateServiceThreads(opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "Service threads on local node have been successfully reactivated.");
             }
-        } catch (RuntimeException | SchemaException | SecurityViolationException e) {
+        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't reactivate service threads on local node", e);
         }
         showResult(result);
@@ -1397,15 +1407,16 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     }
 
     private void synchronizeTasksPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_SYNCHRONIZE_TASKS);
+    	Task opTask = createSimpleTask(OPERATION_SYNCHRONIZE_TASKS);
+        OperationResult result = opTask.getResult();
 
         try {
-            getTaskService().synchronizeTasks(result);
+            getTaskService().synchronizeTasks(opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {       // brutal hack - the subresult's message contains statistics
                 result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
             }
-        } catch (RuntimeException | SchemaException | SecurityViolationException e) {
+        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't synchronize tasks", e);
         }
         showResult(result);
@@ -1415,15 +1426,16 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     }
 
 	private void synchronizeWorkflowRequestsPerformed(AjaxRequestTarget target) {
-		OperationResult result = new OperationResult(OPERATION_SYNCHRONIZE_WORKFLOW_REQUESTS);
+		Task opTask = createSimpleTask(OPERATION_SYNCHRONIZE_WORKFLOW_REQUESTS);
+        OperationResult result = opTask.getResult();
 
 		try {
-			getTaskService().synchronizeWorkflowRequests(result);
+			getTaskService().synchronizeWorkflowRequests(opTask, result);
 			result.computeStatusIfUnknown();
 			if (result.isSuccess()) {       // brutal hack - the subresult's message contains statistics
 				result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
 			}
-		} catch (RuntimeException | SchemaException | SecurityViolationException e) {
+		} catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
 			result.recordFatalError("Couldn't synchronize tasks", e);
 		}
 		showResult(result);
@@ -1525,14 +1537,15 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             return;
         }
 
-        OperationResult result = new OperationResult(OPERATION_DELETE_TASKS);
+        Task opTask = createSimpleTask(OPERATION_DELETE_TASKS);
+        OperationResult result = opTask.getResult();
         try {
-            getTaskService().suspendAndDeleteTasks(TaskDto.getOids(taskDtoList), WAIT_FOR_TASK_STOP, true, result);
+            getTaskService().suspendAndDeleteTasks(TaskDto.getOids(taskDtoList), WAIT_FOR_TASK_STOP, true, opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully deleted.");
             }
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | RuntimeException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             result.recordFatalError("Couldn't delete the task(s)", e);
         }
         showResult(result);

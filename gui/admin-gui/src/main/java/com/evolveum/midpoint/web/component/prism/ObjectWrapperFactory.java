@@ -16,35 +16,70 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.Validate;
+
+import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinitionImpl;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
-import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHistoryEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SubjectedObjectSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-
-import org.apache.commons.lang.Validate;
-
-import javax.xml.namespace.QName;
-
-import java.util.*;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -109,7 +144,7 @@ public class ObjectWrapperFactory {
                 PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
                 Validate.notNull(resource, "No resource object in the resourceRef");
                 objectClassDefinitionForEditing = modelServiceLocator.getModelInteractionService().getEditObjectClassDefinition(
-                        (PrismObject<ShadowType>) object, resource, authorizationPhase);
+                        (PrismObject<ShadowType>) object, resource, authorizationPhase, task, result);
                 if (objectClassDefinitionForEditing != null) {
                 	object.findOrCreateContainer(ShadowType.F_ATTRIBUTES).applyDefinition((PrismContainerDefinition) objectClassDefinitionForEditing.toResourceAttributeContainerDefinition());;
                 }
@@ -117,7 +152,7 @@ public class ObjectWrapperFactory {
             }
             return createObjectWrapper(displayName, description, object, objectDefinitionForEditing,
                     objectClassDefinitionForEditing, status, result);
-        } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {
+        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | SecurityViolationException ex) {
             throw new SystemException(ex);
         }
     }
@@ -166,21 +201,12 @@ public class ObjectWrapperFactory {
 
         ContainerWrapperFactory cwf = new ContainerWrapperFactory(modelServiceLocator);
         try {
-//            Class<O> clazz = object.getCompileTimeClass();
-//            if (ShadowType.class.isAssignableFrom(clazz)) {
-//            	addShadowContainers(containerWrappers, oWrapper, object, objectDefinitionForEditing, cwf, cStatus, result);
-//            } else if (ResourceType.class.isAssignableFrom(clazz)) { //TODO: is this even used???
-//                addResourceContainers(containerWrappers, oWrapper, object, result);
-//            } else if (ReportType.class.isAssignableFrom(clazz)) { //TODO is this even used???
-//                addReportContainers(containerWrappers, oWrapper, object, result);
-//            } else {
                 ContainerWrapper<O> mainContainerWrapper = cwf.createContainerWrapper(object, cStatus, ItemPath.EMPTY_PATH);
                 mainContainerWrapper.setDisplayName("prismContainer.mainPanelDisplayName");
                 result.addSubresult(cwf.getResult());
                 containerWrappers.add(mainContainerWrapper);
 
                 addContainerWrappers(containerWrappers, oWrapper, object, null, result);
-//            }
         } catch (SchemaException | RuntimeException e) {
             //TODO: shouldn't be this exception thrown????
             LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during container wrapping", e);
@@ -195,86 +221,83 @@ public class ObjectWrapperFactory {
         return containerWrappers;
     }
 
-    private <O extends ObjectType> PrismObjectDefinition<O> getDefinition(PrismObject<O> object,
-    		PrismObjectDefinition<O> objectDefinitionForEditing) {
-        if (objectDefinitionForEditing != null) {
-            return objectDefinitionForEditing;
-        }
-        return object.getDefinition();
-    }
 
-    private <O extends ObjectType> List<ContainerWrapper<? extends Containerable>> createCustomContainerWrapper(
-    															ObjectWrapper<O> oWrapper, PrismObject<O> object,
-                                                                PrismObjectDefinition<O> objectDefinitionForEditing,
-                                                                QName name, OperationResult result) throws SchemaException {
-        PrismContainer container = object.findContainer(name);
-        ContainerStatus status = container == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING;
-        List<ContainerWrapper<? extends Containerable>> list = new ArrayList<>();
-        if (container == null) {
-            PrismContainerDefinition<?> definition = getDefinition(object, objectDefinitionForEditing).findContainerDefinition(name);
-            container = definition.instantiate();
-        }
+   private <O extends ObjectType, C extends Containerable> void addContainerWrappers(
+			List<ContainerWrapper<? extends Containerable>> containerWrappers, ObjectWrapper<O> oWrapper,
+			PrismContainer<C> parentContainer, ItemPath path, OperationResult result) throws SchemaException {
 
-        ContainerWrapperFactory cwf = new ContainerWrapperFactory(modelServiceLocator);
-        ContainerWrapper wrapper = cwf.createContainerWrapper(container, status, new ItemPath(name));
-        result.addSubresult(cwf.getResult());
-        list.add(wrapper);
-        if (!ShadowType.F_ASSOCIATION.equals(name)) {
-            addContainerWrappers(list, oWrapper, container, new ItemPath(name), result);
-        }
+		PrismContainerDefinition<C> parentContainerDefinition = parentContainer.getDefinition();
 
-        return list;
-    }
+		List<ItemPathSegment> segments = new ArrayList<>();
+		if (path != null) {
+			segments.addAll(path.getSegments());
+		}
+		ItemPath parentPath = new ItemPath(segments);
+		for (ItemDefinition def : (Collection<ItemDefinition>) parentContainerDefinition.getDefinitions()) {
+			if (!(def instanceof PrismContainerDefinition)) {
+				continue;
+			}
+			if (isIgnoreContainer(def.getTypeName())) {
+				continue;
+			}
 
-    private <O extends ObjectType, C extends Containerable> void addContainerWrappers(
-    														List<ContainerWrapper<? extends Containerable>> containerWrappers,
-    														ObjectWrapper<O> oWrapper, PrismContainer<C> parentContainer, ItemPath path,
-    														OperationResult result) throws SchemaException {
+			LOGGER.trace("ObjectWrapper.createContainerWrapper processing definition: {}", def);
 
-        PrismContainerDefinition<C> parentContainerDefinition = parentContainer.getDefinition();
+			PrismContainerDefinition<C> containerDef = (PrismContainerDefinition) def;
 
-        List<ItemPathSegment> segments = new ArrayList<>();
-        if (path != null) {
-            segments.addAll(path.getSegments());
-        }
-        ItemPath parentPath = new ItemPath(segments);
-        for (ItemDefinition def : (Collection<ItemDefinition>) parentContainerDefinition.getDefinitions()) {
-            if (!(def instanceof PrismContainerDefinition)) {
-                continue;
-            }
-            if (isIgnoreContainer(def.getTypeName())) {
-            	continue;
-            }
+			ItemPath newPath = createPropertyPath(parentPath, containerDef.getName());
 
-            LOGGER.trace("ObjectWrapper.createContainerWrapper processing definition: {}", def);
+			ContainerWrapperFactory cwf = new ContainerWrapperFactory(modelServiceLocator);
 
-            PrismContainerDefinition<?> containerDef = (PrismContainerDefinition) def;
+			PrismContainer<C> prismContainer = parentContainer.findContainer(def.getName());
+			
+			ContainerWrapper<C>  container = createContainerWrapper(oWrapper.getObject(), prismContainer, containerDef, cwf, newPath);
+			result.addSubresult(cwf.getResult());
+			if (container != null) {
+				containerWrappers.add(container);
+			}
+				
+		}
+	}
+	
+	private <O extends ObjectType, C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismObject<O> object, PrismContainer<C> prismContainer, PrismContainerDefinition<C> containerDef, ContainerWrapperFactory cwf, ItemPath newPath) throws SchemaException{
+		if (ShadowAssociationType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {
+			ObjectType objectType = object.asObjectable();
+			ShadowType shadow = null;
+			if (objectType instanceof ShadowType) {
+				shadow = (ShadowType) objectType;
+			} else {
+				throw new SchemaException("Something very strange happenned. Association contianer in the " + objectType.getClass().getSimpleName() + "?");
+			}
+			Task task = modelServiceLocator.createSimpleTask("Load resource ref");
+			//TODO: is it safe to case modelServiceLocator to pageBase?
+			PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(shadow.getResourceRef(), (PageBase) modelServiceLocator, task, result);
+			
+			result.computeStatusIfUnknown();
+			if (!result.isAcceptable()) {
+				LOGGER.error("Cannot find resource referenced from shadow. {}", result.getMessage());
+				result.recordPartialError("Could not find resource referenced from shadow.");
+				return null;
+			}
+			
+			if (prismContainer != null) {
+				return (ContainerWrapper<C>) cwf.createAssociationWrapper(resource, shadow.getKind(), shadow.getIntent(), (PrismContainer<ShadowAssociationType>) prismContainer, ContainerStatus.MODIFYING, newPath);
+			}
+			prismContainer = containerDef.instantiate();
+			return (ContainerWrapper<C>) cwf.createAssociationWrapper(resource, shadow.getKind(), shadow.getIntent(), (PrismContainer<ShadowAssociationType>) prismContainer, ContainerStatus.ADDING, newPath);
+			
+		}
 
-            ItemPath newPath = createPropertyPath(parentPath, containerDef.getName());
-
-                    ContainerWrapperFactory cwf = new ContainerWrapperFactory(modelServiceLocator);
-
-                    if (AssignmentType.COMPLEX_TYPE.equals(parentContainer.getDefinition().getName())) {
-                    	System.out.println("something");
-                    }
-                    
-                    PrismContainer prismContainer = parentContainer.findContainer(def.getName());
-
-                    ContainerWrapper container;
-                    if (prismContainer != null) {
-                        container = cwf.createContainerWrapper(prismContainer, ContainerStatus.MODIFYING, newPath);
-                    } else {
-                        prismContainer = containerDef.instantiate();
-                        container = cwf.createContainerWrapper(prismContainer, ContainerStatus.ADDING, newPath);
-                    }
-                    result.addSubresult(cwf.getResult());
-                    containerWrappers.add(container);
-
-                }
-    }
-
-
-    private boolean isIgnoreContainer(QName containerDefinitionName) {
+		if (prismContainer != null) {
+			return cwf.createContainerWrapper(prismContainer, ContainerStatus.MODIFYING, newPath);
+		}
+		
+		prismContainer = containerDef.instantiate();
+		return cwf.createContainerWrapper(prismContainer, ContainerStatus.ADDING, newPath);
+		
+	}
+	
+	private boolean isIgnoreContainer(QName containerDefinitionName) {
     	 for (QName container : CONTAINERS_TO_IGNORE) {
     		 if (container.equals(containerDefinitionName)){
     			 return true;
@@ -283,124 +306,6 @@ public class ObjectWrapperFactory {
 
     	 return false;
     }
-
-    private boolean hasResourceCapability(ResourceType resource,
-                                          Class<? extends CapabilityType> capabilityClass) {
-        if (resource == null) {
-            return false;
-        }
-        return ResourceTypeUtil.hasEffectiveCapability(resource, capabilityClass);
-    }
-
-    private <O extends ObjectType> void addResourceContainerWrapper(
-    																List<ContainerWrapper<? extends Containerable>> containerWrappers,
-    																ObjectWrapper<O> oWrapper, PrismObject<O> object,
-                                                                  PrismObject<ConnectorType> connector,
-                                                                  OperationResult result) throws SchemaException {
-
-        PrismContainer<ConnectorConfigurationType> container = object.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-
-        ConnectorType connectorType = connector.asObjectable();
-        PrismSchema schema = ConnectorTypeUtil.parseConnectorSchema(connectorType,
-                connector.getPrismContext());
-        PrismContainerDefinition<ConnectorConfigurationType> definition = ConnectorTypeUtil.findConfigurationContainerDefinition(
-                connectorType, schema);
-
-		// brutal hack - the definition has (errorneously) set maxOccurs =
-		// unbounded. But there can be only one configuration container.
-		// See MID-2317 and related issues
-		PrismContainerDefinition<ConnectorConfigurationType> definitionFixed = definition.clone();
-        ((PrismContainerDefinitionImpl) definitionFixed).setMaxOccurs(1);
-
-		if (container == null) {
-            container = definitionFixed.instantiate();
-        } else {
-			container.setDefinition(definitionFixed);
-		}
-
-        addContainerWrappers(containerWrappers, oWrapper, container, new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION), result);
-    }
-
-//    private <O extends ObjectType> void addShadowContainers(
-//    		List<ContainerWrapper<? extends Containerable>> containers,
-//    		ObjectWrapper<O> oWrapper, PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing,
-//			ContainerWrapperFactory cwf, ContainerStatus cStatus,
-//            OperationResult result) throws SchemaException {
-//
-//    	PrismContainer attributesContainer = object.findContainer(ShadowType.F_ATTRIBUTES);
-//        ContainerStatus status = attributesContainer != null ? cStatus : ContainerStatus.ADDING;
-//        if (attributesContainer == null) {
-//            PrismContainerDefinition<?> definition = object.getDefinition().findContainerDefinition(
-//                    ShadowType.F_ATTRIBUTES);
-//            attributesContainer = definition.instantiate();
-//        }
-//        
-//        
-//
-//        ContainerWrapper attributesContainerWrapper = cwf.createContainerWrapper(attributesContainer, status,
-//                new ItemPath(ShadowType.F_ATTRIBUTES));
-//        result.addSubresult(cwf.getResult());
-//
-////        attributesContainerWrapper.setMain(true);
-//        attributesContainerWrapper.setDisplayName("prismContainer.shadow.mainPanelDisplayName");
-//        containers.add(attributesContainerWrapper);
-//
-//        if (hasResourceCapability(((ShadowType) object.asObjectable()).getResource(),
-//                ActivationCapabilityType.class)) {
-//            containers
-//                    .addAll(createCustomContainerWrapper(oWrapper, object, objectDefinitionForEditing, ShadowType.F_ACTIVATION, result));
-//        }
-//        if (hasResourceCapability(((ShadowType) object.asObjectable()).getResource(),
-//                CredentialsCapabilityType.class)) {
-//        	containers
-//                    .addAll(createCustomContainerWrapper(oWrapper, object, objectDefinitionForEditing, ShadowType.F_CREDENTIALS, result));
-//        }
-//
-//        PrismContainer<ShadowAssociationType> associationContainer = object.findOrCreateContainer(ShadowType.F_ASSOCIATION);
-//        attributesContainerWrapper = cwf.createContainerWrapper(associationContainer, ContainerStatus.MODIFYING,
-//                new ItemPath(ShadowType.F_ASSOCIATION));
-//        result.addSubresult(cwf.getResult());
-//        containers.add(attributesContainerWrapper);
-//}
-
-//    private <O extends ObjectType> void addResourceContainers(
-//    														List<ContainerWrapper<? extends Containerable>> containers,
-//    														ObjectWrapper<O> oWrapper, PrismObject<O> object,
-//                                                            OperationResult result) throws SchemaException {
-//        PrismObject<ConnectorType> connector = loadConnector(object);
-//        if (connector != null) {
-//            addResourceContainerWrapper(containers, oWrapper, object, connector, result);
-//        }
-//    }
-//
-//    private <O extends ObjectType> void addReportContainers(
-//    														List<ContainerWrapper<? extends Containerable>> containers,
-//    														ObjectWrapper<O> oWrapper, PrismObject<O> object,
-//    														OperationResult result) throws SchemaException {
-//        PrismContainer container = object.findContainer(ReportType.F_CONFIGURATION);
-//        ContainerStatus status = container != null ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
-//
-//        if (container == null) {
-//            PrismSchema schema = ReportTypeUtil.parseReportConfigurationSchema(
-//                    (PrismObject<ReportType>) object, object.getPrismContext());
-//            PrismContainerDefinition<?> definition = ReportTypeUtil.findReportConfigurationDefinition(schema);
-//            if (definition == null) {
-//                return;
-//            }
-//            container = definition.instantiate();
-//        }
-//        ContainerWrapperFactory cwf = new ContainerWrapperFactory(modelServiceLocator);
-//        ContainerWrapper wrapper = cwf.createContainerWrapper(container, status, new ItemPath(ReportType.F_CONFIGURATION));
-//        result.addSubresult(cwf.getResult());
-//
-//        containers.add(wrapper);
-//    }
-//
-//    private PrismObject<ConnectorType> loadConnector(PrismObject object) {
-//        PrismReference connectorRef = object.findReference(ResourceType.F_CONNECTOR_REF);
-//        return connectorRef != null ? (connectorRef.getValue() != null ? connectorRef.getValue().getObject() : null) : null;
-//        // todo reimplement
-//    }
 
     private ItemPath createPropertyPath(ItemPath path, QName element) {
        return path.append(element);

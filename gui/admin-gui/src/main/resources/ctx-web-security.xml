@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:context="http://www.springframework.org/schema/context"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd
+http://www.springframework.org/schema/context
+     http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+
+    <global-method-security secured-annotations="enabled"/>
+    
+
+	<!-- Web services have their own authentication and authorization using CXF interceptors. -->
+    <http pattern="/model/**" security="none"/>
+    <http pattern="/ws/**" security="none"/>
+    
+    <!-- REST services have their own authentication and authorization. -->
+    <http pattern="/rest/**" security="none"/>
+
+    <http pattern="/js/**" security="none"/>
+    <http pattern="/css/**" security="none"/>
+    <http pattern="/img/**" security="none"/>
+    <http pattern="/wro/**" security="none"/>
+    <!-- todo fix later with some mounting-->
+    <http pattern="/wicket/resource/**" security="none"/>
+
+    <beans:bean id="wicketAuthenticationEntryPoint"
+          class="com.evolveum.midpoint.web.security.WicketLoginUrlAuthenticationEntryPoint">
+        <beans:constructor-arg value="/login"/>
+    </beans:bean>
+
+	<!-- add following: entry-point-ref="casEntryPoint"  to the http element before create-session attribute -->
+    <http create-session="never" auto-config="true" use-expressions="false"
+          access-decision-manager-ref="accessDecisionManager" entry-point-ref="wicketAuthenticationEntryPoint">
+<!--         <intercept-url pattern="/registration" /> -->
+        <intercept-url pattern="/j_spring_security_check" />
+        <intercept-url pattern="/spring_security_login" />
+
+        <intercept-url pattern="/login"/>
+
+        <intercept-url pattern="/bootstrap" />
+
+        <intercept-url pattern="/admin/**" access="isFullyAuthenticated()"/>  <!--  access="isAuthenticated()"/> -->
+        
+        <intercept-url pattern="/**" access="isFullyAuthenticated()"/> 
+
+        <logout logout-url="/j_spring_security_logout" invalidate-session="true" success-handler-ref="logoutHandler" />
+        
+        <session-management>
+            <concurrency-control max-sessions="1" error-if-maximum-exceeded="true"/>
+        </session-management>
+
+		<!-- For SSO integration use the following: -->
+        <!-- <custom-filter position="PRE_AUTH_FILTER" ref="requestHeaderAuthenticationFilter" />  -->
+		
+		<!-- For CAS Authentication uncomment following		 -->
+<!-- 		<custom-filter position="CAS_FILTER" ref="casFilter" /> -->
+<!-- 		<logout logout-success-url="/cas-logout.jsp"/> -->
+<!-- 		<custom-filter ref="requestSingleLogoutFilter" before="LOGOUT_FILTER"/> -->
+<!-- 		<custom-filter ref="singleLogoutFilter" before="CAS_FILTER"/> -->
+
+				
+		<!-- login-processing-url must NOT be /login. Otherwise the requests from AJAX components
+			 on the login page will be interpreted as login form sumbit and there will be faux errors. -->
+        <form-login login-page="/login" login-processing-url="/spring_security_login"
+                    authentication-success-handler-ref="authenticationSuccessHandler"/>
+        
+        <csrf disabled="true"/>
+        <headers disabled="true"/>
+    </http>
+    
+    <beans:import resource="ctx-web-security-${auth.method.type:basic}.xml"/>
+
+    <beans:bean id="authenticationSuccessHandler"
+                class="com.evolveum.midpoint.web.security.MidPointAuthenticationSuccessHandler">
+        <!-- After login, return to the last visited page -->
+        <beans:property name="useReferer" value="true" />
+        <!--
+            we will redirect back to login to let wicket initialize it's application/session stuff
+            login page will redirect us to proper "home" page if we're already authenticated
+        -->
+        <beans:property name="defaultTargetUrl" value="/login"/>
+    </beans:bean>
+    
+    <beans:bean id="accessDecisionManager" class="com.evolveum.midpoint.web.security.MidPointGuiAuthorizationEvaluator">
+    	<beans:constructor-arg name="securityEnforcer" ref="securityEnforcer"/>
+    	<beans:constructor-arg name="securityContextManager" ref="securityContextManager"/>
+    </beans:bean>
+    
+    <beans:bean id="logoutHandler" class="com.evolveum.midpoint.web.security.AuditedLogoutHandler">
+        <beans:property name="defaultTargetUrl" value="${auth.logout.url}"/>
+    </beans:bean>
+
+    <!-- Following bean is used with pre-authentication based on HTTP headers (e.g. for SSO integration) -->
+    <beans:bean id="requestHeaderAuthenticationFilter"
+                class="org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter">
+	    <beans:property name="principalRequestHeader" value="SM_USER"/>
+	    <beans:property name="authenticationManager" ref="authenticationManager" />
+	</beans:bean>
+
+	<authentication-manager alias="authenticationManager">
+		<authentication-provider ref="midPointAuthenticationProvider"/>
+	</authentication-manager>  
+</beans:beans>

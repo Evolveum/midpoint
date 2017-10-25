@@ -267,7 +267,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		nameLabel.setOutputMarkupId(true);
 		name.add(nameLabel);
 
-		Label activation = new Label(ID_ACTIVATION, AssignmentsUtil.createActivationTitleModel(getModel(), "-", AssignmentEditorPanel.this));
+		Label activation = new Label(ID_ACTIVATION, AssignmentsUtil.createActivationTitleModel(getModel().getObject().getActivation(), "-", AssignmentEditorPanel.this));
 		headerRow.add(activation);
 
 		ToggleIconButton expandButton = new ToggleIconButton(ID_EXPAND, GuiStyleConstants.CLASS_ICON_EXPAND,
@@ -1164,9 +1164,9 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		ItemSecurityDecisions decisions = null;
 		try{
 			decisions =
-					pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(operationObject, targetRefObject);
+					pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(operationObject, targetRefObject, task, result);
 
-		} catch (SchemaException|SecurityViolationException ex){
+		} catch (SchemaException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException ex){
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security decisions for assignment items.", ex);
 		}
 		return decisions;

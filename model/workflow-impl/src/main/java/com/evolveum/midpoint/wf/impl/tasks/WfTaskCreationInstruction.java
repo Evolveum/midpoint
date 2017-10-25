@@ -25,10 +25,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -63,36 +65,36 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 	private static final String DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION = "$approval-task-group$:";
 	private static final long DEFAULT_SERIALIZATION_RETRY_TIME = 10000L;
 
-	private final ChangeProcessor changeProcessor;
+	protected final ChangeProcessor changeProcessor;
 
     protected final WfContextType wfContext = new WfContextType();    // workflow context to be put into the task
 	private ModelContext taskModelContext;   						// model context to be put into the task
 
-	private final Date processCreationTimestamp = new Date();
+	protected final Date processCreationTimestamp = new Date();
 
 	protected final PRC processorContent;
-	private final PCS processContent;
+	protected final PCS processContent;
 
-    private PrismObject taskObject;          // object to be attached to the task; this object must have its definition available
-    private PrismObject<UserType> taskOwner; // if null, owner from parent task will be taken (if there's no parent task, exception will be thrown)
-    private PolyStringType taskName;         // name of task to be created/updated (applies only if the task has no name already) - e.g. "Approve adding role R to U"
+	protected PrismObject taskObject;          // object to be attached to the task; this object must have its definition available
+	protected PrismObject<UserType> taskOwner; // if null, owner from parent task will be taken (if there's no parent task, exception will be thrown)
+	protected PolyStringType taskName;         // name of task to be created/updated (applies only if the task has no name already) - e.g. "Approve adding role R to U"
 
-    private boolean executeModelOperationHandler;       // should the task contain model operation to be executed?
-    private boolean noProcess;                          // should the task provide no wf process (only direct execution of model operation)?
+	protected boolean executeModelOperationHandler;       // should the task contain model operation to be executed?
+	protected boolean noProcess;                          // should the task provide no wf process (only direct execution of model operation)?
 
-    private boolean simple;                             // is workflow process simple? (i.e. such that requires periodic watching of its state)
-    private boolean sendStartConfirmation = true;       // should we send explicit "process started" event when the process was started by midPoint?
+	protected boolean simple;                             // is workflow process simple? (i.e. such that requires periodic watching of its state)
+	protected boolean sendStartConfirmation = true;       // should we send explicit "process started" event when the process was started by midPoint?
                                                         // for listener-enabled processes this can be misleading, because "process started" event could come
                                                         // after "process finished" one (for immediately-finishing processes)
                                                         //
                                                         // unfortunately, it seems we have to live with this (unless we define a "process started" listener)
 
-	private TaskExecutionStatus taskInitialState = TaskExecutionStatus.RUNNABLE;
+	protected TaskExecutionStatus taskInitialState = TaskExecutionStatus.RUNNABLE;
 
     // what should be executed at a given occasion (in the order of being in this list)
-    private final List<UriStackEntry> handlersAfterModelOperation = new ArrayList<>();
-    private final List<UriStackEntry> handlersBeforeModelOperation = new ArrayList<>();
-    private final List<UriStackEntry> handlersAfterWfProcess = new ArrayList<>();
+    protected final List<UriStackEntry> handlersAfterModelOperation = new ArrayList<>();
+	protected final List<UriStackEntry> handlersBeforeModelOperation = new ArrayList<>();
+	protected final List<UriStackEntry> handlersAfterWfProcess = new ArrayList<>();
 
     //region Constructors
     protected WfTaskCreationInstruction(ChangeProcessor changeProcessor, PRC processorContent, PCS processContent) {
@@ -158,6 +160,12 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 
 	public void setProcessInstanceName(String name) {
 		wfContext.setProcessInstanceName(name);
+	}
+
+	public void setLocalizableProcessInstanceName(LocalizableMessage name) {
+    	if (name != null) {
+		    wfContext.getLocalizableProcessInstanceName().add(LocalizationUtil.createLocalizableMessageType(name));
+	    }
 	}
 
     public void setTaskName(String taskName) {

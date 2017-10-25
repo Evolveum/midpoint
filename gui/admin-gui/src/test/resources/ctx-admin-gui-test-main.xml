@@ -30,19 +30,21 @@
     <import resource="classpath:ctx-configuration.xml" />
     <import resource="classpath*:ctx-repository-test.xml" />
     <import resource="classpath:ctx-repo-cache.xml" />
+    <import resource="classpath:ctx-repo-common.xml" />
     <import resource="ctx-configuration-test.xml"/>
     <import resource="classpath:ctx-task.xml" />
     <import resource="classpath:ctx-provisioning.xml" />
     <import resource="classpath:ctx-audit.xml" />
     <import resource="classpath:ctx-security.xml" />
+    <import resource="classpath:ctx-security-enforcer.xml" />
     <import resource="classpath:ctx-model.xml" />
     <import resource="classpath:ctx-model-common.xml" />
     <import resource="classpath:ctx-model-test.xml" />
     <import resource="classpath*:ctx-workflow.xml" />
     <import resource="classpath*:ctx-notifications.xml" />
     <import resource="classpath:ctx-certification.xml" />
-    <import resource="file:src/main/webapp/WEB-INF/ctx-init.xml" />
-    <import resource="file:src/main/webapp/WEB-INF/ctx-web-security.xml" />
-    <import resource="file:src/main/webapp/WEB-INF/ctx-webapp.xml" />
-    <import resource="file:src/main/webapp/WEB-INF/ctx-web-security-basic.xml" />
+    <import resource="classpath:ctx-init.xml" />
+    <import resource="classpath:ctx-web-security.xml" />
+    <import resource="classpath:ctx-webapp.xml" />
+    <import resource="classpath:ctx-web-security-basic.xml" />
 </beans>

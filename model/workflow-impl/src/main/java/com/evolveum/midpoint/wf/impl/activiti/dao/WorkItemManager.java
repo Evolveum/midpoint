@@ -27,9 +27,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -75,7 +78,7 @@ public class WorkItemManager {
 
     @Autowired private ActivitiEngine activitiEngine;
     @Autowired private MiscDataUtil miscDataUtil;
-    @Autowired private SecurityEnforcer securityEnforcer;
+    @Autowired private SecurityContextManager securityContextManager;
     @Autowired private PrismContext prismContext;
     @Autowired private WorkItemProvider workItemProvider;
     @Autowired private WfTaskController wfTaskController;
@@ -90,7 +93,7 @@ public class WorkItemManager {
 
     public void completeWorkItem(String workItemId, String outcome, String comment, ObjectDelta additionalDelta,
 			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult)
-			throws SecurityViolationException, SchemaException {
+			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_COMPLETE_WORK_ITEM);
         result.addParam("workItemId", workItemId);
@@ -99,7 +102,7 @@ public class WorkItemManager {
         result.addParam("additionalDelta", additionalDelta);
 
 		try {
-			final String userDescription = toShortString(securityEnforcer.getPrincipal().getUser());
+			final String userDescription = toShortString(securityContextManager.getPrincipal().getUser());
 			result.addContext("user", userDescription);
 
 			LOGGER.trace("Completing work item {} with decision of {} ['{}'] by {}; cause: {}",
@@ -113,7 +116,10 @@ public class WorkItemManager {
 
 			WorkItemType workItem = workItemProvider.getWorkItem(workItemId, result);
 
-			if (!miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.COMPLETE)) {
+			// TODO: is this OK? Creating new task?
+			com.evolveum.midpoint.task.api.Task opTask = taskManager.createTaskInstance(OPERATION_COMPLETE_WORK_ITEM);
+			
+			if (!miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.COMPLETE, opTask, result)) {
 				throw new SecurityViolationException("You are not authorized to complete this work item.");
 			}
 
@@ -132,7 +138,7 @@ public class WorkItemManager {
 			//formService.submitTaskFormData(workItemId, propertiesToSubmit);
 			Map<String, Object> variables = new HashMap<>(propertiesToSubmit);
 			taskService.complete(workItemId, variables, true);
-		} catch (SecurityViolationException|SchemaException|RuntimeException e) {
+		} catch (SecurityViolationException | SchemaException | RuntimeException | CommunicationException | ConfigurationException e) {
 			result.recordFatalError("Couldn't complete the work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
 		} finally {
@@ -144,7 +150,7 @@ public class WorkItemManager {
         OperationResult result = parentResult.createSubresult(OPERATION_CLAIM_WORK_ITEM);
         result.addParam("workItemId", workItemId);
 		try {
-			MidPointPrincipal principal = securityEnforcer.getPrincipal();
+			MidPointPrincipal principal = securityContextManager.getPrincipal();
 			result.addContext("user", toShortString(principal.getUser()));
 
 			if (LOGGER.isTraceEnabled()) {
@@ -181,7 +187,7 @@ public class WorkItemManager {
         OperationResult result = parentResult.createSubresult(OPERATION_RELEASE_WORK_ITEM);
         result.addParam("workItemId", workItemId);
 		try {
-			MidPointPrincipal principal = securityEnforcer.getPrincipal();
+			MidPointPrincipal principal = securityContextManager.getPrincipal();
 			result.addContext("user", toShortString(principal.getUser()));
 
 			if (LOGGER.isTraceEnabled()) {
@@ -230,13 +236,13 @@ public class WorkItemManager {
 	public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
 			WorkItemEscalationLevelType escalation, Duration newDuration, WorkItemEventCauseInformationType causeInformation,
 			OperationResult parentResult)
-			throws ObjectNotFoundException, SecurityViolationException, SchemaException {
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEM);
 		result.addParam("workItemId", workItemId);
 		result.addArbitraryObjectAsParam("escalation", escalation);
 		result.addArbitraryObjectCollectionAsParam("delegates", delegates);
 		try {
-			MidPointPrincipal principal = securityEnforcer.getPrincipal();
+			MidPointPrincipal principal = securityContextManager.getPrincipal();
 			result.addContext("user", toShortString(principal.getUser()));
 
 			ObjectReferenceType initiator =
@@ -246,12 +252,14 @@ public class WorkItemManager {
 			LOGGER.trace("Delegating work item {} to {}: escalation={}; cause={}", workItemId, delegates,
 					escalation != null ? escalation.getName() + "/" + escalation.getDisplayName() : "none", causeInformation);
 
+			// TODO: is this OK? Creating new task?
+			com.evolveum.midpoint.task.api.Task opTask = taskManager.createTaskInstance(OPERATION_DELEGATE_WORK_ITEM);
+
 			WorkItemType workItem = workItemProvider.getWorkItem(workItemId, result);
-			if (!miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.DELEGATE)) {
+			if (!miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.DELEGATE, opTask, result)) {
 				throw new SecurityViolationException("You are not authorized to delegate this work item.");
 			}
 
-			com.evolveum.midpoint.task.api.Task opTask = taskManager.createTaskInstance(OPERATION_DELEGATE_WORK_ITEM);
 			List<ObjectReferenceType> assigneesBefore = CloneUtil.cloneCollectionMembers(workItem.getAssigneeRef());
 			List<ObjectReferenceType> assigneesAndDeputiesBefore = wfTaskController.getAssigneesAndDeputies(workItem, opTask, result);
 
@@ -308,7 +316,7 @@ public class WorkItemManager {
 			WorkItemAllocationChangeOperationInfo operationInfoAfter =
 					new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputiesBefore, assigneesAndDeputiesAfter);
 			wfTaskController.notifyWorkItemAllocationChangeNewActors(workItemAfter, operationInfoAfter, sourceInfo, wfTaskAfter, result);
-		} catch (SecurityViolationException|RuntimeException|ObjectNotFoundException|SchemaException e) {
+		} catch (SecurityViolationException | RuntimeException | ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException e) {
 			result.recordFatalError("Couldn't delegate/escalate work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
 		} finally {

@@ -400,7 +400,7 @@ public class TestUnix extends AbstractStoryTest {
 
         // WHEN
 		displayWhen(TEST_NAME);
-		RefinedObjectClassDefinition editObjectClassDefinition = modelInteractionService.getEditObjectClassDefinition(shadow, resourceOpenDj, AuthorizationPhaseType.REQUEST);
+		RefinedObjectClassDefinition editObjectClassDefinition = modelInteractionService.getEditObjectClassDefinition(shadow, resourceOpenDj, AuthorizationPhaseType.REQUEST, task, result);
 
         // THEN
         displayThen(TEST_NAME);

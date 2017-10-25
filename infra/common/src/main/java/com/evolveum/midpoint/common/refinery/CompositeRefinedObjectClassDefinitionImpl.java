@@ -127,6 +127,11 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	public boolean isDeprecated() {
 		return structuralObjectClassDefinition.isDeprecated();
 	}
+	
+	@Override
+	public String getDeprecatedSince() {
+		return structuralObjectClassDefinition.getDeprecatedSince();
+	}
 
 	@Override
 	public Integer getDisplayOrder() {
@@ -687,5 +692,10 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	@Override
 	public boolean isShared() {
 		return false;
+	}
+
+	@Override
+	public boolean isReferenceMarker() {
+		return structuralObjectClassDefinition.isReferenceMarker();
 	}
 }

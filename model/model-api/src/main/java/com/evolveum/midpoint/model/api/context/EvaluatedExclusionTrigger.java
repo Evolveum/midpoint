@@ -36,9 +36,9 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 	private final AssignmentPath conflictingPath;
 
 	public EvaluatedExclusionTrigger(@NotNull ExclusionPolicyConstraintType constraint,
-			LocalizableMessage message, @NotNull EvaluatedAssignment conflictingAssignment,
+			LocalizableMessage message, LocalizableMessage shortMessage, @NotNull EvaluatedAssignment conflictingAssignment,
 			ObjectType thisTarget, ObjectType conflictingTarget, AssignmentPath thisPath, AssignmentPath conflictingPath) {
-		super(PolicyConstraintKindType.EXCLUSION, constraint, message);
+		super(PolicyConstraintKindType.EXCLUSION, constraint, message, shortMessage);
 		this.conflictingAssignment = conflictingAssignment;
 		this.conflictingTarget = conflictingTarget;
 		this.conflictingPath = conflictingPath;

@@ -15,29 +15,32 @@
  */
 package com.evolveum.midpoint.model.intest.security;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
 
 import java.io.IOException;
 import java.util.Collection;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -46,7 +49,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -61,6 +66,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSecurityAdvanced extends AbstractSecurityTest {
 
+	private static final String AUTHORIZATION_ACTION_WORKITEMS = "http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItemsMyRequests";
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -72,14 +79,14 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test100AutzJackPersonaManagement() throws Exception {
 		final String TEST_NAME = "test100AutzJackPersonaManagement";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PERSONA_MANAGEMENT_OID);
         login(USER_JACK_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -99,14 +106,14 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     @Test
     public void test102AutzLechuckPersonaManagement() throws Exception {
 		final String TEST_NAME = "test102AutzLechuckPersonaManagement";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
-        cleanupAutzTest(USER_LECHUCK_OID);
+        cleanupAutzTest(USER_LECHUCK_OID, 1);
         assignRole(USER_LECHUCK_OID, ROLE_PERSONA_MANAGEMENT_OID);
         login(USER_LECHUCK_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         assertGetDeny(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -127,14 +134,14 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     @Test
     public void test110AutzJackPersonaAdmin() throws Exception {
 		final String TEST_NAME = "test110AutzJackAddPersonaAdmin";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PERSONA_MANAGEMENT_OID);
         login(USER_JACK_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         assertAllow("assign application role 1 to jack",
         		(task,result) -> assignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result));
@@ -182,7 +189,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test120AutzJackDelagator() throws Exception {
 		final String TEST_NAME = "test120AutzJackDelagator";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_DELEGATOR_OID);
@@ -192,7 +199,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         assertReadAllow(NUMBER_OF_ALL_USERS);
         assertAddDeny();
@@ -234,6 +241,9 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         display("Barbossa delegate", userBarbossa);
         assertAssignments(userBarbossa, 1);
         assertAssignedDeputy(userBarbossa, USER_JACK_OID);
+        
+        assertDeputySearchDelegatorRef(USER_JACK_OID, USER_BARBOSSA_OID);
+        assertDeputySearchAssignmentTarget(USER_JACK_OID, USER_BARBOSSA_OID);
 
         // Non-delegate. We should be able to read just the name. Not the assignments.
         PrismObject<UserType> userRum = getUser(userRumRogersOid);
@@ -242,7 +252,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         login(USER_BARBOSSA_USERNAME);
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         display("Logged in as Barbossa");
 
         assertReadAllow(NUMBER_OF_ALL_USERS);
@@ -252,7 +262,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         login(USER_JACK_USERNAME);
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         display("Logged in as Jack");
 
         assertAllow("undelegate from Barbossa",
@@ -270,7 +280,333 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         login(USER_BARBOSSA_USERNAME);
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
+        display("Logged in as Barbossa");
+
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+        assertDeny("delegate to Jack",
+        	(task, result) -> {
+        		assignDeputy(USER_JACK_OID, USER_BARBOSSA_OID, task, result);
+			});
+
+        assertDeny("delegate from Jack to Barbossa",
+        	(task, result) -> {
+        		assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result);
+			});
+
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Assign a deputy, but this time with validFrom and validTo set to the future.
+	 * The delegator role does NOT allow access to inactive delegations.
+	 * MID-4172
+	 */
+	@Test
+    public void test122AutzJackDelagatorValidity() throws Exception {
+		final String TEST_NAME = "test122AutzJackDelagatorValidity";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_DELEGATOR_OID);
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertAssignments(userJack, 1);
+        assertAssignedRole(userJack, ROLE_DELEGATOR_OID);
+
+        PrismObject<UserType> userBarbossa = getUser(USER_BARBOSSA_OID);
+        assertNoAssignments(userBarbossa);
+
+        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+        ActivationType activationType = new ActivationType();
+        activationType.setValidFrom(XmlTypeConverter.addDuration(startTs, "PT2H"));
+        activationType.setValidTo(XmlTypeConverter.addDuration(startTs, "P1D"));
+        
+        // Good direction
+        assertAllow("delegate to Barbossa",
+        	(task, result) -> {
+        		assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, 
+        				assignment -> assignment.setActivation(activationType), task, result);
+			});
+
+        userJack = getUser(USER_JACK_OID);
+        display("Jack delegator", userJack);
+        assertAssignments(userJack, 1);
+
+        userBarbossa = getUser(USER_BARBOSSA_OID);
+        display("Barbossa delegate", userBarbossa);
+        // Delegation is not active yet. Therefore jack cannot see it.
+        assertAssignments(userBarbossa, 0);
+        
+        assertDeputySearchDelegatorRef(USER_JACK_OID /* nothing */);
+        assertDeputySearchAssignmentTarget(USER_JACK_OID, USER_BARBOSSA_OID); // WRONG!!!
+//        assertDeputySearchAssignmentTarget(USER_JACK_OID /* nothing */);
+
+        // Non-delegate. We should be able to read just the name. Not the assignments.
+        PrismObject<UserType> userRum = getUser(userRumRogersOid);
+        display("User Rum Rogers", userRum);
+        assertNoAssignments(userRum);
+
+        login(USER_BARBOSSA_USERNAME);
+        // WHEN
+        displayWhen(TEST_NAME);
+        display("Logged in as Barbossa");
+
+        // Delegation is not active yet. No access.
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        clockForward("PT3H");
+        
+        login(USER_ADMINISTRATOR_USERNAME);
+        recomputeUser(USER_BARBOSSA_OID);
+        
+        // Delegation is active now
+        
+        login(USER_JACK_USERNAME);
+        // WHEN
+        
+        userBarbossa = getUser(USER_BARBOSSA_OID);
+        display("Barbossa delegate", userBarbossa);
+        assertAssignments(userBarbossa, 1);
+        assertAssignedDeputy(userBarbossa, USER_JACK_OID);
+        
+        assertDeputySearchDelegatorRef(USER_JACK_OID, USER_BARBOSSA_OID);
+        assertDeputySearchAssignmentTarget(USER_JACK_OID, USER_BARBOSSA_OID);
+        
+        login(USER_BARBOSSA_USERNAME);
+        // WHEN
+        displayWhen(TEST_NAME);
+        display("Logged in as Barbossa");
+
+        assertReadAllow(NUMBER_OF_ALL_USERS);
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        clockForward("P1D");
+        
+        login(USER_ADMINISTRATOR_USERNAME);
+        recomputeUser(USER_BARBOSSA_OID);
+        
+        login(USER_BARBOSSA_USERNAME);
+        // WHEN
+        displayWhen(TEST_NAME);
+        display("Logged in as Barbossa");
+
+        // Delegation is not active any more. No access.
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+
+        login(USER_JACK_USERNAME);
+        // WHEN
+        displayWhen(TEST_NAME);
+        display("Logged in as Jack");
+
+        assertAllow("undelegate from Barbossa",
+        	(task, result) -> {
+        		unassignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, 
+        				assignment -> assignment.setActivation(activationType), task, result);
+        	});
+
+        userJack = getUser(USER_JACK_OID);
+        assertAssignments(userJack, 1);
+
+        userBarbossa = getUser(USER_BARBOSSA_OID);
+        assertNoAssignments(userBarbossa);
+
+        assertGlobalStateUntouched();
+
+        login(USER_BARBOSSA_USERNAME);
+        // WHEN
+        displayWhen(TEST_NAME);
+        display("Logged in as Barbossa");
+
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+        assertDeny("delegate to Jack",
+        	(task, result) -> {
+        		assignDeputy(USER_JACK_OID, USER_BARBOSSA_OID, task, result);
+			});
+
+        assertDeny("delegate from Jack to Barbossa",
+        	(task, result) -> {
+        		assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result);
+			});
+
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Assign a deputy with validity. But this time there is a role that allows
+	 * access to inactive delegations.
+	 * MID-4172
+	 */
+	@Test
+    public void test124AutzJackDelagatorPlusValidity() throws Exception {
+		final String TEST_NAME = "test124AutzJackDelagatorPlusValidity";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_DELEGATOR_PLUS_OID);
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertAssignments(userJack, 1);
+        assertAssignedRole(userJack, ROLE_DELEGATOR_PLUS_OID);
+
+        PrismObject<UserType> userBarbossa = getUser(USER_BARBOSSA_OID);
+        assertNoAssignments(userBarbossa);
+
+        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+        ActivationType activationType = new ActivationType();
+        activationType.setValidFrom(XmlTypeConverter.addDuration(startTs, "PT2H"));
+        activationType.setValidTo(XmlTypeConverter.addDuration(startTs, "P1D"));
+        
+        // Good direction
+        assertAllow("delegate to Barbossa",
+        	(task, result) -> {
+        		assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, 
+        				assignment -> assignment.setActivation(activationType), task, result);
+			});
+
+        userJack = getUser(USER_JACK_OID);
+        display("Jack delegator", userJack);
+        assertAssignments(userJack, 1);
+
+        userBarbossa = getUser(USER_BARBOSSA_OID);
+        display("Barbossa delegate", userBarbossa);
+        assertAssignments(userBarbossa, 1);
+        assertAssignedDeputy(userBarbossa, USER_JACK_OID);
+        
+        // delegatorRef is allowed, but returns nothing. The delegation is not yet active, it is not in the delgatorRef.
+        assertDeputySearchDelegatorRef(USER_JACK_OID /* nothing */);
+        assertDeputySearchAssignmentTarget(USER_JACK_OID, USER_BARBOSSA_OID);
+
+        // Non-delegate. We should be able to read just the name. Not the assignments.
+        PrismObject<UserType> userRum = getUser(userRumRogersOid);
+        display("User Rum Rogers", userRum);
+        assertNoAssignments(userRum);
+
+        login(USER_BARBOSSA_USERNAME);
+        // WHEN
+        displayWhen(TEST_NAME);
+        display("Logged in as Barbossa");
+
+        // Delegation is not active yet. No access.
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        clockForward("PT3H");
+        
+        login(USER_ADMINISTRATOR_USERNAME);
+        recomputeUser(USER_BARBOSSA_OID);
+        
+        // Delegation is active now
+        
+        login(USER_JACK_USERNAME);
+        // WHEN
+        
+        userBarbossa = getUser(USER_BARBOSSA_OID);
+        display("Barbossa delegate", userBarbossa);
+        assertAssignments(userBarbossa, 1);
+        assertAssignedDeputy(userBarbossa, USER_JACK_OID);
+        
+        assertDeputySearchDelegatorRef(USER_JACK_OID, USER_BARBOSSA_OID);
+        assertDeputySearchAssignmentTarget(USER_JACK_OID, USER_BARBOSSA_OID);        
+        
+        login(USER_BARBOSSA_USERNAME);
+        // WHEN
+        displayWhen(TEST_NAME);
+        display("Logged in as Barbossa");
+
+        assertReadAllow(NUMBER_OF_ALL_USERS);
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        clockForward("P1D");
+        
+        login(USER_ADMINISTRATOR_USERNAME);
+        recomputeUser(USER_BARBOSSA_OID);
+        
+        // Delegation no longer active
+        
+        login(USER_JACK_USERNAME);
+        // WHEN
+        
+        userBarbossa = getUser(USER_BARBOSSA_OID);
+        display("Barbossa delegate", userBarbossa);
+        assertAssignments(userBarbossa, 1);
+        assertAssignedDeputy(userBarbossa, USER_JACK_OID);
+        
+        // delegatorRef is allowed, but returns nothing. The delegation is not yet active, it is not in the delgatorRef.
+        assertDeputySearchDelegatorRef(USER_JACK_OID /* nothing */);
+        assertDeputySearchAssignmentTarget(USER_JACK_OID, USER_BARBOSSA_OID);
+        
+        login(USER_BARBOSSA_USERNAME);
+        // WHEN
+        displayWhen(TEST_NAME);
+        display("Logged in as Barbossa");
+
+        // Delegation is not active any more. No access.
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+
+        login(USER_JACK_USERNAME);
+        // WHEN
+        displayWhen(TEST_NAME);
+        display("Logged in as Jack");
+
+        assertAllow("undelegate from Barbossa",
+        	(task, result) -> {
+        		unassignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, 
+        				assignment -> assignment.setActivation(activationType), task, result);
+        	});
+
+        userJack = getUser(USER_JACK_OID);
+        assertAssignments(userJack, 1);
+
+        userBarbossa = getUser(USER_BARBOSSA_OID);
+        assertNoAssignments(userBarbossa);
+
+        assertGlobalStateUntouched();
+
+        login(USER_BARBOSSA_USERNAME);
+        // WHEN
+        displayWhen(TEST_NAME);
         display("Logged in as Barbossa");
 
         assertReadDeny();
@@ -291,10 +627,11 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertGlobalStateUntouched();
 	}
 
-    @Test
+
+	@Test
     public void test150AutzJackApproverUnassignRoles() throws Exception {
 		final String TEST_NAME = "test150AutzJackApproverUnassignRoles";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID);
@@ -307,7 +644,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         assertGetAllow(RoleType.class, ROLE_ORDINARY_OID);
         assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN_OID); // no assignment
@@ -339,7 +676,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test151AutzJackApproverUnassignRolesAndRead() throws Exception {
 		final String TEST_NAME = "test151AutzJackApproverUnassignRolesAndRead";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID);
@@ -349,7 +686,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         assertGetAllow(RoleType.class, ROLE_ORDINARY_OID);
         assertGetAllow(RoleType.class, ROLE_PERSONA_ADMIN_OID); // no assignment
@@ -383,7 +720,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test154AutzJackApproverRead() throws Exception {
 		final String TEST_NAME = "test154AutzJackApproverRead";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_BASIC_ITEMS_OID);
@@ -392,7 +729,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         PrismObject<RoleType> roleOrdinary = assertGetAllow(RoleType.class, ROLE_ORDINARY_OID);
         assertNoRoleMembershipRef(roleOrdinary);
@@ -449,7 +786,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test155AutzJackApproverSelf() throws Exception {
 		final String TEST_NAME = "test155AutzJackApproverSelf";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_OID);
@@ -458,7 +795,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         assertGetDeny(RoleType.class, ROLE_ORDINARY_OID);
         assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN_OID);
@@ -507,7 +844,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test157AutzJackReadRoleMembers() throws Exception {
 		final String TEST_NAME = "test157AutzJackReadRoleMembers";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_ROLE_MEMBERS_OID);
@@ -515,7 +852,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         PrismObject<RoleType> roleOrdinary = assertGetAllow(RoleType.class, ROLE_ORDINARY_OID);
         assertNoRoleMembershipRef(roleOrdinary);
@@ -560,7 +897,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test158AutzJackReadRoleMembersWrong() throws Exception {
 		final String TEST_NAME = "test158AutzJackReadRoleMembersWrong";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_ROLE_MEMBERS_WRONG_OID);
@@ -568,7 +905,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         PrismObject<RoleType> roleOrdinary = assertGetAllow(RoleType.class, ROLE_ORDINARY_OID);
         assertNoRoleMembershipRef(roleOrdinary);
@@ -613,7 +950,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test159AutzJackReadRoleMembersNone() throws Exception {
 		final String TEST_NAME = "test159AutzJackReadRoleMembersNone";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_ROLE_MEMBERS_NONE_OID);
@@ -621,7 +958,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         PrismObject<RoleType> roleOrdinary = assertGetAllow(RoleType.class, ROLE_ORDINARY_OID);
         assertNoRoleMembershipRef(roleOrdinary);
@@ -716,7 +1053,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test200AutzJackModifyOrgunit() throws Exception {
 		final String TEST_NAME = "test200AutzJackModifyOrgunit";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_SELF_MODIFY_ORGUNIT_OID);
@@ -726,7 +1063,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertAddDeny();
@@ -777,7 +1114,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test202AutzJackModifyOrgunitAndAssignRole() throws Exception {
 		final String TEST_NAME = "test202AutzJackModifyOrgunitAndAssignRole";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_SELF_MODIFY_ORGUNIT_OID);
@@ -788,7 +1125,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertAddDeny();
@@ -844,9 +1181,247 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertGlobalStateUntouched();
 	}
 
+	/**
+	 * Role with object filter that has an expression.
+	 * No costCenter in user, no access.
+	 * MID-4191
+	 */
+	@Test
+    public void test220AutzJackRoleExpressionNoConstCenter() throws Exception {
+		final String TEST_NAME = "test220AutzJackRoleExpressionNoConstCenter";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_EXPRESSION_READ_ROLES_OID);
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        assertGetDeny(RoleType.class, ROLE_BUSINESS_1_OID);
+        assertGetDeny(RoleType.class, ROLE_BUSINESS_2_OID);
+        assertGetDeny(RoleType.class, ROLE_APPLICATION_1_OID);
+        assertGetDeny(RoleType.class, ROLE_EXPRESSION_READ_ROLES_OID);
+
+        assertSearchDeny(RoleType.class, null, null);
+        assertSearchDeny(RoleType.class, 
+        		queryFor(RoleType.class).item(RoleType.F_ROLE_TYPE).eq("business").build(),
+        		null);
+        assertSearchDeny(RoleType.class, 
+        		queryFor(RoleType.class).item(RoleType.F_ROLE_TYPE).eq("application").build(),
+        		null);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Role with object filter that has an expression.
+	 * MID-4191
+	 */
+	@Test
+    public void test222AutzJackRoleExpressionConstCenterBusiness() throws Exception {
+		final String TEST_NAME = "test222AutzJackRoleExpressionConstCenterBusiness";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_EXPRESSION_READ_ROLES_OID);
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        modifyUserReplace(USER_JACK_OID, UserType.F_COST_CENTER, task, result, "business");
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        assertGetAllow(RoleType.class, ROLE_BUSINESS_1_OID);
+        assertGetAllow(RoleType.class, ROLE_BUSINESS_2_OID);
+        assertGetDeny(RoleType.class, ROLE_APPLICATION_1_OID);
+        assertGetDeny(RoleType.class, ROLE_EXPRESSION_READ_ROLES_OID);
+
+        assertSearch(RoleType.class, null, 3);
+        assertSearch(RoleType.class, 
+        		queryFor(RoleType.class).item(RoleType.F_ROLE_TYPE).eq("business").build(), 3);
+        assertSearchDeny(RoleType.class, 
+        		queryFor(RoleType.class).item(RoleType.F_ROLE_TYPE).eq("application").build(),
+        		null);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Unlimited power of attorney. But only granted to Caribbean users.
+	 * MID-4072, MID-4205
+	 */
+	@Test
+    public void test230AttorneyCaribbeanUnlimited() throws Exception {
+		final String TEST_NAME = "test230AttorneyCaribbeanUnlimited";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ATTORNEY_CARIBBEAN_UNLIMITED_OID);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadAllow();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
+        display("donorFilterAll", donorFilterAll);
+        assertSearchFilter(UserType.class, donorFilterAll, 2);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Attorney for subordinate employees, but Jack has no org.
+	 * MID-4072, MID-4205
+	 */
+	@Test
+    public void test232ManagerAttorneyNoOrg() throws Exception {
+		final String TEST_NAME = "test232ManagerAttorneyNoOrg";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ATTORNEY_MANAGER_WORKITEMS_OID);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadAllow();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
+        display("donorFilterAll", donorFilterAll);
+        assertSearchFilter(UserType.class, donorFilterAll, 0);
+        
+        ObjectFilter donorFilterWorkitems = modelInteractionService.getDonorFilter(UserType.class, null, AUTHORIZATION_ACTION_WORKITEMS, task, result);
+        display("donorFilterWorkitems", donorFilterWorkitems);
+        assertSearchFilter(UserType.class, donorFilterWorkitems, 0);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Attorney for subordinate employees, Jack is manager of Ministry of Rum.
+	 * MID-4072, MID-4205
+	 */
+	@Test
+    public void test234ManagerAttorneyRum() throws Exception {
+		final String TEST_NAME = "test234ManagerAttorneyRum";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ATTORNEY_MANAGER_WORKITEMS_OID);
+        assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadAllow();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
+        display("donorFilterAll", donorFilterAll);
+        assertSearchFilter(UserType.class, donorFilterAll, 4);
+        
+        ObjectFilter donorFilterWorkitems = modelInteractionService.getDonorFilter(UserType.class, null, AUTHORIZATION_ACTION_WORKITEMS, task, result);
+        display("donorFilterWorkitems", donorFilterWorkitems);
+        assertSearchFilter(UserType.class, donorFilterWorkitems, 4);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Attorney for subordinate employees, Jack is manager of Ministry of Rum.
+	 * Also unlimited Caribbean attorney.
+	 * MID-4072, MID-4205
+	 */
+	@Test
+    public void test236ManagerAttorneyCaribbeanRum() throws Exception {
+		final String TEST_NAME = "test236ManagerAttorneyCaribbeanRum";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ATTORNEY_CARIBBEAN_UNLIMITED_OID);
+        assignRole(USER_JACK_OID, ROLE_ATTORNEY_MANAGER_WORKITEMS_OID);
+        assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadAllow();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
+        display("donorFilterAll", donorFilterAll);
+        assertSearchFilter(UserType.class, donorFilterAll, 5);
+        
+        display("DONOR");
+        ObjectFilter donorFilterWorkitems = modelInteractionService.getDonorFilter(UserType.class, null, AUTHORIZATION_ACTION_WORKITEMS, task, result);
+        display("donorFilterWorkitems", donorFilterWorkitems);
+        assertSearchFilter(UserType.class, donorFilterWorkitems, 5);
+        
+        assertGlobalStateUntouched();
+	}
+
+	
     @Override
-    protected void cleanupAutzTest(String userOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
-    	super.cleanupAutzTest(userOid);
+    protected void cleanupAutzTest(String userOid, int expectedAssignments) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
+    	super.cleanupAutzTest(userOid, expectedAssignments);
 
         Task task = taskManager.createTaskInstance(TestSecurityAdvanced.class.getName() + ".cleanupAutzTest");
         OperationResult result = task.getResult();
@@ -857,4 +1432,20 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		assignRole(userCobbOid, ROLE_UNINTERESTING_OID, task, result);
 
 	}
+    
+	private void assertDeputySearchDelegatorRef(String delegatorOid, String... expectedDeputyOids) throws Exception {
+		PrismReferenceValue rval = new PrismReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);
+		rval.setRelation(SchemaConstants.ORG_DEPUTY);
+		ObjectQuery query = queryFor(UserType.class).item(UserType.F_DELEGATED_REF).ref(rval).build();
+		assertSearch(UserType.class, query, expectedDeputyOids);
+	}
+	
+	private void assertDeputySearchAssignmentTarget(String delegatorOid, String... expectedDeputyOids) throws Exception {
+		PrismReferenceValue rval = new PrismReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);
+		rval.setRelation(SchemaConstants.ORG_DEPUTY);
+		ObjectQuery query = queryFor(UserType.class)
+				.item(new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)).ref(rval).build();
+		assertSearch(UserType.class, query, expectedDeputyOids);
+	}
+
 }

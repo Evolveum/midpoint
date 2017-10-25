@@ -161,7 +161,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		if (AbstractFocusTabPanel.class.isAssignableFrom(panelClass)) {
 			Constructor<?> constructor;
 			try {
-				constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, LoadableModel.class, LoadableModel.class, PageBase.class);
+				constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, LoadableModel.class, PageBase.class);
 			} catch (NoSuchMethodException | SecurityException e) {
 				throw new SystemException("Unable to locate constructor (String,Form,LoadableModel,LoadableModel,LoadableModel,PageBase) in "+panelClass+": "+e.getMessage(), e);
 			}

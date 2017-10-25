@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -86,9 +87,11 @@ import static org.testng.AssertJUnit.*;
 @ContextConfiguration(locations = {"classpath:ctx-task.xml",
         "classpath:ctx-task-test.xml",
         "classpath:ctx-repo-cache.xml",
+        "classpath:ctx-repo-common.xml",
+        "classpath:ctx-security.xml",
+        "classpath:ctx-expression-test.xml",
         "classpath*:ctx-repository-test.xml",
         "classpath:ctx-audit.xml",
-        "classpath:ctx-security.xml",
         "classpath:ctx-common.xml",
         "classpath:ctx-configuration-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -590,14 +593,23 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // .. it should be closed
         AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task1.getExecutionStatus());
 
+        assertNotNull(task1.getCompletionTimestamp());
+        List<TriggerType> triggers = task1.getTaskPrismObject().asObjectable().getTrigger();
+        assertEquals(1, triggers.size());
+        TriggerType trigger = triggers.get(0);
+        long delta = XmlTypeConverter.toMillis(trigger.getTimestamp()) - task1.getCompletionTimestamp();
+        if (Math.abs(delta - 10000) > 1000) {
+            fail("Auto cleanup timestamp was not computed correctly. Delta should be 10000, is " + delta);
+        }
+
         // .. and released
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task1.getExclusivityStatus());
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull("LastRunStartTimestamp is null", task1.getLastRunStartTimestamp());
-        assertFalse("LastRunStartTimestamp is 0", task1.getLastRunStartTimestamp().longValue() == 0);
+        assertFalse("LastRunStartTimestamp is 0", task1.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertNotNull("LastRunFinishTimestamp is null", task1.getLastRunFinishTimestamp());
-        assertFalse("LastRunFinishTimestamp is 0", task1.getLastRunFinishTimestamp().longValue() == 0);
+        assertFalse("LastRunFinishTimestamp is 0", task1.getLastRunFinishTimestamp() == 0);
 
         // The progress should be more than 0 as the task has run at least once
         AssertJUnit.assertTrue("Task reported no progress", task1.getProgress() > 0);
@@ -1699,6 +1711,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
 		task2 = getTaskType(task2.getOid(), result);
 		assertNull("Second task was started even if it should not be", task2.getLastRunStartTimestamp());
+		// this one may occasionally fail because of a race condition (nextRetryTimestamp is derived from quartz scheduling data;
+        // and if the task2 is just being rescheduled because of a group limitation it might be temporarily null)
 		assertNotNull("Next retry time is not set for second task", task2.getNextRetryTimestamp());
 
 		// now finish first task and check the second one is started

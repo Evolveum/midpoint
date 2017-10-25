@@ -199,7 +199,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 
 	public String getDisplayName() {
 		if (displayName == null) {
-			return WebComponentUtil.getName(object);
+			return WebComponentUtil.getDisplayNameOrName(object);
 		}
 		return displayName;
 	}
@@ -343,9 +343,8 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 
 		for (ContainerWrapper containerWrapper : getContainers()) {
 			containerWrapper.collectModifications(delta);
-			containerWrapper.collectDeleteDelta(delta, object.getPrismContext());
-//			containerWrapper.collectAddDelta(delta, new ItemPath(FocusType.F_ASSIGNMENT), object.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT),
-//					object.getPrismContext());
+//			containerWrapper.collectDeleteDelta(delta, object.getPrismContext());
+//			containerWrapper.collectAddDelta(delta, object.getPrismContext());
 		}
 		// returning container to previous order
 		Collections.sort(containers, new ItemWrapperComparator());

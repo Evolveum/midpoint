@@ -25,9 +25,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +53,7 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
 	@Override
 	public <F extends FocusType> EvaluatedCompositeTrigger evaluate(JAXBElement<PolicyConstraintsType> constraint,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		boolean isAnd = QNameUtil.match(PolicyConstraintsType.F_AND, constraint.getName());
 		boolean isOr = QNameUtil.match(PolicyConstraintsType.F_OR, constraint.getName());
@@ -74,16 +77,28 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
 	private EvaluatedCompositeTrigger createTrigger(PolicyConstraintKindType kind, PolicyConstraintsType value,
 			List<EvaluatedPolicyRuleTrigger<?>> triggers,
 			PolicyRuleEvaluationContext<?> rctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		return new EvaluatedCompositeTrigger(kind, value, createMessage(kind, value, rctx, result), triggers);
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return new EvaluatedCompositeTrigger(kind, value,
+				createMessage(kind, value, rctx, result),
+				createShortMessage(kind, value, rctx, result),
+				triggers);
 	}
 
 	private LocalizableMessage createMessage(PolicyConstraintKindType kind,
 			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + kind.value())
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
+	}
+
+	private LocalizableMessage createShortMessage(PolicyConstraintKindType kind,
+			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + kind.value())
+				.build();
+		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
 	}
 }

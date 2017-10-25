@@ -59,8 +59,10 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 	protected static final File TEST_LIFECYCLE_RESOURCE_DIR = new File("src/test/resources/policy/lifecycle");
 
 	protected static final File USER_PIRATE_OWNER_FILE = new File(TEST_LIFECYCLE_RESOURCE_DIR, "user-pirate-owner.xml");
+	protected static final File USER_JUDGE_OWNER_FILE = new File(TEST_LIFECYCLE_RESOURCE_DIR, "user-judge-owner.xml");
 
 	protected String userPirateOwnerOid;
+	protected String userJudgeOwnerOid;
 
 	String rolePirateOid;
 
@@ -68,6 +70,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		userPirateOwnerOid = addAndRecomputeUser(USER_PIRATE_OWNER_FILE, initTask, initResult);
+		userJudgeOwnerOid = addAndRecomputeUser(USER_JUDGE_OWNER_FILE, initTask, initResult);
 	}
 
 	protected boolean approveObjectAdd() {
@@ -116,7 +119,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 		ObjectDelta<RoleType> delta0 = ObjectDelta.createModifyDelta(rolePirateOid, Collections.emptyList(), RoleType.class, prismContext);
 		//noinspection UnnecessaryLocalVariable
 		ObjectDelta<RoleType> delta1 = descriptionDelta;
-		ExpectedTask expectedTask = new ExpectedTask(null, "Modification of pirate");
+		ExpectedTask expectedTask = new ExpectedTask(null, "Modifying role pirate");
 		ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userPirateOwnerOid, null, expectedTask);
 		modifyObject(TEST_NAME, descriptionDelta, delta0, delta1, false, true, userPirateOwnerOid,
 				Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem),
@@ -131,7 +134,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
-		ExpectedTask expectedTask = new ExpectedTask(null, "Deletion of pirate");
+		ExpectedTask expectedTask = new ExpectedTask(null, "Deleting role pirate");
 		ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userPirateOwnerOid, null, expectedTask);
 		deleteObject(TEST_NAME, RoleType.class, rolePirateOid, false, true, userPirateOwnerOid,
 				Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem));

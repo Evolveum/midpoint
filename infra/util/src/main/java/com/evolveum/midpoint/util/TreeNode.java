@@ -18,6 +18,7 @@ package com.evolveum.midpoint.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author mederly
@@ -76,5 +77,13 @@ public class TreeNode<T> implements DebugDumpable {
 			sb.append(child.debugDump(indent + 1));
 		}
 		return sb.toString();
+	}
+
+	public <N> TreeNode<N> tranform(Function<T, N> transformation) {
+		TreeNode<N> rv = new TreeNode<>(transformation.apply(userObject));
+		for (TreeNode<T> child : children) {
+			rv.add(child.tranform(transformation));
+		}
+		return rv;
 	}
 }

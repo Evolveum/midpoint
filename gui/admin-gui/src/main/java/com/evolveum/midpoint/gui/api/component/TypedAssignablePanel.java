@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -85,14 +86,15 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
 
     protected IModel<QName> typeModel;
-    private PageBase parentPage;
+    
+//    private boolean multiselect = true;
 
 
-	public TypedAssignablePanel(String id, final Class<T> type, boolean multiselect, PageBase parentPage) {
+	public TypedAssignablePanel(String id, final Class<T> type) {
 		super(id);
-        this.parentPage = parentPage;
-        setParent(parentPage);
-		typeModel = new LoadableModel<QName>(false) {
+    	typeModel = new LoadableModel<QName>(false) {
+
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected QName load() {
@@ -100,11 +102,14 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 			}
 
 		};
+		
+//		this.multiselect = multiselect;
 
-		initLayout(type, multiselect);
 	}
 
-	private void initLayout(Class<T> type, final boolean multiselect) {
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
 		initAssignmentParametersPanel();
 
 		WebMarkupContainer tablesContainer = new WebMarkupContainer(ID_TABLES_CONTAINER);
@@ -145,10 +150,10 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 			private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isVisible() {
-				return multiselect;
-			}
+//			@Override
+//			public boolean isVisible() {
+//				return multiselect;
+//			}
 		});
 
 		add(addButton);
@@ -247,12 +252,13 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
                 if (type.equals(RoleType.COMPLEX_TYPE)) {
                     LOGGER.debug("Loading roles which the current user has right to assign");
-                    OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNABLE_ROLES);
+                    Task task = TypedAssignablePanel.this.getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
+                    OperationResult result = task.getResult();
                     ObjectFilter filter = null;
                     try {
-                        ModelInteractionService mis = parentPage.getModelInteractionService();
+                        ModelInteractionService mis = TypedAssignablePanel.this.getPageBase().getModelInteractionService();
                         RoleSelectionSpecification roleSpec =
-                                mis.getAssignableRoleSpecification(SecurityUtils.getPrincipalUser().getUser().asPrismObject(), result);
+                                mis.getAssignableRoleSpecification(SecurityUtils.getPrincipalUser().getUser().asPrismObject(), task, result);
                         filter = roleSpec.getFilter();
                     } catch (Exception ex) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
@@ -261,7 +267,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
                         result.recomputeStatus();
                     }
                     if (!result.isSuccess() && !result.isHandledError()) {
-                        parentPage.showResult(result);
+                    	TypedAssignablePanel.this.getPageBase().showResult(result);
                     }
                     if (query == null){
                         query = new ObjectQuery();
@@ -319,7 +325,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 	@Override
 	public StringResourceModel getTitle() {
-		return getPageBase().createStringResource("TypedAssignablePanel.selectObjects");
+		return PageBase.createStringResourceStatic(TypedAssignablePanel.this, "TypedAssignablePanel.selectObjects");
 	}
 
 	@Override

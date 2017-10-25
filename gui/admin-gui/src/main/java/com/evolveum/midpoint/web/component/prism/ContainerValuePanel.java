@@ -30,11 +30,9 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author lazyman
@@ -77,7 +75,15 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 				target.add(ContainerValuePanel.this);
 			}
 
-    	};
+			@Override
+            protected void addNewContainerValuePerformed(AjaxRequestTarget ajaxRequestTarget){
+                super.addNewContainerValuePerformed(ajaxRequestTarget);
+                addOrReplaceProperties(model, form, isPanelVisible, true);
+                ajaxRequestTarget.add(ContainerValuePanel.this);
+            }
+
+
+        };
         header.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;
 
@@ -115,6 +121,7 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 
 			@Override
             protected void populateItem(final ListItem<IW> item) {
+				
 				if (item.getModel().getObject() instanceof ContainerWrapper) {
 					PrismContainerPanel<C> containerPanel = new PrismContainerPanel("property", (IModel<ContainerWrapper<C>>) item.getModel(), true, form, isPanaleVisible, pageBase);
 					containerPanel.setOutputMarkupId(true);

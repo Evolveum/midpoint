@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,12 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -56,26 +61,14 @@ public abstract class BaseActionExecutor implements ActionExecutor {
 	private static final String PARAM_SKIP_APPROVALS = "skipApprovals";
 	private static final String PARAM_OPTIONS = "options";
 
-    @Autowired
-    protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
-
-    @Autowired
-    protected PrismContext prismContext;
-
-    @Autowired
-    protected OperationsHelper operationsHelper;
-
-    @Autowired
-    protected ExpressionHelper expressionHelper;
-
-    @Autowired
-    protected ProvisioningService provisioningService;
-
-    @Autowired
-    protected ModelService modelService;
-
-	@Autowired
-	protected SecurityEnforcer securityEnforcer;
+    @Autowired protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    @Autowired protected PrismContext prismContext;
+    @Autowired protected OperationsHelper operationsHelper;
+    @Autowired protected ExpressionHelper expressionHelper;
+    @Autowired protected ProvisioningService provisioningService;
+    @Autowired protected ModelService modelService;
+	@Autowired protected SecurityEnforcer securityEnforcer;
+	@Autowired protected SecurityContextManager securityContextManager;
 
     // todo move to some helper?
 
@@ -139,8 +132,8 @@ public abstract class BaseActionExecutor implements ActionExecutor {
 			return;
 		}
 		try {
-			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, globalResult);
-		} catch (SecurityViolationException |SchemaException e) {
+			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, context.getTask(), globalResult);
+		} catch (SecurityViolationException | SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
 			throw new ScriptExecutionException("You are not authorized to execute '" + actionName + "' action.");
 		}
 	}

@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!--
+Expects the following extension items:
+ - attributeX, valueX (X = 1..9)
+ - remediatorRef
+
+Matches if (for any N) the value of 'attributeN' is equal to 'valueN'.
+
+-->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+		oid="72d69ea9-dc0a-4769-b0a4-282f40226de2">
+	<name>k11</name>
+	<inducement>
+		<policyRule>
+			<policyConstraints>
+				<objectState>
+					<expression>
+						<script>
+							<code>
+								rulesLib.execute('evaluateAttributeValuePairs', [
+									object : object,
+									ruleEvaluationContext : ruleEvaluationContext,
+									assumeEquality : false
+								])
+							</code>
+						</script>
+					</expression>
+				</objectState>
+			</policyConstraints>
+			<policyActions>
+				<enforcement>
+					<condition>
+						<script>
+							<code>
+								!rulesLib.execute('remediatorPresent', [ruleEvaluationContext : ruleEvaluationContext]).realValue			// remove '.realValue' hack
+							</code>
+						</script>
+					</condition>
+				</enforcement>
+				<approval>
+					<condition>
+						<script>
+							<code>
+								rulesLib.execute('remediatorPresent', [ruleEvaluationContext : ruleEvaluationContext])
+							</code>
+						</script>
+					</condition>
+					<approvalSchema>
+						<stage>
+							<approverExpression>
+								<script>
+									<code>
+										rulesLib.execute('computeApprovers', [
+											workflowContext : workflowContext,
+											stageDefinition : stageDefinition
+										])
+									</code>
+								</script>
+							</approverExpression>
+						</stage>
+					</approvalSchema>
+				</approval>
+			</policyActions>
+			<evaluationTarget>assignment</evaluationTarget>
+		</policyRule>
+		<order>2</order>
+	</inducement>
+</role>

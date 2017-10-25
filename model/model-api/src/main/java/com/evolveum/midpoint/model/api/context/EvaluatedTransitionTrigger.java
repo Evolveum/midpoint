@@ -33,8 +33,8 @@ public class EvaluatedTransitionTrigger extends EvaluatedPolicyRuleTrigger<Trans
 	@NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers;
 
 	public EvaluatedTransitionTrigger(@NotNull PolicyConstraintKindType kind, @NotNull TransitionPolicyConstraintType constraint,
-			LocalizableMessage message, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
-		super(kind, constraint, message);
+			LocalizableMessage message, LocalizableMessage shortMessage, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
+		super(kind, constraint, message, shortMessage);
 		this.innerTriggers = innerTriggers;
 	}
 

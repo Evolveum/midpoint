@@ -47,6 +47,7 @@
                 <directory>src/main/resources</directory>
                 <includes>
                     <include>localization/Midpoint*.properties</include>
+                    <include>banner.txt</include>
                 </includes>
             </resource>
             <!--  ICF LOGGING CONFIGURATION -->
@@ -95,9 +96,49 @@
                 </includes>
             </testResource>
         </testResources>
-       
+       <plugins>
+           <plugin>
+               <groupId>org.springframework.boot</groupId>
+               <artifactId>spring-boot-maven-plugin</artifactId>
+               <version>${spring.boot.version}</version>
+               <executions>
+                   <execution>
+                       <goals>
+                           <goal>repackage</goal>
+                       </goals>
+                   </execution>
+               </executions>
+           </plugin>
+       </plugins>
     </build>
+
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-transports-http</artifactId>
+        </dependency>
+
     	<dependency>
             <groupId>org.webjars</groupId>
             <artifactId>swagger-ui</artifactId>
@@ -135,12 +176,7 @@
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
             <artifactId>wro4j-core</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-        	<groupId>org.webjars</groupId>
-    		<artifactId>webjars-locator</artifactId>
-    		<scope>runtime</scope> <!-- used for loading js/css from webjars -->
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
@@ -149,9 +185,13 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>webjars-locator-core</artifactId>
+            <version>0.32</version>
+        </dependency>
+        <dependency>
             <groupId>ro.isdc.wro4j</groupId>
             <artifactId>wro4j-extensions</artifactId>
-            <scope>runtime</scope> <!-- used to compile less files -->
             <exclusions>
                 <exclusion>
                     <groupId>org.webjars</groupId>
@@ -219,11 +259,6 @@
                     <!-- unused library -->
                     <groupId>org.webjars</groupId>
                     <artifactId>json2</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>com.google.code.gson</groupId>
-                    <artifactId>gson</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>com.darrinholst</groupId>
@@ -302,6 +337,11 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-api</artifactId>
+            <version>3.7-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>security-enforcer-api</artifactId>
             <version>3.7-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -385,6 +425,12 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-impl</artifactId>
+            <version>3.7-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>security-enforcer-impl</artifactId>
             <version>3.7-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
@@ -481,7 +527,6 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
-<!--             <scope>runtime</scope> -->
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
@@ -490,12 +535,10 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-ldap</artifactId>
-            <scope>runtime</scope>
         </dependency>
 
         <!--  WICKET DEPENDENCIES -->
@@ -529,7 +572,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
-                    <artifactId>spring</artifactId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

@@ -175,6 +175,20 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="userDescription" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:indexed>false</a:indexed>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="studyGroup" type="xsd:string" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:indexed>false</a:indexed>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 

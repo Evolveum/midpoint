@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -85,7 +86,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
 
 /**
  * @author semancik
@@ -770,7 +772,7 @@ public class LensUtil {
 			LensElementContext<?> accountContext, IterationSpecificationType iterationType,
 			int iteration, ExpressionFactory expressionFactory, ExpressionVariables variables,
 			Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (iterationType == null) {
 			return formatIterationTokenDefault(iteration);
 		}
@@ -820,7 +822,7 @@ public class LensUtil {
     		LensElementContext<?> accountContext, IterationSpecificationType iterationType,
     		int iteration, String iterationToken, boolean beforeIteration,
 			ExpressionFactory expressionFactory, ExpressionVariables variables, Task task, OperationResult result)
-					throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+					throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (iterationType == null) {
 			return true;
 		}
@@ -987,29 +989,15 @@ public class LensUtil {
     		return;
     	}
     	PrismContainer<AssignmentType> dstContainer = (PrismContainer<AssignmentType>) dstItem;
-    	if (srcExtension != null && !srcExtension.getValue().isEmpty()) {
-    		PrismContainer<Containerable> dstExtension = dstContainer.findOrCreateContainer(AssignmentType.F_EXTENSION);
-			for (Item<?,?> srcExtensionItem: srcExtension.getValue().getItems()) {
-				Item<?,?> magicItem = dstExtension.findItem(srcExtensionItem.getElementName());
-				if (magicItem == null) {
-					dstExtension.add(srcExtensionItem.clone());
-				}
-			}
-		}
+    	if (srcExtension != null && !srcExtension.getValues().isEmpty()) {
+		    PrismContainer<?> dstExtensionContainer = dstContainer.findOrCreateContainer(AssignmentType.F_EXTENSION);
+		    PrismContainerValue<?> dstExtensionContainerValue = dstExtensionContainer.getValues().isEmpty()
+				    ? dstExtensionContainer.createNewValue() : dstExtensionContainer.getValue();
+		    ObjectTypeUtil.mergeExtension(dstExtensionContainerValue, srcExtension.getValue());
+	    }
 	}
 
-	private static void mergeExtension(PrismContainer<Containerable> magicExtension, PrismContainer<Containerable> segmentExtension) throws SchemaException {
-		if (segmentExtension != null && !segmentExtension.getValue().isEmpty()) {
-			for (Item<?,?> segmentItem: segmentExtension.getValue().getItems()) {
-				Item<?,?> magicItem = magicExtension.findItem(segmentItem.getElementName());
-				if (magicItem == null) {
-					magicExtension.add(segmentItem.clone());
-				}
-			}
-		}
-	}
-
-    public static <V extends PrismValue,D extends ItemDefinition> Mapping.Builder<V,D> addAssignmentPathVariables(Mapping.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
+	public static <V extends PrismValue,D extends ItemDefinition> Mapping.Builder<V,D> addAssignmentPathVariables(Mapping.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
     	ExpressionVariables expressionVariables = new ExpressionVariables();
 		Utils.addAssignmentPathVariables(assignmentPathVariables, expressionVariables);
 		return builder.addVariableDefinitions(expressionVariables.getMap());
@@ -1305,4 +1293,39 @@ public class LensUtil {
 		return CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType);
 	}
 
+	public static boolean evaluateBoolean(ExpressionType expressionBean, ExpressionVariables expressionVariables,
+			String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
+			OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
+				task, result,
+				DOMUtil.XSD_BOOLEAN, false);
+	}
+
+	public static String evaluateString(ExpressionType expressionBean, ExpressionVariables expressionVariables,
+			String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
+			OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
+				task, result,
+				DOMUtil.XSD_STRING, null);
+	}
+
+	public static <T> T evaluateExpressionSingle(ExpressionType expressionBean, ExpressionVariables expressionVariables,
+			String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
+			OperationResult result, QName typeName,
+			T defaultValue)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		PrismPropertyDefinition<T> resultDef = new PrismPropertyDefinitionImpl<>(
+				new QName(SchemaConstants.NS_C, "result"), typeName, prismContext);
+		Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
+				expressionFactory.makeExpression(expressionBean, resultDef, contextDescription, task, result);
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, expressionVariables, contextDescription, task, result);
+		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple = ModelExpressionThreadLocalHolder
+				.evaluateExpressionInContext(expression, context, task, result);
+		List<T> results = exprResultTriple.getZeroSet().stream()
+				.map(ppv -> (T) ppv.getRealValue())
+				.collect(Collectors.toList());
+		return getSingleValue(results, defaultValue, contextDescription);
+	}
 }

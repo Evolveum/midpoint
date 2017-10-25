@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import java.util.ArrayList;
@@ -14,6 +29,11 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -27,6 +47,8 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
  * Created by honchar.
  */
 public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEventRecordType> {
+	private static final long serialVersionUID = 1L;
+
 	public  static final String VALUE_REF_TARGET_NAMES_KEY = "valueRefTargetNames";
 	private static final Trace LOGGER = TraceManager.getTrace(BaseSortableDataProvider.class);
 	private IModel<List<AuditEventRecordType>> model;
@@ -85,8 +107,9 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
  		String query = generateFullQuery(AUDIT_RECORDS_QUERY_COUNT + auditEventQuery, false, true);
 		long count;
 		try {
-			count = getAuditService().countObjects(query, parameters, new OperationResult("internalSize"));
-		} catch (SecurityViolationException | SchemaException e) {
+			Task task = getPage().createSimpleTask("internalSize");
+			count = getAuditService().countObjects(query, parameters, task, task.getResult());
+		} catch (SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
 			// TODO: proper error handling (MID-3536)
 			throw new SystemException(e.getMessage(), e);
 		}
@@ -115,9 +138,10 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
         List<AuditEventRecord> auditRecords;
 		try {
+			Task task = getPage().createSimpleTask("listRecords");
 			auditRecords = getAuditService().listRecords(parameterQuery, parameters,
-					new OperationResult("listRecords"));
-		} catch (SecurityViolationException | SchemaException e) {
+					task, task.getResult());
+		} catch (SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
 			// TODO: proper error handling (MID-3536)
 			throw new SystemException(e.getMessage(), e);
 		}

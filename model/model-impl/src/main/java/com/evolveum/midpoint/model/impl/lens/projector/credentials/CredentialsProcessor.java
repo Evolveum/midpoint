@@ -39,10 +39,13 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
@@ -75,7 +78,7 @@ public class CredentialsProcessor {
 
 	public <F extends FocusType> void processFocusCredentials(LensContext<F> context,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
-					ObjectNotFoundException, SchemaException, PolicyViolationException {
+					ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null || !UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
@@ -90,7 +93,7 @@ public class CredentialsProcessor {
 
 	private <F extends FocusType> void processFocusPassword(LensContext<UserType> context, XMLGregorianCalendar now,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-					SchemaException, PolicyViolationException {
+					SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		PasswordPolicyEvaluator evaluator = new PasswordPolicyEvaluator();
 		evaluator.setContext(context);
@@ -109,7 +112,7 @@ public class CredentialsProcessor {
 	//for now just saving metadata
 	private void processFocusNonce(LensContext<UserType> context, XMLGregorianCalendar now,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-					SchemaException, PolicyViolationException {
+					SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		NoncePolicyEvaluator evaluator = new NoncePolicyEvaluator();
 		evaluator.setContext(context);
@@ -128,7 +131,7 @@ public class CredentialsProcessor {
 
 	private void processFocusSecurityQuestions(LensContext<UserType> context, XMLGregorianCalendar now,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-					SchemaException, PolicyViolationException {
+					SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		SecurityQuestionsPolicyEvaluator evaluator = new SecurityQuestionsPolicyEvaluator();
 		evaluator.setContext(context);

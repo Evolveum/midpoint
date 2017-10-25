@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ public interface ModelDiagnosticService {
      *
      * TODO this method is SQL service specific; it should be generalized/fixed somehow.
      */
-	void repositoryTestOrgClosureConsistency(Task task, boolean repairIfNecessary, OperationResult result) throws SchemaException, SecurityViolationException;
+	void repositoryTestOrgClosureConsistency(Task task, boolean repairIfNecessary, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException;
 
     /**
 	 * Runs a short, non-destructive internal provisioning test. It tests provisioning framework and
@@ -97,16 +97,16 @@ public interface ModelDiagnosticService {
 	 * EXPERIMENTAL.
 	 */
 	RepositoryQueryDiagResponse executeRepositoryQuery(RepositoryQueryDiagRequest request, Task task, OperationResult parentResult)
-			throws SchemaException, SecurityViolationException;
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException;
 
 	/**
 	 * Execute arbitrary mapping.
 	 *
-	 * EXPERIMENTAL
+	 * EXPERIMENTAL 
 	 */
 	MappingEvaluationResponseType evaluateMapping(MappingEvaluationRequestType request, Task task, OperationResult parentResult)
 			throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
-			ObjectNotFoundException;
+			ObjectNotFoundException, CommunicationException, ConfigurationException;
 	/**
 	 * Exports data model
 	 *
@@ -131,7 +131,7 @@ public interface ModelDiagnosticService {
 	 * @param parentResult
 	 */
 	LogFileContentType getLogFileContent(Long fromPosition, Long maxSize, Task task, OperationResult parentResult)
-			throws SecurityViolationException, IOException, SchemaException;
+			throws SecurityViolationException, IOException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-	long getLogFileSize(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException;
+	long getLogFileSize(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException;
 }

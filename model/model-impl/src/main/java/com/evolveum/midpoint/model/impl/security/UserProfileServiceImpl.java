@@ -54,11 +54,14 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -224,17 +227,8 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 										(UserType) target.getTarget().asObjectable(), limitations));
 							}
 						}
-					} catch (SchemaException e) {
-						LOGGER.error("Schema violation while processing assignment of {}: {}; assignment: {}",
-								userType, e.getMessage(), assignmentType, e);
-					} catch (ObjectNotFoundException e) {
-						LOGGER.error("Object not found while processing assignment of {}: {}; assignment: {}",
-								userType, e.getMessage(), assignmentType, e);
-					} catch (ExpressionEvaluationException e) {
-						LOGGER.error("Evaluation error while processing assignment of {}: {}; assignment: {}",
-								userType, e.getMessage(), assignmentType, e);
-					} catch (PolicyViolationException e) {
-						LOGGER.error("Policy violation while processing assignment of {}: {}; assignment: {}",
+					} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException e) {
+						LOGGER.error("Error while processing assignment of {}: {}; assignment: {}",
 								userType, e.getMessage(), assignmentType, e);
 					}
 				}

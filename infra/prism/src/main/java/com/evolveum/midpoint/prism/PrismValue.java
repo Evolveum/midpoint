@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -496,5 +497,20 @@ public abstract class PrismValue implements IPrismValue {
 
 	public PrismContainerValue<?> getParentContainerValue() {
 		return getParentContainerValue(this);
+	}
+
+	public QName getTypeName() {
+		ItemDefinition definition = getDefinition();
+		return definition != null ? definition.getTypeName() : null;
+	}
+
+	public static PrismValue fromRealValue(Object realValue) {
+		if (realValue instanceof Containerable) {
+			return ((Containerable) realValue).asPrismContainerValue();
+		} else if (realValue instanceof Referencable) {
+			return ((Referencable) realValue).asReferenceValue();
+		} else {
+			return new PrismPropertyValue<>(realValue);
+		}
 	}
 }

@@ -61,9 +61,10 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -126,78 +127,35 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);
 
-	@Autowired(required = true)
-	private Clockwork clockwork;
-
-	@Autowired(required = true)
-	private PrismContext prismContext;
-
-	@Autowired(required = true)
-	private ProvisioningService provisioning;
-
-	@Autowired(required = true)
-	private ModelObjectResolver objectResolver;
+	@Autowired private Clockwork clockwork;
+	@Autowired private PrismContext prismContext;
+	@Autowired private ProvisioningService provisioning;
+	@Autowired private ModelObjectResolver objectResolver;
+	@Autowired private transient ImportAccountsFromResourceTaskHandler importAccountsFromResourceTaskHandler;
+	@Autowired private transient ObjectImporter objectImporter;
+	@Autowired private HookRegistry hookRegistry;
+	@Autowired private TaskManager taskManager;
+    @Autowired private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+	@Autowired private AuditService auditService;
+	@Autowired private SecurityEnforcer securityEnforcer;
+	@Autowired private SecurityContextManager securityContextManager;
+	@Autowired private UserProfileService userProfileService;
+	@Autowired private Protector protector;
+	@Autowired private ContextFactory contextFactory;
+	@Autowired private SchemaTransformer schemaTransformer;
+	@Autowired private ObjectMerger objectMerger;
+	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private EmulatedSearchProvider emulatedSearchProvider;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
-
-	@Autowired(required = true)
-	private transient ImportAccountsFromResourceTaskHandler importAccountsFromResourceTaskHandler;
-
-	@Autowired(required = true)
-	private transient ObjectImporter objectImporter;
-
-	@Autowired(required = false)
-	private HookRegistry hookRegistry;
-
-	@Autowired(required = true)
-	private TaskManager taskManager;
 
     @Autowired(required = false)                        // not required in all circumstances
     private WorkflowManager workflowManager;
 
 	@Autowired(required = false)                        // not required in all circumstances
 	private CertificationManager certificationManager;
-
-    @Autowired(required = true)
-    private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
-
-	@Autowired(required = true)
-	private ChangeExecutor changeExecutor;
-
-	@Autowired(required = true)
-	private AuditService auditService;
-
-	@Autowired(required = true)
-	private SecurityEnforcer securityEnforcer;
-
-	@Autowired(required = true)
-	private UserProfileService userProfileService;
-
-	@Autowired(required = true)
-	private Projector projector;
-
-	@Autowired(required = true)
-	private Protector protector;
-
-	@Autowired(required = true)
-	private ModelDiagController modelDiagController;
-
-	@Autowired(required = true)
-	private ContextFactory contextFactory;
-
-	@Autowired(required = true)
-	private SchemaTransformer schemaTransformer;
-
-	@Autowired(required = true)
-	private ObjectMerger objectMerger;
-
-	@Autowired(required = true)
-	private SystemObjectCache systemObjectCache;
-
-	@Autowired
-	private EmulatedSearchProvider emulatedSearchProvider;
 
 	public ModelObjectResolver getObjectResolver() {
 		return objectResolver;
@@ -233,7 +191,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         result.addArbitraryObjectCollectionAsParam("options", rawOptions);
         result.addParam("class", clazz);
 
-		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
+		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, parentResult);
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
 		try {
@@ -279,7 +237,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 	private void resolve(PrismObject<?> object, Collection<SelectorOptions<GetOperationOptions>> options,
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
 		if (object == null) {
 			return;
 		}
@@ -287,7 +245,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 	private void resolve(Containerable containerable, Collection<SelectorOptions<GetOperationOptions>> options,
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
 		if (containerable == null || options == null) {
 			return;
 		}
@@ -300,7 +258,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		}
 	}
 
-    private void resolve(Containerable object, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
+    private void resolve(Containerable object, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
 		if (!GetOperationOptions.isResolve(option.getOptions())) {
 			return;
 		}
@@ -314,7 +272,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 	// TODO clean this mess
-	private <O extends ObjectType> void resolve(Containerable containerable, ItemPath path, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
+	private <O extends ObjectType> void resolve(Containerable containerable, ItemPath path, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
 		if (path == null || path.isEmpty()) {
 			return;
 		}
@@ -457,8 +415,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 								}
 								PrismObject<? extends ObjectType> objectToAdd = delta.getObjectToAdd();
 								if (!preAuthorized) {
-									securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, objectToAdd, null, null, null, result1);
-									securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), null, objectToAdd, null, null, null, result1);
+									securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, objectToAdd, null, null, null, task, result1);
+									securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), null, objectToAdd, null, null, null, task, result1);
 								}
 								String oid;
 								try {
@@ -478,15 +436,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 										existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
 										objectToDetermineDetailsForAudit = existingObject;
 									} catch (Throwable t) {
-										if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
+										if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, task, result1)) {
 											throw t;
 										} else {
 											// in case of administrator's request we continue - in order to allow deleting malformed (unreadable) objects
 										}
 									}
 									if (!preAuthorized) {
-										securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, existingObject, null, null, null, result1);
-										securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, existingObject, null, null, null, result1);
+										securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, existingObject, null, null, null, task, result1);
+										securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, existingObject, null, null, null, task, result1);
 									}
 									try {
 										if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
@@ -511,8 +469,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 									PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
 									objectToDetermineDetailsForAudit = existingObject;
 									if (!preAuthorized) {
-										securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, existingObject, null, null, null, result1);
-										securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, existingObject, delta, null, null, result1);
+										securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, existingObject, null, null, null, task, result1);
+										securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, existingObject, delta, null, null, task, result1);
 									}
 									try {
 										cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(),
@@ -565,7 +523,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				try {
 					LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
 					
-					authorizePartialExecution(context, options, result);
+					authorizePartialExecution(context, options, task, result);
 
 					if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
 						String m = "ReevaluateSearchFilters option is not fully supported for non-raw operations yet. Filters already present in the object will not be touched.";
@@ -632,11 +590,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 
-	private void authorizePartialExecution(LensContext<? extends ObjectType> context, ModelExecuteOptions options, OperationResult result) throws SecurityViolationException, SchemaException {
+	private void authorizePartialExecution(LensContext<? extends ObjectType> context, ModelExecuteOptions options, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		PartialProcessingOptionsType partialProcessing = ModelExecuteOptions.getPartialProcessing(options);
 		if (partialProcessing != null) {
 			PrismObject<? extends ObjectType> object = context.getFocusContext().getObjectAny();
-			securityEnforcer.authorize(ModelAuthorizationAction.PARTIAL_EXECUTION.getUrl(), null, object, null, null, null, result);
+			securityEnforcer.authorize(ModelAuthorizationAction.PARTIAL_EXECUTION.getUrl(), null, object, null, null, null, task, result);
 		}
 	}
 
@@ -789,20 +747,20 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			ModelUtils.validatePaging(query.getPaging());
 		}
 
-		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
+		OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
+		result.addParam(OperationResult.PARAM_TYPE, type);
+		result.addParam(OperationResult.PARAM_QUERY, query);
+		
+		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
         ObjectTypes.ObjectManager searchProvider = ObjectTypes.getObjectManagerForClass(type);
         if (searchProvider == null || searchProvider == ObjectTypes.ObjectManager.MODEL || GetOperationOptions.isRaw(rootOptions)) {
             searchProvider = ObjectTypes.ObjectManager.REPOSITORY;
         }
-
-		OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
-		result.addParam(OperationResult.PARAM_TYPE, type);
-		result.addParam(OperationResult.PARAM_QUERY, query);
 		result.addArbitraryObjectAsParam("searchProvider", searchProvider);
 
-		query = preProcessQuerySecurity(type, query);
+		query = preProcessQuerySecurity(type, query, task, result);
 		if (isFilterNone(query, result)) {
 			return new SearchResultList<>(new ArrayList<>());
 		}
@@ -880,7 +838,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		final ObjectTypes.ObjectManager manager;
 		final ObjectQuery refinedQuery;
 
-		ContainerOperationContext(Class<T> type, ObjectQuery query) throws SchemaException, SecurityViolationException {
+		// TODO: task and result here are ugly and probably wrong
+		ContainerOperationContext(Class<T> type, ObjectQuery query, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 			isCertCase = AccessCertificationCaseType.class.equals(type);
 			isCaseMgmtWorkItem = CaseWorkItemType.class.equals(type);
 			isWorkItem = WorkItemType.class.equals(type);
@@ -890,7 +849,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			}
 
 			if (isCertCase) {
-				refinedQuery = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query);
+				refinedQuery = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query, task, result);
 				manager = ObjectTypes.ObjectManager.REPOSITORY;
 			} else if (isWorkItem) {
 				refinedQuery = preProcessWorkItemSecurity(query);
@@ -908,7 +867,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Override
 	public <T extends Containerable> SearchResultList<T> searchContainers(
 			Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> rawOptions,
-			Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+			Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
 
 		Validate.notNull(type, "Container value type must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
@@ -916,14 +875,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			ModelUtils.validatePaging(query.getPaging());
 		}
 
-		final ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query);
-
-		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
-		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-
 		final OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS);
 		result.addParam(OperationResult.PARAM_TYPE, type);
 		result.addParam(OperationResult.PARAM_QUERY, query);
+
+		final ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query, task, result);
+		
+		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
+		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
 		query = ctx.refinedQuery;
 
@@ -986,19 +945,19 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Override
 	public <T extends Containerable> Integer countContainers(
 			Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> rawOptions,
-			Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException {
+			Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 
 		Validate.notNull(type, "Container value type must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 
-		final ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query);
-
-		final Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
-		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-
 		final OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS);
 		result.addParam(OperationResult.PARAM_TYPE, type);
 		result.addParam(OperationResult.PARAM_QUERY, query);
+
+		final ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query, task, result);
+		
+		final Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
+		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
 		query = ctx.refinedQuery;
 
@@ -1099,18 +1058,18 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			ModelUtils.validatePaging(query.getPaging());
 		}
 
-		final Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
+		final OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
+		result.addParam(OperationResult.PARAM_QUERY, query);
+		
+		final Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
 		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         ObjectTypes.ObjectManager searchProvider = ObjectTypes.getObjectManagerForClass(type);
         if (searchProvider == null || searchProvider == ObjectTypes.ObjectManager.MODEL || GetOperationOptions.isRaw(rootOptions)) {
             searchProvider = ObjectTypes.ObjectManager.REPOSITORY;
         }
-
-		final OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
-		result.addParam(OperationResult.PARAM_QUERY, query);
 		result.addArbitraryObjectAsParam("searchProvider", searchProvider);
 
-		query = preProcessQuerySecurity(type, query);
+		query = preProcessQuerySecurity(type, query, task, result);
 		if (isFilterNone(query, result)) {
 			return null;
 		}
@@ -1128,7 +1087,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				}
 				resolve(object, options, task, result);
 				schemaTransformer.applySchemasAndSecurity(object, rootOptions, options, null, task, parentResult1);
-			} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
+			} catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException
 					| CommunicationException | ConfigurationException ex) {
 				parentResult1.recordFatalError(ex);
 				throw new SystemException(ex.getMessage(), ex);
@@ -1189,7 +1148,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		OperationResult result = parentResult.createMinorSubresult(COUNT_OBJECTS);
 		result.addParam(OperationResult.PARAM_QUERY, query);
 
-		query = preProcessQuerySecurity(type, query);
+		query = preProcessQuerySecurity(type, query, task, result);
 		if (isFilterNone(query, result)) {
 			return 0;
 		}
@@ -1198,7 +1157,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		try {
 			RepositoryCache.enter();
 
-			Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
+			Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
 			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
             ObjectTypes.ObjectManager objectManager = ObjectTypes.getObjectManagerForClass(type);
@@ -1227,7 +1186,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Override
 	@Deprecated
 	public PrismObject<UserType> findShadowOwner(String accountOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException {
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
 		Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 
@@ -1266,8 +1225,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			try {
 				user = user.cloneIfImmutable();
 				schemaTransformer.applySchemasAndSecurity(user, null, null,null, task, result);
-			} catch (SchemaException | SecurityViolationException | ConfigurationException
-					| ObjectNotFoundException ex) {
+			} catch (SchemaException | SecurityViolationException | ConfigurationException |
+					ExpressionEvaluationException | ObjectNotFoundException | CommunicationException ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
 						+ " for account with oid {}", ex, accountOid);
 				result.recordFatalError("Couldn't list account shadow owner for account with oid '"
@@ -1281,7 +1240,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Override
 	public PrismObject<? extends FocusType> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException {
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
 		Validate.notEmpty(shadowOid, "Account oid must not be null or empty.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 
@@ -1295,7 +1254,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		result.addParam("shadowOid", shadowOid);
 
 		try {
-			Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
+			Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
 			focus = cacheRepositoryService.searchShadowOwner(shadowOid, options, result);
 			result.recordSuccess();
 		} catch (RuntimeException | Error ex) {
@@ -1317,7 +1276,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				focus = focus.cloneIfImmutable();
 				schemaTransformer.applySchemasAndSecurity(focus, null, null, null, task, result);
 			} catch (SchemaException | SecurityViolationException | ConfigurationException
-					| ObjectNotFoundException ex) {
+					| ObjectNotFoundException | CommunicationException ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
 						+ " for account with oid {}", ex, shadowOid);
 				result.recordFatalError("Couldn't list account shadow owner for account with oid '"
@@ -1573,7 +1532,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	 */
 	@Override
 	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, Task task, OperationResult parentResult)
-			throws CommunicationException, SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException {
+			throws CommunicationException, SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 		RepositoryCache.enter();
 		OperationResult result = parentResult.createSubresult(DISCOVER_CONNECTORS);
 		Set<ConnectorType> discoverConnectors;
@@ -1614,7 +1573,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't set 'forwardedFor' headers because system configuration couldn't be read", e);
 		}
 
-		securityEnforcer.setUserProfileService(userProfileService);
+		securityContextManager.setUserProfileService(userProfileService);
 		// TODO: initialize repository
 
 		// repository (including logging config) is initialized in its own method
@@ -1648,7 +1607,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		result.addArbitraryObjectAsParam("compareOptions", compareOptions);
 		result.addArbitraryObjectCollectionAsParam("ignoreItems", ignoreItems);
 
-		Collection<SelectorOptions<GetOperationOptions>> readOptions = preProcessOptionsSecurity(rawReadOptions);
+		Collection<SelectorOptions<GetOperationOptions>> readOptions = preProcessOptionsSecurity(rawReadOptions, task, result);
 
 		CompareResultType rv = new CompareResultType();
 
@@ -1764,11 +1723,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		removeIgnoredItems(object, operationalItems);
 	}
 
-	private Collection<SelectorOptions<GetOperationOptions>> preProcessOptionsSecurity(Collection<SelectorOptions<GetOperationOptions>> options)
-			throws SchemaException {
+	private Collection<SelectorOptions<GetOperationOptions>> preProcessOptionsSecurity(Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 		if (GetOperationOptions.isAttachDiagData(rootOptions) &&
-				!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
+				!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, task, result)) {
 			Collection<SelectorOptions<GetOperationOptions>> reducedOptions = CloneUtil.cloneCollectionMembers(options);
 			SelectorOptions.findRootOptions(reducedOptions).setAttachDiagData(false);
 			return reducedOptions;
@@ -1777,19 +1736,18 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		}
 	}
 
-	private <O extends ObjectType> ObjectQuery preProcessQuerySecurity(Class<O> objectType, ObjectQuery origQuery) throws SchemaException {
+	private <O extends ObjectType> ObjectQuery preProcessQuerySecurity(Class<O> objectType, ObjectQuery origQuery, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	ObjectFilter origFilter = null;
     	if (origQuery != null) {
     		origFilter = origQuery.getFilter();
     	}
-		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.READ.getUrl(), null, objectType, null, origFilter);
+		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.READ.getUrl(), null, objectType, null, origFilter, null, task, result);
 		return updateObjectQuery(origQuery, secFilter);
 	}
 	
 	// we expect that objectType is a direct parent of containerType
-	private <C extends Containerable, O extends ObjectType>
-	ObjectQuery preProcessSubobjectQuerySecurity(Class<C> containerType, Class<O> objectType, ObjectQuery origQuery) throws SchemaException {
-		ObjectFilter secParentFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.READ.getUrl(), null, objectType, null, null);
+	private <C extends Containerable, O extends ObjectType> ObjectQuery preProcessSubobjectQuerySecurity(Class<C> containerType, Class<O> objectType, ObjectQuery origQuery, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		ObjectFilter secParentFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.READ.getUrl(), null, objectType, null, null, null, task, result);
 		if (secParentFilter == null || secParentFilter instanceof AllFilter) {
 			return origQuery;				// no need to update the query
 		}
@@ -1825,32 +1783,32 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	//region Task-related operations
 
     @Override
-    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-		authorizeTaskCollectionOperation(ModelAuthorizationAction.SUSPEND_TASK, taskOids, parentResult);
+    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		authorizeTaskCollectionOperation(ModelAuthorizationAction.SUSPEND_TASK, taskOids, operationTask, parentResult);
         return taskManager.suspendTasks(taskOids, waitForStop, parentResult);
     }
 
 	@Override
-    public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-		authorizeTaskCollectionOperation(ModelAuthorizationAction.DELETE, taskOids, parentResult);
+    public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		authorizeTaskCollectionOperation(ModelAuthorizationAction.DELETE, taskOids, operationTask, parentResult);
         taskManager.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, parentResult);
     }
 
     @Override
-    public void resumeTasks(Collection<String> taskOids, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-		authorizeTaskCollectionOperation(ModelAuthorizationAction.RESUME_TASK, taskOids, parentResult);
+    public void resumeTasks(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		authorizeTaskCollectionOperation(ModelAuthorizationAction.RESUME_TASK, taskOids, operationTask, parentResult);
         taskManager.resumeTasks(taskOids, parentResult);
     }
 
     @Override
-    public void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-		authorizeTaskCollectionOperation(ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, taskOids, parentResult);
+    public void scheduleTasksNow(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		authorizeTaskCollectionOperation(ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, taskOids, operationTask, parentResult);
         taskManager.scheduleTasksNow(taskOids, parentResult);
     }
 
     @Override
-    public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> rawOptions, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
-		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
+    public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task operationTask, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException {
+		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, operationTask, parentResult);
         PrismObject<TaskType> task = taskManager.getTaskTypeByIdentifier(identifier, options, parentResult);
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 		task = task.cloneIfImmutable();
@@ -1859,14 +1817,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult) throws SchemaException, SecurityViolationException {
-		securityEnforcer.authorize(ModelAuthorizationAction.STOP_SERVICE_THREADS.getUrl(), null, null, null, null, null, parentResult);
+    public boolean deactivateServiceThreads(long timeToWait, Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		securityEnforcer.authorize(ModelAuthorizationAction.STOP_SERVICE_THREADS.getUrl(), null, null, null, null, null, operationTask, parentResult);
         return taskManager.deactivateServiceThreads(timeToWait, parentResult);
     }
 
     @Override
-    public void reactivateServiceThreads(OperationResult parentResult) throws SchemaException, SecurityViolationException {
-		securityEnforcer.authorize(ModelAuthorizationAction.START_SERVICE_THREADS.getUrl(), null, null, null, null, null, parentResult);
+    public void reactivateServiceThreads(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		securityEnforcer.authorize(ModelAuthorizationAction.START_SERVICE_THREADS.getUrl(), null, null, null, null, null, operationTask, parentResult);
         taskManager.reactivateServiceThreads(parentResult);
     }
 
@@ -1876,32 +1834,32 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-		authorizeNodeCollectionOperation(ModelAuthorizationAction.STOP_TASK_SCHEDULER, nodeIdentifiers, parentResult);
+    public void stopSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		authorizeNodeCollectionOperation(ModelAuthorizationAction.STOP_TASK_SCHEDULER, nodeIdentifiers, operationTask, parentResult);
         taskManager.stopSchedulers(nodeIdentifiers, parentResult);
     }
 
     @Override
-    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-		authorizeNodeCollectionOperation(ModelAuthorizationAction.STOP_TASK_SCHEDULER, nodeIdentifiers, parentResult);
+    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		authorizeNodeCollectionOperation(ModelAuthorizationAction.STOP_TASK_SCHEDULER, nodeIdentifiers, operationTask, parentResult);
         return taskManager.stopSchedulersAndTasks(nodeIdentifiers, waitTime, parentResult);
     }
 
     @Override
-    public void startSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-		authorizeNodeCollectionOperation(ModelAuthorizationAction.START_TASK_SCHEDULER, nodeIdentifiers, parentResult);
+    public void startSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		authorizeNodeCollectionOperation(ModelAuthorizationAction.START_TASK_SCHEDULER, nodeIdentifiers, operationTask, parentResult);
         taskManager.startSchedulers(nodeIdentifiers, parentResult);
     }
 
     @Override
-    public void synchronizeTasks(OperationResult parentResult) throws SchemaException, SecurityViolationException {
-		securityEnforcer.authorize(ModelAuthorizationAction.SYNCHRONIZE_TASKS.getUrl(), null, null, null, null, null, parentResult);
+    public void synchronizeTasks(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		securityEnforcer.authorize(ModelAuthorizationAction.SYNCHRONIZE_TASKS.getUrl(), null, null, null, null, null, operationTask, parentResult);
 		taskManager.synchronizeTasks(parentResult);
     }
 
 	@Override
-	public void synchronizeWorkflowRequests(OperationResult parentResult) throws SchemaException, SecurityViolationException {
-		securityEnforcer.authorize(ModelAuthorizationAction.SYNCHRONIZE_WORKFLOW_REQUESTS.getUrl(), null, null, null, null, null, parentResult);
+	public void synchronizeWorkflowRequests(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		securityEnforcer.authorize(ModelAuthorizationAction.SYNCHRONIZE_WORKFLOW_REQUESTS.getUrl(), null, null, null, null, null, operationTask, parentResult);
 		workflowManager.synchronizeWorkflowRequests(parentResult);
 	}
 
@@ -1915,18 +1873,18 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return taskManager.getHandlerUriForCategory(category);
     }
 
-	private void authorizeTaskCollectionOperation(ModelAuthorizationAction action, Collection<String> oids, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
-		if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
+	private void authorizeTaskCollectionOperation(ModelAuthorizationAction action, Collection<String> oids, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, task, parentResult)) {
 			return;
 		}
 		for (String oid : oids) {
 			PrismObject existingObject = cacheRepositoryService.getObject(TaskType.class, oid, null, parentResult);
-			securityEnforcer.authorize(action.getUrl(), null, existingObject, null, null, null, parentResult);
+			securityEnforcer.authorize(action.getUrl(), null, existingObject, null, null, null, task, parentResult);
 		}
 	}
 
-	private void authorizeNodeCollectionOperation(ModelAuthorizationAction action, Collection<String> identifiers, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
-		if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
+	private void authorizeNodeCollectionOperation(ModelAuthorizationAction action, Collection<String> identifiers, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, task, parentResult)) {
 			return;
 		}
 		for (String identifier : identifiers) {
@@ -1939,7 +1897,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				throw new SystemException("Multiple nodes with identifier '" + identifier + "'");
 			}
 			existingObject = nodes.get(0);
-			securityEnforcer.authorize(action.getUrl(), null, existingObject, null, null, null, parentResult);
+			securityEnforcer.authorize(action.getUrl(), null, existingObject, null, null, null, task, parentResult);
 		}
 	}
 
@@ -1949,14 +1907,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Override
     public void completeWorkItem(String workItemId, boolean decision, String comment, ObjectDelta additionalDelta,
 			OperationResult parentResult)
-			throws SecurityViolationException, SchemaException {
+			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         getWorkflowManagerChecked().completeWorkItem(workItemId, decision, comment, additionalDelta, null, parentResult);
     }
 
     @Override
-    public void stopProcessInstance(String instanceId, String username, OperationResult parentResult) throws SchemaException,
-			ObjectNotFoundException, SecurityViolationException {
-		if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
+    public void stopProcessInstance(String instanceId, String username, Task task, OperationResult parentResult) throws SchemaException,
+			ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, task, parentResult)) {
 			ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
 					.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_PROCESS_INSTANCE_ID).eq(instanceId)
 					.build();
@@ -1966,7 +1924,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			} else if (tasks.size() == 0) {
 				throw new ObjectNotFoundException("No task for process instance ID " + instanceId, instanceId);
 			}
-			securityEnforcer.authorize(ModelAuthorizationAction.STOP_APPROVAL_PROCESS_INSTANCE.getUrl(), null, tasks.get(0), null, null, null, parentResult);
+			securityEnforcer.authorize(ModelAuthorizationAction.STOP_APPROVAL_PROCESS_INSTANCE.getUrl(), null, tasks.get(0), null, null, null, task, parentResult);
 		}
         getWorkflowManagerChecked().stopProcessInstance(instanceId, username, parentResult);
     }
@@ -1983,13 +1941,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     @Override
     public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException {
+			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         getWorkflowManagerChecked().delegateWorkItem(workItemId, delegates, method, parentResult);
     }
 
 	@Override
-	public void cleanupActivitiProcesses(OperationResult parentResult) throws SchemaException, SecurityViolationException {
-		securityEnforcer.authorize(ModelAuthorizationAction.CLEANUP_PROCESS_INSTANCES.getUrl(), null, null, null, null, null, parentResult);
+	public void cleanupActivitiProcesses(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		securityEnforcer.authorize(ModelAuthorizationAction.CLEANUP_PROCESS_INSTANCES.getUrl(), null, null, null, null, null, task, parentResult);
 		getWorkflowManagerChecked().cleanupActivitiProcesses(parentResult);
 	}
 
@@ -1998,26 +1956,26 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     //region Scripting (bulk actions)
 	@Deprecated
     @Override
-    public void evaluateExpressionInBackground(QName objectType, ObjectFilter filter, String actionName, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException {
-        checkScriptingAuthorization(parentResult);
+    public void evaluateExpressionInBackground(QName objectType, ObjectFilter filter, String actionName, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        checkScriptingAuthorization(task, parentResult);
         scriptingExpressionEvaluator.evaluateExpressionInBackground(objectType, filter, actionName, task, parentResult);
     }
 
     @Override
-    public void evaluateExpressionInBackground(ScriptingExpressionType expression, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException {
-        checkScriptingAuthorization(parentResult);
+    public void evaluateExpressionInBackground(ScriptingExpressionType expression, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        checkScriptingAuthorization(task, parentResult);
         scriptingExpressionEvaluator.evaluateExpressionInBackground(expression, task, parentResult);
     }
 
     @Override
-    public void evaluateExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException {
-        checkScriptingAuthorization(parentResult);
+    public void evaluateExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        checkScriptingAuthorization(task, parentResult);
         scriptingExpressionEvaluator.evaluateExpressionInBackground(executeScriptCommand, task, parentResult);
     }
 
     @Override
-    public ScriptExecutionResult evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException, SchemaException, SecurityViolationException {
-        checkScriptingAuthorization(result);
+    public ScriptExecutionResult evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        checkScriptingAuthorization(task, result);
         ExecutionContext executionContext = scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
         return executionContext.toExecutionResult();
     }
@@ -2025,65 +1983,65 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Override
     public ScriptExecutionResult evaluateExpression(@NotNull ExecuteScriptType scriptExecutionCommand,
 		    @NotNull Map<String, Object> initialVariables, @NotNull Task task, @NotNull OperationResult result)
-			throws ScriptExecutionException, SchemaException, SecurityViolationException {
-        checkScriptingAuthorization(result);
+			throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        checkScriptingAuthorization(task, result);
         ExecutionContext executionContext = scriptingExpressionEvaluator.evaluateExpression(scriptExecutionCommand, initialVariables, task, result);
         return executionContext.toExecutionResult();
     }
 
-    private void checkScriptingAuthorization(OperationResult parentResult) throws SchemaException, SecurityViolationException {
-        securityEnforcer.authorize(ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(), null, null, null, null, null, parentResult);
+    private void checkScriptingAuthorization(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        securityEnforcer.authorize(ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(), null, null, null, null, null, task, parentResult);
     }
 	//endregion
 
 	//region Certification
 
 	@Override
-	public AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
+	public AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		return getCertificationManagerChecked().getCampaignStatistics(campaignOid, currentStageOnly, task, parentResult);
 	}
 
 	@Override
-	public void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response, String comment, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
+	public void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response, String comment, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		getCertificationManagerChecked().recordDecision(campaignOid, caseId, workItemId, response, comment, task, parentResult);
 	}
 
 	@Deprecated
 	@Override
-	public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
-		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
+	public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, parentResult);
 		return getCertificationManagerChecked().searchOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, options, task, parentResult);
 	}
 
 	@Deprecated
 	@Override
-	public int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
-		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
+	public int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, parentResult);
 		return getCertificationManagerChecked().countOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, options, task, parentResult);
 	}
 
 	@Override
-	public void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
+	public void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		getCertificationManagerChecked().closeCampaign(campaignOid, task, result);
 	}
 
 	@Override
-	public void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
+	public void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		getCertificationManagerChecked().startRemediation(campaignOid, task, result);
 	}
 
 	@Override
-	public void closeCurrentStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+	public void closeCurrentStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		getCertificationManagerChecked().closeCurrentStage(campaignOid, stageNumber, task, parentResult);
 	}
 
 	@Override
-	public void openNextStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+	public void openNextStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		getCertificationManagerChecked().openNextStage(campaignOid, stageNumber, task, parentResult);
 	}
 
 	@Override
-	public AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+	public AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		return getCertificationManagerChecked().createCampaign(definitionOid, task, parentResult);
 	}
 	//endregion
@@ -2116,5 +2074,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			RepositoryCache.exit();
 		}
 
+	}
+
+	@NotNull
+	@Override
+	public PrismContext getPrismContext() {
+		return prismContext;
 	}
 }

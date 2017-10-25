@@ -29,8 +29,8 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -80,7 +80,7 @@ public class StaticExpressionUtil {
 	public static <X> PrismProperty<X> getPropertyStatic(ExpressionType expressionType, PrismPropertyDefinition outputDefinition,
 			String contextDescription, PrismContext prismContext) throws SchemaException {
 		Collection<JAXBElement<?>> expressionEvaluatorElement = expressionType.getExpressionEvaluator();
-		return (PrismProperty) parseValueElements(expressionEvaluatorElement, outputDefinition, contextDescription, prismContext);
+		return (PrismProperty) parseValueElements(expressionEvaluatorElement, outputDefinition, contextDescription);
 	}
 
 	/**
@@ -92,32 +92,32 @@ public class StaticExpressionUtil {
 		return output.getRealValues();
 	}
 
-
-	public static <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> parseValueElements(Collection<?> valueElements, ID outputDefinition,
-			String contextDescription, PrismContext prismContext) throws SchemaException {
-
-		Item<IV,ID> output = null;
-
+	public static ItemDefinition<?> deriveOutputDefinitionFromValueElements(QName elementName, Collection<JAXBElement<?>> valueElements, String contextDescription, PrismContext prismContext)
+			throws SchemaException {
+		QName overallType = null;
 		for (Object valueElement: valueElements) {
-			if (!(valueElement instanceof JAXBElement<?>)) {
-				throw new SchemaException("Literal expression cannot handle element "+valueElement+" "+valueElement.getClass().getName()+" in "
-						+contextDescription);
+			RawType rawType = getRawType(valueElement, contextDescription);
+			QName currentType = rawType.getExplicitTypeName();
+			if (currentType != null) {
+				QName unified = prismContext.getSchemaRegistry().unifyTypes(overallType, currentType);
+				if (unified == null) {
+					throw new SchemaException("Couldn't unify types " + overallType + " and " + currentType + " in " + contextDescription);
+				}
+				overallType = unified;
 			}
-			QName valueElementName = JAXBUtil.getElementQName(valueElement);
-			if (!valueElementName.equals(SchemaConstants.C_VALUE)) {
-				throw new SchemaException("Literal expression cannot handle element <"+valueElementName + "> in "+ contextDescription);
-			}
+		}
+		if (overallType == null) {
+			overallType = DOMUtil.XSD_STRING;
+		}
+		int maxOccurs = valueElements.size() > 1 ? -1 : 1;
+		return prismContext.getSchemaRegistry().createAdHocDefinition(elementName, overallType, 0, maxOccurs);
+	}
 
-			JAXBElement<?> jaxbElement = (JAXBElement<?>)valueElement;
-            // not checking declaredType because it may be Object.class instead ... but actual type must be of RawType
-            if (jaxbElement.getValue() != null && !(jaxbElement.getValue() instanceof RawType)) {
-				throw new SchemaException("Literal expression cannot handle JAXBElement value type "+jaxbElement.getValue().getClass()+" in "
-						+contextDescription);
-			}
-
-			RawType rawType = (RawType)jaxbElement.getValue();
-
-			//Item<V> elementItem = xnodeProcessor.parseItem(rawType.getXnode(), outputDefinition.getName(), outputDefinition);
+	public static <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> parseValueElements(Collection<?> valueElements,
+			ID outputDefinition, String contextDescription) throws SchemaException {
+		Item<IV,ID> output = null;
+		for (Object valueElement: valueElements) {
+			RawType rawType = getRawType(valueElement, contextDescription);
             Item<IV,ID> elementItem = rawType.getParsedItem(outputDefinition);
             if (output == null) {
 				output = elementItem;
@@ -126,6 +126,24 @@ public class StaticExpressionUtil {
 			}
 		}
 		return output;
+	}
+
+	private static RawType getRawType(Object valueElement, String contextDescription) throws SchemaException {
+		if (!(valueElement instanceof JAXBElement<?>)) {
+			throw new SchemaException("Literal expression cannot handle element "+valueElement+" "+valueElement.getClass().getName()+" in "
+					+contextDescription);
+		}
+		QName valueElementName = JAXBUtil.getElementQName(valueElement);
+		if (!valueElementName.equals(SchemaConstants.C_VALUE)) {
+			throw new SchemaException("Literal expression cannot handle element <"+valueElementName + "> in "+ contextDescription);
+		}
+		JAXBElement<?> jaxbElement = (JAXBElement<?>)valueElement;
+		// not checking declaredType because it may be Object.class instead ... but actual type must be of RawType
+		if (jaxbElement.getValue() != null && !(jaxbElement.getValue() instanceof RawType)) {
+						throw new SchemaException("Literal expression cannot handle JAXBElement value type "+jaxbElement.getValue().getClass()+" in "
+								+contextDescription);
+					}
+		return (RawType)jaxbElement.getValue();
 	}
 
 	public static <IV extends PrismValue,ID extends ItemDefinition> List<JAXBElement<RawType>> serializeValueElements(Item<IV,ID> item, String contextDescription) throws SchemaException {

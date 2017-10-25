@@ -97,10 +97,10 @@ public class TestStaticValues {
     		}
     	}
 
-    	PrismProperty<String> parsedPropery = (PrismProperty<String>)(Item) StaticExpressionUtil.parseValueElements(valueElements, propDef, "here again", prismContext);
+    	PrismProperty<String> parsedProperty = (PrismProperty<String>)(Item) StaticExpressionUtil.parseValueElements(valueElements, propDef, "here again");
 
         // THEN
-    	assertEquals("Roundtrip failed", origProperty, parsedPropery);
+    	assertEquals("Roundtrip failed", origProperty, parsedProperty);
     }
 
 }

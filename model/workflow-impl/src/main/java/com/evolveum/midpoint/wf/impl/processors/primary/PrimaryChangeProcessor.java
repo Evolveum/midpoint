@@ -103,7 +103,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 	// beware, may damage model context during execution
 	public List<PcpChildWfTaskCreationInstruction> previewModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType,
 			@NotNull Task opTask, @NotNull OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<PcpChildWfTaskCreationInstruction> rv = new ArrayList<>();
 		previewOrProcessModelInvocation(context, wfConfigurationType, true, rv, opTask, result);
 		return rv;
@@ -112,7 +112,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     @Override
     public HookOperationMode processModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType,
 			@NotNull Task taskFromModel, @NotNull OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	if (context.getState() != PRIMARY) {
     		return null;
 	    }
@@ -124,7 +124,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 		    WfConfigurationType wfConfigurationType,
 		    boolean previewOnly, List<PcpChildWfTaskCreationInstruction> childTaskInstructionsHolder, @NotNull Task taskFromModel,
 		    @NotNull OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         if (context.getFocusContext() == null) {
             return null;
@@ -163,7 +163,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     private void removeEmptyProcesses(List<PcpChildWfTaskCreationInstruction> instructions, ModelInvocationContext ctx,
-            OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+            OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		for (Iterator<PcpChildWfTaskCreationInstruction> iterator = instructions.iterator(); iterator.hasNext(); ) {
 			PcpChildWfTaskCreationInstruction instruction = iterator.next();
 			instruction.createProcessorContent();		// brutal hack
@@ -221,17 +221,21 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             WfTask rootWfTask = submitRootTask(context, changesWithoutApproval, taskFromModel, executionMode, wfConfigurationType, result);
             WfTask wfTask0 = submitTask0(context, changesWithoutApproval, rootWfTask, executionMode, wfConfigurationType, result);
 
+	        WfTask objectCreationTask = null;
+
             // start the jobs
             List<WfTask> wfTasks = new ArrayList<>(instructions.size());
             for (PcpChildWfTaskCreationInstruction instruction : instructions) {
 				if (instruction.startsWorkflowProcess() && instruction.isExecuteApprovedChangeImmediately()) {
 					// if we want to execute approved changes immediately in this instruction, we have to wait for
-					// task0 (if there is any) and then to update our model context with the results (if there are any)
-					// TODO CONSIDER THIS... when OID is no longer transferred
+					// task0 and/or object creation task
 					instruction.addHandlersAfterWfProcessAtEnd(WfTaskUtil.WAIT_FOR_TASKS_HANDLER_URI, WfPrepareChildOperationTaskHandler.HANDLER_URI);
 				}
 				WfTask wfTask = wfTaskController.submitWfTask(instruction, rootWfTask.getTask(), wfConfigurationType, null, result);
                 wfTasks.add(wfTask);
+                if (instruction.isObjectCreationInstruction()) {
+                	objectCreationTask = wfTask;
+                }
             }
 
             // all jobs depend on job0 (if there is one)
@@ -240,6 +244,15 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
                     wfTask0.addDependent(wfTask);
                 }
                 wfTask0.commitChanges(result);
+            }
+	        // all jobs depend on object creation task (if there is one)
+            if (objectCreationTask != null) {
+	            for (WfTask wfTask : wfTasks) {
+	            	if (wfTask != objectCreationTask) {
+			            objectCreationTask.addDependent(wfTask);
+		            }
+	            }
+	            objectCreationTask.commitChanges(result);
             }
 
             baseModelInvocationProcessingHelper.logJobsBeforeStart(rootWfTask, result);

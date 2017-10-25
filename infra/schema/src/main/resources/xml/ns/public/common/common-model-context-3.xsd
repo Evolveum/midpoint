@@ -504,6 +504,8 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0" />
+            <xsd:element name="shortMessage" type="tns:LocalizableMessageType" minOccurs="0" />
+            <xsd:element name="presentationOrder" type="xsd:int" minOccurs="0" />
             <xsd:element name="final" type="xsd:boolean" minOccurs="0" />
             <xsd:element name="hidden" type="xsd:boolean" minOccurs="0" />
 			<xsd:element name="assignmentPath" type="tns:AssignmentPathType" minOccurs="0">

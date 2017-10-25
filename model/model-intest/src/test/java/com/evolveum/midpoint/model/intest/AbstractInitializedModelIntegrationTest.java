@@ -67,6 +67,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedModelIntegrationTest.class);
 
+	private static final int NUMBER_OF_IMPORTED_USERS = 4;
 	private static final int NUMBER_OF_IMPORTED_ROLES = 15;
 
 	@Autowired(required = true)
@@ -262,7 +263,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 
 		// Services
 		repoAddObjectFromFile(SERVICE_SHIP_SEA_MONKEY_FILE, initResult);
+		
+		//Custom function libraries
+		repoAddObjectFromFile(CUSTOM_LIBRARY_FILE, initResult);
 
+		//Password policy
 		repoAddObjectFromFile(PASSWORD_POLICY_BENEVOLENT_FILE, initResult);
 	}
 
@@ -270,6 +275,12 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		return ConflictResolutionActionType.FAIL;
 	}
 
+	@Override
+	protected int getNumberOfUsers() {
+		return super.getNumberOfUsers() + NUMBER_OF_IMPORTED_USERS;
+	}
+
+	@Override
 	protected int getNumberOfRoles() {
 		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
 	}

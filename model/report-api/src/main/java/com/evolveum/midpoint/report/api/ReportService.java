@@ -39,7 +39,7 @@ public interface ReportService {
 
 	String PARAMETER_REPORT_SERVICE = "reportService";
 
-	ObjectQuery parseQuery(String query, Map<QName, Object> parameters) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException;
+	ObjectQuery parseQuery(String query, Map<QName, Object> parameters) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	Collection<PrismObject<? extends ObjectType>> searchObjects(ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;

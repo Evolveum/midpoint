@@ -25,10 +25,12 @@ import com.evolveum.midpoint.web.component.assignment.AbstractRoleAssignmentPane
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -59,26 +61,14 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 	}
 
 	private void initLayout() {
-		ContainerWrapper<AssignmentType> assignmentsContainerWrapper = getObjectWrapper().findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
-
 		WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
 		assignments.setOutputMarkupId(true);
 		add(assignments);
 
-		AbstractRoleAssignmentPanel panel = new AbstractRoleAssignmentPanel(ID_ASSIGNMENTS_PANEL, getAssignmentsListModel(assignmentsContainerWrapper),
-				assignmentsContainerWrapper);
+		AbstractRoleAssignmentPanel panel = new AbstractRoleAssignmentPanel(ID_ASSIGNMENTS_PANEL,
+				new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), new ItemPath(FocusType.F_ASSIGNMENT)));
+
 		assignments.add(panel);
 	}
 
-	private IModel<List<ContainerValueWrapper<AssignmentType>>> getAssignmentsListModel(ContainerWrapper<AssignmentType> assignmentsContainerWrapper){
-		List<ContainerValueWrapper<AssignmentType>> assignmentsList = new ArrayList<>();
-		assignmentsContainerWrapper.getValues().forEach(a -> {
-			if (!AssignmentsUtil.isPolicyRuleAssignment(a.getContainerValue().getValue()) && !AssignmentsUtil.isConsentAssignment(a.getContainerValue().getValue())
-					&& AssignmentsUtil.isAssignmentRelevant(a.getContainerValue().getValue())) {
-				assignmentsList.add(a);
-			}
-		});
-//		Collections.sort(consentsList);
-		return Model.ofList(assignmentsList);
-	}
 }

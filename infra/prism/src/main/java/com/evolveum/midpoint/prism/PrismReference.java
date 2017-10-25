@@ -101,11 +101,9 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
 		return getValue().asReferencable();
 	}
 
+	@NotNull
 	@Override
 	public Collection<Referencable> getRealValues() {
-		if (getValues() == null) {
-			return null;
-		}
 		List<Referencable> realValues = new ArrayList<>(getValues().size());
 		for (PrismReferenceValue refVal : getValues()) {
 			realValues.add(refVal.asReferencable());

@@ -1567,7 +1567,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<ValuePolicyType> passwordPolicy = getObjectViaRepo(ValuePolicyType.class, PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE_OID);
 
         boolean isPasswordValid = valuePolicyProcessor.validateValue(stringPassword, passwordPolicy.asObjectable(),
-        		userRapp, TEST_NAME, task, result);
+        		createUserOriginResolver(userRapp), TEST_NAME, task, result);
         assertTrue("Password doesn't satisfy password policy, generated password: " + stringPassword, isPasswordValid);
 
         // These are protected accounts, they should not be imported

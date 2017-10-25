@@ -35,8 +35,8 @@ public class EvaluatedCompositeTrigger extends EvaluatedPolicyRuleTrigger<Policy
 	@NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers;
 
 	public EvaluatedCompositeTrigger(@NotNull PolicyConstraintKindType kind, @NotNull PolicyConstraintsType constraint,
-			LocalizableMessage message, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
-		super(kind, constraint, message);
+			LocalizableMessage message, LocalizableMessage shortMessage, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
+		super(kind, constraint, message, shortMessage);
 		this.innerTriggers = innerTriggers;
 	}
 

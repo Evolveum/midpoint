@@ -47,6 +47,7 @@ import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
@@ -210,7 +211,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
-				return new AssignmentTablePanel<R>(panelId, parentPage.createStringResource("FocusType.inducement"), inducementsModel, parentPage) {
+				return new AssignmentTablePanel<R>(panelId, inducementsModel) {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -221,6 +222,11 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 					@Override
 					public String getExcludeOid() {
 						return getObject().getOid();
+					}
+					
+					@Override
+					public IModel<String> getLabel() {
+						return parentPage.createStringResource("FocusType.inducement");
 					}
 
 					@Override

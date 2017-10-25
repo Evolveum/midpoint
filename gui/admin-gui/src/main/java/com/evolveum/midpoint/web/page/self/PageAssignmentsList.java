@@ -110,7 +110,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         add(mainForm);
 
         AssignmentTablePanel panel = new AssignmentTablePanel<UserType>(ID_ASSIGNMENT_TABLE_PANEL,
-                createStringResource("FocusType.assignment"), assignmentsModel, PageAssignmentsList.this){
+                assignmentsModel){
             @Override
             protected List<InlineMenuItem> createAssignmentMenu() {
                 List<InlineMenuItem> items = new ArrayList<>();
@@ -126,6 +126,11 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                 items.add(item);
                 return items;
             }
+            
+            @Override
+            		public IModel<String> getLabel() {
+            			return createStringResource("FocusType.assignment");
+            		}
         };
         mainForm.add(panel);
 
@@ -458,8 +463,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                                 AssignmentConflictDto<F> dto2 = new AssignmentConflictDto<>(addedAssignmentTargetObj,
                                         evaluatedAssignment.getAssignmentType(true) != null);
                                 // everything other than 'enforce' is a warning
-                                boolean isWarning = policyRule.getActions() == null
-                                        || policyRule.getActions().getEnforcement() == null;
+                                boolean isWarning = policyRule.containsEnabledAction()
+                                        && !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
                                 ConflictDto conflict = new ConflictDto(dto1, dto2, isWarning);
                                 String oid1 = exclusionTargetObj.getOid();
                                 String oid2 = addedAssignmentTargetObj.getOid();

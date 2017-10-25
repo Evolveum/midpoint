@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2014-2016 Evolveum
+  ~ Copyright (c) 2014-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -57,7 +57,12 @@
 			<artifactId>repo-api</artifactId>
 			<version>3.7-SNAPSHOT</version>
 		</dependency>
-		
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>task-api</artifactId>
+			<version>3.7-SNAPSHOT</version>
+		</dependency>
+
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
@@ -78,21 +83,15 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
         </dependency>
-        <dependency> <!-- Needed for MethodInvocation object used by Spring Security -->
-            <groupId>aopalliance</groupId>
-            <artifactId>aopalliance</artifactId>
-        </dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aop</artifactId>
+		</dependency>
 
 		<!--  Testing dependecies  -->
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>common</artifactId>
-			<version>3.7-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>task-api</artifactId>
 			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>

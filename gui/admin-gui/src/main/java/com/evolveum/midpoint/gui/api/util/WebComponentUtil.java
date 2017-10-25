@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.gui.api.util;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.normalizeRelation;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -49,6 +50,8 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -135,6 +138,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -364,6 +368,9 @@ public final class WebComponentUtil {
 	}
 
 	private static Object[] resolveArguments(Object[] args, Component component) {
+		if (args == null){
+			return null;
+		}
 		Object[] rv = new Object[args.length];
 		for (int i = 0; i < args.length; i++) {
 			if (args[i] instanceof LocalizableMessage) {
@@ -906,31 +913,37 @@ public final class WebComponentUtil {
 	}
 	
 	public static <C extends Containerable> String getDisplayName(PrismContainerValue<C> prismContainerValue) {
-		if (prismContainerValue == null || prismContainerValue.isEmpty()) {
-			return "prismContainerValue.new";
+		if (prismContainerValue == null) {
+			return "ContainerPanel.containerProperties";
 		}
-		
+
 		C containerable = prismContainerValue.asContainerable();
-		
 		if (containerable instanceof AssignmentType && ((AssignmentType) containerable).getTargetRef() != null) {
 			ObjectReferenceType assignemntTargetRef = ((AssignmentType) containerable).getTargetRef();
-			return getName(assignemntTargetRef) + " - " + assignemntTargetRef.getRelation();
-		} 
-		
+			return getName(assignemntTargetRef) + " - " + normalizeRelation(assignemntTargetRef.getRelation()).getLocalPart();
+		}
+
 		if (containerable instanceof ExclusionPolicyConstraintType){
-			ExclusionPolicyConstraintType exclusionContraint = (ExclusionPolicyConstraintType) containerable;
-			String displayName = exclusionContraint.getName() + "-" + getName(exclusionContraint.getTargetRef());
+			ExclusionPolicyConstraintType exclusionConstraint = (ExclusionPolicyConstraintType) containerable;
+			String displayName = (exclusionConstraint.getName() != null ? exclusionConstraint.getName() :
+					exclusionConstraint.asPrismContainerValue().getPath().last())  + " - "
+					+ StringUtils.defaultIfEmpty(getName(exclusionConstraint.getTargetRef()), "");
 			return StringUtils.isNotEmpty(displayName) ? displayName : "Not defined exclusion name";
 		}
-		
-		return "Impelement in WebComponentUtil.getName(PrismContainerValue<C> prismContainerValue";
-			
+		if (containerable instanceof AbstractPolicyConstraintType){
+			AbstractPolicyConstraintType constraint = (AbstractPolicyConstraintType) containerable;
+			String displayName = (StringUtils.isEmpty(constraint.getName()) ? (constraint.asPrismContainerValue().getPath().last()) : constraint.getName())
+					+ (StringUtils.isEmpty(constraint.getDescription()) ? "" : (" - " + constraint.getDescription()));
+			return displayName;
+		}
+		return "ContainerPanel.containerProperties";
 	}
 
 	public static String getDisplayNameOrName(PrismObject object) {
 		if (object == null) {
 			return null;
 		}
+		
 		String displayName = getDisplayName(object);
 		return displayName != null ? displayName : getName(object);
 	}
@@ -2145,5 +2158,45 @@ public final class WebComponentUtil {
 					actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
 		}
 	}
+	
+	public static List<ItemPath> getShadowItemsToShow() {
+		return Arrays.asList(new ItemPath(ShadowType.F_ATTRIBUTES), SchemaConstants.PATH_ACTIVATION,
+				SchemaConstants.PATH_PASSWORD, new ItemPath(ShadowType.F_ASSOCIATION));
+	}
 
+	public static boolean checkShadowActivationAndPasswordVisibility(ItemWrapper itemWrapper, IModel<ObjectWrapper<ShadowType>> shadowModel) {
+		
+		ObjectWrapper<ShadowType> shadowWrapper = shadowModel.getObject();
+		PrismObject<ShadowType> shadow = shadowWrapper.getObject();
+		ShadowType shadowType = shadow.asObjectable();
+		
+		ResourceType resource = shadowType.getResource();
+		if (resource == null) {
+			//TODO: what to return if we don't have resource available?
+			return true;
+		}
+		
+		if (SchemaConstants.PATH_ACTIVATION.equivalent(itemWrapper.getPath())) {
+			return ResourceTypeUtil.isActivationCapabilityEnabled(resource);
+		}
+		
+		if (SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS.equivalent(itemWrapper.getPath())) {
+			return ResourceTypeUtil.isActivationStatusCapabilityEnabled(resource);
+		}
+		
+		if (SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS.equivalent(itemWrapper.getPath())) {
+			return ResourceTypeUtil.isActivationLockoutStatusCapabilityEnabled(resource);
+		}
+		
+		if (SchemaConstants.PATH_ACTIVATION_VALID_FROM.equivalent(itemWrapper.getPath()) || SchemaConstants.PATH_ACTIVATION_VALID_TO.equivalent(itemWrapper.getPath())) {
+			return ResourceTypeUtil.isActivationValidityCapabilityEnabled(resource);
+		}
+		
+		if (SchemaConstants.PATH_PASSWORD.equivalent(itemWrapper.getPath())) {
+			return ResourceTypeUtil.isPasswordCapabilityEnabled(resource);
+		}
+		
+		return true;
+		
+	}
 }

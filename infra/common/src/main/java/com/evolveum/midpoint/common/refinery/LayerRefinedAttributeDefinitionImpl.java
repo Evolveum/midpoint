@@ -549,6 +549,11 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	public boolean isDeprecated() {
 		return refinedAttributeDefinition.isDeprecated();
 	}
+	
+	@Override
+	public String getDeprecatedSince() {
+		return refinedAttributeDefinition.getDeprecatedSince();
+	}
 
 	@Override
 	public boolean isOperational() {

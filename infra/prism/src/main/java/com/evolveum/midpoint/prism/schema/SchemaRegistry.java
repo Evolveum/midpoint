@@ -169,4 +169,12 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 			throws SchemaException;
 
 	boolean isAssignableFrom(@NotNull QName superType, @NotNull QName subType);
+
+	/**
+	 * Returns most specific common supertype for these two. If any of input params is null, it means it is ignored
+	 * @return null if unification cannot be done (or if both input types are null)
+	 */
+	QName unifyTypes(QName type1, QName type2);
+
+	ItemDefinition<?> createAdHocDefinition(QName elementName, QName typeName, int minOccurs, int maxOccurs);
 }

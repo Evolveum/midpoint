@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,10 @@ package com.evolveum.midpoint.model.api;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
@@ -51,7 +55,7 @@ public interface ScriptingService {
      */
     @Deprecated
     void evaluateExpressionInBackground(QName objectType, ObjectFilter filter, String actionName, Task task,
-            OperationResult parentResult) throws SchemaException, SecurityViolationException;
+            OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * Asynchronously executes any scripting expression.
@@ -63,9 +67,11 @@ public interface ScriptingService {
      *             to it, to execute the script.
      * @param parentResult
      * @throws SchemaException
+     * @throws ConfigurationException 
+     * @throws CommunicationException 
      */
-    void evaluateExpressionInBackground(ScriptingExpressionType expression, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException;
-    void evaluateExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException;
+    void evaluateExpressionInBackground(ScriptingExpressionType expression, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+    void evaluateExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * Synchronously executes any scripting expression (with no input data).
@@ -79,10 +85,10 @@ public interface ScriptingService {
      */
 
     ScriptExecutionResult evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result)
-			throws ScriptExecutionException, SchemaException, SecurityViolationException;
+			throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 	ScriptExecutionResult evaluateExpression(@NotNull ExecuteScriptType executeScriptCommand,
 			@NotNull Map<String, Object> initialVariables, @NotNull Task task, @NotNull OperationResult result)
-			throws ScriptExecutionException, SchemaException, SecurityViolationException;
+			throws ScriptExecutionException, SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 }

@@ -37,10 +37,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -76,7 +79,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 	@Override
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<ExclusionPolicyConstraintType> constraint,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
 			return null;
@@ -139,7 +142,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 			@NotNull EvaluatedAssignmentImpl<F> assignmentB, EvaluatedAssignmentTargetImpl targetB,
 			ExclusionPolicyConstraintType constraint, EvaluatedPolicyRule policyRule,
 			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		AssignmentPath pathA = policyRule.getAssignmentPath();
 		AssignmentPath pathB = targetB.getAssignmentPath();
@@ -149,18 +152,30 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 		ObjectType objectB = getConflictingObject(pathB, targetB.getTarget());
 
 		LocalizableMessage message = createMessage(infoA, infoB, constraint, ctx, result);
-		return new EvaluatedExclusionTrigger(constraint, message, assignmentB, objectA, objectB, pathA, pathB);
+		LocalizableMessage shortMessage = createShortMessage(infoA, infoB, constraint, ctx, result);
+		return new EvaluatedExclusionTrigger(constraint, message, shortMessage, assignmentB, objectA, objectB, pathA, pathB);
 	}
 
 	@NotNull
 	private <F extends FocusType> LocalizableMessage createMessage(String infoA, String infoB,
 			ExclusionPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
 				.args(infoA, infoB)
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
+	}
+
+	@NotNull
+	private <F extends FocusType> LocalizableMessage createShortMessage(String infoA, String infoB,
+			ExclusionPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
+				.args(infoA, infoB)
+				.build();
+		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
 	}
 
 	private ObjectType getConflictingObject(AssignmentPath path, PrismObject<?> defaultObject) {
@@ -233,8 +248,11 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 		ObjectReferenceType targetRef = constraint.getTargetRef();
 		if (roleB.getOid().equals(targetRef.getOid())) {
 			EvaluatedExclusionTrigger trigger = new EvaluatedExclusionTrigger(
-					constraint, buildFallbackMessage("Violation of SoD policy: " + roleA.getTarget() + " excludes " + roleB.getTarget() +
-					", they cannot be assigned at the same time"), assignmentB,
+					constraint,
+					buildFallbackMessage("Violation of SoD policy: " + roleA.getTarget() + " excludes " + roleB.getTarget() +
+							", they cannot be assigned at the same time"),
+					buildFallbackMessage(roleA.getTarget().getName() + " excludes " + roleB.getTarget().getName()),
+					assignmentB,
 					roleA.getTarget() != null ? roleA.getTarget().asObjectable() : null,
 					roleB.getTarget() != null ? roleB.getTarget().asObjectable() : null,
 					roleA.getAssignmentPath(), roleB.getAssignmentPath());

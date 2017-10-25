@@ -224,8 +224,8 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new AssignmentTablePanel<UserType>(panelId, parentPage.createStringResource("FocusType.delegatedToMe"),
-                                getDelegatedToMeModel(), PageUserHistory.this) {
+                        return new AssignmentTablePanel<UserType>(panelId, 
+                                getDelegatedToMeModel()) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -239,6 +239,11 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
                             public String getExcludeOid() {
                                 return getObject().getOid();
                             }
+                            
+                            @Override
+                            		public IModel<String> getLabel() {
+                            			return parentPage.createStringResource("FocusType.delegatedToMe");
+                            		}
 
                             @Override
                             protected List<InlineMenuItem> createAssignmentMenu() {

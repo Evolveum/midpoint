@@ -45,6 +45,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -79,8 +80,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
         delegations.setOutputMarkupId(true);
         add(delegations);
 
-        AssignmentTablePanel panel = new AssignmentTablePanel<UserType>(ID_DELEGATIONS_PANEL, createStringResource("FocusType.delegations"),
-                delegationsModel, pageBase) {
+        AssignmentTablePanel panel = new AssignmentTablePanel<UserType>(ID_DELEGATIONS_PANEL, delegationsModel) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -94,6 +94,10 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
             public String getExcludeOid() {
                 return getObjectWrapper().getOid();
             }
+            
+            public IModel<String> getLabel() {
+            	return createStringResource("FocusType.delegations");
+            };
 
             @Override
             protected List<InlineMenuItem> createAssignmentMenu() {

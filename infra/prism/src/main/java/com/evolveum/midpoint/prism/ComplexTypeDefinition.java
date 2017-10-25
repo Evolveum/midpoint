@@ -65,6 +65,12 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
 	QName getExtensionForType();
 
 	/**
+	 * Flag indicating whether this type was marked as "objectReference"
+	 * in the original schema.
+	 */
+	boolean isReferenceMarker();
+
+	/**
 	 * Flag indicating whether this type was marked as "container"
 	 * in the original schema. Does not provide any information to
 	 * schema processing logic, just conveys the marker from original

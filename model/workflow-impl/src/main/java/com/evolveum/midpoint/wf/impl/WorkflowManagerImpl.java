@@ -134,7 +134,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     @Override
     public void completeWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
 			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult)
-			throws SecurityViolationException, SchemaException {
+			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         workItemManager.completeWorkItem(taskId, ApprovalUtils.toUri(decision), comment, additionalDelta,
 				causeInformation, parentResult);
     }
@@ -151,7 +151,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 
     @Override
     public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
+			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         workItemManager.delegateWorkItem(workItemId, delegates, method, null, null, null, parentResult);
     }
 
@@ -231,8 +231,8 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     }
 
     @Override
-    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem) {
-        return miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.COMPLETE);
+    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        return miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.COMPLETE, task, result);
     }
 
     @Override
@@ -241,8 +241,8 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     }
 
     @Override
-    public boolean isCurrentUserAuthorizedToDelegate(WorkItemType workItem) {
-        return miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.DELEGATE);
+    public boolean isCurrentUserAuthorizedToDelegate(WorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        return miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.DELEGATE, task, result);
     }
 
 	@Override

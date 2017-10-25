@@ -181,6 +181,7 @@ public class ResourceManager {
 		
 		if (!isComplete(completedResource)) {
 			// No not cache non-complete resources (e.g. those retrieved with noFetch)
+			LOGGER.trace("Not putting resource {} ({}) into cache because it's not complete", repositoryObject.getName(), repositoryObject.getOid());
 			return completedResource; 
 		}
 
@@ -198,6 +199,9 @@ public class ResourceManager {
 		if (completeResourceResult.isSuccess()) {
 			// Cache only resources that are completely OK
 			resourceCache.put(completedResource);
+		} else {
+			LOGGER.trace("Not putting {} into cache because the completeResource operation status is {}",
+					ObjectTypeUtil.toShortString(repositoryObject), completeResourceResult.getStatus());
 		}
 		
 		InternalMonitor.getResourceCacheStats().recordMiss();
@@ -555,11 +559,11 @@ public class ResourceManager {
 	}
 	
 	/**
-	 * Apply proper definition (connector schema) to the resource.
+	 * Apply proper definition (connector schema) to the resource.  
 	 */
 	private void applyConnectorSchemaToResource(ConnectorSpec connectorSpec, PrismObjectDefinition<ResourceType> resourceDefinition, 
 			PrismObject<ResourceType> resource, Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 			ConnectorType connectorType = connectorManager.getConnectorTypeReadOnly(connectorSpec, result);
 			PrismSchema connectorSchema = connectorManager.getConnectorSchema(connectorType);
@@ -585,7 +589,7 @@ public class ResourceManager {
 						if ((visitable instanceof PrismProperty<?>)) {
 							try {
 								evaluateExpression((PrismProperty<?>)visitable, resource, task, result);
-							} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
+							} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 								throw new TunnelException(e);
 							}
 						}
@@ -598,6 +602,12 @@ public class ResourceManager {
 						throw (ObjectNotFoundException)e;
 					} else if (e instanceof ExpressionEvaluationException) {
 						throw (ExpressionEvaluationException)e;
+					} else if (e instanceof CommunicationException) {
+						throw (CommunicationException)e;
+					} else if (e instanceof ConfigurationException) {
+						throw (ConfigurationException)e;
+					} else if (e instanceof SecurityViolationException) {
+						throw (SecurityViolationException)e;
 					} else if (e instanceof RuntimeException) {
 						throw (RuntimeException)e;
 					} else if (e instanceof Error) {
@@ -623,7 +633,7 @@ public class ResourceManager {
 			
 	}
 
-	private <T> void evaluateExpression(PrismProperty<T> configurationProperty, PrismObject<ResourceType> resource, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private <T> void evaluateExpression(PrismProperty<T> configurationProperty, PrismObject<ResourceType> resource, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PrismPropertyDefinition<T> propDef = configurationProperty.getDefinition();
 		String shortDesc = "connector configuration property "+configurationProperty+" in "+resource;
 		List<PrismPropertyValue<T>> extraValues = new ArrayList<>();
@@ -875,6 +885,10 @@ public class ResourceManager {
 		} catch (ExpressionEvaluationException e) {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
 			configResult.recordFatalError("Expression error", e);
+			return;
+		} catch (SecurityViolationException e) {
+			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
+			configResult.recordFatalError("Security violation", e);
 			return;
 		} catch (RuntimeException | Error e) {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);

@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.common.expression.StringPolicyResolver;
+import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -225,7 +225,7 @@ public class OutboundProcessor {
 		mappingBuilder.originType(OriginType.OUTBOUND);
 		mappingBuilder.refinedObjectClassDefinition(rOcDef);
 
-		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+		ValuePolicyResolver stringPolicyResolver = new ValuePolicyResolver() {
 			private ItemPath outputPath;
 			private ItemDefinition outputDefinition;
 			@Override
@@ -239,7 +239,7 @@ public class OutboundProcessor {
 			}
 
 			@Override
-			public StringPolicyType resolve() {
+			public ValuePolicyType resolve() {
 
 				if (mappingBuilder.getMappingType().getExpression() != null) {
 					List<JAXBElement<?>> evaluators = mappingBuilder.getMappingType().getExpression().getExpressionEvaluator();
@@ -251,7 +251,7 @@ public class OutboundProcessor {
 								ValuePolicyType valuePolicyType = mappingBuilder.getObjectResolver().resolve(ref, ValuePolicyType.class,
 										null, "resolving value policy for generate attribute "+ outputDefinition.getName()+"value", task, new OperationResult("Resolving value policy"));
 								if (valuePolicyType != null) {
-									return valuePolicyType.getStringPolicy();
+									return valuePolicyType;
 								}
 							} catch (CommonException ex) {
 								throw new SystemException(ex.getMessage(), ex);
@@ -262,7 +262,7 @@ public class OutboundProcessor {
 				return null;
 			}
 		};
-		mappingBuilder.stringPolicyResolver(stringPolicyResolver);
+		mappingBuilder.valuePolicyResolver(stringPolicyResolver);
 		// TODO: other variables?
 
 		// Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present

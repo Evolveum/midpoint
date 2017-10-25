@@ -214,6 +214,9 @@ class DomToSchemaPostProcessor {
 		if (isPropertyContainer(complexType)) {
 			ctd.setContainerMarker(true);
 		}
+		if (isObjectReference(complexType)) {
+			ctd.setReferenceMarker(true);
+		}
 
 		ctd.setDefaultNamespace(getDefaultNamespace(complexType));
 		ctd.setIgnoredNamespaces(getIgnoredNamespaces(complexType));
@@ -1037,6 +1040,12 @@ class DomToSchemaPostProcessor {
 		Boolean deprecated = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_DEPRECATED);
 		if (deprecated != null) {
 			itemDef.setDeprecated(deprecated);
+		}
+		
+		//deprecated since
+		Element deprecatedSince = SchemaProcessorUtil.getAnnotationElement(annotation, A_DEPRECATED_SINCE);
+		if (deprecatedSince != null) {
+			itemDef.setDeprecatedSince(deprecatedSince.getTextContent());
 		}
 
 		// operational

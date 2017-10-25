@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -41,22 +42,23 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ValueWrapper.class);
 
-    private ItemWrapper item;
+    private PropertyOrReferenceWrapper item;
     private PrismValue value;
     private PrismValue oldValue;
 //    private PrismPropertyValue<T> value;
 //    private PrismPropertyValue<T> oldValue;
     private ValueStatus status;
-
-    public ValueWrapper(ItemWrapper property, PrismValue value) {
+    private boolean isEditEnabled = true;
+    
+    public ValueWrapper(PropertyOrReferenceWrapper property, PrismValue value) {
         this(property, value, ValueStatus.NOT_CHANGED);
     }
 
-    public ValueWrapper(ItemWrapper property, PrismValue value, ValueStatus status) {
+    public ValueWrapper(PropertyOrReferenceWrapper property, PrismValue value, ValueStatus status) {
         this(property, value, null, status);
     }
 
-    public ValueWrapper(ItemWrapper property, PrismValue value, PrismValue oldValue,
+    public ValueWrapper(PropertyOrReferenceWrapper property, PrismValue value, PrismValue oldValue,
             ValueStatus status) {
         Validate.notNull(property, "Property wrapper must not be null.");
         Validate.notNull(value, "Property value must not be null.");
@@ -87,7 +89,19 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 			}
 		}
 
-        if (oldValue == null && value instanceof PrismPropertyValue) {
+		if (oldValue == null && value instanceof PrismPropertyValue && ValueStatus.ADDED == property.getStatus()) {
+			oldValue = new PrismPropertyValue<T>(null);
+		}
+		
+		if (oldValue == null && value instanceof PrismReferenceValue && ValueStatus.ADDED == property.getStatus()) {
+			oldValue = new PrismReferenceValue();
+		}
+		
+		if (oldValue == null && value instanceof PrismReferenceValue && ValueStatus.ADDED != property.getStatus()) {
+			oldValue = value.clone();
+		}
+		
+        if (oldValue == null && value instanceof PrismPropertyValue && ValueStatus.ADDED != property.getStatus()) {
             T val = ((PrismPropertyValue<T>) this.value).getValue();
             if (val instanceof PolyString) {
                 PolyString poly = (PolyString)val;
@@ -98,7 +112,19 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 
         this.oldValue = oldValue;
     }
-
+    
+    public void setEditEnabled(boolean isEditEnabled) {
+		this.isEditEnabled = isEditEnabled;
+	}
+	
+	public boolean isEditEnabled() {
+		if (getItem().isDeprecated()) {
+			return false;
+		}
+		return isEditEnabled;
+	}
+	
+    
     public ItemWrapper getItem() {
         return item;
     }

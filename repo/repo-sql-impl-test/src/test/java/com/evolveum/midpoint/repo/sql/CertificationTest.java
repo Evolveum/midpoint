@@ -83,22 +83,22 @@ import static org.testng.AssertJUnit.assertNotNull;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CertificationTest extends BaseSQLRepoTest {
 
-	private static final Trace LOGGER = TraceManager.getTrace(CertificationTest.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CertificationTest.class);
     private static final File TEST_DIR = new File("src/test/resources/cert");
     public static final File CAMPAIGN_1_FILE = new File(TEST_DIR, "cert-campaign-1.xml");
     public static final File CAMPAIGN_2_FILE = new File(TEST_DIR, "cert-campaign-2.xml");
     public static final long NEW_CASE_ID = 100L;
-	public static final long SECOND_NEW_CASE_ID = 110L;
+    public static final long SECOND_NEW_CASE_ID = 110L;
 
-	private String campaign1Oid;
+    private String campaign1Oid;
     private String campaign2Oid;
     private PrismObjectDefinition<AccessCertificationCampaignType> campaignDef;
 
-	protected RepoModifyOptions getModifyOptions() {
-		return null;
-	}
+    protected RepoModifyOptions getModifyOptions() {
+        return null;
+    }
 
-	@Test
+    @Test
     public void test100AddCampaignNonOverwrite() throws Exception {
         PrismObject<AccessCertificationCampaignType> campaign = prismContext.parseObject(CAMPAIGN_1_FILE);
         campaignDef = campaign.getDefinition();
@@ -111,10 +111,10 @@ public class CertificationTest extends BaseSQLRepoTest {
         AssertJUnit.assertTrue(result.isSuccess());
 
         checkCampaign(campaign1Oid, result, prismContext.parseObject(CAMPAIGN_1_FILE), null, null);
-		checksCountsStandard(result);
+        checksCountsStandard(result);
     }
 
-	@Test(expectedExceptions = ObjectAlreadyExistsException.class)
+    @Test(expectedExceptions = ObjectAlreadyExistsException.class)
     public void test105AddCampaignNonOverwriteExisting() throws Exception {
         PrismObject<AccessCertificationCampaignType> campaign = prismContext.parseObject(CAMPAIGN_1_FILE);
         OperationResult result = new OperationResult("test105AddCampaignNonOverwriteExisting");
@@ -129,66 +129,66 @@ public class CertificationTest extends BaseSQLRepoTest {
         campaign1Oid = repositoryService.addObject(campaign, RepoAddOptions.createOverwrite(), result);
 
         checkCampaign(campaign1Oid, result, prismContext.parseObject(CAMPAIGN_1_FILE), null, null);
-		checksCountsStandard(result);
+        checksCountsStandard(result);
     }
 
     @Test
     public void test200ModifyCampaignProperties() throws Exception {
         OperationResult result = new OperationResult("test200ModifyCampaignProperties");
 
-        List<ItemDelta<?,?>> modifications = new ArrayList<>();
+        List<ItemDelta<?, ?>> modifications = new ArrayList<>();
         modifications.add(createModificationReplaceProperty(F_NAME, campaignDef, new PolyString("Campaign 1+", "campaign 1")));
         modifications.add(createModificationReplaceProperty(F_STATE, campaignDef, IN_REVIEW_STAGE));
 
         executeAndCheckModification(modifications, result, 1);
-		checksCountsStandard(result);
-	}
+        checksCountsStandard(result);
+    }
 
     @Test
     public void test210ModifyCaseProperties() throws Exception {
         OperationResult result = new OperationResult("test210ModifyCaseProperties");
 
-        List<ItemDelta<?,?>> modifications = new ArrayList<>();
+        List<ItemDelta<?, ?>> modifications = new ArrayList<>();
         ItemPath case1 = new ItemPath(F_CASE).subPath(new IdItemPathSegment(1L));
         modifications.add(createModificationReplaceProperty(case1.subPath(F_CURRENT_STAGE_OUTCOME), campaignDef, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REDUCE));
         modifications.add(createModificationReplaceProperty(case1.subPath(AccessCertificationCaseType.F_STAGE_NUMBER), campaignDef, 300));
 
         executeAndCheckModification(modifications, result, 0);
-		checksCountsStandard(result);
+        checksCountsStandard(result);
     }
 
     @Test
     public void test220ModifyWorkItemProperties() throws Exception {
         OperationResult result = new OperationResult("test220ModifyWorkItemProperties");
 
-		List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
-				.item(F_CASE, 1L, F_WORK_ITEM, 1L, F_OUTPUT).replace(
-						new AbstractWorkItemOutputType()
-								.outcome(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED)
-								.comment("hi"))
-				.asItemDeltas();
+        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+                .item(F_CASE, 1L, F_WORK_ITEM, 1L, F_OUTPUT).replace(
+                        new AbstractWorkItemOutputType()
+                                .outcome(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED)
+                                .comment("hi"))
+                .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
-		checksCountsStandard(result);
+        checksCountsStandard(result);
     }
 
     @Test
     public void test230ModifyAllLevels() throws Exception {
         OperationResult result = new OperationResult("test230ModifyAllLevels");
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_NAME).replace(new PolyString("Campaign 2", "campaign 2"))
                 .item(F_STATE).replace(IN_REMEDIATION)
                 .item(F_CASE, 2, F_CURRENT_STAGE_OUTCOME).replace(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE)
                 .item(F_CASE, 2, AccessCertificationCaseType.F_STAGE_NUMBER).replace(400)
                 .item(F_CASE, 1, F_WORK_ITEM, 1, F_OUTPUT).replace(
-                		new AbstractWorkItemOutputType()
-								.outcome(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED)
-								.comment("low"))
+                        new AbstractWorkItemOutputType()
+                                .outcome(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED)
+                                .comment("low"))
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 1);
-		checksCountsStandard(result);
+        checksCountsStandard(result);
     }
 
     @Test
@@ -206,43 +206,43 @@ public class CertificationTest extends BaseSQLRepoTest {
         case100.setObjectRef(createObjectRef("100123", ObjectTypes.USER));
         case100.setTargetRef(createObjectRef("100456", ObjectTypes.ROLE));
         case100.beginWorkItem()
-				.assigneeRef(createObjectRef("ref1", ObjectTypes.USER))
-				.end();
+                .assigneeRef(createObjectRef("ref1", ObjectTypes.USER))
+                .end();
         case100.setStageNumber(1);
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE).add(caseNoId, case100)
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
-		checkCasesForCampaign(campaign1Oid, 9, result);
-		checkCasesTotal(9, result);
-		checkWorkItemsForCampaign(campaign1Oid, 11, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, NEW_CASE_ID,1, result);
-		checkWorkItemsTotal(11, result);
+        checkCasesForCampaign(campaign1Oid, 9, result);
+        checkCasesTotal(9, result);
+        checkWorkItemsForCampaign(campaign1Oid, 11, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 1, 2, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 2, 1, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, NEW_CASE_ID, 1, result);
+        checkWorkItemsTotal(11, result);
     }
 
     @Test
     public void test250DeleteCase() throws Exception {
         OperationResult result = new OperationResult("test250DeleteCase");
 
-        AccessCertificationCaseType case7 = new AccessCertificationCaseType();
-        case7.setId(7L);
+        AccessCertificationCaseType case9 = new AccessCertificationCaseType();
+        case9.setId(9L);
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
-                .item(F_CASE).delete(case7)
+        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+                .item(F_CASE).delete(case9)
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
-		checkCasesForCampaign(campaign1Oid, 8, result);
-		checkCasesTotal(8, result);
-		checkWorkItemsForCampaign(campaign1Oid, 9, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, NEW_CASE_ID,1, result);
-		checkWorkItemsTotal(9, result);
+        checkCasesForCampaign(campaign1Oid, 8, result);
+        checkCasesTotal(8, result);
+        checkWorkItemsForCampaign(campaign1Oid, 9, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 1, 2, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 2, 1, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, NEW_CASE_ID, 1, result);
+        checkWorkItemsTotal(9, result);
     }
 
     @Test
@@ -254,7 +254,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .beginAssigneeRef().oid("rev1").type(UserType.COMPLEX_TYPE).<AccessCertificationWorkItemType>end()
                 .beginAssigneeRef().oid("rev2").type(UserType.COMPLEX_TYPE).end();
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, NEW_CASE_ID, F_WORK_ITEM).add(workItem)
                 .asItemDeltas();
 
@@ -262,57 +262,57 @@ public class CertificationTest extends BaseSQLRepoTest {
         executeAndCheckModification(modifications, result, 0);
 
         // THEN
-		checkCasesForCampaign(campaign1Oid, 8, result);
-		checkCasesTotal(8, result);
-		checkWorkItemsForCampaign(campaign1Oid, 10, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, NEW_CASE_ID,2, result);
-		checkWorkItemsTotal(10, result);
+        checkCasesForCampaign(campaign1Oid, 8, result);
+        checkCasesTotal(8, result);
+        checkWorkItemsForCampaign(campaign1Oid, 10, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 1, 2, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 2, 1, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, NEW_CASE_ID, 2, result);
+        checkWorkItemsTotal(10, result);
     }
 
     @Test
     public void test270ModifyWorkItem() throws Exception {
         OperationResult result = new OperationResult("test270ModifyWorkItem");
 
-		PrismObject<AccessCertificationCampaignType> campaign = getFullCampaign(campaign1Oid, result);
-		AccessCertificationCaseType case100 = campaign.asObjectable().getCase().stream()
-				.filter(c -> c.getId() == NEW_CASE_ID).findFirst().orElseThrow(() -> new AssertionError("No case 100"));
-		assertEquals("Wrong # of work items in case 100", 2, case100.getWorkItem().size());
-		AccessCertificationWorkItemType workItem = case100.getWorkItem().stream().filter(wi -> wi.getOriginalAssigneeRef() != null).findFirst().orElse(null);
-		assertNotNull("No new work item", workItem);
+        PrismObject<AccessCertificationCampaignType> campaign = getFullCampaign(campaign1Oid, result);
+        AccessCertificationCaseType case100 = campaign.asObjectable().getCase().stream()
+                .filter(c -> c.getId() == NEW_CASE_ID).findFirst().orElseThrow(() -> new AssertionError("No case 100"));
+        assertEquals("Wrong # of work items in case 100", 2, case100.getWorkItem().size());
+        AccessCertificationWorkItemType workItem = case100.getWorkItem().stream().filter(wi -> wi.getOriginalAssigneeRef() != null).findFirst().orElse(null);
+        assertNotNull("No new work item", workItem);
 
-		XMLGregorianCalendar closedTimestamp = XmlTypeConverter.createXMLGregorianCalendar(new Date());
-		List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        XMLGregorianCalendar closedTimestamp = XmlTypeConverter.createXMLGregorianCalendar(new Date());
+        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, NEW_CASE_ID, F_WORK_ITEM, workItem.getId(), AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP)
-						.replace(closedTimestamp)
+                .replace(closedTimestamp)
                 .asItemDeltas();
 
         // WHEN
         executeAndCheckModification(modifications, result, 0);
 
         // THEN
-		checkCasesForCampaign(campaign1Oid, 8, result);
-		checkCasesTotal(8, result);
-		checkWorkItemsForCampaign(campaign1Oid, 10, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, NEW_CASE_ID,2, result);
-		checkWorkItemsTotal(10, result);
+        checkCasesForCampaign(campaign1Oid, 8, result);
+        checkCasesTotal(8, result);
+        checkWorkItemsForCampaign(campaign1Oid, 10, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 1, 2, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 2, 1, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, NEW_CASE_ID, 2, result);
+        checkWorkItemsTotal(10, result);
     }
 
     @Test
     public void test280DeleteWorkItem() throws Exception {
         OperationResult result = new OperationResult("test280DeleteWorkItem");
 
-		PrismObject<AccessCertificationCampaignType> campaign = getFullCampaign(campaign1Oid, result);
-		AccessCertificationCaseType case100 = campaign.asObjectable().getCase().stream()
-				.filter(c -> c.getId() == NEW_CASE_ID).findFirst().orElseThrow(() -> new AssertionError("No case 100"));
-		assertEquals("Wrong # of work items in case 100", 2, case100.getWorkItem().size());
-		AccessCertificationWorkItemType workItem = case100.getWorkItem().stream().filter(wi -> wi.getOriginalAssigneeRef() != null).findFirst().orElse(null);
-		assertNotNull("No new work item", workItem);
+        PrismObject<AccessCertificationCampaignType> campaign = getFullCampaign(campaign1Oid, result);
+        AccessCertificationCaseType case100 = campaign.asObjectable().getCase().stream()
+                .filter(c -> c.getId() == NEW_CASE_ID).findFirst().orElseThrow(() -> new AssertionError("No case 100"));
+        assertEquals("Wrong # of work items in case 100", 2, case100.getWorkItem().size());
+        AccessCertificationWorkItemType workItem = case100.getWorkItem().stream().filter(wi -> wi.getOriginalAssigneeRef() != null).findFirst().orElse(null);
+        assertNotNull("No new work item", workItem);
 
-		List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, NEW_CASE_ID, F_WORK_ITEM).delete(workItem.clone())
                 .asItemDeltas();
 
@@ -320,13 +320,13 @@ public class CertificationTest extends BaseSQLRepoTest {
         executeAndCheckModification(modifications, result, 0);
 
         // THEN
-		checkCasesForCampaign(campaign1Oid, 8, result);
-		checkCasesTotal(8, result);
-		checkWorkItemsForCampaign(campaign1Oid, 9, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, NEW_CASE_ID,1, result);
-		checkWorkItemsTotal(9, result);
+        checkCasesForCampaign(campaign1Oid, 8, result);
+        checkCasesTotal(8, result);
+        checkWorkItemsForCampaign(campaign1Oid, 9, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 1, 2, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 2, 1, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, NEW_CASE_ID, 1, result);
+        checkWorkItemsTotal(9, result);
     }
 
     @Test
@@ -340,32 +340,32 @@ public class CertificationTest extends BaseSQLRepoTest {
 
         // explicit ID is dangerous
         AccessCertificationCaseType case110 = new AccessCertificationCaseType(prismContext)
-				.id(SECOND_NEW_CASE_ID)
-				.objectRef(createObjectRef("x100123", ObjectTypes.USER))
-				.targetRef(createObjectRef("x100456", ObjectTypes.ROLE))
-				.stageNumber(1)
-				.beginWorkItem()
-					.assigneeRef(createObjectRef("x100789", ObjectTypes.USER))
-				.end();
+                .id(SECOND_NEW_CASE_ID)
+                .objectRef(createObjectRef("x100123", ObjectTypes.USER))
+                .targetRef(createObjectRef("x100456", ObjectTypes.ROLE))
+                .stageNumber(1)
+                .beginWorkItem()
+                .assigneeRef(createObjectRef("x100789", ObjectTypes.USER))
+                .end();
 
         AccessCertificationCaseType case100 = new AccessCertificationCaseType();
         case100.setId(NEW_CASE_ID);
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE).add(caseNoId, case110).delete(case100)
                 .item(F_CASE, 3, AccessCertificationCaseType.F_STAGE_NUMBER).replace(400)
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
-		checkCasesForCampaign(campaign1Oid, 9, result);
-		checkCasesTotal(9, result);
-		checkWorkItemsForCampaign(campaign1Oid, 9, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, SECOND_NEW_CASE_ID,1, result);
-		checkWorkItemsTotal(9, result);
+        checkCasesForCampaign(campaign1Oid, 9, result);
+        checkCasesTotal(9, result);
+        checkWorkItemsForCampaign(campaign1Oid, 9, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 1, 2, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 2, 1, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, SECOND_NEW_CASE_ID, 1, result);
+        checkWorkItemsTotal(9, result);
 
-	}
+    }
 
     @Test
     public void test320AddDeleteModifyResponse() throws Exception {
@@ -375,28 +375,28 @@ public class CertificationTest extends BaseSQLRepoTest {
         wiNoId.assigneeRef(createObjectRef("888", ObjectTypes.USER));
         wiNoId.setStageNumber(1);
 
-		AccessCertificationWorkItemType wi200 = new AccessCertificationWorkItemType(prismContext);
+        AccessCertificationWorkItemType wi200 = new AccessCertificationWorkItemType(prismContext);
         wi200.setId(200L);         // this is dangerous
         wi200.setStageNumber(1);
         wi200.assigneeRef(createObjectRef("200888", ObjectTypes.USER));
 
-		AccessCertificationWorkItemType wi1 = new AccessCertificationWorkItemType();
+        AccessCertificationWorkItemType wi1 = new AccessCertificationWorkItemType();
         wi1.setId(1L);
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, 6, F_WORK_ITEM).add(wiNoId, wi200)
                 .item(F_CASE, 6, F_WORK_ITEM).delete(wi1)
                 .item(F_CASE, 6, F_WORK_ITEM, 2, F_OUTPUT, F_OUTCOME).replace(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT)
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
-		checkCasesForCampaign(campaign1Oid, 9, result);
-		checkCasesTotal(9, result);
-		checkWorkItemsForCampaign(campaign1Oid, 10, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, SECOND_NEW_CASE_ID,1, result);
-		checkWorkItemsTotal(10, result);
+        checkCasesForCampaign(campaign1Oid, 9, result);
+        checkCasesTotal(9, result);
+        checkWorkItemsForCampaign(campaign1Oid, 10, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 1, 2, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 2, 1, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, SECOND_NEW_CASE_ID, 1, result);
+        checkWorkItemsTotal(10, result);
     }
 
     @Test
@@ -408,18 +408,18 @@ public class CertificationTest extends BaseSQLRepoTest {
         wi200.setStageNumber(44);
         wi200.assigneeRef(createObjectRef("999999", ObjectTypes.USER));
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, 6, F_WORK_ITEM).replace(wi200)
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
-		checkCasesForCampaign(campaign1Oid, 9, result);
-		checkCasesTotal(9, result);
-		checkWorkItemsForCampaign(campaign1Oid, 8, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, SECOND_NEW_CASE_ID,1, result);
-		checkWorkItemsTotal(8, result);
+        checkCasesForCampaign(campaign1Oid, 9, result);
+        checkCasesTotal(9, result);
+        checkWorkItemsForCampaign(campaign1Oid, 8, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 1, 2, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 2, 1, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, SECOND_NEW_CASE_ID, 1, result);
+        checkWorkItemsTotal(8, result);
     }
 
     @Test
@@ -431,23 +431,23 @@ public class CertificationTest extends BaseSQLRepoTest {
         wi250.setStageNumber(440);
         wi250.assigneeRef(createObjectRef("250-999999", ObjectTypes.USER));
 
-		AccessCertificationWorkItemType wi251 = new AccessCertificationWorkItemType(prismContext);
+        AccessCertificationWorkItemType wi251 = new AccessCertificationWorkItemType(prismContext);
         wi251.setId(251L);
         wi251.setStageNumber(1);
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE, 6, F_WORK_ITEM).replace(wi250, wi251)
                 .asItemDeltas();
 
         // TODO counts
         executeAndCheckModification(modifications, result, 0);
-		checkCasesForCampaign(campaign1Oid, 9, result);
-		checkCasesTotal(9, result);
-		checkWorkItemsForCampaign(campaign1Oid, 9, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, SECOND_NEW_CASE_ID,1, result);
-		checkWorkItemsTotal(9, result);
+        checkCasesForCampaign(campaign1Oid, 9, result);
+        checkCasesTotal(9, result);
+        checkWorkItemsForCampaign(campaign1Oid, 9, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 1, 2, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 2, 1, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, SECOND_NEW_CASE_ID, 1, result);
+        checkWorkItemsTotal(9, result);
     }
 
     @Test
@@ -455,34 +455,34 @@ public class CertificationTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test350ReplaceCase");
 
         // explicit ID is dangerous
-		AccessCertificationWorkItemType wi777 = new AccessCertificationWorkItemType(prismContext);
+        AccessCertificationWorkItemType wi777 = new AccessCertificationWorkItemType(prismContext);
         wi777.setId(777L);
         wi777.setStageNumber(888);
         wi777.assigneeRef(createObjectRef("999", ObjectTypes.USER));
 
-		AccessCertificationWorkItemType wiNoId = new AccessCertificationWorkItemType(prismContext);
+        AccessCertificationWorkItemType wiNoId = new AccessCertificationWorkItemType(prismContext);
         wiNoId.setStageNumber(889);
         wiNoId.assigneeRef(createObjectRef("9999", ObjectTypes.USER));
 
         AccessCertificationCaseType caseNoId = new AccessCertificationCaseType(prismContext)
-        		.objectRef(createObjectRef("aaa", ObjectTypes.USER))
-        		.targetRef(createObjectRef("bbb", ObjectTypes.ROLE))
-				.beginWorkItem()
-						.assigneeRef(createObjectRef("ccc", ObjectTypes.USER))
-				.<AccessCertificationCaseType>end()
-				.workItem(wi777)
-				.workItem(wiNoId)
-				.stageNumber(1);
+                .objectRef(createObjectRef("aaa", ObjectTypes.USER))
+                .targetRef(createObjectRef("bbb", ObjectTypes.ROLE))
+                .beginWorkItem()
+                .assigneeRef(createObjectRef("ccc", ObjectTypes.USER))
+                .<AccessCertificationCaseType>end()
+                .workItem(wi777)
+                .workItem(wiNoId)
+                .stageNumber(1);
 
-        List<ItemDelta<?,?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+        List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
                 .item(F_CASE).replace(caseNoId)
                 .asItemDeltas();
 
         executeAndCheckModification(modifications, result, 0);
-		checkCasesForCampaign(campaign1Oid, 1, result);
-		checkCasesTotal(1, result);
-		checkWorkItemsForCampaign(campaign1Oid, 3, result);
-		checkWorkItemsTotal(3, result);
+        checkCasesForCampaign(campaign1Oid, 1, result);
+        checkCasesTotal(1, result);
+        checkWorkItemsForCampaign(campaign1Oid, 3, result);
+        checkWorkItemsTotal(3, result);
     }
 
     @Test
@@ -532,10 +532,10 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .item(AccessCertificationCaseType.F_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                 .and().item(T_PARENT, F_STATE).eq(IN_REVIEW_STAGE)
                 .and().exists(F_WORK_ITEM).block()
-					.item(F_CLOSE_TIMESTAMP).isNull()
-                    .and().block()
-                        .item(F_OUTPUT, F_OUTCOME).isNull()
-                    .endBlock()
+                .item(F_CLOSE_TIMESTAMP).isNull()
+                .and().block()
+                .item(F_OUTPUT, F_OUTCOME).isNull()
+                .endBlock()
                 .endBlock()
                 .build();
 
@@ -576,8 +576,8 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .ownerId(oid)
                 .build();
         List<AccessCertificationCaseType> cases = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
-		assertCasesFound(expected, cases, " for " + oid);
-		for (AccessCertificationCaseType aCase : cases) {
+        assertCasesFound(expected, cases, " for " + oid);
+        for (AccessCertificationCaseType aCase : cases) {
             PrismObject<AccessCertificationCampaignType> campaign = getOwningCampaignChecked(aCase);
             AssertJUnit.assertEquals("wrong parent OID", oid, campaign.getOid());
         }
@@ -586,71 +586,71 @@ public class CertificationTest extends BaseSQLRepoTest {
 
         int count = repositoryService.countContainers(AccessCertificationCaseType.class, query, null, result);
         if (expected != null) {
-			assertEquals("Wrong # of certification cases", expected.intValue(), count);
-		}
+            assertEquals("Wrong # of certification cases", expected.intValue(), count);
+        }
     }
 
     private void checkWorkItemsForCampaign(String oid, int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
         ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
-				.exists(T_PARENT)
-				.block()
-					.ownerId(oid)
-				.endBlock()
+                .exists(T_PARENT)
+                .block()
+                .ownerId(oid)
+                .endBlock()
                 .build();
         List<AccessCertificationWorkItemType> workItems = repositoryService.searchContainers(AccessCertificationWorkItemType.class, query, null, result);
-		assertWorkItemsCount(expected, workItems, " for " + oid);
+        assertWorkItemsCount(expected, workItems, " for " + oid);
 
-		int count = repositoryService.countContainers(AccessCertificationWorkItemType.class, query, null, result);
-		assertEquals("Wrong # of certification work items", expected, count);
+        int count = repositoryService.countContainers(AccessCertificationWorkItemType.class, query, null, result);
+        assertEquals("Wrong # of certification work items", expected, count);
     }
 
     private void checkWorkItemsForCampaignAndCase(String oid, long caseId, int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
         ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
-				.exists(T_PARENT)
-				.block()
-					.ownerId(oid)
-					.and().id(caseId)
-				.endBlock()
+                .exists(T_PARENT)
+                .block()
+                .ownerId(oid)
+                .and().id(caseId)
+                .endBlock()
                 .build();
         List<AccessCertificationWorkItemType> workItems = repositoryService.searchContainers(AccessCertificationWorkItemType.class, query, null, result);
-		assertWorkItemsCount(expected, workItems, " for " + oid + ":" + caseId);
+        assertWorkItemsCount(expected, workItems, " for " + oid + ":" + caseId);
 
-		int count = repositoryService.countContainers(AccessCertificationWorkItemType.class, query, null, result);
-		assertEquals("Wrong # of certification work items", expected, count);
-	}
+        int count = repositoryService.countContainers(AccessCertificationWorkItemType.class, query, null, result);
+        assertEquals("Wrong # of certification work items", expected, count);
+    }
 
     private void checkCasesTotal(int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
         ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
                 .build();
         List<AccessCertificationCaseType> cases = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
-		assertCasesFound(expected, cases, "");
+        assertCasesFound(expected, cases, "");
 
-		int count = repositoryService.countContainers(AccessCertificationCaseType.class, null, null, result);		// intentionally query==null
-		assertEquals("Wrong # of certification cases", expected, count);
+        int count = repositoryService.countContainers(AccessCertificationCaseType.class, null, null, result);        // intentionally query==null
+        assertEquals("Wrong # of certification cases", expected, count);
     }
 
-	private void assertCasesFound(Integer expected, List<AccessCertificationCaseType> cases, String desc) {
-		System.out.println("Cases found" + desc + ": " + cases.size());
-		if (expected != null) {
-			assertEquals("Wrong # of cases" + desc, expected.intValue(), cases.size());
-		}
-	}
+    private void assertCasesFound(Integer expected, List<AccessCertificationCaseType> cases, String desc) {
+        System.out.println("Cases found" + desc + ": " + cases.size());
+        if (expected != null) {
+            assertEquals("Wrong # of cases" + desc, expected.intValue(), cases.size());
+        }
+    }
 
-	private void checkWorkItemsTotal(int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private void checkWorkItemsTotal(int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
         List<AccessCertificationWorkItemType> workItems = repositoryService.searchContainers(AccessCertificationWorkItemType.class, null, null, result);
-		assertWorkItemsCount(expected, workItems, "");
-		int count = repositoryService.countContainers(AccessCertificationWorkItemType.class, null, null, result);
-		assertEquals("Wrong # of certification work items", expected, count);
-	}
+        assertWorkItemsCount(expected, workItems, "");
+        int count = repositoryService.countContainers(AccessCertificationWorkItemType.class, null, null, result);
+        assertEquals("Wrong # of certification work items", expected, count);
+    }
 
-	private void assertWorkItemsCount(Integer expected, List<AccessCertificationWorkItemType> workItems, String desc) {
-		System.out.println("Work items found" + desc + ": " + workItems.size());
-		if (expected != null) {
-			assertEquals("Wrong # of work items" + desc, expected.intValue(), workItems.size());
-		}
-	}
+    private void assertWorkItemsCount(Integer expected, List<AccessCertificationWorkItemType> workItems, String desc) {
+        System.out.println("Work items found" + desc + ": " + workItems.size());
+        if (expected != null) {
+            assertEquals("Wrong # of work items" + desc, expected.intValue(), workItems.size());
+        }
+    }
 
-	private PrismObject<AccessCertificationCampaignType> getOwningCampaignChecked(AccessCertificationCaseType aCase) {
+    private PrismObject<AccessCertificationCampaignType> getOwningCampaignChecked(AccessCertificationCaseType aCase) {
         PrismContainer caseContainer = (PrismContainer) aCase.asPrismContainerValue().getParent();
         assertNotNull("campaign is not fetched (case parent is null)", caseContainer);
         PrismContainerValue campaignValue = (PrismContainerValue) caseContainer.getParent();
@@ -668,17 +668,17 @@ public class CertificationTest extends BaseSQLRepoTest {
         AssertJUnit.assertTrue(result.isSuccess());
     }
 
-    protected void executeAndCheckModification(List<ItemDelta<?,?>> modifications, OperationResult result, int versionDelta) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
-		RepoModifyOptions modifyOptions = getModifyOptions();
-		if (RepoModifyOptions.isExecuteIfNoChanges(modifyOptions) && versionDelta == 0) {
-			versionDelta = 1;
-		}
+    protected void executeAndCheckModification(List<ItemDelta<?, ?>> modifications, OperationResult result, int versionDelta) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
+        RepoModifyOptions modifyOptions = getModifyOptions();
+        if (RepoModifyOptions.isExecuteIfNoChanges(modifyOptions) && versionDelta == 0) {
+            versionDelta = 1;
+        }
 
-		PrismObject<AccessCertificationCampaignType> before = getFullCampaign(campaign1Oid, result);
+        PrismObject<AccessCertificationCampaignType> before = getFullCampaign(campaign1Oid, result);
         int expectedVersion = Integer.parseInt(before.getVersion()) + versionDelta;
         List<ItemDelta> savedModifications = (List) CloneUtil.cloneCollectionMembers(modifications);
 
-		repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign1Oid, modifications, modifyOptions, result);
+        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign1Oid, modifications, modifyOptions, result);
 
         checkCampaign(campaign1Oid, result, before, savedModifications, expectedVersion);
     }
@@ -706,13 +706,13 @@ public class CertificationTest extends BaseSQLRepoTest {
         return repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, Collections.singletonList(retrieve), result);
     }
 
-	private void checksCountsStandard(OperationResult result) throws SchemaException, ObjectNotFoundException {
-		checkCasesForCampaign(campaign1Oid, 7, result);
-		checkCasesTotal(7, result);
-		checkWorkItemsForCampaign(campaign1Oid, 10, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 1,2, result);
-		checkWorkItemsForCampaignAndCase(campaign1Oid, 2,1, result);
-		checkWorkItemsTotal(10, result);
-	}
+    private void checksCountsStandard(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        checkCasesForCampaign(campaign1Oid, 7, result);
+        checkCasesTotal(7, result);
+        checkWorkItemsForCampaign(campaign1Oid, 10, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 1, 2, result);
+        checkWorkItemsForCampaignAndCase(campaign1Oid, 2, 1, result);
+        checkWorkItemsTotal(10, result);
+    }
 
 }

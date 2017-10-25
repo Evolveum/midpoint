@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -192,7 +193,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                             delta.getModifications().size(), newObject.toString(), delta.debugDump(3)});
                     ItemDelta id = (ItemDelta) delta.getModifications().iterator().next();
                     if (id.isReplace()) {
-                        System.out.println(id.getValuesToReplace().iterator().next());
+                        LOGGER.debug("{}", id.getValuesToReplace().iterator().next());
                     }
                     LOGGER.error("{}", prismContext.serializeObjectToString(newObject, PrismContext.LANG_XML));
                 }
@@ -546,6 +547,11 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         //get user
         user = repositoryService.getObject(UserType.class, OID, null, result);
         result.computeStatusIfUnknown();
+
+        PrismContainer pc = user.findContainer(new ItemPath(UserType.F_ASSIGNMENT, 1,
+                AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_OBJECT_STATE));
+        AssertJUnit.assertNotNull(pc);
+        AssertJUnit.assertNotNull(pc.getValue().getId());
 
         container = user.findContainer(UserType.F_ASSIGNMENT);
         List<Short> xmlShorts = new ArrayList<>();

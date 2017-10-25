@@ -44,6 +44,7 @@
             <class name="com.evolveum.midpoint.testing.story.TestPlentyOfAssignments"/>
             <class name="com.evolveum.midpoint.testing.story.notorious.TestNotoriousRole"/>
             <class name="com.evolveum.midpoint.testing.story.notorious.TestNotoriousOrg"/>
+            <class name="com.evolveum.midpoint.testing.story.TestDelivery"/>
         </classes>
     </test>
 </suite>

@@ -15,45 +15,57 @@
   ~ limitations under the License.
   -->
 
-<s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <s:search>
-        <s:type>c:UserType</s:type>
-        <s:query>
-            <q:filter>
-                <q:equal>
-                    <q:path>name</q:path>
-                    <c:expression>
-                        <c:script>
-                            <c:code>
-                                basic.getExtensionPropertyValue(task, "", "userName")
-                            </c:code>
-                        </c:script>
-                    </c:expression>
-                </q:equal>
-            </q:filter>
-        </s:query>
-    </s:search>
-    <s:action>
-        <s:type>execute-script</s:type>
-        <s:parameter>
-            <s:name>script</s:name>
-            <c:value xsi:type="c:ScriptExpressionEvaluatorType">
-                <c:code>
-                    import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-					import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder
+<s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+                 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <s:pipeline>
+        <s:search>
+            <s:type>c:UserType</s:type>
+            <s:query>
+                <q:filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <c:expression>
+                            <c:path>$userName</c:path>
+                        </c:expression>
+                    </q:equal>
+                </q:filter>
+            </s:query>
+        </s:search>
+        <s:action>
+            <s:type>execute-script</s:type>
+            <s:parameter>
+                <s:name>script</s:name>
+                <c:value xsi:type="c:ScriptExpressionEvaluatorType">
+                    <c:code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                        import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder
 
-                    log.info('Modifying user {}', input)
-                    def deltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+                        log.info('Modifying user {}', input)
+                        def deltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
                         .item(UserType.F_DESCRIPTION)
-                        .replace(basic.stringify(task.name))
+                        .replace(userDescription)
                         .asObjectDeltas(input.oid)
-                    log.info('Change:\n{}', deltas.iterator().next().debugDump())
-                    midpoint.executeChanges(deltas, null)
-                </c:code>
-            </c:value>
-        </s:parameter>
-    </s:action>
-</s:pipeline>
+                        log.info('Change:\n{}', deltas.iterator().next().debugDump())
+                        midpoint.executeChanges(deltas, null)
+                    </c:code>
+                </c:value>
+            </s:parameter>
+        </s:action>
+    </s:pipeline>
+    <s:variables>
+        <s:variable>
+            <s:name>userName</s:name>
+            <s:expression>
+                <c:path>$task/extension/userName</c:path>
+            </s:expression>
+        </s:variable>
+        <s:variable>
+            <s:name>userDescription</s:name>
+            <s:expression>
+                <c:path>$task/extension/userDescription</c:path>
+            </s:expression>
+        </s:variable>
+    </s:variables>
+</s:executeScript>

@@ -28,9 +28,12 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -64,7 +67,7 @@ public class AccCertExpressionHelper {
 
         try {
             return evaluateExpression(resultClass, expressionType, expressionVariables, shortDesc, task, result);
-        } catch (ObjectNotFoundException|SchemaException|ExpressionEvaluationException e) {
+        } catch (ObjectNotFoundException|SchemaException|ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
             result.recordFatalError("Couldn't evaluate " + shortDesc, e);
             throw new SystemException(e);
@@ -72,7 +75,7 @@ public class AccCertExpressionHelper {
     }
 
     private <T> List<T> evaluateExpression(Class<T> resultClass, ExpressionType expressionType, ExpressionVariables expressionVariables,
-            String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+            String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName xsdType = XsdTypeMapper.toXsdType(resultClass);
 
@@ -96,7 +99,7 @@ public class AccCertExpressionHelper {
 
         try {
             return evaluateRefExpression(expressionType, expressionVariables, shortDesc, task, result);
-        } catch (ObjectNotFoundException|SchemaException|ExpressionEvaluationException e) {
+        } catch (ObjectNotFoundException|SchemaException|ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
             result.recordFatalError("Couldn't evaluate " + shortDesc, e);
             throw new SystemException(e);
@@ -105,7 +108,7 @@ public class AccCertExpressionHelper {
 
     private List<ObjectReferenceType> evaluateRefExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
 			String shortDesc, Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismReferenceDefinition resultDef = new PrismReferenceDefinitionImpl(resultName, ObjectReferenceType.COMPLEX_TYPE, prismContext);
@@ -130,7 +133,7 @@ public class AccCertExpressionHelper {
 
         try {
             return evaluateBooleanExpression(expressionType, expressionVariables, shortDesc, task, result);
-        } catch (ObjectNotFoundException|SchemaException|ExpressionEvaluationException e) {
+        } catch (ObjectNotFoundException|SchemaException|ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
             result.recordFatalError("Couldn't evaluate " + shortDesc, e);
             throw new SystemException(e);
@@ -138,7 +141,7 @@ public class AccCertExpressionHelper {
     }
 
     public boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, String shortDesc,
-			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         List<Boolean> exprResult = evaluateExpression(Boolean.class, expressionType, expressionVariables, shortDesc, task, result);
         if (exprResult.size() == 0) {
             return false;

@@ -61,9 +61,11 @@
         <mockito.version>1.10.8</mockito.version>
         <quartz.version>2.3.0.e2</quartz.version>
         <selenium.version>1.0.1</selenium.version>
-        <slf4j.version>1.7.12</slf4j.version>
-        <spring.version>4.2.5.RELEASE</spring.version>
-        <spring.security.version>4.1.0.RELEASE</spring.security.version>
+        <slf4j.version>1.7.25</slf4j.version>
+        <logback.version>1.1.11</logback.version>
+        <spring.boot.version>1.5.7.RELEASE</spring.boot.version>
+        <spring.version>4.3.11.RELEASE</spring.version>
+        <spring.security.version>4.2.3.RELEASE</spring.security.version>
         <cas.client.version>3.4.1</cas.client.version>
         <testng.version>6.8.8</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
@@ -87,9 +89,26 @@
         <jackson.version>2.8.9</jackson.version>
         <snakeyaml.version>1.15</snakeyaml.version>
         <surefire.version>2.20</surefire.version>
+        <reflections.version>0.9.11</reflections.version>
+        <guava.version>20.0</guava.version>
     </properties>
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <!-- Import dependency management from Spring Boot -->
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring.boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.reflections</groupId>
+                <artifactId>reflections</artifactId>
+                <version>${reflections.version}</version>
+            </dependency>
+
             <!-- WICKET -->
             <dependency>
                 <groupId>org.apache.wicket</groupId>
@@ -139,7 +158,7 @@
                 <exclusions>
                     <exclusion>
                         <groupId>org.springframework</groupId>
-                        <artifactId>spring</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -245,17 +264,17 @@
             <dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>jul-to-slf4j</artifactId>
-				<version>1.7.2</version>
+				<version>${slf4j.version}</version>
 			</dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
-                <version>1.1.2</version>
+                <version>${logback.version}</version>
             </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-core</artifactId>
-                <version>1.1.2</version>
+                <version>${logback.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.sleepycat</groupId>
@@ -603,8 +622,17 @@
                         <groupId>org.bouncycastle</groupId>
                         <artifactId>bcprov-jdk15on</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
                 </exclusions>
 	        </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
 	        <dependency>
 	            <groupId>org.apache.wss4j</groupId>
 	            <artifactId>wss4j-ws-security-dom</artifactId>
@@ -662,12 +690,12 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-csv</artifactId>
-                <version>2.1-SNAPSHOT</version>
+                <version>2.1</version>
             </dependency>
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
-                <version>1.5-SNAPSHOT</version>
+                <version>1.5</version>
                 <exclusions>
 					<exclusion> <!-- Version in dependency of org.apache.servicemix.bundles:org.apache.servicemix.bundles.dom4j conflicts with xalan. Can be removed when connector version is bumped beyond 1.4.2.17 -->
                         <groupId>xml-apis</groupId>
@@ -1090,11 +1118,6 @@
                     </exclusion>
                 </exclusions>
 			</dependency>
-			<dependency>
-	        	<groupId>org.webjars</groupId>
-	    		<artifactId>webjars-locator</artifactId>
-	    		<version>0.15</version>
-	        </dependency>
 	        <dependency>
 	            <groupId>ro.isdc.wro4j</groupId>
 	            <artifactId>wro4j-core</artifactId>
@@ -1329,6 +1352,7 @@
 						</manifestEntries>
 					</archive>
 					<attachClasses>true</attachClasses>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
 				</configuration>
 			</plugin>
 			<!--plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-checkstyle-plugin</artifactId> 
@@ -1506,6 +1530,7 @@
 								<!-- There are dependencies in this master POM. So they are projected 
 									everywhere, used or unused. -->
 								<ignoredUnusedDeclaredDependency>org.springframework</ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>org.springframework.boot</ignoredUnusedDeclaredDependency>
 
 								<!-- Common "drill" for all modules. -->
 								<ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng</ignoredUnusedDeclaredDependency>

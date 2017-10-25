@@ -32,9 +32,12 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -60,7 +63,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 
 	@Override
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
-			PolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			PolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		boolean shouldExist = QNameUtil.match(constraintElement.getName(), PolicyConstraintsType.F_HAS_ASSIGNMENT);
 		HasAssignmentPolicyConstraintType constraint = constraintElement.getValue();
@@ -112,7 +115,8 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 					if (shouldExist) {
 						// TODO more specific trigger, containing information on matching assignment; see ExclusionConstraintEvaluator
 						return new EvaluatedHasAssignmentTrigger(PolicyConstraintKindType.HAS_ASSIGNMENT, constraint,
-								createPositiveMessage(constraint, ctx, target.getTarget(), result));
+								createPositiveMessage(constraint, ctx, target.getTarget(), result),
+								createPositiveShortMessage(constraint, ctx, target.getTarget(), result));
 					}
 				}
 			}
@@ -122,35 +126,59 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 
 	private <F extends FocusType> LocalizableMessage createPositiveMessage(HasAssignmentPolicyConstraintType constraint,
 			PolicyRuleEvaluationContext<F> ctx, PrismObject<?> target, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_POSITIVE)
-				.arg(evaluatorHelper.createObjectSpecification(target))
+				.arg(ObjectTypeUtil.createTechnicalObjectSpecification(target))
 				.arg(evaluatorHelper.createBeforeAfterMessage(ctx))
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
 	}
 
+	private <F extends FocusType> LocalizableMessage createPositiveShortMessage(HasAssignmentPolicyConstraintType constraint,
+			PolicyRuleEvaluationContext<F> ctx, PrismObject<?> target, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_POSITIVE)
+				.arg(ObjectTypeUtil.createObjectSpecification(target))
+				.arg(evaluatorHelper.createBeforeAfterMessage(ctx))
+				.build();
+		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
+	}
+
 	private <F extends FocusType> LocalizableMessage createNegativeMessage(HasAssignmentPolicyConstraintType constraint,
 			PolicyRuleEvaluationContext<F> ctx, QName targetType, String targetOid, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_NEGATIVE)
-				.arg(evaluatorHelper.createObjectTypeSpecification(targetType))
+				.arg(ObjectTypeUtil.createObjectTypeSpecification(targetType))
 				.arg(targetOid)
 				.arg(evaluatorHelper.createBeforeAfterMessage(ctx))
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
 	}
 
+	private <F extends FocusType> LocalizableMessage createNegativeShortMessage(HasAssignmentPolicyConstraintType constraint,
+			PolicyRuleEvaluationContext<F> ctx, QName targetType, String targetOid, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
+				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_NEGATIVE)
+				.arg(ObjectTypeUtil.createObjectTypeSpecification(targetType))
+				.arg(targetOid)
+				.arg(evaluatorHelper.createBeforeAfterMessage(ctx))
+				.build();
+		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
+	}
+
 	private EvaluatedPolicyRuleTrigger createTriggerIfShouldNotExist(boolean shouldExist,
 			HasAssignmentPolicyConstraintType constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (shouldExist) {
 			return null;
 		} else {
 			return new EvaluatedHasAssignmentTrigger(PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint,
-					createNegativeMessage(constraint, ctx, constraint.getTargetRef().getType(), constraint.getTargetRef().getOid(), result));
+					createNegativeMessage(constraint, ctx, constraint.getTargetRef().getType(), constraint.getTargetRef().getOid(), result),
+					createNegativeShortMessage(constraint, ctx, constraint.getTargetRef().getType(), constraint.getTargetRef().getOid(), result));
 			// targetName seems to be always null, even if specified in the policy rule
 		}
 	}

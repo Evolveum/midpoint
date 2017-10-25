@@ -8,6 +8,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import org.exolab.castor.dsml.XML;
 
 /**
  * Created by honchar.
@@ -38,32 +40,33 @@ public class AssignmentsUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentsUtil.class);
 
-    public static IModel<String> createActivationTitleModel(IModel<AssignmentEditorDto> model, String defaultTitle, BasePanel basePanel) {
+    public static IModel<String> createActivationTitleModel(ActivationType activation, String defaultTitle, BasePanel basePanel) {
+        if (activation == null) {
+            return Model.of("");
+        }
+        return createActivationTitleModel(activation.getAdministrativeStatus(), activation.getValidFrom(), activation.getValidTo(), basePanel);
+    }
+
+    public static IModel<String> createActivationTitleModel(ActivationStatusType administrativeStatus, XMLGregorianCalendar validFrom, XMLGregorianCalendar validTo,
+                                                            BasePanel basePanel) {
         return new AbstractReadOnlyModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
-                AssignmentEditorDto dto = model.getObject();
-                ActivationType activation = dto.getActivation();
-                if (activation == null) {
-                    return defaultTitle;
-                }
-
-                ActivationStatusType status = activation.getAdministrativeStatus();
-                String strEnabled = basePanel.createStringResource(status, "lower", "ActivationStatusType.null")
+                String strEnabled = basePanel.createStringResource(administrativeStatus, "lower", "ActivationStatusType.null")
                         .getString();
 
-                if (activation.getValidFrom() != null && activation.getValidTo() != null) {
+                if (validFrom != null && validTo != null) {
                     return basePanel.getString("AssignmentEditorPanel.enabledFromTo", strEnabled,
-                            MiscUtil.asDate(activation.getValidFrom()),
-                            MiscUtil.asDate(activation.getValidTo()));
-                } else if (activation.getValidFrom() != null) {
+                            MiscUtil.asDate(validFrom),
+                            MiscUtil.asDate(validTo));
+                } else if (validFrom != null) {
                     return basePanel.getString("AssignmentEditorPanel.enabledFrom", strEnabled,
-                            MiscUtil.asDate(activation.getValidFrom()));
-                } else if (activation.getValidTo() != null) {
+                            MiscUtil.asDate(validFrom));
+                } else if (validTo != null) {
                     return basePanel.getString("AssignmentEditorPanel.enabledTo", strEnabled,
-                            MiscUtil.asDate(activation.getValidTo()));
+                            MiscUtil.asDate(validTo));
                 }
 
                 return strEnabled;
@@ -75,10 +78,10 @@ public class AssignmentsUtil {
     	return createActivationTitleModelExperimental(model.getObject(), s -> s.value(), basePanel);
     }
 
-    public static IModel<String> createActivationTitleModelExperimental(AssignmentType model, Function<ActivationStatusType, String> transformStatusLambda, BasePanel basePanel) {
+    public static IModel<String> createActivationTitleModelExperimental(AssignmentType assignmentType, Function<ActivationStatusType, String> transformStatusLambda, BasePanel basePanel) {
 
 //    	AssignmentDto assignmentDto = model.getObject();
-    	ActivationType activation = model.getActivation();
+    	ActivationType activation = assignmentType.getActivation();
     	if (activation == null) {
     		return basePanel.createStringResource("lower.ActivationStatusType.null");
     	}
@@ -159,30 +162,8 @@ public class AssignmentsUtil {
         };
     }
 
-    //    public static IModel<String> createAssignmentStatusClassModel(final IModel<AssignmentEditorDto> model) {
-//        return new AbstractReadOnlyModel<String>() {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public String getObject() {
-//                AssignmentEditorDto dto = model.getObject();
-//                return dto.getStatus().name().toLowerCase();
-//            }
-//        };
-//    }
-
-    public static IModel<String> createAssignmentStatusClassModel(final IModel<AssignmentType> model) {
-        return new AbstractReadOnlyModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                //TODO fix
-//                AssignmentType dto = model.getObject();
-//                return dto.getStatus().name().toLowerCase();
-                return "";
-            }
-        };
+    public static String createAssignmentStatusClassModel(final ContainerValueWrapper<AssignmentType> assignment) {
+        return assignment.getStatus().name().toLowerCase();
     }
 
     public static IModel<String> createAssignmentStatusClassModel(final UserDtoStatus model) {

@@ -42,9 +42,12 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -157,7 +160,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 
     @Override
     public boolean isEnabledByDefault() {
-        return false;       // overriden in selected aspects
+        return false;       // overridden in selected aspects
     }
 
     @Override
@@ -171,7 +174,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 
 	private <O extends ObjectType, F extends ObjectType> List<ObjectReferenceType> resolveReferenceFromFilter(Class<O> clazz, SearchFilterType filter, String sourceDescription,
 			LensContext<F> lensContext, Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionEnvironment<F> env = new ExpressionEnvironment<>();
 		env.setLensContext(lensContext);
 		env.setCurrentResult(result);

@@ -170,6 +170,15 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		return (PrismContainer<?>) getValue().findItem(getExtensionContainerElementName(), PrismContainer.class);
 	}
 
+	public PrismContainerValue<?> getExtensionContainerValue() {
+		PrismContainer<?> extension = getExtension();
+		if (extension == null || extension.getValues().isEmpty()) {
+			return null;
+		} else {
+			return extension.getValue();
+		}
+	}
+
 	public <I extends Item> I findExtensionItem(QName elementName) {
 		PrismContainer<?> extension = getExtension();
 		if (extension == null) {
@@ -438,5 +447,9 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		return objects.stream()
 				.map(PrismObject::asObjectable)
 				.collect(Collectors.toList());
+	}
+
+	public static PrismObject<?> asPrismObject(Objectable o) {
+		return o != null ? o.asPrismObject() : null;
 	}
 }

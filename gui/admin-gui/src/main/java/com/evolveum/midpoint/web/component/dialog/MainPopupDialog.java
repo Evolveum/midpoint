@@ -36,8 +36,12 @@ public class MainPopupDialog extends ModalWindow {
 
     public MainPopupDialog(String id) {
         super(id);
-
-        setCssClassName(ModalWindow.CSS_CLASS_GRAY);
+    }
+    
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	setCssClassName(ModalWindow.CSS_CLASS_GRAY);
         showUnloadConfirmation(false);
         setResizable(false);
         setInitialWidth(350);

@@ -100,8 +100,6 @@ public class PageSelfConsents extends PageBase{
 				Collection<AssignmentType> assignments = assignmentContainer.getRealValues();
 				return assignments.stream()
 						.filter(a -> a.getTargetRef()!= null && QNameUtil.match(a.getTargetRef().getRelation(), SchemaConstants.ORG_CONSENT))
-//TODO set status
-// .map(a -> new AssignmentDto(a, UserDtoStatus.MODIFY))
 						.collect(Collectors.toList());
 			}
 		};

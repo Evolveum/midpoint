@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import com.evolveum.midpoint.model.api.DataModelVisualizer;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.configuration.Configuration;
@@ -134,10 +134,10 @@ public class ModelDiagController implements ModelDiagnosticService {
 	}
 
     @Override
-    public void repositoryTestOrgClosureConsistency(Task task, boolean repairIfNecessary, OperationResult parentResult) throws SchemaException, SecurityViolationException {
+    public void repositoryTestOrgClosureConsistency(Task task, boolean repairIfNecessary, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException {
 		OperationResult result = parentResult.createSubresult(REPOSITORY_TEST_ORG_CLOSURE_CONSISTENCY);
 		try {
-			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);    // only admin can do this
+			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, task, result);    // only admin can do this
 			repositoryService.testOrgClosureConsistency(repairIfNecessary, result);
 		} catch (Throwable t) {
 			result.recordFatalError(t);
@@ -148,7 +148,7 @@ public class ModelDiagController implements ModelDiagnosticService {
     }
 
 	@Override
-	public RepositoryQueryDiagResponse executeRepositoryQuery(RepositoryQueryDiagRequest request, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException {
+	public RepositoryQueryDiagResponse executeRepositoryQuery(RepositoryQueryDiagRequest request, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException {
 		OperationResult result = parentResult.createSubresult(EXECUTE_REPOSITORY_QUERY);
 		try {
 			boolean isAdmin;
@@ -157,7 +157,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 				isAdmin = false;
 			} else {
 				// otherwise admin authorization is required
-				securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
+				securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, task, result);
 				isAdmin = true;
 			}
 			RepositoryQueryDiagResponse response = repositoryService.executeQueryDiagnostics(request, result);
@@ -178,10 +178,10 @@ public class ModelDiagController implements ModelDiagnosticService {
 	public MappingEvaluationResponseType evaluateMapping(MappingEvaluationRequestType request, Task task,
 			OperationResult parentResult)
 			throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
-			ObjectNotFoundException {
+			ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException {
 		OperationResult result = parentResult.createSubresult(EXECUTE_REPOSITORY_QUERY);
 		try {
-			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
+			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, task, result);
 			return mappingDiagEvaluator.evaluateMapping(request, task, result);
 		} catch (Throwable t) {
 			result.recordFatalError(t);
@@ -607,10 +607,10 @@ public class ModelDiagController implements ModelDiagnosticService {
 
 	@Override
 	public LogFileContentType getLogFileContent(Long fromPosition, Long maxSize, Task task, OperationResult parentResult)
-			throws SecurityViolationException, IOException, SchemaException {
+			throws SecurityViolationException, IOException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		OperationResult result = parentResult.createSubresult(GET_LOG_FILE_CONTENT);
 		try {
-			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
+			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, task, result);
 			File logFile = getLogFile();
 			LogFileContentType rv = getLogFileFragment(logFile, fromPosition, maxSize);
 			result.recordSuccess();
@@ -663,10 +663,10 @@ public class ModelDiagController implements ModelDiagnosticService {
 	}
 
 	@Override
-	public long getLogFileSize(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException {
+	public long getLogFileSize(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException {
 		OperationResult result = parentResult.createSubresult(GET_LOG_FILE_SIZE);
 		try {
-			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
+			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, task, result);
 			File logFile = getLogFile();
 			long size = logFile.length();
 			result.recordSuccess();

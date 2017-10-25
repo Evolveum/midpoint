@@ -51,6 +51,7 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 
 	PolicyConstraintsType getPolicyConstraints();
 
+	// returns statically defined actions; consider using getEnabledActions() instead
 	PolicyActionsType getActions();
 
 	AssignmentPath getAssignmentPath();
@@ -73,4 +74,19 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 	String toShortString();
 
 	List<TreeNode<LocalizableMessage>> extractMessages();
+
+	List<TreeNode<LocalizableMessage>> extractShortMessages();
+
+	// BEWARE: enabled actions can be queried only after computeEnabledActions has been called
+	// todo think again about this
+
+	boolean containsEnabledAction();
+
+	boolean containsEnabledAction(Class<? extends PolicyActionType> clazz);
+
+	Collection<PolicyActionType> getEnabledActions();
+
+	<T extends PolicyActionType> List<T> getEnabledActions(Class<T> clazz);
+
+	<T extends PolicyActionType> T getEnabledAction(Class<T> clazz);
 }

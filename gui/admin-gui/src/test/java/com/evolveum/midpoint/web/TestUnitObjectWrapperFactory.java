@@ -62,10 +62,10 @@ public class TestUnitObjectWrapperFactory extends AbstractGuiUnitTest {
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 
 		WrapperTestUtil.assertWrapper(objectWrapper, "user display name", "user description", user, ContainerStatus.MODIFYING);
-		assertEquals("wrong number of containers in "+objectWrapper, 11, objectWrapper.getContainers().size());
+		assertEquals("wrong number of containers in "+objectWrapper, 7, objectWrapper.getContainers().size());
 
-		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
-		WrapperTestUtil.assertWrapper(mainContainerWrapper, "prismContainer.mainPanelDisplayName", (ItemPath)null, user, ContainerStatus.MODIFYING);
+		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(ItemPath.EMPTY_PATH);
+		WrapperTestUtil.assertWrapper(mainContainerWrapper, "prismContainer.mainPanelDisplayName", (ItemPath) null, user, ContainerStatus.MODIFYING);
 		assertEquals("wrong number of containers in "+mainContainerWrapper, 1, mainContainerWrapper.getValues().size());
 		ContainerValueWrapper<UserType> mainContainerValueWrapper = mainContainerWrapper.getValues().iterator().next();
 		WrapperTestUtil.assertPropertyWrapper(mainContainerValueWrapper, UserType.F_NAME, PrismTestUtil.createPolyString("jack"));

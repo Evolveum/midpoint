@@ -28,8 +28,8 @@ import org.jetbrains.annotations.NotNull;
 public class EvaluatedStateTrigger extends EvaluatedPolicyRuleTrigger<StatePolicyConstraintType> {
 
 	public EvaluatedStateTrigger(@NotNull PolicyConstraintKindType kind, @NotNull StatePolicyConstraintType constraint,
-			LocalizableMessage message) {
-		super(kind, constraint, message);
+			LocalizableMessage message, LocalizableMessage shortMessage) {
+		super(kind, constraint, message, shortMessage);
 	}
 
 	@Override

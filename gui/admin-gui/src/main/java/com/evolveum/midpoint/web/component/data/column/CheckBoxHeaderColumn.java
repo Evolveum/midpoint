@@ -124,7 +124,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         }
     }
 
-    public static <T> boolean shouldBeHeaderSelected(DataTable table) {
+    public boolean shouldBeHeaderSelected(DataTable table) {
         boolean selectedAll = true;
 
         BaseSortableDataProvider baseProvider = (BaseSortableDataProvider) table.getDataProvider();
@@ -134,13 +134,18 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         }
 
         for (T object : objects) {
-            if (object instanceof Selectable) {
-                Selectable selectable = (Selectable) object;
-                selectedAll &= selectable.isSelected();
-            }
+            selectedAll &= isTableRowSelected(object);
         }
 
         return selectedAll;
+    }
+
+    protected boolean isTableRowSelected(T object){
+        if (object instanceof Selectable) {
+            Selectable selectable = (Selectable) object;
+            return selectable.isSelected();
+        }
+        return false;
     }
 
     /**
@@ -158,7 +163,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         target.add(header);
     }
 
-    public static CheckBoxPanel findCheckBoxColumnHeader(DataTable table) {
+    public CheckBoxPanel findCheckBoxColumnHeader(DataTable table) {
         WebMarkupContainer topToolbars = table.getTopToolbars();
         ComponentHierarchyIterator iterator = topToolbars.visitChildren(TableHeadersToolbar.class);
         if (!iterator.hasNext()) {

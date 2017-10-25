@@ -16,14 +16,11 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
-import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -31,21 +28,21 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
-import java.util.List;
-import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
+import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
 
 /**
  * @author mederly
@@ -72,42 +69,27 @@ public class ConstraintEvaluatorHelper {
 			var.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null);
 			var.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, null);
 		}
+		var.addVariableDefinition(VAR_RULE_EVALUATION_CONTEXT, rctx);
 		return var;
 	}
 
 	public boolean evaluateBoolean(ExpressionType expressionBean, ExpressionVariables expressionVariables,
 			String contextDescription, Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
-		return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, task, result,
-				DOMUtil.XSD_BOOLEAN, false);
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return LensUtil.evaluateBoolean(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
+				task, result);
 	}
 
 	public String evaluateString(ExpressionType expressionBean, ExpressionVariables expressionVariables,
 			String contextDescription, Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
-		return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, task, result,
-				DOMUtil.XSD_STRING, null);
-	}
-
-	public <T> T evaluateExpressionSingle(ExpressionType expressionBean, ExpressionVariables expressionVariables,
-			String contextDescription, Task task, OperationResult result, QName typeName, T defaultValue)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
-		PrismPropertyDefinition<T> resultDef = new PrismPropertyDefinitionImpl<>(
-				new QName(SchemaConstants.NS_C, "result"), typeName, prismContext);
-		Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
-				expressionFactory.makeExpression(expressionBean, resultDef, contextDescription, task, result);
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, expressionVariables, contextDescription, task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple = ModelExpressionThreadLocalHolder
-				.evaluateExpressionInContext(expression, context, task, result);
-		List<T> results = exprResultTriple.getZeroSet().stream()
-				.map(ppv -> (T) ppv.getRealValue())
-				.collect(Collectors.toList());
-		return getSingleValue(results, defaultValue, contextDescription);
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return LensUtil.evaluateString(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
+				task, result);
 	}
 
 	public <F extends FocusType> LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionVariables var = createExpressionVariables(rctx);
 		LocalizableMessageType rv = new LocalizableMessageType();
 		if (template.getKey() != null) {
@@ -136,34 +118,10 @@ public class ConstraintEvaluatorHelper {
 		return rv;
 	}
 
-	public LocalizableMessage createObjectSpecification(PrismObject<?> object) {
-		if (object != null) {
-			return new LocalizableMessageBuilder()
-					.key(SchemaConstants.TECHNICAL_OBJECT_SPECIFICATION_KEY)
-					.arg(createObjectTypeSpecification(object.asObjectable().getClass().getSimpleName()))
-					.arg(object.asObjectable().getName())
-					.arg(object.getOid())
-					.build();
-		} else {
-			return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!
-		}
-	}
-
-	public LocalizableMessage createObjectTypeSpecification(QName type) {
-		return createObjectTypeSpecification(type != null ? type.getLocalPart() : null);
-	}
-
-	public LocalizableMessage createObjectTypeSpecification(String objectClassName) {
-		return new LocalizableMessageBuilder()
-						.key(SchemaConstants.OBJECT_TYPE_KEY_PREFIX + objectClassName)
-						.fallbackMessage(objectClassName)
-						.build();
-	}
-
 	public <F extends FocusType> LocalizableMessage createLocalizableMessage(
 			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> rctx,
 			LocalizableMessage builtInMessage, OperationResult result) throws ExpressionEvaluationException,
-			ObjectNotFoundException, SchemaException {
+			ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (constraint.getPresentation() != null && constraint.getPresentation().getMessage() != null) {
 			LocalizableMessageType messageType =
 					createLocalizableMessageType(constraint.getPresentation().getMessage(), rctx, result);
@@ -174,6 +132,27 @@ public class ConstraintEvaluatorHelper {
 		} else if (constraint.getName() != null) {
 			return new LocalizableMessageBuilder()
 					.key(SchemaConstants.POLICY_CONSTRAINT_KEY_PREFIX + constraint.getName())
+					.fallbackLocalizableMessage(builtInMessage)
+					.build();
+		} else {
+			return builtInMessage;
+		}
+	}
+
+	public <F extends FocusType> LocalizableMessage createLocalizableShortMessage(
+			AbstractPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> rctx,
+			LocalizableMessage builtInMessage, OperationResult result) throws ExpressionEvaluationException,
+			ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		if (constraint.getPresentation() != null && constraint.getPresentation().getShortMessage() != null) {
+			LocalizableMessageType messageType =
+					createLocalizableMessageType(constraint.getPresentation().getShortMessage(), rctx, result);
+			return LocalizationUtil.parseLocalizableMessageType(messageType,
+					// if user-configured fallback message is present; we ignore the built-in constraint message
+					// TODO consider ignoring it always if custom presentation/message is provided
+					messageType.getFallbackMessage() != null ? null : builtInMessage);
+		} else if (constraint.getName() != null) {
+			return new LocalizableMessageBuilder()
+					.key(SchemaConstants.POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + constraint.getName())
 					.fallbackLocalizableMessage(builtInMessage)
 					.build();
 		} else {
