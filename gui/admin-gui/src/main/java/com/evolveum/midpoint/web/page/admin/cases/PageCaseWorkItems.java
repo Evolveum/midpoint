@@ -304,7 +304,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         columns.add(column);
 
         column = new PropertyColumn<>(
-                createStringResource("PageCaseWorkItems.table.state"), SearchingUtils.CASE_STATE, CaseWorkItemDto.F_STATE);
+                createStringResource("PageCaseWorkItems.table.state"), CaseWorkItemDto.F_STATE);
         columns.add(column);
 
         return columns;

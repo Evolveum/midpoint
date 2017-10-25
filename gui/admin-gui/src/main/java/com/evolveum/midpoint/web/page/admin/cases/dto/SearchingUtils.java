@@ -55,10 +55,10 @@ public class SearchingUtils {
             primaryItemPath = casePath.subPath(CaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
         } else if (CASE_STATE.equals(propertyName)) {
             primaryItemPath = casePath.subPath(CaseType.F_STATE);
-            LOGGER.debug("CASE STATE. PRIMARY ITEM PATH: {}", primaryItemPath);
         } else {
             primaryItemPath = new ItemPath(new QName(SchemaConstantsGenerated.NS_COMMON, propertyName));
         }
+
         List<ObjectOrdering> rv = new ArrayList<>();
         rv.add(ObjectOrdering.createOrdering(primaryItemPath, sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING));
         // additional criteria are used to avoid random shuffling if first criteria is too vague)
