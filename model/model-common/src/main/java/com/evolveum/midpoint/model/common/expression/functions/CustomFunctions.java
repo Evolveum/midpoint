@@ -69,14 +69,14 @@ public class CustomFunctions {
 	}
 	
 	public Object execute(String functionName, Map<String, Object> params) throws ExpressionEvaluationException {
-		Validate.notNull("Function name must be specified", functionName);
+		Validate.notNull(functionName, "Function name must be specified");
 		
 		List<ExpressionType> functions = library.getFunction().stream().filter(expression -> functionName.equals(expression.getName())).collect(Collectors.toList());
 		
 		LOGGER.trace("functions {}", functions);
 		ExpressionType expression = functions.iterator().next();
 
-		LOGGER.trace("fuction to execute {}", expression);
+		LOGGER.trace("function to execute {}", expression);
 		
 		try {
 			ExpressionVariables variables = new ExpressionVariables();
@@ -115,13 +115,14 @@ public class CustomFunctions {
 		Class<?> expressioNParameterClass = XsdTypeMapper.toJavaTypeIfKnown(expressionParam.getType());
 		
 		// FIXME: awful hack
-		if (expressioNParameterClass.equals(String.class) && entry.getValue().getClass().equals(PolyString.class)) {
+		if (String.class.equals(expressioNParameterClass) && entry.getValue() instanceof PolyString) {
 			return ((PolyString) entry.getValue()).getOrig();
 		}
 		
-		if (!expressioNParameterClass.equals(entry.getValue().getClass())){
-			throw new SchemaException("Unexpected type of value, expecting " + expressioNParameterClass.getSimpleName() + " but the actual value is " + entry.getValue().getClass().getSimpleName());
-		}
+		//if (expressioNParameterClass != null && !expressioNParameterClass.isAssignableFrom(entry.getValue().getClass())) {
+//		if (expressioNParameterClass != null && !expressioNParameterClass.equals(entry.getValue().getClass())){
+//			throw new SchemaException("Unexpected type of value, expecting " + expressioNParameterClass.getSimpleName() + " but the actual value is " + entry.getValue().getClass().getSimpleName());
+//		}
 		
 		return entry.getValue();
 		
