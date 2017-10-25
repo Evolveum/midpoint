@@ -94,15 +94,9 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 	private static final String ID_LIST = "assignmentList";
 	protected static final String ID_ROW = "assignmentEditor";
 
-	public AssignmentTablePanel(String id, IModel<String> label,
-			IModel<List<AssignmentEditorDto>> assignmentModel) {
-		this(id, label, assignmentModel, null);
-	}
-
-	public AssignmentTablePanel(String id, IModel<String> label,
-			IModel<List<AssignmentEditorDto>> assignmentModel, PageBase pageBase) {
-		super(id, assignmentModel, pageBase);
-		initLayout(label);
+	
+	public AssignmentTablePanel(String id, IModel<List<AssignmentEditorDto>> assignmentModel) {
+		super(id, assignmentModel);
 	}
 
 	public List<AssignmentType> getAssignmentTypeList() {
@@ -112,15 +106,22 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 	public String getExcludeOid() {
 		return null;
 	}
+	
+	public IModel<String> getLabel() {
+		return new Model<String>("label");
+	}
 
 
 
-	private void initLayout(IModel<String> labelText) {
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+	
 		final WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
 		assignments.setOutputMarkupId(true);
 		add(assignments);
 
-		Label label = new Label(ID_HEADER, labelText);
+		Label label = new Label(ID_HEADER, getLabel());
 		assignments.add(label);
 
 		InlineMenu assignmentMenu = new InlineMenu(ID_MENU, new Model((Serializable) createAssignmentMenu()));
@@ -172,7 +173,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 	}
 
 	protected void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item){
-		AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel(), pageBase){
+		AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel()){
 			@Override
 			protected boolean ignoreMandatoryAttributes(){
 				return AssignmentTablePanel.this.ignoreMandatoryAttributes();
@@ -212,7 +213,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 						@Override
 						public void onClick(AjaxRequestTarget target) {
 							TypedAssignablePanel panel = new TypedAssignablePanel(
-									getPageBase().getMainPopupBodyId(), RoleType.class, true, getPageBase()) {
+									getPageBase().getMainPopupBodyId(), RoleType.class) {
 								private static final long serialVersionUID = 1L;
 
 								@Override

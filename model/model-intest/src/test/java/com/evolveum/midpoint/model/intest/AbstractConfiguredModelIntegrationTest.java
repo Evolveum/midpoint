@@ -544,6 +544,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		login(userAdministrator);
 	}
 
+	protected int getNumberOfUsers() {
+		return 1; // Administrator
+	}
+	
 	protected int getNumberOfRoles() {
 		return 1; // Superuser role
 	}
