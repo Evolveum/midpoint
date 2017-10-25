@@ -1409,6 +1409,15 @@
 				        <xsd:annotation>
 					        <xsd:documentation>
 						        What approval actions to include during approval schema creation for this process.
+								If they are not triggered an exception is thrown.
+					        </xsd:documentation>
+				        </xsd:annotation>
+			        </xsd:element>
+			        <xsd:element name="includeActionIfPresent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				        <xsd:annotation>
+					        <xsd:documentation>
+						        What approval actions to include during approval schema creation for this process.
+								If they are not triggered they are silently skipped.
 					        </xsd:documentation>
 				        </xsd:annotation>
 			        </xsd:element>
