@@ -16,19 +16,26 @@
 
 package com.evolveum.midpoint.web.page.admin.cases;
 
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.Table;
@@ -38,6 +45,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDtoProvider;
 import com.evolveum.midpoint.web.page.admin.cases.dto.SearchingUtils;
+import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.reports.component.SingleValueChoosePanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -94,9 +102,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
     private static final String ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES = "filterIncludeClosedCases";
     // Data Table
     private static final String ID_CASE_WORK_ITEMS_TABLE = "caseWorkItemsTable";
-    private static final String ID_TABLE_HEADER = "tableHeader";
-    private static final String ID_TABLE_BOX = "box";
-    private static final String ID_TABLE_BOX_HEADER = "header";
+    private static final String ID_BUTTON_BAR = "buttonBar";
     // Buttons
     private static final String ID_CREATE_CASE_BUTTON = "createCaseButton";
 
@@ -192,16 +198,15 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL, itemsPerPage) {
 
             @Override
-            protected WebMarkupContainer createHeader(String headerId) {
-                return new SearchFragment(headerId, ID_TABLE_HEADER, PageCaseWorkItems.this, PageCaseWorkItems.this);
+            protected WebMarkupContainer createButtonToolbar(String id) {
+                return new ButtonBar(id, ID_BUTTON_BAR, PageCaseWorkItems.this);
             }
         };
         table.setShowPaging(true);
         table.setOutputMarkupId(true);
         table.setItemsPerPage(itemsPerPage);        // really don't know why this is necessary, as e.g. in PageRoles the size setting works without it
         add(table);
-
-        initButtons();
+        initSearch();
     }
 
     private List<IColumn<CaseWorkItemDto, String>> initColumns() {
@@ -315,18 +320,73 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
     }
 
     private Panel getCaseWorkItemsSearchField(String itemPath) {
-        return (Panel) get(createComponentPath(ID_CASE_WORK_ITEMS_TABLE, ID_TABLE_BOX, ID_TABLE_BOX_HEADER, ID_SEARCH_FILTER_FORM, itemPath));
+        return (Panel) get(createComponentPath(ID_SEARCH_FILTER_FORM, itemPath));
     }
 
-    private void initButtons() {
-        AjaxButton createCase = new AjaxButton(ID_CREATE_CASE_BUTTON, createStringResource("PageCaseWorkItems.button.createCase")) {
+    private void initSearch() {
+        final Form searchFilterForm = new Form(ID_SEARCH_FILTER_FORM);
+        add(searchFilterForm);
+        searchFilterForm.setOutputMarkupId(true);
+
+        List<Class<? extends ObjectType>> allowedClasses = new ArrayList<>();
+        allowedClasses.add(ResourceType.class);
+        MultiValueChoosePanel<ObjectType> resource = new SingleValueChoosePanel<ObjectReferenceType, ObjectType>(
+                ID_SEARCH_FILTER_RESOURCE, allowedClasses, objectReferenceTransformer,
+                new PropertyModel<ObjectReferenceType>(Model.of(new ObjectViewDto()), ObjectViewDto.F_NAME)){
+
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                navigateToNext(PageCase.class);
+            protected void choosePerformedHook(AjaxRequestTarget target, List<ObjectType> selected) {
+                super.choosePerformedHook(target, selected);
+                searchFilterPerformed(target);
             }
 
+            @Override
+            protected void removePerformedHook(AjaxRequestTarget target, ObjectType value) {
+                super.removePerformedHook(target, value);
+                searchFilterPerformed(target);
+            }
         };
-        add(createCase);
+        searchFilterForm.add(resource);
+
+        allowedClasses = new ArrayList<>();
+        allowedClasses.add(UserType.class);
+        WebMarkupContainer assigneeContainer = new WebMarkupContainer(ID_SEARCH_FILTER_ASSIGNEE_CONTAINER);
+        MultiValueChoosePanel<ObjectType> assignee = new SingleValueChoosePanel<ObjectReferenceType, ObjectType>(
+                ID_SEARCH_FILTER_ASSIGNEE, allowedClasses, objectReferenceTransformer,
+                new PropertyModel<ObjectReferenceType>(Model.of(new ObjectViewDto()), ObjectViewDto.F_NAME)){
+
+            @Override
+            protected void choosePerformedHook(AjaxRequestTarget target, List<ObjectType> selected) {
+                super.choosePerformedHook(target, selected);
+                searchFilterPerformed(target);
+            }
+
+            @Override
+            protected void removePerformedHook(AjaxRequestTarget target, ObjectType value) {
+                super.removePerformedHook(target, value);
+                searchFilterPerformed(target);
+            }
+        };
+        assigneeContainer.add(assignee);
+        assigneeContainer.add(new VisibleEnableBehaviour() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return isAuthorizedToSeeAllCases();
+            }
+        });
+        searchFilterForm.add(assigneeContainer);
+
+        CheckBoxPanel includeClosedCases = new CheckBoxPanel(ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES, new Model<Boolean>(false)) {
+            private static final long serialVersionUID = 1L;
+
+            public void onUpdate(AjaxRequestTarget target) {
+                searchFilterPerformed(target);
+            }
+        };
+        searchFilterForm.add(includeClosedCases);
     }
 
     private boolean isAuthorizedToSeeAllCases(){
@@ -356,61 +416,51 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
     }
     //endregion
 
-    private static class SearchFragment extends Fragment {
-        PageCaseWorkItems page;
-        public SearchFragment(String id, String markupId, MarkupContainer markupProvider, PageCaseWorkItems page) {
-            super(id, markupId, markupProvider);
-            this.page = page;
+    private Function<ObjectType, ObjectReferenceType> objectReferenceTransformer =
+            (Function<ObjectType, ObjectReferenceType> & Serializable) (ObjectType o) ->
+                    ObjectTypeUtil.createObjectRef(o);
 
-            initLayout();
+    private static class ButtonBar extends Fragment {
+
+        private static final long serialVersionUID = 1L;
+
+        public <O extends ObjectType> ButtonBar(String id, String markupId, PageCaseWorkItems page) {
+            super(id, markupId, page);
+
+            initLayout(page);
         }
 
-        private void initLayout() {
-            final Form searchFilterForm = new Form(ID_SEARCH_FILTER_FORM);
-            add(searchFilterForm);
-            searchFilterForm.setOutputMarkupId(true);
+        private <O extends ObjectType> void initLayout(final PageCaseWorkItems page) {
 
-            List<Class<? extends ObjectType>> allowedClasses = new ArrayList<>();
-            allowedClasses.add(ResourceType.class);
-            MultiValueChoosePanel<ObjectType> resource = new SingleValueChoosePanel<ObjectReferenceType, ObjectType>(
-                    ID_SEARCH_FILTER_RESOURCE, allowedClasses, objectReferenceTransformer,
-                    new PropertyModel<ObjectReferenceType>(Model.of(new ObjectViewDto()), ObjectViewDto.F_NAME)){
-
+            AjaxButton createCase = new AjaxButton(ID_CREATE_CASE_BUTTON, page.createStringResource("PageCaseWorkItems.button.createCase")) {
                 @Override
-                protected void choosePerformedHook(AjaxRequestTarget target, List<ObjectType> selected) {
-                    super.choosePerformedHook(target, selected);
-                    page.searchFilterPerformed(target);
+                public void onClick(AjaxRequestTarget target) {
+                    page.navigateToNext(PageCase.class);
                 }
 
-                @Override
-                protected void removePerformedHook(AjaxRequestTarget target, ObjectType value) {
-                    super.removePerformedHook(target, value);
-                    page.searchFilterPerformed(target);
-                }
             };
-            searchFilterForm.add(resource);
-
-            allowedClasses = new ArrayList<>();
-            allowedClasses.add(UserType.class);
-            WebMarkupContainer assigneeContainer = new WebMarkupContainer(ID_SEARCH_FILTER_ASSIGNEE_CONTAINER);
-            MultiValueChoosePanel<ObjectType> assignee = new SingleValueChoosePanel<ObjectReferenceType, ObjectType>(
-                    ID_SEARCH_FILTER_ASSIGNEE, allowedClasses, objectReferenceTransformer,
-                    new PropertyModel<ObjectReferenceType>(Model.of(new ObjectViewDto()), ObjectViewDto.F_NAME)){
+            createCase.add(new VisibleEnableBehaviour(){
+                private static final long serialVersionUID = 1L;
 
                 @Override
-                protected void choosePerformedHook(AjaxRequestTarget target, List<ObjectType> selected) {
-                    super.choosePerformedHook(target, selected);
-                    page.searchFilterPerformed(target);
-                }
+                public boolean isVisible(){
 
-                @Override
-                protected void removePerformedHook(AjaxRequestTarget target, ObjectType value) {
-                    super.removePerformedHook(target, value);
-                    page.searchFilterPerformed(target);
+                    boolean isVisible = false;
+                    try {
+                        PrismObject<CaseType> objectToCreate = new CaseType().asPrismObject();
+                        if (objectToCreate != null) {
+                            page.getMidpointApplication().getPrismContext().adopt(objectToCreate);
+                        }
+                        isVisible = ((PageBase) getPage()).getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
+                                null, objectToCreate, null, null, null);
+                    } catch (Exception ex){
+                        LOGGER.error("Failed to check authorization for ADD action on new object of " + CaseType.class.getSimpleName()
+                                + " type, ", ex);
+                    }
+                    return isVisible;
                 }
-            };
-            assigneeContainer.add(assignee);
-            assigneeContainer.add(new VisibleEnableBehaviour() {
+            });
+            createCase.add(new VisibleEnableBehaviour() {
 
                 private static final long serialVersionUID = 1L;
 
@@ -419,22 +469,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                     return page.isAuthorizedToSeeAllCases();
                 }
             });
-            searchFilterForm.add(assigneeContainer);
-
-            CheckBoxPanel includeClosedCases = new CheckBoxPanel(ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES, new Model<Boolean>(false)) {
-                private static final long serialVersionUID = 1L;
-
-                public void onUpdate(AjaxRequestTarget target) {
-                    if (page != null) {
-                        page.searchFilterPerformed(target);
-                    }
-                }
-            };
-            searchFilterForm.add(includeClosedCases);
+            add(createCase);
         }
-
-        private Function<ObjectType, ObjectReferenceType> objectReferenceTransformer =
-                (Function<ObjectType, ObjectReferenceType> & Serializable) (ObjectType o) ->
-                        ObjectTypeUtil.createObjectRef(o);
     }
 }

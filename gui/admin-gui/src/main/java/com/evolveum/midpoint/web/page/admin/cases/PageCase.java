@@ -90,6 +90,8 @@ public class PageCase  extends PageAdminCases {
             if (emptyCase) {
                 LOGGER.trace("Loading case: New case (creating)");
                 CaseType newCase = new CaseType();
+                //CaseWorkItemType newCaseWorkItem = new CaseWorkItemType();
+                newCase.beginWorkItem();
                 getMidpointApplication().getPrismContext().adopt(newCase);
                 caseInstance = newCase.asPrismObject();
             } else {
@@ -130,6 +132,7 @@ public class PageCase  extends PageAdminCases {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load case", ex);
             wrapper = owf.createObjectWrapper("PageCase.details", null, caseInstance, null, null, status);
         }
+
         wrapper.setShowEmpty(emptyCase);
 
         return wrapper;

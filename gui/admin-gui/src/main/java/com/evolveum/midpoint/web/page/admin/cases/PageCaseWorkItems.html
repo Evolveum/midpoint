@@ -18,10 +18,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
+    <div class="box box-primary">
 
-    <div wicket:id="caseWorkItemsTable"/>
-
-    <wicket:fragment wicket:id="tableHeader">
         <form class="search-form" wicket:id="searchFilterForm">
             <div class="box-body">
                 <div class="col-md-6 form-horizontal">
@@ -42,10 +40,12 @@
                 </div>
             </div>
         </form>
-    </wicket:fragment>
 
-    <div class="main-button-bar" style="padding-top: 15px">
-        <a class="btn btn-success" wicket:id="createCaseButton"/>
+        <div wicket:id="caseWorkItemsTable"/>
+
+        <wicket:fragment wicket:id="buttonBar">
+            <a class="btn btn-success" wicket:id="createCaseButton"/>
+        </wicket:fragment>
     </div>
 </wicket:extend>
 </body>
