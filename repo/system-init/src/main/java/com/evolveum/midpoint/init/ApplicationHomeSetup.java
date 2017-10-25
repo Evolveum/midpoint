@@ -55,7 +55,7 @@ public class ApplicationHomeSetup {
         String[] directories = {
                 midpointHomePath + "icf-connectors",
                 midpointHomePath + "idm-legacy",
-                midpointHomePath + "log",
+                midpointHomePath + "logs",
                 midpointHomePath + "schema",
                 midpointHomePath + "import",
                 midpointHomePath + "export",

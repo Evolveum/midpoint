@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.security;
 import javax.xml.datatype.Duration;
 import javax.xml.soap.SOAPMessage;
 
+import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 
@@ -67,7 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
  *
  */
 @Component
-public class SecurityHelper {
+public class SecurityHelper implements ModelAuditRecorder {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SecurityHelper.class);
 
@@ -78,10 +79,12 @@ public class SecurityHelper {
 	@Autowired private ModelObjectResolver objectResolver;
 	@Autowired private SecurityEnforcer securityEnforcer;
 
+	@Override
     public void auditLoginSuccess(@NotNull UserType user, @NotNull ConnectionEnvironment connEnv) {
         auditLogin(user.getName().getOrig(), user, connEnv, OperationResultStatus.SUCCESS, null);
     }
 
+	@Override
     public void auditLoginFailure(@Nullable String username, @Nullable UserType user, @NotNull ConnectionEnvironment connEnv, String message) {
         auditLogin(username, user, connEnv, OperationResultStatus.FATAL_ERROR, message);
     }
@@ -108,6 +111,7 @@ public class SecurityHelper {
         auditService.audit(record, task);
     }
 
+	@Override
     public void auditLogout(ConnectionEnvironment connEnv, Task task) {
     	AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
 		record.setInitiatorAndLoginParameter(task.getOwner());

@@ -81,9 +81,13 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	 * If object is present then the method will return a filter that is applicable to look for a target.
 	 *
 	 * The objectType parameter defines the class of the object for which should be the returned filter applicable.
+	 * 
+	 * @param limitAuthorizationAction only consider authorizations that are not limited with respect to this action.
+	 *              If null then all authorizations are considered.
 	 */
 	<T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
-			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter, 
+			String limitAuthorizationAction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**
 	 * @param includeSpecial include special authorizations such as "self"

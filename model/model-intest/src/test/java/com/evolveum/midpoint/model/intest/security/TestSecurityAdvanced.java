@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -64,6 +65,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSecurityAdvanced extends AbstractSecurityTest {
+
+	private static final String AUTHORIZATION_ACTION_WORKITEMS = "http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItemsMyRequests";
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -1258,6 +1261,159 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertSearchDeny(RoleType.class, 
         		queryFor(RoleType.class).item(RoleType.F_ROLE_TYPE).eq("application").build(),
         		null);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Unlimited power of attorney. But only granted to Caribbean users.
+	 * MID-4072, MID-4205
+	 */
+	@Test
+    public void test230AttorneyCaribbeanUnlimited() throws Exception {
+		final String TEST_NAME = "test230AttorneyCaribbeanUnlimited";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ATTORNEY_CARIBBEAN_UNLIMITED_OID);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadAllow();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
+        display("donorFilterAll", donorFilterAll);
+        assertSearchFilter(UserType.class, donorFilterAll, 2);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Attorney for subordinate employees, but Jack has no org.
+	 * MID-4072, MID-4205
+	 */
+	@Test
+    public void test232ManagerAttorneyNoOrg() throws Exception {
+		final String TEST_NAME = "test232ManagerAttorneyNoOrg";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ATTORNEY_MANAGER_WORKITEMS_OID);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadAllow();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
+        display("donorFilterAll", donorFilterAll);
+        assertSearchFilter(UserType.class, donorFilterAll, 0);
+        
+        ObjectFilter donorFilterWorkitems = modelInteractionService.getDonorFilter(UserType.class, null, AUTHORIZATION_ACTION_WORKITEMS, task, result);
+        display("donorFilterWorkitems", donorFilterWorkitems);
+        assertSearchFilter(UserType.class, donorFilterWorkitems, 0);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Attorney for subordinate employees, Jack is manager of Ministry of Rum.
+	 * MID-4072, MID-4205
+	 */
+	@Test
+    public void test234ManagerAttorneyRum() throws Exception {
+		final String TEST_NAME = "test234ManagerAttorneyRum";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ATTORNEY_MANAGER_WORKITEMS_OID);
+        assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadAllow();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
+        display("donorFilterAll", donorFilterAll);
+        assertSearchFilter(UserType.class, donorFilterAll, 4);
+        
+        ObjectFilter donorFilterWorkitems = modelInteractionService.getDonorFilter(UserType.class, null, AUTHORIZATION_ACTION_WORKITEMS, task, result);
+        display("donorFilterWorkitems", donorFilterWorkitems);
+        assertSearchFilter(UserType.class, donorFilterWorkitems, 4);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Attorney for subordinate employees, Jack is manager of Ministry of Rum.
+	 * Also unlimited Caribbean attorney.
+	 * MID-4072, MID-4205
+	 */
+	@Test
+    public void test236ManagerAttorneyCaribbeanRum() throws Exception {
+		final String TEST_NAME = "test236ManagerAttorneyCaribbeanRum";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ATTORNEY_CARIBBEAN_UNLIMITED_OID);
+        assignRole(USER_JACK_OID, ROLE_ATTORNEY_MANAGER_WORKITEMS_OID);
+        assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadAllow();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
+        display("donorFilterAll", donorFilterAll);
+        assertSearchFilter(UserType.class, donorFilterAll, 5);
+        
+        display("DONOR");
+        ObjectFilter donorFilterWorkitems = modelInteractionService.getDonorFilter(UserType.class, null, AUTHORIZATION_ACTION_WORKITEMS, task, result);
+        display("donorFilterWorkitems", donorFilterWorkitems);
+        assertSearchFilter(UserType.class, donorFilterWorkitems, 5);
         
         assertGlobalStateUntouched();
 	}

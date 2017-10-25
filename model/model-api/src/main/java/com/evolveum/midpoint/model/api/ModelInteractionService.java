@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -143,6 +144,25 @@ public interface ModelInteractionService {
      */
     <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
 
+    /**
+     * Returns filter for lookup of donors or power of attorney. The donors are the users that have granted
+     * the power of attorney to the currently logged-in user.
+     * 
+     * TODO: authorization limitations
+     * 
+     * @param searchResultType type of the expected search results
+     * @param origFilter original filter (e.g. taken from GUI search bar)
+     * @param targetAuthorizationAction Authorization action that the attorney is trying to execute
+     *                 on behalf of donor. Only donors for which the use of this authorization was
+     *                 not limited will be returned (that does not necessarily mean that the donor
+     *                 is able to execute this action, it may be limited by donor's authorizations).
+     *                 If the parameter is null then all donors are returned.
+     * @param task task
+     * @param parentResult operation result
+     * @return original filter with AND clause limiting the search.
+     */
+    <T extends ObjectType> ObjectFilter getDonorFilter(Class<T> searchResultType, ObjectFilter origFilter, String targetAuthorizationAction, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+    
     /**
      * TODO
      *
