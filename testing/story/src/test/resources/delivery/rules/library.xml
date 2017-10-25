@@ -31,7 +31,7 @@
 			<type>xsd:anyType</type>
 		</parameter>
 		<parameter>
-			<name>failIfDifferent</name>
+			<name>assumeEquality</name>
 			<type>xsd:boolean</type>
 		</parameter>
 		<returnType>xsd:boolean</returnType>
@@ -46,14 +46,44 @@
 					def expectedValue = basic.getPropertyValue(extension, "value$i")
 					if (attribute != null) {
 						def realValue = basic.getPropertyValue(object, attribute)
-						log.debug('*** checking {}: expected: "{}", real: "{}", failIfDifferent: {}', attribute, expectedValue, realValue, failIfDifferent)
+						log.debug('*** checking {}: expected: "{}", real: "{}", assumeEquality: {}', attribute, expectedValue, realValue, assumeEquality)
 						def eq = Objects.equals(expectedValue, realValue);
-						if (failIfDifferent &amp;&amp; !eq || !failIfDifferent &amp;&amp; eq) {
+						if (assumeEquality &amp;&amp; !eq || !assumeEquality &amp;&amp; eq) {
 							return true
 						}
 					}
 				}
 				return false
+			</code>
+		</script>
+	</function>
+	<function>
+		<name>evaluateRolePresence</name>
+		<parameter>
+			<name>object</name>
+			<type>ObjectType</type>
+		</parameter>
+		<parameter>
+			<name>ruleEvaluationContext</name>
+			<type>xsd:anyType</type>
+		</parameter>
+		<parameter>
+			<name>assumeExistence</name>
+			<type>xsd:boolean</type>
+		</parameter>
+		<returnType>xsd:boolean</returnType>
+		<script>
+			<code>
+				def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(1)
+				this.binding.variables.each {k,v -> log.debug('{} = {}', k, v)}
+				log.debug('### Extension:\n{}', extension?.asPrismContainerValue().debugDump())
+
+				def roleRef = basic.getPropertyValue(extension, "roleRef")
+				if (roleRef == null || roleRef.oid == null) {
+					throw new IllegalArgumentException("No roleRef or oid defined");
+				}
+				def exists = midpoint.isDirectlyAssigned(object, roleRef.oid)
+				return assumeExistence &amp;&amp; !exists || !assumeExistence &amp;&amp; exists
 			</code>
 		</script>
 	</function>

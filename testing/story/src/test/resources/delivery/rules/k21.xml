@@ -16,19 +16,19 @@
   -->
 
 <!--
-Expects the following extension items:
- - attributeX, valueX (X = 1..9)
+User must NOT have another role assigned. Expects the following extension items:
+ - roleRef
  - remediatorRef
 
-Matches if (for any N) the value of 'attributeN' is different from 'valueN'.
+Matches if the role 'roleRef' is assigned to the user.
 
 -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-		oid="db0eadd1-3e2b-4dad-801e-80700f2d11e5">
-	<name>k10</name>
+		oid="db0a319e-e092-485c-b99e-edf22d4b26e7">
+	<name>k21</name>
 	<inducement>
 		<policyRule>
 			<policyConstraints>
@@ -36,10 +36,10 @@ Matches if (for any N) the value of 'attributeN' is different from 'valueN'.
 					<expression>
 						<script>
 							<code>
-								rulesLib.execute('evaluateAttributeValuePairs', [
+								rulesLib.execute('evaluateRolePresence', [
 									object : object,
 									ruleEvaluationContext : ruleEvaluationContext,
-									assumeEquality : true
+									assumeExistence : false
 								])
 							</code>
 						</script>
