@@ -245,10 +245,11 @@ public class SchemaProcessor implements Processor {
         then.assign(reference, newReference);
         body._return(reference);
 
-        JMethod setReference = definedClass.method(JMod.PUBLIC, void.class, METHOD_SETUP_REFERENCE_VALUE);
+        JMethod setReference = definedClass.method(JMod.PUBLIC, definedClass, METHOD_SETUP_REFERENCE_VALUE);
         JVar value = setReference.param(PrismReferenceValue.class, "value");
         body = setReference.body();
         body.assign(reference, value);
+        body._return(JExpr._this());
 
         //update for oid methods
         updateObjectReferenceOid(definedClass, getReference);

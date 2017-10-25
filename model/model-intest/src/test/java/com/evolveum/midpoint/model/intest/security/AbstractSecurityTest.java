@@ -58,6 +58,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.NoneFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -323,6 +324,12 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	
 	protected static final File ROLE_EXPRESSION_READ_ROLES_FILE = new File(TEST_DIR, "role-expression-read-roles.xml");
 	protected static final String ROLE_EXPRESSION_READ_ROLES_OID = "27058fde-b27e-11e7-b557-e7e43b583989";
+	
+	protected static final File ROLE_ATTORNEY_CARIBBEAN_UNLIMITED_FILE = new File(TEST_DIR, "role-attorney-caribbean-unlimited.xml");
+	protected static final String ROLE_ATTORNEY_CARIBBEAN_UNLIMITED_OID = "b27b9f3c-b962-11e7-9c89-03e5b32f525d";
+	
+	protected static final File ROLE_ATTORNEY_MANAGER_WORKITEMS_FILE = new File(TEST_DIR, "role-attorney-manager-workitems.xml");
+	protected static final String ROLE_ATTORNEY_MANAGER_WORKITEMS_OID = "5cf5b6c8-b968-11e7-b77d-6b029450f900";
 
 	protected static final File ORG_REQUESTABLE_FILE = new File(TEST_DIR,"org-requestable.xml");
 	protected static final String ORG_REQUESTABLE_OID = "8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2";
@@ -362,7 +369,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 65;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 67;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 
 	protected String userRumRogersOid;
@@ -442,6 +449,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_READ_SELF_MODIFY_ORGUNIT_FILE, initResult);
 		repoAddObjectFromFile(ROLE_INDIRECT_PIRATE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_EXPRESSION_READ_ROLES_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ATTORNEY_CARIBBEAN_UNLIMITED_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ATTORNEY_MANAGER_WORKITEMS_FILE, initResult);
 
 		repoAddObjectFromFile(ORG_REQUESTABLE_FILE, initResult);
 		repoAddObjectFromFile(ORG_INDIRECT_PIRATE_FILE, initResult);
@@ -803,6 +812,10 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		return object;
 	}
 
+	protected <O extends ObjectType> void assertSearchFilter(Class<O> type, ObjectFilter filter, int expectedResults) throws Exception {
+		assertSearch(type, ObjectQuery.createObjectQuery(filter), null, expectedResults);
+	}
+	
 	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {
 		assertSearch(type, query, null, expectedResults);
 	}

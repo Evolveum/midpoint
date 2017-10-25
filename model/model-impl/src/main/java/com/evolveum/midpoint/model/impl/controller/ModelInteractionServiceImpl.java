@@ -430,7 +430,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 		try {
 			ObjectFilter filter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.ASSIGN.getUrl(),
-					AuthorizationPhaseType.REQUEST, AbstractRoleType.class, focus, AllFilter.createAll(), task, result);
+					AuthorizationPhaseType.REQUEST, AbstractRoleType.class, focus, AllFilter.createAll(), null, task, result);
 			LOGGER.trace("assignableRoleSpec filter: {}", filter);
 			spec.setFilter(filter);
 			if (filter instanceof NoneFilter) {
@@ -617,6 +617,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 
+	@Override
+	public <T extends ObjectType> ObjectFilter getDonorFilter(Class<T> searchResultType, ObjectFilter origFilter, String targetAuthorizationAction, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.ATTORNEY.getUrl(), null, searchResultType, null, origFilter, targetAuthorizationAction, task, parentResult);
+	}
 
 	@Override
 	public <T extends ObjectType, O extends ObjectType> boolean canSearch(Class<T> resultType,

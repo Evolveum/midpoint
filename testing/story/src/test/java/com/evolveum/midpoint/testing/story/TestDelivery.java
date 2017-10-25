@@ -83,6 +83,8 @@ public class TestDelivery extends AbstractStoryTest {
 	private static final File RULE_K10_CC_1900_REM_ADMINISTRATOR_FILE = new File(RULES_DIR, "k10-cc-1900-rem-administrator.xml");
 	private static String ruleK10_cc_1900_rem_administrator_oid;
 
+	private static final File LIBRARY_FILE = new File(RULES_DIR, "library.xml");
+
 	private static final File ROLE_IT_1_FILE = new File(ROLES_DIR, "role-it-1.xml");
 	private static String roleIt1Oid;
 	private static final File ROLE_IT_2_FILE = new File(ROLES_DIR, "role-it-2.xml");
@@ -149,6 +151,8 @@ public class TestDelivery extends AbstractStoryTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+
+		repoAddObjectFromFile(LIBRARY_FILE, initResult);
 
 //		transplantGlobalPolicyRulesAdd(CONFIG_WITH_GLOBAL_RULES_FILE, initTask, initResult);
 
