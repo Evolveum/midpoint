@@ -55,6 +55,7 @@ public class SearchingUtils {
             primaryItemPath = casePath.subPath(CaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
         } else if (CASE_STATE.equals(propertyName)) {
             primaryItemPath = casePath.subPath(CaseType.F_STATE);
+            LOGGER.debug("CASE STATE. PRIMARY ITEM PATH: {}", primaryItemPath);
         } else {
             primaryItemPath = new ItemPath(new QName(SchemaConstantsGenerated.NS_COMMON, propertyName));
         }

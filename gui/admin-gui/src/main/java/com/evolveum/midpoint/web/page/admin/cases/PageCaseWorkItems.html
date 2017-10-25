@@ -22,14 +22,24 @@
     <div wicket:id="caseWorkItemsTable"/>
 
     <wicket:fragment wicket:id="tableHeader">
-        <form class="form-inline search-form" wicket:id="searchFilterForm">
-            <div class="form-group">
-                <label><wicket:message key="PageCaseWorkItems.search.resource" /></label>
-                <span wicket:id="filterResource" />
-            </div>
-            <div class="form-group">
-                <label><wicket:message key="PageCaseWorkItems.search.includeClosedCases" /></label>
-                <span wicket:id="filterIncludeClosedCases" />
+        <form class="search-form" wicket:id="searchFilterForm">
+            <div class="box-body">
+                <div class="col-md-6 form-horizontal">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label"><wicket:message key="PageCaseWorkItems.search.resource" /></label>
+                        <span class="col-sm-9" wicket:id="filterResource" />
+                    </div>
+                    <div wicket:id="filterAssigneeContainer" class="form-group">
+                        <label class="col-sm-3 control-label"><wicket:message key="PageCaseWorkItems.search.assignee" /></label>
+                        <span class="col-sm-9" wicket:id="filterAssignee" />
+                    </div>
+                </div>
+                <div class="col-md-6 form-horizontal">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label"><wicket:message key="PageCaseWorkItems.search.includeClosedCases" /></label>
+                        <span class="col-sm-9" wicket:id="filterIncludeClosedCases" />
+                    </div>
+                </div>
             </div>
         </form>
     </wicket:fragment>
