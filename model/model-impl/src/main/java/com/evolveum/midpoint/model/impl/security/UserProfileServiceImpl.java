@@ -81,6 +81,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * @author lazyman
@@ -120,32 +121,39 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
             throw new SystemException(ex.getMessage(), ex);
         }
 
-        return createPrincipal(user, result);
+        return getPrincipal(user, null, result);
     }
 
     @Override
     public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException {
     	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-    	return createPrincipal(user, result);
+    	return getPrincipal(user, null, result);
     }
-
-    private MidPointPrincipal createPrincipal(PrismObject<UserType> user, OperationResult result) throws SchemaException {
+    
+    @Override
+    public MidPointPrincipal getPrincipal(PrismObject<UserType> user, Predicate<Authorization> authorizationLimiter, OperationResult result) throws SchemaException {
         if (user == null) {
             return null;
         }
 
-        PrismObject<SystemConfigurationType> systemConfiguration = null;
+        PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
+
+    	userComputer.recompute(user);
+        MidPointPrincipal principal = new MidPointPrincipal(user.asObjectable());
+        initializePrincipalFromAssignments(principal, systemConfiguration, authorizationLimiter);
+        return principal;
+    }
+    
+    private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) {
+    	PrismObject<SystemConfigurationType> systemConfiguration = null;
         try {
+        	// TODO: use SystemObjectCache instead?
         	systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
 					null, result);
 		} catch (ObjectNotFoundException | SchemaException e) {
 			LOGGER.warn("No system configuration: {}", e.getMessage(), e);
-		}
-
-    	userComputer.recompute(user);
-        MidPointPrincipal principal = new MidPointPrincipal(user.asObjectable());
-        initializePrincipalFromAssignments(principal, systemConfiguration);
-        return principal;
+		} 
+        return systemConfiguration;
     }
 
     @Override
@@ -171,7 +179,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         return list.get(0);
     }
 
-	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
+	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, Predicate<Authorization> authorizationLimiter) throws SchemaException {
 		UserType userType = principal.getUser();
 
 		Collection<Authorization> authorizations = principal.getAuthorities();
@@ -216,7 +224,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 						assignmentIdi.recompute();
 						EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userType, userType.toString(), task, result);
 						if (assignment.isValid()) {
-							authorizations.addAll(assignment.getAuthorizations());
+							addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationLimiter);
 							adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
 						}
 						for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
@@ -241,6 +249,17 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			adminGuiConfigurations.add(userType.getAdminGuiConfiguration());
 		}
         principal.setAdminGuiConfiguration(AdminGuiConfigTypeUtil.compileAdminGuiConfiguration(adminGuiConfigurations, systemConfiguration));
+	}
+
+	private void addAuthorizations(Collection<Authorization> targetCollection, Collection<Authorization> sourceCollection, Predicate<Authorization> authorizationLimiter) {
+		if (sourceCollection == null) {
+			return;
+		}
+		for (Authorization autz: sourceCollection) {
+			if (authorizationLimiter == null || authorizationLimiter.test(autz)) {
+				targetCollection.add(autz);
+			}
+		}
 	}
 
 	private MidPointPrincipal save(MidPointPrincipal person, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {

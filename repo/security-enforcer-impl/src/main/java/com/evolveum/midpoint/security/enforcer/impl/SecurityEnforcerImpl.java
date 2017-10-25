@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
@@ -141,19 +142,26 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		MidPointPrincipal midPointPrincipal = getMidPointPrincipal();
+		return isAuthorizedInternal(getMidPointPrincipal(), operationUrl, phase, object, delta, target, ownerResolver, null, task, result);
+	}
+	
+	private <O extends ObjectType, T extends ObjectType> boolean isAuthorizedInternal(MidPointPrincipal midPointPrincipal, String operationUrl, AuthorizationPhaseType phase,
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, 
+			Consumer<Authorization> applicableAutzConsumer, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (phase == null) {
-			if (!isAuthorizedInternal(midPointPrincipal, operationUrl, AuthorizationPhaseType.REQUEST, object, delta, target, ownerResolver, task, result)) {
+			if (!isAuthorizedPhase(midPointPrincipal, operationUrl, AuthorizationPhaseType.REQUEST, object, delta, target, ownerResolver, applicableAutzConsumer, task, result)) {
 				return false;
 			}
-			return isAuthorizedInternal(midPointPrincipal, operationUrl, AuthorizationPhaseType.EXECUTION, object, delta, target, ownerResolver, task, result);
+			return isAuthorizedPhase(midPointPrincipal, operationUrl, AuthorizationPhaseType.EXECUTION, object, delta, target, ownerResolver, applicableAutzConsumer, task, result);
 		} else {
-			return isAuthorizedInternal(midPointPrincipal, operationUrl, phase, object, delta, target, ownerResolver, task, result);
+			return isAuthorizedPhase(midPointPrincipal, operationUrl, phase, object, delta, target, ownerResolver, applicableAutzConsumer, task, result);
 		}
 	}
 
-	private <O extends ObjectType, T extends ObjectType> boolean isAuthorizedInternal(MidPointPrincipal midPointPrincipal, String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, Task task, OperationResult result)
+	private <O extends ObjectType, T extends ObjectType> boolean isAuthorizedPhase(MidPointPrincipal midPointPrincipal, String operationUrl, AuthorizationPhaseType phase,
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, 
+			Consumer<Authorization> applicableAutzConsumer, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (AuthorizationConstants.AUTZ_NO_ACCESS_URL.equals(operationUrl)){
@@ -211,6 +219,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						LOGGER.trace("  {} not applicable for target {}, none of the target specifications match (breaking evaluation)",
 								autzHumanReadableDesc, object);
 						continue;
+					}
+					
+					if (applicableAutzConsumer != null) {
+						applicableAutzConsumer.accept(autz);
 					}
 
 					// authority is applicable to this situation. now we can process the decision.
@@ -1542,5 +1554,24 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return decisions;
 	}
 
-
+	@Override
+	public MidPointPrincipal createDonorPrincipal(MidPointPrincipal attorneyPrincipal, String attorneyAuthorizationAction, PrismObject<UserType> donor, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		if (attorneyPrincipal.getAttorney() != null) {
+			throw new UnsupportedOperationException("Transitive attorney is not supported yet");
+		}
+		
+		AuthorizationLimitationsCollector limitationsCollector = new AuthorizationLimitationsCollector();
+		boolean authorized = isAuthorizedInternal(attorneyPrincipal, attorneyAuthorizationAction, null, donor, null, null, null, limitationsCollector, task, result);
+		if (!authorized) {
+			failAuthorization(attorneyAuthorizationAction, null, donor, null, null, result);
+		}
+		
+		MidPointPrincipal donorPrincipal = securityContextManager.getUserProfileService().getPrincipal(donor, limitationsCollector, result);
+		donorPrincipal.setAttorney(attorneyPrincipal.getUser());
+		
+		// chain principals so we can easily drop the power of attorney and return back to original identity
+		donorPrincipal.setPreviousPrincipal(attorneyPrincipal);
+		
+		return donorPrincipal;
+	}
 }
