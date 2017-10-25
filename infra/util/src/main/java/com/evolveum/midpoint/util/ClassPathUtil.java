@@ -194,7 +194,7 @@ public class ClassPathUtil {
         if (srcUrl.toString().contains("!/")) {
             String uri = srcUrl.toString().split("!/")[0].replace("jar:", "");
             // file:<ABSOLUTE_PATH>/midpoint.war
-            URI srcFileUri = new URI(uri);
+            URI srcFileUri = URI.create(uri);
             File srcFile = new File(srcFileUri);
             JarFile jar = new JarFile(srcFile);
             Enumeration<JarEntry> entries = jar.entries();
@@ -209,7 +209,9 @@ public class ClassPathUtil {
                 }
 
                 // prepare destination file
-                String filepath = jarEntry.getName().substring(srcPath.length());
+                String entryName = jarEntry.getName();
+
+                String filepath = entryName.substring(entryName.indexOf(srcPath) + srcPath.length());
                 File dstFile = new File(dstPath, filepath);
 
                 if (!overwrite && dstFile.exists()) {
