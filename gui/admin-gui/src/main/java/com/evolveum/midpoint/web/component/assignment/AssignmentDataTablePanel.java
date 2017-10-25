@@ -82,13 +82,16 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
     private IModel<RelationTypes> relationModel = Model.of(RelationTypes.MEMBER);
 
     public AssignmentDataTablePanel(String id, IModel<List<AssignmentEditorDto>> assignmentsModel, PageBase pageBase){
-        super(id, assignmentsModel, pageBase);
+        super(id, assignmentsModel);
         initPaging();
-        initLayout();
+        
     }
 
-    private void initLayout(){
-        WebMarkupContainer assignmentsContainer = new WebMarkupContainer(ID_ASSIGNMENTS);
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    
+    	WebMarkupContainer assignmentsContainer = new WebMarkupContainer(ID_ASSIGNMENTS);
         assignmentsContainer.setOutputMarkupId(true);
         add(assignmentsContainer);
 
@@ -102,7 +105,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 TypedAssignablePanel panel = new TypedAssignablePanel(
-                        getPageBase().getMainPopupBodyId(), RoleType.class, true, getPageBase()) {
+                        getPageBase().getMainPopupBodyId(), RoleType.class) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -133,7 +136,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
 
     private void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<ObjectType> assignmentsList, QName relation){
         if (assignmentsList == null || assignmentsList.isEmpty()){
-                warn(pageBase.getString("AssignmentTablePanel.message.noAssignmentSelected"));
+                warn(getPageBase().getString("AssignmentTablePanel.message.noAssignmentSelected"));
                 target.add(getPageBase().getFeedbackPanel());
                 return;
         }
@@ -187,7 +190,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
         };
         BoxedTablePanel<AssignmentEditorDto> assignmentTable = new BoxedTablePanel<AssignmentEditorDto>(ID_ASSIGNMENTS_TABLE,
                 assignmentsProvider, initColumns(), UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE,
-                (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)){
+                (int) getPageBase().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)){
             private static final long serialVersionUID = 1L;
 
 //            @Override
@@ -198,7 +201,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
 
             @Override
             public int getItemsPerPage() {
-                return pageBase.getSessionStorage().getUserProfile().getTables().get(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE);
+                return getPageBase().getSessionStorage().getUserProfile().getTables().get(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE);
             }
 
         };
@@ -344,7 +347,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
         });
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI)) {
-            columns.add(new InlineMenuButtonColumn<AssignmentEditorDto>(getAssignmentMenuActions(), 1, pageBase));
+            columns.add(new InlineMenuButtonColumn<AssignmentEditorDto>(getAssignmentMenuActions(), 1, getPageBase()));
         }
         return columns;
     }
@@ -442,10 +445,10 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
     }
 
     private AssignmentsTabStorage getAssignmentsStorage(){
-        return pageBase.getSessionStorage().getAssignmentsTabStorage();
+        return getPageBase().getSessionStorage().getAssignmentsTabStorage();
     }
 
     private void initPaging(){
-        getAssignmentsStorage().setPaging(ObjectPaging.createPaging(0, (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
+        getAssignmentsStorage().setPaging(ObjectPaging.createPaging(0, (int) getPageBase().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
     }
 }

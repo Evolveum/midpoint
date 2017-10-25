@@ -47,11 +47,8 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractAssignmentListPanel.class);
 
-    protected PageBase pageBase;
-
-    public AbstractAssignmentListPanel(String id, IModel<List<AssignmentEditorDto>> assignmentsModel, PageBase pageBase){
+    public AbstractAssignmentListPanel(String id, IModel<List<AssignmentEditorDto>> assignmentsModel){
         super(id, assignmentsModel);
-        this.pageBase = pageBase;
     }
 
     protected void deleteAssignmentPerformed(AjaxRequestTarget target, AssignmentEditorDto dto) {
@@ -68,7 +65,7 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
     }
 
     public Popupable getDeleteAssignmentPopupContent(AssignmentEditorDto dto) {
-        return new ConfirmationPanel(pageBase.getMainPopupBodyId(), new AbstractReadOnlyModel<String>() {
+        return new ConfirmationPanel(getPageBase().getMainPopupBodyId(), new AbstractReadOnlyModel<String>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -147,11 +144,11 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
             }
             if (object instanceof UserType) {
                 AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object,
-                        SchemaConstants.ORG_DEPUTY, pageBase);
+                        SchemaConstants.ORG_DEPUTY, getPageBase());
                 dto.getTargetRef().setRelation(relation);
                 return dto;
             } else {
-                AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object, pageBase);
+                AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object, getPageBase());
                 dto.getTargetRef().setRelation(relation);
                 return dto;
             }
@@ -200,7 +197,7 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
 
         return selected;
     }
-
+    
     protected String getNoAssignmentsSelectedMessage(){
         return getString("AssignmentTablePanel.message.noAssignmentSelected");
     }
