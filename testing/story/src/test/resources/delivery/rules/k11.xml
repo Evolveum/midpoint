@@ -20,15 +20,15 @@ Expects the following extension items:
  - attributeX, valueX (X = 1..9)
  - remediatorRef
 
-Matches if (for any N) the value of 'attributeN' is different from 'valueN'.
+Matches if (for any N) the value of 'attributeN' is equal to 'valueN'.
 
 -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-		oid="db0eadd1-3e2b-4dad-801e-80700f2d11e5">
-	<name>k10</name>
+		oid="72d69ea9-dc0a-4769-b0a4-282f40226de2">
+	<name>k11</name>
 	<inducement>
 		<policyRule>
 			<policyConstraints>
@@ -39,7 +39,7 @@ Matches if (for any N) the value of 'attributeN' is different from 'valueN'.
 								rulesLib.execute('evaluateAttributeValuePairs', [
 									object : object,
 									ruleEvaluationContext : ruleEvaluationContext,
-									failIfDifferent : true
+									failIfDifferent : false
 								])
 							</code>
 						</script>
