@@ -47,7 +47,8 @@ http://www.springframework.org/schema/context
         <beans:constructor-arg value="/login"/>
     </beans:bean>
 
-	<!-- add following: entry-point-ref="casEntryPoint"  to the http element before create-session attribute -->
+	<!-- add following: entry-point-ref="casEntryPoint"  to the http element before create-session attribute and also remove
+		entry-point-ref="wicketAuthenticationEntryPoint" -->
     <http create-session="never" auto-config="true" use-expressions="false"
           access-decision-manager-ref="accessDecisionManager" entry-point-ref="wicketAuthenticationEntryPoint">
 <!--         <intercept-url pattern="/registration" /> -->
