@@ -39,7 +39,7 @@ Matches if (for any N) the value of 'attributeN' is equal to 'valueN'.
 								rulesLib.execute('evaluateAttributeValuePairs', [
 									object : object,
 									ruleEvaluationContext : ruleEvaluationContext,
-									failIfDifferent : false
+									assumeEquality : false
 								])
 							</code>
 						</script>

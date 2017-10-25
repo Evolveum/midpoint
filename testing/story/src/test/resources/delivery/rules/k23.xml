@@ -16,35 +16,26 @@
   -->
 
 <!--
+The currently unassigned role has at least one other assignee.
+
 Expects the following extension items:
- - attributeX, valueX (X = 1..9)
  - remediatorRef
 
-Matches if (for any N) the value of 'attributeN' is different from 'valueN'.
+Matches if the currently unassigned role is not assigned to any other user.
 
 -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-		oid="db0eadd1-3e2b-4dad-801e-80700f2d11e5">
-	<name>k10</name>
+		oid="a19ede0a-94ff-4edd-990b-699b3ad7ab94">
+	<name>k23</name>
 	<inducement>
 		<policyRule>
 			<policyConstraints>
-				<objectState>
-					<expression>
-						<script>
-							<code>
-								rulesLib.execute('evaluateAttributeValuePairs', [
-									object : object,
-									ruleEvaluationContext : ruleEvaluationContext,
-									assumeEquality : true
-								])
-							</code>
-						</script>
-					</expression>
-				</objectState>
+				<minAssignees>
+					<multiplicity>1</multiplicity>
+				</minAssignees>
 			</policyConstraints>
 			<policyActions>
 				<enforcement>
