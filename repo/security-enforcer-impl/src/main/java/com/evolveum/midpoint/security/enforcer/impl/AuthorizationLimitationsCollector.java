@@ -75,11 +75,9 @@ public class AuthorizationLimitationsCollector implements Consumer<Authorization
 		while (actionIterator.hasNext()) {
 			String autzAction = actionIterator.next();
 			if (!limitActions.contains(autzAction)) {
-				LOGGER.info("AAAAA: removing {}", autzAction);
 				actionIterator.remove();
 			}
 		}
-		LOGGER.info("AAAAA: lim: {}", limitedAutz);
 		if (limitedAutz.getAction().isEmpty()) {
 			return Collections.EMPTY_LIST;
 		}
