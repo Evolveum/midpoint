@@ -40,6 +40,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -81,6 +82,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelAuditService;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -3682,37 +3684,51 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 	}
 
-	protected void assertLoggedInUser(String username) {
+	protected void assertLoggedInUsername(String username) {
+		MidPointPrincipal midPointPrincipal = getSecurityContextPrincipal();
+		UserType user = midPointPrincipal.getUser();
+		if (user == null) {
+			if (username == null) {
+				return;
+			} else {
+				AssertJUnit.fail("Expected logged in user '"+username+"' but there was no user in the spring security context");
+			}
+		}
+		assertEquals("Wrong logged-in user", username, user.getName().getOrig());
+	}
+	
+	protected void assertLoggedInUserOid(String userOid) {
+		MidPointPrincipal midPointPrincipal = getSecurityContextPrincipal();
+		assertPrincipalUserOid(midPointPrincipal, userOid);
+	}
+	
+	protected void assertPrincipalUserOid(MidPointPrincipal principal, String userOid) {
+		UserType user = principal.getUser();
+		if (user == null) {
+			if (userOid == null) {
+				return;
+			} else {
+				AssertJUnit.fail("Expected user "+userOid+" in principal "+principal+" but there was none");
+			}
+		}
+		assertEquals("Wrong user OID in principal", userOid, user.getOid());
+	}
+	
+	protected MidPointPrincipal getSecurityContextPrincipal() {
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 		Authentication authentication = securityContext.getAuthentication();
 		if (authentication == null) {
-			if (username == null) {
-				return;
-			} else {
-				AssertJUnit.fail("Expected logged in user '"+username+"' but there was no authentication in the spring security context");
-			}
+			return null;
 		}
 		Object principal = authentication.getPrincipal();
 		if (principal == null) {
-			if (username == null) {
-				return;
-			} else {
-				AssertJUnit.fail("Expected logged in user '"+username+"' but there was no principal in the spring security context");
-			}
+			return null;
 		}
 		if (principal instanceof MidPointPrincipal) {
-			MidPointPrincipal midPointPrincipal = (MidPointPrincipal)principal;
-			UserType user = midPointPrincipal.getUser();
-			if (user == null) {
-				if (username == null) {
-					return;
-				} else {
-					AssertJUnit.fail("Expected logged in user '"+username+"' but there was no user in the spring security context");
-				}
-			}
-			assertEquals("Wrong logged-in user", username, user.getName().getOrig());
+			return (MidPointPrincipal)principal;
 		} else {
-			AssertJUnit.fail("Expected logged in user '"+username+"' but there was unknown principal in the spring security context: "+principal);
+			AssertJUnit.fail("Unknown principal in the spring security context: "+principal);
+			return null; // not reached
 		}
 	}
 
@@ -3725,7 +3741,61 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 		assertNull("Unexpected authentication", securityContext.getAuthentication());
 	}
+	
+	protected void assertSecurityContextPrincipalAttorneyOid(String attotrneyOid) {
+		MidPointPrincipal midPointPrincipal = getSecurityContextPrincipal();
+		assertPrincipalAttorneyOid(midPointPrincipal, attotrneyOid);
+	}
+		
+	protected void assertPrincipalAttorneyOid(MidPointPrincipal principal, String attotrneyOid) {
+		UserType attorney = principal.getAttorney();
+		if (attorney == null) {
+			if (attotrneyOid == null) {
+				return;
+			} else {
+				AssertJUnit.fail("Expected attorney "+attotrneyOid+" in principal "+principal+" but there was none");
+			}
+		}
+		assertEquals("Wrong attroney OID in principal", attotrneyOid, attorney.getOid());
+	}
 
+	protected Collection<Authorization> getSecurityContextAuthorizations() {
+		MidPointPrincipal midPointPrincipal = getSecurityContextPrincipal();
+		if (midPointPrincipal == null) {
+			return null;
+		}
+		return midPointPrincipal.getAuthorities();
+	}
+	
+	protected void assertAuthorizationActions(String message, Collection<Authorization> autzs, String... expectedActions) {
+		Collection<String> actualActions = autzs.stream()
+			.map(a -> a.getAction())
+			.flatMap(List::stream)
+			.collect(Collectors.toList());
+		PrismAsserts.assertEqualsCollectionUnordered(message, actualActions, expectedActions);
+	}
+	
+	protected void assertSecurityContextAuthorizationActions(String... expectedActions) {
+		Collection<Authorization> securityContextAuthorizations = getSecurityContextAuthorizations();
+		assertAuthorizationActions("Wrong authorizations in security context", securityContextAuthorizations, expectedActions);
+	}
+	
+	protected void assertSecurityContextAuthorizationActions(ModelAuthorizationAction... expectedModelActions) {
+		Collection<Authorization> securityContextAuthorizations = getSecurityContextAuthorizations();
+		String[] expectedActions = new String[expectedModelActions.length];
+		for (int i=0;i<expectedModelActions.length;i++) {
+			expectedActions[i] = expectedModelActions[i].getUrl();
+		}
+		assertAuthorizationActions("Wrong authorizations in security context", securityContextAuthorizations, expectedActions);
+	}
+	
+	protected void assertSecurityContextNoAuthorizationActions() {
+		Collection<Authorization> securityContextAuthorizations = getSecurityContextAuthorizations();
+		if (securityContextAuthorizations != null && !securityContextAuthorizations.isEmpty()) {
+			fail("Unexpected authorizations in security context: "+securityContextAuthorizations);
+		}
+	}
+	
 	protected void displayAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".displayAllUsers");
 		OperationResult result = task.getResult();

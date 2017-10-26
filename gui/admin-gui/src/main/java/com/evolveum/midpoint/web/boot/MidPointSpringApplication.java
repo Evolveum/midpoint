@@ -88,11 +88,17 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     public static void main(String[] args) {
         System.setProperty("xml.catalog.className", CatalogImpl.class.getName());
 
-        SpringApplication.run(MidPointSpringApplication.class, args);
+        configureApplication(new SpringApplicationBuilder()).run(args);
     }
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return configureApplication(application);
+    }
+
+    private static SpringApplicationBuilder configureApplication(SpringApplicationBuilder application) {
+        System.setProperty("spring.config.location", "${midpoint.home}/");
+
         return application.sources(MidPointSpringApplication.class);
     }
 
@@ -178,7 +184,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
                     "/error/404"));
             container.addErrorPages(new ErrorPage(HttpStatus.GONE,
                     "/error/410"));
-            container.addErrorPages(new ErrorPage(HttpStatus.UNAUTHORIZED,
+            container.addErrorPages(new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR,
                     "/error"));
         }
     }

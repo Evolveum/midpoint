@@ -27,6 +27,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -66,7 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSecurityAdvanced extends AbstractSecurityTest {
 
-	private static final String AUTHORIZATION_ACTION_WORKITEMS = "http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItemsMyRequests";
+	private static final String AUTHORIZATION_ACTION_WORKITEMS = "http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myWorkItems";
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -1277,6 +1279,10 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ATTORNEY_CARIBBEAN_UNLIMITED_OID);
         
+        cleanupAutzTest(USER_BARBOSSA_OID);
+        // Give some roles to barbossa first to really do something when we switch identity to him
+        assignRole(USER_BARBOSSA_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_OID);
+        
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         login(USER_JACK_USERNAME);
@@ -1294,11 +1300,44 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         
         ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
         display("donorFilterAll", donorFilterAll);
-        assertSearchFilter(UserType.class, donorFilterAll, 2);
+        assertSearchFilter(UserType.class, donorFilterAll, USER_JACK_OID, USER_BARBOSSA_OID);
+        
+        assertLoggedInUsername(USER_JACK_USERNAME);
+        assertLoggedInUserOid(USER_JACK_OID);
+        assertSecurityContextAuthorizationActions(ModelAuthorizationAction.READ, ModelAuthorizationAction.ATTORNEY);
+        
+        MidPointPrincipal donorPrincipal = assumePowerOfAttorneyAllow(USER_BARBOSSA_OID);
+        assertPrincipalAttorneyOid(donorPrincipal, USER_JACK_OID);
+        
+        assertLoggedInUserOid(USER_BARBOSSA_OID);
+        assertSecurityContextPrincipalAttorneyOid(USER_JACK_OID);
+        assertSecurityContextAuthorizationActions(ModelAuthorizationAction.READ, ModelAuthorizationAction.MODIFY, ModelAuthorizationAction.MODIFY);
+        
+        assertReadSomeModifySome(1);
+        
+        MidPointPrincipal attorneyPrincipal = dropPowerOfAttorneyAllow();
+        assertPrincipalAttorneyOid(attorneyPrincipal, null);
+        
+        assertLoggedInUserOid(USER_JACK_OID);
+        assertSecurityContextPrincipalAttorneyOid(null);
+        assertSecurityContextAuthorizationActions(ModelAuthorizationAction.READ, ModelAuthorizationAction.ATTORNEY);
+        
+        assertReadAllow();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        assumePowerOfAttorneyDeny(userRumRogersOid);
+        assumePowerOfAttorneyDeny(USER_GUYBRUSH_OID);
+        
+        // Make sure denied operation does not change security context
+        assertLoggedInUserOid(USER_JACK_OID);
+        assertSecurityContextPrincipalAttorneyOid(null);
         
         assertGlobalStateUntouched();
 	}
 	
+
 	/**
 	 * Attorney for subordinate employees, but Jack has no org.
 	 * MID-4072, MID-4205
@@ -1310,6 +1349,8 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ATTORNEY_MANAGER_WORKITEMS_OID);
+        
+        cleanupUnassign(USER_BARBOSSA_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_OID);
         
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1334,6 +1375,16 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         display("donorFilterWorkitems", donorFilterWorkitems);
         assertSearchFilter(UserType.class, donorFilterWorkitems, 0);
         
+        assertLoggedInUserOid(USER_JACK_OID);
+        assertSecurityContextPrincipalAttorneyOid(null);
+        
+        assumePowerOfAttorneyDeny(USER_BARBOSSA_OID);
+        assumePowerOfAttorneyDeny(USER_GUYBRUSH_OID);
+        assumePowerOfAttorneyDeny(userRumRogersOid);
+        
+        assertLoggedInUserOid(USER_JACK_OID);
+        assertSecurityContextPrincipalAttorneyOid(null);
+        
         assertGlobalStateUntouched();
 	}
 	
@@ -1349,8 +1400,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ATTORNEY_MANAGER_WORKITEMS_OID);
         assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER);
-        
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         login(USER_JACK_USERNAME);
 
@@ -1373,6 +1422,104 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         display("donorFilterWorkitems", donorFilterWorkitems);
         assertSearchFilter(UserType.class, donorFilterWorkitems, 4);
         
+        assertLoggedInUserOid(USER_JACK_OID);
+        assertSecurityContextPrincipalAttorneyOid(null);
+        
+        assumePowerOfAttorneyDeny(USER_BARBOSSA_OID);
+        
+        assertLoggedInUserOid(USER_JACK_OID);
+        assertSecurityContextPrincipalAttorneyOid(null);
+        assertSecurityContextAuthorizationActions(ModelAuthorizationAction.READ, ModelAuthorizationAction.ATTORNEY);
+        
+        assumePowerOfAttorneyAllow(userRumRogersOid);
+        
+        assertLoggedInUserOid(userRumRogersOid);
+        assertSecurityContextPrincipalAttorneyOid(USER_JACK_OID);
+        // No authorizations. Rum Rogers does not have any roles that would authorize anything
+        assertSecurityContextNoAuthorizationActions();
+        
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        dropPowerOfAttorneyAllow();
+        
+        assertLoggedInUserOid(USER_JACK_OID);
+        assertSecurityContextPrincipalAttorneyOid(null);
+        
+        assertSecurityContextAuthorizationActions(ModelAuthorizationAction.READ, ModelAuthorizationAction.ATTORNEY);
+        
+        assumePowerOfAttorneyDeny(USER_GUYBRUSH_OID);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * Similar to previous test, but now Rum Rogers has some authorizations.
+	 * MID-4072, MID-4205
+	 */
+	@Test
+    public void test235ManagerAttorneyRumRogersEntitled() throws Exception {
+		final String TEST_NAME = "test234ManagerAttorneyRum";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ATTORNEY_MANAGER_WORKITEMS_OID);
+        assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER);
+        
+        assignRole(userRumRogersOid, ROLE_APPROVER_OID);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadAllow();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
+        display("donorFilterAll", donorFilterAll);
+        assertSearchFilter(UserType.class, donorFilterAll, 4);
+        
+        ObjectFilter donorFilterWorkitems = modelInteractionService.getDonorFilter(UserType.class, null, AUTHORIZATION_ACTION_WORKITEMS, task, result);
+        display("donorFilterWorkitems", donorFilterWorkitems);
+        assertSearchFilter(UserType.class, donorFilterWorkitems, 4);
+        
+        assertLoggedInUserOid(USER_JACK_OID);
+        assertSecurityContextPrincipalAttorneyOid(null);
+        
+        assumePowerOfAttorneyDeny(USER_BARBOSSA_OID);
+        
+        assertLoggedInUserOid(USER_JACK_OID);
+        assertSecurityContextPrincipalAttorneyOid(null);
+        assertSecurityContextAuthorizationActions(ModelAuthorizationAction.READ, ModelAuthorizationAction.ATTORNEY);
+        
+        assumePowerOfAttorneyAllow(userRumRogersOid);
+        
+        assertLoggedInUserOid(userRumRogersOid);
+        assertSecurityContextPrincipalAttorneyOid(USER_JACK_OID);
+        assertSecurityContextAuthorizationActions(AUTHORIZATION_ACTION_WORKITEMS);
+        
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        dropPowerOfAttorneyAllow();
+        
+        assertLoggedInUserOid(USER_JACK_OID);
+        assertSecurityContextPrincipalAttorneyOid(null);
+        
+        assertSecurityContextAuthorizationActions(ModelAuthorizationAction.READ, ModelAuthorizationAction.ATTORNEY);
+        
+        assumePowerOfAttorneyDeny(USER_GUYBRUSH_OID);
+        
         assertGlobalStateUntouched();
 	}
 	
@@ -1391,7 +1538,8 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assignRole(USER_JACK_OID, ROLE_ATTORNEY_MANAGER_WORKITEMS_OID);
         assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER);
         
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        assignRole(userRumRogersOid, ROLE_APPROVER_OID);
+        assignRole(USER_BARBOSSA_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_OID);
 
         login(USER_JACK_USERNAME);
 
@@ -1410,10 +1558,51 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         display("donorFilterAll", donorFilterAll);
         assertSearchFilter(UserType.class, donorFilterAll, 5);
         
-        display("DONOR");
         ObjectFilter donorFilterWorkitems = modelInteractionService.getDonorFilter(UserType.class, null, AUTHORIZATION_ACTION_WORKITEMS, task, result);
         display("donorFilterWorkitems", donorFilterWorkitems);
         assertSearchFilter(UserType.class, donorFilterWorkitems, 5);
+        
+        assumePowerOfAttorneyAllow(USER_BARBOSSA_OID);
+        
+        assertLoggedInUserOid(USER_BARBOSSA_OID);
+        assertSecurityContextPrincipalAttorneyOid(USER_JACK_OID);
+        assertSecurityContextAuthorizationActions(ModelAuthorizationAction.READ, ModelAuthorizationAction.MODIFY, ModelAuthorizationAction.MODIFY);
+        
+        assertReadSomeModifySome(3);
+        
+        dropPowerOfAttorneyAllow();
+        
+        assertLoggedInUserOid(USER_JACK_OID);
+        assertSecurityContextPrincipalAttorneyOid(null);
+        assertSecurityContextAuthorizationActions(ModelAuthorizationAction.READ, ModelAuthorizationAction.ATTORNEY,
+        		ModelAuthorizationAction.READ, ModelAuthorizationAction.ATTORNEY);
+        
+        assumePowerOfAttorneyAllow(userRumRogersOid);
+        
+        assertLoggedInUserOid(userRumRogersOid);
+        assertSecurityContextPrincipalAttorneyOid(USER_JACK_OID);
+        assertSecurityContextAuthorizationActions(AUTHORIZATION_ACTION_WORKITEMS);
+        
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        dropPowerOfAttorneyAllow();
+        
+        assertLoggedInUserOid(USER_JACK_OID);
+        assertSecurityContextPrincipalAttorneyOid(null);
+        
+        assertSecurityContextAuthorizationActions(ModelAuthorizationAction.READ, ModelAuthorizationAction.ATTORNEY,
+        		ModelAuthorizationAction.READ, ModelAuthorizationAction.ATTORNEY);
+        
+        assumePowerOfAttorneyDeny(USER_GUYBRUSH_OID);
+
+        login(USER_ADMINISTRATOR_USERNAME);
+        
+        // CLEANUP
+        cleanupUnassign(userRumRogersOid, ROLE_APPROVER_OID);
+        cleanupUnassign(USER_BARBOSSA_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_OID);
         
         assertGlobalStateUntouched();
 	}

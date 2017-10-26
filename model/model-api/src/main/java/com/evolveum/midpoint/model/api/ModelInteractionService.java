@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.*;
@@ -310,4 +311,10 @@ public interface ModelInteractionService {
 	 * @return
 	 */
 	ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType);
+	
+	MidPointPrincipal assumePowerOfAttorney(PrismObject<UserType> donor, Task task, OperationResult result) 
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+	
+	MidPointPrincipal dropPowerOfAttorney(Task task, OperationResult result) 
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 }

@@ -43,6 +43,8 @@ public interface SecurityContextManager {
 	MidPointPrincipal getPrincipal() throws SecurityViolationException;
 
     void setupPreAuthenticatedSecurityContext(Authentication authentication);
+    
+    void setupPreAuthenticatedSecurityContext(MidPointPrincipal principal);
 
 	void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) throws SchemaException;
 	

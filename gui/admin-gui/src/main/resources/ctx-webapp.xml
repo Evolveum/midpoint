@@ -23,8 +23,6 @@
      http://www.springframework.org/schema/context/spring-context-3.0.xsd"
        default-lazy-init="true" default-autowire="byName">
 
-<context:property-placeholder location="classpath:midpoint-config.properties"/> <!-- change classpath to e.g ${midpoint.home} -->
-
     <context:annotation-config/>
     <context:spring-configured/>
     <context:component-scan base-package="com.evolveum.midpoint.web"/>
