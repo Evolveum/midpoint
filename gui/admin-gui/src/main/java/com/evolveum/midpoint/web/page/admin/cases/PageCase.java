@@ -8,6 +8,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -90,8 +92,6 @@ public class PageCase  extends PageAdminCases {
             if (emptyCase) {
                 LOGGER.trace("Loading case: New case (creating)");
                 CaseType newCase = new CaseType();
-                //CaseWorkItemType newCaseWorkItem = new CaseWorkItemType();
-                newCase.beginWorkItem();
                 getMidpointApplication().getPrismContext().adopt(newCase);
                 caseInstance = newCase.asPrismObject();
             } else {
@@ -175,11 +175,9 @@ public class PageCase  extends PageAdminCases {
     }
 
     private String getObjectOidParameter() {
-        LOGGER.debug("PAGE CASE getObjectOidParameter");
         PageParameters parameters = getPageParameters();
-        LOGGER.trace("Page parameters: {}", parameters);
         StringValue oidValue = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-        LOGGER.trace("OID parameter: {}", oidValue);
+
         if (oidValue == null) {
             return null;
         }
@@ -191,7 +189,6 @@ public class PageCase  extends PageAdminCases {
     }
 
     private boolean isEditingFocus() {
-        LOGGER.debug("PAGE CASE isEditingFocus");
         return getObjectOidParameter() != null;
     }
 
@@ -209,10 +206,13 @@ public class PageCase  extends PageAdminCases {
             }
             if (delta.isAdd()) {
                 CaseType object = delta.getObjectToAdd().asObjectable();
-                createCaseWorkItems(object, task, result);
+                if (object.getName() == null || object.getName().getOrig().isEmpty()) {
+                    object.setName(new PolyStringType(OidUtil.generateOid()));
+                }
                 if (object.getState() == null || object.getState().isEmpty()) {
                     object.setState("open");
                 }
+                createCaseWorkItems(object, task, result);
             }
             if (delta.getPrismContext() == null) {
                 getPrismContext().adopt(delta);
