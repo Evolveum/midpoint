@@ -112,9 +112,13 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     	PrismObject<UserType> user;
         try {
             user = findByUsername(username, result);
+
+            if (user == null) {
+                throw new ObjectNotFoundException("Couldn't find user with name '" + username + "'");
+            }
         } catch (ObjectNotFoundException ex) {
-        	LOGGER.trace("Couldn't find user with name '{}', reason: {}.", username, ex.getMessage(), ex);
-        	throw ex;
+            LOGGER.trace("Couldn't find user with name '{}', reason: {}.", username, ex.getMessage(), ex);
+            throw ex;
         } catch (Exception ex) {
             LOGGER.warn("Error getting user with name '{}', reason: {}.", username, ex.getMessage(), ex);
             throw new SystemException(ex.getMessage(), ex);

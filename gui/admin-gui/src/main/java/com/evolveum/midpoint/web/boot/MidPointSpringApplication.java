@@ -88,11 +88,17 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     public static void main(String[] args) {
         System.setProperty("xml.catalog.className", CatalogImpl.class.getName());
 
-        SpringApplication.run(MidPointSpringApplication.class, args);
+        configureApplication(new SpringApplicationBuilder()).run(args);
     }
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return configureApplication(application);
+    }
+
+    private static SpringApplicationBuilder configureApplication(SpringApplicationBuilder application) {
+        System.setProperty("spring.config.location", "${midpoint.home}/");
+
         return application.sources(MidPointSpringApplication.class);
     }
 

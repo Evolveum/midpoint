@@ -42,18 +42,18 @@ public class LdapSecurityConfig {
     @Value("${auth.ldap.host}")
     private String ldapHost;
 
-    @Value("${auth.ldap.manager}")
+    @Value("${auth.ldap.manager:#{null}}")
     private String ldapUserDn;
-    @Value("${auth.ldap.manager.password}")
+    @Value("${auth.ldap.password:#{null}}")
     private String ldapUserPassword;
 
-    @Value("${auth.ldap.dn.pattern:}")
+    @Value("${auth.ldap.dn.pattern:#{null}}")
     private String ldapDnPattern;
 
-    @Value("${auth.ldap.search.pattern:}")
+    @Value("${auth.ldap.search.pattern:#{null}}")
     private String ldapSearchPattern;
 
-    @Value("${auth.ldap.search.subtree}")
+    @Value("${auth.ldap.search.subtree:true}")
     private boolean searchSubtree;
 
     @Bean
