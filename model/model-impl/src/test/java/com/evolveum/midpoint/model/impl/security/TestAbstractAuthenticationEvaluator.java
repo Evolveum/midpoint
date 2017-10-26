@@ -20,7 +20,6 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.util.function.Predicate;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -135,7 +134,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 			
 			@Override
 			public MidPointPrincipal getPrincipal(PrismObject<UserType> user,
-					Predicate<Authorization> authorizationLimiter, OperationResult result)
+					AuthorizationTransformer authorizationLimiter, OperationResult result)
 					throws SchemaException {
 				MidPointPrincipal principal = userProfileService.getPrincipal(user);
 				addFakeAuthorization(principal);

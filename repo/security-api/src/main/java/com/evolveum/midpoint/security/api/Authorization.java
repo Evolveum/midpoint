@@ -37,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorT
  *
  */
 public class Authorization implements GrantedAuthority, DebugDumpable {
+	private static final long serialVersionUID = 1L;
 
 	private AuthorizationType authorizationType;
 	private String sourceDescription;
@@ -107,6 +108,13 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 	public AuthorizationLimitationsType getLimitations() {
 		return authorizationType.getLimitations();
 	}
+	
+	public Authorization clone() {
+		AuthorizationType authorizationTypeClone = authorizationType.clone();
+		Authorization clone = new Authorization(authorizationTypeClone);
+		clone.sourceDescription = this.sourceDescription;
+		return clone;
+	}
 
 	public String getHumanReadableDesc() {
 		StringBuilder sb = new StringBuilder();
@@ -120,15 +128,6 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 			sb.append(sourceDescription);
 		}
 		return sb.toString();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
-	 */
-	@Override
-	public String debugDump() {
-		// TODO Auto-generated method stub
-		return debugDump(0);
 	}
 
 	/* (non-Javadoc)

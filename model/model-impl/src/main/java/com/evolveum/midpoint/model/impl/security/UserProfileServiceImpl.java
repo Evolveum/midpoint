@@ -49,6 +49,7 @@ import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
@@ -135,7 +136,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     }
     
     @Override
-    public MidPointPrincipal getPrincipal(PrismObject<UserType> user, Predicate<Authorization> authorizationLimiter, OperationResult result) throws SchemaException {
+    public MidPointPrincipal getPrincipal(PrismObject<UserType> user, AuthorizationTransformer authorizationTransformer, OperationResult result) throws SchemaException {
         if (user == null) {
             return null;
         }
@@ -144,7 +145,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
     	userComputer.recompute(user);
         MidPointPrincipal principal = new MidPointPrincipal(user.asObjectable());
-        initializePrincipalFromAssignments(principal, systemConfiguration, authorizationLimiter);
+        initializePrincipalFromAssignments(principal, systemConfiguration, authorizationTransformer);
         return principal;
     }
     
@@ -183,7 +184,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         return list.get(0);
     }
 
-	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, Predicate<Authorization> authorizationLimiter) throws SchemaException {
+	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer) throws SchemaException {
 		UserType userType = principal.getUser();
 
 		Collection<Authorization> authorizations = principal.getAuthorities();
@@ -228,7 +229,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 						assignmentIdi.recompute();
 						EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userType, userType.toString(), task, result);
 						if (assignment.isValid()) {
-							addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationLimiter);
+							addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationTransformer);
 							adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
 						}
 						for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
@@ -255,13 +256,18 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         principal.setAdminGuiConfiguration(AdminGuiConfigTypeUtil.compileAdminGuiConfiguration(adminGuiConfigurations, systemConfiguration));
 	}
 
-	private void addAuthorizations(Collection<Authorization> targetCollection, Collection<Authorization> sourceCollection, Predicate<Authorization> authorizationLimiter) {
+	private void addAuthorizations(Collection<Authorization> targetCollection, Collection<Authorization> sourceCollection, AuthorizationTransformer authorizationTransformer) {
 		if (sourceCollection == null) {
 			return;
 		}
 		for (Authorization autz: sourceCollection) {
-			if (authorizationLimiter == null || authorizationLimiter.test(autz)) {
+			if (authorizationTransformer == null) {
 				targetCollection.add(autz);
+			} else {
+				Collection<Authorization> transformedAutzs = authorizationTransformer.transform(autz);
+				if (transformedAutzs != null) {
+					targetCollection.addAll(transformedAutzs);
+				}
 			}
 		}
 	}

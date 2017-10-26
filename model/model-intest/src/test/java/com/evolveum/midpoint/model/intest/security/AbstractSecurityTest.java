@@ -334,6 +334,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	
 	protected static final File ROLE_ATTORNEY_MANAGER_WORKITEMS_FILE = new File(TEST_DIR, "role-attorney-manager-workitems.xml");
 	protected static final String ROLE_ATTORNEY_MANAGER_WORKITEMS_OID = "5cf5b6c8-b968-11e7-b77d-6b029450f900";
+	
+	protected static final File ROLE_APPROVER_FILE = new File(TEST_DIR, "role-approver.xml");
+	protected static final String ROLE_APPROVER_OID = "1d8d9bec-ba51-11e7-95dc-f3520461c08d";
 
 	protected static final File ORG_REQUESTABLE_FILE = new File(TEST_DIR,"org-requestable.xml");
 	protected static final String ORG_REQUESTABLE_OID = "8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2";
@@ -373,7 +376,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 67;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 68;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 
 	protected String userRumRogersOid;
@@ -455,6 +458,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_EXPRESSION_READ_ROLES_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ATTORNEY_CARIBBEAN_UNLIMITED_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ATTORNEY_MANAGER_WORKITEMS_FILE, initResult);
+		repoAddObjectFromFile(ROLE_APPROVER_FILE, initResult);
 
 		repoAddObjectFromFile(ORG_REQUESTABLE_FILE, initResult);
 		repoAddObjectFromFile(ORG_INDIRECT_PIRATE_FILE, initResult);
@@ -638,6 +642,10 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         if (expectedAssignments == 0) {
         	assertLinks(user, 0);
         }
+	}
+	
+	protected void cleanupUnassign(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		unassignRole(userOid, roleOid);
 	}
 
 	protected void cleanupAdd(File userLargoFile, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
@@ -1474,14 +1482,14 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	/**
 	 * Assert for "read some, modify some" roles
 	 */
-    protected void assertReadSomeModifySome() throws Exception {
+    protected void assertReadSomeModifySome(int exprectedJackAssignments) throws Exception {
     	assertReadAllow();
 
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_ADDITIONAL_NAME, PrismTestUtil.createPolyString("Captain"));
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("Jack", userJack);
-		assertUserJackReadSomeModifySome(userJack);
+		assertUserJackReadSomeModifySome(userJack, exprectedJackAssignments);
 		assertJackEditSchemaReadSomeModifySome(userJack);
 
         PrismObject<UserType> userGuybrush = findUserByUsername(USER_GUYBRUSH_USERNAME);
@@ -1514,7 +1522,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertDeleteDeny();
     }
     
-    protected void assertUserJackReadSomeModifySome(PrismObject<UserType> userJack) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+    protected void assertUserJackReadSomeModifySome(PrismObject<UserType> userJack, int exprectedJackAssignments) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_NAME, PrismTestUtil.createPolyString(USER_JACK_USERNAME));
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
@@ -1525,7 +1533,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		PrismAsserts.assertNoItem(userJack, UserType.F_ADDITIONAL_NAME);
 		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
 		PrismAsserts.assertNoItem(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
-		assertAssignmentsWithTargets(userJack, 1);
+		assertAssignmentsWithTargets(userJack, exprectedJackAssignments);
     }
 
     protected void assertJackEditSchemaReadSomeModifySome(PrismObject<UserType> userJack) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {

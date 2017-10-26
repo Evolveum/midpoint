@@ -40,6 +40,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -81,6 +82,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelAuditService;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -3757,6 +3759,43 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertEquals("Wrong attroney OID in principal", attotrneyOid, attorney.getOid());
 	}
 
+	protected Collection<Authorization> getSecurityContextAuthorizations() {
+		MidPointPrincipal midPointPrincipal = getSecurityContextPrincipal();
+		if (midPointPrincipal == null) {
+			return null;
+		}
+		return midPointPrincipal.getAuthorities();
+	}
+	
+	protected void assertAuthorizationActions(String message, Collection<Authorization> autzs, String... expectedActions) {
+		Collection<String> actualActions = autzs.stream()
+			.map(a -> a.getAction())
+			.flatMap(List::stream)
+			.collect(Collectors.toList());
+		PrismAsserts.assertEqualsCollectionUnordered(message, actualActions, expectedActions);
+	}
+	
+	protected void assertSecurityContextAuthorizationActions(String... expectedActions) {
+		Collection<Authorization> securityContextAuthorizations = getSecurityContextAuthorizations();
+		assertAuthorizationActions("Wrong authorizations in security context", securityContextAuthorizations, expectedActions);
+	}
+	
+	protected void assertSecurityContextAuthorizationActions(ModelAuthorizationAction... expectedModelActions) {
+		Collection<Authorization> securityContextAuthorizations = getSecurityContextAuthorizations();
+		String[] expectedActions = new String[expectedModelActions.length];
+		for (int i=0;i<expectedModelActions.length;i++) {
+			expectedActions[i] = expectedModelActions[i].getUrl();
+		}
+		assertAuthorizationActions("Wrong authorizations in security context", securityContextAuthorizations, expectedActions);
+	}
+	
+	protected void assertSecurityContextNoAuthorizationActions() {
+		Collection<Authorization> securityContextAuthorizations = getSecurityContextAuthorizations();
+		if (securityContextAuthorizations != null && !securityContextAuthorizations.isEmpty()) {
+			fail("Unexpected authorizations in security context: "+securityContextAuthorizations);
+		}
+	}
+	
 	protected void displayAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".displayAllUsers");
 		OperationResult result = task.getResult();

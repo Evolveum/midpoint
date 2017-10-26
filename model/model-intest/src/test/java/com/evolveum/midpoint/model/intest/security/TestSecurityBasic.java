@@ -637,7 +637,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("Jack", userJack);
-		assertUserJackReadSomeModifySome(userJack);
+		assertUserJackReadSomeModifySome(userJack, 1);
 		assertJackEditSchemaReadSomeModifySome(userJack);
 
 		PrismObject<UserType> userGuybrush = findUserByUsername(USER_GUYBRUSH_USERNAME);
@@ -673,7 +673,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         // WHEN
         displayWhen(TEST_NAME);
 
-        assertReadSomeModifySome();
+        assertReadSomeModifySome(1);
 
         assertGlobalStateUntouched();
 	}

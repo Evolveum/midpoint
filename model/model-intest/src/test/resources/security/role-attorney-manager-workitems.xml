@@ -38,7 +38,7 @@
     		</orgRelation>
     	</object>
     	<limitations>
-    		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItemsMyRequests</action>
+    		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myWorkItems</action>
     	</limitations>
     </authorization>
     

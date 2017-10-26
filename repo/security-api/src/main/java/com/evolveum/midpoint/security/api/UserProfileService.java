@@ -46,7 +46,7 @@ public interface UserProfileService extends OwnerResolver {
 
     MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException;
     
-    MidPointPrincipal getPrincipal(PrismObject<UserType> user, Predicate<Authorization> authorizationLimiter, OperationResult result) throws SchemaException;
+    MidPointPrincipal getPrincipal(PrismObject<UserType> user, AuthorizationTransformer authorizationTransformer, OperationResult result) throws SchemaException;
 
     void updateUser(MidPointPrincipal principal);
     

@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.security.impl;
 
 import java.util.List;
-import java.util.function.Predicate;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -37,6 +36,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -106,7 +106,7 @@ public class UserProfileServiceMock implements UserProfileService, UserDetailsSe
     
     @Override
 	public MidPointPrincipal getPrincipal(PrismObject<UserType> user,
-			Predicate<Authorization> authorizationLimiter, OperationResult result) throws SchemaException {
+			AuthorizationTransformer authorizationLimiter, OperationResult result) throws SchemaException {
         if (user == null) {
             return null;
         }
