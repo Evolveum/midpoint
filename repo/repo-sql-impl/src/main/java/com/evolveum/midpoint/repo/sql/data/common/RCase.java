@@ -52,7 +52,7 @@ import java.util.Set;
 public class RCase extends RObject<CaseType> {
 
     private RPolyString name;
-
+    private String state;
     private REmbeddedReference objectRef;
     private Set<RCaseWorkItem> workItems = new HashSet<>();
 
@@ -63,6 +63,15 @@ public class RCase extends RObject<CaseType> {
 
     public void setName(RPolyString name) {
         this.name = name;
+    }
+
+    @Column
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 
     @Embedded
@@ -117,6 +126,7 @@ public class RCase extends RObject<CaseType> {
 			IdGeneratorResult generatorResult) throws DtoTranslationException {
 		RObject.copyFromJAXB(jaxb, repo, context, generatorResult);
         repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), context.prismContext));
+        repo.setState(jaxb.getState());
         for (CaseWorkItemType workItem : jaxb.getWorkItem()) {
             repo.getWorkItems().add(RCaseWorkItem.toRepo(repo, workItem, context));
         }

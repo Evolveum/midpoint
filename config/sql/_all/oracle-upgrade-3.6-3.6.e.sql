@@ -41,3 +41,11 @@ ALTER TABLE m_case_wi_reference
 FOREIGN KEY (owner_id, owner_owner_oid)
 REFERENCES m_case_wi;
 
+-- ----------------------------------------------
+
+ALTER TABLE m_case ADD state VARCHAR2(255 CHAR);
+ALTER TABLE m_case_wi ADD (
+  originalAssigneeRef_relation  VARCHAR2(157 CHAR),
+  originalAssigneeRef_targetOid VARCHAR2(36 CHAR),
+  originalAssigneeRef_type      NUMBER(10, 0)
+);

@@ -322,6 +322,7 @@ CREATE TABLE m_case (
   objectRef_relation  NVARCHAR(157) COLLATE database_default,
   objectRef_targetOid NVARCHAR(36) COLLATE database_default,
   objectRef_type      INT,
+  state               NVARCHAR(255) COLLATE database_default,
   oid       NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -331,6 +332,9 @@ CREATE TABLE m_case_wi (
   owner_oid              NVARCHAR(36) COLLATE database_default NOT NULL,
   closeTimestamp         DATETIME2,
   deadline               DATETIME2,
+  originalAssigneeRef_relation  NVARCHAR(157) COLLATE database_default,
+  originalAssigneeRef_targetOid NVARCHAR(36) COLLATE database_default,
+  originalAssigneeRef_type      INT,
   outcome                NVARCHAR(255) COLLATE database_default,
   performerRef_relation  NVARCHAR(157) COLLATE database_default,
   performerRef_targetOid NVARCHAR(36) COLLATE database_default,

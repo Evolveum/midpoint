@@ -1832,10 +1832,26 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected CaseType assertCase(String oid, String expectedState, String expectedResourceOid) throws ObjectNotFoundException, SchemaException {
+		return assertCase(oid, expectedState, expectedResourceOid, SystemObjectsType.USER_ADMINISTRATOR.value());
+	}
+
+	protected CaseType assertCase(String oid, String expectedState, String expectedResourceOid,
+			String... expectedOperators) throws ObjectNotFoundException, SchemaException {
 		CaseType aCase = assertCase(oid, expectedState);
 		assertNotNull("Missing objectRef in " + aCase, aCase.getObjectRef());
 		assertEquals("Wrong objectRef type in " + aCase, ResourceType.COMPLEX_TYPE, aCase.getObjectRef().getType());
 		assertEquals("Wrong resource OID in " + aCase, expectedResourceOid, aCase.getObjectRef().getOid());
+		Set<String> realOriginalAssignees = aCase.getWorkItem().stream()
+				.map(wi -> wi.getOriginalAssigneeRef().getOid())
+				.collect(Collectors.toSet());
+		HashSet<String> expectedOperatorsSet = new HashSet<>(Arrays.asList(expectedOperators));
+		assertEquals("Wrong set of originalAssignees", expectedOperatorsSet, realOriginalAssignees);
+		Set<String> realAssignees = aCase.getWorkItem().stream()
+				.flatMap(wi -> wi.getAssigneeRef().stream())
+				.map(ort -> ort.getOid())
+				.collect(Collectors.toSet());
+		assertEquals("Wrong set of assignees", expectedOperatorsSet, realAssignees);
+		assertEquals("Wrong # of work items", expectedOperators.length, aCase.getWorkItem().size());
 		return aCase;
 	}
 
