@@ -184,7 +184,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
                     "/error/404"));
             container.addErrorPages(new ErrorPage(HttpStatus.GONE,
                     "/error/410"));
-            container.addErrorPages(new ErrorPage(HttpStatus.UNAUTHORIZED,
+            container.addErrorPages(new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR,
                     "/error"));
         }
     }
