@@ -307,39 +307,18 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return sb.toString();
 	}
 
-	enum MessageKind { NORMAL, SHORT, /*LONG*/ }
-
 	@Override
 	public List<TreeNode<LocalizableMessage>> extractMessages() {
-		return extractMessages(MessageKind.NORMAL);
+		return EvaluatedPolicyRuleUtil.extractMessages(triggers, EvaluatedPolicyRuleUtil.MessageKind.NORMAL);
 	}
 
 	@Override
 	public List<TreeNode<LocalizableMessage>> extractShortMessages() {
-		return extractMessages(MessageKind.SHORT);
-	}
-
-	@SuppressWarnings("unchecked")
-	private List<TreeNode<LocalizableMessage>> extractMessages(MessageKind kind) {
-		List<TreeNode<EvaluatedPolicyRuleTrigger<?>>> triggerTreeList = EvaluatedPolicyRuleUtil.arrangeForPresentationInt(triggers);
-		List<TreeNode<LocalizableMessage>> messageTreeList = new ArrayList<>();
-		for (TreeNode<EvaluatedPolicyRuleTrigger<?>> tree : triggerTreeList) {
-			messageTreeList.add(tree.tranform(trigger -> getMessage(trigger, kind)));
-		}
-		return messageTreeList;
-	}
-
-	private LocalizableMessage getMessage(EvaluatedPolicyRuleTrigger<?> trigger, MessageKind kind) {
-		switch (kind) {
-			case NORMAL: return trigger.getMessage();
-			case SHORT: return trigger.getMessage();
-			default: throw new AssertionError(kind);
-		}
+		return EvaluatedPolicyRuleUtil.extractMessages(triggers, EvaluatedPolicyRuleUtil.MessageKind.SHORT);
 	}
 
 	/**
 	 * Honors "final" but not "hidden" flag.
-	 * @param options
 	 */
 
 	@Override

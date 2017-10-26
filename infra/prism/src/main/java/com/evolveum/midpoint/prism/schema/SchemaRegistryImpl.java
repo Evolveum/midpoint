@@ -363,24 +363,24 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 			throw new IllegalStateException("Namespace prefix mapper not set");
 		}
 		try {
-			LOGGER.info("initialize() starting");
+			LOGGER.trace("initialize() starting");
 			long start = System.currentTimeMillis();
 
 			initResolver();
 			long resolverDone = System.currentTimeMillis();
-			LOGGER.info("initResolver() done in {} ms", resolverDone - start);
+			LOGGER.trace("initResolver() done in {} ms", resolverDone - start);
 
 			parsePrismSchemas();
 			long prismSchemasDone = System.currentTimeMillis();
-			LOGGER.info("parsePrismSchemas() done in {} ms", prismSchemasDone - resolverDone);
+			LOGGER.trace("parsePrismSchemas() done in {} ms", prismSchemasDone - resolverDone);
 
 			parseJavaxSchema();
 			long javaxSchemasDone = System.currentTimeMillis();
-			LOGGER.info("parseJavaxSchema() done in {} ms", javaxSchemasDone - prismSchemasDone);
+			LOGGER.trace("parseJavaxSchema() done in {} ms", javaxSchemasDone - prismSchemasDone);
 
 			compileCompileTimeClassList();
 			long classesDone = System.currentTimeMillis();
-			LOGGER.info("compileCompileTimeClassList() done in {} ms", classesDone - javaxSchemasDone);
+			LOGGER.trace("compileCompileTimeClassList() done in {} ms", classesDone - javaxSchemasDone);
 
 			initialized = true;
 		} catch (SAXException ex) {

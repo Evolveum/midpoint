@@ -188,7 +188,7 @@ public class PagePreviewChanges extends PageAdmin {
 		mainForm.add(policyViolationsContainer);
 
 		WebMarkupContainer approvalsContainer = new WebMarkupContainer(ID_APPROVALS_CONTAINER);
-		approvalsContainer.add(new VisibleBehaviour(() -> !approvalsModel.getObject().isEmpty()));
+		approvalsContainer.add(new VisibleBehaviour(() -> policyViolationsModel.getObject().isEmpty() && !approvalsModel.getObject().isEmpty()));
 		approvalsContainer.add(new ApprovalProcessesPreviewPanel(ID_APPROVALS, approvalsModel));
 		mainForm.add(approvalsContainer);
 

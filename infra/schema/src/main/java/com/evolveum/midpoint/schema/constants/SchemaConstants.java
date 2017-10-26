@@ -541,6 +541,7 @@ public abstract class SchemaConstants {
 	public static final String POLICY_CONSTRAINTS_AFTER_KEY = "PolicyConstraints.after";
 	public static final String TECHNICAL_OBJECT_SPECIFICATION_KEY = "TechnicalObjectSpecification";
 	public static final String OBJECT_SPECIFICATION_KEY = "ObjectSpecification";
+	public static final String OBJECT_SPECIFICATION_WITH_PATH_KEY = "ObjectSpecificationWithPath";
 	public static final String POLICY_VIOLATION_EXCEPTION_AGGREGATE_KEY = "PolicyViolationException.message.aggregate";
 
 	//	// resetPassword

@@ -364,7 +364,9 @@ public final class WebComponentUtil {
 				.setModel(new Model<String>())
 				.setDefaultValue(localizableMessage.getFallbackMessage())
 				.setParameters(resolveArguments(localizableMessage.getArgs(), component));
-		return stringResourceModel.getString();
+		String rv = stringResourceModel.getString();
+		//System.out.println("GUI: Resolving [" + key + "]: to [" + rv + "]");
+		return rv;
 	}
 
 	private static Object[] resolveArguments(Object[] args, Component component) {

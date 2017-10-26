@@ -39,9 +39,9 @@ public class PolicyViolationException extends CommonException {
 
 	// TEMPORARY
 	// requires at least one message
-	public PolicyViolationException(List<LocalizableMessage> userFriendlyMessages) {
-		super(userFriendlyMessages.get(0));
-		userFriendlyMessages = userFriendlyMessages.subList(1, userFriendlyMessages.size());
+	public PolicyViolationException(String message, List<LocalizableMessage> userFriendlyMessages) {
+		super(message, null, userFriendlyMessages.get(0));
+		otherUserFriendlyMessages = userFriendlyMessages.subList(1, userFriendlyMessages.size());
 	}
 
 	public PolicyViolationException(Throwable cause) {

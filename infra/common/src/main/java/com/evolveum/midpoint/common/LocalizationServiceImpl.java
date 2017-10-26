@@ -63,6 +63,7 @@ public class LocalizationServiceImpl implements LocalizationService {
             try {
                 String value = source.getMessage(key, translated, locale);
                 if (StringUtils.isNotEmpty(value)) {
+                    //System.out.println("LSI: resolved [" + key + "] into [" + value + "]");
                     return value;
                 }
             } catch (NoSuchMessageException ex) {
