@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.schema.CatalogImpl;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
 import org.apache.cxf.transport.servlet.CXFServlet;
+import org.apache.wicket.Application;
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
@@ -122,9 +123,9 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
         registration.setDispatcherTypes(DispatcherType.REQUEST, DispatcherType.ERROR);
         registration.addUrlPatterns("/*");
         registration.addInitParameter(WicketFilter.FILTER_MAPPING_PARAM, "/*");
-        registration.addInitParameter("configuration", "deployment");
+        registration.addInitParameter(Application.CONFIGURATION, "deployment");     // development
         registration.addInitParameter("applicationBean", "midpointApplication");
-        registration.addInitParameter("applicationFactoryClassName", "org.apache.wicket.spring.SpringWebApplicationFactory");
+        registration.addInitParameter(WicketFilter.APP_FACT_PARAM, "org.apache.wicket.spring.SpringWebApplicationFactory");
 
         return registration;
     }

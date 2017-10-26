@@ -69,6 +69,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
+import com.evolveum.midpoint.web.boot.Wro4jConfig;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
@@ -981,7 +982,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 return;
             }
             MBeanServer server = servers.get(0);
-            ObjectName objectName = ObjectName.getInstance("wro4j-idm:type=WroConfiguration");
+            ObjectName objectName = ObjectName.getInstance(Wro4jConfig.WRO_MBEAN_NAME + ":type=WroConfiguration");
             server.invoke(objectName, "reloadCache", new Object[]{}, new String[]{});
             if (target != null) {
                 target.add(PageBase.this);
