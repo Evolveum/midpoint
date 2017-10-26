@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.security.impl;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -77,7 +78,7 @@ public class UserProfileServiceMock implements UserProfileService, UserDetailsSe
     private PrismContext prismContext;
 
     @Override
-    public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException {
+    public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException {
     	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
     	PrismObject<UserType> user = null;
         try {
@@ -92,33 +93,43 @@ public class UserProfileServiceMock implements UserProfileService, UserDetailsSe
             throw new SystemException(ex.getMessage(), ex);
         }
 
-        return createPrincipal(user, result);
+        return getPrincipal(user, null, result);
     }
 
     @Override
-    public MidPointPrincipal getPrincipal(PrismObject<UserType> user) {
+    public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException {
     	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-    	return createPrincipal(user, result);
+    	return getPrincipal(user, null, result);
     }
-
-    private MidPointPrincipal createPrincipal(PrismObject<UserType> user, OperationResult result) {
+    
+    
+    
+    @Override
+	public MidPointPrincipal getPrincipal(PrismObject<UserType> user,
+			Predicate<Authorization> authorizationLimiter, OperationResult result) throws SchemaException {
         if (user == null) {
             return null;
         }
 
-        PrismObject<SystemConfigurationType> systemConfiguration = null;
-        try {
-        	systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-					null, result);
-		} catch (ObjectNotFoundException | SchemaException e) {
-			LOGGER.warn("No system configuration: {}", e.getMessage(), e);
-		}
+        PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
 
         MidPointPrincipal principal = new MidPointPrincipal(user.asObjectable());
         initializePrincipalFromAssignments(principal, systemConfiguration);
         return principal;
     }
 
+    private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) {
+    	PrismObject<SystemConfigurationType> systemConfiguration = null;
+        try {
+        	// TODO: use SystemObjectCache instead?
+        	systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+					null, result);
+		} catch (ObjectNotFoundException | SchemaException e) {
+			LOGGER.warn("No system configuration: {}", e.getMessage(), e);
+		} 
+        return systemConfiguration;
+    }
+    
     @Override
     public void updateUser(MidPointPrincipal principal) {
     	OperationResult result = new OperationResult(OPERATION_UPDATE_USER);
@@ -238,6 +249,8 @@ public class UserProfileServiceMock implements UserProfileService, UserDetailsSe
 			return getPrincipal(username);
 		} catch (ObjectNotFoundException e) {
 			throw new UsernameNotFoundException(e.getMessage(), e);
+		} catch (SchemaException e) {
+			throw new IllegalArgumentException(e.getMessage(), e);
 		}
 	}
 

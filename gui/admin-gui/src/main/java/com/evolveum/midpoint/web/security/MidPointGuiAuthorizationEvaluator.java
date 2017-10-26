@@ -87,6 +87,11 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 	}
     
     @Override
+	public void setupPreAuthenticatedSecurityContext(MidPointPrincipal principal) {
+    	securityContextManager.setupPreAuthenticatedSecurityContext(principal);
+	}
+    
+    @Override
 	public boolean isAuthenticated() {
 		return securityContextManager.isAuthenticated();
 	}
@@ -96,7 +101,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 		return securityContextManager.getPrincipal();
 	}
     
-    @Override
+	@Override
 	public <O extends ObjectType, T extends ObjectType> void failAuthorization(String operationUrl,
 			AuthorizationPhaseType phase, PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target,
 			OperationResult result) throws SecurityViolationException {
@@ -213,6 +218,16 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		return securityEnforcer.canSearch(operationUrl, phase, objectType, object, includeSpecial, filter, task, result);
 	}
+	
+	@Override
+	public MidPointPrincipal createDonorPrincipal(MidPointPrincipal attorneyPrincipal,
+			String attorneyAuthorizationAction, PrismObject<UserType> donor, Task task,
+			OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException, SecurityViolationException {
+		return securityEnforcer.createDonorPrincipal(attorneyPrincipal, attorneyAuthorizationAction, donor, task, result);
+	}
+
 
 	@Override
 	public <T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException {

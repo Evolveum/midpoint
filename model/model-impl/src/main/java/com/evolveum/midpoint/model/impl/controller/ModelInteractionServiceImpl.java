@@ -141,6 +141,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired private ActivationComputer activationComputer;
 	@Autowired private Clock clock;
 	@Autowired private HookRegistry hookRegistry;
+	@Autowired UserProfileService userProfileService;
 
 	private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
 	private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
@@ -1360,7 +1361,38 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType){
+	public ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType) {
 		return activationComputer.getEffectiveStatus(lifecycleStatus, activationType);
+	}
+	
+	@Override
+	public MidPointPrincipal assumePowerOfAttorney(PrismObject<UserType> donor, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		MidPointPrincipal attorneyPrincipal = securityContextManager.getPrincipal();
+		MidPointPrincipal donorPrincipal =  securityEnforcer.createDonorPrincipal(attorneyPrincipal, ModelAuthorizationAction.ATTORNEY.getUrl(), donor, task, result);
+
+		// TODO: audit switch
+
+		securityContextManager.setupPreAuthenticatedSecurityContext(donorPrincipal);
+		
+		return donorPrincipal;
+	}
+	
+	@Override
+	public MidPointPrincipal dropPowerOfAttorney(Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		MidPointPrincipal donorPrincipal = securityContextManager.getPrincipal();
+		if (donorPrincipal.getAttorney() == null) {
+			throw new IllegalStateException("Attempt to drop attorney powers using non-donor principal "+donorPrincipal);
+		}
+		MidPointPrincipal previousPrincipal = donorPrincipal.getPreviousPrincipal();
+		if (previousPrincipal == null) {
+			throw new IllegalStateException("Attempt to drop attorney powers, but no previous principal in "+donorPrincipal);
+		}
+		
+		// TODO: audit switch
+		
+		// TODO: maybe refresh previous principal using userProfileService?
+		securityContextManager.setupPreAuthenticatedSecurityContext(previousPrincipal);
+		
+		return previousPrincipal;
 	}
 }

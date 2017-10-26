@@ -3682,37 +3682,51 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 	}
 
-	protected void assertLoggedInUser(String username) {
+	protected void assertLoggedInUsername(String username) {
+		MidPointPrincipal midPointPrincipal = getSecurityContextPrincipal();
+		UserType user = midPointPrincipal.getUser();
+		if (user == null) {
+			if (username == null) {
+				return;
+			} else {
+				AssertJUnit.fail("Expected logged in user '"+username+"' but there was no user in the spring security context");
+			}
+		}
+		assertEquals("Wrong logged-in user", username, user.getName().getOrig());
+	}
+	
+	protected void assertLoggedInUserOid(String userOid) {
+		MidPointPrincipal midPointPrincipal = getSecurityContextPrincipal();
+		assertPrincipalUserOid(midPointPrincipal, userOid);
+	}
+	
+	protected void assertPrincipalUserOid(MidPointPrincipal principal, String userOid) {
+		UserType user = principal.getUser();
+		if (user == null) {
+			if (userOid == null) {
+				return;
+			} else {
+				AssertJUnit.fail("Expected user "+userOid+" in principal "+principal+" but there was none");
+			}
+		}
+		assertEquals("Wrong user OID in principal", userOid, user.getOid());
+	}
+	
+	protected MidPointPrincipal getSecurityContextPrincipal() {
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 		Authentication authentication = securityContext.getAuthentication();
 		if (authentication == null) {
-			if (username == null) {
-				return;
-			} else {
-				AssertJUnit.fail("Expected logged in user '"+username+"' but there was no authentication in the spring security context");
-			}
+			return null;
 		}
 		Object principal = authentication.getPrincipal();
 		if (principal == null) {
-			if (username == null) {
-				return;
-			} else {
-				AssertJUnit.fail("Expected logged in user '"+username+"' but there was no principal in the spring security context");
-			}
+			return null;
 		}
 		if (principal instanceof MidPointPrincipal) {
-			MidPointPrincipal midPointPrincipal = (MidPointPrincipal)principal;
-			UserType user = midPointPrincipal.getUser();
-			if (user == null) {
-				if (username == null) {
-					return;
-				} else {
-					AssertJUnit.fail("Expected logged in user '"+username+"' but there was no user in the spring security context");
-				}
-			}
-			assertEquals("Wrong logged-in user", username, user.getName().getOrig());
+			return (MidPointPrincipal)principal;
 		} else {
-			AssertJUnit.fail("Expected logged in user '"+username+"' but there was unknown principal in the spring security context: "+principal);
+			AssertJUnit.fail("Unknown principal in the spring security context: "+principal);
+			return null; // not reached
 		}
 	}
 
@@ -3724,6 +3738,23 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertNoAuthentication() {
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 		assertNull("Unexpected authentication", securityContext.getAuthentication());
+	}
+	
+	protected void assertSecurityContextPrincipalAttorneyOid(String attotrneyOid) {
+		MidPointPrincipal midPointPrincipal = getSecurityContextPrincipal();
+		assertPrincipalAttorneyOid(midPointPrincipal, attotrneyOid);
+	}
+		
+	protected void assertPrincipalAttorneyOid(MidPointPrincipal principal, String attotrneyOid) {
+		UserType attorney = principal.getAttorney();
+		if (attorney == null) {
+			if (attotrneyOid == null) {
+				return;
+			} else {
+				AssertJUnit.fail("Expected attorney "+attotrneyOid+" in principal "+principal+" but there was none");
+			}
+		}
+		assertEquals("Wrong attroney OID in principal", attotrneyOid, attorney.getOid());
 	}
 
 	protected void displayAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
