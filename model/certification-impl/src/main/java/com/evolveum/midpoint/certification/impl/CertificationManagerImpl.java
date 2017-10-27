@@ -35,6 +35,7 @@ import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -142,7 +143,7 @@ public class CertificationManagerImpl implements CertificationManager {
         OperationResult result = parentResult.createSubresult(OPERATION_CREATE_CAMPAIGN);
         try {
             PrismObject<AccessCertificationDefinitionType> definition = repositoryService.getObject(AccessCertificationDefinitionType.class, definitionOid, null, result);
-            securityEnforcer.authorize(ModelAuthorizationAction.CREATE_CERTIFICATION_CAMPAIGN.getUrl(), null, definition, null, null, null, task, result);
+            securityEnforcer.authorize(ModelAuthorizationAction.CREATE_CERTIFICATION_CAMPAIGN.getUrl(), null, AuthorizationParameters.Builder.buildObject(definition), null, task, result);
             AccessCertificationCampaignType newCampaign = updateHelper.createCampaignObject(definition.asObjectable(), task, result);
             updateHelper.addObject(newCampaign, task, result);
             return newCampaign;
@@ -230,7 +231,7 @@ public class CertificationManagerImpl implements CertificationManager {
             }
 
             securityEnforcer.authorize(ModelAuthorizationAction.OPEN_CERTIFICATION_CAMPAIGN_REVIEW_STAGE.getUrl(), null,
-                    campaign.asPrismObject(), null, null, null, task, result);
+            		AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), null, task, result);
 
             final int currentStageNumber = campaign.getStageNumber();
             final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
@@ -284,7 +285,7 @@ public class CertificationManagerImpl implements CertificationManager {
             }
 
             securityEnforcer.authorize(ModelAuthorizationAction.CLOSE_CERTIFICATION_CAMPAIGN_REVIEW_STAGE.getUrl(), null,
-                    campaign.asPrismObject(), null, null, null, task, result);
+            		AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), null, task, result);
 
             final int currentStageNumber = campaign.getStageNumber();
             final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
@@ -326,7 +327,7 @@ public class CertificationManagerImpl implements CertificationManager {
             }
 
             securityEnforcer.authorize(ModelAuthorizationAction.START_CERTIFICATION_REMEDIATION.getUrl(), null,
-                    campaign.asPrismObject(), null, null, null, task, result);
+            		AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), null, task, result);
 
             final int currentStageNumber = campaign.getStageNumber();
             final int lastStageNumber = CertCampaignTypeUtil.getNumberOfStages(campaign);
@@ -376,7 +377,7 @@ public class CertificationManagerImpl implements CertificationManager {
 
         try {
             securityEnforcer.authorize(ModelAuthorizationAction.READ_OWN_CERTIFICATION_DECISIONS.getUrl(), null,
-                    null, null, null, null, task, result);
+            		AuthorizationParameters.EMPTY, null, task, result);
 
             return queryHelper.searchOpenWorkItems(baseWorkItemsQuery, SecurityUtil.getPrincipal(), notDecidedOnly, options, result);
         } catch (RuntimeException e) {
@@ -396,7 +397,7 @@ public class CertificationManagerImpl implements CertificationManager {
 
         try {
             securityEnforcer.authorize(ModelAuthorizationAction.READ_OWN_CERTIFICATION_DECISIONS.getUrl(), null,
-                    null, null, null, null, task, result);
+            		AuthorizationParameters.EMPTY, null, task, result);
 
             return queryHelper.countOpenWorkItems(baseWorkItemsQuery, SecurityUtil.getPrincipal(), notDecidedOnly, options, result);
         } catch (RuntimeException e) {
@@ -415,7 +416,7 @@ public class CertificationManagerImpl implements CertificationManager {
         OperationResult result = parentResult.createSubresult(OPERATION_RECORD_DECISION);
         try {
             securityEnforcer.authorize(ModelAuthorizationAction.RECORD_CERTIFICATION_DECISION.getUrl(), null,
-                    null, null, null, null, task, result);
+            		AuthorizationParameters.EMPTY, null, task, result);
             caseHelper.recordDecision(campaignOid, caseId, workItemId, response, comment, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't record reviewer decision: unexpected exception: " + e.getMessage(), e);
@@ -437,7 +438,7 @@ public class CertificationManagerImpl implements CertificationManager {
 		try {
 			// TODO security
 			securityEnforcer.authorize(ModelAuthorizationAction.DELEGATE_ALL_WORK_ITEMS.getUrl(), null,
-					null, null, null, null, task, result);
+					AuthorizationParameters.EMPTY, null, task, result);
 			updateHelper.delegateWorkItems(campaignOid, workItems, delegateAction, task, result);
 		} catch (RuntimeException|CommonException e) {
 			result.recordFatalError("Couldn't delegate work items: unexpected exception: " + e.getMessage(), e);
@@ -458,7 +459,7 @@ public class CertificationManagerImpl implements CertificationManager {
         try {
             AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
             securityEnforcer.authorize(ModelAuthorizationAction.CLOSE_CERTIFICATION_CAMPAIGN.getUrl(), null,
-                    campaign.asPrismObject(), null, null, null, task, result);
+            		AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), null, task, result);
             updateHelper.closeCampaign(campaign, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't close certification campaign: unexpected exception: " + e.getMessage(), e);

@@ -28,12 +28,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -1604,6 +1606,77 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         cleanupUnassign(userRumRogersOid, ROLE_APPROVER_OID);
         cleanupUnassign(USER_BARBOSSA_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_OID);
         
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * MID-4204
+	 */
+	@Test
+    public void test250AssignRequestableSelfOtherApporver() throws Exception {
+		final String TEST_NAME = "test250AssignRequestableSelfOtherApporver";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_OID);
+
+        cleanupUnassign(userRumRogersOid, ROLE_APPROVER_OID);
+        cleanupUnassign(USER_BARBOSSA_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_OID);
+        
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadAllow();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        assertAssignments(user, 1);
+        assertAssignedRole(user, ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_OID);
+
+        assertAllow("assign business role to jack",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result));
+
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 2);
+        assertAssignedRole(user, ROLE_BUSINESS_1_OID);
+
+        // default relation, non-requestable role
+        assertDeny("assign application role to jack",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result));
+
+        assertAllow("unassign business role from jack",
+        		(task, result) -> unassignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result));
+
+        // wrong relation
+        assertDeny("assign business role to jack (manager)",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, SchemaConstants.ORG_MANAGER, task, result));
+        
+        // requestable role, but assign to a different user
+        assertDeny("assign application role to barbossa",
+        		(task, result) -> assignRole(USER_BARBOSSA_OID, ROLE_BUSINESS_1_OID, task, result));
+
+        assertAllow("assign business role to barbossa (approver)",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, SchemaConstants.ORG_APPROVER, task, result));
+
+        assertAllow("unassign business role to barbossa (approver)",
+        		(task, result) -> unassignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, SchemaConstants.ORG_APPROVER, task, result));
+
+        assertAllow("assign business role to barbossa (owner)",
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, SchemaConstants.ORG_OWNER, task, result));
+
+        assertAllow("unassign business role to barbossa (owner)",
+        		(task, result) -> unassignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, SchemaConstants.ORG_OWNER, task, result));
+
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 1);
+        
+        PrismObject<UserType> userBarbossa = getUser(USER_BARBOSSA_OID);
+        assertAssignments(userBarbossa, 0);
+
         assertGlobalStateUntouched();
 	}
 

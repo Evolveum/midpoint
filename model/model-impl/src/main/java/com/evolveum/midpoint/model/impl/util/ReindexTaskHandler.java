@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskRunResult;
@@ -72,7 +73,7 @@ public class ReindexTaskHandler extends AbstractSearchIterativeTaskHandler<Objec
 	@Override
 	protected ReindexResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask, OperationResult opResult)
 			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, coordinatorTask, opResult);
+		securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, coordinatorTask, opResult);
         return new ReindexResultHandler(coordinatorTask, ReindexTaskHandler.class.getName(),
 				"reindex", "reindex", taskManager, repositoryService);
 	}

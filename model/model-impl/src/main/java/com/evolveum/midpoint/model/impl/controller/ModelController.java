@@ -64,6 +64,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -415,8 +416,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 								}
 								PrismObject<? extends ObjectType> objectToAdd = delta.getObjectToAdd();
 								if (!preAuthorized) {
-									securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, objectToAdd, null, null, null, task, result1);
-									securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), null, objectToAdd, null, null, null, task, result1);
+									securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.Builder.buildObject(objectToAdd), null, task, result1);
+									securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), null, AuthorizationParameters.Builder.buildObject(objectToAdd), null, task, result1);
 								}
 								String oid;
 								try {
@@ -436,15 +437,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 										existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
 										objectToDetermineDetailsForAudit = existingObject;
 									} catch (Throwable t) {
-										if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, task, result1)) {
+										if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result1)) {
 											throw t;
 										} else {
 											// in case of administrator's request we continue - in order to allow deleting malformed (unreadable) objects
 										}
 									}
 									if (!preAuthorized) {
-										securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, existingObject, null, null, null, task, result1);
-										securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, existingObject, null, null, null, task, result1);
+										securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.Builder.buildObject(existingObject), null, task, result1);
+										securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, AuthorizationParameters.Builder.buildObject(existingObject), null, task, result1);
 									}
 									try {
 										if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
@@ -469,8 +470,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 									PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
 									objectToDetermineDetailsForAudit = existingObject;
 									if (!preAuthorized) {
-										securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, existingObject, null, null, null, task, result1);
-										securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, existingObject, delta, null, null, task, result1);
+										securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.Builder.buildObject(existingObject), null, task, result1);
+										securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, AuthorizationParameters.Builder.buildObjectDelta(existingObject, delta), null, task, result1);
 									}
 									try {
 										cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(),
@@ -594,7 +595,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		PartialProcessingOptionsType partialProcessing = ModelExecuteOptions.getPartialProcessing(options);
 		if (partialProcessing != null) {
 			PrismObject<? extends ObjectType> object = context.getFocusContext().getObjectAny();
-			securityEnforcer.authorize(ModelAuthorizationAction.PARTIAL_EXECUTION.getUrl(), null, object, null, null, null, task, result);
+			securityEnforcer.authorize(ModelAuthorizationAction.PARTIAL_EXECUTION.getUrl(), null, AuthorizationParameters.Builder.buildObject(object), null, task, result);
 		}
 	}
 
@@ -1727,7 +1728,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 		if (GetOperationOptions.isAttachDiagData(rootOptions) &&
-				!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, task, result)) {
+				!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result)) {
 			Collection<SelectorOptions<GetOperationOptions>> reducedOptions = CloneUtil.cloneCollectionMembers(options);
 			SelectorOptions.findRootOptions(reducedOptions).setAttachDiagData(false);
 			return reducedOptions;
@@ -1818,13 +1819,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     @Override
     public boolean deactivateServiceThreads(long timeToWait, Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		securityEnforcer.authorize(ModelAuthorizationAction.STOP_SERVICE_THREADS.getUrl(), null, null, null, null, null, operationTask, parentResult);
+		securityEnforcer.authorize(ModelAuthorizationAction.STOP_SERVICE_THREADS.getUrl(), null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
         return taskManager.deactivateServiceThreads(timeToWait, parentResult);
     }
 
     @Override
     public void reactivateServiceThreads(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		securityEnforcer.authorize(ModelAuthorizationAction.START_SERVICE_THREADS.getUrl(), null, null, null, null, null, operationTask, parentResult);
+		securityEnforcer.authorize(ModelAuthorizationAction.START_SERVICE_THREADS.getUrl(), null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
         taskManager.reactivateServiceThreads(parentResult);
     }
 
@@ -1853,13 +1854,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     @Override
     public void synchronizeTasks(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		securityEnforcer.authorize(ModelAuthorizationAction.SYNCHRONIZE_TASKS.getUrl(), null, null, null, null, null, operationTask, parentResult);
+		securityEnforcer.authorize(ModelAuthorizationAction.SYNCHRONIZE_TASKS.getUrl(), null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
 		taskManager.synchronizeTasks(parentResult);
     }
 
 	@Override
 	public void synchronizeWorkflowRequests(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		securityEnforcer.authorize(ModelAuthorizationAction.SYNCHRONIZE_WORKFLOW_REQUESTS.getUrl(), null, null, null, null, null, operationTask, parentResult);
+		securityEnforcer.authorize(ModelAuthorizationAction.SYNCHRONIZE_WORKFLOW_REQUESTS.getUrl(), null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
 		workflowManager.synchronizeWorkflowRequests(parentResult);
 	}
 
@@ -1874,21 +1875,21 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
 	private void authorizeTaskCollectionOperation(ModelAuthorizationAction action, Collection<String> oids, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, task, parentResult)) {
+		if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
 			return;
 		}
 		for (String oid : oids) {
-			PrismObject existingObject = cacheRepositoryService.getObject(TaskType.class, oid, null, parentResult);
-			securityEnforcer.authorize(action.getUrl(), null, existingObject, null, null, null, task, parentResult);
+			PrismObject<TaskType> existingObject = cacheRepositoryService.getObject(TaskType.class, oid, null, parentResult);
+			securityEnforcer.authorize(action.getUrl(), null, AuthorizationParameters.Builder.buildObject(existingObject), null, task, parentResult);
 		}
 	}
 
 	private void authorizeNodeCollectionOperation(ModelAuthorizationAction action, Collection<String> identifiers, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, task, parentResult)) {
+		if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
 			return;
 		}
 		for (String identifier : identifiers) {
-			PrismObject existingObject;
+			PrismObject<NodeType> existingObject;
 			ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, prismContext, identifier);
 			List<PrismObject<NodeType>> nodes = cacheRepositoryService.searchObjects(NodeType.class, q, null, parentResult);
 			if (nodes.isEmpty()) {
@@ -1897,7 +1898,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				throw new SystemException("Multiple nodes with identifier '" + identifier + "'");
 			}
 			existingObject = nodes.get(0);
-			securityEnforcer.authorize(action.getUrl(), null, existingObject, null, null, null, task, parentResult);
+			securityEnforcer.authorize(action.getUrl(), null, AuthorizationParameters.Builder.buildObject(existingObject), null, task, parentResult);
 		}
 	}
 
@@ -1914,7 +1915,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Override
     public void stopProcessInstance(String instanceId, String username, Task task, OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, task, parentResult)) {
+		if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
 			ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
 					.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_PROCESS_INSTANCE_ID).eq(instanceId)
 					.build();
@@ -1924,7 +1925,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			} else if (tasks.size() == 0) {
 				throw new ObjectNotFoundException("No task for process instance ID " + instanceId, instanceId);
 			}
-			securityEnforcer.authorize(ModelAuthorizationAction.STOP_APPROVAL_PROCESS_INSTANCE.getUrl(), null, tasks.get(0), null, null, null, task, parentResult);
+			securityEnforcer.authorize(ModelAuthorizationAction.STOP_APPROVAL_PROCESS_INSTANCE.getUrl(), null, AuthorizationParameters.Builder.buildObject(tasks.get(0)), null, task, parentResult);
 		}
         getWorkflowManagerChecked().stopProcessInstance(instanceId, username, parentResult);
     }
@@ -1947,7 +1948,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Override
 	public void cleanupActivitiProcesses(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		securityEnforcer.authorize(ModelAuthorizationAction.CLEANUP_PROCESS_INSTANCES.getUrl(), null, null, null, null, null, task, parentResult);
+		securityEnforcer.authorize(ModelAuthorizationAction.CLEANUP_PROCESS_INSTANCES.getUrl(), null, AuthorizationParameters.EMPTY, null, task, parentResult);
 		getWorkflowManagerChecked().cleanupActivitiProcesses(parentResult);
 	}
 
@@ -1990,7 +1991,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     private void checkScriptingAuthorization(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        securityEnforcer.authorize(ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(), null, null, null, null, null, task, parentResult);
+        securityEnforcer.authorize(ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(), null, AuthorizationParameters.EMPTY, null, task, parentResult);
     }
 	//endregion
 

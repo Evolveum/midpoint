@@ -44,6 +44,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -180,7 +181,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 
 			boolean isAuthorized;
 			try {
-				isAuthorized = securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_WS_ALL_URL, AuthorizationPhaseType.REQUEST, null, null, null, null, task, result);
+				isAuthorized = securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_WS_ALL_URL, AuthorizationPhaseType.REQUEST, AuthorizationParameters.EMPTY, null, task, result);
 				LOGGER.trace("Determined authorization for web service access (action: {}): {}", AuthorizationConstants.AUTZ_WS_ALL_URL, isAuthorized);
 			} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 				LOGGER.debug("Access to web service denied for user '{}': internal error: {}",
@@ -192,7 +193,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 			if (!isAuthorized) {
 	            String action = QNameUtil.qNameToUri(new QName(AuthorizationConstants.NS_AUTHORIZATION_WS, operationName));
 				try {
-					isAuthorized = securityEnforcer.isAuthorized(action, AuthorizationPhaseType.REQUEST, null, null, null, null, task, result);
+					isAuthorized = securityEnforcer.isAuthorized(action, AuthorizationPhaseType.REQUEST, AuthorizationParameters.EMPTY, null, task, result);
 					LOGGER.trace("Determined authorization for web service operation {} (action: {}): {}", operationName, action, isAuthorized);
 				} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 					LOGGER.debug("Access to web service denied for user '{}': schema error: {}",

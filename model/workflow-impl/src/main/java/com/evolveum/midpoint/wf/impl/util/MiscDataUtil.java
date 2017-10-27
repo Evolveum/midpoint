@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
@@ -305,10 +306,10 @@ public class MiscDataUtil {
             return false;
         }
 		try {
-			if (securityEnforcer.isAuthorized(operation.actionAll.getUrl(), null, null, null, null, null, task, result)) {
+			if (securityEnforcer.isAuthorized(operation.actionAll.getUrl(), null, AuthorizationParameters.EMPTY, null, task, result)) {
 				return true;
 			}
-			if (operation.actionOwn != null && !securityEnforcer.isAuthorized(operation.actionOwn.getUrl(), null, null, null, null, null, task, result)) {
+			if (operation.actionOwn != null && !securityEnforcer.isAuthorized(operation.actionOwn.getUrl(), null, AuthorizationParameters.EMPTY, null, task, result)) {
 				return false;
 			}
 		} catch (SchemaException e) {
