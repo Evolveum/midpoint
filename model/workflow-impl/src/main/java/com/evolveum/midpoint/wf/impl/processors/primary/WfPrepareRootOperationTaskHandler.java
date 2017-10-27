@@ -142,6 +142,9 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
             }
 
             if (changed) {
+            	if (rootContext != null) {  // deltas should be deleted before; so this is redundant
+            		rootContext.deleteSecondaryDeltas();
+	            }
                 rootWfTask.storeModelContext(rootContext, true);
                 rootWfTask.commitChanges(result);
             }

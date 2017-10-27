@@ -441,4 +441,8 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 			}
 		}		
 	}
+
+	public void deleteDeltas() {
+		waves.clear();
+	}
 }

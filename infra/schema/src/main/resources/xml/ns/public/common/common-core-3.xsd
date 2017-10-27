@@ -9334,6 +9334,20 @@
 		        			</xsd:documentation>
 		        		</xsd:annotation>
 		        	</xsd:element>
+		        	<xsd:element name="allowInactive" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+		        		<xsd:annotation>
+		        			<xsd:documentation>
+		        				If set to false (defaul) the specification will apply only to active relations
+		        				(e.g active delegations). If set to true then the specificaiton will also be applied 
+		        				to inactive relations (e.g. expired delegations).
+		        				Only partially implemented. Works only for some cases (delegator).
+		        				EXPERIMENTAL. Use at your own risk.
+		        			</xsd:documentation>
+		        			<xsd:appinfo>
+		        				<a:since>3.6.1</a:since>
+		        			</xsd:appinfo>
+		        		</xsd:annotation>
+		        	</xsd:element>
 		        </xsd:sequence>
         	</xsd:extension>
         </xsd:complexContent>

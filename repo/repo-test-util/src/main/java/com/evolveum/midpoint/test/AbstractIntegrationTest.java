@@ -2166,4 +2166,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			}
 		}
 	}
+	
+	protected ItemPath getMetadataPath(QName propName) {
+		return new ItemPath(ObjectType.F_METADATA, propName);
+	}
 }

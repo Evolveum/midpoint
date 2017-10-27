@@ -15,7 +15,9 @@
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -25,17 +27,18 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -46,6 +49,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import org.apache.commons.collections4.CollectionUtils;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
 /**
  * @author Radovan Semancik
@@ -110,54 +116,65 @@ public class AssociationFromLinkExpressionEvaluator
 		QName assocName = context.getMappingQName();
 		String resourceOid = rAssocTargetDef.getResourceType().getOid();
 		Collection<SelectorOptions<GetOperationOptions>> options = null;
-		
+
+		List<String> candidateShadowOidList = new ArrayList<>();
+
 		// Always process the first role (myself) regardless of recursion setting
-		gatherAssociationsFromAbstractRole(thisRole, output, resourceOid, kind, intent, assocName, options, desc, context);
+		gatherCandidateShadowsFromAbstractRole(thisRole, candidateShadowOidList);
 		
 		if (thisRole instanceof OrgType && matchesForRecursion((OrgType)thisRole)) {
-			gatherAssociationsFromAbstractRoleRecurse((OrgType)thisRole, output, resourceOid, kind, intent, assocName, options, desc,
-					context);
+			gatherCandidateShadowsFromAbstractRoleRecurse((OrgType)thisRole, candidateShadowOidList, options, desc, context);
 		}
+
+		LOGGER.trace("Candidate shadow OIDs: {}", candidateShadowOidList);
+
+		selectMatchingShadows(candidateShadowOidList, output, resourceOid, kind, intent, assocName, context);
 		
 		return ItemDelta.toDeltaSetTriple(output, null);
 	}
 
-	private void gatherAssociationsFromAbstractRole(AbstractRoleType thisRole,
+	private void selectMatchingShadows(List<String> candidateShadowsOidList,
 			PrismContainer<ShadowAssociationType> output, String resourceOid, ShadowKindType kind,
-			String intent, QName assocName, Collection<SelectorOptions<GetOperationOptions>> options,
-			String desc, ExpressionEvaluationContext params) throws SchemaException {
-		for (ObjectReferenceType linkRef: thisRole.getLinkRef()) {
-			ShadowType shadowType;
-			try {
-				shadowType = objectResolver.resolve(linkRef, ShadowType.class, options, desc, params.getTask(), params.getResult());
-			} catch (ObjectNotFoundException e) {
-				// Linked shadow not found. This may happen e.g. if the account is deleted and model haven't got
-				// the chance to react yet. Just ignore such shadow.
-				LOGGER.trace("Ignoring shadow "+linkRef.getOid()+" linked in "+thisRole+" because it no longer exists");
-				continue;
-			}
-			if (ShadowUtil.matches(shadowType, resourceOid, kind, intent)) {
-				PrismContainerValue<ShadowAssociationType> newValue = output.createNewValue();
-				ShadowAssociationType shadowAssociationType = newValue.asContainerable();
-				shadowAssociationType.setName(assocName);
-				ObjectReferenceType shadowRef = new ObjectReferenceType();
-				shadowRef.setOid(linkRef.getOid());
-				shadowAssociationType.setShadowRef(shadowRef);
-			}
+			String intent, QName assocName, ExpressionEvaluationContext params)
+			throws SchemaException {
+
+		S_AtomicFilterExit filter = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.id(candidateShadowsOidList.toArray(new String[0]))
+				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+				.and().item(ShadowType.F_KIND).eq(kind);
+		if (intent != null) {
+			filter = filter.and().item(ShadowType.F_INTENT).eq(intent);
+		}
+		ObjectQuery query = filter.build();
+
+		ResultHandler<ShadowType> handler = (object, parentResult) -> {
+			PrismContainerValue<ShadowAssociationType> newValue = output.createNewValue();
+			ShadowAssociationType shadowAssociationType = newValue.asContainerable();
+			shadowAssociationType.setName(assocName);
+			shadowAssociationType.setShadowRef(new ObjectReferenceType().oid(object.getOid()).type(ShadowType.COMPLEX_TYPE));
+			return true;
+		};
+		try {
+			objectResolver.searchIterative(ShadowType.class, query, createNoFetchCollection(), handler, params.getTask(), params.getResult());
+		} catch (CommonException e) {
+			throw new SystemException("Couldn't search for relevant shadows: " + e.getMessage(), e);
 		}
 	}
-	
-	private void gatherAssociationsFromAbstractRoleRecurse(OrgType thisOrg,
-			PrismContainer<ShadowAssociationType> output, String resourceOid, ShadowKindType kind,
-			String intent, QName assocName, Collection<SelectorOptions<GetOperationOptions>> options,
-			String desc, ExpressionEvaluationContext params) throws SchemaException, ObjectNotFoundException {
-		
-		gatherAssociationsFromAbstractRole(thisOrg, output, resourceOid, kind, intent, assocName, options, desc, params);
-		
+
+	private void gatherCandidateShadowsFromAbstractRole(AbstractRoleType thisRole, List<String> candidateShadowsOidList) {
+		for (ObjectReferenceType linkRef: thisRole.getLinkRef()) {
+			CollectionUtils.addIgnoreNull(candidateShadowsOidList, linkRef.getOid());
+		}
+	}
+
+	private void gatherCandidateShadowsFromAbstractRoleRecurse(OrgType thisOrg, List<String> candidateShadowsOidList,
+			Collection<SelectorOptions<GetOperationOptions>> options, String desc, ExpressionEvaluationContext params)
+			throws SchemaException, ObjectNotFoundException {
 		for (ObjectReferenceType parentOrgRef: thisOrg.getParentOrgRef()) {
 			OrgType parent = objectResolver.resolve(parentOrgRef, OrgType.class, options, desc, params.getTask(), params.getResult());
 			if (matchesForRecursion(parent)) {
-				gatherAssociationsFromAbstractRoleRecurse(parent, output, resourceOid, kind, intent, assocName, options, desc, params);
+				gatherCandidateShadowsFromAbstractRole(parent, candidateShadowsOidList);
+				gatherCandidateShadowsFromAbstractRoleRecurse(parent, candidateShadowsOidList, options, desc, params);
 			}
 		}
 	}

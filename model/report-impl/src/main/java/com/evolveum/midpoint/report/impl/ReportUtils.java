@@ -458,9 +458,9 @@ public class ReportUtils {
 
         // 2. Default to PrettyPrinter.prettyPrint
         String str = PrettyPrinter.prettyPrint(value);
-        if (str.length() > 1000) {
-            return str.substring(0, 1000);
-        }
+//        if (str.length() > 1000) {
+//            return str.substring(0, 1000);
+//        }
         return str;
 
     }

@@ -47,19 +47,18 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.WfTestUtil;
+import com.evolveum.midpoint.wf.impl.WorkflowResult;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
-import com.evolveum.midpoint.wf.impl.WorkflowResult;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -68,15 +67,16 @@ import org.springframework.test.context.ContextConfiguration;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
+import java.util.function.Function;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_ORIGINAL_ASSIGNEE_REF;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -530,6 +530,46 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 	protected PrismReference ref(ObjectReferenceType ort) {
 		return ref(Collections.singletonList(ort));
+	}
+
+	@SuppressWarnings("UnusedReturnValue")
+	protected List<WorkItemType> approveAllWorkItems(Task task, OperationResult result) throws Exception {
+		return approveWorkItems(task, result, (w) -> true);
+	}
+
+	protected List<WorkItemType> approveWorkItems(Task task, OperationResult result, Function<WorkItemType, Boolean> decision) throws Exception {
+		List<WorkItemType> processed = new ArrayList<>();
+		List<WorkItemType> workItems = getWorkItems(task, result);
+		display("work items", workItems);
+		display("approving work items");
+		for (WorkItemType workItem : workItems) {
+			Boolean approve = decision.apply(workItem);
+			if (approve != null) {
+				workflowManager.completeWorkItem(workItem.getExternalId(), approve, null, null, null, result);
+				processed.add(workItem);
+			}
+		}
+		return processed;
+	}
+
+	protected List<WorkItemType> approveWorkItemsForTarget(Task task, OperationResult result, boolean approve, boolean waitForTaskClose, String... oidsToComplete) throws Exception {
+		List<WorkItemType> items = approveWorkItems(task, result, (w) -> {
+			ObjectReferenceType targetRef = WfContextUtil.getTargetRef(w);
+			if (targetRef == null || targetRef.getOid() == null) {
+				return null;
+			} else if (!ArrayUtils.contains(oidsToComplete, targetRef.getOid())) {
+				return null;
+			} else {
+				return approve;
+			}
+		});
+		if (waitForTaskClose) {
+			for (WorkItemType item : items) {
+				String taskOid = WfContextUtil.getTaskOid(item);
+				waitForTaskCloseOrSuspend(taskOid, 60000);
+			}
+		}
+		return items;
 	}
 
 	protected abstract class TestDetails {

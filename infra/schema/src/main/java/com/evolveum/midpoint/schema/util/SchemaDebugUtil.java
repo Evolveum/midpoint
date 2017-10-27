@@ -50,7 +50,9 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -319,6 +321,59 @@ public class SchemaDebugUtil {
 		return sb.toString();
 	}
 	
+	public static String prettyPrint(ExpressionType expressionType) {
+		if (expressionType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("ExpressionType(");
+		appendPropertyIfNotNull(sb, "description", expressionType.getDescription());
+		appendPropertyIfNotNull(sb, "extension", expressionType.getExtension());
+		appendPropertyIfNotNull(sb, "trace", expressionType.isTrace());
+		appendPropertyIfNotNull(sb, "variable", expressionType.getVariable());
+		appendPropertyIfNotNull(sb, "returnMultiplicity", expressionType.getReturnMultiplicity());
+		appendPropertyIfNotNull(sb, "allowEmptyValues", expressionType.isAllowEmptyValues());
+		appendPropertyIfNotNull(sb, "queryInterpretationOfNoValue", expressionType.getQueryInterpretationOfNoValue());
+		appendPropertyIfNotNull(sb, "runAsRef", expressionType.getRunAsRef());
+		List<JAXBElement<?>> expressionEvaluators = expressionType.getExpressionEvaluator();
+		sb.append("evaluator").append("=");
+		if (expressionEvaluators.isEmpty()) {
+			sb.append("[]");
+		} else {
+			if (expressionEvaluators.size() > 1) {
+				sb.append("[");
+			}
+			for (JAXBElement<?> expressionEvaluator : expressionEvaluators) {
+				sb.append(expressionEvaluator.getName().getLocalPart());
+				sb.append(":");
+				sb.append(PrettyPrinter.prettyPrint(expressionEvaluator.getValue()));
+				if (expressionEvaluators.size() > 1) {
+					sb.append(", ");
+				}
+			}
+			if (expressionEvaluators.size() > 1) {
+				sb.append("]");
+			}
+		}
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String prettyPrint(ConstExpressionEvaluatorType expressionType) {
+		if (expressionType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("ConstExpressionEvaluatorType(");
+		sb.append(expressionType.getValue());
+		sb.append(")");
+		return sb.toString();
+	}
+
+	private static void appendPropertyIfNotNull(StringBuilder sb, String propName, Object value) {
+		if (value != null) {
+			sb.append(propName).append("=").append(value).append(",");
+		}
+	}
+
 	public static String prettyPrint(CachingMetadataType cachingMetadata) {
 		if (cachingMetadata == null) {
 			return "null";

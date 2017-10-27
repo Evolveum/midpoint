@@ -1,28 +1,25 @@
-midPoint 3.6 "Comenius"
+midPoint 3.6.1 "Comenius" Update 1
 ----------------------------------
 
-Release 3.6 is twenty first midPoint release code-named Comenius.
-The 3.6 release brings numerous new features especially in the
-field of identity governance, password management and identity
-connectors.
+Release 3.6.1 is a twenty second midPoint release. It is the fist
+maintenance update for 3.6.x version family code-named Comenius.
+The Comenius family brings numerous new features especially in
+the field of identity governance, password management and
+identity connectors.This maintenance update brings number of
+smaller improvements, fixes and stability enhancements.
 
-Release date: 4th July 2017
+Release date: 11th October 2017
 
-Changes with respect to version 3.5.1:
-    Major SoD improvements
-    Certificaiton improvements
-    Escalation
-    Other identity governance features
-    Password hashing
-    Manual connectors by ITSM integration
-    Important improvements to mappings, expressions, object templates and other mechanisms
-    Custom forms
-    Quasi-fulltext search
-    Shopping cart and role catalog improvements
-    Numerous GUI improvements
-    Significantly improved Powershell support
-    New CSV connector
-    Other connector improvements
+Changes with respect to version 3.6:
+    Auxiliary object class improvements
+    GUI skin switching support (contributed by Andrew Cope)
+    Minor shopping cart improvements
+    Reliability improvements for parallel processing
+    Improved use of constants
+    Improved error handling (provisioning scripts, GUI)
+    LDAP and Active Directory connector improvements
+    CSV connector improvements (file locking)
+    Authorization improvements
 
 Java 7 environment is no longer supported.
 XPath2 scripting is no longer supported.

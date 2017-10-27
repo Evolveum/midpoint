@@ -15,10 +15,18 @@
  */
 package com.evolveum.midpoint.security.api;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author semancik
@@ -422,5 +430,47 @@ public class AuthorizationConstants {
 	//ui authorization for CSV export button (will be applied everywhere over mp)
 	public static final QName AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminCSVexport");
 	public static final String AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME);
+	
+	/**
+	 * Those are the items that midPoint logic controls directly. They have exception from execution-phase
+	 * authorization enforcement. Their modification in execution phase is always allowed. If it was not
+	 * allowed then midPoint won't be able to function properly and it may even lead to security issues.
+	 * 
+	 * Note: this applies only to execution phase. Those items are still controlled by regular authorizations
+	 * for request phase. Therefore these exceptions do NOT allow user to modify those items. Attempt to do so
+	 * must pass through request-phase authorization first. This exception only allows midPoint logic to modify
+	 * those properties without explicit authorizations.
+	 * 
+	 * Motivation: Strictly speaking, there would be no need for these exceptions. The modification can be
+	 * allowed by regular authorizations. However, that would mean, that every practical authorization must
+	 * contain those items. That is error-prone, it is a maintenance burden and it is even an obstacle for
+	 * evolvability. E.g. if similar properties are added in future midPoint versions (which is likely) then
+	 * all existing authorizations much be updated. The cost of slightly increased perceived security is not
+	 * justified by those operational issues.
+	 */
+	public static final Collection<ItemPath> EXECUTION_ITEMS_ALLOWED_BY_DEFAULT = Arrays.asList(
+			new ItemPath(ObjectType.F_METADATA),
+			new ItemPath(ObjectType.F_PARENT_ORG_REF),
+			new ItemPath(ObjectType.F_TENANT_REF),
+			new ItemPath(ObjectType.F_TRIGGER),
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP),
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON),
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP),
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP),
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS),
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
+			new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),
+			new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_METADATA),
+			new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_POLICY_SITUATION),
+			new ItemPath(FocusType.F_DELEGATED_REF),
+			new ItemPath(FocusType.F_ITERATION),
+			new ItemPath(FocusType.F_ITERATION_TOKEN),
+//			new ItemPath(FocusType.F_LINK_REF), // in fact, linkRef may be omitted here. link/unlink is done after execution authorizations are applied
+			new ItemPath(FocusType.F_PERSONA_REF),
+			new ItemPath(FocusType.F_ROLE_INFLUENCE_REF),
+			new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF)
+		);
 
 }

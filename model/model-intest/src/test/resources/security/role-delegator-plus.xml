@@ -1,0 +1,87 @@
+<!--
+  ~ Copyright (c) 2016-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="00000000-0000-0000-0000-00000000d101"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>Universal Self Delegator Pl</name>
+    <description>Like delegator, but can also access inactive delegations</description>
+    <delegable>true</delegable>
+    <authorization>
+    	<name>authz-read-basic</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<item>name</item>
+    </authorization>
+    <authorization>
+    	<name>authz-read-self</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<object>
+    		<special>self</special>
+    	</object>
+    </authorization>
+    <authorization>
+    	<name>authz-read-delagate-assignments</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<object>
+    		<type>UserType</type>
+    		<delegator>
+    			<special>self</special>
+    			<allowInactive>true</allowInactive>
+    		</delegator>
+    	</object>
+    	<item>assignment</item>
+    	<item>roleMembershipRef</item>
+    	<item>delegatedRef</item>
+    </authorization>
+    <authorization>
+		<name>delegator-req</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delegate</action>
+    	<phase>request</phase>
+    	<object>
+    		<type>UserType</type>
+    	</object>
+    	<target>
+    		<special>self</special>
+    	</target>
+    </authorization>
+    <authorization>
+    	<name>delegator-exec-user</name>
+    	<description>
+    		Quite strong universal execution rights are needed here. We are going to modify other users
+    		(deputy assignments are in the delegate user, not delegator).
+    	</description>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<phase>execution</phase>
+    	<object>
+    		<type>UserType</type>
+    	</object>
+    </authorization>
+    <authorization>
+    	<name>delegator-exec-shadow</name>
+    	<description>
+    		Quite strong universal execution rights are needed here. We are going to modify other users
+    		(deputy assignments are in the delegate user, not delegator). Modification of other users
+    		may mean also creation/modification/deletion of their accounts.
+    	</description>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+    	<phase>execution</phase>
+    	<object>
+    		<type>ShadowType</type>
+    	</object>
+    </authorization>
+</role>
