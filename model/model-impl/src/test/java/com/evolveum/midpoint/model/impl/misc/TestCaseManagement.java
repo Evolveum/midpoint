@@ -122,7 +122,7 @@ public class TestCaseManagement extends AbstractInternalModelIntegrationTest {
 		login(userAdministrator);
 
 		ObjectQuery query = QueryBuilder.queryFor(CaseType.class, prismContext)
-				.item(CaseType.F_OBJECT_REF).ref(userAdministrator.getOid())
+				.item(CaseType.F_OBJECT_REF).ref(RESOURCE_DUMMY_OID)
 				.build();
 		SearchResultList<PrismObject<CaseType>> cases = controller.searchObjects(CaseType.class, query, null, task, result);
 		display("objects", cases);
