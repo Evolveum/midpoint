@@ -66,6 +66,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.OwnerResolver;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -1232,7 +1233,7 @@ public class ChangeExecutor {
 		OwnerResolver ownerResolver = createOwnerResolver(context, task, result);
 		try {
 			securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(),
-					AuthorizationPhaseType.EXECUTION, objectToAdd, null, null, ownerResolver, task, result);
+					AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObject(objectToAdd), ownerResolver, task, result);
 
 			T objectTypeToAdd = objectToAdd.asObjectable();
 
@@ -1297,7 +1298,7 @@ public class ChangeExecutor {
 		OwnerResolver ownerResolver = createOwnerResolver(context, task, result);
 		try {
 			securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(),
-					AuthorizationPhaseType.EXECUTION, objectOld, null, null, ownerResolver, task, result);
+					AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObject(objectOld), ownerResolver, task, result);
 
 			if (TaskType.class.isAssignableFrom(objectTypeClass)) {
 				taskManager.deleteTask(oid, result);
@@ -1350,7 +1351,7 @@ public class ChangeExecutor {
 		OwnerResolver ownerResolver = createOwnerResolver(context, task, result);
 		try {
 			securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(),
-					AuthorizationPhaseType.EXECUTION, objectNew, delta, null, ownerResolver, task, result);
+					AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObjectDelta(objectNew, delta), ownerResolver, task, result);
 
 			metadataManager.applyMetadataModify(delta, objectContext, objectTypeClass,
 					clock.currentTimeXMLGregorianCalendar(), task, context, result);

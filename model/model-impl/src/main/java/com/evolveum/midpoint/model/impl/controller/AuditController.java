@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -262,8 +263,8 @@ public class AuditController implements ModelAuditService {
 	}
 
 	private void authorize(ModelAuthorizationAction action, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		securityEnforcer.authorize(action.getUrl(), AuthorizationPhaseType.REQUEST, null, null, null, null, task, result);
-		securityEnforcer.authorize(action.getUrl(), AuthorizationPhaseType.EXECUTION, null, null, null, null, task, result);
+		securityEnforcer.authorize(action.getUrl(), AuthorizationPhaseType.REQUEST, AuthorizationParameters.EMPTY, null, task, result);
+		securityEnforcer.authorize(action.getUrl(), AuthorizationPhaseType.EXECUTION, AuthorizationParameters.EMPTY, null, task, result);
 	}
 
 }

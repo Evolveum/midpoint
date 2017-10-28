@@ -18,6 +18,8 @@ package com.evolveum.midpoint.security.api;
 import java.util.List;
 import java.util.Objects;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
@@ -103,6 +105,10 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 
 	public List<OwnedObjectSelectorType> getTarget() {
 		return authorizationType.getTarget();
+	}
+	
+	public List<QName> getRelation() {
+		return authorizationType.getRelation();
 	}
 	
 	public AuthorizationLimitationsType getLimitations() {

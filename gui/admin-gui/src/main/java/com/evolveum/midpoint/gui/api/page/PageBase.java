@@ -58,6 +58,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -554,20 +555,35 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	Task task = getPageTask();
-    	return getSecurityEnforcer().isAuthorized(operationUrl, phase, object, delta, target, ownerResolver, task, task.getResult());
+    	AuthorizationParameters<O,T> params = new AuthorizationParameters.Builder<O,T>()
+    		.object(object)
+    		.delta(delta)
+    		.target(target)
+    		.build();
+    	return getSecurityEnforcer().isAuthorized(operationUrl, phase, params, ownerResolver, task, task.getResult());
     }
 
     public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, OperationResult result)
 			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-    	getSecurityEnforcer().authorize(operationUrl, phase, object, delta, target, ownerResolver, getPageTask(), result);
+    	AuthorizationParameters<O,T> params = new AuthorizationParameters.Builder<O,T>()
+        		.object(object)
+        		.delta(delta)
+        		.target(target)
+        		.build();
+    	getSecurityEnforcer().authorize(operationUrl, phase, params, ownerResolver, getPageTask(), result);
     }
 
     public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver)
 			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
     	Task task = getPageTask();
-    	getSecurityEnforcer().authorize(operationUrl, phase, object, delta, target, ownerResolver, task, task.getResult());
+    	AuthorizationParameters<O,T> params = new AuthorizationParameters.Builder<O,T>()
+        		.object(object)
+        		.delta(delta)
+        		.target(target)
+        		.build();
+    	getSecurityEnforcer().authorize(operationUrl, phase, params, ownerResolver, task, task.getResult());
     }
 
     

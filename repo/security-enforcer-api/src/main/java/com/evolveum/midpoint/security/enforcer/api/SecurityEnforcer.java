@@ -49,8 +49,8 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	/**
 	 * Produces authorization error with proper message and logs it using proper logger.
 	 */
-	<O extends ObjectType, T extends ObjectType> void failAuthorization(String operationUrl, AuthorizationPhaseType phase, PrismObject<O> object,
-			ObjectDelta<O> delta, PrismObject<T> target, OperationResult result)
+	<O extends ObjectType, T extends ObjectType> void failAuthorization(String operationUrl, AuthorizationPhaseType phase, 
+			AuthorizationParameters<O,T> params, OperationResult result)
 			throws SecurityViolationException;
 
 	/**
@@ -59,7 +59,7 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	 * @param phase check authorization for a specific phase. If null then all phases are checked.
 	 */
 	<O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+			AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**
 	 * Evaluates authorization: simply returns if the currently logged it user is authorized for a
@@ -68,7 +68,7 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	 * @param phase check authorization for a specific phase. If null then all phases are checked.
 	 */
 	<O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver,
+			AuthorizationParameters<O,T> params, OwnerResolver ownerResolver,
 			Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 	<O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;

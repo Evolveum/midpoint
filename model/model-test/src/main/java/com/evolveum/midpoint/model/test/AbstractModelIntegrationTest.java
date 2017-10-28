@@ -148,6 +148,7 @@ import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -4023,7 +4024,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		createSecurityContext(principal);
 		try {
 			assertTrue("AuthorizationEvaluator.isAuthorized: Principal "+principal+" NOT authorized for action "+action,
-					securityEnforcer.isAuthorized(action, phase, null, null, null, null, task, result));
+					securityEnforcer.isAuthorized(action, phase, AuthorizationParameters.EMPTY, null, task, result));
 			if (phase == null) {
 				securityEnforcer.decide(SecurityContextHolder.getContext().getAuthentication(), createSecureObject(),
 					createConfigAttributes(action));
@@ -4050,7 +4051,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertNotAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		SecurityContext origContext = SecurityContextHolder.getContext();
 		createSecurityContext(principal);
-		boolean isAuthorized = securityEnforcer.isAuthorized(action, phase, null, null, null, null, task, result);
+		boolean isAuthorized = securityEnforcer.isAuthorized(action, phase, AuthorizationParameters.EMPTY, null, task, result);
 		SecurityContextHolder.setContext(origContext);
 		assertFalse("AuthorizationEvaluator.isAuthorized: Principal " + principal + " IS authorized for action " + action + " (" + phase + ") but he should not be", isAuthorized);
 	}

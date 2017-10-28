@@ -45,6 +45,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -168,7 +169,7 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 	    private boolean authorizeUser(String authorization, UserType user, PrismObject<UserType> proxyUser, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx) {
 	    	Task task = taskManager.createTaskInstance(MidpointRestAuthenticator.class.getName() + ".authorizeUser");
 	    	try {
-	    		securityEnforcer.authorize(authorization, null, proxyUser, null, null, null, task, task.getResult());
+	    		securityEnforcer.authorize(authorization, null, AuthorizationParameters.Builder.buildObject(proxyUser), null, task, task.getResult());
 			} catch (SecurityViolationException e){
 				securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Not authorized");
 				requestCtx.abortWith(Response.status(Status.FORBIDDEN).build());

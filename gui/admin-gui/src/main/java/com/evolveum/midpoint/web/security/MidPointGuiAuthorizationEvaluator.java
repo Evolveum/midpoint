@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.*;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -103,15 +104,15 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     
 	@Override
 	public <O extends ObjectType, T extends ObjectType> void failAuthorization(String operationUrl,
-			AuthorizationPhaseType phase, PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target,
+			AuthorizationPhaseType phase, AuthorizationParameters<O,T> params,
 			OperationResult result) throws SecurityViolationException {
-    	securityEnforcer.failAuthorization(operationUrl, phase, object, delta, target, result);
+    	securityEnforcer.failAuthorization(operationUrl, phase, params, result);
 	}
 
 	@Override
 	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return securityEnforcer.isAuthorized(operationUrl, phase, object, delta, target, ownerResolver, task, result);
+			AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return securityEnforcer.isAuthorized(operationUrl, phase, params, ownerResolver, task, result);
 	}
 
     @Override
@@ -121,9 +122,9 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
 	@Override
 	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, Task task, OperationResult result)
+			AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, Task task, OperationResult result)
 			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		securityEnforcer.authorize(operationUrl, phase, object, delta, target, ownerResolver, task, result);
+		securityEnforcer.authorize(operationUrl, phase, params, ownerResolver, task, result);
 	}
 
 	@Override

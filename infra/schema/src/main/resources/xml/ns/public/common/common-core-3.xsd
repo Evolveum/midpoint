@@ -6649,15 +6649,19 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         When set to true, allows attribute/property values that are set outside
-                        of this mapping. I. e. it allows other values that set by this mapping.
+                        of this mapping. I. e. it allows other values than those set by this mapping.
                         
                         The default value for tolerant setting depends on when the mapping is used.
                         It is assumed to be true in inbound mappings, it is assumed to be false
                         in other mappings. This default setting was chosen to maintain behaviour
                         which is compatible with previous midPoint versions.
 
+						Note: Do not confuse with tolerant setting that applies to the
+						resource attribute (schemaHandling). If in doubt, use that other
+						setting instead. That resource attribute tolerance is usually the
+						right answer.
+
                         Support for this setting is currently EXPERIMENTAL.
-                        Use the tolerant setting for resource attribute when needed.
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:since>3.4</a:since>
@@ -9627,6 +9631,19 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+        	<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+	   			<xsd:annotation>
+    				<xsd:documentation>
+    					Relation(s) to which the authorization applies.
+    					This is applicable only to some authorizations, mostly those that
+    					create new object references (e.g. assign/unassign authorizations).
+    					If left empty it applies to all relations.
+    				</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.7</a:since>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+    		</xsd:element>
         	<xsd:element name="limitations" type="tns:AuthorizationLimitationsType" minOccurs="0" maxOccurs="1">
         		<xsd:annotation>
         			<xsd:documentation>

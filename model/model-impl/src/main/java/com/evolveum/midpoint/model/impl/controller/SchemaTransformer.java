@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -167,7 +168,7 @@ public class SchemaTransformer {
 	private <O extends ObjectType> void authorizeOptions(GetOperationOptions rootOptions, PrismObject<O> object, ObjectDelta<O> delta, AuthorizationPhaseType phase, Task task, OperationResult result)
 			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		if (GetOperationOptions.isRaw(rootOptions)) {
-			securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), phase, object, delta, null, null, task, result);
+			securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), phase, AuthorizationParameters.Builder.buildObjectDelta(object, delta), null, task, result);
 		}
 	}
 
