@@ -19,7 +19,12 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -29,13 +34,17 @@ import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,6 +71,8 @@ public class PageAttorneySelection extends PageBase {
     private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
 
     private static final String DOT_CLASS = PageUsers.class.getName() + ".";
+
+    private static final String OPERATION_GET_DONOR_FILTER = DOT_CLASS + "getDonorFilter";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
@@ -112,6 +123,33 @@ public class PageAttorneySelection extends PageBase {
             protected List<InlineMenuItem> createInlineMenu() {
                 return null;
             }
+
+            @Override
+            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+                if (query == null) {
+                    query = new ObjectQuery();
+                }
+
+                ModelInteractionService service = getModelInteractionService();
+
+                Task task = createSimpleTask(OPERATION_GET_DONOR_FILTER);
+                try {
+                    ObjectFilter filter = query.getFilter();
+                    // todo target authorization action
+                    filter = service.getDonorFilter(UserType.class, filter, null,
+                            task, task.getResult());
+
+                    query.setFilter(filter);
+
+                    return query;
+                } catch (CommonException ex) {
+                    LOGGER.error("Couldn't get donor filter, reason: {}", ex.getMessage());
+                    LOGGER.debug("Couldn't get donor filter", ex);
+
+                    PageError error = new PageError(ex);
+                    throw new RestartResponseException(error);
+                }
+            }
         };
         table.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES);
         table.setOutputMarkupId(true);
@@ -142,6 +180,8 @@ public class PageAttorneySelection extends PageBase {
     }
 
     private void selectUserPerformed(AjaxRequestTarget target, String oid) {
-        //todo implement
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+        navigateToNext(PageWorkItemsAttorney.class, parameters);
     }
 }

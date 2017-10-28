@@ -20,6 +20,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.web.application.Url;
         urls = {
                 @Url(mountUrl = "/admin/workItemsAttorney", matchUrlForSecurity = "/admin/workItemsAttorney")
         },
+        encoder = OnePageParameterEncoder.class,
         action = {
                 @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_APPROVALS_ALL,
                         label = PageAdminWorkItems.AUTH_APPROVALS_ALL_LABEL,
