@@ -18,7 +18,7 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-    <name>Fool Metaroler</name>
+    <name>Fool Metarole</name>
     <inducement id="10001">
         <construction>
     		<resourceRef oid="10000000-0000-0000-0000-000000000004"/>

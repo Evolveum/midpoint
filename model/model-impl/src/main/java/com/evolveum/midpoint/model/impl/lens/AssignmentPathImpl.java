@@ -50,6 +50,15 @@ public class AssignmentPathImpl implements AssignmentPath {
 	public List<AssignmentPathSegmentImpl> getSegments() {
 		return segments;
 	}
+	
+	@Override
+	public AssignmentPathSegment getSegment(int index) {
+		if (index >= 0) {
+			return segments.get(index);
+		} else {
+			return segments.get(segments.size() - index);
+		}
+	}
 
 	public void add(AssignmentPathSegmentImpl segment) {
 		segments.add(segment);
