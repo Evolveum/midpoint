@@ -242,6 +242,9 @@ public class AdminGuiConfigTypeUtil {
 	}
 
 	public static UserInterfaceElementVisibilityType getFeatureVisibility(AdminGuiConfigurationType adminGuiConfig, String identifier) {
+		if (adminGuiConfig == null) {
+			return UserInterfaceElementVisibilityType.AUTOMATIC;
+		}
 		UserInterfaceFeatureType feature = findFeature(adminGuiConfig.getFeature(), identifier);
 		if (feature == null) {
 			return UserInterfaceElementVisibilityType.AUTOMATIC;

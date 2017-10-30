@@ -1805,6 +1805,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected static <F extends FocusType> void assertAssignedRoles(PrismObject<F> user, String... roleOids) {
 		MidPointAsserts.assertAssignedRoles(user, roleOids);
 	}
+	
+	protected static <F extends FocusType> void assertAssignedRoles(PrismObject<F> user, Collection<String> roleOids) {
+		MidPointAsserts.assertAssignedRoles(user, roleOids);
+	}
 
 	protected void assignDeputy(String userDeputyOid, String userTargetOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		assignDeputy(userDeputyOid, userTargetOid, null, task, result);
@@ -3167,14 +3171,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         TestUtil.assertSuccess(result);
 	}
 
-	protected <O extends ObjectType> void addObject(PrismObject<O> object, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		addObject(object, null, task, result);
+	protected <O extends ObjectType> String addObject(PrismObject<O> object, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		return addObject(object, null, task, result);
 	}
 
-	protected <O extends ObjectType> void addObject(PrismObject<O> object, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected <O extends ObjectType> String addObject(PrismObject<O> object, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         ObjectDelta<O> addDelta = object.createAddDelta();
         modelService.executeChanges(MiscSchemaUtil.createCollection(addDelta), options, task, result);
         object.setOid(addDelta.getOid());
+        return addDelta.getOid();
 	}
 
 	protected <O extends ObjectType> void deleteObject(Class<O> type, String oid, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {

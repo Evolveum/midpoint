@@ -63,6 +63,7 @@
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacLightInitialProjection"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacNoInbounds"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestAssignmentValidity"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestMetaMeta"/>
             <class name="com.evolveum.midpoint.model.intest.TestRaceConditions"/>
             <class name="com.evolveum.midpoint.model.intest.TestNotifications"/>
             <class name="com.evolveum.midpoint.model.intest.persona.TestPersona"/>

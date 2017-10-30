@@ -7715,6 +7715,33 @@
 		        			</xsd:documentation>
 		        		</xsd:annotation>
 		        	</xsd:element>
+		        	<xsd:element name="assignmentPathIndex" type="xsd:int" minOccurs="0" maxOccurs="1">
+		        		<xsd:annotation>
+		        			<xsd:documentation>
+			        			<p>
+			        				Index to the assignment path. This index points to the object that should
+			        				be used as a source to get the link from.
+			        				Index 0 is the focal object, index 1 is the first (plain) role,
+			        				index 2 is meta-role, index 3 is meta-meta-role and so on.
+			        				Negative index can also be used, in that case the order is reversed:
+			        				index -1 is that last meta-meta-meta-...-role. index -2 is the one before
+			        				and so on.
+		        				</p>
+		        				<p>
+			        				If the index is not specified then a legacy algorithm will be used.
+			        				The legacy algorithm is guaranteed to work up to meta-role level.
+			        				For plain roles (order-one inducement) the role itself is selected.
+			        				For meta-roles (order-two inducement) the first (plain) role is selected.
+			        				At the meta-meta role level (order-three inducement) and above the
+			        				behavior is formally undefined and it may change in any future versions.
+			        				However, current behaviour roughly corresponds to assignment path index -2.
+		        				</p>
+		        			</xsd:documentation>
+		        			<xsd:appinfo>
+		        				<a:since>3.7</a:since>
+		        			</xsd:appinfo>
+		        		</xsd:annotation>
+		        	</xsd:element>
 		        </xsd:sequence>
 	        </xsd:extension>
         </xsd:complexContent>

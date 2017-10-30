@@ -2014,6 +2014,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		PrismAsserts.assertSets("Wrong values in roleMembershipRef in "+focus, refOids, roleOids);
 	}
+	
+	protected <F extends FocusType> void assertRoleMembershipRefs(PrismObject<F> focus, Collection<String> roleOids) {
+		List<String> refOids = new ArrayList<String>();
+		for (ObjectReferenceType ref: focus.asObjectable().getRoleMembershipRef()) {
+			refOids.add(ref.getOid());
+			assertNotNull("Missing type in roleMembershipRef "+ref.getOid()+" in "+focus, ref.getType());
+			// Name is not stored now
+//			assertNotNull("Missing name in roleMembershipRef "+ref.getOid()+" in "+focus, ref.getTargetName());
+		}
+		PrismAsserts.assertSets("Wrong values in roleMembershipRef in "+focus, refOids, roleOids);
+	}
 
 	protected <F extends FocusType> void assertRoleMembershipRef(PrismObject<F> focus, QName relation, String... roleOids) {
 		if (!MiscUtil.unorderedCollectionEquals(Arrays.asList(roleOids), focus.asObjectable().getRoleMembershipRef(),
