@@ -2037,6 +2037,19 @@ public final class WebComponentUtil {
 		};
 	}
 
+	public static String getStringParameter(PageParameters params, String key) {
+		if (params == null || params.get(key) == null) {
+			return null;
+		}
+
+		StringValue value = params.get(key);
+		if (StringUtils.isBlank(value.toString())) {
+			return null;
+		}
+
+		return value.toString();
+	}
+
 	public static Integer getIntegerParameter(PageParameters params, String key) {
 		if (params == null || params.get(key) == null) {
 			return null;

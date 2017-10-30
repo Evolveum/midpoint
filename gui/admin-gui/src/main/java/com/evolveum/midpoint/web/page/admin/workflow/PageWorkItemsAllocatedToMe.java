@@ -33,7 +33,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 public class PageWorkItemsAllocatedToMe extends PageWorkItems {
 
     public PageWorkItemsAllocatedToMe() {
-        super(false, false);
+        super(WorkItemsPageType.ALLOCATED_TO_ME);
     }
 
 }
