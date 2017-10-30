@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemsPageType;
+import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
@@ -42,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IModel;
 
 import java.util.Collection;
@@ -181,7 +184,16 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
             result.computeStatus();
         }
 
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+            handleError(result);
+        }
+
         return getAvailableData().iterator();
+    }
+
+    private void handleError(OperationResult result) {
+        getPage().showResult(result);
+        throw new RestartResponseException(PageError.class);
     }
 
     private ObjectQuery createQuery(long first, long count, OperationResult result) throws SchemaException {
@@ -220,8 +232,8 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
             result.computeStatus();
         }
 
-        if (!result.isSuccess()) {
-            getPage().showResult(result);
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+            handleError(result);
         }
 
         return count;
