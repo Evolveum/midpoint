@@ -59,6 +59,7 @@ import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -3658,7 +3659,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected void login(MidPointPrincipal principal) {
 		SecurityContext securityContext = SecurityContextHolder.getContext();
-		Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
+		Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
 		securityContext.setAuthentication(authentication);
 	}
 
@@ -3736,6 +3737,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			AssertJUnit.fail("Unknown principal in the spring security context: "+principal);
 			return null; // not reached
 		}
+	}
+	
+	protected void assertAuthenticated() {
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		Authentication authentication = securityContext.getAuthentication();
+		assertTrue("Security context is not authenticated", authentication.isAuthenticated());
 	}
 
 	protected void resetAuthentication() {
