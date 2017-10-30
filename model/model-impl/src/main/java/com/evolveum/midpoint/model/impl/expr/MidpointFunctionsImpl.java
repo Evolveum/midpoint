@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.ConstantsManager;
@@ -515,12 +516,21 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
 	@Override
 	public boolean isFullShadow() {
-		LensProjectionContext projectionContext = getProjectionContext();
+		ModelProjectionContext projectionContext = getProjectionContext();
 		if (projectionContext == null) {
 			LOGGER.debug("Call to isFullShadow while there is no projection context");
 			return false;
 		}
 		return projectionContext.isFullShadow();
+	}
+	
+	@Override
+	public boolean isProjectionExists() {
+		ModelProjectionContext projectionContext = getProjectionContext();
+		if (projectionContext == null) {
+			return false;
+		}
+		return projectionContext.isExists();
 	}
 
 	public <T> Integer countAccounts(String resourceOid, QName attributeName, T attributeValue)
@@ -703,7 +713,22 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		return isUniqueHolder.getValue();
 	}
 
-	private LensProjectionContext getProjectionContext() {
+	@Override
+	public <F extends ObjectType> ModelContext<F> getModelContext() {
+		return ModelExpressionThreadLocalHolder.getLensContext();
+	}
+	
+	@Override
+	public <F extends ObjectType> ModelElementContext<F> getFocusContext() {
+		LensContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+		if (lensContext == null) {
+			return null;
+		}
+		return (ModelElementContext<F>) lensContext.getFocusContext();
+	}
+	
+	@Override
+	public ModelProjectionContext getProjectionContext() {
 		return ModelExpressionThreadLocalHolder.getProjectionContext();
 	}
 
