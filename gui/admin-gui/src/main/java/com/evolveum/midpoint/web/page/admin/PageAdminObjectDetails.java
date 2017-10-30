@@ -258,7 +258,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	protected String getObjectOidParameter() {
 		PageParameters parameters = getPageParameters();
 		LOGGER.trace("Page parameters: {}", parameters);
-		StringValue oidValue = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+		StringValue oidValue = parameters.get(OnePageParameterEncoder.PARAMETER);
 		LOGGER.trace("OID parameter: {}", oidValue);
 		if (oidValue == null) {
 			return null;

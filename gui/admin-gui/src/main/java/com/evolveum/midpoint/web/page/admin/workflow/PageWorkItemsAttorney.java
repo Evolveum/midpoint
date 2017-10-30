@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
@@ -40,7 +42,12 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
         })
 public class PageWorkItemsAttorney extends PageWorkItems {
 
+    private static final Trace LOGGER = TraceManager.getTrace(PageWorkItemsAttorney.class);
+
+    private static final String DOT_CLASS = PageWorkItems.class.getName() + ".";
+
+
     public PageWorkItemsAttorney() {
-        super(false, false);
+        super(WorkItemsPageType.ATTORNEY);
     }
 }

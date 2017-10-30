@@ -33,7 +33,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 public class PageWorkItemsAll extends PageWorkItems {
 
     public PageWorkItemsAll() {
-        super(false, true);
+        super(WorkItemsPageType.ALL);
     }
 
 }
