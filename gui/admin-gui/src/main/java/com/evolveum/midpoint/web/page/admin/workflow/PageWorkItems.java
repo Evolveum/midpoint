@@ -26,8 +26,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
@@ -39,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.Collections;
 import java.util.List;
@@ -69,9 +67,9 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
     private static final String ID_APPROVE = "approve";
     private static final String ID_REJECT = "reject";
 
-	private WorkItemsPageType workItemsType;
+    private WorkItemsPageType workItemsType;
 
-	private IModel<PrismObject<UserType>> donorModel;
+    private IModel<PrismObject<UserType>> donorModel;
 
     public PageWorkItems(WorkItemsPageType workItemsType) {
         this.workItemsType = workItemsType;
@@ -103,7 +101,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
                 new WorkItemDtoProvider(PageWorkItems.this, workItemsType, donorModel),
                 UserProfileStorage.TableId.PAGE_WORK_ITEMS,
                 (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEMS),
-				WorkItemsPanel.View.FULL_LIST);
+                WorkItemsPanel.View.FULL_LIST);
 
         panel.setOutputMarkupId(true);
         mainForm.add(panel);
@@ -184,7 +182,13 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
     }
 
     private void backPerformed(AjaxRequestTarget target) {
-        setResponsePage(PageAttorneySelection.class);
+        PageParameters parameters = new PageParameters();
+
+        String oid = donorModel.getObject().getOid();
+        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+
+        PageAttorneySelection back = new PageAttorneySelection(parameters);
+        setResponsePage(back);
     }
 
     private boolean isSomeItemSelected(List<WorkItemDto> items, AjaxRequestTarget target) {
@@ -229,7 +233,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
         showResult(mainResult);
 
         resetWorkItemCountModel();
-		target.add(this);
+        target.add(this);
     }
 
     private void claimWorkItemsPerformed(AjaxRequestTarget target) {
@@ -259,8 +263,8 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
 
         showResult(mainResult);
 
-		resetWorkItemCountModel();
-		target.add(this);
+        resetWorkItemCountModel();
+        target.add(this);
     }
 
     private void releaseWorkItemsPerformed(AjaxRequestTarget target) {
@@ -290,7 +294,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
 
         showResult(mainResult);
 
-		resetWorkItemCountModel();
-		target.add(this);
+        resetWorkItemCountModel();
+        target.add(this);
     }
 }
