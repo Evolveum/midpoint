@@ -34,11 +34,13 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -74,17 +76,21 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
     public PageWorkItems(WorkItemsPageType workItemsType) {
         this.workItemsType = workItemsType;
 
-        donorModel = new LoadableModel<PrismObject<UserType>>() {
+        donorModel = new LoadableModel<PrismObject<UserType>>(false) {
 
             @Override
             protected PrismObject<UserType> load() {
                 String oid = WebComponentUtil.getStringParameter(getPageParameters(), OnePageParameterEncoder.PARAMETER);
 
+                if (StringUtils.isEmpty(oid)) {
+                    return null;
+                }
+
                 Task task = createSimpleTask(OPERATION_LOAD_DONOR);
                 OperationResult result = task.getResult();
 
                 PrismObject<UserType> donor = WebModelServiceUtils.loadObject(UserType.class, oid,
-                        Collections.emptyList(), PageWorkItems.this, task, result);
+                        new ArrayList<>(), PageWorkItems.this, task, result);
 
                 return donor;
             }
