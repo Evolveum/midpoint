@@ -125,7 +125,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
     }
 
     private void initItemButtons(Form mainForm) {
-        AjaxButton back = new AjaxButton(ID_BACK, createStringResource("pageWorkItems.button.claim")) {
+        AjaxButton back = new AjaxButton(ID_BACK, createStringResource("pageWorkItems.button.back")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
