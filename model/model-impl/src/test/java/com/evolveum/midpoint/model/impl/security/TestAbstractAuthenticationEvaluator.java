@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.security;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -130,6 +129,13 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
 			@Override
 			public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException {
+				return getPrincipal(user, null, null);
+			}
+			
+			@Override
+			public MidPointPrincipal getPrincipal(PrismObject<UserType> user,
+					AuthorizationTransformer authorizationLimiter, OperationResult result)
+					throws SchemaException {
 				MidPointPrincipal principal = userProfileService.getPrincipal(user);
 				addFakeAuthorization(principal);
 				return principal;
@@ -141,6 +147,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 				addFakeAuthorization(principal);
 				return principal;
 			}
+
 		};
 	}
 

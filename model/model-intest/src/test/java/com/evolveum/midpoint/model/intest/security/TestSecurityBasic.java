@@ -637,7 +637,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("Jack", userJack);
-		assertUserJackReadSomeModifySome(userJack);
+		assertUserJackReadSomeModifySome(userJack, 1);
 		assertJackEditSchemaReadSomeModifySome(userJack);
 
 		PrismObject<UserType> userGuybrush = findUserByUsername(USER_GUYBRUSH_USERNAME);
@@ -663,39 +663,6 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 		assertGlobalStateUntouched();
 	}
 
-    private void assertUserJackReadSomeModifySome(PrismObject<UserType> userJack) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
-
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_NAME, PrismTestUtil.createPolyString(USER_JACK_USERNAME));
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
-		PrismAsserts.assertPropertyValue(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
-			ActivationStatusType.ENABLED);
-		PrismAsserts.assertNoItem(userJack, UserType.F_GIVEN_NAME);
-		PrismAsserts.assertNoItem(userJack, UserType.F_FAMILY_NAME);
-		PrismAsserts.assertNoItem(userJack, UserType.F_ADDITIONAL_NAME);
-		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
-		PrismAsserts.assertNoItem(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
-		assertAssignmentsWithTargets(userJack, 1);
-    }
-
-    private void assertJackEditSchemaReadSomeModifySome(PrismObject<UserType> userJack) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
-    	PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
-		display("Jack's edit schema", userJackEditSchema);
-		assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);
-		assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, false, true);
-		assertItemFlags(userJackEditSchema, UserType.F_DESCRIPTION, false, false, true);
-		assertItemFlags(userJackEditSchema, UserType.F_GIVEN_NAME, false, false, false);
-		assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, false, false, false);
-		assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, false, false, true);
-		assertItemFlags(userJackEditSchema, UserType.F_METADATA, false, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), false, false, false);
-		assertItemFlags(userJackEditSchema, UserType.F_ASSIGNMENT, true, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
-		assertItemFlags(userJackEditSchema, UserType.F_ACTIVATION, true, false, true);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), true, false, false);
-		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), false, false, false);
-    }
-
     public void testAutzJackPropReadSomeModifySome(final String TEST_NAME, String roleOid) throws Exception {
         displayTestTitle(TEST_NAME);
         // GIVEN
@@ -706,47 +673,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         // WHEN
         displayWhen(TEST_NAME);
 
-        assertReadAllow();
-
-        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_ADDITIONAL_NAME, PrismTestUtil.createPolyString("Captain"));
-
-        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		display("Jack", userJack);
-		assertUserJackReadSomeModifySome(userJack);
-		assertJackEditSchemaReadSomeModifySome(userJack);
-
-        PrismObject<UserType> userGuybrush = findUserByUsername(USER_GUYBRUSH_USERNAME);
-        display("Guybrush", userGuybrush);
-        PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_USERNAME));
-        PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_FULL_NAME));
-        PrismAsserts.assertPropertyValue(userGuybrush, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
-            	ActivationStatusType.ENABLED);
-        PrismAsserts.assertNoItem(userGuybrush, UserType.F_GIVEN_NAME);
-        PrismAsserts.assertNoItem(userGuybrush, UserType.F_FAMILY_NAME);
-        PrismAsserts.assertNoItem(userGuybrush, UserType.F_ADDITIONAL_NAME);
-        PrismAsserts.assertNoItem(userGuybrush, UserType.F_DESCRIPTION);
-        PrismAsserts.assertNoItem(userGuybrush, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
-        assertAssignmentsWithTargets(userGuybrush, 1);
-
-        assertAddDeny();
-
-        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, createPolyString("Captain Jack Sparrow"));
-        assertModifyAllow(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
-				JACK_VALID_FROM_LONG_AGO);
-        assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, "Pirate wannabe");
-
-        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Captain"));
-        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Pirate"));
-        assertModifyDeny(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Mutinier"));
-
-        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_COST_CENTER, "V3RYC0STLY");
-        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_ORGANIZATION, createPolyString("Brethren of the Coast"));
-
-        assertDeleteDeny();
+        assertReadSomeModifySome(1);
 
         assertGlobalStateUntouched();
 	}
-
 
     @Test
     public void test218AutzJackPropReadSomeModifySomeExecAll() throws Exception {

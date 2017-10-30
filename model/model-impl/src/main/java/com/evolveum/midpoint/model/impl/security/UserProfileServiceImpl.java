@@ -49,6 +49,7 @@ import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
@@ -81,6 +82,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * @author lazyman
@@ -112,40 +114,51 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     	PrismObject<UserType> user;
         try {
             user = findByUsername(username, result);
+
+            if (user == null) {
+                throw new ObjectNotFoundException("Couldn't find user with name '" + username + "'");
+            }
         } catch (ObjectNotFoundException ex) {
-        	LOGGER.trace("Couldn't find user with name '{}', reason: {}.", username, ex.getMessage(), ex);
-        	throw ex;
+            LOGGER.trace("Couldn't find user with name '{}', reason: {}.", username, ex.getMessage(), ex);
+            throw ex;
         } catch (Exception ex) {
             LOGGER.warn("Error getting user with name '{}', reason: {}.", username, ex.getMessage(), ex);
             throw new SystemException(ex.getMessage(), ex);
         }
 
-        return createPrincipal(user, result);
+        return getPrincipal(user, null, result);
     }
 
     @Override
     public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException {
     	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-    	return createPrincipal(user, result);
+    	return getPrincipal(user, null, result);
     }
-
-    private MidPointPrincipal createPrincipal(PrismObject<UserType> user, OperationResult result) throws SchemaException {
+    
+    @Override
+    public MidPointPrincipal getPrincipal(PrismObject<UserType> user, AuthorizationTransformer authorizationTransformer, OperationResult result) throws SchemaException {
         if (user == null) {
             return null;
         }
 
-        PrismObject<SystemConfigurationType> systemConfiguration = null;
+        PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
+
+    	userComputer.recompute(user);
+        MidPointPrincipal principal = new MidPointPrincipal(user.asObjectable());
+        initializePrincipalFromAssignments(principal, systemConfiguration, authorizationTransformer);
+        return principal;
+    }
+    
+    private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) {
+    	PrismObject<SystemConfigurationType> systemConfiguration = null;
         try {
+        	// TODO: use SystemObjectCache instead?
         	systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
 					null, result);
 		} catch (ObjectNotFoundException | SchemaException e) {
 			LOGGER.warn("No system configuration: {}", e.getMessage(), e);
-		}
-
-    	userComputer.recompute(user);
-        MidPointPrincipal principal = new MidPointPrincipal(user.asObjectable());
-        initializePrincipalFromAssignments(principal, systemConfiguration);
-        return principal;
+		} 
+        return systemConfiguration;
     }
 
     @Override
@@ -171,7 +184,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         return list.get(0);
     }
 
-	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
+	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer) throws SchemaException {
 		UserType userType = principal.getUser();
 
 		Collection<Authorization> authorizations = principal.getAuthorities();
@@ -216,7 +229,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 						assignmentIdi.recompute();
 						EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userType, userType.toString(), task, result);
 						if (assignment.isValid()) {
-							authorizations.addAll(assignment.getAuthorizations());
+							addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationTransformer);
 							adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
 						}
 						for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
@@ -241,6 +254,22 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			adminGuiConfigurations.add(userType.getAdminGuiConfiguration());
 		}
         principal.setAdminGuiConfiguration(AdminGuiConfigTypeUtil.compileAdminGuiConfiguration(adminGuiConfigurations, systemConfiguration));
+	}
+
+	private void addAuthorizations(Collection<Authorization> targetCollection, Collection<Authorization> sourceCollection, AuthorizationTransformer authorizationTransformer) {
+		if (sourceCollection == null) {
+			return;
+		}
+		for (Authorization autz: sourceCollection) {
+			if (authorizationTransformer == null) {
+				targetCollection.add(autz);
+			} else {
+				Collection<Authorization> transformedAutzs = authorizationTransformer.transform(autz);
+				if (transformedAutzs != null) {
+					targetCollection.addAll(transformedAutzs);
+				}
+			}
+		}
 	}
 
 	private MidPointPrincipal save(MidPointPrincipal person, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {

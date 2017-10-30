@@ -67,6 +67,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedModelIntegrationTest.class);
 
+	private static final int NUMBER_OF_IMPORTED_USERS = 4;
 	private static final int NUMBER_OF_IMPORTED_ROLES = 15;
 
 	@Autowired(required = true)
@@ -274,6 +275,12 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		return ConflictResolutionActionType.FAIL;
 	}
 
+	@Override
+	protected int getNumberOfUsers() {
+		return super.getNumberOfUsers() + NUMBER_OF_IMPORTED_USERS;
+	}
+
+	@Override
 	protected int getNumberOfRoles() {
 		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
 	}

@@ -38,8 +38,9 @@
             <class name="com.evolveum.midpoint.model.intest.TestStrangeCases"/>
             <class name="com.evolveum.midpoint.model.intest.TestMisc"/>
             <class name="com.evolveum.midpoint.model.intest.TestResources"/>
-            <class name="com.evolveum.midpoint.model.intest.TestMapping"/>
-            <class name="com.evolveum.midpoint.model.intest.TestMappingInbound"/>
+            <class name="com.evolveum.midpoint.model.intest.mapping.TestMapping"/>
+            <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingInbound"/>
+            <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingAutoInbound"/>
             <class name="com.evolveum.midpoint.model.intest.TestInbounds"/>
             <class name="com.evolveum.midpoint.model.intest.TestVolatility"/>
             <class name="com.evolveum.midpoint.model.intest.TestTriggerTask"/>
@@ -62,6 +63,7 @@
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacLightInitialProjection"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacNoInbounds"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestAssignmentValidity"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestMetaMeta"/>
             <class name="com.evolveum.midpoint.model.intest.TestRaceConditions"/>
             <class name="com.evolveum.midpoint.model.intest.TestNotifications"/>
             <class name="com.evolveum.midpoint.model.intest.persona.TestPersona"/>

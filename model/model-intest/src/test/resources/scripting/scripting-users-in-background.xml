@@ -45,7 +45,7 @@
                         log.info('Modifying user {}', input)
                         def deltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
                         .item(UserType.F_DESCRIPTION)
-                        .replace(basic.stringify(task.name))
+                        .replace(userDescription)
                         .asObjectDeltas(input.oid)
                         log.info('Change:\n{}', deltas.iterator().next().debugDump())
                         midpoint.executeChanges(deltas, null)
@@ -59,6 +59,12 @@
             <s:name>userName</s:name>
             <s:expression>
                 <c:path>$task/extension/userName</c:path>
+            </s:expression>
+        </s:variable>
+        <s:variable>
+            <s:name>userDescription</s:name>
+            <s:expression>
+                <c:path>$task/extension/userDescription</c:path>
             </s:expression>
         </s:variable>
     </s:variables>

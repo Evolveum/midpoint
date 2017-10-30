@@ -17,8 +17,10 @@
 package com.evolveum.midpoint.model.api.util;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -60,8 +62,8 @@ public class EvaluatedPolicyRuleUtil {
 	}
 
 	private static boolean isHidden(PolicyConstraintPresentationType presentation, PolicyConstraintKindType kind) {
-		if (presentation != null) {
-			return Boolean.TRUE.equals(presentation.isHidden());
+		if (presentation != null && presentation.isHidden() != null) {
+			return presentation.isHidden();
 		} else {
 			return isHiddenByDefault(kind);
 		}
@@ -84,6 +86,31 @@ public class EvaluatedPolicyRuleUtil {
 		node.getChildren().sort(comparator);
 		node.getChildren().forEach(child -> sortTriggersInt(child));
 	}
+
+	@NotNull
+	public static List<TreeNode<LocalizableMessage>> extractMessages(Collection<EvaluatedPolicyRuleTrigger<?>> triggers, MessageKind kind) {
+		return extractMessages(arrangeForPresentationInt(triggers), kind);
+	}
+
+	@NotNull
+	public static List<TreeNode<LocalizableMessage>> extractMessages(List<TreeNode<EvaluatedPolicyRuleTrigger<?>>> triggerTreeList,
+			MessageKind kind) {
+		List<TreeNode<LocalizableMessage>> messageTreeList = new ArrayList<>();
+		for (TreeNode<EvaluatedPolicyRuleTrigger<?>> tree : triggerTreeList) {
+			messageTreeList.add(tree.tranform(trigger -> getMessage(trigger, kind)));
+		}
+		return messageTreeList;
+	}
+
+	private static LocalizableMessage getMessage(EvaluatedPolicyRuleTrigger<?> trigger, MessageKind kind) {
+		switch (kind) {
+			case NORMAL: return trigger.getMessage();
+			case SHORT: return trigger.getMessage();
+			default: throw new AssertionError(kind);
+		}
+	}
+
+	public enum MessageKind { NORMAL, SHORT, /*LONG*/ }
 	//endregion
 
  	//region --------------- Externalized evaluated triggers (EvaluatedPolicyRuleTriggerType) ---------------------------------------------

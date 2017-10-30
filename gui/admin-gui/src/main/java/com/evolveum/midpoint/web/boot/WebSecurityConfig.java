@@ -19,7 +19,9 @@ package com.evolveum.midpoint.web.boot;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.web.security.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,6 +46,9 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
 @EnableGlobalMethodSecurity(securedEnabled = true)
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private AuthenticationProvider authenticationProvider;
 
     @Bean
     public WicketLoginUrlAuthenticationEntryPoint wicketAuthenticationEntryPoint() {
@@ -82,7 +87,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers("/fonts/**");
 
         web.ignoring().antMatchers("/wro/**");
-        web.ignoring().antMatchers("/less/**"); //todo should be there probably
+        web.ignoring().antMatchers("/less/**");
 
         web.ignoring().antMatchers("/wicket/resource/**");
     }
@@ -118,6 +123,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.headers().disable();
     }
 
+    @Profile({"!ldap", "!cas"})
     @Bean
     public AuthenticationProvider authenticationProvider() {
         return new MidPointAuthenticationProvider();
@@ -125,7 +131,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(authenticationProvider());
+        auth.authenticationProvider(authenticationProvider);
     }
 
     @Bean

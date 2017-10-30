@@ -190,7 +190,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
 	        fail("Expected policy violation after adding judge role, but it went well");
         } catch (PolicyViolationException e) {
-        	// This is expected
+	        System.out.println("Got expected exception: " + e.getMessage());
+	        assertEquals("Wrong message", "Violation of SoD policy: Role \"Judge\" excludes role \"Pirate\", they cannot be assigned at the same time", e.getMessage());
         	result.computeStatus();
         	assertFailure(result);
         }
@@ -217,7 +218,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
 	        AssertJUnit.fail("Expected policy violation after adding judge role, but it went well");
         } catch (PolicyViolationException e) {
-        	// This is expected
+	        System.out.println("Got expected exception: " + e.getMessage());
         }
 
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
@@ -245,7 +246,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
 	        AssertJUnit.fail("Expected policy violation after adding pirate role, but it went well");
         } catch (PolicyViolationException e) {
-        	// This is expected
+	        System.out.println("Got expected exception: " + e.getMessage());
+	        assertEquals("Wrong exception message", "Violation of SoD policy: Role \"Judge\" excludes role \"Pirate\", they cannot be assigned at the same time", e.getMessage());
         }
 
         unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
@@ -272,7 +274,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
 	        AssertJUnit.fail("Expected policy violation after adding pirate role, but it went well");
         } catch (PolicyViolationException e) {
-        	// This is expected
+	        System.out.println("Got expected exception: " + e.getMessage());
         }
 
         unassignRole(USER_JACK_OID, ROLE_JUDGE_DEPRECATED_OID, task, result);
@@ -298,7 +300,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
 	        AssertJUnit.fail("Expected policy violation, but it went well");
         } catch (PolicyViolationException e) {
-        	// This is expected
+	        System.out.println("Got expected exception: " + e.getMessage());
         }
 
         assertAssignedNoRole(USER_JACK_OID, task, result);
@@ -323,7 +325,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
 	        AssertJUnit.fail("Expected policy violation, but it went well");
         } catch (PolicyViolationException e) {
-        	// This is expected
+	        System.out.println("Got expected exception: " + e.getMessage());
         }
 
         assertAssignedNoRole(USER_JACK_OID, task, result);
@@ -348,7 +350,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
 	        AssertJUnit.fail("Expected policy violation, but it went well");
         } catch (PolicyViolationException e) {
-        	// This is expected
+	        System.out.println("Got expected exception: " + e.getMessage());
         }
 
         assertAssignedNoRole(USER_JACK_OID, task, result);
@@ -373,7 +375,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
 	        AssertJUnit.fail("Expected policy violation, but it went well");
         } catch (PolicyViolationException e) {
-        	// This is expected
+	        System.out.println("Got expected exception: " + e.getMessage());
         }
 
         assertAssignedNoRole(USER_JACK_OID, task, result);
@@ -397,7 +399,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
 	        AssertJUnit.fail("Expected policy violation, but it went well");
         } catch (PolicyViolationException e) {
-        	// This is expected
+	        System.out.println("Got expected exception: " + e.getMessage());
         }
 
         assertAssignedNoRole(USER_JACK_OID, task, result);
@@ -421,7 +423,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
 	        AssertJUnit.fail("Expected policy violation, but it went well");
         } catch (PolicyViolationException e) {
-        	// This is expected
+	        System.out.println("Got expected exception: " + e.getMessage());
         }
 
         assertAssignedNoRole(USER_JACK_OID, task, result);
@@ -541,7 +543,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
 	        AssertJUnit.fail("Expected policy violation after adding thief role, but it went well");
         } catch (PolicyViolationException e) {
-        	// This is expected
+	        System.out.println("Got expected exception: " + e.getMessage());
         }
 
         // Cleanup
@@ -1557,6 +1559,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	        assertNotReached();
 
         } catch (PolicyViolationException e) {
+			System.out.println("Got expected exception: " + e.getMessage());
 
         	// THEN
         	displayThen(TEST_NAME);

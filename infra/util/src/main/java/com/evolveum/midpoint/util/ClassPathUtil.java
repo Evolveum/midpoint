@@ -182,10 +182,19 @@ public class ClassPathUtil {
             return false;
         }
         URI srcUrl = src.toURI();
-//		URL srcUrl = ClassLoader.getSystemResource(srcPath);
+
+        String[] parts = srcUrl.toString().split("!/");
+        if (parts.length == 3
+                &&  parts[1].equals("WEB-INF/classes")) {
+            // jar:file:<ABSOLUTE_PATH>/midpoint.war!/WEB-INF/classes!/initial-midpoint-home
+            srcUrl = URI.create(parts[0] + "!/" + parts[1] + "/" + parts[2]);
+        }
+
         LOGGER.trace("URL: {}", srcUrl);
-        if (srcUrl.getPath().contains("!/")) {
-            URI srcFileUri = new URI(srcUrl.getPath().split("!/")[0]);        // e.g. file:/C:/Documents%20and%20Settings/user/.m2/repository/com/evolveum/midpoint/infra/test-util/2.1-SNAPSHOT/test-util-2.1-SNAPSHOT.jar
+        if (srcUrl.toString().contains("!/")) {
+            String uri = srcUrl.toString().split("!/")[0].replace("jar:", "");
+            // file:<ABSOLUTE_PATH>/midpoint.war
+            URI srcFileUri = URI.create(uri);
             File srcFile = new File(srcFileUri);
             JarFile jar = new JarFile(srcFile);
             Enumeration<JarEntry> entries = jar.entries();
@@ -200,7 +209,9 @@ public class ClassPathUtil {
                 }
 
                 // prepare destination file
-                String filepath = jarEntry.getName().substring(srcPath.length());
+                String entryName = jarEntry.getName();
+
+                String filepath = entryName.substring(entryName.indexOf(srcPath) + srcPath.length());
                 File dstFile = new File(dstPath, filepath);
 
                 if (!overwrite && dstFile.exists()) {

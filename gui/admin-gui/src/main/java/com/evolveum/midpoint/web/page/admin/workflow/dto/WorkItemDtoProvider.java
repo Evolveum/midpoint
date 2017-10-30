@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -32,10 +34,12 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.page.admin.workflow.WorkItemsPageType;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
+import org.apache.wicket.model.IModel;
 
 import java.util.*;
 
@@ -54,8 +58,15 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
     private static final String OPERATION_LIST_ITEMS = DOT_CLASS + "listItems";
     private static final String OPERATION_COUNT_ITEMS = DOT_CLASS + "countItems";
 
-    private boolean claimable;
-	private boolean all;
+    private WorkItemsPageType workItemsPageType;
+    private IModel<PrismObject<UserType>> donorModel;
+
+    public WorkItemDtoProvider(Component component, WorkItemsPageType workItemsPageType,
+                               IModel<PrismObject<UserType>> donorModel) {
+        super(component);
+        this.workItemsPageType = workItemsPageType;
+        this.donorModel = donorModel;
+    }
 
     private String currentUserOid() {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
@@ -66,12 +77,6 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         return principal.getOid();
     }
 
-    public WorkItemDtoProvider(Component component, boolean claimable, boolean all) {
-        super(component);
-        this.claimable = claimable;
-		this.all = all;
-    }
-
     @Override
     public Iterator<? extends WorkItemDto> internalIterator(long first, long count) {
         getAvailableData().clear();
@@ -79,7 +84,13 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         Task task = getTaskManager().createTaskInstance();
         OperationResult result = new OperationResult(OPERATION_LIST_ITEMS);
 
+        ModelInteractionService service = getModelInteractionService();
+
         try {
+            if (WorkItemsPageType.ATTORNEY.equals(workItemsPageType)) {
+                service.assumePowerOfAttorney(donorModel.getObject(), task, result);
+            }
+
             ObjectQuery query = createQuery(first, count, result);
             Collection<SelectorOptions<GetOperationOptions>> options =
                     GetOperationOptions.resolveItemsNamed(
@@ -97,9 +108,18 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
                 }
             }
 
-        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | CommunicationException ex) {
+        } catch (CommonException | RuntimeException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing work items", ex);
             result.recordFatalError("Couldn't list work items.", ex);
+        } finally {
+            if (WorkItemsPageType.ATTORNEY.equals(workItemsPageType)) {
+                try {
+                    service.dropPowerOfAttorney(task, result);
+                } catch (CommonException ex) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't drop power of attorney", ex);
+                    result.recordFatalError("Couldn't drop power of attorney", ex);
+                }
+            }
         }
 
         if (result.isUnknown()) {
@@ -116,13 +136,13 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
     }
 
     private ObjectQuery createQuery(OperationResult result) throws SchemaException {
-		boolean authorizedToSeeAll = isAuthorized(ModelAuthorizationAction.READ_ALL_WORK_ITEMS.getUrl());
+        boolean authorizedToSeeAll = isAuthorized(ModelAuthorizationAction.READ_ALL_WORK_ITEMS.getUrl());
 		S_FilterEntryOrEmpty q = QueryBuilder.queryFor(WorkItemType.class, getPrismContext());
-		if (all && authorizedToSeeAll) {
+		if (WorkItemsPageType.ALL.equals(workItemsPageType) && authorizedToSeeAll) {
 			return q.build();
-		} else if (all || !claimable) {
-			// not authorized to see all => sees only allocated to him (not quite what is expected, but sufficient for the time being)
-			return QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
+		} else if (WorkItemsPageType.ALL.equals(workItemsPageType) || WorkItemsPageType.ATTORNEY.equals(workItemsPageType)) {
+            // not authorized to see all => sees only allocated to him (not quite what is expected, but sufficient for the time being)
+            return QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
                     OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS).build();
         } else {
 			return QueryUtils.filterForGroups(q, currentUserOid(), getRepositoryService(), result).build();
@@ -151,6 +171,4 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 
         return count;
     }
-
-
 }

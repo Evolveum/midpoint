@@ -1,5 +1,6 @@
+<?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2017 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,9 +14,15 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="8fdb56d8-e3f3-11e6-8be9-cb9862ab7c04"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-    <name>Automatic</name>
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/delivery/ext"
+	  oid="892162ee-995a-4699-b196-0aa12d2e79e7">
+	<name>k23-rem-elaine</name>
+	<extension>
+		<ext:remediatorRef oid="771d00e6-792a-4296-8b4e-c4f59f712e0f" type="UserType"/> <!-- elaine -->
+	</extension>
+	<assignment>
+		<targetRef oid="a19ede0a-94ff-4edd-990b-699b3ad7ab94" type="RoleType"/> <!-- k23 -->
+	</assignment>
 </role>

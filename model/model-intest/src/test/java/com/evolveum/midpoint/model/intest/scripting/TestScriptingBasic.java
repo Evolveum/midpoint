@@ -57,6 +57,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -94,12 +95,15 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File NOTIFICATION_ABOUT_JACK_TYPE2_FILE = new File(TEST_DIR, "notification-about-jack-type2.xml");
 	private static final File SCRIPTING_USERS_FILE = new File(TEST_DIR, "scripting-users.xml");
 	private static final File SCRIPTING_USERS_IN_BACKGROUND_FILE = new File(TEST_DIR, "scripting-users-in-background.xml");
+	private static final File SCRIPTING_USERS_IN_BACKGROUND_TASK_FILE = new File(TEST_DIR, "scripting-users-in-background-task.xml");
+	private static final File START_TASKS_FROM_TEMPLATE_FILE = new File(TEST_DIR, "start-tasks-from-template.xml");
 	private static final File GENERATE_PASSWORDS_FILE = new File(TEST_DIR, "generate-passwords.xml");
 	private static final File GENERATE_PASSWORDS_2_FILE = new File(TEST_DIR, "generate-passwords-2.xml");
 	private static final File GENERATE_PASSWORDS_3_FILE = new File(TEST_DIR, "generate-passwords-3.xml");
 	private static final File ECHO_FILE = new File(TEST_DIR, "echo.xml");
 	private static final File USE_VARIABLES_FILE = new File(TEST_DIR, "use-variables.xml");
 	private static final QName USER_NAME_TASK_EXTENSION_PROPERTY = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "userName");
+	private static final QName USER_DESCRIPTION_TASK_EXTENSION_PROPERTY = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "userDescription");
 	private static final QName STUDY_GROUP_TASK_EXTENSION_PROPERTY = new QName("http://midpoint.evolveum.com/xml/ns/samples/piracy", "studyGroup");
 
 	@Autowired
@@ -760,6 +764,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 			    .findContainer(TaskType.F_EXTENSION)
 			    .findOrCreateProperty(USER_NAME_TASK_EXTENSION_PROPERTY)
 			    .addRealValue("jack");
+	    task.getTaskPrismObject()
+			    .findContainer(TaskType.F_EXTENSION)
+			    .findOrCreateProperty(USER_DESCRIPTION_TASK_EXTENSION_PROPERTY)
+			    .addRealValue("jack description");
 	    task.setHandlerUri(ScriptExecutionTaskHandler.HANDLER_URI);
 	    taskManager.switchToBackground(task, result);
 
@@ -771,7 +779,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 	    TestUtil.assertSuccess(task.getResult());
 	    PrismObject<UserType> jack = getUser(USER_JACK_OID);
 	    display("jack after creation", jack);
-	    assertEquals("Wrong description", task.getName().getOrig(), jack.asObjectable().getDescription());
+	    assertEquals("Wrong description", "jack description", jack.asObjectable().getDescription());
 	}
 
     @Test
@@ -967,6 +975,54 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		assertEquals("Wrong returned status", "ok", returned);
 	}
 
+	@Test
+	public void test560StartTaskFromTemplate() throws Exception {
+		final String TEST_NAME = "test560StartTaskFromTemplate";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(DOT_CLASS + TEST_NAME);
+		task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+		OperationResult result = task.getResult();
+		repoAddObjectFromFile(SCRIPTING_USERS_IN_BACKGROUND_TASK_FILE, result);
+		ExecuteScriptType exec = prismContext.parserFor(START_TASKS_FROM_TEMPLATE_FILE).parseRealValue();
+
+		// WHEN
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(exec, emptyMap(), task, result);
+
+		// THEN
+		dumpOutput(output, result);
+		result.computeStatus();
+		PipelineData data = output.getFinalOutput();
+		assertEquals("Unexpected # of items in output", 2, data.getData().size());
+
+		String oid1 = ((PrismObjectValue<?>) data.getData().get(0).getValue()).getOid();
+		String oid2 = ((PrismObjectValue<?>) data.getData().get(1).getValue()).getOid();
+
+		waitForTaskCloseOrSuspend(oid1, 10000);
+		waitForTaskCloseOrSuspend(oid2, 10000);
+
+		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		PrismObject<UserType> administrator = getUser(USER_ADMINISTRATOR_OID);
+		display("jack", jack);
+		display("administrator", administrator);
+		assertEquals("Wrong jack description", "new desc jack", jack.asObjectable().getDescription());
+		assertEquals("Wrong administrator description", "new desc admin", administrator.asObjectable().getDescription());
+
+		// cleaning up the tasks
+
+		Thread.sleep(5000L);            // cleanup is set to 1 second after completion
+
+		importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
+
+		waitForTaskStart(TASK_TRIGGER_SCANNER_OID, false);
+		waitForTaskFinish(TASK_TRIGGER_SCANNER_OID, true);
+
+		assertNoObject(TaskType.class, oid1, task, result);
+		assertNoObject(TaskType.class, oid2, task, result);
+
+		taskManager.suspendTasks(singleton(TASK_TRIGGER_SCANNER_OID), 10000L, result);
+	}
 
 	private void assertNoOutputData(ExecutionContext output) {
         assertTrue("Script returned unexpected data", output.getFinalOutput() == null || output.getFinalOutput().getData().isEmpty());

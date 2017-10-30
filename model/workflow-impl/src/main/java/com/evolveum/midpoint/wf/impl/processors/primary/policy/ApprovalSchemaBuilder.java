@@ -211,6 +211,7 @@ class ApprovalSchemaBuilder {
 		int from = getStages(resultingSchemaType).size() + 1;
 		int i = from;
 		for (ApprovalStageDefinitionType stageDef : fragmentStageDefs) {
+			stageDef.asPrismContainerValue().setId(null);       // to avoid ID collision
 			stageDef.setOrder(null);
 			stageDef.setNumber(i++);
 			approvalSchemaHelper.prepareStage(stageDef, relationResolver, referenceResolver);

@@ -15,6 +15,15 @@
   ~ limitations under the License.
   -->
 
+<!--
+Expects the following extension items:
+ - attributeX, valueX (X = 1..9)
+ - remediatorRef
+
+Matches if (for any N) the value of 'attributeN' is different from 'valueN'.
+
+-->
+
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -27,25 +36,11 @@
 					<expression>
 						<script>
 							<code>
-								log.info('### Evaluating rule on {}', object)
-								//this.binding.variables.each {k,v -> log.info('{} = {}', k, v)}
-								def path = ruleEvaluationContext.policyRule.assignmentPath
-								log.info('### Assignment path:\n{}', path.debugDump())
-								def extension = path.collectExtensions(1)
-								log.info('### Extension:\n{}', extension?.asPrismContainerValue().debugDump())
-
-								for (int i = 1; i &lt; 10; i++) {
-									def attribute = basic.getPropertyValue(extension, "attribute$i")
-									def expectedValue = basic.getPropertyValue(extension, "value$i")
-									if (attribute != null) {
-										def realValue = basic.getPropertyValue(object, attribute)
-										log.info('*** checking {}: expected: "{}", real: "{}"', attribute, expectedValue, realValue)
-										if (!Objects.equals(expectedValue, realValue)) {
-											return true
-										}
-									}
-								}
-								return false
+								rulesLib.execute('evaluateAttributeValuePairs', [
+									object : object,
+									ruleEvaluationContext : ruleEvaluationContext,
+									assumeEquality : true
+								])
 							</code>
 						</script>
 					</expression>
@@ -56,11 +51,7 @@
 					<condition>
 						<script>
 							<code>
-								def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(1)
-								log.info('### enforcement:Extension:\n{}', extension?.asPrismContainerValue().debugDump())
-								def remediatorRef = basic.getPropertyValue(extension, "remediatorRef")
-								log.info('### enforcement:remediatorRef = {}', remediatorRef)
-								remediatorRef == null
+								!rulesLib.execute('remediatorPresent', [ruleEvaluationContext : ruleEvaluationContext]).realValue			// remove '.realValue' hack
 							</code>
 						</script>
 					</condition>
@@ -69,11 +60,7 @@
 					<condition>
 						<script>
 							<code>
-								def extension = ruleEvaluationContext.policyRule.assignmentPath.collectExtensions(1)
-								log.info('### approval:Extension:\n{}', extension?.asPrismContainerValue().debugDump())
-								def remediatorRef = basic.getPropertyValue(extension, "remediatorRef")
-								log.info('### approval:remediatorRef = {}', remediatorRef)
-								remediatorRef != null
+								rulesLib.execute('remediatorPresent', [ruleEvaluationContext : ruleEvaluationContext])
 							</code>
 						</script>
 					</condition>
@@ -82,17 +69,10 @@
 							<approverExpression>
 								<script>
 									<code>
-										import com.evolveum.midpoint.schema.util.*
-										log.info('### workflow context:\n{}', workflowContext.asPrismContainerValue().debugDump())
-										def rules = WfContextUtil.getRulesForStage(workflowContext, stageDefinition.number)
-										log.info('rules found: {}', rules)
-										def approvers = rules.collectMany { rule ->
-											def ext = midpoint.collectExtensions(rule.assignmentPath, 1)
-											def remediatorRef = basic.getPropertyValue(ext, "remediatorRef")
-											remediatorRef != null ? [remediatorRef.clone()] : []
-										}
-										log.info('approvers found: {}', approvers)
-										approvers
+										rulesLib.execute('computeApprovers', [
+											workflowContext : workflowContext,
+											stageDefinition : stageDefinition
+										])
 									</code>
 								</script>
 							</approverExpression>

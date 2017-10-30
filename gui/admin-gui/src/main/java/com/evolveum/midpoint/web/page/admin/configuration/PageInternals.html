@@ -18,74 +18,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <div class="row">
-        <div class="col-md-6">
-            <h3><wicket:message key="PageInternals.title.timeChange"/></h3>
-            <form wicket:id="mainForm" class="form-horizontal">
-                <div class="form-group">
-                    <label class="col-md-2 control-label"><wicket:message key="PageInternals.offset"/></label>
-
-                    <div class="col-md-2">
-                        <span wicket:id="offset"/>
-                    </div>
-                </div>
-
-                <div class="main-button-bar">
-                    <a class="btn btn-primary" wicket:id="save"/>
-                    <a class="btn btn-default" wicket:id="reset"/>
-                </div>
-            </form>
-        </div>
-        <div class="col-md-6">
-            <h3><wicket:message key="PageInternals.title.debugUtil"/></h3>
-            <form wicket:id="debugUtilForm" class="form-horizontal">
-                <div class="form-group" wicket:id="detailedDebugDump"/>
-
-                <div class="main-button-bar">
-                    <a class="btn btn-primary" wicket:id="saveDebugUtil"/>
-                </div>
-            </form>
-
-            <hr/>
-            <h3><wicket:message key="PageInternals.title.internalsConfig"/></h3>
-            <form wicket:id="internalsConfigForm" class="form-horizontal">
-                <div class="form-group" wicket:id="consistencyChecks"/>
-                <div class="form-group" wicket:id="encryptionChecks"/>
-                <div class="form-group" wicket:id="readEncryptionChecks"/>
-                <div class="form-group" wicket:id="tolerateUndeclaredPrefixes"/>
-
-                <div class="main-button-bar">
-                    <a class="btn btn-primary" wicket:id="updateInternalsConfig"/>
-                </div>
-            </form>
-        </div>
-    </div>
-     <div class="row">
-    	<div class="col-md-6">
-            <h3><wicket:message key="PageInternals.title.traces"/></h3>
-            <form wicket:id="tracesForm" class="form-horizontal">
-            	<div wicket:id="tracesTable">
-            		<div class="form-group" wicket:id="traceToggle"/>
-            	</div>
-                <div class="main-button-bar">
-                    <a class="btn btn-primary" wicket:id="updateTraces"/>
-                </div>
-            </form>
-        </div>
-    </div>
-    <div class="row">
-    	<div class="col-md-6">
-            <h3><wicket:message key="PageInternals.title.counters"/></h3>
-            <table class="table table-bordered">
-            	<tbody>
-            		<tr wicket:id="countersTable">
-            			<th wicket:id="counterLabel"/>
-            			<td wicket:id="counterValue"/>
-            		</tr>
-            	</tbody>
-            </table>
-        </div>
-    </div>
+	<div wicket:id="tabPanel" class="nav-tabs-custom"/>
 </wicket:extend>
 </body>
 </html>

@@ -129,6 +129,7 @@ public class MiscUtil {
 				if (comparator.isEquivalent(ao, oo)) {
 					iterator.remove();
 					found = true;
+					break;
 				}
 			}
 			if (!found) {

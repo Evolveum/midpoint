@@ -218,7 +218,7 @@ public class ObjectPolicyAspectPart {
 		}
 		return new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + "objectModification.toBe" + opKey)
-				.args(ObjectTypeUtil.createObjectSpecification(asPrismObject(focus)))
+				.args(ObjectTypeUtil.createObjectSpecification(asPrismObject(focus), false))
 				.build();
 	}
 

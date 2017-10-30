@@ -15,10 +15,12 @@
  */
 package com.evolveum.midpoint.model.impl.hooks;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
+import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -26,6 +28,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -35,10 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 
@@ -57,6 +57,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 
 	@Autowired private HookRegistry hookRegistry;
 	@Autowired private PrismContext prismContext;
+	@Autowired private LocalizationService localizationService;
 
 	@PostConstruct
     public void init() {
@@ -80,11 +81,23 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		if (context.getState() == ModelState.PRIMARY) {
 			EvaluationContext evalCtx = invokeInternal(context, task, result);
 			if (!evalCtx.messages.isEmpty()) {
-				throw new PolicyViolationException(evalCtx.messages);
+				throw new PolicyViolationException(translateMessages(evalCtx.messages), evalCtx.messages);
 			}
         }
 		return HookOperationMode.FOREGROUND;
 
+	}
+
+	@NotNull
+	private String translateMessages(List<LocalizableMessage> messages) {
+		StringBuilder sb = new StringBuilder();
+		for (LocalizableMessage message : messages) {
+			if (sb.length() > 0) {
+				sb.append("; ");
+			}
+			sb.append(localizationService.translate(message, Locale.getDefault()));
+		}
+		return sb.toString();
 	}
 
 	@Override
@@ -140,10 +153,9 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 			// TODO really include assignments content?
 			policyRule.addToEvaluatedPolicyRuleTypes(evalCtx.rules, new PolicyRuleExternalizationOptions(FULL, true, true));
 
-			for (EvaluatedPolicyRuleTrigger trigger: triggers) {
-				if (trigger.getMessage() != null) {
-					evalCtx.messages.add(trigger.getMessage());
-				}
+			List<TreeNode<LocalizableMessage>> messageTrees = EvaluatedPolicyRuleUtil.extractMessages(triggers, EvaluatedPolicyRuleUtil.MessageKind.NORMAL);
+			for (TreeNode<LocalizableMessage> messageTree : messageTrees) {
+				evalCtx.messages.add(messageTree.getUserObject());
 			}
 		}
 	}

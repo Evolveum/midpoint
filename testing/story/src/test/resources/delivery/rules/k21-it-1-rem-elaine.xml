@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <!--
   ~ Copyright (c) 2010-2017 Evolveum
   ~
@@ -15,10 +15,15 @@
   ~ limitations under the License.
   -->
 
-<atmosphere-handlers>
-    <atmosphere-handler context-root="/*"
-                        class-name="org.atmosphere.handler.ReflectorServletProcessor">
-        <property name="filterClassName"
-                  value="org.apache.wicket.protocol.http.WicketFilter" />
-    </atmosphere-handler>
-</atmosphere-handlers>
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/delivery/ext"
+	  oid="540160d2-3af6-480a-a784-bb8d3c2b9bfe">
+	<name>k21-it-1-rem-elaine</name>
+	<extension>
+		<ext:roleRef oid="34713dae-8d56-4717-b184-86d02c9a2361" type="RoleType" /> <!-- it-1 -->
+		<ext:remediatorRef oid="771d00e6-792a-4296-8b4e-c4f59f712e0f" type="UserType"/> <!-- elaine -->
+	</extension>
+	<assignment>
+		<targetRef oid="db0a319e-e092-485c-b99e-edf22d4b26e7" type="RoleType"/> <!-- k21 -->
+	</assignment>
+</role>

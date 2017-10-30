@@ -58,8 +58,10 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.NoneFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -74,6 +76,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.FailableProcessor;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -85,6 +88,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
@@ -323,6 +328,18 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	
 	protected static final File ROLE_EXPRESSION_READ_ROLES_FILE = new File(TEST_DIR, "role-expression-read-roles.xml");
 	protected static final String ROLE_EXPRESSION_READ_ROLES_OID = "27058fde-b27e-11e7-b557-e7e43b583989";
+	
+	protected static final File ROLE_ATTORNEY_CARIBBEAN_UNLIMITED_FILE = new File(TEST_DIR, "role-attorney-caribbean-unlimited.xml");
+	protected static final String ROLE_ATTORNEY_CARIBBEAN_UNLIMITED_OID = "b27b9f3c-b962-11e7-9c89-03e5b32f525d";
+	
+	protected static final File ROLE_ATTORNEY_MANAGER_WORKITEMS_FILE = new File(TEST_DIR, "role-attorney-manager-workitems.xml");
+	protected static final String ROLE_ATTORNEY_MANAGER_WORKITEMS_OID = "5cf5b6c8-b968-11e7-b77d-6b029450f900";
+	
+	protected static final File ROLE_APPROVER_FILE = new File(TEST_DIR, "role-approver.xml");
+	protected static final String ROLE_APPROVER_OID = "1d8d9bec-ba51-11e7-95dc-f3520461c08d";
+	
+	protected static final File ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_FILE = new File(TEST_DIR, "role-assign-self-requestable-any-approver.xml");
+	protected static final String ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_OID = "d3e83cce-bb25-11e7-ae7c-b73d2208bf2a";
 
 	protected static final File ORG_REQUESTABLE_FILE = new File(TEST_DIR,"org-requestable.xml");
 	protected static final String ORG_REQUESTABLE_OID = "8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2";
@@ -362,7 +379,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 65;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 69;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 
 	protected String userRumRogersOid;
@@ -442,7 +459,11 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_READ_SELF_MODIFY_ORGUNIT_FILE, initResult);
 		repoAddObjectFromFile(ROLE_INDIRECT_PIRATE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_EXPRESSION_READ_ROLES_FILE, initResult);
-
+		repoAddObjectFromFile(ROLE_ATTORNEY_CARIBBEAN_UNLIMITED_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ATTORNEY_MANAGER_WORKITEMS_FILE, initResult);
+		repoAddObjectFromFile(ROLE_APPROVER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ASSIGN_SELF_REQUESTABLE_ANY_APPROVER_FILE, initResult);
+		
 		repoAddObjectFromFile(ORG_REQUESTABLE_FILE, initResult);
 		repoAddObjectFromFile(ORG_INDIRECT_PIRATE_FILE, initResult);
 
@@ -480,7 +501,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+        assertLoggedInUsername(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN
         PrismObject<RoleType> roleSelf = getRole(ROLE_SELF_OID);
@@ -625,6 +646,10 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         if (expectedAssignments == 0) {
         	assertLinks(user, 0);
         }
+	}
+	
+	protected void cleanupUnassign(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		unassignRole(userOid, roleOid);
 	}
 
 	protected void cleanupAdd(File userLargoFile, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
@@ -803,6 +828,10 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		return object;
 	}
 
+	protected <O extends ObjectType> void assertSearchFilter(Class<O> type, ObjectFilter filter, int expectedResults) throws Exception {
+		assertSearch(type, ObjectQuery.createObjectQuery(filter), null, expectedResults);
+	}
+	
 	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {
 		assertSearch(type, query, null, expectedResults);
 	}
@@ -854,6 +883,15 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	
 	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, String... expectedOids) throws Exception {
 		assertSearch(type, query, null, expectedOids);
+	}
+	
+	protected <O extends ObjectType> void assertSearchFilter(Class<O> type, ObjectFilter filter,
+			Collection<SelectorOptions<GetOperationOptions>> options, String... expectedOids) throws Exception {
+		assertSearch(type, ObjectQuery.createObjectQuery(filter), options, expectedOids);
+	}
+	
+	protected <O extends ObjectType> void assertSearchFilter(Class<O> type, ObjectFilter filter, String... expectedOids) throws Exception {
+		assertSearch(type, ObjectQuery.createObjectQuery(filter), expectedOids);
 	}
 	
 	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query,
@@ -1416,4 +1454,109 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		return QueryBuilder.queryFor(resultType, prismContext).item(UserType.F_ROLE_MEMBERSHIP_REF).ref(roleOid).build();
 	}
 	
+	protected MidPointPrincipal assumePowerOfAttorneyAllow(String donorOid) throws Exception {
+		Holder<MidPointPrincipal> principalHolder = new Holder<>();
+		assertAllow("assumePowerOfAttorney", (task,result) -> {
+			PrismObject<UserType> donor = repositoryService.getObject(UserType.class, donorOid, null, result);
+			MidPointPrincipal donorPrincipal = modelInteractionService.assumePowerOfAttorney(donor, task, result);
+			principalHolder.setValue(donorPrincipal);
+		});
+		return principalHolder.getValue();
+	}
+	
+	protected MidPointPrincipal assumePowerOfAttorneyDeny(String donorOid) throws Exception {
+		Holder<MidPointPrincipal> principalHolder = new Holder<>();
+		assertDeny("assumePowerOfAttorney", (task,result) -> {
+			PrismObject<UserType> donor = repositoryService.getObject(UserType.class, donorOid, null, result);
+			MidPointPrincipal donorPrincipal = modelInteractionService.assumePowerOfAttorney(donor, task, result);
+			principalHolder.setValue(donorPrincipal);
+		});
+		return principalHolder.getValue();
+	}
+	
+	protected MidPointPrincipal dropPowerOfAttorneyAllow() throws Exception {
+		Holder<MidPointPrincipal> principalHolder = new Holder<>();
+		assertAllow("assumePowerOfAttorney", (task,result) -> {
+			MidPointPrincipal attorneyPrincipal = modelInteractionService.dropPowerOfAttorney(task, result);
+			principalHolder.setValue(attorneyPrincipal);
+		});
+		return principalHolder.getValue();
+	}
+	
+	/**
+	 * Assert for "read some, modify some" roles
+	 */
+    protected void assertReadSomeModifySome(int exprectedJackAssignments) throws Exception {
+    	assertReadAllow();
+
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_ADDITIONAL_NAME, PrismTestUtil.createPolyString("Captain"));
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("Jack", userJack);
+		assertUserJackReadSomeModifySome(userJack, exprectedJackAssignments);
+		assertJackEditSchemaReadSomeModifySome(userJack);
+
+        PrismObject<UserType> userGuybrush = findUserByUsername(USER_GUYBRUSH_USERNAME);
+        display("Guybrush", userGuybrush);
+        PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_USERNAME));
+        PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_FULL_NAME));
+        PrismAsserts.assertPropertyValue(userGuybrush, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+            	ActivationStatusType.ENABLED);
+        PrismAsserts.assertNoItem(userGuybrush, UserType.F_GIVEN_NAME);
+        PrismAsserts.assertNoItem(userGuybrush, UserType.F_FAMILY_NAME);
+        PrismAsserts.assertNoItem(userGuybrush, UserType.F_ADDITIONAL_NAME);
+        PrismAsserts.assertNoItem(userGuybrush, UserType.F_DESCRIPTION);
+        PrismAsserts.assertNoItem(userGuybrush, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+        assertAssignmentsWithTargets(userGuybrush, 1);
+
+        assertAddDeny();
+
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, createPolyString("Captain Jack Sparrow"));
+        assertModifyAllow(UserType.class, USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
+				JACK_VALID_FROM_LONG_AGO);
+        assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, "Pirate wannabe");
+
+        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Captain"));
+        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Pirate"));
+        assertModifyDeny(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Mutinier"));
+
+        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_COST_CENTER, "V3RYC0STLY");
+        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_ORGANIZATION, createPolyString("Brethren of the Coast"));
+
+        assertDeleteDeny();
+    }
+    
+    protected void assertUserJackReadSomeModifySome(PrismObject<UserType> userJack, int exprectedJackAssignments) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_NAME, PrismTestUtil.createPolyString(USER_JACK_USERNAME));
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
+		PrismAsserts.assertPropertyValue(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+			ActivationStatusType.ENABLED);
+		PrismAsserts.assertNoItem(userJack, UserType.F_GIVEN_NAME);
+		PrismAsserts.assertNoItem(userJack, UserType.F_FAMILY_NAME);
+		PrismAsserts.assertNoItem(userJack, UserType.F_ADDITIONAL_NAME);
+		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+		PrismAsserts.assertNoItem(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+		assertAssignmentsWithTargets(userJack, exprectedJackAssignments);
+    }
+
+    protected void assertJackEditSchemaReadSomeModifySome(PrismObject<UserType> userJack) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+    	PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
+		display("Jack's edit schema", userJackEditSchema);
+		assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);
+		assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, false, true);
+		assertItemFlags(userJackEditSchema, UserType.F_DESCRIPTION, false, false, true);
+		assertItemFlags(userJackEditSchema, UserType.F_GIVEN_NAME, false, false, false);
+		assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, false, false, false);
+		assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, false, false, true);
+		assertItemFlags(userJackEditSchema, UserType.F_METADATA, false, false, false);
+		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), false, false, false);
+		assertItemFlags(userJackEditSchema, UserType.F_ASSIGNMENT, true, false, false);
+		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
+		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
+		assertItemFlags(userJackEditSchema, UserType.F_ACTIVATION, true, false, true);
+		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), true, false, false);
+		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), false, false, false);
+    }
+
 }

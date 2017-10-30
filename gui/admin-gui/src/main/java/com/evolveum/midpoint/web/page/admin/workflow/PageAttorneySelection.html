@@ -15,13 +15,12 @@
   ~ limitations under the License.
   -->
 
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
-
-
-	<bean id="midPointAuthenticationProvider"
-		class="com.evolveum.midpoint.web.security.MidPointAuthenticationProvider">
-	</bean>
-
-</beans>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <form wicket:id="mainForm" class="form-inline">
+        <div wicket:id="table"/>
+    </form>
+</wicket:extend>
+</body>
+</html>

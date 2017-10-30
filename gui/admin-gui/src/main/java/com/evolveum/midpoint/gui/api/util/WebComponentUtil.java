@@ -364,7 +364,9 @@ public final class WebComponentUtil {
 				.setModel(new Model<String>())
 				.setDefaultValue(localizableMessage.getFallbackMessage())
 				.setParameters(resolveArguments(localizableMessage.getArgs(), component));
-		return stringResourceModel.getString();
+		String rv = stringResourceModel.getString();
+		//System.out.println("GUI: Resolving [" + key + "]: to [" + rv + "]");
+		return rv;
 	}
 
 	private static Object[] resolveArguments(Object[] args, Component component) {
@@ -2033,6 +2035,19 @@ public final class WebComponentUtil {
 				return !model.getObject();
 			}
 		};
+	}
+
+	public static String getStringParameter(PageParameters params, String key) {
+		if (params == null || params.get(key) == null) {
+			return null;
+		}
+
+		StringValue value = params.get(key);
+		if (StringUtils.isBlank(value.toString())) {
+			return null;
+		}
+
+		return value.toString();
 	}
 
 	public static Integer getIntegerParameter(PageParameters params, String key) {

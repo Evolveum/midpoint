@@ -33,7 +33,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 public class PageWorkItemsClaimable extends PageWorkItems {
 
     public PageWorkItemsClaimable() {
-        super(true, false);
+        super(WorkItemsPageType.CLAIMABLE);
     }
 
 }

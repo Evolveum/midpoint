@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<s:executeScript
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <s:action>
+        <s:type>execute-script</s:type>
+        <s:parameter>
+            <s:name>script</s:name>
+            <c:value xsi:type="c:ScriptExpressionEvaluatorType">
+                <c:code>
+                    import javax.xml.namespace.*
+                    def newTask1 = midpoint.submitTaskFromTemplate('79dacdf7-2bc9-4eef-9c63-08d53d2392c3',
+                        [(new QName('userName')):'jack', (new QName('userDescription')):'new desc jack'])
+                    def newTask2 = midpoint.submitTaskFromTemplate('79dacdf7-2bc9-4eef-9c63-08d53d2392c3',
+                        [(new QName('userName')):'administrator', (new QName('userDescription')):'new desc admin'])
+                    return [newTask1, newTask2]
+                </c:code>
+            </c:value>
+        </s:parameter>
+        <s:parameter>
+            <s:name>outputItem</s:name>
+            <c:value>http://midpoint.evolveum.com/xml/ns/public/common/common-3#task</c:value>
+        </s:parameter>
+        <s:parameter>
+            <s:name>forWholeInput</s:name>
+            <c:value>true</c:value>
+        </s:parameter>
+    </s:action>
+</s:executeScript>

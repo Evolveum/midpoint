@@ -1481,6 +1481,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			throw new SecurityViolationException("No current user");
 		}
 		TaskType newTask = modelService.getObject(TaskType.class, templateTaskOid, null, opTask, result).asObjectable();
+		newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random()*10000)));
 		newTask.setOid(null);
 		newTask.setTaskIdentifier(null);
 		newTask.setOwnerRef(createObjectRef(principal.getUser()));
@@ -1509,6 +1510,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			if (entry.getValue() != null) {
 				extensionItem.add(PrismValue.fromRealValue(entry.getValue()).clone());
 			}
+			extensionItems.add(extensionItem);
 		}
 		return submitTaskFromTemplate(templateTaskOid, extensionItems);
 	}

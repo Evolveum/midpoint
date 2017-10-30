@@ -32,6 +32,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -132,7 +133,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
 			return;
 		}
 		try {
-			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, context.getTask(), globalResult);
+			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, context.getTask(), globalResult);
 		} catch (SecurityViolationException | SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
 			throw new ScriptExecutionException("You are not authorized to execute '" + actionName + "' action.");
 		}

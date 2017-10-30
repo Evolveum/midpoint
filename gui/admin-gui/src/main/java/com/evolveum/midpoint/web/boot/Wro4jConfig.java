@@ -43,6 +43,8 @@ import java.util.Collection;
 @Configuration
 public class Wro4jConfig {
 
+    public static final String WRO_MBEAN_NAME = "wro4j-midpoint";
+
     @Bean
     public WroModelFactory wroModelFactory() {
         return new ConfigurableXmlModelFactory(new ClassPathResource("/wro.xml"));
@@ -74,6 +76,7 @@ public class Wro4jConfig {
     public WroFilter wroFilter(WroManagerFactory wroManagerFactory) throws IOException {
         ConfigurableWroFilter filter = new ConfigurableWroFilter();
         filter.setWroManagerFactory(wroManagerFactory);
+        filter.setMbeanName(WRO_MBEAN_NAME);
 
         filter.setDisableCache(false);
 

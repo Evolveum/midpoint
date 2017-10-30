@@ -19,6 +19,7 @@
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
 
+    <!-- TODO not used, configuration should be moved to com.evolveum.midpoint.web.boot.CasSecurityConfig -->
 
 	<!-- For SSO CAS integration uncomment following and set CASSERVER address   and   change service url according to your needs-->
 	<!-- CAS CONFIG -->

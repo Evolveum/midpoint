@@ -84,17 +84,17 @@ public class ProcessSpecifications implements DebugDumpable {
 	static ProcessSpecifications createFromRules(List<EvaluatedPolicyRule> rules, PrismContext prismContext)
 			throws ObjectNotFoundException {
 		// Step 1: plain list of approval actions -> map: process-spec -> list of related actions/rules ("collected")
-		LinkedHashMap<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> collected = new LinkedHashMap<>();
+		LinkedHashMap<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> collectedSpecifications = new LinkedHashMap<>();
 		for (EvaluatedPolicyRule rule : rules) {
 			for (ApprovalPolicyActionType approvalAction : rule.getEnabledActions(ApprovalPolicyActionType.class)) {
 				WfProcessSpecificationType spec = approvalAction.getProcessSpecification();
-				collected.computeIfAbsent(spec, s -> new ArrayList<>()).add(new ImmutablePair<>(approvalAction, rule));
+				collectedSpecifications.computeIfAbsent(spec, s -> new ArrayList<>()).add(new ImmutablePair<>(approvalAction, rule));
 			}
 		}
 		// Step 2: resolve references
-		for (WfProcessSpecificationType spec : new HashSet<>(collected.keySet())) {     // cloned to avoid concurrent modification exception
+		for (WfProcessSpecificationType spec : new HashSet<>(collectedSpecifications.keySet())) {     // cloned to avoid concurrent modification exception
 			if (spec != null && spec.getRef() != null) {
-				List<Map.Entry<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>>> matching = collected.entrySet().stream()
+				List<Map.Entry<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>>> matching = collectedSpecifications.entrySet().stream()
 						.filter(e -> e.getKey() != null && spec.getRef().equals(e.getKey().getName()))
 						.collect(Collectors.toList());
 				if (matching.isEmpty()) {
@@ -104,8 +104,8 @@ public class ProcessSpecifications implements DebugDumpable {
 				} else {
 					// move all actions/rules to the referenced process specification
 					List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> referencedSpecActions = matching.get(0).getValue();
-					referencedSpecActions.addAll(collected.get(spec));
-					collected.remove(spec);
+					referencedSpecActions.addAll(collectedSpecifications.get(spec));
+					collectedSpecifications.remove(spec);
 				}
 			}
 		}
@@ -113,26 +113,25 @@ public class ProcessSpecifications implements DebugDumpable {
 		Map<String, Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> actionsMap = null;
 
 		// Step 3: include other actions
-		for (Map.Entry<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> entry : collected.entrySet()) {
-			WfProcessSpecificationType spec = entry.getKey();
-			if (spec == null) {
+		for (Map.Entry<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> processSpecificationEntry : collectedSpecifications.entrySet()) {
+			WfProcessSpecificationType spec = processSpecificationEntry.getKey();
+			if (spec == null || spec.getIncludeAction().isEmpty() && spec.getIncludeActionIfPresent().isEmpty()) {
 				continue;
 			}
+			if (actionsMap == null) {
+				actionsMap = createActionsMap(collectedSpecifications.values());
+			}
 			for (String actionToInclude : spec.getIncludeAction()) {
-				if (actionsMap == null) {
-					actionsMap = createActionsMap(collected.values());
-				}
-				Pair<ApprovalPolicyActionType, EvaluatedPolicyRule> actionWithRule = actionsMap.get(actionToInclude);
-				if (actionWithRule == null) {
-					throw new ObjectNotFoundException("Approval action '" + actionToInclude + "' cannot be found");
-				}
-				entry.getValue().add(actionWithRule);
+				processActionToInclude(actionToInclude, actionsMap, processSpecificationEntry, true);
+			}
+			for (String actionToInclude : spec.getIncludeActionIfPresent()) {
+				processActionToInclude(actionToInclude, actionsMap, processSpecificationEntry, false);
 			}
 		}
 
 		// Step 4: sorts process specifications and wraps into ProcessSpecification objects
 		ProcessSpecifications rv = new ProcessSpecifications(prismContext);
-		collected.entrySet().stream()
+		collectedSpecifications.entrySet().stream()
 				.sorted((ps1, ps2) -> {
 					WfProcessSpecificationType key1 = ps1.getKey();
 					WfProcessSpecificationType key2 = ps2.getKey();
@@ -146,6 +145,18 @@ public class ProcessSpecifications implements DebugDumpable {
 					return Integer.compare(order1, order2);
 				}).forEach(e -> rv.specifications.add(rv.new ProcessSpecification(e)));
 		return rv;
+	}
+
+	private static void processActionToInclude(
+			String actionToInclude, Map<String, Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> actionsMap,
+			Map.Entry<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> processSpecificationEntry,
+			boolean mustBePresent) throws ObjectNotFoundException {
+		Pair<ApprovalPolicyActionType, EvaluatedPolicyRule> actionWithRule = actionsMap.get(actionToInclude);
+		if (actionWithRule != null) {
+			processSpecificationEntry.getValue().add(actionWithRule);
+		} else if (mustBePresent) {
+			throw new ObjectNotFoundException("Approval action '" + actionToInclude + "' cannot be found");
+		}
 	}
 
 	private static Map<String, Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> createActionsMap(
