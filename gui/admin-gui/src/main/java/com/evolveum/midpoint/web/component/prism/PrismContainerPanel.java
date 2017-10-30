@@ -64,7 +64,9 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
         		if (isPanelVisible!= null && !isPanelVisible.isVisible(model.getObject())) {
         			return false;
         		}
-        		return model.getObject() !=null && model.getObject().isVisible();
+        		ContainerWrapper o = model.getObject();
+        		boolean isVis = o != null && o.isVisible();
+        		return isVis;
         	}
         });
         

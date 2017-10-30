@@ -64,7 +64,9 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	private List<ContainerValueWrapper<C>> values;
 
 	private boolean readonly;
-	
+	private boolean removeContainerButtonVisible;
+	private boolean addContainerButtonVisible;
+
 	//TODO: HACK to have custom filter for association contianer here becasue of creating new association:
 	private ObjectFilter filter;
 
@@ -464,7 +466,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 
 		//TODO: is this correct place? shouldn't we restrict creation for multivalue containers
 		//dirrectly in factory? this can plausible cause problems while computing deltas.
-		if (!getItem().isSingleValue() && isEmpty() && ContainerStatus.MODIFYING.equals(status)){
+		if (!getItem().isSingleValue() && isEmpty()){
 			return false;
 		}
 
@@ -509,5 +511,20 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	public String getDeprecatedSince() {
 		return getItemDefinition().getDeprecatedSince();
 	}
-	
+
+	public boolean isRemoveContainerButtonVisible() {
+		return removeContainerButtonVisible;
+	}
+
+	public void setRemoveContainerButtonVisible(boolean removeContainerButtonVisible) {
+		this.removeContainerButtonVisible = removeContainerButtonVisible;
+	}
+
+	public boolean isAddContainerButtonVisible() {
+		return addContainerButtonVisible;
+	}
+
+	public void setAddContainerButtonVisible(boolean addContainerButtonVisible) {
+		this.addContainerButtonVisible = addContainerButtonVisible;
+	}
 }
