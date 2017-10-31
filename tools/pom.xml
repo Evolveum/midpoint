@@ -54,7 +54,7 @@
         <module>repo-ninja</module>
         <module>schema-dist-maven-plugin</module>
     </modules>
-        <dependencies> <!-- Not used, but required for surefire plugin not to complain -->
+    <dependencies> <!-- Not used, but required for surefire plugin not to complain -->
     	<dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
