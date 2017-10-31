@@ -466,7 +466,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 
 		//TODO: is this correct place? shouldn't we restrict creation for multivalue containers
 		//dirrectly in factory? this can plausible cause problems while computing deltas.
-		if (!getItem().isSingleValue() && isEmpty()){
+		if (!getItem().isSingleValue() && (getValues() == null || getValues().size() == 0)){
 			return false;
 		}
 

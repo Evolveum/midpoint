@@ -130,14 +130,11 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 				if (item.getModel().getObject() instanceof ContainerWrapper) {
 					PrismContainerPanel<C> containerPanel = new PrismContainerPanel("property", (IModel<ContainerWrapper<C>>) item.getModel(), true, form, isPanaleVisible, pageBase);
 					containerPanel.setOutputMarkupId(true);
-					containerPanel.add(AttributeAppender.append("style",
-                            item.getModelObject().getPath() + " " + Boolean.toString(containerPanel.isVisible())));
-                    item.add(new VisibleEnableBehaviour(){
+					item.add(new VisibleEnableBehaviour(){
                         private static final long serialVersionUID = 1L;
 
                         public boolean isVisible(){
-                            boolean childVis =  containerPanel.isVisible();
-                            return childVis;
+                            return containerPanel.isVisible();
                         }
                     });
 					item.add(containerPanel);

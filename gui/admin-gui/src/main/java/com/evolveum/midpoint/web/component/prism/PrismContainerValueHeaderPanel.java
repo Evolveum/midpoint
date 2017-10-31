@@ -4,14 +4,17 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
@@ -175,7 +178,26 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 		List<QName> pathsList = getModelObject().getChildMultivalueContainersPaths();
 		DropDownChoicePanel multivalueContainersList = new DropDownChoicePanel<QName>(ID_CHILD_CONTAINERS_LIST,
-				Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList));
+				Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList),
+				new IChoiceRenderer<QName>() {
+					@Override
+					public Object getDisplayValue(QName qName) {
+						return getPageBase().createStringResource(getModelObject().getDefinition().getCompileTimeClass().getSimpleName() + "." + qName.getLocalPart()).getString();
+					}
+
+					@Override
+					public String getIdValue(QName qName, int i) {
+						return Integer.toString(i);
+					}
+
+					@Override
+					public QName getObject(String id, IModel<? extends List<? extends QName>> choices) {
+						if (StringUtils.isBlank(id)) {
+							return null;
+						}
+						return choices.getObject().get(Integer.parseInt(id));
+					}
+				});
 		multivalueContainersList.setOutputMarkupId(true);
 		multivalueContainersList.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		childContainersSelectorPanel.add(new AjaxButton(ID_ADD_BUTTON, createStringResource("prismValuePanel.add")) {
