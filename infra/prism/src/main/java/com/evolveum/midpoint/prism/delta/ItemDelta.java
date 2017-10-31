@@ -1919,7 +1919,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		((Collection)modifications).add(delta);
 	}
 
-	public static void mergeAll(Collection<? extends ItemDelta> modifications, Collection<? extends ItemDelta> deltasToMerge) {
+	public static void mergeAll(Collection<? extends ItemDelta<?,?>> modifications, Collection<? extends ItemDelta<?,?>> deltasToMerge) {
 		if (deltasToMerge == null) {
 			return;
 		}
