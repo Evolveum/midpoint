@@ -1304,6 +1304,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         display("donorFilterAll", donorFilterAll);
         assertSearchFilter(UserType.class, donorFilterAll, USER_JACK_OID, USER_BARBOSSA_OID);
         
+        assertAuthenticated();
         assertLoggedInUsername(USER_JACK_USERNAME);
         assertLoggedInUserOid(USER_JACK_OID);
         assertSecurityContextAuthorizationActions(ModelAuthorizationAction.READ, ModelAuthorizationAction.ATTORNEY);
@@ -1311,6 +1312,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         MidPointPrincipal donorPrincipal = assumePowerOfAttorneyAllow(USER_BARBOSSA_OID);
         assertPrincipalAttorneyOid(donorPrincipal, USER_JACK_OID);
         
+        assertAuthenticated();
         assertLoggedInUserOid(USER_BARBOSSA_OID);
         assertSecurityContextPrincipalAttorneyOid(USER_JACK_OID);
         assertSecurityContextAuthorizationActions(ModelAuthorizationAction.READ, ModelAuthorizationAction.MODIFY, ModelAuthorizationAction.MODIFY);
@@ -1320,6 +1322,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         MidPointPrincipal attorneyPrincipal = dropPowerOfAttorneyAllow();
         assertPrincipalAttorneyOid(attorneyPrincipal, null);
         
+        assertAuthenticated();
         assertLoggedInUserOid(USER_JACK_OID);
         assertSecurityContextPrincipalAttorneyOid(null);
         assertSecurityContextAuthorizationActions(ModelAuthorizationAction.READ, ModelAuthorizationAction.ATTORNEY);
@@ -1333,6 +1336,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assumePowerOfAttorneyDeny(USER_GUYBRUSH_OID);
         
         // Make sure denied operation does not change security context
+        assertAuthenticated();
         assertLoggedInUserOid(USER_JACK_OID);
         assertSecurityContextPrincipalAttorneyOid(null);
         

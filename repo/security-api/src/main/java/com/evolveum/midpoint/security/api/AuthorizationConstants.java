@@ -226,7 +226,7 @@ public class AuthorizationConstants {
 	//Approvals (workflows)
 	public static final String AUTZ_UI_APPROVALS_ALL_URL = NS_AUTHORIZATION_UI + "#approvalsAll";
 	public static final String AUTZ_UI_MY_WORK_ITEMS_URL = NS_AUTHORIZATION_UI + "#myWorkItems";
-	public static final String AUTZ_UI_ATTORNEY_WORK_ITEMS_URL = NS_AUTHORIZATION_UI + "#myWorkItems";
+	public static final String AUTZ_UI_ATTORNEY_WORK_ITEMS_URL = NS_AUTHORIZATION_UI + "#attorneyWorkItems";
 	public static final String AUTZ_UI_CLAIMABLE_WORK_ITEMS_URL = NS_AUTHORIZATION_UI + "#claimableWorkItems";
 	public static final String AUTZ_UI_ALL_WORK_ITEMS_URL = NS_AUTHORIZATION_UI + "#allWorkItems";
 	public static final String AUTZ_UI_WORK_ITEM_URL = NS_AUTHORIZATION_UI + "#workItem";

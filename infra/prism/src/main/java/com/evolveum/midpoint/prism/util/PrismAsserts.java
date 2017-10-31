@@ -917,12 +917,46 @@ public class PrismAsserts {
 			throw new IllegalStateException(e.getMessage(), e);
 		}
 	}
+	
+	public static <T> void assertSets(String message, Collection<T> actualValues, Collection<T> expectedValues) {
+		try {
+			assertSets(message, null, actualValues, expectedValues);
+		} catch (SchemaException e) {
+			// no matching rule. should not happen
+			throw new IllegalStateException(e.getMessage(), e);
+		}
+	}
 
 	public static <T> void assertSets(String message, MatchingRule<T> matchingRule, Collection<T> actualValues, T... expectedValues) throws SchemaException {
 		assertNotNull("Null set in " + message, actualValues);
 		assertEquals("Wrong number of values in " + message+ "; expected (real values) "
 				+PrettyPrinter.prettyPrint(expectedValues)+"; has (pvalues) "+actualValues,
 				expectedValues.length, actualValues.size());
+		for (T actualValue: actualValues) {
+			boolean found = false;
+			for (T value: expectedValues) {
+				if (matchingRule == null) {
+					if (value.equals(actualValue)) {
+						found = true;
+					}
+				} else {
+					if (matchingRule.match(value, actualValue)) {
+						found = true;
+					}
+				}
+			}
+			if (!found) {
+				fail("Unexpected value "+actualValue+" in " + message + "; expected (real values) "
+						+PrettyPrinter.prettyPrint(expectedValues)+"; has (pvalues) "+actualValues);
+			}
+		}
+	}
+	
+	public static <T> void assertSets(String message, MatchingRule<T> matchingRule, Collection<T> actualValues, Collection<T> expectedValues) throws SchemaException {
+		assertNotNull("Null set in " + message, actualValues);
+		assertEquals("Wrong number of values in " + message+ "; expected (real values) "
+				+PrettyPrinter.prettyPrint(expectedValues)+"; has (pvalues) "+actualValues,
+				expectedValues.size(), actualValues.size());
 		for (T actualValue: actualValues) {
 			boolean found = false;
 			for (T value: expectedValues) {

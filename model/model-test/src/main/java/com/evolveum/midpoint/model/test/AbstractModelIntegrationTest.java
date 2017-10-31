@@ -59,6 +59,7 @@ import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -1805,6 +1806,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected static <F extends FocusType> void assertAssignedRoles(PrismObject<F> user, String... roleOids) {
 		MidPointAsserts.assertAssignedRoles(user, roleOids);
 	}
+	
+	protected static <F extends FocusType> void assertAssignedRoles(PrismObject<F> user, Collection<String> roleOids) {
+		MidPointAsserts.assertAssignedRoles(user, roleOids);
+	}
 
 	protected void assignDeputy(String userDeputyOid, String userTargetOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		assignDeputy(userDeputyOid, userTargetOid, null, task, result);
@@ -3167,14 +3172,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         TestUtil.assertSuccess(result);
 	}
 
-	protected <O extends ObjectType> void addObject(PrismObject<O> object, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		addObject(object, null, task, result);
+	protected <O extends ObjectType> String addObject(PrismObject<O> object, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		return addObject(object, null, task, result);
 	}
 
-	protected <O extends ObjectType> void addObject(PrismObject<O> object, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected <O extends ObjectType> String addObject(PrismObject<O> object, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         ObjectDelta<O> addDelta = object.createAddDelta();
         modelService.executeChanges(MiscSchemaUtil.createCollection(addDelta), options, task, result);
         object.setOid(addDelta.getOid());
+        return addDelta.getOid();
 	}
 
 	protected <O extends ObjectType> void deleteObject(Class<O> type, String oid, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -3653,7 +3659,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected void login(MidPointPrincipal principal) {
 		SecurityContext securityContext = SecurityContextHolder.getContext();
-		Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
+		Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
 		securityContext.setAuthentication(authentication);
 	}
 
@@ -3731,6 +3737,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			AssertJUnit.fail("Unknown principal in the spring security context: "+principal);
 			return null; // not reached
 		}
+	}
+	
+	protected void assertAuthenticated() {
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		Authentication authentication = securityContext.getAuthentication();
+		assertTrue("Security context is not authenticated", authentication.isAuthenticated());
 	}
 
 	protected void resetAuthentication() {

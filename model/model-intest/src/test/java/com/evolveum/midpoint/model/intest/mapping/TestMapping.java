@@ -91,6 +91,9 @@ public class TestMapping extends AbstractMappingTest {
 	protected static final String RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME = "customFunction";
 	protected static final String RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAMESPACE = MidPointConstants.NS_RI;
 
+	protected static final File ROLE_ANTINIHILIST_FILE = new File(TEST_DIR, "role-antinihilist.xml");
+	protected static final String ROLE_ANTINIHILIST_OID = "4c5c6c44-bd7d-11e7-99ef-9b82464da93d";
+	
 	protected static final String USER_GUYBRUSH_PASSWORD_1_CLEAR = "1wannaBEaP1rat3";
 	protected static final String USER_GUYBRUSH_PASSWORD_2_CLEAR = "1wannaBEtheP1rat3";
 
@@ -116,6 +119,8 @@ public class TestMapping extends AbstractMappingTest {
 				RESOURCE_DUMMY_LIGHT_CRIMSON_FILE, RESOURCE_DUMMY_LIGHT_CRIMSON_OID, initTask, initResult);
 		initDummyResourcePirate(RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME,
 				RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_FILE, RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_OID, initTask, initResult);
+		
+		repoAddObjectFromFile(ROLE_ANTINIHILIST_FILE, initResult);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 	}
@@ -2344,8 +2349,9 @@ public class TestMapping extends AbstractMappingTest {
 
 	}
 	
-	public void test401modifyUserLocalityDummyCrisomCustomFunction() throws Exception {
-		final String TEST_NAME = "test401modifyUserLocalityDummyCrisomCustomFunction";
+	@Test
+	public void test401ModifyUserLocalityDummyCrisomCustomFunction() throws Exception {
+		final String TEST_NAME = "test401ModifyUserLocalityDummyCrisomCustomFunction";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2374,7 +2380,7 @@ public class TestMapping extends AbstractMappingTest {
 	}
 	
 	@Test
-    public void test402modifyDrinkDummyCustomFunctionCrimson() throws Exception {
+    public void test402ModifyDrinkDummyCustomFunctionCrimson() throws Exception {
 		final String TEST_NAME = "test402modifyDrinkDummyCustomFunctionCrimson";
         displayTestTitle(TEST_NAME);
 
@@ -2406,6 +2412,144 @@ public class TestMapping extends AbstractMappingTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME.toUpperCase(),
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		"rum from " + LOCALITY_BLOOD_ISLAND);
+	}
+
+	/**
+	 * MID-2860
+	 */
+	@Test
+    public void test420AssignAntinihilistToJack() throws Exception {
+		final String TEST_NAME = "test420AssignAntinihilistToJack";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        assertNoAssignments(userBefore);
+        assertLinks(userBefore, 0);
+
+        try {
+        	
+	        // WHEN
+	        displayWhen(TEST_NAME);
+	        assignRole(USER_JACK_OID, ROLE_ANTINIHILIST_OID, task, result);
+	        
+        } catch (ExpressionEvaluationException e) {
+        	display("Exception", e);
+        	Throwable cause = e.getCause();
+        	if (!(cause instanceof AssertionError)) {
+        		throw e;
+        	}
+        }
+
+		// THEN
+        displayThen(TEST_NAME);
+        assertFailure(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertNoAssignments(userAfter);
+        assertLinks(userAfter, 0);
+	}
+	
+	/**
+	 * MID-2860
+	 */
+	@Test
+    public void test422AssignAccountAndAntinihilistToJack() throws Exception {
+		final String TEST_NAME = "test422AssignAccountAndAntinihilistToJack";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 1);
+        assertLinks(userBefore, 1);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignRole(USER_JACK_OID, ROLE_ANTINIHILIST_OID, task, result);
+
+		// THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 2);
+		assertAssignedRole(userAfter, ROLE_ANTINIHILIST_OID);
+        assertLinks(userAfter, 1);
+	}
+
+	/**
+	 * MID-2860
+	 */
+	@Test
+    public void test425UnassignAntinihilistFromJack() throws Exception {
+		final String TEST_NAME = "test425UnassignAntinihilistFromJack";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 2);
+        assertLinks(userBefore, 1);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_JACK_OID, ROLE_ANTINIHILIST_OID, task, result);
+
+		// THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 1);
+		assertNotAssignedRole(userAfter, ROLE_ANTINIHILIST_OID);
+        assertLinks(userAfter, 1);
+	}
+	
+	/**
+	 * MID-2860
+	 */
+	@Test
+    public void test427UnassignAccountFromJack() throws Exception {
+		final String TEST_NAME = "test427UnassignAccountFromJack";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 1);
+        assertLinks(userBefore, 1);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+
+		// THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 0);
+        assertLinks(userAfter, 0);
 	}
 
 

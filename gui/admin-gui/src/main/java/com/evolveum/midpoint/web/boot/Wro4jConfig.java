@@ -17,8 +17,10 @@
 package com.evolveum.midpoint.web.boot;
 
 import com.evolveum.midpoint.web.util.ConfigurableXmlModelFactory;
+import com.evolveum.midpoint.web.util.MidPointUrlLocatorFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.PropertyResolver;
 import org.springframework.core.io.ClassPathResource;
 import ro.isdc.wro.extensions.processor.css.Less4jProcessor;
 import ro.isdc.wro.http.ConfigurableWroFilter;
@@ -51,9 +53,10 @@ public class Wro4jConfig {
     }
 
     @Bean
-    public WroManagerFactory wroManagerFactory(WroModelFactory wroModelFactory) {
+    public WroManagerFactory wroManagerFactory(WroModelFactory wroModelFactory, PropertyResolver propertyResolver) {
         ConfigurableWroManagerFactory factory = new ConfigurableWroManagerFactory();
         factory.setModelFactory(wroModelFactory);
+        factory.setUriLocatorFactory(new MidPointUrlLocatorFactory(propertyResolver));
 
         SimpleProcessorsFactory processors = new SimpleProcessorsFactory();
         Collection<ResourcePreProcessor> preProcessors = new ArrayList<>();
