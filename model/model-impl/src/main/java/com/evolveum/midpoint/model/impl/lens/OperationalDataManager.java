@@ -158,6 +158,7 @@ public class OperationalDataManager {
 		if (objectDelta.isAdd()) {
 			applyAssignmentMetadataObject(context, objectDelta.getObjectToAdd(), now, task, result);
 		} else {
+			// see also ApprovalMetadataHelper.addAssignmentApprovalMetadataOnObjectModify
 			Set<Long> processedIds = new HashSet<>();
 			List<ItemDelta<?,?>> assignmentMetadataDeltas = new ArrayList<>();
 			for (ItemDelta<?,?> itemDelta: objectDelta.getModifications()) {

@@ -57,11 +57,9 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
     private static final Trace LOGGER = TraceManager.getTrace(WfPrepareChildOperationTaskHandler.class);
 
     //region Spring dependencies and initialization
-    @Autowired
-    private TaskManager taskManager;
-
-    @Autowired
-    private WfTaskController wfTaskController;
+    @Autowired private TaskManager taskManager;
+    @Autowired private WfTaskController wfTaskController;
+    @Autowired private ApprovalMetadataHelper metadataHelper;
 
     @PostConstruct
     public void init() {
@@ -102,7 +100,9 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
                 wfTask.deleteModelOperationContext();
             } else {
                 // place deltaOut into model context
-                modelContext.getFocusContext().setPrimaryDelta(deltasOut.getFocusChange());
+                ObjectDelta focusChange = deltasOut.getFocusChange();
+                metadataHelper.addAssignmentApprovalMetadata(focusChange, task, result);
+                modelContext.getFocusContext().setPrimaryDelta(focusChange);
                 Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> entries = deltasOut.getProjectionChangeMapEntries();
                 for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : entries) {
                     // TODO what if projection context does not exist?

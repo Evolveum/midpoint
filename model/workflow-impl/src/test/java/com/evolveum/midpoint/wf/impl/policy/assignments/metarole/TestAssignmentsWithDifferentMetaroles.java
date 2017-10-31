@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -51,8 +52,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevel
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.AUTO_COMPLETION_CONDITION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.NO_ASSIGNEES_FOUND;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.PROCESS;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -468,12 +468,12 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				return true;
+				return null;
 			}
 
 			@Override
 			public List<ApprovalInstruction> getApprovalSequence() {
-				return null;
+				return singletonList(new ApprovalInstruction(null, true, USER_ADMINISTRATOR_OID, "comment1"));
 			}
 
 			@Override
@@ -489,6 +489,17 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		PrismObject<UserType> jackAfter = getUser(userJackOid);
 		display("jack after", jackAfter);
 		assertAssignedRoles(jackAfter, roleRole29Oid);
+		assertAssignmentMetadata(jackAfter, roleRole29Oid, emptySet(), emptySet(), singleton(USER_ADMINISTRATOR_OID), singleton("comment1"));
+	}
+
+	private void assertAssignmentMetadata(PrismObject<? extends FocusType> object, String targetOid, Set<String> createApproverOids,
+			Set<String> createApprovalComments, Set<String> modifyApproverOids, Set<String> modifyApprovalComments) {
+		AssignmentType assignment = findAssignmentByTargetRequired(object, targetOid);
+		MetadataType metadata = assignment.getMetadata();
+		PrismAsserts.assertReferenceOids("Wrong create approvers", createApproverOids, metadata.getCreateApproverRef());
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong create comments", createApprovalComments, metadata.getCreateApprovalComment());
+		PrismAsserts.assertReferenceOids("Wrong modify approvers", modifyApproverOids, metadata.getModifyApproverRef());
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong modify comments", modifyApprovalComments, metadata.getModifyApprovalComment());
 	}
 
 	@Test
@@ -578,12 +589,12 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				return true;
+				return null;
 			}
 
 			@Override
 			public List<ApprovalInstruction> getApprovalSequence() {
-				return null;
+				return singletonList(new ApprovalInstruction(null, true, USER_ADMINISTRATOR_OID, "comment2"));
 			}
 
 			@Override
@@ -599,6 +610,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		PrismObject<UserType> jackAfter = getUser(userJackOid);
 		display("jack after", jackAfter);
 		assertAssignedRoles(jackAfter, roleRole29Oid);
+		assertAssignmentMetadata(jackAfter, roleRole29Oid, emptySet(), emptySet(), singleton(USER_ADMINISTRATOR_OID), singleton("comment2"));
 	}
 
 	@Test
@@ -709,7 +721,12 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				return true;
+				return null;
+			}
+
+			@Override
+			public List<ApprovalInstruction> getApprovalSequence() {
+				return singletonList(new ApprovalInstruction(null, true, USER_ADMINISTRATOR_OID, "comment3"));
 			}
 
 			@Override
@@ -725,6 +742,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		PrismObject<UserType> jack = getUser(userJackOid);
 		display("jack", jack);
 		assertAssignedRoles(jack, roleRole28Oid);
+		assertAssignmentMetadata(jack, roleRole28Oid, singleton(USER_ADMINISTRATOR_OID), singleton("comment3"), emptySet(), emptySet());
 	}
 
 	@Test
@@ -815,12 +833,12 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				return true;
+				return null;
 			}
 
 			@Override
 			public List<ApprovalInstruction> getApprovalSequence() {
-				return null;
+				return singletonList(new ApprovalInstruction(null, true, USER_ADMINISTRATOR_OID, "comment4"));
 			}
 
 			@Override
@@ -836,6 +854,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		PrismObject<UserType> jackAfter = getUser(userJackOid);
 		display("jack after", jackAfter);
 		assertAssignedRoles(jackAfter, roleRole28Oid);
+		assertAssignmentMetadata(jackAfter, roleRole28Oid, singleton(USER_ADMINISTRATOR_OID), singleton("comment3"), singleton(USER_ADMINISTRATOR_OID), singleton("comment4"));
 	}
 
 	@Test
