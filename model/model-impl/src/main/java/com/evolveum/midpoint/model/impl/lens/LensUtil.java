@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
@@ -1296,7 +1298,7 @@ public class LensUtil {
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
 				task, result,
-				DOMUtil.XSD_BOOLEAN, false);
+				DOMUtil.XSD_BOOLEAN, false, null);
 	}
 
 	public static String evaluateString(ExpressionType expressionBean, ExpressionVariables expressionVariables,
@@ -1305,24 +1307,75 @@ public class LensUtil {
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
 				task, result,
-				DOMUtil.XSD_STRING, null);
+				DOMUtil.XSD_STRING, null, null);
+	}
+
+	public static LocalizableMessageType evaluateLocalizableMessageType(ExpressionType expressionBean, ExpressionVariables expressionVariables,
+			String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
+			OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Function<Object, Object> additionalConvertor = (o) -> {
+			if (o == null || o instanceof LocalizableMessageType) {
+				return o;
+			} else if (o instanceof LocalizableMessage) {
+				return LocalizationUtil.createLocalizableMessageType((LocalizableMessage) o);
+			} else {
+				return new LocalizableMessageType().fallbackMessage(String.valueOf(o));
+			}
+		};
+		return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
+				task, result, LocalizableMessageType.COMPLEX_TYPE, null, additionalConvertor);
 	}
 
 	public static <T> T evaluateExpressionSingle(ExpressionType expressionBean, ExpressionVariables expressionVariables,
 			String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
 			OperationResult result, QName typeName,
-			T defaultValue)
+			T defaultValue, Function<Object, Object> additionalConvertor)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PrismPropertyDefinition<T> resultDef = new PrismPropertyDefinitionImpl<>(
 				new QName(SchemaConstants.NS_C, "result"), typeName, prismContext);
 		Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
 				expressionFactory.makeExpression(expressionBean, resultDef, contextDescription, task, result);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, expressionVariables, contextDescription, task, result);
+		context.setAdditionalConvertor(additionalConvertor);
 		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple = ModelExpressionThreadLocalHolder
 				.evaluateExpressionInContext(expression, context, task, result);
 		List<T> results = exprResultTriple.getZeroSet().stream()
 				.map(ppv -> (T) ppv.getRealValue())
 				.collect(Collectors.toList());
 		return getSingleValue(results, defaultValue, contextDescription);
+	}
+
+	@NotNull
+	public static LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
+			ExpressionVariables var, ExpressionFactory expressionFactory, PrismContext prismContext,
+			Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+			ConfigurationException, SecurityViolationException {
+		LocalizableMessageType rv = new LocalizableMessageType();
+		if (template.getKey() != null) {
+			rv.setKey(template.getKey());
+		} else if (template.getKeyExpression() != null) {
+			rv.setKey(evaluateString(template.getKeyExpression(), var, "localizable message key expression", expressionFactory, prismContext, task, result));
+		}
+		if (!template.getArgument().isEmpty() && !template.getArgumentExpression().isEmpty()) {
+			throw new IllegalArgumentException("Both argument and argumentExpression items are non empty");
+		} else if (!template.getArgumentExpression().isEmpty()) {
+			for (ExpressionType argumentExpression : template.getArgumentExpression()) {
+				LocalizableMessageType argument = evaluateLocalizableMessageType(argumentExpression, var,
+						"localizable message argument expression", expressionFactory, prismContext, task, result);
+				rv.getArgument().add(new LocalizableMessageArgumentType().localizable(argument));
+			}
+		} else {
+			// TODO allow localizable messages templates here
+			rv.getArgument().addAll(template.getArgument());
+		}
+		if (template.getFallbackMessage() != null) {
+			rv.setFallbackMessage(template.getFallbackMessage());
+		} else if (template.getFallbackMessageExpression() != null) {
+			rv.setFallbackMessage(evaluateString(template.getFallbackMessageExpression(), var,
+					"localizable message fallback expression", expressionFactory, prismContext, task, result));
+		}
+		return rv;
 	}
 }

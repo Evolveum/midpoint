@@ -23,6 +23,7 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -1086,4 +1087,8 @@ public interface MidpointFunctions {
 	TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+
+	String translate(LocalizableMessage message);
+
+	String translate(LocalizableMessageType message);
 }

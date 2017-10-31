@@ -125,7 +125,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 						ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
 						assertTrue("Non-empty primary focus delta: " + realDelta0.debugDump(), realDelta0.isEmpty());
 						assertNoObject(employee);
-						ExpectedTask expectedTask = new ExpectedTask(null, "Adding role " + employee.asObjectable().getName().getOrig());
+						ExpectedTask expectedTask = new ExpectedTask(null, "Adding role \"" + employee.asObjectable().getName().getOrig() + "\"");
 						ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
 						assertWfContextAfterClockworkRun(rootTask, subtasks, workItems, result,
 								null,
@@ -297,7 +297,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 				ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
 				ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
 				assertTrue("Non-empty primary focus delta: " + realDelta0.debugDump(), realDelta0.isEmpty());
-				ExpectedTask expectedTask = new ExpectedTask(null, "Modifying role employee");
+				ExpectedTask expectedTask = new ExpectedTask(null, "Modifying role \"employee\"");
 				ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
 //				assertWfContextAfterClockworkRun(rootTask, subtasks, workItems, result,
 //						null,

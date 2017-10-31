@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -59,6 +60,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -91,6 +93,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.schema.util.LocalizationUtil.parseLocalizableMessageType;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
 import static java.util.Collections.singleton;
@@ -114,6 +117,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Autowired private OrgStructFunctionsImpl orgStructFunctions;
 	@Autowired private WorkflowService workflowService;
 	@Autowired private ConstantsManager constantsManager;
+	@Autowired private LocalizationService localizationService;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
@@ -1513,5 +1517,15 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			extensionItems.add(extensionItem);
 		}
 		return submitTaskFromTemplate(templateTaskOid, extensionItems);
+	}
+
+	@Override
+	public String translate(LocalizableMessage message) {
+		return localizationService.translate(message, Locale.getDefault());
+	}
+
+	@Override
+	public String translate(LocalizableMessageType message) {
+		return localizationService.translate(parseLocalizableMessageType(message), Locale.getDefault());
 	}
 }

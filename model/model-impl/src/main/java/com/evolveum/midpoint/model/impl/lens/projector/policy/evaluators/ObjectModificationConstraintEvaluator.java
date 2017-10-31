@@ -85,7 +85,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 		String keyPostfix = createStateKey(rctx) + createOperationKey(rctx);
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
-				.args(ObjectTypeUtil.createObjectSpecification(rctx.focusContext.getObjectAny(), true))
+				.args(ObjectTypeUtil.createDisplayInformation(rctx.focusContext.getObjectAny(), true))
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint.getValue(), rctx, builtInMessage, result);
 	}
@@ -96,7 +96,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 		String keyPostfix = createStateKey(rctx) + createOperationKey(rctx);
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
-				.args(ObjectTypeUtil.createObjectSpecification(rctx.focusContext.getObjectAny(), false))
+				.args(ObjectTypeUtil.createDisplayInformation(rctx.focusContext.getObjectAny(), false))
 				.build();
 		return evaluatorHelper.createLocalizableShortMessage(constraint.getValue(), rctx, builtInMessage, result);
 	}

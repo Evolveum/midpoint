@@ -183,16 +183,25 @@ public class PagePreviewChanges extends PageAdmin {
 		mainForm.add(new ScenePanel(ID_SECONDARY_DELTAS_SCENE, secondaryDeltasModel));
 
 		WebMarkupContainer policyViolationsContainer = new WebMarkupContainer(ID_POLICY_VIOLATIONS_CONTAINER);
-		policyViolationsContainer.add(new VisibleBehaviour(() -> !policyViolationsModel.getObject().isEmpty()));
+		policyViolationsContainer.add(new VisibleBehaviour(() -> !violationsEmpty()));
 		policyViolationsContainer.add(new EvaluatedTriggerGroupListPanel(ID_POLICY_VIOLATIONS, policyViolationsModel));
 		mainForm.add(policyViolationsContainer);
 
 		WebMarkupContainer approvalsContainer = new WebMarkupContainer(ID_APPROVALS_CONTAINER);
-		approvalsContainer.add(new VisibleBehaviour(() -> policyViolationsModel.getObject().isEmpty() && !approvalsModel.getObject().isEmpty()));
+		approvalsContainer.add(new VisibleBehaviour(() -> violationsEmpty() && !approvalsEmpty()));
 		approvalsContainer.add(new ApprovalProcessesPreviewPanel(ID_APPROVALS, approvalsModel));
 		mainForm.add(approvalsContainer);
 
 		initButtons(mainForm);
+	}
+
+	private boolean approvalsEmpty() {
+		return approvalsModel.getObject().isEmpty();
+	}
+
+	private boolean violationsEmpty() {
+		return policyViolationsModel.getObject().stream()
+				.allMatch(g -> g.getTriggers().isEmpty());
 	}
 
 	private void initButtons(Form mainForm) {

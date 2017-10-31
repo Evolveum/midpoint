@@ -189,20 +189,20 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 
 	private LocalizableMessage createObjectInfo(AssignmentPath path, PrismObject<?> defaultObject, boolean startsWithUppercase) {
 		if (path == null) {
-			return ObjectTypeUtil.createObjectSpecification(defaultObject, startsWithUppercase);
+			return ObjectTypeUtil.createDisplayInformation(defaultObject, startsWithUppercase);
 		}
 		List<ObjectType> objects = path.getFirstOrderChain();
 		if (objects.isEmpty()) {		// shouldn't occur
-			return ObjectTypeUtil.createObjectSpecification(defaultObject, startsWithUppercase);
+			return ObjectTypeUtil.createDisplayInformation(defaultObject, startsWithUppercase);
 		}
 		PrismObject<?> last = objects.get(objects.size()-1).asPrismObject();
 		if (objects.size() == 1) {
-			return ObjectTypeUtil.createObjectSpecification(last, startsWithUppercase);
+			return ObjectTypeUtil.createDisplayInformation(last, startsWithUppercase);
 		}
 		String pathString = objects.stream()
-				.map(o -> "\""+PolyString.getOrig(o.getName())+"\"")
+				.map(o -> PolyString.getOrig(o.getName()))
 				.collect(Collectors.joining(" -> "));
-		return ObjectTypeUtil.createObjectSpecificationWithPath(last, startsWithUppercase, pathString);
+		return ObjectTypeUtil.createDisplayInformationWithPath(last, startsWithUppercase, pathString);
 	}
 
 	// ================== legacy

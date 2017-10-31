@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -108,7 +109,7 @@ public class ObjectPolicyAspectPart {
 				builder.setProcessSpecification(processSpecificationEntry);
 				for (Pair<ApprovalPolicyActionType, EvaluatedPolicyRule> actionWithRule : processSpecificationEntry.actionsWithRules) {
 					ApprovalPolicyActionType approvalAction = actionWithRule.getLeft();
-					builder.add(main.getSchemaFromAction(approvalAction), approvalAction.getCompositionStrategy(), object, actionWithRule.getRight());
+					builder.add(main.getSchemaFromAction(approvalAction), approvalAction, object, actionWithRule.getRight());
 				}
 				buildSchemaForObject(requester, instructions, ctx, result, deltasToApprove, builder);
 			}
@@ -141,7 +142,7 @@ public class ObjectPolicyAspectPart {
 			ApprovalSchemaBuilder builder) throws SchemaException {
 		ApprovalSchemaBuilder.Result builderResult = builder.buildSchema(ctx, result);
 		if (!approvalSchemaHelper.shouldBeSkipped(builderResult.schemaType)) {
-			prepareObjectRelatedTaskInstructions(instructions, builderResult, deltasToApprove, ctx.modelContext, requester, result);
+			prepareObjectRelatedTaskInstructions(instructions, builderResult, deltasToApprove, requester, ctx, result);
 		}
 	}
 
@@ -175,12 +176,14 @@ public class ObjectPolicyAspectPart {
 
 	private <T extends ObjectType> void prepareObjectRelatedTaskInstructions(
 			List<PcpChildWfTaskCreationInstruction<?>> instructions, ApprovalSchemaBuilder.Result builderResult,
-			List<ObjectDelta<T>> deltasToApprove, ModelContext<T> modelContext,
-			PrismObject<UserType> requester, OperationResult result) throws SchemaException {
+			List<ObjectDelta<T>> deltasToApprove, PrismObject<UserType> requester, ModelInvocationContext<T> ctx,
+			OperationResult result) throws SchemaException {
+
+		ModelContext<T> modelContext = ctx.modelContext;
 
 		for (ObjectDelta<T> deltaToApprove : deltasToApprove) {
-			LocalizableMessage processName = main.createProcessName(builderResult);
-			if (processName == null) {
+			LocalizableMessage processName = main.createProcessName(builderResult, null, ctx, result);
+			if (LocalizationUtil.isEmpty(processName) || PolicyRuleBasedAspect.USE_DEFAULT_NAME_MARKER.equals(processName.getKey())) {
 				processName = createDefaultProcessName(modelContext, deltaToApprove);
 			}
 			String processNameInDefaultLocale = localizationService.translate(processName, Locale.getDefault());
@@ -218,7 +221,7 @@ public class ObjectPolicyAspectPart {
 		}
 		return new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + "objectModification.toBe" + opKey)
-				.args(ObjectTypeUtil.createObjectSpecification(asPrismObject(focus), false))
+				.args(ObjectTypeUtil.createDisplayInformation(asPrismObject(focus), false))
 				.build();
 	}
 

@@ -19,6 +19,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -40,6 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A service provided by the IDM Model that allows to improve the (user) interaction with the model.
@@ -317,4 +319,11 @@ public interface ModelInteractionService {
 	
 	MidPointPrincipal dropPowerOfAttorney(Task task, OperationResult result) 
 			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+
+	// Maybe a bit of hack: used to deduplicate processing of localizable message templates
+	@NotNull
+	LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
+			Map<QName, Object> variables, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+			ConfigurationException, SecurityViolationException;
 }
