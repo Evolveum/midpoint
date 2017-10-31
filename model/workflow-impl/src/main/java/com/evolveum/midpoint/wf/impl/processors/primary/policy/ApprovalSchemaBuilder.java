@@ -35,6 +35,8 @@ import javax.xml.namespace.QName;
 import java.util.*;
 
 import com.evolveum.midpoint.wf.impl.processors.primary.policy.ProcessSpecifications.ProcessSpecification;
+import org.jetbrains.annotations.Nullable;
+
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 import static java.util.Comparator.naturalOrder;
 
@@ -52,14 +54,17 @@ class ApprovalSchemaBuilder {
 	class Result {
 		@NotNull final ApprovalSchemaType schemaType;
 		@NotNull final SchemaAttachedPolicyRulesType attachedRules;
-		final ProcessSpecification processSpecification;
+		@Nullable final ProcessSpecification processSpecification;
+		@Nullable final LocalizableMessageTemplateType approvalDisplayName;
 
 		public Result(@NotNull ApprovalSchemaType schemaType,
 				@NotNull SchemaAttachedPolicyRulesType attachedRules,
-				ProcessSpecification processSpecification) {
+				@Nullable ProcessSpecification processSpecification,
+				@Nullable LocalizableMessageTemplateType approvalDisplayName) {
 			this.schemaType = schemaType;
 			this.attachedRules = attachedRules;
 			this.processSpecification = processSpecification;
+			this.approvalDisplayName = approvalDisplayName;
 		}
 	}
 
@@ -70,13 +75,16 @@ class ApprovalSchemaBuilder {
 		@NotNull final ApprovalSchemaType schema;
 		final EvaluatedPolicyRule policyRule;
 		final ApprovalCompositionStrategyType compositionStrategy;
+		final LocalizableMessageTemplateType approvalDisplayName;
 
 		private Fragment(ApprovalCompositionStrategyType compositionStrategy, PrismObject<?> target,
-				@NotNull ApprovalSchemaType schema, EvaluatedPolicyRule policyRule) {
+				@NotNull ApprovalSchemaType schema, EvaluatedPolicyRule policyRule,
+				LocalizableMessageTemplateType approvalDisplayName) {
 			this.compositionStrategy = compositionStrategy;
 			this.target = target;
 			this.schema = schema;
 			this.policyRule = policyRule;
+			this.approvalDisplayName = approvalDisplayName;
 		}
 
 		private boolean isMergeableWith(Fragment other) {
@@ -110,9 +118,10 @@ class ApprovalSchemaBuilder {
 	}
 
 	// TODO target
-	void add(ApprovalSchemaType schema, ApprovalCompositionStrategyType compositionStrategy, PrismObject<?> defaultTarget,
+	void add(ApprovalSchemaType schema, ApprovalPolicyActionType approvalAction, PrismObject<?> defaultTarget,
 			EvaluatedPolicyRule policyRule) throws SchemaException {
-		Fragment fragment = new Fragment(compositionStrategy, defaultTarget, schema, policyRule);
+		ApprovalCompositionStrategyType compositionStrategy = approvalAction.getCompositionStrategy();
+		Fragment fragment = new Fragment(compositionStrategy, defaultTarget, schema, policyRule, approvalAction.getApprovalDisplayName());
 		if (isAddOnFragment(compositionStrategy)) {
 			if (compositionStrategy.getOrder() != null) {
 				throw new SchemaException("Both order and mergeIntoOrder/mergeIntoAll are set for " + schema);
@@ -148,7 +157,7 @@ class ApprovalSchemaBuilder {
 	}
 
 	void addPredefined(PrismObject<?> targetObject, ApprovalSchemaType schema) {
-		predefinedFragments.add(new Fragment(null, targetObject, schema, null));
+		predefinedFragments.add(new Fragment(null, targetObject, schema, null, null));
 	}
 
 	Result buildSchema(ModelInvocationContext ctx, OperationResult result) throws SchemaException {
@@ -161,15 +170,27 @@ class ApprovalSchemaBuilder {
 		ApprovalSchemaType schemaType = new ApprovalSchemaType(ctx.prismContext);
 		SchemaAttachedPolicyRulesType attachedRules = new SchemaAttachedPolicyRulesType();
 
+		LocalizableMessageTemplateType approvalDisplayName = null;
+		if (processSpecification != null
+				&& processSpecification.basicSpec != null
+				&& processSpecification.basicSpec.getApprovalDisplayName() != null) {
+			approvalDisplayName = processSpecification.basicSpec.getApprovalDisplayName();
+		}
+		for (Fragment fragment : allFragments) {
+			if (approvalDisplayName == null && fragment.approvalDisplayName != null) {
+				approvalDisplayName = fragment.approvalDisplayName;
+			}
+		}
+
 		int i = 0;
-		while(i < allFragments.size()) {
+		while (i < allFragments.size()) {
 			List<Fragment> fragmentMergeGroup = getMergeGroup(allFragments, i);
 			i += fragmentMergeGroup.size();
 			checkExclusivity(fragmentMergeGroup);
 			processFragmentGroup(fragmentMergeGroup, schemaType, attachedRules, ctx, result);
 		}
 
-		return new Result(schemaType, attachedRules, processSpecification);
+		return new Result(schemaType, attachedRules, processSpecification, approvalDisplayName);
 	}
 
 	private void checkExclusivity(List<Fragment> fragmentMergeGroup) {

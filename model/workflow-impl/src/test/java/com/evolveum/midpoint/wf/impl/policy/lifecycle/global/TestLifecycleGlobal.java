@@ -144,10 +144,10 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 						new ExpectedWorkItem(userLead2Oid, null, new ExpectedTask(null, "Setting riskLevel")), true, USER_ADMINISTRATOR_OID));
 				// this is step 2 in main part
 				instructions.add(new ApprovalInstruction(
-						new ExpectedWorkItem(userLead1Oid, null, new ExpectedTask(null, "Adding role judge")), true, USER_ADMINISTRATOR_OID));
+						new ExpectedWorkItem(userLead1Oid, null, new ExpectedTask(null, "Adding role \"judge\"")), true, USER_ADMINISTRATOR_OID));
 				// this is step 3 in main part
 				instructions.add(new ApprovalInstruction(
-						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Adding role judge")), true, USER_ADMINISTRATOR_OID));
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Adding role \"judge\"")), true, USER_ADMINISTRATOR_OID));
 				return instructions;
 			}
 		}, 2);
@@ -243,10 +243,10 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 						new ExpectedWorkItem(userLead3Oid, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
 				// this is step 1 in main part (owner)
 				instructions.add(new ApprovalInstruction(
-						new ExpectedWorkItem(userJudgeOwnerOid, null, new ExpectedTask(null, "Modifying role judge")), true, USER_ADMINISTRATOR_OID));
+						new ExpectedWorkItem(userJudgeOwnerOid, null, new ExpectedTask(null, "Modifying role \"judge\"")), true, USER_ADMINISTRATOR_OID));
 				// this is step 2 in main part
 				instructions.add(new ApprovalInstruction(
-						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Modifying role judge")), true, USER_ADMINISTRATOR_OID));
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Modifying role \"judge\"")), true, USER_ADMINISTRATOR_OID));
 				return instructions;
 			}
 		}, 3);
@@ -342,10 +342,10 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 						new ExpectedWorkItem(userLead3Oid, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
 				// this is step 2 in main part (first step is owner that is skipped)
 				instructions.add(new ApprovalInstruction(
-						new ExpectedWorkItem(userLead1Oid, null, new ExpectedTask(null, "Adding role captain")), true, USER_ADMINISTRATOR_OID));
+						new ExpectedWorkItem(userLead1Oid, null, new ExpectedTask(null, "Adding role \"captain\"")), true, USER_ADMINISTRATOR_OID));
 				// this is step 3 in main part
 				instructions.add(new ApprovalInstruction(
-						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Adding role captain")), true, USER_ADMINISTRATOR_OID));
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Adding role \"captain\"")), true, USER_ADMINISTRATOR_OID));
 				return instructions;
 			}
 		}, 4);
@@ -522,10 +522,10 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 						new ExpectedWorkItem(userLead3Oid, null, new ExpectedTask(null, "Changing approverRef")), true, USER_ADMINISTRATOR_OID));
 				// this is step 2 in main part (first step is owner that is skipped)
 				instructions.add(new ApprovalInstruction(
-						new ExpectedWorkItem(userLead1Oid, null, new ExpectedTask(null, "Adding role thief")), true, USER_ADMINISTRATOR_OID));
+						new ExpectedWorkItem(userLead1Oid, null, new ExpectedTask(null, "Adding role \"thief\"")), true, USER_ADMINISTRATOR_OID));
 				// this is step 3 in main part
 				instructions.add(new ApprovalInstruction(
-						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Adding role thief")), true, USER_ADMINISTRATOR_OID));
+						new ExpectedWorkItem(USER_ADMINISTRATOR_OID, null, new ExpectedTask(null, "Adding role \"thief\"")), true, USER_ADMINISTRATOR_OID));
 				return instructions;
 			}
 		}, 4);

@@ -15,9 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.self;
 
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -40,7 +38,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
@@ -67,9 +64,7 @@ import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 
-import javax.xml.namespace.QName;
 import java.util.*;
 
 /**

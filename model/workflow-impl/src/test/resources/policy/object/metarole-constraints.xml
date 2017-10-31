@@ -67,7 +67,9 @@
 					<stateBefore>false</stateBefore>
 					<stateAfter>true</stateAfter>
 					<constraints>
-						<ref>active lifecycleState</ref>
+						<ref>
+							<name>active lifecycleState</name>
+						</ref>
 					</constraints>
 				</transition>
 			</policyConstraints>
@@ -94,7 +96,9 @@
 						</q:equal>
 					</filter>
 				</objectState>
-				<ref>role-switched-to-active</ref>
+				<ref>
+					<name>role-switched-to-active</name>
+				</ref>
 			</policyConstraints>
 			<policyActions>
 				<approval>

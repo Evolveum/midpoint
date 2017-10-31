@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.wf.impl.processors.primary.policy;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
@@ -24,12 +26,15 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
@@ -38,13 +43,18 @@ import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChange
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import javax.xml.namespace.QName;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
+import static com.evolveum.midpoint.schema.util.LocalizationUtil.createLocalizableMessageType;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createDisplayInformation;
+import static com.evolveum.midpoint.wf.impl.util.MiscDataUtil.getFocusObjectNewOrOld;
 
 /**
  *
@@ -56,9 +66,12 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
     @SuppressWarnings("unused")
     private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleBasedAspect.class);
 
+    public static final String USE_DEFAULT_NAME_MARKER = "#default#";
+
     @Autowired protected PrismContext prismContext;
 	@Autowired private AssignmentPolicyAspectPart assignmentPolicyAspectPart;
 	@Autowired private ObjectPolicyAspectPart objectPolicyAspectPart;
+	@Autowired private ModelInteractionService modelInteractionService;
 
     //region ------------------------------------------------------------ Things that execute on request arrival
 
@@ -109,7 +122,51 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		}
 	}
 
-	LocalizableMessage createProcessName(ApprovalSchemaBuilder.Result schemaBuilderResult) {
+	// evaluatedAssignment present only if relevant
+	LocalizableMessage createProcessName(ApprovalSchemaBuilder.Result schemaBuilderResult,
+			@Nullable EvaluatedAssignment<?> evaluatedAssignment, ModelInvocationContext<?> ctx, OperationResult result) {
+		LocalizableMessage name = processNameFromApprovalActions(schemaBuilderResult, evaluatedAssignment, ctx, result);
+		LOGGER.trace("Approval display name from approval actions: {}", name);
+		if (name != null) {
+			return name;
+		}
+		name = processNameFromTriggers(schemaBuilderResult);
+		LOGGER.trace("Approval display name from triggers: {}", name);
+		return name;
+	}
+
+	// corresponds with ConstraintEvaluationHelper.createExpressionVariables
+	private LocalizableMessage processNameFromApprovalActions(ApprovalSchemaBuilder.Result schemaBuilderResult,
+			@Nullable EvaluatedAssignment<?> evaluatedAssignment, ModelInvocationContext<?> ctx, OperationResult result) {
+		if (schemaBuilderResult.approvalDisplayName == null) {
+			return null;
+		}
+		Map<QName, Object> variables = new HashMap<>();
+		variables.put(ExpressionConstants.VAR_OBJECT, getFocusObjectNewOrOld(ctx.modelContext));
+		variables.put(ExpressionConstants.VAR_OBJECT_DISPLAY_INFORMATION, createLocalizableMessageType(createDisplayInformation(asPrismObject(getFocusObjectNewOrOld(ctx.modelContext)), false)));
+		if (evaluatedAssignment != null) {
+			variables.put(ExpressionConstants.VAR_TARGET, evaluatedAssignment.getTarget());
+			variables.put(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION, createLocalizableMessageType(createDisplayInformation(evaluatedAssignment.getTarget(), false)));
+			variables.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, evaluatedAssignment);
+			variables.put(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment.getAssignmentType());
+		} else {
+			variables.put(ExpressionConstants.VAR_TARGET, null);
+			variables.put(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION, null);
+			variables.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null);
+			variables.put(ExpressionConstants.VAR_ASSIGNMENT, null);
+		}
+		LocalizableMessageType localizableMessageType;
+		try {
+			localizableMessageType = modelInteractionService
+					.createLocalizableMessageType(schemaBuilderResult.approvalDisplayName, variables, ctx.taskFromModel, result);
+		} catch (CommonException|RuntimeException e) {
+			throw new SystemException("Couldn't create localizable message for approval display name: " + e.getMessage(), e);
+		}
+		return LocalizationUtil.parseLocalizableMessageType(localizableMessageType);
+	}
+
+	@Nullable
+	private LocalizableMessage processNameFromTriggers(ApprovalSchemaBuilder.Result schemaBuilderResult) {
 		List<EvaluatedPolicyRuleTriggerType> triggers = new ArrayList<>();
 
 		// Let's analyze process specification - collect rules mentioned there.
@@ -126,13 +183,13 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 					}
 				}
 			}
+		} else {
+			// For assignments we do not set processSpecification yet.
+			// The triggers can be collected also from attached rules.
+			for (SchemaAttachedPolicyRuleType entry : schemaBuilderResult.attachedRules.getEntry()) {
+				triggers.addAll(entry.getRule().getTrigger());
+			}
 		}
-		// (disabled: these triggers are already processed above)
-
-//		// all the other triggers (there will be duplicates but it's not a problem)
-//		for (SchemaAttachedPolicyRuleType entry : schemaBuilderResult.attachedRules.getEntry()) {
-//			triggers.addAll(entry.getRule().getTrigger());
-//		}
 
 		// now get the first message
 		List<TreeNode<EvaluatedPolicyRuleTriggerType>> trees = EvaluatedPolicyRuleUtil.arrangeForPresentationExt(triggers);

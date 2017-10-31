@@ -2007,7 +2007,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         if (user != null && user.asObjectable().getTimezone() != null) {
             timeZone = user.asObjectable().getTimezone();
-        } else {
+        } else if (principal != null && principal.getAdminGuiConfiguration() != null) {
             timeZone = principal.getAdminGuiConfiguration().getDefaultTimezone();
         }
         if (timeZone != null) {

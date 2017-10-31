@@ -23,6 +23,7 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -1039,7 +1040,7 @@ public interface MidpointFunctions {
 	Map<String, String> parseXmlToMap(String xml);
 	
 	boolean isFullShadow();
-	
+
 	boolean isProjectionExists();
 
 	List<UserType> getMembers(String orgOid)
@@ -1090,10 +1091,14 @@ public interface MidpointFunctions {
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
+	String translate(LocalizableMessage message);
+
+	String translate(LocalizableMessageType message);
+
 	<F extends ObjectType> ModelContext<F> getModelContext();
-	
+
 	<F extends ObjectType> ModelElementContext<F> getFocusContext();
-	
+
 	ModelProjectionContext getProjectionContext();
 
 }
