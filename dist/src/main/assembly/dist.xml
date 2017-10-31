@@ -22,7 +22,6 @@
   <id>dist</id>
   <formats>
     <format>tar.gz</format>
-    <format>tar.bz2</format>
     <format>zip</format>
   </formats>
   <files>
@@ -46,7 +45,7 @@
     </fileSet>
     <fileSet>
       <directory>../samples</directory>
-      <outputDirectory>/samples</outputDirectory>
+      <outputDirectory>/doc/samples</outputDirectory>
       <excludes>
       	<exclude>.project</exclude>
       	<exclude>.classpath</exclude>
@@ -60,7 +59,7 @@
     </fileSet>
     <fileSet>
       <directory>../config</directory>
-      <outputDirectory>/config</outputDirectory>
+      <outputDirectory>/doc/config</outputDirectory>
       <excludes>
       	<exclude>.project</exclude>
       	<exclude>.classpath</exclude>
@@ -72,7 +71,7 @@
     </fileSet>
     <fileSet>
       <directory>target/schemadist</directory>
-      <outputDirectory>/schema</outputDirectory>
+      <outputDirectory>/doc/schema</outputDirectory>
       <excludes>
       	<exclude>.project</exclude>
       	<exclude>.classpath</exclude>
@@ -82,21 +81,18 @@
       	<exclude>**/*~</exclude>
       </excludes>
     </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/src/main/bin</directory>
+      <outputDirectory>/bin</outputDirectory>
+    </fileSet>
   </fileSets>
   <dependencySets>
     <dependencySet>
-      <outputDirectory>/war</outputDirectory>
+      <outputDirectory>/lib</outputDirectory>
       <includes>
         <include>com.evolveum.midpoint.gui:admin-gui</include>
       </includes>
       <outputFileNameMapping>midpoint.war</outputFileNameMapping>
-      <unpack>false</unpack>
-    </dependencySet>
-    <dependencySet>
-      <outputDirectory>/lib</outputDirectory>
-      <excludes>
-        <exclude>com.evolveum.midpoint.gui:admin-gui</exclude>
-      </excludes>
       <unpack>false</unpack>
     </dependencySet>
     <dependencySet>
