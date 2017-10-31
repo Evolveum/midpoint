@@ -49,7 +49,7 @@ public class CaseWorkItemDto extends Selectable {
     public static final String F_STATE = "state";
     public static final String F_COMMENT = "comment";
     public static final String F_OUTCOME = "outcome";
-    public static final String F_PROOF = "proof";
+    public static final String F_EVIDENCE = "evidence";
 
     @NotNull private final CaseWorkItemType workItem;
 
@@ -107,15 +107,15 @@ public class CaseWorkItemDto extends Selectable {
         }
     }
 
-    public byte[] getProof() {
-        return WorkItemTypeUtil.getProof(workItem);
+    public byte[] getEvidence() {
+        return WorkItemTypeUtil.getEvidence(workItem);
     }
 
-    public void setProof(byte[] value) {
+    public void setEvidence(byte[] value) {
         if (workItem.getOutput() == null) {
-            workItem.beginOutput().proof(value);
+            workItem.beginOutput().evidence(value);
         } else {
-            workItem.getOutput().proof(value);
+            workItem.getOutput().evidence(value);
         }
     }
 

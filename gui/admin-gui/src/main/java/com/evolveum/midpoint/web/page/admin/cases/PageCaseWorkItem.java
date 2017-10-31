@@ -105,8 +105,8 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 	private static final String ID_CASE_WORK_ITEM_OUTCOME = "caseWorkItemOutcome";
 	private static final String ID_CASE_WORK_ITEM_COMMENT = "caseWorkItemComment";
 	private static final String ID_CASE_WORK_ITEM_FORM_COMMENT = "caseWorkItemFormComment";
-	private static final String ID_CASE_WORK_ITEM_FORM_PROOF = "caseWorkItemFormProof";
-	private static final String ID_CASE_WORK_ITEM_PROOF = "caseWorkItemProof";
+	private static final String ID_CASE_WORK_ITEM_FORM_EVIDENCE = "caseWorkItemFormEvidence";
+	private static final String ID_CASE_WORK_ITEM_EVIDENCE = "caseWorkItemEvidence";
 	private static final String ID_BACK_BUTTON = "backButton";
 	private static final String ID_CLOSE_CASE_BUTTON = "closeCaseButton";
 
@@ -223,26 +223,26 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_DEADLINE, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_DEADLINE)));
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_OUTCOME, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_OUTCOME)));
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_COMMENT, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_COMMENT)));
-		Panel proofPanel = new UploadDownloadPanel(ID_CASE_WORK_ITEM_PROOF, true){
+		Panel evidencePanel = new UploadDownloadPanel(ID_CASE_WORK_ITEM_EVIDENCE, true){
 			@Override
 			public InputStream getStream() {
-				return new ByteArrayInputStream(caseWorkItemDtoModel.getObject().getProof());
+				return new ByteArrayInputStream(caseWorkItemDtoModel.getObject().getEvidence());
 			}
 		};
-		proofPanel.add(new VisibleEnableBehaviour() {
+		evidencePanel.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return caseWorkItemDtoModel.getObject().getProof() != null;
+				return caseWorkItemDtoModel.getObject().getEvidence() != null;
 			}
 		});
-		mainForm.add(proofPanel);
+		mainForm.add(evidencePanel);
 
 		// Case Work Item Form
 		WebMarkupContainer caseWorkItemForm = new WebMarkupContainer(ID_CASE_WORK_ITEM_FORM);
 		TextArea commentField = new TextArea<>(ID_CASE_WORK_ITEM_FORM_COMMENT, new PropertyModel<String>(caseWorkItemDtoModel, CaseWorkItemDto.F_COMMENT));
 		caseWorkItemForm.add(commentField);
-		FileUploadField proofUpload = new FileUploadField(ID_CASE_WORK_ITEM_FORM_PROOF);
-		caseWorkItemForm.add(proofUpload);
+		FileUploadField evidenceUpload = new FileUploadField(ID_CASE_WORK_ITEM_FORM_EVIDENCE);
+		caseWorkItemForm.add(evidenceUpload);
 		caseWorkItemForm.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
@@ -312,11 +312,11 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 			AbstractWorkItemOutputType output = new AbstractWorkItemOutputType()
 					.comment(dto.getComment())
 					.outcome("SUCCESS");
-			FileUploadField proofUploadField = (FileUploadField) get(ID_MAIN_FORM).get(ID_CASE_WORK_ITEM_FORM).get(ID_CASE_WORK_ITEM_FORM_PROOF);
-			if (proofUploadField != null) {
-				FileUpload proof = proofUploadField.getFileUpload();
-				if (proof != null) {
-					output = output.proof(proof.getBytes());
+			FileUploadField evidenceUploadField = (FileUploadField) get(ID_MAIN_FORM).get(ID_CASE_WORK_ITEM_FORM).get(ID_CASE_WORK_ITEM_FORM_EVIDENCE);
+			if (evidenceUploadField != null) {
+				FileUpload evidence = evidenceUploadField.getFileUpload();
+				if (evidence != null) {
+					output = output.evidence(evidence.getBytes());
 				}
 			}
 			cms.completeWorkItem(caseId, caseWorkItemId, output, task, result);

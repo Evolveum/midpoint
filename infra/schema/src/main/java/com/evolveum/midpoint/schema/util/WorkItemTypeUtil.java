@@ -40,12 +40,12 @@ public class WorkItemTypeUtil {
 		return output != null ? output.getComment() : null;
 	}
 
-	public static byte[] getProof(AbstractWorkItemType workItem) {
-		return getProof(getOutput(workItem));
+	public static byte[] getEvidence(AbstractWorkItemType workItem) {
+		return getEvidence(getOutput(workItem));
 	}
 
-	public static byte[] getProof(AbstractWorkItemOutputType output) {
-		return output != null ? output.getProof() : null;
+	public static byte[] getEvidence(AbstractWorkItemOutputType output) {
+		return output != null ? output.getEvidence() : null;
 	}
 
 	public static String getOutcome(AbstractWorkItemOutputType output) {
