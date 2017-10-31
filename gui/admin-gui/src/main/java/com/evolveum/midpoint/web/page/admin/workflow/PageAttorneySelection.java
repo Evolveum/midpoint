@@ -78,6 +78,11 @@ public class PageAttorneySelection extends PageBase {
     private static final String ID_TABLE = "table";
 
     public PageAttorneySelection() {
+        this(null);
+    }
+
+    public PageAttorneySelection(PageParameters parameters) {
+        super(parameters);
     }
 
     @Override

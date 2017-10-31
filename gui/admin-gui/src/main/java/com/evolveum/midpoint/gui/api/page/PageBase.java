@@ -1406,6 +1406,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
+                AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL,
                 AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
                 AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             if (getWorkflowManager().isEnabled()) {
@@ -2006,7 +2007,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         if (user != null && user.asObjectable().getTimezone() != null) {
             timeZone = user.asObjectable().getTimezone();
-        } else {
+        } else if (principal != null && principal.getAdminGuiConfiguration() != null) {
             timeZone = principal.getAdminGuiConfiguration().getDefaultTimezone();
         }
         if (timeZone != null) {

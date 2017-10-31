@@ -24,6 +24,7 @@
 
     <group name="midpoint-theme">
         <css>/less/midpoint-theme.less</css>
+        <css>file:${midpoint.home}/midpoint.less</css>
         <js>/js/midpoint/ace-editor.js</js>
         <js>/js/midpoint-theme.js</js>
     </group>

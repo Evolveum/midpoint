@@ -249,6 +249,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		DebugUtil.debugDumpLabelLn(sb, "policyRuleType", indent + 1);
 		DebugUtil.indentDebugDump(sb, indent + 2);
 		PrismPrettyPrinter.debugDumpValue(sb, indent + 2, policyRuleType, prismContextForDebugDump, PolicyRuleType.COMPLEX_TYPE, PrismContext.LANG_XML);
+		sb.append('\n');
 		DebugUtil.debugDumpWithLabelLn(sb, "assignmentPath", assignmentPath, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "triggers", triggers, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "directOwner", ObjectTypeUtil.toShortString(directOwner), indent + 1);

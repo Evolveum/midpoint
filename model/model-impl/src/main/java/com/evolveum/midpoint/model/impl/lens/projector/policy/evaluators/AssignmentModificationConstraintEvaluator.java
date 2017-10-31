@@ -87,7 +87,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 		String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
-				.arg(ObjectTypeUtil.createObjectSpecification(ctx.evaluatedAssignment.getTarget(), false))
+				.arg(ObjectTypeUtil.createDisplayInformation(ctx.evaluatedAssignment.getTarget(), false))
 				.arg(ctx.evaluatedAssignment.getRelation() != null ? ctx.evaluatedAssignment.getRelation().getLocalPart() : null)
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint.getValue(), ctx, builtInMessage, result);
@@ -110,8 +110,8 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 		String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
-				.arg(ObjectTypeUtil.createObjectSpecification(ctx.evaluatedAssignment.getTarget(), false))
-				.arg(ObjectTypeUtil.createObjectSpecification(ctx.getObject(), false))
+				.arg(ObjectTypeUtil.createDisplayInformation(ctx.evaluatedAssignment.getTarget(), false))
+				.arg(ObjectTypeUtil.createDisplayInformation(ctx.getObject(), false))
 				.build();
 		return evaluatorHelper.createLocalizableShortMessage(constraint.getValue(), ctx, builtInMessage, result);
 	}

@@ -331,7 +331,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 					ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
 					assertTrue("Non-empty primary focus delta: " + realDelta0.debugDump(), realDelta0.isEmpty());
 					assertNoObject(object);
-					ExpectedTask expectedTask = new ExpectedTask(null, "Adding role " + object.getName().getOrig());
+					ExpectedTask expectedTask = new ExpectedTask(null, "Adding role \"" + object.getName().getOrig() + "\"");
 					ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(assigneeOid, null, expectedTask);
 					assertWfContextAfterClockworkRun(rootTask, subtasks, workItems, result,
 							null,

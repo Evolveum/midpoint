@@ -831,10 +831,22 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
+    		<xsd:element name="createApprovalComments" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Comments of the approvers during the creation of the data. Note that these comments are in no
+						particular order, so basically it is not known who entered which comment.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+						<a:since>3.7</a:since>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
     		<xsd:element name="createApprovalTimestamp" type="xsd:dateTime" minOccurs="0">
     			<xsd:annotation>
     				<xsd:documentation>
-    					The timestamp of last modification approval.
+    					The timestamp of creation approval.
     				</xsd:documentation>
     				<xsd:appinfo>
     					<a:operational>true</a:operational>
@@ -853,6 +865,18 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
+    		<xsd:element name="createTaskRef" type="tns:ObjectReferenceType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to the task that created the object (if it was a persistent one).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:operational>true</a:operational>
+						<a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
     		<xsd:element name="modifyTimestamp" type="xsd:dateTime" minOccurs="0">
     			<xsd:annotation>
     				<xsd:documentation>
@@ -884,13 +908,13 @@
     				<xsd:documentation>
     					<p>
 	    					Reference to the user that approved the last modification of the data (if there was such a user).
-	    					This is multi-value reference therefore multiple approvers may be recorded. Howerver the order and
+	    					This is multi-value reference therefore multiple approvers may be recorded. However the order and
 	    					hierarchy of the approvers is lost.
     					</p>
     					<p>
     						Even though this is multi-value reference it will get overwritten after each approval.
     						The multiple values are used only if all the approvers are known at the same time,
-    						e.g. if multi-level approval is evaluated at the same time. But generaly this refers
+    						e.g. if multi-level approval is evaluated at the same time. But generally this refers
     						only to the last approval event.
     					</p>
     				</xsd:documentation>
@@ -901,6 +925,23 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
+			<xsd:element name="modifyApprovalComments" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Comments of the approvers during the last modification of the data. Note that these comments are in no
+							particular order, so basically it is not known who entered which comment.
+						</p>
+						<p>
+							Even though this is multi-value property it will get overwritten after each approval.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:operational>true</a:operational>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
     		<xsd:element name="modifyApprovalTimestamp" type="xsd:dateTime" minOccurs="0">
     			<xsd:annotation>
     				<xsd:documentation>
@@ -923,19 +964,32 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
+			<xsd:element name="modifyTaskRef" type="tns:ObjectReferenceType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to the task that last modified the object (if it was a persistent one).
+						If the last modification was carried out by synchronous task, this reference will be empty.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:operational>true</a:operational>
+						<a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
     		<xsd:element name="lastProvisioningTimestamp" type="xsd:dateTime" minOccurs="0">
     			<xsd:annotation>
     				<xsd:documentation>
     					<p>
     						The timestamp last provisioning operation that was based on this object.
-    						E.g. the timestamp of last modificaiton od any account based on the
-    						data from the user. This valus is only updated if there was any
+    						E.g. the timestamp of last modification of any account based on the
+    						data from the user. This value is only updated if there was any
     						real change in the resource.
     					</p>
     					<p>
     						This meta-datum is used as an informational property that tells when
     						the data were last synchronized in outbound direction. But it has another
-    						imporatant role. It is used indirectly to trigger optimistic locking
+    						important role. It is used indirectly to trigger optimistic locking
     						conflicts that are used to detect a "clean" recompute (i.e. recompute
     						that is processing data without any outside interaction).
     					</p>
@@ -946,9 +1000,6 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
-    		
-            <!-- The following certification-related items might be enabled in the future.
-
             <xsd:element name="certificationStartedTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -958,49 +1009,87 @@
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
                         <a:indexed>true</a:indexed>
+						<a:since>3.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+			<xsd:element name="certificationCampaignRef" type="tns:ObjectReferenceType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Certification campaign applied to this item.
+						(Should be set if and only if certificationStartedTimestamp is set.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:operational>true</a:operational>
+						<a:indexed>true</a:indexed>
+						<a:objectReferenceTargetType>tns:AccessCertificationCampaignType</a:objectReferenceTargetType>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="certificationFinishedTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         When last certification related to this item was finished.
+						Only certifications that resulted in non-null outcome are taken into account.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
                         <a:indexed>true</a:indexed>
+						<a:since>3.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="certificationCampaignRef" type="tns:ObjectReferenceType" minOccurs="0">
+            <xsd:element name="certificationOutcome" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Certification campaign applied to this item.
-                        (Should be set if and only if certificationStartedTimestamp is set.)
+                        Outcome (URI) of the last certification.
+						Only certifications that resulted in non-null outcome are taken into account.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
                         <a:indexed>true</a:indexed>
-                        <a:objectReferenceTargetType>tns:AccessCertificationCampaignType</a:objectReferenceTargetType>
+						<a:since>3.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="certifierRef" type="tns:ObjectReferenceType" minOccurs="0">
+            <xsd:element name="certifierRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to the user that certified the data.
                         Contrary to approver/modifierRef, this field is filled-in also when certifier denies the item status.
+						Only certifications that resulted in non-null outcome are taken into account.
+					</xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                        <!--<a:indexed>true</a:indexed>-->
+                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+						<a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="certifierComment" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+						<p>
+							Comments of the certifiers during the last certification of the data. Note that these comments are in no
+							particular order, so basically it is not known who entered which comment.
+						</p>
+						<p>
+							Even though this is multi-value property it will get overwritten after each approval.
+						</p>
+						<p>
+							Only certifications that resulted in non-null outcome are taken into account.
+						</p>
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
-                        <a:indexed>true</a:indexed>
-                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+						<a:since>3.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:element> -->
+            </xsd:element>
     	</xsd:sequence>
     </xsd:complexType>
-
 
     <!-- Property-related types -->
 

@@ -85,7 +85,8 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
 	
 	@Override
 	public void setupPreAuthenticatedSecurityContext(MidPointPrincipal principal) {
-		Authentication authentication = new PreAuthenticatedAuthenticationToken(principal, null);
+		// Make sure that constructor with authorities is used. Otherwise the context will not be authenticated.
+		Authentication authentication = new PreAuthenticatedAuthenticationToken(principal, null, principal.getAuthorities());
         setupPreAuthenticatedSecurityContext(authentication);
 	}
 

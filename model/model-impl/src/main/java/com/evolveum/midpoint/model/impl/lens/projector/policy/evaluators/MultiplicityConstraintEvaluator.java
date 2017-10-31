@@ -247,7 +247,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + key1 + key2)
-				.arg(ObjectTypeUtil.createObjectSpecification(target, true))
+				.arg(ObjectTypeUtil.createDisplayInformation(target, true))
 				.args(args)
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint, rctx, builtInMessage, result);
@@ -259,7 +259,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + key1 + key2)
-				.arg(ObjectTypeUtil.createObjectSpecification(target, false))
+				.arg(ObjectTypeUtil.createDisplayInformation(target, false))
 				.args(args)
 				.build();
 		return evaluatorHelper.createLocalizableShortMessage(constraint, rctx, builtInMessage, result);

@@ -27,7 +27,6 @@ import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
-import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
@@ -47,6 +46,8 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.*;
@@ -142,6 +143,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired private Clock clock;
 	@Autowired private HookRegistry hookRegistry;
 	@Autowired UserProfileService userProfileService;
+	@Autowired private ExpressionFactory expressionFactory;
 
 	private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
 	private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
@@ -1394,5 +1396,16 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		securityContextManager.setupPreAuthenticatedSecurityContext(previousPrincipal);
 		
 		return previousPrincipal;
+	}
+
+	@Override
+	@NotNull
+	public LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
+			Map<QName, Object> variables, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+			ConfigurationException, SecurityViolationException {
+		ExpressionVariables vars = new ExpressionVariables();
+		vars.addVariableDefinitions(variables);
+		return LensUtil.createLocalizableMessageType(template, vars, expressionFactory, prismContext, task, result);
 	}
 }

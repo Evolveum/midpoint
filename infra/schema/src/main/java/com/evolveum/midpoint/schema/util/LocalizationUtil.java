@@ -118,4 +118,8 @@ public class LocalizationUtil {
 		}
 		return rv;
 	}
+
+	public static boolean isEmpty(LocalizableMessage message) {
+		return message == null || message.getKey() == null && message.getFallbackLocalizableMessage() == null && message.getFallbackMessage() == null;
+	}
 }

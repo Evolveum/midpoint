@@ -46,6 +46,7 @@ import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -108,6 +109,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 																		// $configuration
 																		// variable
 																		// (MID-2372)
+	private LensProjectionContext projectionContext;
 
 	public Construction(ConstructionType constructionType, ObjectType source) {
 		super(constructionType, source);
@@ -378,6 +380,10 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 			}
 			auxiliaryObjectClassDefinitions.add(auxOcDef);
 		}
+		
+		ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, getConstructionType().getIntent());
+		projectionContext = getLensContext().findProjectionContext(rat);
+		// projection context may not exist yet (existence might not be yet decided)
 	}
 
 	private void evaluateAttributes(Task task, OperationResult result)
@@ -577,7 +583,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 		}
 
 		Mapping<V, D> mapping = builder.build();
-		mappingEvaluator.evaluateMapping(mapping, getLensContext(), task, result);
+		mappingEvaluator.evaluateMapping(mapping, getLensContext(), projectionContext, task, result);
 
 		return mapping;
 	}

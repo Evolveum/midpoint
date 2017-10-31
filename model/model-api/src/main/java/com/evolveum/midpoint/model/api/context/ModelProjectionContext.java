@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,9 @@ public interface ModelProjectionContext extends ModelElementContext<ShadowType> 
 	 * Synchronization delta describes changes that have recently happened. MidPoint reacts to these
 	 * changes by "pulling them in" (e.g. using them in inbound mappings).
 	 */
-	public ObjectDelta<ShadowType> getSyncDelta();
+	ObjectDelta<ShadowType> getSyncDelta();
 
-	public void setSyncDelta(ObjectDelta<ShadowType> syncDelta);
+	void setSyncDelta(ObjectDelta<ShadowType> syncDelta);
 
     ResourceShadowDiscriminator getResourceShadowDiscriminator();
 
@@ -46,7 +46,13 @@ public interface ModelProjectionContext extends ModelElementContext<ShadowType> 
 	 *
 	 * @see SynchronizationPolicyDecision
 	 */
-	public SynchronizationPolicyDecision getSynchronizationPolicyDecision();
+	SynchronizationPolicyDecision getSynchronizationPolicyDecision();
 
 	ObjectDelta<ShadowType> getExecutableDelta() throws SchemaException;
+	
+	boolean isFullShadow();
+	
+	Boolean isLegal();
+	
+	boolean isExists();
 }
