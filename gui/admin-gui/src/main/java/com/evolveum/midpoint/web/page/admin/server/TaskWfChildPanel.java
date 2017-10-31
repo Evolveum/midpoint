@@ -95,7 +95,7 @@ public class TaskWfChildPanel extends Panel {
 		PropertyModel<List<EvaluatedTriggerGroupDto>> triggersModel = new PropertyModel<>(taskDtoModel, TaskDto.F_TRIGGERS);
 		WebMarkupContainer triggers = new EvaluatedTriggerGroupListPanel(ID_TRIGGERS, triggersModel);
 		triggersContainer.add(triggers);
-		triggersContainer.add(new VisibleBehaviour(() -> !triggersModel.getObject().isEmpty()));
+		triggersContainer.add(new VisibleBehaviour(() -> !EvaluatedTriggerGroupDto.isEmpty(triggersModel.getObject())));
 		add(triggersContainer);
 
 		final ItemApprovalHistoryPanel history = new ItemApprovalHistoryPanel(ID_HISTORY,

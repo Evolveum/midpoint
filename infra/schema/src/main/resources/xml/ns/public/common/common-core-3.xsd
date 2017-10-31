@@ -831,7 +831,7 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
-    		<xsd:element name="createApprovalComments" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+    		<xsd:element name="createApprovalComment" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
     			<xsd:annotation>
     				<xsd:documentation>
     					Comments of the approvers during the creation of the data. Note that these comments are in no
@@ -925,7 +925,7 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
-			<xsd:element name="modifyApprovalComments" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="modifyApprovalComment" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
 						<p>

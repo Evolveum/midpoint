@@ -1140,11 +1140,11 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 				List<ExpectedTask> tasks = getExpectedTasks();
 				List<ApprovalInstruction> instructions = new ArrayList<>();
 				instructions.add(new ApprovalInstruction(
-								new ExpectedWorkItem(userLead21Oid, roleRole21Oid, tasks.get(0)), approve1, userLead21Oid));
+								new ExpectedWorkItem(userLead21Oid, roleRole21Oid, tasks.get(0)), approve1, userLead21Oid, null));
 				instructions.add(new ApprovalInstruction(
-								new ExpectedWorkItem(userLead22Oid, roleRole22Oid, tasks.get(1)), approve2, userLead22Oid));
+								new ExpectedWorkItem(userLead22Oid, roleRole22Oid, tasks.get(1)), approve2, userLead22Oid, null));
 				instructions.add(new ApprovalInstruction(
-								new ExpectedWorkItem(userLead23Oid, roleRole23Oid, tasks.get(2)), approve3a, userLead23Oid));
+								new ExpectedWorkItem(userLead23Oid, roleRole23Oid, tasks.get(2)), approve3a, userLead23Oid, null));
 				if (approve3a) {
 					ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userSecurityApproverOid, roleRole23Oid, tasks.get(2));
 					ApprovalInstruction.CheckedRunnable before = () -> {
@@ -1156,7 +1156,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 						checkVisibleWorkItem(null, 0, task, task.getResult());
 					};
 					instructions.add(new ApprovalInstruction(expectedWorkItem, approve3b,
-							securityDeputy ? userSecurityApproverDeputyOid : userSecurityApproverOid, before, null));
+							securityDeputy ? userSecurityApproverDeputyOid : userSecurityApproverOid, null, before, null));
 				}
 				return instructions;
 			}
@@ -1405,7 +1405,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 				List<ApprovalInstruction> instructions = new ArrayList<>();
 				instructions.add(new ApprovalInstruction(
 						new ExpectedWorkItem(userSecurityApproverOid, roleRole23Oid, tasks.get(0)), approve,
-						userSecurityApproverOid));
+						userSecurityApproverOid, null));
 				return instructions;
 			}
 		}, 1, immediate);
