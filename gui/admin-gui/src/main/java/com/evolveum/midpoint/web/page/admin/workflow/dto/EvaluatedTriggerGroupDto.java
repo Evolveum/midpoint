@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil.arrangeForPresentationExt;
@@ -110,5 +111,10 @@ public class EvaluatedTriggerGroupDto implements Serializable {
 		public void merge(EvaluatedPolicyRuleUtil.AdditionalData other) {
 			value = value | ((HighlightingInformation) other).value;
 		}
+	}
+
+	public static boolean isEmpty(Collection<EvaluatedTriggerGroupDto> groups) {
+		return groups.stream()
+				.allMatch(g -> g.getTriggers().isEmpty());
 	}
 }

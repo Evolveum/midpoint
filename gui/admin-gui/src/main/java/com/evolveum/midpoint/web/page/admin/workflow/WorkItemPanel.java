@@ -223,7 +223,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 	    PropertyModel<List<EvaluatedTriggerGroupDto>> triggersModel = new PropertyModel<>(getModel(), WorkItemDto.F_TRIGGERS);
 	    WebMarkupContainer triggers = new EvaluatedTriggerGroupListPanel(ID_TRIGGERS, triggersModel);
 		triggersContainer.add(triggers);
-		triggersContainer.add(new VisibleBehaviour(() -> !triggersModel.getObject().isEmpty()));
+		triggersContainer.add(new VisibleBehaviour(() -> !EvaluatedTriggerGroupDto.isEmpty(triggersModel.getObject())));
 		add(triggersContainer);
 
 		WebMarkupContainer additionalInformation = new InformationListPanel(ID_ADDITIONAL_INFORMATION,

@@ -200,8 +200,7 @@ public class PagePreviewChanges extends PageAdmin {
 	}
 
 	private boolean violationsEmpty() {
-		return policyViolationsModel.getObject().stream()
-				.allMatch(g -> g.getTriggers().isEmpty());
+		return EvaluatedTriggerGroupDto.isEmpty(policyViolationsModel.getObject());
 	}
 
 	private void initButtons(Form mainForm) {
