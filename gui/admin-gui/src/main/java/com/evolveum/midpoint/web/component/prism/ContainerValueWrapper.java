@@ -744,8 +744,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			if (!(wrapper instanceof ContainerWrapper)) {
 				continue;
 			}
-			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue() &&
-					((ContainerWrapper<C>) wrapper).isVisible()){
+			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue()){
 				return true;
 			}
 		}

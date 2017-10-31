@@ -78,6 +78,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
 import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -360,9 +361,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				login(getUser(userLead1Oid));
-				return approve;
+			public List<ApprovalInstruction> getApprovalSequence() {
+				return singletonList(new ApprovalInstruction(null, true, userLead1Oid, "creation comment"));
 			}
 		}, 1);
 	}
@@ -423,9 +423,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				login(getUser(assigneeOid));
-				return approve;
+			public List<ApprovalInstruction> getApprovalSequence() {
+				return singletonList(new ApprovalInstruction(null, approve, assigneeOid, "modification comment"));
 			}
 		}, 1);
 	}
@@ -680,7 +679,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 							}
 							login(getUserFromRepo(approvalInstruction.approverOid));
 							System.out.println("Completing work item " + workItem.getExternalId() + " using " + approvalInstruction);
-							workflowManager.completeWorkItem(workItem.getExternalId(), approvalInstruction.approval, null,
+							workflowManager.completeWorkItem(workItem.getExternalId(), approvalInstruction.approval, approvalInstruction.comment,
 									null, null, result);
 							if (approvalInstruction.afterApproval != null) {
 								approvalInstruction.afterApproval.run();

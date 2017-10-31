@@ -230,7 +230,12 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
         return wfTaskUtil.getApprovedByFromTaskTree(task, result);
     }
 
-    @Override
+	@Override
+	public Collection<String> getApproverComments(Task task, OperationResult result) throws SchemaException {
+		return wfTaskUtil.getApproverCommentsFromTaskTree(task, result);
+	}
+
+	@Override
     public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         return miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.COMPLETE, task, result);
     }

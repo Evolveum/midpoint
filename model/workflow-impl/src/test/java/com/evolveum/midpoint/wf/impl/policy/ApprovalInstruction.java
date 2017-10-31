@@ -26,22 +26,25 @@ public class ApprovalInstruction {
 	public final ExpectedWorkItem expectedWorkItem;
 	public final boolean approval;
 	public final String approverOid;
+	public final String comment;
 	public final CheckedRunnable beforeApproval, afterApproval;
 
-	public ApprovalInstruction(ExpectedWorkItem expectedWorkItem, boolean approval, String approverOid, CheckedRunnable beforeApproval, CheckedRunnable afterApproval) {
+	public ApprovalInstruction(ExpectedWorkItem expectedWorkItem, boolean approval, String approverOid, String comment,
+			CheckedRunnable beforeApproval, CheckedRunnable afterApproval) {
 		this.expectedWorkItem = expectedWorkItem;
 		this.approval = approval;
 		this.approverOid = approverOid;
+		this.comment = comment;
 		this.beforeApproval = beforeApproval;
 		this.afterApproval = afterApproval;
 	}
 
-	public ApprovalInstruction(ExpectedWorkItem expectedWorkItem, boolean approval, String approverOid) {
-		this(expectedWorkItem, approval, approverOid, null, null);
+	public ApprovalInstruction(ExpectedWorkItem expectedWorkItem, boolean approval, String approverOid, String comment) {
+		this(expectedWorkItem, approval, approverOid, comment, null, null);
 	}
 
 	public boolean matches(WorkItemType actualWorkItem) {
-		return expectedWorkItem.matches(actualWorkItem);
+		return expectedWorkItem == null || expectedWorkItem.matches(actualWorkItem);
 	}
 
 	@Override
@@ -50,6 +53,7 @@ public class ApprovalInstruction {
 				"expectedWorkItem=" + expectedWorkItem +
 				", approval=" + approval +
 				", approverOid='" + approverOid + '\'' +
+				", comment='" + comment + '\'' +
 				'}';
 	}
 

@@ -61,10 +61,10 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
         	
         	@Override
         	public boolean isVisible() {
-        		if (isPanelVisible!= null && !isPanelVisible.isVisible(model.getObject())) {
+        		if (isPanelVisible != null && !isPanelVisible.isVisible(model.getObject())) {
         			return false;
         		}
-        		return model.getObject() !=null && model.getObject().isVisible();
+                return model.getObject() != null && model.getObject().isVisible();
         	}
         });
         

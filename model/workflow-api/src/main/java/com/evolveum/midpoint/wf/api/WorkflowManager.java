@@ -98,6 +98,8 @@ public interface WorkflowManager {
 
 	Collection<ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException;
 
+	Collection<String> getApproverComments(Task task, OperationResult result) throws SchemaException;
+
 	boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem);
