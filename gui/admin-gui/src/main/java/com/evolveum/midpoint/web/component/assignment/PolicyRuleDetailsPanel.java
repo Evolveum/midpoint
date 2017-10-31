@@ -20,15 +20,12 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
-import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.Form;
-import org.apache.wicket.model.Model;
 
 /**
  * Created by honchar.
@@ -43,18 +40,40 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
     }
 
 	protected void initContainersPanel(Form form, PageAdminObjectDetails<F> pageBase){
-				RepeatingView containers = new RepeatingView(ID_CONTAINERS);
+		ContainerWrapperFromObjectWrapperModel<PolicyRuleType, F> policyRuleModel =
+				new ContainerWrapperFromObjectWrapperModel<PolicyRuleType, F>(pageBase.getObjectModel(),
+						getModelObject().getPath().append(AssignmentType.F_POLICY_RULE));
 
-		ContainerWrapperFromObjectWrapperModel<PolicyConstraintsType, F> constraintsModel =
-				new ContainerWrapperFromObjectWrapperModel<PolicyConstraintsType, F>(pageBase.getObjectModel(),
-						getModelObject().getPath().append(AssignmentType.F_POLICY_RULE).append(PolicyRuleType.F_POLICY_CONSTRAINTS));
-		PrismContainerPanel<PolicyConstraintsType> constraintsContainer = new PrismContainerPanel(ID_CONTAINERS, constraintsModel,
+		ContainerWrapper<PolicyRuleType> policyRules = policyRuleModel.getObject();
+		policyRules.setShowEmpty(true, false);
+		setRemoveContainerButtonVisibility(policyRules);
+		setAddContainerButtonVisibility(policyRules);
+
+		PrismContainerPanel<PolicyRuleType> constraintsContainerPanel = new PrismContainerPanel(ID_CONTAINERS, policyRuleModel,
 				false, form, null, pageBase);
-		constraintsContainer.setOutputMarkupId(true);
-		containers.add(constraintsContainer);
-		add(constraintsContainer);
+		constraintsContainerPanel.setOutputMarkupId(true);
+		add(constraintsContainerPanel);
 	}
 
+	private void setRemoveContainerButtonVisibility(ContainerWrapper<PolicyRuleType> policyRulesContainer){
+		ContainerWrapper constraintsContainer = policyRulesContainer.findContainerWrapper(new ItemPath(policyRulesContainer.getPath(), PolicyRuleType.F_POLICY_CONSTRAINTS));
+		if (constraintsContainer != null){
+			constraintsContainer.getValues().forEach(value ->
+					((ContainerValueWrapper)value).getItems().forEach(
+							constraintContainerItem -> {
+								if (constraintContainerItem instanceof ContainerWrapper && ((ContainerWrapper) constraintContainerItem).getItemDefinition().isMultiValue()){
+									((ContainerWrapper) constraintContainerItem).setRemoveContainerButtonVisible(true);
+								}
+							}
+					));
+		}
+	}
+
+	private void setAddContainerButtonVisibility(ContainerWrapper<PolicyRuleType> policyRulesContainer){
+		ContainerWrapper constraintsContainer = policyRulesContainer.findContainerWrapper(new ItemPath(policyRulesContainer.getPath(), PolicyRuleType.F_POLICY_CONSTRAINTS));
+		constraintsContainer.setShowEmpty(true, false);
+		constraintsContainer.setAddContainerButtonVisible(true);
+	}
 
 	@Override
 	protected List<ItemPath> collectContainersToShow() {
