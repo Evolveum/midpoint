@@ -30,8 +30,6 @@ import org.springframework.security.ldap.authentication.BindAuthenticator;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 
-import java.util.Arrays;
-
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -42,7 +40,7 @@ public class LdapSecurityConfig {
     @Value("${auth.ldap.host}")
     private String ldapHost;
 
-    @Value("${auth.ldap.manager:#{null}}")
+    @Value("${auth.ldap.manager:}")
     private String ldapUserDn;
     @Value("${auth.ldap.password:#{null}}")
     private String ldapUserPassword;
@@ -67,8 +65,16 @@ public class LdapSecurityConfig {
 
     @Bean
     public MidPointLdapAuthenticationProvider midPointAuthenticationProvider(
-           @Qualifier("userDetailsService") UserDetailsContextMapper userDetailsContextMapper) {
+            @Qualifier("userDetailsService") UserDetailsContextMapper userDetailsContextMapper) {
 
+        MidPointLdapAuthenticationProvider provider = new MidPointLdapAuthenticationProvider(bindAuthenticator());
+        provider.setUserDetailsContextMapper(userDetailsContextMapper);
+
+        return provider;
+    }
+
+    @Bean
+    public BindAuthenticator bindAuthenticator() {
         BindAuthenticator auth = new BindAuthenticator(contextSource());
         if (StringUtils.isNotEmpty(ldapDnPattern)) {
             auth.setUserDnPatterns(new String[]{ldapDnPattern});
@@ -77,10 +83,7 @@ public class LdapSecurityConfig {
             auth.setUserSearch(userSearch());
         }
 
-        MidPointLdapAuthenticationProvider provider = new MidPointLdapAuthenticationProvider(auth);
-        provider.setUserDetailsContextMapper(userDetailsContextMapper);
-
-        return provider;
+        return auth;
     }
 
     @ConditionalOnProperty("auth.ldap.search.pattern")
