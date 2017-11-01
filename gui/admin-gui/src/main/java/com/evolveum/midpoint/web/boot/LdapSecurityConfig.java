@@ -42,7 +42,7 @@ public class LdapSecurityConfig {
     @Value("${auth.ldap.host}")
     private String ldapHost;
 
-    @Value("${auth.ldap.manager:#{null}}")
+    @Value("${auth.ldap.manager:}")
     private String ldapUserDn;
     @Value("${auth.ldap.password:#{null}}")
     private String ldapUserPassword;
