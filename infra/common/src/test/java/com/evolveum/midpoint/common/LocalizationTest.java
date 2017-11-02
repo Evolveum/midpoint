@@ -66,6 +66,18 @@ public class LocalizationTest {
     }
 
     @Test
+    public void localizationParams2() throws Exception {
+        Object[] params = new Object[2];
+        params[0] = "John";
+        params[1] = "Couldn't find user with name 'John'";
+
+        String real = service.translate("UserProfileServiceImpl.unknownUser", params, new Locale("sk"));
+        String expected = "Couldn't find user with name '" + params[0] + "', reason: " + params[1] + ".";
+
+        AssertJUnit.assertEquals(expected, real);
+    }
+
+    @Test
     public void localizationDefaults() throws Exception {
         assertTranslation(service, "unknownKey", "expectedValues", "expectedValues");
     }

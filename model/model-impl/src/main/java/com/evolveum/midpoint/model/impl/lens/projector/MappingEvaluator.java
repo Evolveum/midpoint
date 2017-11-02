@@ -612,13 +612,13 @@ public class MappingEvaluator {
     		iteration = focusOldType.getIteration();
     		iterationToken = focusOldType.getIterationToken();
     	}
-    	return createFocusMapping(mappingFactory, context, mappingType, originObject, focusOdo, focusOdo.getAnyObject(), assignmentPathVariables,
+    	return createFocusMapping(mappingFactory, context, mappingType, originObject, focusOdo, null, focusOdo.getAnyObject(), assignmentPathVariables,
     			iteration, iterationToken, configuration, now, contextDesc, task, result);
     }
 
     public <V extends PrismValue, D extends ItemDefinition, F extends FocusType, T extends FocusType> Mapping<V, D> createFocusMapping(
     		final MappingFactory mappingFactory, final LensContext<F> context, final MappingType mappingType, ObjectType originObject,
-			ObjectDeltaObject<F> focusOdo, PrismObject<T> defaultTargetObject, AssignmentPathVariables assignmentPathVariables,
+			ObjectDeltaObject<F> focusOdo, Source<V, D> defaultSource, PrismObject<T> defaultTargetObject, AssignmentPathVariables assignmentPathVariables,
 			Integer iteration, String iterationToken, PrismObject<SystemConfigurationType> configuration,
 			XMLGregorianCalendar now, String contextDesc, final Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
@@ -687,6 +687,7 @@ public class MappingEvaluator {
 
 		Mapping.Builder<V,D> mappingBuilder = mappingFactory.<V,D>createMappingBuilder(mappingType, contextDesc)
 				.sourceContext(focusOdo)
+				.defaultSource(defaultSource)
 				.targetContext(defaultTargetObject.getDefinition())
 				.variables(variables)
 				.originalTargetValues(targetValues)

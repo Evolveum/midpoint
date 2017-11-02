@@ -69,6 +69,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.MessageSource;
+import org.springframework.context.MessageSourceAware;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,11 +92,11 @@ import java.util.function.Predicate;
  * @author semancik
  */
 @Service(value = "userDetailsService")
-public class UserProfileServiceImpl implements UserProfileService, UserDetailsService, UserDetailsContextMapper {
+public class UserProfileServiceImpl implements UserProfileService, UserDetailsService, UserDetailsContextMapper, MessageSourceAware {
 
     private static final Trace LOGGER = TraceManager.getTrace(UserProfileServiceImpl.class);
 
-	@Autowired
+    @Autowired
 	@Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
@@ -108,7 +111,14 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	@Autowired private PrismContext prismContext;
 	@Autowired private TaskManager taskManager;
 
-    @Override
+	private MessageSourceAccessor messages;
+
+	@Override
+	public void setMessageSource(MessageSource messageSource) {
+		this.messages = new MessageSourceAccessor(messageSource);
+	}
+
+	@Override
     public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException {
     	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
     	PrismObject<UserType> user;
@@ -369,7 +379,9 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 		try {
 			return getPrincipal(username);
 		} catch (ObjectNotFoundException e) {
-			throw new UsernameNotFoundException(e.getMessage(), e);
+			throw new UsernameNotFoundException(
+					messages.getMessage("UserProfileServiceImpl.unknownUser",
+							new Object[]{username, e.getMessage()}), e);
 		} catch (SchemaException e) {
 			throw new SystemException(e.getMessage(), e);
 		}
