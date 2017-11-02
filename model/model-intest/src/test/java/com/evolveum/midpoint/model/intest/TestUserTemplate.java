@@ -1007,7 +1007,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
         ObjectDeltaOperation<?> objectDeltaOperation = dummyAuditService.getExecutionDelta(0, ChangeType.MODIFY, UserType.class);
-        assertEquals("unexpected number of modifications in audited delta", 5, objectDeltaOperation.getObjectDelta().getModifications().size());   // givenName + badLuck + modifyTimestamp
+        assertEquals("unexpected number of modifications in audited delta", 10, objectDeltaOperation.getObjectDelta().getModifications().size());   // givenName + badLuck + modifyTimestamp
         PropertyDelta badLuckDelta = objectDeltaOperation.getObjectDelta().findPropertyDelta(new ItemPath(UserType.F_EXTENSION, PIRACY_BAD_LUCK));
         assertNotNull("badLuck delta was not found", badLuckDelta);
         List<PrismValue> oldValues = (List<PrismValue>) badLuckDelta.getEstimatedOldValues();
@@ -1057,7 +1057,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
         ObjectDeltaOperation<?> objectDeltaOperation = dummyAuditService.getExecutionDelta(0, ChangeType.MODIFY, UserType.class);
-        assertEquals("unexpected number of modifications in audited delta", 5, objectDeltaOperation.getObjectDelta().getModifications().size());   // givenName + modifyTimestamp, modifyChannel, modifierRef
+        assertEquals("unexpected number of modifications in audited delta", 8, objectDeltaOperation.getObjectDelta().getModifications().size());   // givenName + modifyTimestamp, modifyChannel, modifierRef
     }
 
     @Test
