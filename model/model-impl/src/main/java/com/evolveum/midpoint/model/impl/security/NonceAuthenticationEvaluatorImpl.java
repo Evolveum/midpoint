@@ -25,7 +25,7 @@ public class NonceAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImp
 			NonceAuthenticationContext authCtx) {
 		if (StringUtils.isBlank(authCtx.getNonce())) {
 			recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
-			throw new BadCredentialsException("web.security.provider.password.encoding");
+			throw new BadCredentialsException(messages.getMessage("web.security.provider.password.encoding"));
 		}
 	}
 
@@ -44,7 +44,7 @@ public class NonceAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImp
 			NonceType credential) {
 		if (credential.getValue() == null) {
 			recordAuthenticationFailure(principal, connEnv, "no stored password value");
-			throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
+			throw new AuthenticationCredentialsNotFoundException(messages.getMessage("web.security.provider.password.bad"));
 		}
 
 	}

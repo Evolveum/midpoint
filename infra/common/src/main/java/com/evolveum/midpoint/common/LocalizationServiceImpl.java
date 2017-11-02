@@ -48,6 +48,11 @@ public class LocalizationServiceImpl implements LocalizationService {
         sources.add(buildSource(SchemaConstants.BUNDLE_NAME, classLoader));
         sources.add(buildSource("localization/Midpoint", null));
         sources.add(buildSource(SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH, null));
+
+        // spring security messages as a fallback
+        ResourceBundleMessageSource springSecurity = new ResourceBundleMessageSource();
+        springSecurity.setBasename("org.springframework.security.messages");
+        sources.add(springSecurity);
     }
 
     @Override

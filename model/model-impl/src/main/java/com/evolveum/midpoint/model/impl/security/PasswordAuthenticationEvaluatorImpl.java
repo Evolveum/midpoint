@@ -24,7 +24,7 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
 	protected void checkEnteredCredentials(ConnectionEnvironment connEnv, PasswordAuthenticationContext authCtx) {
 		if (StringUtils.isBlank(authCtx.getPassword())) {
 			recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
-			throw new BadCredentialsException("web.security.provider.password.encoding");
+			throw new BadCredentialsException(messages.getMessage("web.security.provider.password.encoding"));
 		}
 	}
 
@@ -45,7 +45,7 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
 
 		if (protectedString == null) {
 			recordAuthenticationFailure(principal, connEnv, "no stored password value");
-			throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
+			throw new AuthenticationCredentialsNotFoundException(messages.getMessage("web.security.provider.password.bad"));
 		}
 
 	}
