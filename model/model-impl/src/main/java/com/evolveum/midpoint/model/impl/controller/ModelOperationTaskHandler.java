@@ -46,7 +46,7 @@ import java.util.List;
  * Handles a "ModelOperation task" - executes a given model operation in a context
  * of the task (i.e., in most cases, asynchronously).
  *
- * The context of the model operation (i.e., model context) is stored in task extension property
+ * The context of the model operation (i.e., model context) is stored in task property
  * called "modelContext". When this handler is executed, the context is retrieved, unwrapped from
  * its XML representation, and the model operation is (re)started.
  *

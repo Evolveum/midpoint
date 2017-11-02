@@ -56,11 +56,9 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
     private static final Trace LOGGER = TraceManager.getTrace(WfPrepareRootOperationTaskHandler.class);
 
     //region Spring dependencies and initialization
-    @Autowired
-    private TaskManager taskManager;
-
-    @Autowired
-    private WfTaskController wfTaskController;
+    @Autowired private TaskManager taskManager;
+    @Autowired private WfTaskController wfTaskController;
+    @Autowired private ApprovalMetadataHelper metadataHelper;
 
     @PostConstruct
     public void init() {
@@ -103,7 +101,11 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
                         LOGGER.trace("Child job {} returned {} deltas", child, deltas != null ? deltas.getDeltaList().size() : 0);
                     }
                     if (deltas != null) {
-                        if (deltas.getFocusChange() != null && deltas.getFocusChange().isAdd()) {
+                        ObjectDelta focusChange = deltas.getFocusChange();
+                        if (focusChange != null) {
+                            metadataHelper.addAssignmentApprovalMetadata(focusChange, child.getTask(), result);
+                        }
+                        if (focusChange != null && focusChange.isAdd()) {
                             deltasToMerge.add(0, deltas);   // "add" must go first
                         } else {
                             deltasToMerge.add(deltas);
@@ -116,9 +118,7 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
                 LensFocusContext focusContext = rootContext.getFocusContext();
                 ObjectDelta focusDelta = deltaToMerge.getFocusChange();
                 if (focusDelta != null) {
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Adding delta to root model context; delta = {}", focusDelta.debugDump(0));
-                    }
+                    LOGGER.trace("Adding delta to root model context; delta = {}", focusDelta.debugDumpLazily());
                     if (focusContext.getPrimaryDelta() != null && !focusContext.getPrimaryDelta().isEmpty()) {
                         focusContext.addPrimaryDelta(focusDelta);
                     } else {

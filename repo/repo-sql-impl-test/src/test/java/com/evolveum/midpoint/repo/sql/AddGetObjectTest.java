@@ -53,9 +53,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author lazyman
@@ -735,6 +733,29 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         assertEquals("expectedVersion is wrong", 2000, watcher.getExpectedVersion());
         boolean hasConflict = repositoryService.hasConflict(watcher, result);
         assertFalse("false conflict reported for " + watcher, hasConflict);
+    }
+
+    @Test
+    public void test300ContainerIds() throws Exception {
+        OperationResult result = new OperationResult("test300ContainerIds");
+
+        // GIVEN
+        UserType user = new UserType(prismContext)
+                .name("t300")
+                .beginAssignment()
+                    .description("a1")
+                .<UserType>end()
+                .beginAssignment()
+                    .description("a2")
+                .end();
+
+        // WHEN
+        repositoryService.addObject(user.asPrismObject(), null, result);
+
+        // THEN
+        System.out.println(user.asPrismObject().debugDump());
+        assertNotNull(user.getAssignment().get(0).asPrismContainerValue().getId());
+        assertNotNull(user.getAssignment().get(1).asPrismContainerValue().getId());
     }
 
     @Test
