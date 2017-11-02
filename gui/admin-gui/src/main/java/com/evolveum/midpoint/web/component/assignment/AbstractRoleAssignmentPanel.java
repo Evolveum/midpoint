@@ -117,7 +117,14 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         };
         assignmentsContainer.addOrReplace(showAllAssignmentsButton);
         showAllAssignmentsButton.setOutputMarkupId(true);
+        showAllAssignmentsButton.add(new VisibleEnableBehaviour(){
 
+            private static final long serialVersionUID = 1L;
+
+            public boolean isVisible(){
+                return showAllAssignmentsVisible();
+            }
+        });
     }
 
     private DropDownChoicePanel<RelationTypes> getRelationPanel() {
@@ -145,7 +152,8 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
            panel.setOutputMarkupId(true);
            getPageBase().showMainPopup(panel, target);
     }
-       protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList, QName relation){
+
+    protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList, QName relation){
            if (assignmentsList == null || assignmentsList.isEmpty()){
                    warn(getParentPage().getString("AssignmentTablePanel.message.noAssignmentSelected"));
                    target.add(getPageBase().getFeedbackPanel());
@@ -183,6 +191,10 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         });
 
         return columns;
+    }
+
+    protected boolean showAllAssignmentsVisible(){
+        return true;
     }
 
     private VisibleEnableBehaviour visibleIfRoleBehavior(IModel<AssignmentEditorDto> assignmentModel){
