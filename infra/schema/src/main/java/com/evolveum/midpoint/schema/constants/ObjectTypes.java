@@ -18,13 +18,15 @@ package com.evolveum.midpoint.schema.constants;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 /**
  * @author lazyman
@@ -124,14 +126,14 @@ public enum ObjectTypes {
         PROVISIONING, TASK_MANAGER, MODEL, WORKFLOW, REPOSITORY, EMULATED
     }
 
-    private QName type;
-    private QName name;
-    private Class<? extends ObjectType> classDefinition;
-    private ObjectManager objectManager;
-    private String restType;
+	@NotNull private final QName type;
+	@NotNull private final QName name;
+    @NotNull private final Class<? extends ObjectType> classDefinition;
+	@NotNull private final ObjectManager objectManager;
+	@NotNull private final String restType;
 
-    ObjectTypes(QName type, QName name, Class<? extends ObjectType> classDefinition,
-			ObjectManager objectManager, String restType) {
+    ObjectTypes(@NotNull QName type, @NotNull QName name, @NotNull Class<? extends ObjectType> classDefinition,
+		    @NotNull ObjectManager objectManager, @NotNull String restType) {
         this.type = type;
         this.name = name;
         this.classDefinition = classDefinition;
@@ -151,35 +153,38 @@ public enum ObjectTypes {
         return type.getLocalPart();
     }
 
-    public QName getQName() {
+	@NotNull
+	public QName getQName() {
         return name;
     }
 
-    public QName getTypeQName() {
+	@NotNull
+	public QName getTypeQName() {
         return type;
     }
 
+    @NotNull
     public Class<? extends ObjectType> getClassDefinition() {
         return classDefinition;
     }
 
-    public String getRestType() {
+	@NotNull
+	public String getRestType() {
         return restType;
     }
 
-    public void setRestType(String restType) {
-        this.restType = restType;
-    }
-
-    public String getObjectTypeUri() {
+	@NotNull
+	public String getObjectTypeUri() {
         return QNameUtil.qNameToUri(getTypeQName());
     }
 
-    public ObjectManager getObjectManager() {
+	@NotNull
+	public ObjectManager getObjectManager() {
         return objectManager;
     }
 
-    public static ObjectTypes getObjectType(String objectType) {
+	@NotNull
+	public static ObjectTypes getObjectType(String objectType) {
         for (ObjectTypes type : values()) {
             if (type.getValue().equals(objectType)) {
                 return type;
@@ -211,7 +216,8 @@ public enum ObjectTypes {
         throw new IllegalArgumentException("Unsupported object type qname " + typeQName);
     }
 
-    public static ObjectTypes getObjectTypeFromUri(String objectTypeUri) {
+	@NotNull
+	public static ObjectTypes getObjectTypeFromUri(String objectTypeUri) {
         for (ObjectTypes type : values()) {
             if (type.getObjectTypeUri().equals(objectTypeUri)) {
                 return type;
@@ -220,7 +226,8 @@ public enum ObjectTypes {
         throw new IllegalArgumentException("Unsupported object type uri " + objectTypeUri);
     }
 
-    public static String getObjectTypeUri(String objectType) {
+	@NotNull
+	public static String getObjectTypeUri(String objectType) {
         return getObjectType(objectType).getObjectTypeUri();
     }
 
@@ -233,6 +240,7 @@ public enum ObjectTypes {
         throw new IllegalArgumentException("Unsupported object type " + typeNameLocal);
     }
 
+    @NotNull
     public static Class<? extends ObjectType> getObjectTypeClass(QName typeName) {
         for (ObjectTypes type : values()) {
             if (QNameUtil.match(type.getTypeQName(), typeName)) {

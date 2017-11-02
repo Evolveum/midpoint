@@ -136,6 +136,8 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 		LOGGER.trace("initSystem");
 		super.initSystem(initTask, initResult);
 
+		repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
+
 		// Just initialize the resource, do NOT import resource definition
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.extendSchemaPirate();
@@ -703,6 +705,51 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.ADD, UserType.class);
         dummyAuditService.assertExecutionSuccess();
+	}
+
+	@Test
+	public void test050ImportUserHermanOverwriteFullProcessing() throws Exception {
+		final String TEST_NAME = "test050ImportUserHermanOverwriteFullProcessing";
+		TestUtil.displayTestTitle(this,TEST_NAME);
+		// GIVEN
+
+		Task task = taskManager.createTaskInstance();
+		OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "." + TEST_NAME);
+		FileInputStream stream = new FileInputStream(getFile(USER_HERMAN_FILE_NAME, true));
+
+		ImportOptionsType importOptions = getDefaultImportOptions();
+		importOptions.setOverwrite(true);
+		importOptions.setKeepOid(true);
+		importOptions.setModelExecutionOptions(new ModelExecuteOptionsType().raw(false));
+
+		dummyAuditService.clear();
+
+		// WHEN
+		modelService.importObjectsFromStream(stream, getLanguage(), importOptions, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("Result after good import", result);
+		TestUtil.assertSuccess("Import has failed (result)", result);
+
+		// Check import with fixed OID
+		PrismObject<UserType> userHerman = getUser(USER_HERMAN_OID);
+		display("Herman", userHerman);
+		assertUser(userHerman, USER_HERMAN_OID, USER_HERMAN_USERNAME, "Herman Toothrot", "Herman", "Toothrot");
+
+		assertUsers(6);
+
+		// Check audit
+		display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(2);
+		dummyAuditService.assertSimpleRecordSanity();
+		dummyAuditService.assertAnyRequestDeltas();
+		dummyAuditService.assertExecutionDeltas(1);
+		dummyAuditService.assertHasDelta(ChangeType.ADD, UserType.class);
+		dummyAuditService.assertExecutionSuccess();
+
+		// checks whether the model execution was done
+		assertEquals("Validity status not computed", TimeIntervalStatusType.IN, userHerman.asObjectable().getActivation().getValidityStatus());
 	}
 
 	@Test

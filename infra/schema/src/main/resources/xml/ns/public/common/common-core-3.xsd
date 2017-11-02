@@ -1000,33 +1000,33 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
-            <xsd:element name="certificationStartedTimestamp" type="xsd:dateTime" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        When last certification related to this item was started.
-                        NOTE we assume only one certification type deals with any specific item (object or assignment).
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:operational>true</a:operational>
-                        <a:indexed>true</a:indexed>
-						<a:since>3.7</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-			<xsd:element name="certificationCampaignRef" type="tns:ObjectReferenceType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Certification campaign applied to this item.
-						(Should be set if and only if certificationStartedTimestamp is set.)
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:operational>true</a:operational>
-						<a:indexed>true</a:indexed>
-						<a:objectReferenceTargetType>tns:AccessCertificationCampaignType</a:objectReferenceTargetType>
-						<a:since>3.7</a:since>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
+            <!--<xsd:element name="certificationStartedTimestamp" type="xsd:dateTime" minOccurs="0">-->
+                <!--<xsd:annotation>-->
+                    <!--<xsd:documentation>-->
+                        <!--When last certification related to this item was started.-->
+                        <!--NOTE we assume only one certification type deals with any specific item (object or assignment).-->
+                    <!--</xsd:documentation>-->
+                    <!--<xsd:appinfo>-->
+                        <!--<a:operational>true</a:operational>-->
+                        <!--<a:indexed>true</a:indexed>-->
+						<!--<a:since>3.7</a:since>-->
+                    <!--</xsd:appinfo>-->
+                <!--</xsd:annotation>-->
+            <!--</xsd:element>-->
+			<!--<xsd:element name="certificationCampaignRef" type="tns:ObjectReferenceType" minOccurs="0">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--Certification campaign applied to this item.-->
+						<!--(Should be set if and only if certificationStartedTimestamp is set.)-->
+					<!--</xsd:documentation>-->
+					<!--<xsd:appinfo>-->
+						<!--<a:operational>true</a:operational>-->
+						<!--<a:indexed>true</a:indexed>-->
+						<!--<a:objectReferenceTargetType>tns:AccessCertificationCampaignType</a:objectReferenceTargetType>-->
+						<!--<a:since>3.7</a:since>-->
+					<!--</xsd:appinfo>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
             <xsd:element name="certificationFinishedTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1068,7 +1068,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="certifierComment" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="certifierComment" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
 						<p>
@@ -7759,9 +7759,37 @@
         <xsd:complexContent>
         	<xsd:extension base="tns:SearchObjectExpressionEvaluatorType">
 		        <xsd:sequence>
+		        	<xsd:element name="assignmentProperties" type="tns:AssignmentPropertiesSpecificationType" minOccurs="0">
+    					<xsd:annotation>
+    						<xsd:documentation>
+    							Properties of the new assignment.
+    						</xsd:documentation>
+    						<xsd:appinfo>
+    							<a:since>3.7</a:since>
+    						</xsd:appinfo>
+    					</xsd:annotation>
+    				</xsd:element>
 		        	<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
+		        		<xsd:annotation>
+		        			<xsd:documentation>
+		        				DEPRECATED. Use assignmentProperties instead.
+		        			</xsd:documentation>
+		        			<xsd:appinfo>
+		        				<a:deprecated>true</a:deprecated>
+		        				<a:deprecatedSince>3.7</a:deprecatedSince>
+		        			</xsd:appinfo>
+		        		</xsd:annotation>
 		        	</xsd:element>
 		        	<xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
+		        		<xsd:annotation>
+		        			<xsd:documentation>
+		        				DEPRECATED. Use assignmentProperties instead.
+		        			</xsd:documentation>
+		        			<xsd:appinfo>
+		        				<a:deprecated>true</a:deprecated>
+		        				<a:deprecatedSince>3.7</a:deprecatedSince>
+		        			</xsd:appinfo>
+		        		</xsd:annotation>
 		        	</xsd:element>
 		        </xsd:sequence>
 	        </xsd:extension>
@@ -9422,7 +9450,17 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
-					
+					<xsd:element name="autoassign" type="tns:AutoassignSpecificationType" minOccurs="0">
+		               <xsd:annotation>
+		                   <xsd:documentation>
+		                   		<p>
+			                       Specification of role autoassignmnt properties. Those properties
+			                       are evaluated to detect whether a role should be automatically
+			                       assigned to focus.
+		                       </p>
+		                   </xsd:documentation>
+		               </xsd:annotation>
+		           </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -9680,6 +9718,139 @@
      		</xsd:element>
      	</xsd:sequence>
      </xsd:complexType>
+     
+     <xsd:complexType name="AutoassignSpecificationType">
+     	<xsd:annotation>
+     		<xsd:documentation>
+     			<p>
+     				Specification of role autoassignmnt properties. Those properties
+                    are evaluated to detect whether a role should be automatically
+                    assigned to focus.
+     			</p>
+     		</xsd:documentation>
+     		<xsd:appinfo>
+     			<a:container/>
+     			<a:since>3.7</a:since>
+     		</xsd:appinfo>
+     	</xsd:annotation>
+     	<xsd:sequence>
+     		<xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="false">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					<p>
+	     					Flag indicating whether autoassign functionality is enabled for this
+	     					(abstract) role.
+     					</p>
+     					<p>
+     						Use with care. MidPoint will will have to process all the roles that
+     						have this flag set to true. All the roles will be looked up, autoassign
+     						specification will be processed to see if the focus is matching.
+     						This will happen all the time for all modification operations.
+     						Therefore it is disabled by default. Also, autoassign functionality
+     						needs to be globally enabled in system configuration.
+     					</p>
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>AutoassignSpecificationType.enabled</a:displayName>
+		               	<a:displayOrder>100</a:displayOrder>
+		               	<a:indexed>true</a:indexed>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="focus" type="tns:FocalAutoassignSpecificationType" minOccurs="0" maxOccurs="1">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					This is "focal" specification. It is applied on the focus (similarly to object template).
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>AutoassignSpecificationType.focus</a:displayName>
+		               	<a:displayOrder>110</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<!-- TODO: later: inbound -->
+     	</xsd:sequence>
+    </xsd:complexType>
+
+     <xsd:complexType name="FocalAutoassignSpecificationType">
+     	<xsd:annotation>
+     		<xsd:documentation>
+     			<p>
+     				Specification of role autoassignmnt properties. Those properties
+                    are evaluated to detect whether a role should be automatically
+                    assigned to focus.
+                    This is "focal" specification. It is applied on the focus (similarly
+                    to object template).
+     			</p>
+     		</xsd:documentation>
+     		<xsd:appinfo>
+     			<a:container/>
+     			<a:since>3.7</a:since>
+     		</xsd:appinfo>
+     	</xsd:annotation>
+     	<xsd:sequence>
+     		<xsd:element name="mapping" type="tns:AutoassignMappingType" minOccurs="0" maxOccurs="unbounded">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					<p>
+     						Mapping that decides whether the roles has to be assigned.
+     						The mapping is supposed to produce an assignment for this role.
+     						However, the assignment is fed as a default source to the
+     						mapping. Therefore all that the mapping usually needs is to
+     						specify the condition. However, mapping expression can still be
+     						used to manipulate content of the assignment.
+     					</p>
+     					<p>
+     						This is mostly equivalent to the object tempate mapping, but default
+     						target is set to the assignment of this role.
+     					</p>
+     				</xsd:documentation>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<!-- TODO: later: mapping is too flexible. It is will be difficult for the
+     		     role managers to be set from GUI. But we can support most of the policy rule
+     		     constraints here (PolicyConstraintsType). -->
+     	</xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="AutoassignMappingType">
+    	<xsd:annotation>
+    		<xsd:appinfo>
+    			<a:since>3.7</a:since>
+    		</xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:complexContent>
+    		<xsd:extension base="tns:MappingType">
+    			<xsd:sequence>
+    				<xsd:element name="assignmentProperties" type="tns:AssignmentPropertiesSpecificationType" minOccurs="0">
+    					<xsd:annotation>
+    						<xsd:documentation>
+    							Properties of the new assignment.
+    						</xsd:documentation>
+    					</xsd:annotation>
+    				</xsd:element>
+    			</xsd:sequence>
+    		</xsd:extension>
+    	</xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="AssignmentPropertiesSpecificationType">
+    	<xsd:annotation>
+    		<xsd:appinfo>
+    			<a:since>3.7</a:since>
+    		</xsd:appinfo>
+    	</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="relation" type="xsd:QName" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Relation that will be set for new assignment.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- TODO: later: activation, lifecycle -->
+		</xsd:sequence>
+    </xsd:complexType>
 
     <xsd:complexType name="AuthorizationType">
         <xsd:annotation>
@@ -13254,6 +13425,9 @@
             <xsd:documentation>
                 A configuration for role management: role catalog, role assignments, etc.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="description" type="xsd:string" minOccurs="0"/>
@@ -13314,6 +13488,16 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="autoassignEnabled" type="xsd:boolean" minOccurs="0" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						Global switch that enables autoassign functionality for roles.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>

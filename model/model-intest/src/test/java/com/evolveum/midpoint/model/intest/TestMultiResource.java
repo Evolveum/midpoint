@@ -1652,7 +1652,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(2, ChangeType.MODIFY, ShadowType.class);
         ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
         display("Last execution delta", executionDelta);
-        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 4);
+        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 7);
 	}
 
     private void assertDavidGoliath(String userOid, String ou, String name, boolean userEnabled, boolean davidEnabled, boolean goliathEnabled) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
@@ -1735,7 +1735,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(2, ChangeType.MODIFY, ShadowType.class);
         ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
         display("Last execution delta", executionDelta);
-        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 4);
+        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 7);
 	}
 
     @Test
@@ -1966,7 +1966,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(2, ChangeType.MODIFY, ShadowType.class);
         ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
         display("Last execution delta", executionDelta);
-        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 4);
+        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 7);
 	}
 
     @Test

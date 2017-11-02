@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.impl.lens.projector;
+package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
@@ -38,6 +38,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
+import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
@@ -142,7 +143,7 @@ public class FocusProcessor {
 	@Autowired
 	private PolicyRuleProcessor policyRuleProcessor;
 
-	<O extends ObjectType, F extends FocusType> void processFocus(LensContext<O> context, String activityDescription,
+	public <O extends ObjectType, F extends FocusType> void processFocus(LensContext<O> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result) 
 					throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException,
 					ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {

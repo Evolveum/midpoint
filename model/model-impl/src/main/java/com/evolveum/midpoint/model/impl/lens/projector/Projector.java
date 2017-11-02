@@ -35,6 +35,8 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;

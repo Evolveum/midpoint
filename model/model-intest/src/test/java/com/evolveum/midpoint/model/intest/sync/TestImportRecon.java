@@ -1909,7 +1909,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 4);
+        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 7);
         dummyAuditService.assertTarget(userBefore.getOid());
         dummyAuditService.assertExecutionSuccess();
 
@@ -1958,7 +1958,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 4);
+        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 7);
         dummyAuditService.assertTarget(userBefore.getOid());
         dummyAuditService.assertExecutionSuccess();
 
@@ -2007,7 +2007,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 4);
+        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 7);
         dummyAuditService.assertTarget(userBefore.getOid());
         dummyAuditService.assertExecutionSuccess();
 
@@ -2053,7 +2053,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 4);
+        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 7);
         dummyAuditService.assertTarget(userBefore.getOid());
         dummyAuditService.assertExecutionSuccess();
 
@@ -2101,7 +2101,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 4);
+        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 7);
         dummyAuditService.assertTarget(userBefore.getOid());
         dummyAuditService.assertExecutionSuccess();
 
@@ -2192,7 +2192,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 7);
+        PrismAsserts.assertModifications(dummyAuditService.getExecutionDelta(0).getObjectDelta(), 11);
         dummyAuditService.assertTarget(userBefore.getOid());
         dummyAuditService.assertExecutionSuccess();
 

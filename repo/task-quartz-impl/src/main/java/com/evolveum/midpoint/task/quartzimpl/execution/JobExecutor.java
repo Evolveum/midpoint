@@ -675,15 +675,15 @@ mainCycle:
 	}
 
 	private void logThreadRunStart(TaskHandler handler) {
-		LOGGER.trace("Task thread run STARTING  " + task + ", handler = " + handler);
+		LOGGER.debug("Task thread run STARTING  " + task + ", handler = " + handler);
 	}
 
 	private void logThreadRunFinish(TaskHandler handler) {
-		LOGGER.trace("Task thread run FINISHED " + task + ", handler = " + handler);
+		LOGGER.debug("Task thread run FINISHED " + task + ", handler = " + handler);
 	}
 
 	private void recordCycleRunStart(OperationResult result, TaskHandler handler) {
-		LOGGER.trace("Task cycle run STARTING " + task + ", handler = " + handler);
+		LOGGER.debug("Task cycle run STARTING " + task + ", handler = " + handler);
         taskManagerImpl.notifyTaskStart(task);
         try {
             task.setLastRunStartTimestamp(System.currentTimeMillis());
@@ -704,7 +704,7 @@ mainCycle:
 	 * Returns a flag whether to continue (false if the task has disappeared)
 	 */
 	private boolean recordCycleRunFinish(TaskRunResult runResult, TaskHandler handler, OperationResult result) {
-		LOGGER.trace("Task cycle run FINISHED " + task + ", handler = " + handler);
+		LOGGER.debug("Task cycle run FINISHED " + task + ", handler = " + handler);
         taskManagerImpl.notifyTaskFinish(task, runResult);
 		try {
             task.setProgress(runResult.getProgress());

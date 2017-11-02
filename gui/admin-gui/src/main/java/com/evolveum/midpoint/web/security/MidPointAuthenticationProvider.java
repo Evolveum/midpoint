@@ -17,6 +17,9 @@
 package com.evolveum.midpoint.web.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.MessageSourceAware;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,9 +39,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author lazyman
  * @author Radovan Semancik
  */
-public class MidPointAuthenticationProvider implements AuthenticationProvider {
+public class MidPointAuthenticationProvider implements AuthenticationProvider, MessageSourceAware {
 
 	private static final Trace LOGGER = TraceManager.getTrace(MidPointAuthenticationProvider.class);
+
+	private MessageSourceAccessor messages;
+
+	@Override
+	public void setMessageSource(MessageSource messageSource) {
+		this.messages = new MessageSourceAccessor(messageSource);
+	}
 
 	@Autowired
 	private transient AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
@@ -59,7 +69,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 			token = passwordAuthenticationEvaluator.authenticateUserPreAuthenticated(connEnv, enteredUsername);
 		} else {
 			LOGGER.error("Unsupported authentication {}", authentication);
-			throw new AuthenticationServiceException("web.security.provider.unavailable");
+			throw new AuthenticationServiceException(messages.getMessage("web.security.provider.unavailable"));
 		}
 
 		MidPointPrincipal principal = (MidPointPrincipal)token.getPrincipal();

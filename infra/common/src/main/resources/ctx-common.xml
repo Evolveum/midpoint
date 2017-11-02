@@ -41,4 +41,7 @@
 
     <bean id="localizationService" class="com.evolveum.midpoint.common.LocalizationServiceImpl" init-method="init"/>
 
+    <bean id="messageSource" name="messageSource" class="com.evolveum.midpoint.common.LocalizationMessageSource">
+        <constructor-arg ref="localizationService"/>
+    </bean>
 </beans>
