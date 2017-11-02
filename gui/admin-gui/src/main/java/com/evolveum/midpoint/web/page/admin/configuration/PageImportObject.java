@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -57,6 +58,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.List;
+
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
  * @author lazyman
@@ -93,6 +96,7 @@ public class PageImportObject extends PageAdminConfiguration {
 	private static final Integer INPUT_XML = 2;
 
 	private LoadableModel<ImportOptionsType> optionsModel;
+	private IModel<Boolean> fullProcessingModel;
 	private IModel<String> xmlEditorModel;
 
 	private String dataLanguage;
@@ -105,7 +109,8 @@ public class PageImportObject extends PageAdminConfiguration {
 				return MiscSchemaUtil.getDefaultImportOptions();
 			}
 		};
-		xmlEditorModel = new Model<String>(null);
+		fullProcessingModel = Model.of(Boolean.FALSE);
+		xmlEditorModel = new Model<>(null);
 
 		initLayout();
 	}
@@ -114,7 +119,7 @@ public class PageImportObject extends PageAdminConfiguration {
 		Form mainForm = new Form(ID_MAIN_FORM);
 		add(mainForm);
 
-		ImportOptionsPanel importOptions = new ImportOptionsPanel(ID_IMPORT_OPTIONS, optionsModel);
+		ImportOptionsPanel importOptions = new ImportOptionsPanel(ID_IMPORT_OPTIONS, optionsModel, fullProcessingModel);
 		mainForm.add(importOptions);
 
 		final WebMarkupContainer input = new WebMarkupContainer(ID_INPUT);
@@ -336,7 +341,13 @@ public class PageImportObject extends PageAdminConfiguration {
 			Task task = createSimpleTask(operationName);
 			InputDescription inputDescription = getInputDescription(raw);
 			stream = inputDescription.inputStream;
-			getModelService().importObjectsFromStream(stream, inputDescription.dataLanguage, optionsModel.getObject(), task, result);
+			ImportOptionsType options = optionsModel.getObject();
+			if (isTrue(fullProcessingModel.getObject())) {
+				options.setModelExecutionOptions(new ModelExecuteOptionsType().raw(false));
+			} else {
+				options.setModelExecutionOptions(null);
+			}
+			getModelService().importObjectsFromStream(stream, inputDescription.dataLanguage, options, task, result);
 
 			result.recomputeStatus();
 		} catch (Exception ex) {
