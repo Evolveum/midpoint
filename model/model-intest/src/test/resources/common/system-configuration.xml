@@ -362,6 +362,10 @@
     	<defaultTimezone>Jamaica</defaultTimezone>
     </adminGuiConfiguration>
     
+    <roleManagement>
+    	<autoassignEnabled>false</autoassignEnabled>
+    </roleManagement>
+    
     <mergeConfiguration>
     	<name>default</name>
     	<item>

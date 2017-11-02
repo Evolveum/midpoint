@@ -528,6 +528,10 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		opts.setReadOnly(true);
 		return opts;
 	}
+	
+	public static Collection<SelectorOptions<GetOperationOptions>> createReadOnlyCollection() {
+		return SelectorOptions.createCollection(createReadOnly());
+	}
 
 	public Boolean getReadOnly() {
 		return readOnly;

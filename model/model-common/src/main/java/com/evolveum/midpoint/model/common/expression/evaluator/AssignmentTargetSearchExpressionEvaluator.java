@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPropertiesSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -61,7 +62,7 @@ public class AssignmentTargetSearchExpressionEvaluator
 		ObjectReferenceType targetRef = new ObjectReferenceType();
 		targetRef.setOid(oid);
 		targetRef.setType(targetTypeQName);
-		targetRef.setRelation(((SearchObjectRefExpressionEvaluatorType)getExpressionEvaluatorType()).getRelation());
+		targetRef.setRelation(getRelation());
 		assignmentType.setTargetRef(targetRef);
 
 		try {
@@ -78,6 +79,16 @@ public class AssignmentTargetSearchExpressionEvaluator
 		}
 
 		return assignmentCVal;
+	}
+
+	private QName getRelation() {
+		SearchObjectRefExpressionEvaluatorType expressionEvaluatorType = (SearchObjectRefExpressionEvaluatorType) getExpressionEvaluatorType();
+		AssignmentPropertiesSpecificationType assignmentProperties = expressionEvaluatorType.getAssignmentProperties();
+		if (assignmentProperties != null) {
+			return assignmentProperties.getRelation();
+		} else {
+			return expressionEvaluatorType.getRelation();
+		}
 	}
 
 	/* (non-Javadoc)
