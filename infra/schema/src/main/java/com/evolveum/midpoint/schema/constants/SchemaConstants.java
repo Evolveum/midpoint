@@ -334,16 +334,16 @@ public abstract class SchemaConstants {
 
 	public static final String NS_MODEL_CERTIFICATION = NS_MODEL + "/certification";
 	public static final String NS_MODEL_CERTIFICATION_OUTCOME = NS_MODEL_CERTIFICATION + "/outcome";
-	public static final String MODEL_CERTIFICATION_OUTCOME_ACCEPT =
-			QNameUtil.qNameToUri(new QName(NS_MODEL_CERTIFICATION_OUTCOME, "accept"));
-	public static final String MODEL_CERTIFICATION_OUTCOME_REVOKE =
-			QNameUtil.qNameToUri(new QName(NS_MODEL_CERTIFICATION_OUTCOME, "revoke"));
-	public static final String MODEL_CERTIFICATION_OUTCOME_REDUCE =
-			QNameUtil.qNameToUri(new QName(NS_MODEL_CERTIFICATION_OUTCOME, "reduce"));
-	public static final String MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED =
-			QNameUtil.qNameToUri(new QName(NS_MODEL_CERTIFICATION_OUTCOME, "notDecided"));
-	public static final String MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE =
-			QNameUtil.qNameToUri(new QName(NS_MODEL_CERTIFICATION_OUTCOME, "noResponse"));		// only for aggregated decisions
+	public static final QName MODEL_CERTIFICATION_OUTCOME_ACCEPT_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "accept");
+	public static final String MODEL_CERTIFICATION_OUTCOME_ACCEPT = QNameUtil.qNameToUri(MODEL_CERTIFICATION_OUTCOME_ACCEPT_QNAME);
+	public static final QName MODEL_CERTIFICATION_OUTCOME_REVOKE_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "revoke");
+	public static final String MODEL_CERTIFICATION_OUTCOME_REVOKE = QNameUtil.qNameToUri(MODEL_CERTIFICATION_OUTCOME_REVOKE_QNAME);
+	public static final QName MODEL_CERTIFICATION_OUTCOME_REDUCE_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "reduce");
+	public static final String MODEL_CERTIFICATION_OUTCOME_REDUCE = QNameUtil.qNameToUri(MODEL_CERTIFICATION_OUTCOME_REDUCE_QNAME);
+	public static final QName MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "notDecided");
+	public static final String MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED = QNameUtil.qNameToUri(MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED_QNAME);
+	public static final QName MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "noResponse");
+	public static final String MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE = QNameUtil.qNameToUri(MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE_QNAME);		// only for aggregated decisions
 
 	public static final QName MODEL_EXTENSION_OBJECT_TYPE = new QName(NS_MODEL_EXTENSION, "objectType");
 	public static final QName MODEL_EXTENSION_OBJECT_QUERY = new QName(NS_MODEL_EXTENSION, "objectQuery");

@@ -39,13 +39,13 @@ import java.util.Date;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_ACTIVATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_ADMINISTRATIVE_STATUS;
+import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -898,5 +898,25 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         assertPercentComplete(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
     }
 
+    @Test
+    public void test210CheckAfterClose() throws Exception {
+        final String TEST_NAME = "test210CheckAfterClose";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(userAdministrator.asPrismObject());
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
+        OperationResult result = task.getResult();
+
+        // WHEN
+        waitForCampaignTasks(campaignOid, 20000, result);
+
+        // THEN
+        userAdministrator = getUser(USER_ADMINISTRATOR_OID).asObjectable();
+        display("administrator", userAdministrator);
+        AssignmentType assignment = findAssignmentByTargetRequired(userAdministrator.asPrismObject(), ROLE_SUPERUSER_OID);
+        assertCertificationMetadata(assignment.getMetadata(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_ADMINISTRATOR_OID), singleton("no comment"));
+    }
 
 }

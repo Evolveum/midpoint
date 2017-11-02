@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 
+import javax.xml.namespace.QName;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -67,5 +68,15 @@ public class OutcomeUtils {
 		return uris.stream()
 				.map(uri -> fromUri(uri))
 				.collect(Collectors.toList());
+	}
+
+	public static boolean isNoneOrNotDecided(String outcome) {
+		if (outcome == null) {
+			return true;
+		}
+		QName outcomeQName = QNameUtil.uriToQName(outcome);
+
+		return QNameUtil.match(outcomeQName, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE_QNAME)
+				|| QNameUtil.match(outcomeQName, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED_QNAME);
 	}
 }

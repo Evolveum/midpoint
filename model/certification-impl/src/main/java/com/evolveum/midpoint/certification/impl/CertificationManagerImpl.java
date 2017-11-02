@@ -112,6 +112,7 @@ public class CertificationManagerImpl implements CertificationManager {
     @Autowired protected AccCertUpdateHelper updateHelper;
     @Autowired protected AccCertCaseOperationsHelper caseHelper;
     @Autowired private AccessCertificationRemediationTaskHandler remediationTaskHandler;
+    @Autowired private AccessCertificationClosingTaskHandler closingTaskHandler;
 
     private Map<String,CertificationHandler> registeredHandlers = new HashMap<>();
 
@@ -343,7 +344,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 updateHelper.modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
 
                 if (CertCampaignTypeUtil.isRemediationAutomatic(campaign)) {
-                    remediationTaskHandler.launch(campaign, task, result);
+                    remediationTaskHandler.launch(campaign, result);
                 } else {
                     result.recordWarning("The automated remediation is not configured. The campaign state was set to IN REMEDIATION, but all remediation actions have to be done by hand.");
                 }
@@ -461,6 +462,7 @@ public class CertificationManagerImpl implements CertificationManager {
             securityEnforcer.authorize(ModelAuthorizationAction.CLOSE_CERTIFICATION_CAMPAIGN.getUrl(), null,
             		AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), null, task, result);
             updateHelper.closeCampaign(campaign, task, result);
+            closingTaskHandler.launch(campaign, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't close certification campaign: unexpected exception: " + e.getMessage(), e);
             throw e;

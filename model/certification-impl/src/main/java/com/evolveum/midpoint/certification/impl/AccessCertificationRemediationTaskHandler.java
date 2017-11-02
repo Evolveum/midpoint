@@ -46,16 +46,16 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 
 /**
- * The task hander for automatic remediation.
+ * The task handler for automatic remediation.
  *
  * @author mederly
  */
 @Component
 public class AccessCertificationRemediationTaskHandler implements TaskHandler {
 
-	public static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TASK_PREFIX + "/remediation/handler-3";
+	private static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TASK_PREFIX + "/remediation/handler-3";
 
-    public static final String CLASS_DOT = AccessCertificationRemediationTaskHandler.class.getName() + ".";
+    private static final String CLASS_DOT = AccessCertificationRemediationTaskHandler.class.getName() + ".";
 
     @Autowired private TaskManager taskManager;
     @Autowired private CertificationManagerImpl certificationManager;
@@ -170,7 +170,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
         return null;
     }
 
-    public void launch(AccessCertificationCampaignType campaign, Task callingTask, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+    public void launch(AccessCertificationCampaignType campaign, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
         LOGGER.info("Launching remediation task handler for campaign {} as asynchronous task", ObjectTypeUtil.toShortString(campaign));
 

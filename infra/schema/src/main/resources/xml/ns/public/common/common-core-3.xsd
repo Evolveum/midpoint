@@ -1000,33 +1000,33 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
-            <xsd:element name="certificationStartedTimestamp" type="xsd:dateTime" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        When last certification related to this item was started.
-                        NOTE we assume only one certification type deals with any specific item (object or assignment).
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:operational>true</a:operational>
-                        <a:indexed>true</a:indexed>
-						<a:since>3.7</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-			<xsd:element name="certificationCampaignRef" type="tns:ObjectReferenceType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Certification campaign applied to this item.
-						(Should be set if and only if certificationStartedTimestamp is set.)
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:operational>true</a:operational>
-						<a:indexed>true</a:indexed>
-						<a:objectReferenceTargetType>tns:AccessCertificationCampaignType</a:objectReferenceTargetType>
-						<a:since>3.7</a:since>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
+            <!--<xsd:element name="certificationStartedTimestamp" type="xsd:dateTime" minOccurs="0">-->
+                <!--<xsd:annotation>-->
+                    <!--<xsd:documentation>-->
+                        <!--When last certification related to this item was started.-->
+                        <!--NOTE we assume only one certification type deals with any specific item (object or assignment).-->
+                    <!--</xsd:documentation>-->
+                    <!--<xsd:appinfo>-->
+                        <!--<a:operational>true</a:operational>-->
+                        <!--<a:indexed>true</a:indexed>-->
+						<!--<a:since>3.7</a:since>-->
+                    <!--</xsd:appinfo>-->
+                <!--</xsd:annotation>-->
+            <!--</xsd:element>-->
+			<!--<xsd:element name="certificationCampaignRef" type="tns:ObjectReferenceType" minOccurs="0">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--Certification campaign applied to this item.-->
+						<!--(Should be set if and only if certificationStartedTimestamp is set.)-->
+					<!--</xsd:documentation>-->
+					<!--<xsd:appinfo>-->
+						<!--<a:operational>true</a:operational>-->
+						<!--<a:indexed>true</a:indexed>-->
+						<!--<a:objectReferenceTargetType>tns:AccessCertificationCampaignType</a:objectReferenceTargetType>-->
+						<!--<a:since>3.7</a:since>-->
+					<!--</xsd:appinfo>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
             <xsd:element name="certificationFinishedTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1068,7 +1068,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="certifierComment" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="certifierComment" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
 						<p>
