@@ -16654,6 +16654,13 @@
         	<xsd:extension base="tns:AbstractObjectTypeConfigurationType">
 	       		<xsd:sequence>
 	           		<xsd:element name="summaryPanel" type="tns:SummaryPanelSpecificationType" minOccurs="0" maxOccurs="1"/>
+	           		<xsd:element name="saveMethod" type="tns:DetailsPageSaveMethodType" minOccurs="0" maxOccurs="1" default="direct">
+	           			<xsd:annotation>
+	           				<xsd:documentation>
+	           					Specifies the method how page save/preview buttons are shown and processed.
+	           				</xsd:documentation>
+	           			</xsd:annotation>
+	           		</xsd:element>
 	           	</xsd:sequence>	
         	</xsd:extension>
         </xsd:complexContent>
@@ -16678,6 +16685,44 @@
            		<xsd:element name="organization" type="tns:GuiFlexibleLabelType" minOccurs="0" maxOccurs="1"/>
            	</xsd:sequence>	
     </xsd:complexType>
+    
+    <xsd:simpleType name="DetailsPageSaveMethodType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies the method how page save/preview buttons are shown and processed.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="direct">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Direct save. Both save and preview buttons are displayed. User can save directly using
+                        save or go to preview and save there. If there are any errors on save (e.g. violated policy rules)
+                        then the errors are displayed after save.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DIRECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="forcedPreview">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        There is no save button on the details page. Only preview button is there. User must go
+                        to the preview page to save the results. The save button on the preview page will be dissabled
+                        if there are any errors during preview (e.g. policy rule violations).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FORCED_PREVIEW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO: maybe later: disable save altogether, leave only preview. -->
+        </xsd:restriction>
+    </xsd:simpleType>
     
     <xsd:complexType name="GuiFlexibleLabelType">
         <xsd:annotation>
