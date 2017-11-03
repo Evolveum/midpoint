@@ -13,7 +13,7 @@ ALTER TABLE m_function_library
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
-ALTER TABLE m_abstract_role ADD COLUMN autoassign_enabled NUMBER(1, 0);
+ALTER TABLE m_abstract_role ADD autoassign_enabled NUMBER(1, 0);
 
 CREATE INDEX iAutoassignEnabled
   ON m_abstract_role (autoassign_enabled) INITRANS 30;
