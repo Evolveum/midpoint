@@ -298,12 +298,10 @@ public class TaskQuartzImpl implements Task {
 		this.recreateQuartzTrigger = recreateQuartzTrigger;
 	}
 
-	private Collection<ItemDelta<?, ?>> pendingModifications = null;
+	@NotNull
+	private final Collection<ItemDelta<?, ?>> pendingModifications = new ArrayList<>();
 
 	public void addPendingModification(ItemDelta<?, ?> delta) {
-		if (pendingModifications == null) {
-			pendingModifications = new ArrayList<>();
-		}
 		ItemDelta.merge(pendingModifications, delta);
 	}
 
@@ -333,18 +331,19 @@ public class TaskQuartzImpl implements Task {
 	public void savePendingModifications(OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		if (isTransient()) {
+			synchronized (pendingModifications) {
+				pendingModifications.clear();
+			}
 			return;
 		}
-		if (pendingModifications != null) {
-			synchronized (pendingModifications) {        // todo perhaps we should put something like this at more places here...
-				if (!pendingModifications.isEmpty()) {
+		synchronized (pendingModifications) {        // todo perhaps we should put something like this at more places here...
+			if (!pendingModifications.isEmpty()) {
 
-					try {
-						repositoryService.modifyObject(TaskType.class, getOid(), pendingModifications, parentResult);
-					} finally {     // todo reconsider this (it's not ideal but we need at least to reset pendingModifications to stop repeating applying this change)
-						synchronizeWithQuartzIfNeeded(pendingModifications, parentResult);
-						pendingModifications.clear();
-					}
+				try {
+					repositoryService.modifyObject(TaskType.class, getOid(), pendingModifications, parentResult);
+				} finally {     // todo reconsider this (it's not ideal but we need at least to reset pendingModifications to stop repeating applying this change)
+					synchronizeWithQuartzIfNeeded(pendingModifications, parentResult);
+					pendingModifications.clear();
 				}
 			}
 		}
@@ -354,6 +353,7 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
+	@NotNull
 	public Collection<ItemDelta<?, ?>> getPendingModifications() {
 		return pendingModifications;
 	}
@@ -363,7 +363,7 @@ public class TaskQuartzImpl implements Task {
 		setRecreateQuartzTrigger(false);
 	}
 
-	private static Set<QName> quartzRelatedProperties = new HashSet<QName>();
+	private static Set<QName> quartzRelatedProperties = new HashSet<>();
 
 	static {
 		quartzRelatedProperties.add(TaskType.F_BINDING);
@@ -601,9 +601,8 @@ public class TaskQuartzImpl implements Task {
 	private PropertyDelta<?> setResultStatusTypeAndPrepareDelta(OperationResultStatusType value) {
 		setResultStatusTypeTransient(value);
 		if (isPersistent()) {
-			PropertyDelta<?> d = PropertyDelta.createReplaceDeltaOrEmptyDelta(taskManager.getTaskObjectDefinition(),
+			return PropertyDelta.createReplaceDeltaOrEmptyDelta(taskManager.getTaskObjectDefinition(),
 					TaskType.F_RESULT_STATUS, value);
-			return d;
 		} else {
 			return null;
 		}
@@ -731,7 +730,7 @@ public class TaskQuartzImpl implements Task {
 	public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, ItemDelta<?, ?> delta) {
 		Collection<ItemDelta<?, ?>> deltas = null;
 		if (delta != null) {
-			deltas = new ArrayList<ItemDelta<?, ?>>();
+			deltas = new ArrayList<>();
 			deltas.add(delta);
 		}
 		pushHandlerUri(uri, schedule, binding, deltas);
@@ -786,18 +785,15 @@ public class TaskQuartzImpl implements Task {
 	public ItemDelta<?, ?> createExtensionDelta(PrismPropertyDefinition definition, Object realValue) {
 		PrismProperty<?> property = (PrismProperty<?>) definition.instantiate();
 		property.setRealValue(realValue);
-		PropertyDelta propertyDelta = PropertyDelta
-				.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), definition,
-						realValue);
 		//        PropertyDelta propertyDelta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), definition);
 		//        propertyDelta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
-		return propertyDelta;
+		return PropertyDelta.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), definition, realValue);
 	}
 
 	private void storeExtensionDeltas(List<ItemDeltaType> result, Collection<ItemDelta<?, ?>> extensionDeltas) {
 
 		for (ItemDelta itemDelta : extensionDeltas) {
-			Collection<ItemDeltaType> deltaTypes = null;
+			Collection<ItemDeltaType> deltaTypes;
 			try {
 				deltaTypes = DeltaConvertor.toItemDeltaTypes(itemDelta);
 			} catch (SchemaException e) {
@@ -916,7 +912,7 @@ public class TaskQuartzImpl implements Task {
 			if (!dependency.isClosed()) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Dependency {} of {} is not closed (status = {})",
-							new Object[] { dependency, this, dependency.getExecutionStatus() });
+							dependency, this, dependency.getExecutionStatus());
 				}
 				return;
 			}
@@ -1747,7 +1743,7 @@ public class TaskQuartzImpl implements Task {
 		result.addContext(OperationResult.CONTEXT_OID, getOid());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
-		List<Task> dependents = new ArrayList<Task>(getDependents().size());
+		List<Task> dependents = new ArrayList<>(getDependents().size());
 		for (String dependentId : getDependents()) {
 			try {
 				Task dependent = taskManager.getTaskByIdentifier(dependentId, result);
@@ -1898,9 +1894,9 @@ public class TaskQuartzImpl implements Task {
 			throw new SchemaException("Unknown property " + propertyName);
 		}
 
-		ArrayList<PrismPropertyValue<T>> values = new ArrayList(1);
+		ArrayList<PrismPropertyValue<T>> values = new ArrayList<>(1);
 		if (value != null) {
-			values.add(new PrismPropertyValue<T>(value));
+			values.add(new PrismPropertyValue<>(value));
 		}
 		processModificationBatched(setExtensionPropertyAndPrepareDelta(propertyName, propertyDef, values));
 	}
@@ -1912,11 +1908,11 @@ public class TaskQuartzImpl implements Task {
 		if (propertyDef == null) {
 			throw new SchemaException("Unknown property " + propertyName);
 		}
-		ArrayList<PrismPropertyValue<T>> values = new ArrayList(1);
+		ArrayList<PrismPropertyValue<T>> values = new ArrayList<>(1);
 		if (value != null) {
-			values.add(new PrismPropertyValue<T>(value));
+			values.add(new PrismPropertyValue<>(value));
 		}
-		ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, propertyName), propertyDef, getPrismContext());
+		ItemDelta delta = new PropertyDelta<>(new ItemPath(TaskType.F_EXTENSION, propertyName), propertyDef, getPrismContext());
 		delta.setValuesToReplace(values);
 
 		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>(1);
@@ -1933,7 +1929,7 @@ public class TaskQuartzImpl implements Task {
 			throw new SchemaException("Unknown container item " + containerName);
 		}
 
-		ArrayList<PrismContainerValue<T>> values = new ArrayList(1);
+		ArrayList<PrismContainerValue<T>> values = new ArrayList<>(1);
 		values.add(value.asPrismContainerValue());
 		processModificationBatched(setExtensionContainerAndPrepareDelta(containerName, containerDef, values));
 	}
@@ -2024,7 +2020,7 @@ public class TaskQuartzImpl implements Task {
 
 	private ItemDelta<?, ?> modifyExtensionAndPrepareDelta(ItemDelta<?, ?> delta) throws SchemaException {
 
-		Collection<ItemDelta<?, ?>> modifications = new ArrayList<ItemDelta<?, ?>>(1);
+		Collection<ItemDelta<?, ?>> modifications = new ArrayList<>(1);
 		modifications.add(delta);
 		PropertyDelta.applyTo(modifications, taskPrism);        // i.e. here we apply changes only locally (in memory)
 
@@ -2033,7 +2029,7 @@ public class TaskQuartzImpl implements Task {
 
 	private ItemDelta<?, ?> addExtensionPropertyAndPrepareDelta(QName itemName, PrismPropertyDefinition definition,
 			Collection<? extends PrismPropertyValue> values) throws SchemaException {
-		ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
+		ItemDelta delta = new PropertyDelta<>(new ItemPath(TaskType.F_EXTENSION, itemName), definition, getPrismContext());
 
 		delta.addValuesToAdd(values);
 
@@ -2260,7 +2256,7 @@ public class TaskQuartzImpl implements Task {
 	@Override
 	public Long getLastRunStartTimestamp() {
 		XMLGregorianCalendar gc = taskPrism.asObjectable().getLastRunStartTimestamp();
-		return gc != null ? new Long(XmlTypeConverter.toMillis(gc)) : null;
+		return gc != null ? XmlTypeConverter.toMillis(gc) : null;
 	}
 
 	public void setLastRunStartTimestamp(Long value) {
@@ -2297,7 +2293,7 @@ public class TaskQuartzImpl implements Task {
 	@Override
 	public Long getLastRunFinishTimestamp() {
 		XMLGregorianCalendar gc = taskPrism.asObjectable().getLastRunFinishTimestamp();
-		return gc != null ? new Long(XmlTypeConverter.toMillis(gc)) : null;
+		return gc != null ? XmlTypeConverter.toMillis(gc) : null;
 	}
 
 	public void setLastRunFinishTimestamp(Long value) {
@@ -2334,7 +2330,7 @@ public class TaskQuartzImpl implements Task {
 	@Override
 	public Long getCompletionTimestamp() {
 		XMLGregorianCalendar gc = taskPrism.asObjectable().getCompletionTimestamp();
-		return gc != null ? new Long(XmlTypeConverter.toMillis(gc)) : null;
+		return gc != null ? XmlTypeConverter.toMillis(gc) : null;
 	}
 
 	public void setCompletionTimestamp(Long value) {
@@ -2697,7 +2693,7 @@ public class TaskQuartzImpl implements Task {
 		result.addContext(OperationResult.CONTEXT_OID, getOid());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
-		ArrayList<Task> retval = new ArrayList<Task>();
+		ArrayList<Task> retval = new ArrayList<>();
 		addSubtasks(retval, this, result);
 		return retval;
 	}
@@ -3099,14 +3095,14 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public void storeOperationStatsTransient() {
+	public void storeOperationStatsDeferred() {
 		setOperationStats(getAggregatedLiveOperationStats());
 	}
 
 	@Override
 	public void storeOperationStats() {
 		try {
-			storeOperationStatsTransient();
+			storeOperationStatsDeferred();
 			processModificationBatched(createProgressDelta(getProgress()));
 			processModificationBatched(createExpectedTotalDelta(getExpectedTotal()));
 			savePendingModifications(new OperationResult(DOT_INTERFACE + ".storeOperationStats"));    // TODO fixme

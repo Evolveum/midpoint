@@ -91,7 +91,7 @@ public class CleanupTest extends AbstractTestNGSpringContextTests {
         // because now we can't move system time (we're not using DI for it) we create policy
         // which should always point to 2013-05-07T12:00:00.000+02:00
         final long NOW = System.currentTimeMillis();
-        Calendar when = create_2013_07_12_12_00_Calendar();
+        Calendar when = create_2013_05_07_12_00_00_Calendar();
         CleanupPolicyType policy = createPolicy(when, NOW);
 
         taskManager.cleanupTasks(policy, taskManager.createTaskInstance(), result);
@@ -114,7 +114,7 @@ public class CleanupTest extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertTrue("finished: " + finished + ", mark: " + mark, finished.after(mark));
     }
 
-    private Calendar create_2013_07_12_12_00_Calendar() {
+    private Calendar create_2013_05_07_12_00_00_Calendar() {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+2"));
         calendar.set(Calendar.YEAR, 2013);
         calendar.set(Calendar.MONTH, Calendar.MAY);

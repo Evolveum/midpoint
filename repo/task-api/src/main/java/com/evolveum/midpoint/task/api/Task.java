@@ -1003,7 +1003,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
 	void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy);
 
-	void storeOperationStatsTransient();
+	void storeOperationStatsDeferred();
 
 	void storeOperationStats();
 

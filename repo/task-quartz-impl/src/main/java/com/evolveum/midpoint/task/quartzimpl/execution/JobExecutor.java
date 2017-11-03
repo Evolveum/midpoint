@@ -723,7 +723,7 @@ mainCycle:
                 }
             }
             task.setNode(null);
-            task.storeOperationStatsTransient();
+            task.storeOperationStatsDeferred();
             task.savePendingModifications(result);
 
 			return true;
