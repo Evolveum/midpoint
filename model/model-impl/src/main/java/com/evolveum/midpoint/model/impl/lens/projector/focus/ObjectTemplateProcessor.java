@@ -453,17 +453,11 @@ public class ObjectTemplateProcessor {
 			return;
 		}
 		
-		// TODO TODO TODO
-		// WARNING DANGER MONSTERS LIONS DRAGONS
-		// TODO: put the right query here. When the property is indexed. Otherwise performance will suck 
-		
-//		ObjectQuery query = QueryBuilder
-//				.queryFor(AbstractRoleType.class, prismContext)
-//				.item(SchemaConstants.PATH_AUTOASSIGN_ENABLED)
-//				.eq(true)
-//				.build();
-		
-		ObjectQuery query = null;
+		ObjectQuery query = QueryBuilder
+				.queryFor(AbstractRoleType.class, prismContext)
+				.item(SchemaConstants.PATH_AUTOASSIGN_ENABLED)
+				.eq(true)
+				.build();
 		
 		ResultHandler<AbstractRoleType> handler = (role, objectResult) -> {
 			AutoassignSpecificationType autoassign = role.asObjectable().getAutoassign();
