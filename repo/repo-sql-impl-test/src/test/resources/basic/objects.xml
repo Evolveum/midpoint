@@ -1089,6 +1089,9 @@
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
         <name>Pirate</name>
         <roleType>business</roleType>
+		<autoassign>
+			<enabled>true</enabled>
+		</autoassign>
     </role>
 
 	<org oid="00000000-8888-6666-0000-100000000085">
