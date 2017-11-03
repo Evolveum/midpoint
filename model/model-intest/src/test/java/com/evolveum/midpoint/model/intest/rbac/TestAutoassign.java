@@ -246,5 +246,7 @@ public class TestAutoassign extends AbstractRbacTest {
         		ROLE_UNIT_WORKER_TITLE, ROLE_UNIT_WALKER_TITLE, ROLE_UNIT_SLEEPER_TITLE);
 	}
 
+	// TODO: org and relation
 	
+	// TODO: combine autoassign with object template role assign
 }
