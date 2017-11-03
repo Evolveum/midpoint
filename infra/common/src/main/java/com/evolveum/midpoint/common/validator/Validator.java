@@ -270,7 +270,11 @@ public class Validator {
 					}
 					if (!cont.isCont()) {
 						if (stopAfterErrors > 0 && errors >= stopAfterErrors) {
-							validatorResult.recordFatalError("Too many errors (" + errors + ")");
+							if (errors == 1) {
+								validatorResult.recordFatalError("Stopping on error; " + (progress - errors) + " passed");
+							} else {
+								validatorResult.recordFatalError("Too many errors (" + errors + "); " + (progress - errors) + " passed");
+							}
 							return;
 						}
 					}

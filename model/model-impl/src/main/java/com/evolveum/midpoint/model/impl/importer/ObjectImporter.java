@@ -78,27 +78,16 @@ import static org.apache.commons.lang3.BooleanUtils.isFalse;
 public class ObjectImporter {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectImporter.class);
-//    private static final String OPERATION_RESOLVE_REFERENCE = ObjectImporter.class.getName()
-//            + ".resolveReference";
     private static final String OPERATION_VALIDATE_DYN_SCHEMA = ObjectImporter.class.getName()
             + ".validateDynamicSchema";
 
-
-    @Autowired(required = true)
-    private Protector protector;
-    @Autowired(required = true)
-    private LightweightIdentifierGenerator lightweightIdentifierGenerator;
-    @Autowired(required = true)
-    private PrismContext prismContext;
-    @Autowired(required = true)
-    private TaskManager taskManager;
-    @Autowired(required = true)
-	@Qualifier("cacheRepositoryService")
-	private RepositoryService repository;
-    @Autowired(required = true)
-    private ModelService modelService;
-    @Autowired(required = true)
-    private Clock clock;
+    @Autowired private Protector protector;
+    @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+    @Autowired private PrismContext prismContext;
+    @Autowired private TaskManager taskManager;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repository;
+    @Autowired private ModelService modelService;
+    @Autowired private Clock clock;
 
     private Migrator migrator = new Migrator();
 
@@ -209,6 +198,7 @@ public class ObjectImporter {
 		            new Object[]{prismObjectObjectable, message});
 		    return EventResult.skipObject(message);
 		}
+		//noinspection unchecked
 		PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) prismObjectObjectable;
 
 		if (LOGGER.isTraceEnabled()) {
@@ -441,7 +431,8 @@ public class ObjectImporter {
 
             // Only two object types have XML snippets that conform to the dynamic schema
 
-        	PrismObject<ResourceType> resource = (PrismObject<ResourceType>)object;
+	        //noinspection unchecked
+	        PrismObject<ResourceType> resource = (PrismObject<ResourceType>)object;
             ResourceType resourceType = resource.asObjectable();
             PrismContainer<ConnectorConfigurationType> configurationContainer = ResourceTypeUtil.getConfigurationContainer(resource);
             if (configurationContainer == null || configurationContainer.isEmpty()) {
@@ -471,7 +462,8 @@ public class ObjectImporter {
                 // Probably a malformed connector. To be kind of robust, lets allow the import.
                 // Mark the error ... there is nothing more to do
                 result.recordPartialError("Connector (OID:" + connectorOid + ") referenced from the resource has schema problems: " + e.getMessage(), e);
-                LOGGER.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}", new Object[]{connectorOid, resourceType.getName(), e.getMessage(), e});
+                LOGGER.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}",
+		                connectorOid, resourceType.getName(), e.getMessage(), e);
                 return;
             }
 
