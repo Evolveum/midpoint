@@ -286,9 +286,11 @@ public class ContainerWrapperFactory {
             }
 
         } else { // if not an assignment
-
+            //hack for CaseWorkItemType as a quick fix; in further versions there is already implemented
+            //functionality for  multivalue containers
             if ((container.getValues().size() == 1 || container.getValues().isEmpty())
-                    && (containerDefinition == null || containerDefinition.isSingleValue())) {
+                    && (containerDefinition == null || containerDefinition.isSingleValue() ||
+                    CaseWorkItemType.class.isAssignableFrom(container.getCompileTimeClass()))) {
 
                 // there's no point in showing properties for non-single-valued
                 // parent containers,
