@@ -56,9 +56,6 @@ public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObje
 
     private static final String ID_POLICY_RULES_CONTAINER = "policyRulesContainer";
     private static final String ID_POLICY_RULES_PANEL = "policyRulesPanel";
-    private static final String DOT_CLASS = FocusAssignmentsTabPanel.class.getName() + ".";
-
-    private PolicyRulesPanel policyRulesPanel = null;
 
     public FocusPolicyRulesTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel,
                                     PageBase page) {

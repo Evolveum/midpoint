@@ -206,10 +206,6 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
         return assignmentsTabPanel;
 	}
 
-	protected WebMarkupContainer createFocusPolicyRulesTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-        return new FocusPolicyRulesTabPanel<F>(panelId, getMainForm(), getObjectModel(), parentPage);
-	}
-
 	protected WebMarkupContainer createObjectHistoryTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
 		return new ObjectHistoryTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
 	}
@@ -286,23 +282,6 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					@Override
 					public String getCount() {
 						return Integer.toString(countAssignments());
-					}
-				});
-
-		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_POLICY_RULES_URL);
-		tabs.add(
-				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.policyRules"), authorization) {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public WebMarkupContainer createPanel(String panelId) {
-						return createFocusPolicyRulesTabPanel(panelId, parentPage);
-					}
-
-					@Override
-					public String getCount() {
-						return Integer.toString(countPolicyRules());
 					}
 				});
 
