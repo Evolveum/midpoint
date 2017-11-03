@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import com.evolveum.midpoint.notifications.api.events.*;
+import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -193,21 +194,25 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 	private void appendDeadlineInformation(StringBuilder sb, WorkItemEvent event) {
 		WorkItemType workItem = event.getWorkItem();
 		if (!isDone(event) && workItem.getDeadline() != null) {
-			XMLGregorianCalendar deadline = workItem.getDeadline();
-			long before = XmlTypeConverter.toMillis(deadline) - System.currentTimeMillis();
-			long beforeRounded = Math.round((double) before / 60000.0) * 60000L;
-			String beforeWords = DurationFormatUtils.formatDurationWords(Math.abs(beforeRounded), true, true);
-			String beforePhrase;
-			if (beforeRounded > 0) {
-				beforePhrase = " (in " + beforeWords + ")";
-			} else if (beforeRounded < 0) {
-				beforePhrase = " (" + beforeWords + " ago)";
-			} else {
-				beforePhrase = "";
-			}
-			sb.append("Deadline: ").append(textFormatter.formatDateTime(deadline)).append(beforePhrase).append("\n");
-			sb.append("\n");
+			appendDeadlineInformation(sb, workItem, textFormatter);
 		}
+	}
+
+	static void appendDeadlineInformation(StringBuilder sb, AbstractWorkItemType workItem, TextFormatter textFormatter) {
+		XMLGregorianCalendar deadline = workItem.getDeadline();
+		long before = XmlTypeConverter.toMillis(deadline) - System.currentTimeMillis();
+		long beforeRounded = Math.round((double) before / 60000.0) * 60000L;
+		String beforeWords = DurationFormatUtils.formatDurationWords(Math.abs(beforeRounded), true, true);
+		String beforePhrase;
+		if (beforeRounded > 0) {
+			beforePhrase = " (in " + beforeWords + ")";
+		} else if (beforeRounded < 0) {
+			beforePhrase = " (" + beforeWords + " ago)";
+		} else {
+			beforePhrase = "";
+		}
+		sb.append("Deadline: ").append(textFormatter.formatDateTime(deadline)).append(beforePhrase).append("\n");
+		sb.append("\n");
 	}
 
 	private void appendResultAndOriginInformation(StringBuilder sb, WorkItemEvent event, OperationResult result) {
