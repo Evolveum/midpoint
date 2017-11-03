@@ -683,7 +683,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public void storeOperationStatsTransient() {
+    public void storeOperationStatsDeferred() {
 
     }
 
