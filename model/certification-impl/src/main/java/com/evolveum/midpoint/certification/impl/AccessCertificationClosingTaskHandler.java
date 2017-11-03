@@ -76,11 +76,18 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
 
+	@NotNull
+	@Override
+	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+		return new StatisticsCollectionStrategy()
+				.fromZero();
+		// implement iteration statistics when needed (along with expected total)
+	}
+
 	@Override
 	public TaskRunResult run(Task task) {
 		LOGGER.info("Task run starting");
 
-		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(CLASS_DOT+"run");
         opResult.setSummarizeSuccesses(true);
 		TaskRunResult runResult = new TaskRunResult();
@@ -104,29 +111,32 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 		} catch (ObjectNotFoundException|SchemaException e) {
 			opResult.computeStatus();
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(progress);
 			LoggingUtils.logUnexpectedException(LOGGER, "Closing task couldn't start for campaign {} because of unexpected exception", e, campaignOid);
 			return runResult;
 		}
 
-		RunContext runContext = new RunContext();
+		RunContext runContext = new RunContext(task);
 		caseList.forEach(aCase -> prepareMetadataDeltas(aCase, campaign, runContext, opResult));
-		runContext.objectContextMap.forEach((oid, ctx) -> applyMetadataDeltas(ctx, opResult));
+		runContext.objectContextMap.forEach((oid, ctx) -> applyMetadataDeltas(ctx, runContext, opResult));
 
 		opResult.computeStatus();
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		runResult.setProgress(progress);
 		LOGGER.info("Task run stopping (campaign {})", toShortString(campaign));
 		return runResult;
 	}
 
-	private void applyMetadataDeltas(ObjectContext objectCtx, OperationResult opResult) {
+	private void applyMetadataDeltas(ObjectContext objectCtx,
+			RunContext runContext,
+			OperationResult opResult) {
 		ObjectType object = objectCtx.object;
 		List<ItemDelta<?, ?>> deltas = objectCtx.modifications;
 		try {
-			LOGGER.info("### Updating {} with:\n{}", toShortString(object), DebugUtil.debugDump(deltas));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("### Updating {} with:\n{}", toShortString(object), DebugUtil.debugDump(deltas));
+			}
 			if (!deltas.isEmpty()) {
 				repositoryService.modifyObject(object.getClass(), object.getOid(), deltas, opResult);
+				runContext.task.incrementProgressAndStoreStatsIfNeeded();
 			}
 		} catch (ObjectNotFoundException|SchemaException|ObjectAlreadyExistsException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update certification metadata for {}", e, toShortString(object));
@@ -135,6 +145,10 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 
 	private void prepareMetadataDeltas(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
 			RunContext runContext, OperationResult result) {
+
+		// we count progress for each certification case and then for each object updated
+		runContext.task.incrementProgressAndStoreStatsIfNeeded();
+
 		String objectOid = aCase.getObjectRef() != null ? aCase.getObjectRef().getOid() : null;
 		if (objectOid == null) {
 			LOGGER.error("No object OID in certification case {}: skipping metadata recording", aCase);
@@ -259,12 +273,17 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 		@NotNull final ObjectType object;
 	    @NotNull final List<ItemDelta<?, ?>> modifications = new ArrayList<>();
 
-	    public ObjectContext(@NotNull ObjectType object) {
+	    ObjectContext(@NotNull ObjectType object) {
 		    this.object = object;
 	    }
     }
 
     private class RunContext {
+		final Task task;
 	    final Map<String, ObjectContext> objectContextMap = new HashMap<>();
+
+	    RunContext(Task task) {
+		    this.task = task;
+	    }
     }
 }

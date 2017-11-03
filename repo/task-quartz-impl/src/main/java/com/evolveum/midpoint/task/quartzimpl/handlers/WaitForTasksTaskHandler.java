@@ -62,18 +62,15 @@ public class WaitForTasksTaskHandler implements TaskHandler {
             // todo resolve this brutal hack
             taskManagerImpl.pauseTask(task, TaskWaitingReason.OTHER, result);
             task.startWaitingForTasksImmediate(result);
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't mark task as waiting for prerequisite tasks", e);       // should not occur; will be handled by task runner
-        } catch (ObjectNotFoundException e) {
+        } catch (SchemaException | ObjectNotFoundException e) {
             throw new SystemException("Couldn't mark task as waiting for prerequisite tasks", e);       // should not occur; will be handled by task runner
         }
-        LOGGER.debug("WaitForTasksTaskHandler run finishing; in task " + task.getName());
+		LOGGER.debug("WaitForTasksTaskHandler run finishing; in task " + task.getName());
 
         result.computeStatus();
 
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(result);
-        runResult.setProgress(task.getProgress());                      // not to overwrite task's progress
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		return runResult;
 	}

@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.task.api;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 
 /**
@@ -45,4 +47,8 @@ public interface TaskHandler {
      */
 	List<String> getCategoryNames();
 
+	@NotNull
+	default StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+		return new StatisticsCollectionStrategy();
+	}
 }

@@ -62,7 +62,6 @@ public class JobExecutor implements InterruptableJob {
 
     private static final int DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT = 60;
     private static final int RESCHEDULE_TIME_RANDOMIZATION_INTERVAL = 3;
-    private static final int RESCHEDULE_TIME_FOR_NO_SUITABLE_NODE = 60;
 
 	/*
 	 * JobExecutor is instantiated at each execution of the task, so we can store
@@ -632,6 +631,8 @@ mainCycle:
 
     private TaskRunResult executeHandler(TaskHandler handler, OperationResult executionResult) {
 
+		task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy());
+
     	TaskRunResult runResult;
     	try {
 			LOGGER.trace("Executing handler {}", handler.getClass().getName());
@@ -665,7 +666,6 @@ mainCycle:
         }
         runResult.setOperationResult(opResult);
         runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-        runResult.setProgress(task.getProgress());
         return runResult;
     }
 
@@ -707,7 +707,9 @@ mainCycle:
 		LOGGER.debug("Task cycle run FINISHED " + task + ", handler = " + handler);
         taskManagerImpl.notifyTaskFinish(task, runResult);
 		try {
-            task.setProgress(runResult.getProgress());
+			if (runResult.getProgress() != null) {
+				task.setProgress(runResult.getProgress());
+			}
             task.setLastRunFinishTimestamp(System.currentTimeMillis());
             if (runResult.getOperationResult() != null) {
                 try {
@@ -721,6 +723,7 @@ mainCycle:
                 }
             }
             task.setNode(null);
+            task.storeOperationStatsTransient();
             task.savePendingModifications(result);
 
 			return true;

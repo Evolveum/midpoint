@@ -1,16 +1,5 @@
 package com.evolveum.midpoint.model.impl.util;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.annotation.PostConstruct;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
@@ -18,17 +7,22 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class AuditReindexTaskHandler implements TaskHandler {
@@ -60,7 +54,7 @@ public class AuditReindexTaskHandler implements TaskHandler {
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
 
-		final Long expectedTotal = auditService.countObjects("select count(*) from RAuditEventRecord as aer where 1=1", null);
+		final long expectedTotal = auditService.countObjects("select count(*) from RAuditEventRecord as aer where 1=1", null);
 		AuditResultHandler resultHandler = new AuditResultHandler() {
 
 			private AtomicInteger processedObjects =  new AtomicInteger();
@@ -79,30 +73,20 @@ public class AuditReindexTaskHandler implements TaskHandler {
 				return processedObjects.get();
 			}
 		};
-		if (resultHandler == null) {
-			// the error should already be in the runResult
-			return runResult;
-		}
-
 
 		try {
 			LOGGER.trace("{}: expecting {} objects to be processed", taskName, expectedTotal);
 
-			runResult.setProgress(0);
 			coordinatorTask.setProgress(0);
-			if (expectedTotal != null) {
-				coordinatorTask.setExpectedTotal(expectedTotal);
-			}
+			coordinatorTask.setExpectedTotal(expectedTotal);
 			try {
 				coordinatorTask.savePendingModifications(opResult);
-			} catch (ObjectAlreadyExistsException e) { // other exceptions are
-														// handled in the outer
-														// try block
+			} catch (ObjectAlreadyExistsException e) { // other exceptions are handled in the outer try block
 				throw new IllegalStateException(
 						"Unexpected ObjectAlreadyExistsException when updating task progress/expectedTotal",
 						e);
 			}
-			Map<String, Object> params = new HashMap<String, Object>();
+			Map<String, Object> params = new HashMap<>();
 			while (true) {
 				params.put("setFirstResult", firstResult);
 				params.put("setMaxResults", maxResults);
@@ -110,10 +94,10 @@ public class AuditReindexTaskHandler implements TaskHandler {
 				if (CollectionUtils.isNotEmpty(records)){
 					for (AuditEventRecord record : records) {
 						resultHandler.handle(record);
-						runResult.setProgress(resultHandler.getProgress());
+						runResult.setProgress((long) resultHandler.getProgress());
 					}
 					firstResult += maxResults;
-					maxResults = ( (expectedTotal.intValue() - firstResult) > maxResults ? maxResults : (expectedTotal.intValue() - firstResult));
+					maxResults = (int) ((expectedTotal - firstResult) > maxResults ? maxResults : (expectedTotal - firstResult));
 				} else {
 					break;
 				}
@@ -144,7 +128,7 @@ public class AuditReindexTaskHandler implements TaskHandler {
 
 		// TODO: check last handler status
 
-		runResult.setProgress(resultHandler.getProgress());
+		runResult.setProgress((long) resultHandler.getProgress());
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 
 		String finishMessage = "Finished " + taskName + " (" + coordinatorTask + "). ";
@@ -169,7 +153,6 @@ public class AuditReindexTaskHandler implements TaskHandler {
 	@Override
 	public void refreshStatus(Task task) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -179,7 +162,6 @@ public class AuditReindexTaskHandler implements TaskHandler {
 
 	@Override
 	public List<String> getCategoryNames() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -189,7 +171,7 @@ public class AuditReindexTaskHandler implements TaskHandler {
 		LOGGER.error("{}: {}: {}", taskName, message, e.getMessage(), e);
 		runResult.getOperationResult().recordStatus(opStatus, message + ": " + e.getMessage(), e);
 		runResult.setRunResultStatus(status);
-		runResult.setProgress(resultHandler.getProgress());
+		runResult.setProgress((long) resultHandler.getProgress());
 		return runResult;
 
 	}

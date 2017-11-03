@@ -47,11 +47,7 @@ public class MockTaskHandler implements TaskHandler {
 
 	public static final String HANDLER_URI = SchemaConstants.NS_MODEL + "/mock/handler-3";
 
-	@Autowired(required = true)
-	private TaskManager taskManager;
-
-	@Autowired(required = true)
-	private PrismContext prismContext;
+	@Autowired private TaskManager taskManager;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(MockTaskHandler.class);
 
@@ -71,7 +67,7 @@ public class MockTaskHandler implements TaskHandler {
 
 		opResult.recordSuccess();
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		runResult.setProgress(1);
+		runResult.setProgress(1L);
 
 		LOGGER.trace("MockTaskHandler.run ending");
 

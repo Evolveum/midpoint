@@ -1001,16 +1001,26 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     void startLightweightHandler();
 
+	void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy);
 
-    void startCollectingOperationStatsFromZero(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics);
+	void storeOperationStatsTransient();
 
-    void startCollectingOperationStatsFromStoredValues(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics);
+	void storeOperationStats();
 
-    void storeOperationStats();
+    // stores operation statistics if the time has come
+    void storeOperationStatsIfNeeded();
+
+    Long getLastOperationStatsUpdateTimestamp();
+
+    void setOperationStatsUpdateInterval(long interval);
+
+    long getOperationStatsUpdateInterval();
 
     WfContextType getWorkflowContext();
 
 	void setWorkflowContext(WfContextType context) throws SchemaException;
+
+	void incrementProgressAndStoreStatsIfNeeded();
 
 	void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 }

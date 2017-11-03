@@ -47,20 +47,18 @@ public class MockCycleTaskHandler implements TaskHandler {
 
 		LOGGER.info("MockCycle.run starting");
 
-		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(MockCycleTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
 
 		// TODO
-		progress++;
+		task.incrementProgressAndStoreStatsIfNeeded();
 
 		opResult.recordSuccess();
 
 		// This "run" is finished. But the task goes on ... (if finishTheHandler == false)
 		runResult.setRunResultStatus(finishTheHandler ? TaskRunResultStatus.FINISHED_HANDLER : TaskRunResultStatus.FINISHED);
 
-		runResult.setProgress(progress);
 		LOGGER.info("MockCycle.run stopping");
 		return runResult;
 	}

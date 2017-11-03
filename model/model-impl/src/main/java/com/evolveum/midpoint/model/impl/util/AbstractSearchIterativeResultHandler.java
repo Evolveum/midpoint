@@ -52,7 +52,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType> implements ResultHandler<O> {
 
 	public static final int WORKER_THREAD_WAIT_FOR_REQUEST = 500;
-	public static final long PROGRESS_UPDATE_INTERVAL = 3000L;
 	private static final long REQUEST_QUEUE_OFFER_TIMEOUT = 1000L;
 
 	private final TaskManager taskManager;
@@ -73,7 +72,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	private BlockingQueue<ProcessingRequest> requestQueue;
 	private AtomicBoolean stopRequestedByAnyWorker = new AtomicBoolean(false);
 	private final long startTime;
-	private AtomicLong progressLastUpdated = new AtomicLong();
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeResultHandler.class);
 	private volatile boolean allItemsSubmitted = false;
@@ -379,10 +377,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 					workerTask.setProgress(workerTask.getProgress()+1);
 				}
 				// todo report current op result?
-				if (shouldReportProgress()) {
-					coordinatorTask.storeOperationStats();
-					// includes savePendingModifications - this is necessary for the progress to be immediately available in GUI
-				}
+				coordinatorTask.storeOperationStatsIfNeeded();  // includes savePendingModifications
 			}
 
 			if (logObjectProgress) {
@@ -417,17 +412,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			return result.getCause();
 		} else {
 			return new SystemException(result.getMessage());
-		}
-	}
-
-	private boolean shouldReportProgress() {
-		long curr = System.currentTimeMillis();
-		long lastUpdate = progressLastUpdated.get();
-		if (curr >= lastUpdate + PROGRESS_UPDATE_INTERVAL) {
-			progressLastUpdated.set(curr);						// it is possible that 2 threads enter this section at once, but never mind
-			return true;
-		} else {
-			return false;
 		}
 	}
 

@@ -16,19 +16,15 @@
 
 package com.evolveum.midpoint.certification.impl;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,18 +39,11 @@ import java.util.List;
 @Component
 public class AccessCertificationCampaignCreationTaskHandler implements TaskHandler {
 
-	public static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TASK_PREFIX + "/campaign-creation/handler-3";
+	private static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TASK_PREFIX + "/campaign-creation/handler-3";
+    private static final String CLASS_DOT = AccessCertificationCampaignCreationTaskHandler.class.getName() + ".";
 
-    public static final String CLASS_DOT = AccessCertificationCampaignCreationTaskHandler.class.getName() + ".";
-
-    @Autowired
-	private TaskManager taskManager;
-
-	@Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private CertificationManagerImpl certificationManager;
+    @Autowired private TaskManager taskManager;
+	@Autowired private CertificationManagerImpl certificationManager;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationCampaignCreationTaskHandler.class);
 
@@ -63,11 +52,18 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
 
+	@NotNull
+	@Override
+	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+		return new StatisticsCollectionStrategy()
+				.fromStoredValues()
+				.maintainIterationStatistics();
+	}
+
 	@Override
 	public TaskRunResult run(Task task) {
 		LOGGER.trace("Task run starting");
 
-		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(CLASS_DOT+"run");
         opResult.setSummarizeSuccesses(true);
 		TaskRunResult runResult = new TaskRunResult();
@@ -87,8 +83,6 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
         String campaignName = null;
         String campaignOid = null;
         try {
-            task.startCollectingOperationStatsFromStoredValues(true, false, false);
-
             LOGGER.info("Creating campaign with definition of {}", definitionOid);
             AccessCertificationCampaignType campaign = certificationManager.createCampaign(definitionOid, task, opResult);
             LOGGER.info("Campaign {} was created.", ObjectTypeUtil.toShortString(campaign));
@@ -106,7 +100,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
 
             opResult.computeStatus();
             runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-            runResult.setProgress(progress+1);
+            runResult.setProgress(task.getProgress()+1);
             return runResult;
 
         } catch (Exception e) {     // TODO better error handling
@@ -116,10 +110,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
             LoggingUtils.logException(LOGGER, "Error while executing 'create campaign' task handler", e);
             opResult.recordFatalError("Error while executing 'create campaign' task handler: "+e.getMessage(), e);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            runResult.setProgress(progress);
             return runResult;
-        } finally {
-            task.storeOperationStats();
         }
 	}
 

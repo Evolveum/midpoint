@@ -26,11 +26,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -42,6 +38,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -49,7 +46,7 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 
 /**
- * The task hander for a live synchronization.
+ * The task handler for a live synchronization.
  *
  *  This handler takes care of executing live synchronization "runs". It means that the handler "run" method will
  *  be called every few seconds. The responsibility is to scan for changes that happened since the last run.
@@ -62,14 +59,9 @@ public class LiveSyncTaskHandler implements TaskHandler {
 
 	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/live-sync/handler-3";
 
-    @Autowired(required=true)
-	private TaskManager taskManager;
-
-	@Autowired(required=true)
-	private ProvisioningService provisioningService;
-
-	@Autowired(required = true)
-    private PrismContext prismContext;
+    @Autowired private TaskManager taskManager;
+	@Autowired private ProvisioningService provisioningService;
+	@Autowired private PrismContext prismContext;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(LiveSyncTaskHandler.class);
 
@@ -78,20 +70,20 @@ public class LiveSyncTaskHandler implements TaskHandler {
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
 
+	@NotNull
 	@Override
-	public TaskRunResult run(Task task) {
-		task.startCollectingOperationStatsFromStoredValues(true, true, true);
-		try {
-			return runInternal(task);
-		} finally {
-			task.storeOperationStats();
-		}
+	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+		return new StatisticsCollectionStrategy()
+				.fromStoredValues()
+				.maintainIterationStatistics()
+				.maintainSynchronizationStatistics()
+				.maintainActionsExecutedStatistics();
 	}
 
-	private TaskRunResult runInternal(Task task) {
+	@Override
+	public TaskRunResult run(Task task) {
 		LOGGER.trace("LiveSyncTaskHandler.run starting");
 
-		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(OperationConstants.LIVE_SYNC);
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
@@ -104,13 +96,11 @@ public class LiveSyncTaskHandler implements TaskHandler {
 	            return runResult;
 	        }
 
-	        ResourceType resource = null;
+	        ResourceType resource;
 	        try {
-
 	            resource = provisioningService.getObject(ResourceType.class, resourceOid, null, task, opResult).asObjectable();
-
 	        } catch (ObjectNotFoundException ex) {
-	            LOGGER.error("Live Sync: Resource {} not found: {}", new Object[]{resourceOid, ex.getMessage(), ex});
+	            LOGGER.error("Live Sync: Resource {} not found: {}", resourceOid, ex.getMessage(), ex);
 	            // This is bad. The resource does not exist. Permanent problem.
 	            opResult.recordFatalError("Resource not found " + resourceOid, ex);
 	            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
@@ -130,33 +120,16 @@ public class LiveSyncTaskHandler implements TaskHandler {
 	            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 	            return runResult;
 	        } catch (CommunicationException ex) {
-	        	LOGGER.error("Live Sync: Error getting resource {}: {}", new Object[]{resourceOid, ex.getMessage(), ex});
+	        	LOGGER.error("Live Sync: Error getting resource {}: {}", resourceOid, ex.getMessage(), ex);
 	            opResult.recordFatalError("Error getting resource " + resourceOid+": "+ex.getMessage(), ex);
 	            runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
 	            return runResult;
-			} catch (ConfigurationException ex) {
-				LOGGER.error("Live Sync: Error getting resource {}: {}", new Object[]{resourceOid, ex.getMessage(), ex});
-	            opResult.recordFatalError("Error getting resource " + resourceOid+": "+ex.getMessage(), ex);
-	            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-	            return runResult;
-			} catch (SecurityViolationException ex) {
-				LOGGER.error("Live Sync: Error getting resource {}: {}", new Object[]{resourceOid, ex.getMessage(), ex});
-	            opResult.recordFatalError("Error getting resource " + resourceOid+": "+ex.getMessage(), ex);
-	            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-	            return runResult;
-			} catch (ExpressionEvaluationException ex) {
-				LOGGER.error("Live Sync: Error getting resource {}: {}", new Object[]{resourceOid, ex.getMessage(), ex});
+			} catch (ConfigurationException | SecurityViolationException | ExpressionEvaluationException ex) {
+				LOGGER.error("Live Sync: Error getting resource {}: {}", resourceOid, ex.getMessage(), ex);
 	            opResult.recordFatalError("Error getting resource " + resourceOid+": "+ex.getMessage(), ex);
 	            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 	            return runResult;
 			}
-
-        if (resource == null) {
-            LOGGER.error("Live Sync: No resource specified");
-            opResult.recordFatalError("No resource specified");
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            return runResult;
-        }
 
 		RefinedResourceSchema refinedSchema;
         try {
@@ -201,7 +174,6 @@ public class LiveSyncTaskHandler implements TaskHandler {
 
             Utils.clearRequestee(task);
 			changesProcessed = provisioningService.synchronize(coords, task, opResult);
-            progress += changesProcessed;
 
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.error("Live Sync: A required object does not exist, OID: {}", ex.getOid());
@@ -209,14 +181,12 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			// This is bad. The resource or task or something like that does not exist. Permanent problem.
 			opResult.recordFatalError("A required object does not exist, OID: " + ex.getOid(), ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(progress);
 			return runResult;
 		} catch (CommunicationException ex) {
 			LOGGER.error("Live Sync: Communication error:",ex);
 			// Error, but not critical. Just try later.
 			opResult.recordPartialError("Communication error: "+ex.getMessage(),ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-			runResult.setProgress(progress);
 			return runResult;
 		} catch (SchemaException ex) {
 			LOGGER.error("Live Sync: Error dealing with schema:",ex);
@@ -224,7 +194,6 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			// It may be worth to retry. Error is fatal, but may not be permanent.
 			opResult.recordFatalError("Error dealing with schema: "+ex.getMessage(),ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-			runResult.setProgress(progress);
 			return runResult;
 		} catch (RuntimeException ex) {
 			LOGGER.error("Live Sync: Internal Error:", ex);
@@ -232,7 +201,6 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			// It is most likely a programming error. Does not make much sense to retry.
 			opResult.recordFatalError("Internal Error: "+ex.getMessage(),ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(progress);
 			return runResult;
 		} catch (ConfigurationException ex) {
 			LOGGER.error("Live Sync: Configuration error:",ex);
@@ -240,19 +208,16 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			// It may be worth to retry. Error is fatal, but may not be permanent.
 			opResult.recordFatalError("Configuration error: "+ex.getMessage(),ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-			runResult.setProgress(progress);
 			return runResult;
 		} catch (SecurityViolationException ex) {
 			LOGGER.error("Recompute: Security violation: {}",ex.getMessage(),ex);
 			opResult.recordFatalError("Security violation: "+ex.getMessage(),ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(progress);
 			return runResult;
 		} catch (ExpressionEvaluationException ex) {
 			LOGGER.error("Recompute: Expression error: {}",ex.getMessage(),ex);
 			opResult.recordFatalError("Expression error: "+ex.getMessage(),ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(progress);
 			return runResult;
 		}
 
@@ -262,7 +227,6 @@ public class LiveSyncTaskHandler implements TaskHandler {
 
         // This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		runResult.setProgress(progress);		// Might collide with increasing progress in provisioning module, e.g. when an exception is thrown. But that's OK for now.
 		LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {})", resourceOid);
 		return runResult;
 	}

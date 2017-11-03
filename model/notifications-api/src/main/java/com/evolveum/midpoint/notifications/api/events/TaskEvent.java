@@ -135,7 +135,7 @@ public class TaskEvent extends BaseEvent {
 	}
 
 	public long getProgress() {
-		return taskRunResult != null ? taskRunResult.getProgress() : task.getProgress();
+		return taskRunResult != null && taskRunResult.getProgress() != null ? taskRunResult.getProgress() : task.getProgress();
 	}
 
 	@Override

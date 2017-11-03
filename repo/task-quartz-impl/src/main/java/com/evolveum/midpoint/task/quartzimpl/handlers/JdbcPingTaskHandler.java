@@ -86,7 +86,6 @@ public class JdbcPingTaskHandler implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task task) {
 
-		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(JdbcPingTaskHandler.class.getName()+".run");
 
 		int tests = get(task, SchemaConstants.JDBC_PING_TESTS_QNAME, 0);
@@ -100,7 +99,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
 		String jdbcPassword = get(task, SchemaConstants.JDBC_PING_JDBC_PASSWORD_QNAME, config != null ? config.getJdbcPassword() : "");
 		boolean logOnInfoLevel = get(task, SchemaConstants.JDBC_PING_LOG_ON_INFO_LEVEL_QNAME, true);
 
-        LOGGER.info("JdbcPingTaskHandler run starting; with progress = {}", progress);
+        LOGGER.info("JdbcPingTaskHandler run starting; with progress = {}", task.getProgress());
         LOGGER.info("Tests to be executed: {}", tests > 0 ? tests : "(unlimited)");
         LOGGER.info("Interval between tests: {} seconds", interval);
         LOGGER.info("SQL query to be used: {}", testQuery);
@@ -163,7 +162,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't close DB connection", t);
 				}
 			}
-			progress++;
+			task.incrementProgressAndStoreStatsIfNeeded();
 			try {
 				Thread.sleep(1000L * interval);
 			} catch (InterruptedException e) {
@@ -175,8 +174,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);     // would be overwritten when problem is encountered
-		runResult.setProgress(progress);
-		LOGGER.info("JdbcPingTaskHandler run finishing; progress = " + progress + " in task " + task.getName());
+		LOGGER.info("JdbcPingTaskHandler run finishing; progress = " + task.getProgress() + " in task " + task.getName());
 		LOGGER.info("Connection statistics: {}", connectionStatistics);
 		LOGGER.info("Query statistics: {}", queryStatistics);
 		return runResult;
