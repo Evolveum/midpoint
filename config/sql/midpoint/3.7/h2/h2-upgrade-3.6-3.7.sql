@@ -12,3 +12,11 @@ ALTER TABLE m_function_library
   ADD CONSTRAINT fk_function_library
 FOREIGN KEY (oid)
 REFERENCES m_object;
+
+ALTER TABLE m_abstract_role ADD COLUMN autoassign_enabled BOOLEAN;
+
+CREATE INDEX iAutoassignEnabled
+  ON m_abstract_role (autoassign_enabled);
+
+ALTER TABLE m_task
+  ADD CONSTRAINT UK_59yhlpgtqu3a9wvnw0ujx4xl1 UNIQUE (taskIdentifier);

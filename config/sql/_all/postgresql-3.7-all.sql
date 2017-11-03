@@ -1,5 +1,6 @@
 CREATE TABLE m_abstract_role (
   approvalProcess    VARCHAR(255),
+  autoassign_enabled BOOLEAN,
   displayName_norm   VARCHAR(255),
   displayName_orig   VARCHAR(255),
   identifier         VARCHAR(255),
@@ -809,6 +810,9 @@ CREATE INDEX iAbstractRoleIdentifier ON m_abstract_role (identifier);
 
 CREATE INDEX iRequestable ON m_abstract_role (requestable);
 
+CREATE INDEX iAutoassignEnabled
+  ON m_abstract_role (autoassign_enabled);
+
 ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT uc_acc_cert_campaign_name  UNIQUE (name_norm);
 
@@ -983,6 +987,9 @@ CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount);
 
 ALTER TABLE m_system_configuration
 ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm);
+
+ALTER TABLE m_task
+  ADD CONSTRAINT UK_59yhlpgtqu3a9wvnw0ujx4xl1 UNIQUE (taskIdentifier);
 
 CREATE INDEX iParent ON m_task (parent);
 
