@@ -35,14 +35,7 @@ public abstract class ObjectSummaryPanel<O extends ObjectType> extends AbstractS
 	}
 
 	private static <O extends ObjectType> SummaryPanelSpecificationType determineConfig(Class<O> type, AdminGuiConfigurationType adminGuiConfig) {
-		if (adminGuiConfig == null) {
-			return null;
-		}
-		GuiObjectDetailsSetType objectDetailsSetType = adminGuiConfig.getObjectDetails();
-		if (objectDetailsSetType == null) {
-			return null;
-		}
-		GuiObjectDetailsPageType guiObjectDetailsType = AdminGuiConfigTypeUtil.findObjectConfiguration(objectDetailsSetType.getObjectDetailsPage(), type);
+		GuiObjectDetailsPageType guiObjectDetailsType = AdminGuiConfigTypeUtil.findObjectConfiguration(type, adminGuiConfig);
 		if (guiObjectDetailsType == null) {
 			return null;
 		}

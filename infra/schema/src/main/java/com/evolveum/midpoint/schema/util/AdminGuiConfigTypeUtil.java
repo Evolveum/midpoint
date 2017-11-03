@@ -356,6 +356,17 @@ public class AdminGuiConfigTypeUtil {
 		return customColumnsList;
 	}
 
+	public static <O extends ObjectType> GuiObjectDetailsPageType findObjectConfiguration(Class<O> type, AdminGuiConfigurationType adminGuiConfig) {
+		if (adminGuiConfig == null) {
+			return null;
+		}
+		GuiObjectDetailsSetType objectDetailsSetType = adminGuiConfig.getObjectDetails();
+		if (objectDetailsSetType == null) {
+			return null;
+		}
+		return AdminGuiConfigTypeUtil.findObjectConfiguration(objectDetailsSetType.getObjectDetailsPage(), type);
+	}
+
 	public static <T extends AbstractObjectTypeConfigurationType, O extends ObjectType> T findObjectConfiguration(
 			List<T> list, Class<O> type) {
 		if (list == null) {

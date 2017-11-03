@@ -19,8 +19,11 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DetailsPageSaveMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -157,7 +160,8 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 
             @Override
             public boolean isVisible() {
-                return !getObjectWrapper().isReadonly();
+                return !getObjectWrapper().isReadonly() &&
+						getDetailsPage().isForcedPreview();
             }
 
             @Override
