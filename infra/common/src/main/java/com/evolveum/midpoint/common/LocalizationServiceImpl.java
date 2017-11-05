@@ -49,6 +49,11 @@ public class LocalizationServiceImpl implements LocalizationService {
         sources.add(buildSource("localization/Midpoint", null));
         sources.add(buildSource(SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH, null));
 
+        // model security messages as fallback
+        ResourceBundleMessageSource modelSecurity = new ResourceBundleMessageSource();
+        modelSecurity.setBasename("com.evolveum.midpoint.security");
+        sources.add(modelSecurity);
+
         // spring security messages as a fallback
         ResourceBundleMessageSource springSecurity = new ResourceBundleMessageSource();
         springSecurity.setBasename("org.springframework.security.messages");
