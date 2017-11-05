@@ -161,7 +161,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
             @Override
             public boolean isVisible() {
                 return !getObjectWrapper().isReadonly() &&
-						getDetailsPage().isForcedPreview();
+						!getDetailsPage().isForcedPreview();
             }
 
             @Override
