@@ -172,12 +172,12 @@ public class TestLdapVirtualGroup extends AbstractStoryTest {
 	}
 
 	private File getRoleMetaLdapFile() {
-		String file = useThisObject ? "role-meta-ldap.xml" :"role-meta-ldap-thisobject.xml";
+		String file = useThisObject ? "role-meta-ldap-thisobject.xml" : "role-meta-ldap.xml";
 		return new File(getTestDir(), file);
 	}
 	
 	private File getRoleItHrFile() {
-		String file = useThisObject ? "role-it-hr.xml" :"role-it-hr-thisobject.xml";
+		String file = useThisObject ? "role-it-hr-thisobject.xml" : "role-it-hr.xml";
 		return new File(getTestDir(), file);
 	}
 
