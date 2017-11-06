@@ -64,7 +64,11 @@
 					<strength>strong</strength>
 					<source>
 						<name>roleName</name>
-						<!--  source seems to be OK when using role (not meta) -->
+						<!-- 
+						- no idea how to replace thisObject by assignmentPath
+						- source seems to be OK when using role (not meta
+						-->
+						<!-- <path>$thisObject/name</path> -->
 						<path>$source/name</path>
 					</source>
 					<expression>

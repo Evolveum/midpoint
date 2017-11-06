@@ -65,7 +65,11 @@
 					<strength>strong</strength>
 					<source>
 						<name>roleName</name>
-						<!--  immediateRole seems to be OK when using metarole -->
+						<!-- 
+						- no idea how to replace thisObject by assignmentPath
+						- immediateRole seems to be OK when using metarole
+						-->
+						<!--<path>$thisObject/name</path> -->
 						<path>$immediateRole/name</path>
 					</source>
 					<expression>
