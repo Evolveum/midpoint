@@ -35,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfiguratio
 
 import java.io.IOException;
 
+import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeSuite;
 import org.xml.sax.SAXException;
 
@@ -84,9 +85,10 @@ public abstract class AbstractGuiUnitTest {
 				return null;
 			}
 
+			@NotNull
 			@Override
 			public AdminGuiConfigurationType getAdminGuiConfiguration() {
-				return null;
+				return new AdminGuiConfigurationType();
 			}
 
 			@Override

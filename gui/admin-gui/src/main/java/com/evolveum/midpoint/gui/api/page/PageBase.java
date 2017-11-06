@@ -521,6 +521,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return modelDiagnosticService;
     }
 
+    @NotNull
     @Override
     public AdminGuiConfigurationType getAdminGuiConfiguration() {
         if (adminGuiConfiguration == null) {
@@ -1104,7 +1105,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private OperationResult executeResultScriptHook(OperationResult result) {
         AdminGuiConfigurationType adminGuiConfiguration = getAdminGuiConfiguration();
-        if (adminGuiConfiguration == null || adminGuiConfiguration.getFeedbackMessagesHook() == null) {
+        if (adminGuiConfiguration.getFeedbackMessagesHook() == null) {
             return result;
         }
 
@@ -1647,18 +1648,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private void createAdditionalMenu(SideBarMenuItem menu) {
         AdminGuiConfigurationType adminGuiConfig = loadAdminGuiConfiguration();
-        if (adminGuiConfig != null) {
-            List<RichHyperlinkType> menuList = loadAdminGuiConfiguration().getAdditionalMenuLink();
+        List<RichHyperlinkType> menuList = loadAdminGuiConfiguration().getAdditionalMenuLink();
 
-            Map<String, Class> urlClassMap = DescriptorLoader.getUrlClassMap();
-            if (menuList != null && menuList.size() > 0 && urlClassMap != null && urlClassMap.size() > 0) {
-                for (RichHyperlinkType link : menuList) {
-                    if (link.getTargetUrl() != null && !link.getTargetUrl().trim().equals("")) {
-                        AdditionalMenuItem item = new AdditionalMenuItem(link.getIcon() == null ? "" : link.getIcon().getCssClass(),
-                                getAdditionalMenuItemNameModel(link.getLabel()),
-                                link.getTargetUrl(), urlClassMap.get(link.getTargetUrl()));
-                        menu.getItems().add(item);
-                    }
+        Map<String, Class> urlClassMap = DescriptorLoader.getUrlClassMap();
+        if (menuList != null && menuList.size() > 0 && urlClassMap != null && urlClassMap.size() > 0) {
+            for (RichHyperlinkType link : menuList) {
+                if (link.getTargetUrl() != null && !link.getTargetUrl().trim().equals("")) {
+                    AdditionalMenuItem item = new AdditionalMenuItem(link.getIcon() == null ? "" : link.getIcon().getCssClass(),
+                            getAdditionalMenuItemNameModel(link.getLabel()),
+                            link.getTargetUrl(), urlClassMap.get(link.getTargetUrl()));
+                    menu.getItems().add(item);
                 }
             }
         }
@@ -1867,10 +1866,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         };
     }
 
-
+    @NotNull
     public AdminGuiConfigurationType loadAdminGuiConfiguration() {
         MidPointPrincipal user = SecurityUtils.getPrincipalUser();
-        AdminGuiConfigurationType adminGuiConfig = null;
+        AdminGuiConfigurationType adminGuiConfig = new AdminGuiConfigurationType();
         if (user == null) {
             return adminGuiConfig;
         } else {
@@ -2093,7 +2092,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     protected String determineDataLanguage() {
         AdminGuiConfigurationType config = loadAdminGuiConfiguration();
-        if (config != null && config.getPreferredDataLanguage() != null) {
+        if (config.getPreferredDataLanguage() != null) {
             if (PrismContext.LANG_JSON.equals(config.getPreferredDataLanguage())) {
                 return PrismContext.LANG_JSON;
             } else if (PrismContext.LANG_YAML.equals(config.getPreferredDataLanguage())) {

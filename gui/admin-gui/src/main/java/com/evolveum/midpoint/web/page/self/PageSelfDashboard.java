@@ -358,8 +358,7 @@ public class PageSelfDashboard extends PageSelf {
         if (user == null) {
             return new ArrayList<>();
         } else {
-            AdminGuiConfigurationType adminGuiConfig = ((PageBase) getPage()).loadAdminGuiConfiguration();
-            return adminGuiConfig != null ? adminGuiConfig.getUserDashboardLink() : new ArrayList<>();
+            return ((PageBase) getPage()).loadAdminGuiConfiguration().getUserDashboardLink();
         }
     }
 
