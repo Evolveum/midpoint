@@ -1462,7 +1462,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         addSystemMenuItem(systemItem, "PageAdmin.menu.top.configuration.adminGui",
                 PageSystemConfiguration.CONFIGURATION_TAB_ADMIN_GUI);
 
-        addMainMenuItem(item, "fa fa-address-book", "PageAdmin.menu.top.configuration.shadowsDetails", PageAccounts.class);
         addMainMenuItem(item, "fa fa-archive", "PageAdmin.menu.top.configuration.internals", PageInternals.class);
         addMainMenuItem(item, "fa fa-search", "PageAdmin.menu.top.configuration.repoQuery", PageRepositoryQuery.class);
         if (SystemConfigurationHolder.isExperimentalCodeEnabled()) {
