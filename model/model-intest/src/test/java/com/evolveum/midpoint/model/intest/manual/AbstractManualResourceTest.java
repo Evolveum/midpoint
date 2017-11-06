@@ -3200,6 +3200,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		OperationResult result = task.getResult();
 		
 		accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
+		dummyTransport.clearMessages();
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -3217,6 +3218,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		accountWillReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
 		assertAccountWillAfterAssign(TEST_NAME, expectedFullName);
+
+		display("dummy transport", dummyTransport);
 	}
 
 	private void assertAccountWillAfterAssign(final String TEST_NAME, String expectedFullName) throws Exception {

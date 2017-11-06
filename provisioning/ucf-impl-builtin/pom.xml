@@ -54,6 +54,11 @@
 			<version>3.6.1</version>
 		</dependency>
 		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>task-api</artifactId>
+			<version>3.6.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
 			<artifactId>ucf-api</artifactId>
 			<version>3.6.1</version>

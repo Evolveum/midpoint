@@ -27,20 +27,12 @@ import com.evolveum.midpoint.notifications.impl.helpers.ForkHelper;
 import com.evolveum.midpoint.notifications.impl.helpers.KindIntentFilterHelper;
 import com.evolveum.midpoint.notifications.impl.helpers.OperationFilterHelper;
 import com.evolveum.midpoint.notifications.impl.helpers.StatusFilterHelper;
-import com.evolveum.midpoint.notifications.impl.notifiers.AccountPasswordNotifier;
-import com.evolveum.midpoint.notifications.impl.notifiers.GeneralNotifier;
-import com.evolveum.midpoint.notifications.impl.notifiers.SimpleResourceObjectNotifier;
-import com.evolveum.midpoint.notifications.impl.notifiers.SimpleFocalObjectNotifier;
-import com.evolveum.midpoint.notifications.impl.notifiers.SimpleUserNotifier;
-import com.evolveum.midpoint.notifications.impl.notifiers.SimpleWorkflowNotifier;
-import com.evolveum.midpoint.notifications.impl.notifiers.UserPasswordNotifier;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -61,50 +53,14 @@ public class AggregatedEventHandler extends BaseHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(AggregatedEventHandler.class);
 
-    @Autowired
-    private CategoryFilterHelper categoryFilter;
-
-    @Autowired
-    private OperationFilterHelper operationFilter;
-
-    @Autowired
-    private StatusFilterHelper statusFilter;
-
-    @Autowired
-    private KindIntentFilterHelper kindIntentFilter;
-
-    @Autowired
-    private FocusTypeFilterHelper focusTypeFilterHelper;
-
-    @Autowired
-    private ExpressionFilterHelper expressionFilter;
-
-    @Autowired
-    private ChainHelper chainHelper;
-
-    @Autowired
-    private ForkHelper forkHelper;
-
-    @Autowired
-    protected SimpleFocalObjectNotifier simpleFocalObjectNotifier;
-
-    @Autowired
-    protected SimpleUserNotifier simpleUserNotifier;
-
-    @Autowired
-    protected SimpleResourceObjectNotifier simpleResourceObjectNotifier;
-
-    @Autowired
-    protected SimpleWorkflowNotifier simpleWorkflowNotifier;
-
-    @Autowired
-    protected UserPasswordNotifier userPasswordNotifier;
-
-    @Autowired
-    protected AccountPasswordNotifier accountPasswordNotifier;
-
-    @Autowired
-    protected GeneralNotifier generalNotifier;
+    @Autowired private CategoryFilterHelper categoryFilter;
+    @Autowired private OperationFilterHelper operationFilter;
+	@Autowired private StatusFilterHelper statusFilter;
+	@Autowired private KindIntentFilterHelper kindIntentFilter;
+	@Autowired private FocusTypeFilterHelper focusTypeFilterHelper;
+	@Autowired private ExpressionFilterHelper expressionFilter;
+	@Autowired private ChainHelper chainHelper;
+	@Autowired private ForkHelper forkHelper;
 
     @PostConstruct
     public void init() {
@@ -131,6 +87,7 @@ public class AggregatedEventHandler extends BaseHandler {
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleFocalObjectNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleResourceObjectNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleWorkflowNotifier(), notificationManager, task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleCaseManagementNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getUserPasswordNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getUserRegistrationNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getPasswordResetNotifier(), notificationManager, task, result);

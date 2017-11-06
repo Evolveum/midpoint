@@ -22,6 +22,8 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.casemgmt.api.CaseManager;
+import com.evolveum.midpoint.casemgmt.api.CaseManagerAware;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -39,6 +41,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskManagerAware;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -59,7 +64,7 @@ import com.evolveum.prism.xml.ns._public.types_3.*;
  *
  */
 @ManagedConnector(type="ManualConnector", version="1.0.0")
-public class ManualConnectorInstance extends AbstractManualConnectorInstance implements RepositoryAware {
+public class ManualConnectorInstance extends AbstractManualConnectorInstance implements RepositoryAware, CaseManagerAware, TaskManagerAware {
 	
 	public static final String OPERATION_QUERY_CASE = ".queryCase";
 	
@@ -68,6 +73,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	private ManualConnectorConfiguration configuration;
 	
 	private RepositoryService repositoryService;
+	private CaseManager caseManager;
+	private TaskManager taskManager;
 	
 	private boolean connected = false;
 	
@@ -101,7 +108,26 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	public void setRepositoryService(RepositoryService repositoryService) {
 		this.repositoryService = repositoryService;
 	}
-	
+
+	@Override
+	public void setCaseManager(CaseManager caseManager) {
+		this.caseManager = caseManager;
+	}
+
+	@Override
+	public CaseManager getCaseManager() {
+		return caseManager;
+	}
+
+	@Override
+	public void setTaskManager(TaskManager taskManager) {
+		this.taskManager = taskManager;
+	}
+
+	@Override
+	public TaskManager getTaskManager() {
+		return taskManager;
+	}
 
 	@Override
 	protected String createTicketAdd(PrismObject<? extends ShadowType> object,
@@ -238,6 +264,12 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		}
 		
 		repositoryService.addObject(acase, null, result);
+
+		// notifications
+		Task task = taskManager.createTaskInstance();
+		for (CaseWorkItemType workItem : caseType.getWorkItem()) {
+			caseManager.notifyWorkItemCreated(workItem, caseType, task, result);
+		}
 		return acase;
 	}
 	

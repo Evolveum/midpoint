@@ -49,7 +49,6 @@ import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.lang.BooleanUtils;
@@ -61,6 +60,7 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.Duration;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.evolveum.midpoint.task.api.TaskExecutionStatus.WAITING;
 
@@ -81,8 +81,8 @@ public class WfTaskController {
 
     private static final Object DOT_CLASS = WfTaskController.class.getName() + ".";
 
-    private Set<ProcessListener> processListeners = new HashSet<>();
-    private Set<WorkItemListener> workItemListeners = new HashSet<>();
+    private Set<ProcessListener> processListeners = ConcurrentHashMap.newKeySet();
+    private Set<WorkItemListener> workItemListeners = ConcurrentHashMap.newKeySet();
 
     @Autowired private WfTaskUtil wfTaskUtil;
     @Autowired private TaskManager taskManager;
