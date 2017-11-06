@@ -378,6 +378,11 @@ public class AdminGuiConfigTypeUtil {
 				return item;
 			}
 		}
+		for (T item: list) {
+			if (item.getType() == null) {
+				return item;
+			}
+		}
 		return null;
 	}
 
