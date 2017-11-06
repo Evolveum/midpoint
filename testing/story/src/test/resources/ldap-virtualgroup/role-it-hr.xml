@@ -64,7 +64,7 @@
 					<strength>strong</strength>
 					<source>
 						<name>roleName</name>
-						<!--  source seems to be OK when using metarole -->
+						<!--  source seems to be OK when using role (not meta) -->
 						<path>$source/name</path>
 					</source>
 					<expression>
