@@ -219,7 +219,7 @@ public class PagePreviewChanges extends PageAdmin {
 				savePerformed(target);
 			}
 		};
-		save.add(new EnableBehaviour(() -> !violationsEmpty()));
+		save.add(new EnableBehaviour(() -> violationsEmpty()));
 		mainForm.add(save);
 	}
 
