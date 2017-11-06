@@ -321,8 +321,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         OperationResult result = new OperationResult(OPERATION_GET_EXPORT_SIZE_LIMIT);
         try {
             AdminGuiConfigurationType adminGui = getModelInteractionService().getAdminGuiConfiguration(null, result);
-            if (adminGui != null && adminGui.getDefaultExportSettings() != null &&
-                    adminGui.getDefaultExportSettings().getSizeLimit() != null){
+            if (adminGui.getDefaultExportSettings() != null && adminGui.getDefaultExportSettings().getSizeLimit() != null) {
                 exportLimit = adminGui.getDefaultExportSettings().getSizeLimit();
             }
         } catch (Exception ex){

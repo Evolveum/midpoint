@@ -24,6 +24,7 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Interface that allows location of model and model-like services,
@@ -64,6 +65,7 @@ public interface ModelServiceLocator {
 	 * task and result parameters. And more importantly: this allows to
 	 * cache adminGuiConfig in the page (in case many components need it).
 	 */
+	@NotNull
 	AdminGuiConfigurationType getAdminGuiConfiguration();
 
 	default ObjectResolver getModelObjectResolver() {

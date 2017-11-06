@@ -87,8 +87,7 @@ private static final long serialVersionUID = 1L;
             	try {
 					AdminGuiConfigurationType adminGuiConfig = getPageBase().getModelInteractionService().getAdminGuiConfiguration(null,
 							new OperationResult(OPERATION_GET_EXPORT_SIZE_LIMIT));
-					if (adminGuiConfig != null && adminGuiConfig.getDefaultExportSettings() != null &&
-							adminGuiConfig.getDefaultExportSettings().getSizeLimit() != null){
+					if (adminGuiConfig.getDefaultExportSettings() != null && adminGuiConfig.getDefaultExportSettings().getSizeLimit() != null){
 						exportSizeLimit = adminGuiConfig.getDefaultExportSettings().getSizeLimit();
 					}
 				} catch (Exception ex){

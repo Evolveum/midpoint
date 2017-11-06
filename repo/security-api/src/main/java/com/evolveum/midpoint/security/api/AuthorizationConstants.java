@@ -179,9 +179,6 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_CONFIGURATION_ABOUT_QNAME = new QName(NS_AUTHORIZATION_UI, "configAbout");
 	public static final String AUTZ_UI_CONFIGURATION_ABOUT_URL = NS_AUTHORIZATION_UI + "#configAbout";
 
-	public static final QName AUTZ_UI_CONFIGURATION_SYNCHRONIZATION_ACCOUNTS_QNAME = new QName(NS_AUTHORIZATION_UI, "configSyncAccounts");
-	public static final String AUTZ_UI_CONFIGURATION_SYNCHRONIZATION_ACCOUNTS_URL = NS_AUTHORIZATION_UI + "#configSyncAccounts";
-
 	public static final QName AUTZ_UI_CONFIGURATION_QNAME = new QName(NS_AUTHORIZATION_UI, "configuration");
 	public static final String AUTZ_UI_CONFIGURATION_URL = NS_AUTHORIZATION_UI + "#configuration";
 

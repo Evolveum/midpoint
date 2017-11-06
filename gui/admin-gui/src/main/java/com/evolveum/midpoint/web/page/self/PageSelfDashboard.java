@@ -356,9 +356,9 @@ public class PageSelfDashboard extends PageSelf {
     private List<RichHyperlinkType> loadLinksList() {
         PrismObject<UserType> user = principalModel.getObject();
         if (user == null) {
-            return new ArrayList<RichHyperlinkType>();
+            return new ArrayList<>();
         } else {
-            return ((PageBase)getPage()).loadAdminGuiConfiguration().getUserDashboardLink();
+            return ((PageBase) getPage()).loadAdminGuiConfiguration().getUserDashboardLink();
         }
     }
 

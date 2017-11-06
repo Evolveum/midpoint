@@ -702,8 +702,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		}
 	}
 
+	@NotNull
 	@Override
 	public AdminGuiConfigurationType getAdminGuiConfiguration(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		AdminGuiConfigurationType config = getAdminGuiConfigurationInternal(task, parentResult);
+		return config != null ? config : new AdminGuiConfigurationType();
+	}
+
+	public AdminGuiConfigurationType getAdminGuiConfigurationInternal(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		MidPointPrincipal principal = null;
 		try {
 			principal = securityContextManager.getPrincipal();
