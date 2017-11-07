@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// current ace editor version v1.2.9
+
 var ACE_EDITOR_POSTFIX = "_editor";
 var DISABLED_CLASS = "disabled";
 $.aceEditors = {};

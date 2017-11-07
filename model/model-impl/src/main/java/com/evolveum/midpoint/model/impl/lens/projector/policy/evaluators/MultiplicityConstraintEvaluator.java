@@ -106,6 +106,9 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 		// TODO cache repository call results
 		if (isMin) {
 			Integer requiredMultiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getValue().getMultiplicity());
+			if (requiredMultiplicity == null) {
+				return null;
+			}
 			if (requiredMultiplicity <= 0) {
 				return null;            // unbounded or 0
 			}
@@ -123,6 +126,9 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 			return null;
 		} else {
 			Integer requiredMultiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getValue().getMultiplicity());
+			if (requiredMultiplicity == null) {
+				return null;
+			}
 			if (requiredMultiplicity < 0) {
 				return null;			// unbounded
 			}
