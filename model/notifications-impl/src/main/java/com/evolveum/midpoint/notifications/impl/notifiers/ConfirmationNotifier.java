@@ -110,9 +110,9 @@ public class ConfirmationNotifier extends GeneralNotifier {
 
 	protected UserType getUser(Event event){
 		ModelEvent modelEvent = (ModelEvent) event;
-        PrismObject<UserType> newUser = modelEvent.getFocusContext().getObjectNew();
-        UserType userType = newUser.asObjectable();
-        return userType;
+		//noinspection unchecked
+		PrismObject<UserType> newUser = (PrismObject<UserType>) modelEvent.getFocusContext().getObjectNew();
+		return newUser.asObjectable();
 	}
 
 

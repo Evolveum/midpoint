@@ -48,9 +48,9 @@
 
                                 log.info('Modifying user {}', input)
                                 def deltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
-                                .item(UserType.F_DESCRIPTION)
-                                .replace(userDescription)
-                                .asObjectDeltas(input.oid)
+                                    .item(UserType.F_DESCRIPTION)
+                                    .replace(userDescription)
+                                    .asObjectDeltas(input.oid)
                                 log.info('Change:\n{}', deltas.iterator().next().debugDump())
                                 midpoint.executeChanges(deltas, null)
                             </c:code>

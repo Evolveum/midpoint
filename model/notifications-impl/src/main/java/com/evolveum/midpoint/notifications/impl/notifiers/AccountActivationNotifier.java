@@ -98,7 +98,7 @@ public class AccountActivationNotifier extends ConfirmationNotifier {
 	}
 
 	private List<ShadowType> getShadowsToActivate(ModelEvent modelEvent) {
-		Collection<ModelElementContext> projectionContexts = modelEvent.getProjectionContexts();
+		Collection<? extends ModelElementContext> projectionContexts = modelEvent.getProjectionContexts();
 		return getMidpointFunctions().getShadowsToActivate(projectionContexts);
 	}
 

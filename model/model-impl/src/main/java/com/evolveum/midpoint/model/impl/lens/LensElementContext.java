@@ -780,4 +780,13 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	public PrismObject<O> getObjectCurrentOrOld() {
 		return objectCurrent != null ? objectCurrent : objectOld;
 	}
+
+	@Override
+	public boolean isOfType(Class<?> aClass) {
+		if (objectTypeClass != null && aClass.isAssignableFrom(objectTypeClass)) {
+			return true;
+		}
+		PrismObject<O> object = getObjectAny();
+		return object != null && aClass.isAssignableFrom(object.asObjectable().getClass());
+	}
 }

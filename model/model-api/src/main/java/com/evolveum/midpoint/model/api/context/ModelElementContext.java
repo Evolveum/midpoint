@@ -62,4 +62,5 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
 	 */
 	Collection<EvaluatedPolicyRule> getPolicyRules();
 
+	boolean isOfType(Class<?> aClass);
 }

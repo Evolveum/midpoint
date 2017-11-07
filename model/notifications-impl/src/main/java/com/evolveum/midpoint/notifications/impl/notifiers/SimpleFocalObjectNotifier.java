@@ -55,7 +55,7 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
             return false;
         }
         ModelEvent modelEvent = (ModelEvent) event;
-        if (modelEvent.getFocusContext() == null || !FocusType.class.isAssignableFrom(modelEvent.getFocusContext().getObjectTypeClass())) {
+        if (modelEvent.getFocusContext() == null || !modelEvent.getFocusContext().isOfType(FocusType.class)) {
             LOGGER.trace("{} is not applicable to non-focus related model operations, continuing in the handler chain", getClass().getSimpleName());
             return false;
         }
