@@ -679,9 +679,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		} catch (ObjectNotFoundException | SchemaException e) {
 			throw new SystemException("Cannot load GUI configuration: "+e.getMessage(), e);
 		}
-		if (adminGuiConfiguration == null) {
-			return null;
-		}
 		ObjectFormsType objectFormsType = adminGuiConfiguration.getObjectForms();
 		if (objectFormsType == null) {
 			return null;
