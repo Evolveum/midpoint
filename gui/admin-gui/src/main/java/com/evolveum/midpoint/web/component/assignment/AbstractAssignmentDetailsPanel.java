@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 /**
  * Created by honchar
  */
-public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extends BasePanel<ContainerValueWrapper<AssignmentType>>{
+public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extends BasePanel<ContainerValueWrapper<AssignmentType>> {
     private static final long serialVersionUID = 1L;
 
     private final static String ID_DISPLAY_NAME = "displayName";
@@ -68,8 +68,8 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
     }
 
     protected <C extends Containerable> void initLayout(){
-
-    	DisplayNamePanel<C> displayNamePanel = new DisplayNamePanel<C>(ID_DISPLAY_NAME, new AbstractReadOnlyModel<C>() {
+    	
+    	final AbstractReadOnlyModel<C> displayNameModel = new AbstractReadOnlyModel<C>() {
 
     		private static final long serialVersionUID = 1L;
 
@@ -90,11 +90,23 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
     			}
 
     			return null;
-
-
     		}
 
-    	});
+    	};
+
+    	DisplayNamePanel<C> displayNamePanel = new DisplayNamePanel<C>(ID_DISPLAY_NAME, displayNameModel) {
+    		
+	    	@Override
+			protected QName getRelation() {
+	    		// TODO: is this correct ?
+				AssignmentType assignment = AbstractAssignmentDetailsPanel.this.getModelObject().getContainerValue().getValue();
+				if (assignment.getTargetRef() != null) {
+					return assignment.getTargetRef().getRelation();
+				} else {
+					return null;
+				}
+			}
+    	};
 
     	displayNamePanel.setOutputMarkupId(true);
     	add(displayNamePanel);

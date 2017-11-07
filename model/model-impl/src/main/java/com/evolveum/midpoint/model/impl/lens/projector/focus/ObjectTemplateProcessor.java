@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -57,7 +58,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -164,6 +164,7 @@ public class ObjectTemplateProcessor {
 				objectTemplate, focusContext.getObjectNew(), iteration, iterationToken, phase);
 
 		Map<ItemPath,ObjectTemplateItemDefinitionType> itemDefinitionsMap = collectItemDefinitionsFromTemplate(objectTemplate, objectTemplateDesc, task, result);
+		focusContext.setItemDefinitionsMap(itemDefinitionsMap);
 
 		List<FocalMappingSpec> mappings = new ArrayList<>();
 		collectMappingsFromTemplate(context, mappings, objectTemplate, objectTemplateDesc, task, result);
@@ -251,6 +252,7 @@ public class ObjectTemplateProcessor {
 		return itemDeltas;
 	}
 
+	@NotNull
 	private Map<ItemPath, ObjectTemplateItemDefinitionType> collectItemDefinitionsFromTemplate(ObjectTemplateType objectTemplateType, String contextDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		Map<ItemPath, ObjectTemplateItemDefinitionType> definitions = new HashMap<>();
 		if (objectTemplateType == null) {
@@ -269,9 +271,7 @@ public class ObjectTemplateProcessor {
 			LOGGER.trace("Including template {}", includeObject);
 			ObjectTemplateType includeObjectType = includeObject.asObjectable();
 			Map<ItemPath, ObjectTemplateItemDefinitionType> includedDefinitions = collectItemDefinitionsFromTemplate(includeObjectType, "include "+includeObject+" in "+objectTemplateType + " in " + contextDesc, task, result);
-			if (includedDefinitions != null) {
-				ItemPathUtil.putAllToMap(definitions, includedDefinitions);
-			}
+			ItemPathUtil.putAllToMap(definitions, includedDefinitions);
 		}
 
 		// Process own definitions

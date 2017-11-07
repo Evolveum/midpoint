@@ -26,9 +26,7 @@
                 <q:filter>
                     <q:equal>
                         <q:path>name</q:path>
-                        <c:expression>
-                            <c:path>$userName</c:path>
-                        </c:expression>
+                        <q:value>administrator</q:value>
                     </q:equal>
                 </q:filter>
             </s:query>
@@ -39,33 +37,35 @@
                 <s:name>script</s:name>
                 <c:value xsi:type="c:ScriptExpressionEvaluatorType">
                     <c:code>
+                        import com.evolveum.midpoint.schema.constants.*
                         import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-                        import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder
+                        import com.evolveum.midpoint.prism.delta.builder.*
+                        import com.evolveum.midpoint.model.api.*
+                        def roleToAssignOid = '12345111-1111-2222-1111-121212111112'            // role-empty
 
-                        log.info('Modifying user {}', input)
-                        def deltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
-                            .item(UserType.F_DESCRIPTION)
-                            .replace(userDescription)
-                            .asObjectDeltas(input.oid)
-                        log.info('Change:\n{}', deltas.iterator().next().debugDump())
-                        midpoint.executeChanges(deltas, null)
+                        log.info('### {} - {}', input.name, input.fullName)
+
+                        assignmentsToAdd = []
+                        newAssignment = new AssignmentType()
+                        targetRef = new ObjectReferenceType()
+                        targetRef.setOid(roleToAssignOid)
+                        targetRef.setType(RoleType.COMPLEX_TYPE)
+                        newAssignment.setTargetRef(targetRef)
+                        assignmentsToAdd.add(newAssignment.asPrismContainerValue())
+
+                        // Suspicious code, see MID-4234. It is working here almost by chance.
+                        // E.g. if executed for user jack, it would fail because of SchemaException.
+                        // More correct is to replace FocusType.class with input.class here.
+                        def delta = DeltaBuilder.deltaFor(FocusType.class, prismContext)
+                                .item(FocusType.F_ASSIGNMENT).add(assignmentsToAdd)
+                                .asObjectDelta(input.oid)
+
+                        log.info('###   Going to execute delta  = {}', delta.debugDump())
+                        midpoint.modifyObject(delta)
+                        log.info('### Finished: {} - {}', input.getName(), input?.getFullName())
                     </c:code>
                 </c:value>
             </s:parameter>
         </s:action>
     </s:pipeline>
-    <s:variables>
-        <s:variable>
-            <s:name>userName</s:name>
-            <s:expression>
-                <c:path>$task/extension/userName</c:path>
-            </s:expression>
-        </s:variable>
-        <s:variable>
-            <s:name>userDescription</s:name>
-            <s:expression>
-                <c:path>$task/extension/userDescription</c:path>
-            </s:expression>
-        </s:variable>
-    </s:variables>
 </s:executeScript>

@@ -316,12 +316,12 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         	return false;
         }
         
-        PrismObject prismObject = (PrismObject) containerWrapper.getItem();
-        if (!ShadowType.class.isAssignableFrom(prismObject.getCompileTimeClass())) {
+        PrismContainer prismContainer = containerWrapper.getItem();
+        if (!ShadowType.class.isAssignableFrom(prismContainer.getCompileTimeClass())) {
             return false;
         }
 
-        PrismProperty objectChange = prismObject.findProperty(ShadowType.F_OBJECT_CHANGE);
+        PrismProperty objectChange = prismContainer.findProperty(ShadowType.F_OBJECT_CHANGE);
         if (objectChange == null || objectChange.getValue() == null) {
             return false;
         }
@@ -330,8 +330,9 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         ObjectDeltaType delta = (ObjectDeltaType) objectChange.getValue().getValue();
         try {
             for (ItemDeltaType itemDelta : delta.getItemDelta()) {
-                ItemDelta iDelta = DeltaConvertor.createItemDelta(itemDelta, (Class<? extends Objectable>)
-                        prismObject.getCompileTimeClass(), prismObject.getPrismContext());
+                //noinspection unchecked
+                ItemDelta iDelta = DeltaConvertor.createItemDelta(itemDelta, (Class<? extends Containerable>)
+                        prismContainer.getCompileTimeClass(), prismContainer.getPrismContext());
                 if (iDelta.getPath().equivalent(path)) {
                     return true;
                 }

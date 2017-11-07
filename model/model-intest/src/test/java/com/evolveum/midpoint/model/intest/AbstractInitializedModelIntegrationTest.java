@@ -222,6 +222,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		// User Templates
 		repoAddObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
 		repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_FILE, initResult);
+		repoAddObjectFromFile(USER_TEMPLATE_SCHEMA_CONSTRAINTS_FILE, initResult);
 		repoAddObjectFromFile(USER_TEMPLATE_INBOUNDS_FILENAME, initResult);
 		repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_INCLUDE_FILENAME, initResult);
         repoAddObjectFromFile(USER_TEMPLATE_ORG_ASSIGNMENT_FILENAME, initResult);

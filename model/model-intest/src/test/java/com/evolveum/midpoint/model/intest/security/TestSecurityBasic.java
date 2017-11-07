@@ -2257,7 +2257,9 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGlobalStateUntouched();
 	}
 
-
+	/**
+	 * MID-4183
+	 */
 	@Test
     public void test280AutzJackEndUser() throws Exception {
 		final String TEST_NAME = "test280AutzJackEndUser";
@@ -2490,7 +2492,12 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_ROLE_OWNER_ASSIGN_OID);
+        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
 
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        assertAssignments(user, 1);
+        assertLinks(user, 0);
+        
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         login(USER_JACK_USERNAME);
@@ -2503,7 +2510,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertModifyDeny();
         assertDeleteDeny();
 
-        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        user = getUser(USER_JACK_OID);
         assertAssignments(user, 1);
         assertAssignedRole(user, ROLE_ROLE_OWNER_ASSIGN_OID);
 

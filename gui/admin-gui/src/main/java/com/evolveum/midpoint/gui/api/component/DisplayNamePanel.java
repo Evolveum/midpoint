@@ -15,6 +15,10 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import java.util.Collection;
+
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -25,16 +29,24 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 
 	private static final long serialVersionUID = 1L;
 
-	private final static String ID_DESCRIPTION = "description";
     private final static String ID_TYPE_IMAGE = "typeImage";
-    private final static String ID_ASSIGNMENT_NAME = "assignmentName";
+    private final static String ID_DISPLAY_NAME = "displayName";
+    private final static String ID_IDENTIFIER = "identifier";
+    private final static String ID_RELATION = "relation";
+    private final static String ID_DESCRIPTION = "description";
 
 	public DisplayNamePanel(String id, IModel<C> model) {
 		super(id, model);
@@ -46,34 +58,36 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 		WebMarkupContainer typeImage = new WebMarkupContainer(ID_TYPE_IMAGE);
         typeImage.setOutputMarkupId(true);
         typeImage.add(AttributeModifier.append("class", createImageModel()));
-        typeImage.add(AttributeModifier.append("class", getAdditionalNameLabelStyleClass()));
         add(typeImage);
 
-        Label name = new Label(ID_ASSIGNMENT_NAME, createHeaderModel());
-        name.add(AttributeModifier.append("class", getAdditionalNameLabelStyleClass()));
+        Label name = new Label(ID_DISPLAY_NAME, createHeaderModel());
         name.setOutputMarkupId(true);
         add(name);
+        
+        Label identifier = new Label(ID_IDENTIFIER, createIdentifierModel());
+        identifier.setOutputMarkupId(true);
+        identifier.add(new VisibleBehaviour(() -> isIdentifierVisible()));
+        add(identifier);
+        
+        Label relation = new Label(ID_RELATION, Model.of(getRelationLabel()));
+        relation.setOutputMarkupId(true);
+        relation.add(new VisibleBehaviour(() -> isRelationVisible()));
+        add(relation);
 
         add(new Label(ID_DESCRIPTION, new PropertyModel<String>(getModel(), ObjectType.F_DESCRIPTION.getLocalPart())));
-
-
 	}
-
+	
 	private String createImageModel() {
 		if (getModelObject() == null){
 			return "";
 		}
-		if (ObjectType.class.isAssignableFrom(getModelObject().getClass())) {
-			return WebComponentUtil.createDefaultIcon((ObjectType) getModelObject());
+		if (ConstructionType.class.isAssignableFrom(getModelObject().getClass())) {
+			return WebComponentUtil.createDefaultColoredIcon(ResourceType.COMPLEX_TYPE);
 		}
 
 		return WebComponentUtil.createDefaultColoredIcon(getModelObject().asPrismContainerValue().getComplexTypeDefinition().getTypeName());
 
 	}
-
-	private IModel<String> getAdditionalNameLabelStyleClass() {
-        return Model.of("text-bold");
-    }
 
 	private IModel<String> createHeaderModel() {
 		// TODO: align with DisplayNameModel
@@ -89,8 +103,45 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 		}
 		return Model.of(name.getRealValue());
 	}
+	
+	private IModel<String> createIdentifierModel() {
+		if (getModelObject() == null){
+			return Model.of("");
+		}
+		if (AbstractRoleType.class.isAssignableFrom(getModelObject().getClass())) {
+			return Model.of(WebComponentUtil.getEffectiveName((ObjectType) getModelObject(), AbstractRoleType.F_IDENTIFIER));
+		}
+		return Model.of("");
+	}
 
+	private boolean isIdentifierVisible() {
+		if (getModelObject() == null){
+			return false;
+		}
+		if (AbstractRoleType.class.isAssignableFrom(getModelObject().getClass())) {
+			return getModelObject().asPrismContainerValue().findProperty(new ItemPath(AbstractRoleType.F_IDENTIFIER)) != null;
+		}
+		return false;
+	}
+	
+	// TODO: maybe move relation methods to subclass if we want this panel to be really reusable
+	
+	private boolean isRelationVisible() {
+		QName relation = getRelation();
+		return relation != null && !QNameUtil.match(SchemaConstants.ORG_DEFAULT, relation);
+	}
 
+	private String getRelationLabel() {
+		QName relation = getRelation();
+		if (relation == null) {
+			return "";
+		}
+		// TODO: localization?
+		return relation.getLocalPart();
+	}
 
-
+	protected QName getRelation() {
+		// To be overriden in subclasses
+		return null;
+	}
 }

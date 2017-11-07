@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
@@ -100,6 +101,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 
 	private static final String RESOURCE_DUMMY_CHANGED_FILE_NAME = "resource-dummy-changed";
 
+	protected static final String USER_CONSTRAINED_WRONG_FILE_NAME = "user-constrained-wrong";
 	protected static final String USER_HERMAN_FILE_NAME = "user-herman";
 	private static final String IMPORT_REF_FILE_NAME = "import-ref";
 	private static final String BAD_IMPORT_FILE_NAME = "import-bad";
@@ -137,6 +139,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 		super.initSystem(initTask, initResult);
 
 		repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
+		repoAddObjectFromFile(USER_TEMPLATE_SCHEMA_CONSTRAINTS_FILE, initResult);
 
 		// Just initialize the resource, do NOT import resource definition
 		dummyResourceCtl = DummyResourceContoller.create(null);
@@ -144,6 +147,8 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 		dummyResource = dummyResourceCtl.getDummyResource();
 
 		dummyConnector = findConnectorByTypeAndVersion(CONNECTOR_DUMMY_TYPE, CONNECTOR_DUMMY_VERSION, initResult);
+
+		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, "constrained", USER_TEMPLATE_SCHEMA_CONSTRAINTS_OID, initResult);
 	}
 
 	/**
@@ -753,6 +758,80 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 	}
 
 	@Test
+	public void test060ImportConstrainedWrongFullProcessing() throws Exception {
+		final String TEST_NAME = "test060ImportConstrainedWrongFullProcessing";
+		TestUtil.displayTestTitle(this,TEST_NAME);
+		// GIVEN
+
+		Task task = taskManager.createTaskInstance();
+		OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "." + TEST_NAME);
+		FileInputStream stream = new FileInputStream(getFile(USER_CONSTRAINED_WRONG_FILE_NAME, false));
+
+		ImportOptionsType importOptions = getDefaultImportOptions();
+		importOptions.setOverwrite(true);
+		importOptions.setKeepOid(true);
+		importOptions.setModelExecutionOptions(new ModelExecuteOptionsType().raw(false));
+
+		dummyAuditService.clear();
+
+		// WHEN
+		modelService.importObjectsFromStream(stream, getLanguage(), importOptions, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("Result after import", result);
+		for (OperationResult subresult : result.getSubresults().get(0).getSubresults()) {
+			assertFalse("Unexpected success in subresult", subresult.isSuccess());
+		}
+
+		assertUsers(6);     // none should be added
+
+		// Check audit
+		display("Audit", dummyAuditService);
+		dummyAuditService.assertRecords(2);
+		dummyAuditService.assertSimpleRecordSanity();
+		dummyAuditService.assertAnyRequestDeltas();
+		dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
+		dummyAuditService.assertExecutionMessage(0, "Expected at least 1 values of familyName, got 0");
+	}
+
+	@Test
+	public void test070ImportConstrainedWrong() throws Exception {
+		final String TEST_NAME = "test070ImportConstrainedWrong";
+		TestUtil.displayTestTitle(this,TEST_NAME);
+		// GIVEN
+
+		Task task = taskManager.createTaskInstance();
+		OperationResult result = new OperationResult(AbstractImportTest.class.getName() + "." + TEST_NAME);
+		FileInputStream stream = new FileInputStream(getFile(USER_CONSTRAINED_WRONG_FILE_NAME, false));
+
+		ImportOptionsType importOptions = getDefaultImportOptions();
+		importOptions.setOverwrite(true);
+		importOptions.setKeepOid(true);
+
+		dummyAuditService.clear();
+
+		// WHEN
+		modelService.importObjectsFromStream(stream, getLanguage(), importOptions, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("Result after import", result);
+		TestUtil.assertSuccess("Import has failed (result)", result);
+
+		assertUsers(7);     // one should be added
+
+		// Check audit
+		display("Audit", dummyAuditService);
+//		dummyAuditService.assertRecords(2);
+//		dummyAuditService.assertSimpleRecordSanity();
+//		dummyAuditService.assertAnyRequestDeltas();
+//		dummyAuditService.assertExecutionDeltas(1);
+//		dummyAuditService.assertHasDelta(ChangeType.ADD, UserType.class);
+//		dummyAuditService.assertExecutionSuccess();
+	}
+
+	@Test
 	public void test100GoodRefImport() throws Exception {
 		final String TEST_NAME = "test100GoodRefImport";
 		TestUtil.displayTestTitle(this,TEST_NAME);
@@ -813,7 +892,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, null, null, result);
 
 		AssertJUnit.assertNotNull(users);
-		AssertJUnit.assertEquals("Search returned unexpected results: "+users, 7, users.size());
+		AssertJUnit.assertEquals("Search returned unexpected results: "+users, 8, users.size());
 
 	}
 

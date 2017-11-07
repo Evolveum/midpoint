@@ -286,10 +286,10 @@ public class DeltaConvertor {
      * That's the reason this method needs schema and objectType (to locate the appropriate definitions).
      */
     public static <IV extends PrismValue,ID extends ItemDefinition> ItemDelta<IV,ID> createItemDelta(ItemDeltaType propMod,
-            Class<? extends Objectable> objectType, PrismContext prismContext) throws SchemaException {
-        Validate.notNull("No prismContext in DeltaConvertor.createItemDelta call");
-        PrismObjectDefinition<? extends Objectable> objectDefinition = prismContext.getSchemaRegistry().
-        		findObjectDefinitionByCompileTimeClass(objectType);
+            Class<? extends Containerable> objectType, PrismContext prismContext) throws SchemaException {
+        Validate.notNull(prismContext, "No prismContext in DeltaConvertor.createItemDelta call");
+        PrismContainerDefinition<? extends Containerable> objectDefinition = prismContext.getSchemaRegistry().
+        		findContainerDefinitionByCompileTimeClass(objectType);
         return createItemDelta(propMod, objectDefinition);
     }
 

@@ -495,10 +495,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	}
 
 	public void recompute() throws SchemaException {
-		PrismObject<O> base = objectCurrent;
-		if (base == null) {
-			base = objectOld;
-		}
+		PrismObject<O> base = getObjectCurrentOrOld();
     	ObjectDelta<O> delta = getDelta();
         if (delta == null) {
             // No change
@@ -778,5 +775,18 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 			return getObjectOld().getVersion();
 		}
 		return null;
+	}
+
+	public PrismObject<O> getObjectCurrentOrOld() {
+		return objectCurrent != null ? objectCurrent : objectOld;
+	}
+
+	@Override
+	public boolean isOfType(Class<?> aClass) {
+		if (objectTypeClass != null && aClass.isAssignableFrom(objectTypeClass)) {
+			return true;
+		}
+		PrismObject<O> object = getObjectAny();
+		return object != null && aClass.isAssignableFrom(object.asObjectable().getClass());
 	}
 }
