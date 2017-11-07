@@ -35,6 +35,8 @@ import java.util.List;
 
 /**
  * Created by honchar
+ *
+ * todo rewrite
  */
 public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPanel<T> {
     private static final String ID_INLINE_MENU_PANEL = "inlineMenuPanel";
@@ -49,10 +51,11 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
     protected void initLayout() {
         super.initLayout();
 
+        // wtf, magic numbers, lots of css ??
         InlineMenu inlineMenu = new InlineMenu(ID_INLINE_MENU_PANEL, menuItemsModel){
             @Override
             protected String getIconClass(){
-                return "fa fa-ellipsis-h";
+                return "fa fa-fw fa-ellipsis-h";
             }
            @Override
             protected String getAdditionalButtonClass(){
@@ -71,7 +74,7 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
 
            @Override
            protected String getMenuItemContainerStyle(){
-               return "margin-left: -37px; margin-bottom: -3px; list-style: none;";
+               return "margin-left: -40px; margin-bottom: -1px; list-style: none;";
             }
 
         };

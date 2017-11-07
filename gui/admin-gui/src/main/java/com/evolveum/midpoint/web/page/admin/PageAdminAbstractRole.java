@@ -61,8 +61,8 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 	}
 
 	@Override
-	protected void initializeModel(final PrismObject<T> objectToEdit) {
-		super.initializeModel(objectToEdit);
+	protected void initializeModel(final PrismObject<T> objectToEdit, boolean isReadonly) {
+		super.initializeModel(objectToEdit, isReadonly);
 		inducementsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
 			@Override
 			protected List<AssignmentEditorDto> load() {

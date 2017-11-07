@@ -230,6 +230,7 @@ public interface ModelInteractionService {
      * the current user is authorized to read the underlying objects or not. However, it will always return only
      * values applicable for current user, therefore the authorization might be considered to be implicit in this case.
      */
+    @NotNull
     AdminGuiConfigurationType getAdminGuiConfiguration(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     SystemConfigurationType getSystemConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;

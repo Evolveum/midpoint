@@ -19,17 +19,16 @@ package com.evolveum.midpoint.web.session;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.AccountDetailsSearchDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
 
 /**
  * @author lazyman
  */
 public class ConfigurationStorage implements PageStorage {
+
 	private static final long serialVersionUID = 1L;
 
 	private DebugSearchDto debugSearchDto;
-    private AccountDetailsSearchDto accountSearchDto;
 
     private ObjectPaging debugSearchPaging;
     private ObjectPaging accountDetailsPaging;
@@ -51,18 +50,6 @@ public class ConfigurationStorage implements PageStorage {
     public DebugSearchDto getDebugSearchDto() {
 		return debugSearchDto;
 	}
-
-    public AccountDetailsSearchDto getAccountSearchDto() {
-        if(accountSearchDto == null){
-            accountSearchDto = new AccountDetailsSearchDto();
-        }
-
-        return accountSearchDto;
-    }
-
-    public void setAccountSearchDto(AccountDetailsSearchDto accountSearchDto) {
-        this.accountSearchDto = accountSearchDto;
-    }
 
     @Override
     public ObjectPaging getPaging() {
@@ -93,7 +80,6 @@ public class ConfigurationStorage implements PageStorage {
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("ConfigurationStorage\n");
 		DebugUtil.debugDumpWithLabelLn(sb, "debugSearchDto", debugSearchDto, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "accountSearchDto", accountSearchDto, indent+1);
 		DebugUtil.debugDumpWithLabelLn(sb, "debugSearchPaging", debugSearchPaging, indent+1);
 		DebugUtil.debugDumpWithLabel(sb, "accountDetailsPaging", accountDetailsPaging, indent+1);
 		return sb.toString();

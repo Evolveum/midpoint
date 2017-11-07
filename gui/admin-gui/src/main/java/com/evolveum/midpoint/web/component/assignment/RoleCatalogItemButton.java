@@ -19,14 +19,25 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
+import com.evolveum.midpoint.web.page.admin.users.PageMergeObjects;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingKart;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -58,8 +69,11 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
     private static final String ID_DETAILS_LINK = "detailsLink";
     private static final String ID_DETAILS_LINK_LABEL = "detailsLinkLabel";
     private static final String ID_DETAILS_LINK_ICON = "detailsLinkIcon";
-
     private boolean plusIconClicked = false;
+
+    private static final String DOT_CLASS = RoleCatalogItemButton.class.getName() + ".";
+    private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
+    private static final Trace LOGGER = TraceManager.getTrace(RoleCatalogItemButton.class);
 
     public RoleCatalogItemButton(String id, IModel<AssignmentEditorDto> model){
         super(id, model);
@@ -252,15 +266,24 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
             return;
         }
         if (!plusIconClicked) {
-            PageParameters parameters = new PageParameters();
-            parameters.add(OnePageParameterEncoder.PARAMETER, assignment.getTargetRef().getOid());
+            OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT);
+            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_OBJECT);
+
+//            PageParameters parameters = new PageParameters();
+//            parameters.add(OnePageParameterEncoder.PARAMETER, assignment.getTargetRef().getOid());
 
             if (AssignmentEditorDtoType.ORG_UNIT.equals(assignment.getType())){
-                getPageBase().navigateToNext(PageOrgUnit.class, parameters);
+                PrismObject<OrgType> object = WebModelServiceUtils.loadObject(OrgType.class, assignment.getTargetRef().getOid(),
+                        getPageBase(), task, result);
+                getPageBase().navigateToNext(new PageOrgUnit(object, true));
             } else if (AssignmentEditorDtoType.ROLE.equals(assignment.getType())){
-                getPageBase().navigateToNext(PageRole.class, parameters);
+                PrismObject<RoleType> object = WebModelServiceUtils.loadObject(RoleType.class, assignment.getTargetRef().getOid(),
+                        getPageBase(), task, result);
+                getPageBase().navigateToNext(new PageRole(object, true));
             } else if (AssignmentEditorDtoType.SERVICE.equals(assignment.getType())){
-                getPageBase().navigateToNext(PageService.class, parameters);
+                PrismObject<ServiceType> object = WebModelServiceUtils.loadObject(ServiceType.class, assignment.getTargetRef().getOid(),
+                        getPageBase(), task, result);
+                getPageBase().navigateToNext(new PageService(object, true));
             }
         } else {
             plusIconClicked = false;

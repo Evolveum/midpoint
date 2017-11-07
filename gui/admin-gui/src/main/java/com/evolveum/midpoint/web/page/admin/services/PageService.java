@@ -50,6 +50,10 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
 		initialize(unitToEdit);
 	}
 
+	public PageService(final PrismObject<ServiceType> unitToEdit, boolean isReadonly) {
+		initialize(unitToEdit, isReadonly);
+	}
+
 	public PageService(PageParameters parameters) {
 		getPageParameters().overwriteWith(parameters);
 		initialize(null);
