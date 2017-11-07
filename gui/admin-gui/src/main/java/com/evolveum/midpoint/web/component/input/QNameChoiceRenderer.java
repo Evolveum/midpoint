@@ -28,6 +28,12 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
+/**
+ * This renderer shouldn't be used unless absolutely necessary. Think twice whether you need {@link QName}
+ * in your dropdown, because it's hard to translate {@link QName} values.
+ *
+ * Most of the time {@link com.evolveum.midpoint.schema.constants.ObjectTypes} and such should be used.
+ */
 public class QNameChoiceRenderer implements IChoiceRenderer<QName> {
 	private static final long serialVersionUID = 1L;
 
