@@ -31,6 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -466,6 +468,14 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 				.map(a -> a.getName())
 				.collect(Collectors.toCollection(HashSet::new));
 	}
+	
+	@Override
+	public Collection<? extends QName> getNamesOfAssociationsWithInboundExpressions() {
+		return getAssociationDefinitions().stream()
+				.filter(assocDef -> CollectionUtils.isNotEmpty(assocDef.getInboundMappingTypes()))
+				.map(a -> a.getName())
+				.collect(Collectors.toCollection(HashSet::new));
+	}
 
 	@Override
 	public ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings() {
@@ -698,4 +708,5 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	public boolean isReferenceMarker() {
 		return structuralObjectClassDefinition.isReferenceMarker();
 	}
+
 }

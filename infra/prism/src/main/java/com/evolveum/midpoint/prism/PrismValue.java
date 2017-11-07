@@ -241,6 +241,9 @@ public abstract class PrismValue implements IPrismValue {
 			return false;
 		}
 		for (V colVal: collection) {
+			if (colVal == null) {
+				return value == null;
+			}
 			if (colVal.equalsRealValue(value)) {
 				return true;
 			}

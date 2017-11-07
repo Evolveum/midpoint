@@ -106,6 +106,8 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 	Collection<QName> getNamesOfAssociations();
 
 	Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions();
+	
+	Collection<? extends QName> getNamesOfAssociationsWithInboundExpressions();
 	//endregion
 
 	//region General information ========================================================

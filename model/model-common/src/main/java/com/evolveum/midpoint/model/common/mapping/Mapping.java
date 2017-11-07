@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
@@ -51,6 +52,7 @@ import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
 import com.evolveum.midpoint.repo.common.expression.ValueSetDefinition;
+import com.evolveum.midpoint.repo.common.expression.VariableProducer;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -127,6 +129,8 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 
 	private String mappingContextDescription = null;
 
+	private VariableProducer variableProducer;
+	
 	// This is single-use only. Once evaluated it is not used any more
 	// it is remembered only for tracing purposes.
 	private Expression<V,D> expression;
@@ -150,6 +154,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		originObject = builder.originObject;
 		filterManager = builder.filterManager;
 		stringPolicyResolver = builder.valuePolicyResolver;
+		variableProducer = builder.variableProducer;
 		conditionMaskOld = builder.conditionMaskOld;
 		conditionMaskNew = builder.conditionMaskNew;
 		defaultReferenceTime = builder.defaultReferenceTime;
@@ -269,6 +274,10 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		return mappingType.isTolerant();
 	}
 
+	public boolean hasTargetRange() {
+		return mappingType.getTarget().getSet() != null;
+	}
+	
 	public boolean isConditionMaskOld() {
 		return conditionMaskOld;
 	}
@@ -465,11 +474,11 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 
 	private void checkRangeTarget(Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		QName name = outputPath.lastNamed().getName();
 		if (originalTargetValues == null) {
 			throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
 		}
 		ValueSetDefinitionType rangetSetDefType = mappingType.getTarget().getSet();
-		QName name = outputPath.lastNamed().getName();
 		ValueSetDefinition setDef = new ValueSetDefinition(rangetSetDefType, name, "range of "+name.getLocalPart()+" in "+getMappingContextDescription(), task, result);
 		setDef.init(expressionFactory);
 		for (V originalValue : originalTargetValues) {
@@ -1019,6 +1028,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		context.setDefaultTargetContext(getTargetContext());
 		context.setRefinedObjectClassDefinition(getRefinedObjectClassDefinition());
 		context.setMappingQName(mappingQName);
+		context.setVariableProducer(variableProducer);
 		conditionOutputTriple = expression.evaluate(context);
 	}
 
@@ -1040,6 +1050,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		context.setDefaultTargetContext(getTargetContext());
 		context.setRefinedObjectClassDefinition(getRefinedObjectClassDefinition());
 		context.setMappingQName(mappingQName);
+		context.setVariableProducer(variableProducer);
 		outputTriple = expression.evaluate(context);
 
 		if (outputTriple == null) {
@@ -1331,17 +1342,18 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		private MappingType mappingType;
 		private ObjectResolver objectResolver;
 		private SecurityContextManager securityContextManager;
-		private Source<?, ?> defaultSource;
+		private Source<?,?> defaultSource;
 		private D defaultTargetDefinition;
 		private ItemPath defaultTargetPath;
 		private Collection<V> originalTargetValues;
 		private ObjectDeltaObject<?> sourceContext;
 		private PrismObjectDefinition<?> targetContext;
-		private Collection<Source<?, ?>> sources = new ArrayList<>();
+		private Collection<Source<?,?>> sources = new ArrayList<>();
 		private OriginType originType;
 		private ObjectType originObject;
 		private FilterManager<Filter> filterManager;
 		private ValuePolicyResolver valuePolicyResolver;
+		private VariableProducer variableProducer;
 		private boolean conditionMaskOld = true;
 		private boolean conditionMaskNew = true;
 		private XMLGregorianCalendar now;
@@ -1430,6 +1442,11 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 
 		public Builder<V,D> valuePolicyResolver(ValuePolicyResolver val) {
 			valuePolicyResolver = val;
+			return this;
+		}
+		
+		public Builder<V,D> variableResolver(VariableProducer<V> variableProducer) {
+			this.variableProducer = variableProducer;
 			return this;
 		}
 
@@ -1544,6 +1561,10 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 
 		public ValuePolicyResolver getValuePolicyResolver() {
 			return valuePolicyResolver;
+		}
+		
+		public VariableProducer getVariableProducer() {
+			return variableProducer;
 		}
 
 		public boolean isConditionMaskOld() {
