@@ -1655,6 +1655,12 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		this.minor = value;
 	}
 
+	public void recordThrowableIfNeeded(Throwable t) {
+		if (isUnknown()) {
+			recordFatalError(t.getMessage(), t);
+		}
+	}
+
 	// primitive implementation - uncomment it if needed
 //    public OperationResult clone() {
 //        return CloneUtil.clone(this);

@@ -15,10 +15,9 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -36,6 +35,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -49,6 +49,10 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
 	transient private SecurityPolicyType securityPolicy;
 	transient private ObjectPolicyConfigurationType objectPolicyConfigurationType;
+
+	// extracted from the template(s)
+	// this is not to be serialized into XML, but let's not mark it as transient
+	@NotNull private Map<ItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap = new HashMap<>();
 
 	private int getProjectionWave() {
 		return getLensContext().getProjectionWave();
@@ -495,4 +499,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         }
     }
 
+	public void setItemDefinitionsMap(@NotNull Map<ItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap) {
+		this.itemDefinitionsMap = itemDefinitionsMap;
+	}
+
+	@NotNull
+	public Map<ItemPath, ObjectTemplateItemDefinitionType> getItemDefinitionsMap() {
+		return itemDefinitionsMap;
+	}
 }
