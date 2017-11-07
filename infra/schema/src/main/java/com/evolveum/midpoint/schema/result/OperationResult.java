@@ -591,8 +591,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
 		if (allNotApplicable && !getSubresults().isEmpty()) {
 			status = OperationResultStatus.NOT_APPLICABLE;
-		}
-		if (allSuccess && !getSubresults().isEmpty()) {
+		} else if (allSuccess && !getSubresults().isEmpty()) {
 			status = OperationResultStatus.SUCCESS;
 		} else {
 			status = newStatus;

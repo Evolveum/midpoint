@@ -27,7 +27,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
@@ -115,19 +115,6 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
         initItemButtons(mainForm);
     }
 
-    private VisibleEnableBehaviour claimableVisibleBehavior(boolean claimable) {
-        return new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                boolean p = claimable ? WorkItemsPageType.CLAIMABLE.equals(workItemsType) :
-                        !WorkItemsPageType.CLAIMABLE.equals(workItemsType);
-
-                return !WorkItemsPageType.ALL.equals(workItemsType) && p;
-            }
-        };
-    }
-
     private void initItemButtons(Form mainForm) {
         AjaxButton back = new AjaxButton(ID_BACK, createStringResource("pageWorkItems.button.back")) {
 
@@ -136,13 +123,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
                 backPerformed(target);
             }
         };
-        back.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return WorkItemsPageType.ATTORNEY.equals(workItemsType);
-            }
-        });
+        back.add(new VisibleBehaviour(() -> workItemsType == WorkItemsPageType.ATTORNEY));
         mainForm.add(back);
 
         AjaxButton claim = new AjaxButton(ID_CLAIM, createStringResource("pageWorkItems.button.claim")) {
@@ -152,7 +133,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
                 claimWorkItemsPerformed(target);
             }
         };
-        claim.add(claimableVisibleBehavior(true));
+        claim.add(new VisibleBehaviour(() -> workItemsType == WorkItemsPageType.CLAIMABLE));
         mainForm.add(claim);
 
         AjaxButton release = new AjaxButton(ID_RELEASE, createStringResource("pageWorkItems.button.release")) {
@@ -162,7 +143,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
                 releaseWorkItemsPerformed(target);
             }
         };
-        claim.add(claimableVisibleBehavior(false));
+        release.add(new VisibleBehaviour(() -> workItemsType == WorkItemsPageType.ALLOCATED_TO_ME));
         mainForm.add(release);
 
         // the following are shown irrespectively of whether the work item is assigned or not
@@ -279,6 +260,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
             return;
         }
 
+        int applicable = 0;
         OperationResult mainResult = new OperationResult(OPERATION_RELEASE_ITEMS);
         WorkflowService workflowService = getWorkflowService();
         for (WorkItemDto workItemDto : workItemDtoList) {
@@ -286,6 +268,9 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
             try {
                 workflowService.releaseWorkItem(workItemDto.getWorkItemId(), result);
                 result.computeStatusIfUnknown();
+                if (!result.isNotApplicable()) {
+                    applicable++;
+                }
             } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException e) {
                 result.recordPartialError("Couldn't release work item due to an unexpected exception.", e);
             }
@@ -293,12 +278,14 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
         if (mainResult.isUnknown()) {
             mainResult.recomputeStatus();
         }
-
-        if (mainResult.isSuccess()) {
-            mainResult.recordStatus(OperationResultStatus.SUCCESS, "The work item(s) have been successfully released.");
+        if (applicable == 0) {
+            warn(getString("pageWorkItems.message.noItemToBeReleased"));
+        } else {
+            if (mainResult.isSuccess()) {
+                mainResult.recordStatus(OperationResultStatus.SUCCESS, applicable + " work item(s) have been successfully released.");
+            }
+            showResult(mainResult);
         }
-
-        showResult(mainResult);
 
         resetWorkItemCountModel();
         target.add(this);

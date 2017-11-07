@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -213,7 +214,8 @@ public class WorkItemManager {
                 }
             }
             if (!candidateFound) {
-                throw new SystemException("It has no candidates to be offered to");
+            	result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "There are no candidates this work item can be offered to");
+                return;
             }
             taskService.unclaim(workItemId);
 			task = taskService.createTaskQuery().taskId(workItemId).singleResult();
