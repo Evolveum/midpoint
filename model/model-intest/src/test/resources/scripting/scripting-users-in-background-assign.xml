@@ -53,6 +53,9 @@
                         newAssignment.setTargetRef(targetRef)
                         assignmentsToAdd.add(newAssignment.asPrismContainerValue())
 
+                        // Suspicious code, see MID-4234. It is working here almost by chance.
+                        // E.g. if executed for user jack, it would fail because of SchemaException.
+                        // More correct is to replace FocusType.class with input.class here.
                         def delta = DeltaBuilder.deltaFor(FocusType.class, prismContext)
                                 .item(FocusType.F_ASSIGNMENT).add(assignmentsToAdd)
                                 .asObjectDelta(input.oid)
