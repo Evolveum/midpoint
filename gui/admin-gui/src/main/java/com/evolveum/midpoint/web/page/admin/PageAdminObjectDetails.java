@@ -186,17 +186,21 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 
 	public void initialize(final PrismObject<O> objectToEdit) {
-		initializeModel(objectToEdit);
+		initialize(objectToEdit, false);
+	}
+
+	public void initialize(final PrismObject<O> objectToEdit, boolean isReadonly) {
+		initializeModel(objectToEdit, isReadonly);
 		initLayout();
 	}
 
-	protected void initializeModel(final PrismObject<O> objectToEdit) {
+	protected void initializeModel(final PrismObject<O> objectToEdit, boolean isReadonly) {
 		objectModel = new LoadableModel<ObjectWrapper<O>>(false) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected ObjectWrapper<O> load() {
-				return loadObjectWrapper(objectToEdit);
+				return loadObjectWrapper(objectToEdit, isReadonly);
 			}
 		};
 
@@ -275,7 +279,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return getObjectOidParameter() != null;
 	}
 
-	protected ObjectWrapper<O> loadObjectWrapper(PrismObject<O> objectToEdit) {
+	protected ObjectWrapper<O> loadObjectWrapper(PrismObject<O> objectToEdit, boolean isReadonly) {
 		Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
 		OperationResult result = task.getResult();
 		PrismObject<O> object = null;
@@ -341,6 +345,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		loadParentOrgs(wrapper, task, result);
 
 		wrapper.setShowEmpty(!isEditingFocus());
+		wrapper.setReadonly(isReadonly);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Loaded focus wrapper:\n{}", wrapper.debugDump());
