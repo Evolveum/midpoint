@@ -582,14 +582,13 @@ public final class WebComponentUtil {
 		return focusTypeList;
 	}
 
-	// TODO: move to schema component
-	public static List<QName> createAssignableTypesList() {
-		List<QName> focusTypeList = new ArrayList<>();
+	public static List<ObjectTypes> createAssignableTypesList() {
+		List<ObjectTypes> focusTypeList = new ArrayList<>();
 
-		focusTypeList.add(ResourceType.COMPLEX_TYPE);
-		focusTypeList.add(OrgType.COMPLEX_TYPE);
-		focusTypeList.add(RoleType.COMPLEX_TYPE);
-		focusTypeList.add(ServiceType.COMPLEX_TYPE);
+		focusTypeList.add(ObjectTypes.RESOURCE);
+		focusTypeList.add(ObjectTypes.ORG);
+		focusTypeList.add(ObjectTypes.ROLE);
+		focusTypeList.add(ObjectTypes.SERVICE);
 
 		return focusTypeList;
 	}

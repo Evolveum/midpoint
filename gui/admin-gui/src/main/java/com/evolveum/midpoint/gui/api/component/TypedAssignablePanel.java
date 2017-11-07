@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -37,6 +38,7 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -85,26 +87,23 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
     private static final Trace LOGGER = TraceManager.getTrace(TypedAssignablePanel.class);
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
 
-    protected IModel<QName> typeModel;
-    
-//    private boolean multiselect = true;
-
+    protected IModel<ObjectTypes> typeModel;
 
 	public TypedAssignablePanel(String id, final Class<T> type) {
 		super(id);
-    	typeModel = new LoadableModel<QName>(false) {
+    	typeModel = new LoadableModel<ObjectTypes>(false) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected QName load() {
-				return compileTimeClassToQName(type);
+			protected ObjectTypes load() {
+				if (type == null) {
+					return null;
+				}
+
+				return ObjectTypes.getObjectType(type);
 			}
-
 		};
-		
-//		this.multiselect = multiselect;
-
 	}
 
 	@Override
@@ -116,16 +115,14 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		tablesContainer.setOutputMarkupId(true);
 		add(tablesContainer);
 
-		PopupObjectListPanel<T> listRolePanel = createObjectListPanel(ID_ROLE_TABLE, ID_SELECTED_ROLES, RoleType.COMPLEX_TYPE);
+		PopupObjectListPanel<T> listRolePanel = createObjectListPanel(ID_ROLE_TABLE, ID_SELECTED_ROLES, ObjectTypes.ROLE);
 		tablesContainer.add(listRolePanel);
-		PopupObjectListPanel<T> listResourcePanel = createObjectListPanel(ID_RESOURCE_TABLE, ID_SELECTED_RESOURCES, ResourceType.COMPLEX_TYPE);
+		PopupObjectListPanel<T> listResourcePanel = createObjectListPanel(ID_RESOURCE_TABLE, ID_SELECTED_RESOURCES, ObjectTypes.RESOURCE);
 		tablesContainer.add(listResourcePanel);
-		PopupObjectListPanel<T> listOrgPanel = createObjectListPanel(ID_ORG_TABLE, ID_SELECTED_ORGS, OrgType.COMPLEX_TYPE);
+		PopupObjectListPanel<T> listOrgPanel = createObjectListPanel(ID_ORG_TABLE, ID_SELECTED_ORGS, ObjectTypes.ORG);
 		tablesContainer.add(listOrgPanel);
-		PopupObjectListPanel<T> listServicePanel = createObjectListPanel(ID_SERVICE_TABLE, ID_SELECTED_SERVICES, ServiceType.COMPLEX_TYPE);
+		PopupObjectListPanel<T> listServicePanel = createObjectListPanel(ID_SERVICE_TABLE, ID_SELECTED_SERVICES, ObjectTypes.SERVICE);
 		tablesContainer.add(listServicePanel);
-
-
 
 		WebMarkupContainer countContainer = createCountContainer();
 		add(countContainer);
@@ -160,7 +157,8 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 	}
 
 	protected void initAssignmentParametersPanel(){
-		DropDownChoicePanel<QName> typeSelect = new DropDownChoicePanel<>(ID_TYPE, typeModel, Model.ofList(WebComponentUtil.createAssignableTypesList()), new QNameChoiceRenderer());
+		DropDownChoicePanel<ObjectTypes> typeSelect = new DropDownChoicePanel<>(
+				ID_TYPE, typeModel, Model.ofList(WebComponentUtil.createAssignableTypesList()), new EnumChoiceRenderer<>());
 		typeSelect.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 
 			private static final long serialVersionUID = 1L;
@@ -236,8 +234,8 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		target.add(get(ID_COUNT_CONTAINER));
 	}
 
-	private PopupObjectListPanel<T> createObjectListPanel(String id, final String countId, final QName type) {
-		PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(id, qnameToCompileTimeClass(type), true, getPageBase()) {
+	private PopupObjectListPanel<T> createObjectListPanel(String id, final String countId, final ObjectTypes type) {
+		PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(id, (Class) type.getClassDefinition(), true, getPageBase()) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -297,20 +295,6 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 	protected void addPerformed(AjaxRequestTarget target, List<T> selected, QName relation) {
 		getPageBase().hideMainPopup(target);
-	}
-
-	private Class qnameToCompileTimeClass(QName typeName) {
-		return getPageBase().getPrismContext().getSchemaRegistry().getCompileTimeClassForObjectType(typeName);
-	}
-
-	private QName compileTimeClassToQName(Class<T> type) {
-		PrismObjectDefinition<T> def = getPageBase().getPrismContext().getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(type);
-		if (def == null) {
-			return UserType.COMPLEX_TYPE;
-		}
-
-		return def.getTypeName();
 	}
 
 	@Override

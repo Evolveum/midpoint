@@ -49,6 +49,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private AuthenticationProvider authenticationProvider;
 
+    @Value("${auth.logout.url}")
+    private String authLogoutUrl;
+
     @Bean
     public WicketLoginUrlAuthenticationEntryPoint wicketAuthenticationEntryPoint() {
         return new WicketLoginUrlAuthenticationEntryPoint("/login");
@@ -69,9 +72,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         return filter;
     }
-
-    @Value("${auth.logout.url}")
-    private String authLogoutUrl;
 
     @Override
     public void configure(WebSecurity web) throws Exception {
