@@ -1,0 +1,96 @@
+<role
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+	oid="10000000-0000-0000-0000-000000006601">
+	<name>role-meta-ldap</name>
+	
+	<description>
+	creates two ldap objects for each assigend role:
+	* virtual-static-group
+	* groupOfURLs
+	
+	for induced users the role name ist just written to attribute description of user (description is multivalued)
+	magic behind  virtual-static-group and groupOfURLs shows membership of user to group (see isMemberOf in user and uniqueMember in group)
+	In real life application instead of description a custom attribute should do this job
+	</description>
+	
+	<inducement>
+		<construction>
+			<resourceRef type="c:ResourceType">
+				<filter xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+					<q:equal>
+						<q:path>name</q:path>
+						<q:value>Embedded Test OpenDJ</q:value>
+					</q:equal>
+				</filter>
+			</resourceRef>
+			<kind>entitlement</kind>
+			<intent>virtualstatic</intent>
+		</construction>
+	</inducement>
+	<inducement>
+		<construction>
+			<resourceRef type="c:ResourceType">
+				<filter xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+					<q:equal>
+						<q:path>name</q:path>
+						<q:value>Embedded Test OpenDJ</q:value>
+					</q:equal>
+				</filter>
+			</resourceRef>
+			<kind>generic</kind>
+			<intent>dynamic</intent>
+		</construction>
+	</inducement>
+	<inducement>
+		<construction>
+			<resourceRef type="c:ResourceType">
+				<filter xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+					<q:equal>
+						<q:path>name</q:path>
+						<q:value>Embedded Test OpenDJ</q:value>
+					</q:equal>
+				</filter>
+			</resourceRef>
+			<kind>account</kind>
+			<intent>default</intent>
+			<attribute>
+				<ref>ri:description</ref>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<name>roleName</name>
+						<!-- 
+						- no idea how to replace thisObject by assignmentPath
+						- immediateRole seems to be OK when using metarole
+						-->
+						<!--<path>$thisObject/name</path> -->
+						<path>$immediateRole/name</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								'dyngrp_'+ roleName.toString()
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+		</construction>
+		<condition>
+			<expression>
+				<script>
+					<code>
+						(focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.class)
+					</code>
+				</script>
+			</expression>
+		</condition>
+		<order>2</order>
+	</inducement>
+</role>
