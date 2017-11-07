@@ -40,7 +40,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -59,7 +58,6 @@ import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -95,7 +93,6 @@ import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.stringpolicy.AbstractValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
@@ -1949,16 +1946,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		MidPointAsserts.assertAssignedOrg(focus, orgOid, relation);
 	}
 
-	protected <F extends FocusType> void assertAssignedOrg(PrismObject<F> focus, String orgOid) {
-		MidPointAsserts.assertAssignedOrg(focus, orgOid);
+	protected <F extends FocusType> AssignmentType assertAssignedOrg(PrismObject<F> focus, String orgOid) {
+		return MidPointAsserts.assertAssignedOrg(focus, orgOid);
 	}
 
 	protected <F extends FocusType> void assertNotAssignedOrg(PrismObject<F> focus, String orgOid) {
 		MidPointAsserts.assertNotAssignedOrg(focus, orgOid);
 	}
 
-	protected void assertAssignedOrg(PrismObject<UserType> user, PrismObject<OrgType> org) {
-		MidPointAsserts.assertAssignedOrg(user, org.getOid());
+	protected AssignmentType assertAssignedOrg(PrismObject<UserType> user, PrismObject<OrgType> org) {
+		return MidPointAsserts.assertAssignedOrg(user, org.getOid());
 	}
 
 	protected void assertHasOrg(String userOid, String orgOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {

@@ -547,6 +547,7 @@ public class InboundProcessor {
         if (ItemPath.isNullOrEmpty(targetFocusItemPath)) {
         	throw new ConfigurationException("Empty target path in "+mapping.getContextDescription());
         }
+        boolean isAssignment = new ItemPath(FocusType.F_ASSIGNMENT).equivalent(targetFocusItemPath);
         Item targetFocusItem = null;
         if (focusNew != null) {
         	targetFocusItem = focusNew.findItem(targetFocusItemPath);
@@ -567,9 +568,7 @@ public class InboundProcessor {
     	//   values in ZERO set will be compared with existing values in user property
     	//                  the differences will be added to delta
 
-    	if (LOGGER.isTraceEnabled()) {
-    		LOGGER.trace("Inbound mapping for {} returned triple:\n{}", accountAttributeName, triple == null ? "null" : triple.debugDump());
-    	}
+	    LOGGER.trace("Inbound mapping for {} returned triple:\n{}", accountAttributeName, DebugUtil.debugDumpLazily(triple));
 
     	if (triple != null) {
 
@@ -585,8 +584,8 @@ public class InboundProcessor {
 
 	                //if property is not multi value replace existing attribute
 	                if (targetFocusItem != null && !targetFocusItem.getDefinition().isMultiValue() && !targetFocusItem.isEmpty()) {
-	                    Collection<V> replace = new ArrayList<V>();
-	                    replace.add((V) value.clone());
+	                    Collection<V> replace = new ArrayList<>();
+	                    replace.add(LensUtil.cloneAndApplyMetadata(value, isAssignment, inboundMappingType));
 	                    outputFocusItemDelta.setValuesToReplace(replace);
 
 						if (alreadyReplaced) {
@@ -595,7 +594,7 @@ public class InboundProcessor {
 							alreadyReplaced = true;
 						}
 	                } else {
-	                    outputFocusItemDelta.addValueToAdd(value.clone());
+	                    outputFocusItemDelta.addValueToAdd(LensUtil.cloneAndApplyMetadata(value, isAssignment, inboundMappingType));
 	                }
 	            }
 	        }
@@ -614,8 +613,9 @@ public class InboundProcessor {
 	        }
 
         	Item shouldBeItem = targetItemDef.instantiate();
-	    	shouldBeItem.addAll(PrismValue.cloneCollection(triple.getZeroSet()));
-	    	shouldBeItem.addAll(PrismValue.cloneCollection(triple.getPlusSet()));
+	        // added metadata is not a problem, as they are ignored when diffing
+	    	shouldBeItem.addAll(LensUtil.cloneAndApplyMetadata(triple.getZeroSet(), isAssignment, inboundMappingType));
+	    	shouldBeItem.addAll(LensUtil.cloneAndApplyMetadata(triple.getPlusSet(), isAssignment, inboundMappingType));
 	        if (targetFocusItem != null) {
 	            ItemDelta diffDelta = targetFocusItem.diff(shouldBeItem);
 	            if (LOGGER.isTraceEnabled()) {

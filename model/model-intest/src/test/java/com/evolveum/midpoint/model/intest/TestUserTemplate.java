@@ -27,6 +27,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -64,14 +65,6 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -237,8 +230,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-        assertAssignedRole(userJack, ROLE_PIRATE_OID);
-        assertAssignments(userJack, 2);
+	    AssignmentType pirateAssignment = assertAssignedRole(userJack, ROLE_PIRATE_OID);
+	    assertEquals("Wrong autoCreateIdentifier", "assignment-from-employeeType", pirateAssignment.getMetadata().getAutoCreateIdentifier());
+	    assertAssignments(userJack, 2);
 
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 2, userJackType.getLinkRef().size());
@@ -287,7 +281,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-        assertAssignedRole(userJack, ROLE_PIRATE_OID);
+		AssignmentType pirateAssignment = assertAssignedRole(userJack, ROLE_PIRATE_OID);
+		// the value was already there; so the identifier should remain intact
+		assertEquals("Wrong autoCreateIdentifier", "assignment-from-employeeType", pirateAssignment.getMetadata().getAutoCreateIdentifier());
         assertAssignments(userJack, 2);
 
         UserType userJackType = userJack.asObjectable();
@@ -674,8 +670,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-        assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+		AssignmentType rumAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+		assertEquals("Wrong autoCreateIdentifier", "Org mapping", rumAssignment.getMetadata().getAutoCreateIdentifier());
+		assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
         assertAssignments(userJack, 2);
 
         UserType userJackType = userJack.asObjectable();
@@ -710,8 +707,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+		AssignmentType offenseAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+		assertEquals("Wrong autoCreateIdentifier", "Org mapping", offenseAssignment.getMetadata().getAutoCreateIdentifier());
+		assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertAssignments(userJack, 2);
 
         UserType userJackType = userJack.asObjectable();
@@ -746,9 +744,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-        assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+		AssignmentType rumAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+		assertEquals("Wrong autoCreateIdentifier", "Org mapping", rumAssignment.getMetadata().getAutoCreateIdentifier());
+		AssignmentType offenseAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+		assertEquals("Wrong autoCreateIdentifier", "Org mapping", offenseAssignment.getMetadata().getAutoCreateIdentifier());
+		assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertAssignments(userJack, 3);
 
@@ -1166,7 +1166,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
 		display("User after", userAfter);
 
-		assertAssignedRole(userAfter, ROLE_THIEF_OID);
+		AssignmentType thiefAssignment = assertAssignedRole(userAfter, ROLE_THIEF_OID);
+		assertEquals("Wrong autoCreateIdentifier", "assignment-from-employeeType-thief", thiefAssignment.getMetadata().getAutoCreateIdentifier());
 	}
 
 	/**
@@ -1328,7 +1329,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 				createPolyString("Whateveric"),
 				createPolyString("AUTO-matic"));
 
-		assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
+		AssignmentType autoAssignment = assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
+		assertEquals("Wrong autoCreateIdentifier", "automappic", autoAssignment.getMetadata().getAutoCreateIdentifier());
 		assertAssignments(userAfter, 2);
 
 		assertRoles(getNumberOfRoles());

@@ -134,6 +134,14 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     	return getValue().asContainerable();
     }
 
+    public PrismContainerValue<C> getOrCreateValue() {
+		if (getValues().size() == 0) {
+			return createNewValue();
+		} else {
+			return getValue();
+		}
+    }
+
     public PrismContainerValue<C> getValue() {
     	if (getValues().size() == 1) {
     		return getValues().get(0);

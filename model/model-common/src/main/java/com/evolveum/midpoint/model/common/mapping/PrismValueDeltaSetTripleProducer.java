@@ -48,4 +48,9 @@ public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extend
 	 */
 	boolean isSourceless();
 
+	/**
+	 * Identifier of this producer; e.g. mapping name.
+	 */
+	String getIdentifier();
+
 }

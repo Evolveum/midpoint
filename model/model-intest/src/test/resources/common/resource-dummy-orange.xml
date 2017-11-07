@@ -183,6 +183,7 @@
                 <displayName>Gossip</displayName>
                 <tolerant>true</tolerant>
                 <inbound>
+					<name>gossip-inbound</name>
                 	<!-- Make this mapping tolerant. We so not want to remove existing assignments. -->
                 	<tolerant>true</tolerant>
                 	<expression>

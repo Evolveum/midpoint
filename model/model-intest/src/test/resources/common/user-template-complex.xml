@@ -149,6 +149,7 @@
 
 	<!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of employeeType property -->
     <mapping>
+		<name>assignment-from-employeeType</name>
     	<authoritative>true</authoritative>
     	<source>
     		<path>employeeType</path>
@@ -171,6 +172,7 @@
     
     <!-- copied the same mapping twice to check that it won't cause problems -->
     <mapping>
+		<name>assignment-from-employeeType-2</name>
     	<authoritative>true</authoritative>
     	<source>
     		<path>employeeType</path>
@@ -193,7 +195,8 @@
     
     <!-- similar mapping with assignmentTargetSearch and more sources -->
     <mapping>
-    	<trace>false</trace>
+		<name>assignment-from-employeeType-thief</name>
+		<trace>false</trace>
     	<authoritative>true</authoritative>
     	<source>
     		<path>employeeType</path>
@@ -228,13 +231,14 @@
          A single mapping with a condition that has an '||' operator internally will be more efficient.
          But this is using this way to check for situation in which the same value is added and removed at the same time. -->
     <mapping>
+		<name>assignment-from-employeeType-buccaneer</name>
     	<authoritative>true</authoritative>
     	<source>
     		<path>employeeType</path>
     	</source>
     	<expression>
             <value>
-                <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/>
+                <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- pirate -->
             </value>
     	</expression>
     	<target>
