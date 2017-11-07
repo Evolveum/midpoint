@@ -17,25 +17,22 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * @author semancik
@@ -237,11 +234,15 @@ public abstract class PrismValue implements IPrismValue {
 	}
 
 	public static <V extends PrismValue> boolean containsRealValue(Collection<V> collection, V value) {
+		return containsRealValue(collection, value, Function.identity());
+	}
+
+	public static <X, V extends PrismValue> boolean containsRealValue(Collection<X> collection, V value, Function<X, V> valueExtractor) {
 		if (collection == null) {
 			return false;
 		}
-		for (V colVal: collection) {
-			if (colVal.equalsRealValue(value)) {
+		for (X colVal: collection) {
+			if (valueExtractor.apply(colVal).equalsRealValue(value)) {
 				return true;
 			}
 		}

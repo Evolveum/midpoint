@@ -222,8 +222,8 @@ public class MidPointAsserts {
         }
     }
 
-	public static void assertAssignedOrg(PrismObject<? extends FocusType> focus, String orgOid) {
-		assertAssigned(focus, orgOid, OrgType.COMPLEX_TYPE);
+	public static AssignmentType assertAssignedOrg(PrismObject<? extends FocusType> focus, String orgOid) {
+		return assertAssigned(focus, orgOid, OrgType.COMPLEX_TYPE);
 	}
 
 	public static void assertNotAssignedOrg(PrismObject<? extends FocusType> focus, String orgOid) {

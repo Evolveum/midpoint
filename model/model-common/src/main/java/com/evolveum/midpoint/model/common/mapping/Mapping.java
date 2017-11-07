@@ -1315,6 +1315,11 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		return null;
 	}
 
+	@Override
+	public String getIdentifier() {
+		return mappingType != null ? mappingType.getName() : null;
+	}
+
 	/**
 	 * Builder is used to construct a configuration of Mapping object, which - after building - becomes
 	 * immutable.

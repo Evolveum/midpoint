@@ -87,6 +87,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
+import static java.util.Collections.singleton;
 
 /**
  * @author semancik
@@ -198,6 +199,8 @@ public class LensUtil {
     		boolean addUnchangedValues, boolean filterExistingValues, boolean isExclusiveStrong,
     		String contextDescription, boolean applyWeak) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
 
+		boolean isAssignment = new ItemPath(FocusType.F_ASSIGNMENT).equivalent(itemPath);
+
 		ItemDelta<V,D> itemDelta = itemDefinition.createEmptyDelta(itemPath);
 
 		Item<V,D> itemExisting = null;
@@ -238,10 +241,7 @@ public class LensUtil {
             Collection<ItemValueWithOrigin<V,D>> minusPvwos =
                     collectPvwosFromSet(value, triple.getMinusSet(), valueMatcher);
 
-            if (LOGGER.isTraceEnabled()) {
-            	LOGGER.trace("PVWOs for value {}:\nzero = {}\nplus = {}\nminus = {}",
-						value, zeroPvwos, plusPvwos, minusPvwos);
-            }
+	        LOGGER.trace("PVWOs for value {}:\nzero = {}\nplus = {}\nminus = {}", value, zeroPvwos, plusPvwos, minusPvwos);
 
             boolean zeroHasStrong = false;
             if (!zeroPvwos.isEmpty()) {
@@ -264,7 +264,7 @@ public class LensUtil {
             }
 
             PrismValueDeltaSetTripleProducer<V, D> exclusiveMapping = null;
-            Collection<ItemValueWithOrigin<V,D>> pvwosToAdd = null;
+            Collection<ItemValueWithOrigin<V,D>> pvwosToAdd;
             if (addUnchangedValues) {
                 pvwosToAdd = MiscUtil.union(zeroPvwos, plusPvwos);
             } else {
@@ -322,7 +322,7 @@ public class LensUtil {
                 	continue;
                 }
                 LOGGER.trace("Value {} added to delta as ADD for item {} in {}", value, itemPath, contextDescription);
-                itemDelta.addValueToAdd((V)value.clone());
+                itemDelta.addValueToAdd(cloneAndApplyMetadata(value, isAssignment, pvwosToAdd));
                 continue;
             }
 
@@ -404,7 +404,7 @@ public class LensUtil {
 	                if (hasStrong) {
 	                	LOGGER.trace("Value {} added to delta for item {} in {} because there is strong mapping in the zero set",
 								value, itemPath, contextDescription);
-	                    itemDelta.addValueToAdd((V)value.clone());
+	                    itemDelta.addValueToAdd(cloneAndApplyMetadata(value, isAssignment, zeroPvwos));
 	                    continue;
 	                }
 	            }
@@ -418,19 +418,20 @@ public class LensUtil {
 		if (!hasValue(itemNew, itemDelta)) {
 			// The application of computed delta results in no value, apply weak mappings
 			Collection<? extends ItemValueWithOrigin<V,D>> nonNegativePvwos = triple.getNonNegativeValues();
-			Collection<V> valuesToAdd = addWeakValues(nonNegativePvwos, OriginType.ASSIGNMENTS, applyWeak);
+			Collection<ItemValueWithOrigin<V,D>> valuesToAdd = selectWeakValues(nonNegativePvwos, OriginType.ASSIGNMENTS, applyWeak);
 			if (valuesToAdd.isEmpty()) {
-				valuesToAdd = addWeakValues(nonNegativePvwos, OriginType.OUTBOUND, applyWeak);
+				valuesToAdd = selectWeakValues(nonNegativePvwos, OriginType.OUTBOUND, applyWeak);
 			}
 			if (valuesToAdd.isEmpty()) {
-				valuesToAdd = addWeakValues(nonNegativePvwos, null, applyWeak);
+				valuesToAdd = selectWeakValues(nonNegativePvwos, null, applyWeak);
 			}
 			LOGGER.trace("No value for item {} in {}, weak mapping processing yielded values: {}",
 					itemPath, contextDescription, valuesToAdd);
-			itemDelta.addValuesToAdd(valuesToAdd);
+			for (ItemValueWithOrigin<V, D> valueWithOrigin : valuesToAdd) {
+				itemDelta.addValueToAdd(cloneAndApplyMetadata(valueWithOrigin.getItemValue(), isAssignment, singleton(valueWithOrigin)));
+			}
 		} else {
-			LOGGER.trace("Existing values for item {} in {}, weak mapping processing skipped",
-					new Object[]{itemPath, contextDescription});
+			LOGGER.trace("Existing values for item {} in {}, weak mapping processing skipped", itemPath, contextDescription);
 		}
 
 		if (itemExisting != null) {
@@ -441,16 +442,55 @@ public class LensUtil {
 		}
 
         return itemDelta;
-
     }
+
+	public static <V extends PrismValue, D extends ItemDefinition> V cloneAndApplyMetadata(V value, boolean isAssignment,
+			Collection<ItemValueWithOrigin<V, D>> origins) throws SchemaException {
+		return cloneAndApplyMetadata(value, isAssignment, () -> getAutoCreationIdentifier(origins));
+	}
+
+	public static <V extends PrismValue> Collection<V> cloneAndApplyMetadata(Collection<V> values, boolean isAssignment,
+			MappingType mapping) throws SchemaException {
+		List<V> rv = new ArrayList<>();
+		for (V value : values) {
+			rv.add(cloneAndApplyMetadata(value, isAssignment, mapping::getName));
+		}
+		return rv;
+	}
+
+	public static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
+			MappingType mapping) throws SchemaException {
+		return cloneAndApplyMetadata(value, isAssignment, mapping::getName);
+	}
+
+	private static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
+			Supplier<String> autoCreateIdentifierSupplier) throws SchemaException {
+		//noinspection unchecked
+		V cloned = (V) value.clone();
+		if (isAssignment && cloned instanceof PrismContainerValue) {
+			String autoCreationIdentifier = autoCreateIdentifierSupplier.get();
+			if (autoCreationIdentifier != null) {
+				//noinspection unchecked
+				PrismContainer<MetadataType> metadataContainer = ((PrismContainerValue) cloned).findOrCreateContainer(AssignmentType.F_METADATA);
+				metadataContainer.getOrCreateValue().asContainerable().setAutoCreateIdentifier(autoCreationIdentifier);
+			}
+		}
+		return cloned;
+	}
+
+	private static <V extends PrismValue, D extends ItemDefinition> String getAutoCreationIdentifier(Collection<ItemValueWithOrigin<V, D>> origins) {
+		// let's ignore conflicts (name1 vs name2, named vs unnamed) for now
+		for (ItemValueWithOrigin<V, D> origin : origins) {
+			if (origin.getMapping() != null && origin.getMapping().getIdentifier() != null) {
+				return origin.getMapping().getIdentifier();
+			}
+		}
+		return null;
+	}
 
 	private static <V extends PrismValue, D extends ItemDefinition> boolean hasValue(Item<V,D> item, ItemDelta<V,D> itemDelta) throws SchemaException {
 		if (item == null || item.isEmpty()) {
-			if (itemDelta != null && itemDelta.addsAnyValue()) {
-				return true;
-			} else {
-				return false;
-			}
+			return itemDelta != null && itemDelta.addsAnyValue();
 		} else {
 			if (itemDelta == null || itemDelta.isEmpty()) {
 				return true;
@@ -462,12 +502,12 @@ public class LensUtil {
 		}
 	}
 
-	private static <V extends PrismValue, D extends ItemDefinition> Collection<V> addWeakValues(Collection<? extends ItemValueWithOrigin<V,D>> pvwos, OriginType origin, boolean applyWeak) {
-		Collection<V> values = new ArrayList<V>();
+	private static <V extends PrismValue, D extends ItemDefinition> Collection<ItemValueWithOrigin<V,D>> selectWeakValues(Collection<? extends ItemValueWithOrigin<V,D>> pvwos, OriginType origin, boolean applyWeak) {
+		Collection<ItemValueWithOrigin<V,D>> values = new ArrayList<>();
 		for (ItemValueWithOrigin<V,D> pvwo: pvwos) {
 			if (pvwo.getMapping().getStrength() == MappingStrengthType.WEAK && applyWeak) {
 				if (origin == null || origin == pvwo.getItemValue().getOriginType()) {
-					values.add((V)pvwo.getItemValue().clone());
+					values.add(pvwo);
 				}
 			}
 		}

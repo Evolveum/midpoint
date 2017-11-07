@@ -1035,7 +1035,6 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
-                        <a:indexed>true</a:indexed>
 						<a:since>3.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -1048,7 +1047,6 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
-                        <a:indexed>true</a:indexed>
 						<a:since>3.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -1062,7 +1060,6 @@
 					</xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
-                        <!--<a:indexed>true</a:indexed>-->
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
 						<a:since>3.7</a:since>
                     </xsd:appinfo>
@@ -1080,6 +1077,21 @@
 						</p>
 						<p>
 							Only certifications that resulted in non-null outcome are taken into account.
+						</p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+						<a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="autoCreateIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+						<p>
+							Identifies the reason of automated creation of this object or assignment.
+							Currently it is the name of a mapping that caused creation of a given assignment.
+							In the future we might put here e.g. name of a policy rule or analogous entity.
 						</p>
                     </xsd:documentation>
                     <xsd:appinfo>

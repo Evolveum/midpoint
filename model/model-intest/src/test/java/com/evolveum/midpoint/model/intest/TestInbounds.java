@@ -22,9 +22,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -38,16 +36,12 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author katkav
@@ -118,8 +112,9 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 		display("User after", userJack);
 
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-        assertAssignedRole(userJack, ROLE_PIRATE_GREEN_OID);
-        assertAssignments(userJack, 1);
+	    AssignmentType pirateAssignment = assertAssignedRole(userJack, ROLE_PIRATE_GREEN_OID);
+	    assertEquals("Wrong autoCreateIdentifier", "pirate-assignment", pirateAssignment.getMetadata().getAutoCreateIdentifier());
+	    assertAssignments(userJack, 1);
 
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
@@ -160,8 +155,9 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 		display("User after", userJack);
 
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-        assertAssignedRole(userJack, ROLE_BUCCANEER_GREEN_OID);
-        assertAssignments(userJack, 1);
+		AssignmentType buccaneerAssignment = assertAssignedRole(userJack, ROLE_BUCCANEER_GREEN_OID);
+		assertEquals("Wrong autoCreateIdentifier", "buccaneer-assignment", buccaneerAssignment.getMetadata().getAutoCreateIdentifier());
+		assertAssignments(userJack, 1);
 
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
@@ -282,9 +278,10 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME,
         		USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
 
-        assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
-        assertAssignedRole(userAfter, ROLE_PIRATE_OID);
-        assertAssignments(userAfter, 2);
+		assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+		AssignmentType pirateAssignment = assertAssignedRole(userAfter, ROLE_PIRATE_OID);
+		assertEquals("Wrong autoCreateIdentifier", "gossip-inbound", pirateAssignment.getMetadata().getAutoCreateIdentifier());
+		assertAssignments(userAfter, 2);
         assertLinks(userAfter, 2);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
