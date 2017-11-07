@@ -75,8 +75,8 @@
         <appender xsi:type="c:FileAppenderConfigurationType" name="IDM_LOG"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
-            <fileName>${catalina.base}/logs/idm.log</fileName>
-            <filePattern>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</filePattern>
+            <fileName>${midpoint.home}/log/idm.log</fileName>
+            <filePattern>${midpoint.home}/log/idm-%d{yyyy-MM-dd}.%i.log</filePattern>
             <maxHistory>10</maxHistory>
             <maxFileSize>100MB</maxFileSize>
             <append>true</append>
@@ -85,8 +85,8 @@
         <appender xsi:type="c:FileAppenderConfigurationType" name="IDM-PROFILE_LOG"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <pattern>%date %level: %msg%n</pattern>
-            <fileName>${catalina.base}/logs/idm-profile.log</fileName>
-            <filePattern>${catalina.base}/logs/idm-profile-%d{yyyy-MM-dd}.%i.log</filePattern>
+            <fileName>${midpoint.home}/log/idm-profile.log</fileName>
+            <filePattern>${midpoint.home}/log/idm-profile-%d{yyyy-MM-dd}.%i.log</filePattern>
             <maxHistory>10</maxHistory>
             <maxFileSize>100MB</maxFileSize>
             <append>true</append>

@@ -28,12 +28,12 @@
         <!--and http://logback.qos.ch/manual/appenders.html#TimeBasedRollingPolicy-->
         <!--for further documentation-->
         <Append>true</Append>
-        <File>${midpoint.home}/logs/idm.log</File>
+        <File>${midpoint.home}/log/idm.log</File>
         <encoder>
             <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${midpoint.home}/logs/idm-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>${midpoint.home}/log/idm-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>100MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
@@ -48,12 +48,12 @@
         <!--and http://logback.qos.ch/manual/appenders.html#TimeBasedRollingPolicy-->
         <!--for further documentation-->
         <Append>true</Append>
-        <File>${midpoint.home}/logs/idm-profile.log</File>
+        <File>${midpoint.home}/log/idm-profile.log</File>
         <encoder>
             <pattern>%date %level: %msg%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${midpoint.home}/logs/idm-profile-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>${midpoint.home}/log/idm-profile-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>100MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
