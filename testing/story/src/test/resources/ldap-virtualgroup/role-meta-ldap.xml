@@ -63,19 +63,24 @@
 				<ref>ri:description</ref>
 				<outbound>
 					<strength>strong</strength>
-					<source>
-						<name>roleName</name>
-						<!-- 
-						- no idea how to replace thisObject by assignmentPath
-						- immediateRole seems to be OK when using metarole
-						-->
-						<!--<path>$thisObject/name</path> -->
-						<path>$immediateRole/name</path>
-					</source>
 					<expression>
 						<script>
+							<!-- 
+								the proto-role can also be expressed as:
+								assignmentPath.getFirstOrderChain()[-1].getName()
+								
+								assignmentPath.getFirstOrderChain(): the chain (hierarchy) of assignment/inducements
+								     as the "user" understands it. The metaroles are processed, so this pretends
+								     that there are no meta-roles and the high order inducement are placed
+								     directly in the roles in a plain role hierarchy.
+								                                     
+								assignmentPath.getFirstOrderChain()[-1]: last element of that chain. This 
+								     means the role immediately before this inducement in the hierarchy. This is
+								     the role to which this meta-role "applies" to. I.e. the role that would
+								     contain this inducement in case that metaroles were not used.
+							-->
 							<code>
-								'dyngrp_'+ roleName.toString()
+								'dyngrp_' + assignmentPath.getProtoRole().getName()
 							</code>
 						</script>
 					</expression>

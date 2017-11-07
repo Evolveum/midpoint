@@ -79,6 +79,15 @@ public interface AssignmentPath extends DebugDumpable, ShortDumpable {
 	 */
 	@NotNull
 	List<ObjectType> getFirstOrderChain();
+	
+	/**
+	 * In the context of meta-roles this is the role that the currently-processed inducement "applies to".
+	 * I.e. the role that would contain this inducement in case that meta-roles were not used.
+	 * Technically, this is the last element in the "first order chain" or roles.
+	 * 
+	 * Note: proto- is the opposite of meta-
+	 */
+	ObjectType getProtoRole();
 
 	AssignmentPathType toAssignmentPathType(boolean includeAssignmentsContent);
 
@@ -88,6 +97,11 @@ public interface AssignmentPath extends DebugDumpable, ShortDumpable {
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException {
 		return AssignmentPathUtil.collectExtensions(path, startAt, modelService, task, result);
+	}
+	
+	// Groovy [] operator
+	default AssignmentPathSegment getAt(int index) {
+		return getSegment(index);
 	}
 
 }
