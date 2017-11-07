@@ -19,11 +19,19 @@
 <wicket:panel>
     <div class="row">
     	<div class="container-fluid prism-container">
-            <div class="box-header ">
-                <i wicket:id="typeImage"></i>
-                <div class="box-title" wicket:id="assignmentName" />
-            </div>
-            <div wicket:id="description" />
+	    	<div class="info-box info-box-ethereal">
+	    		<div class="info-box-icon info-box-icon-ethereal">
+	    			<i class="info-box-icon-ethereal-image" wicket:id="typeImage"></i>
+	    		</div>
+	            <div class="info-box-content">
+	            	<span class="info-box-number">
+	            		<span class="summary-panel-display-name" wicket:id="displayName"/> 
+	            		<span class="summary-panel-identifier" wicket:enclosure="identifier">(<span wicket:id="identifier"/>)</span>
+	            	</span>
+	            	<span class="label bg-yellow relation-label" wicket:id="relation"/>
+	                <div class="info-box-description" wicket:id="description" />
+	            </div>
+	        </div>
         </div>
     </div>
 </wicket:panel>
