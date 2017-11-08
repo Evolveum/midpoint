@@ -38,8 +38,8 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFact
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.controller.ModelUtils;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
-import com.evolveum.midpoint.model.impl.lens.projector.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.sync.RecomputeTaskHandler;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
@@ -66,6 +66,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.security.api.OwnerResolver;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -1437,7 +1438,7 @@ public class Clockwork {
 
 			if (primaryDelta != null && !primaryDelta.isEmpty()) {
 				// TODO: optimize, avoid evaluating the constraints twice
-				securityEnforcer.authorize(operationUrl, getRequestAuthorizationPhase(context) , object, primaryDelta, null, ownerResolver, task, result);
+				securityEnforcer.authorize(operationUrl, getRequestAuthorizationPhase(context) , AuthorizationParameters.Builder.buildObjectDelta(object, primaryDelta), ownerResolver, task, result);
 			}
 
 			return securityConstraints;
@@ -1479,23 +1480,34 @@ public class Clockwork {
 					LOGGER.debug("{} of non-target assignment denied",
 							assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1));
 				}
-				securityEnforcer.failAuthorization("with assignment", getRequestAuthorizationPhase(context), object, null, null, result);
+				securityEnforcer.failAuthorization("with assignment", getRequestAuthorizationPhase(context), AuthorizationParameters.Builder.buildObject(object), result);
 				assert false;    // just to keep static checkers happy
 			}
 			// We do not worry about performance here too much. The target was already evaluated. This will be retrieved from repo cache anyway.
 			PrismObject<ObjectType> target = objectResolver.resolve(targetRef.asReferenceValue(), "resolving assignment target", task, result);
 
-			if (prohibitPolicies) {
-				if (changedAssignment.getPolicyRule() != null || !changedAssignment.getPolicyException().isEmpty() || !changedAssignment.getPolicySituation().isEmpty() || !changedAssignment.getTriggeredPolicyRule().isEmpty()) {
-					securityEnforcer.failAuthorization("with assignment because of policies in the assignment", getRequestAuthorizationPhase(context), object, null, target, result);
-				}
-			}
-
 			ObjectDelta<O> assignmentObjectDelta = object.createModifyDelta();
 			ContainerDelta<AssignmentType> assignmentDelta = assignmentObjectDelta.createContainerModification(FocusType.F_ASSIGNMENT);
 			// We do not care if this is add or delete. All that matters for authorization is that it is in a delta.
 			assignmentDelta.addValuesToAdd(changedAssignment.asPrismContainerValue().clone());
-			if (securityEnforcer.isAuthorized(assignActionUrl, getRequestAuthorizationPhase(context), object, assignmentObjectDelta, target, ownerResolver, task, result)) {
+			QName relation = targetRef.getRelation();
+			if (relation == null) {
+				relation = SchemaConstants.ORG_DEFAULT;
+			}
+			AuthorizationParameters<O,ObjectType> autzParams = new AuthorizationParameters.Builder<O,ObjectType>()
+					.object(object)
+					.delta(assignmentObjectDelta)
+					.target(target)
+					.relation(relation)
+					.build();
+			
+			if (prohibitPolicies) {
+				if (changedAssignment.getPolicyRule() != null || !changedAssignment.getPolicyException().isEmpty() || !changedAssignment.getPolicySituation().isEmpty() || !changedAssignment.getTriggeredPolicyRule().isEmpty()) {
+					securityEnforcer.failAuthorization("with assignment because of policies in the assignment", getRequestAuthorizationPhase(context), autzParams, result);
+				}
+			}
+
+			if (securityEnforcer.isAuthorized(assignActionUrl, getRequestAuthorizationPhase(context), autzParams, ownerResolver, task, result)) {
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("{} of target {} to {} allowed with {} authorization",
 							assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1),
@@ -1503,9 +1515,8 @@ public class Clockwork {
 				}
 				continue;
 			}
-			QName relation = targetRef.getRelation();
 			if (ObjectTypeUtil.isDelegationRelation(relation)) {
-				if (securityEnforcer.isAuthorized(ModelAuthorizationAction.DELEGATE.getUrl(), getRequestAuthorizationPhase(context), object, assignmentObjectDelta, target, ownerResolver, task, result)) {
+				if (securityEnforcer.isAuthorized(ModelAuthorizationAction.DELEGATE.getUrl(), getRequestAuthorizationPhase(context), autzParams, ownerResolver, task, result)) {
 					if (LOGGER.isDebugEnabled()) {
 						LOGGER.debug("{} of target {} to {} allowed with {} authorization",
 							assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1),
@@ -1519,7 +1530,7 @@ public class Clockwork {
 						assignActionUrl.substring(assignActionUrl.lastIndexOf('#')),
 						target, object);
 			}
-			securityEnforcer.failAuthorization("with assignment", getRequestAuthorizationPhase(context), object, null, target, result);
+			securityEnforcer.failAuthorization("with assignment", getRequestAuthorizationPhase(context),  autzParams, result);
 		}
 	}
 

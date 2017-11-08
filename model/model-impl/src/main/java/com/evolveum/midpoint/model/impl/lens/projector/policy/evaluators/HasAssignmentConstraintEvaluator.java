@@ -129,7 +129,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_POSITIVE)
-				.arg(ObjectTypeUtil.createTechnicalObjectSpecification(target))
+				.arg(ObjectTypeUtil.createDisplayInformation(target, false))
 				.arg(evaluatorHelper.createBeforeAfterMessage(ctx))
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
@@ -140,7 +140,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_POSITIVE)
-				.arg(ObjectTypeUtil.createObjectSpecification(target))
+				.arg(ObjectTypeUtil.createDisplayInformation(target, false))
 				.arg(evaluatorHelper.createBeforeAfterMessage(ctx))
 				.build();
 		return evaluatorHelper.createLocalizableShortMessage(constraint, ctx, builtInMessage, result);
@@ -151,7 +151,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_NEGATIVE)
-				.arg(ObjectTypeUtil.createObjectTypeSpecification(targetType))
+				.arg(ObjectTypeUtil.createTypeDisplayInformation(targetType, false))
 				.arg(targetOid)
 				.arg(evaluatorHelper.createBeforeAfterMessage(ctx))
 				.build();
@@ -163,7 +163,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_NEGATIVE)
-				.arg(ObjectTypeUtil.createObjectTypeSpecification(targetType))
+				.arg(ObjectTypeUtil.createTypeDisplayInformation(targetType, false))
 				.arg(targetOid)
 				.arg(evaluatorHelper.createBeforeAfterMessage(ctx))
 				.build();

@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author Radovan Semancik
@@ -48,8 +49,8 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	/**
 	 * Produces authorization error with proper message and logs it using proper logger.
 	 */
-	<O extends ObjectType, T extends ObjectType> void failAuthorization(String operationUrl, AuthorizationPhaseType phase, PrismObject<O> object,
-			ObjectDelta<O> delta, PrismObject<T> target, OperationResult result)
+	<O extends ObjectType, T extends ObjectType> void failAuthorization(String operationUrl, AuthorizationPhaseType phase, 
+			AuthorizationParameters<O,T> params, OperationResult result)
 			throws SecurityViolationException;
 
 	/**
@@ -58,7 +59,7 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	 * @param phase check authorization for a specific phase. If null then all phases are checked.
 	 */
 	<O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+			AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**
 	 * Evaluates authorization: simply returns if the currently logged it user is authorized for a
@@ -67,7 +68,7 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	 * @param phase check authorization for a specific phase. If null then all phases are checked.
 	 */
 	<O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver,
+			AuthorizationParameters<O,T> params, OwnerResolver ownerResolver,
 			Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 	<O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
@@ -81,9 +82,13 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	 * If object is present then the method will return a filter that is applicable to look for a target.
 	 *
 	 * The objectType parameter defines the class of the object for which should be the returned filter applicable.
+	 * 
+	 * @param limitAuthorizationAction only consider authorizations that are not limited with respect to this action.
+	 *              If null then all authorizations are considered.
 	 */
 	<T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
-			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter, 
+			String limitAuthorizationAction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**
 	 * @param includeSpecial include special authorizations such as "self"
@@ -96,4 +101,6 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	 */
 	<O extends ObjectType, R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(MidPointPrincipal midPointPrincipal,
 			String operationUrl, PrismObject<O> object, PrismObject<R> target, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+	
+	MidPointPrincipal createDonorPrincipal(MidPointPrincipal attorneyPrincipal, String attorneyAuthorizationAction, PrismObject<UserType> donor, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 }

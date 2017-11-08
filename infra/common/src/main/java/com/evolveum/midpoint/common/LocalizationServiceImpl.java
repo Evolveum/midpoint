@@ -48,6 +48,16 @@ public class LocalizationServiceImpl implements LocalizationService {
         sources.add(buildSource(SchemaConstants.BUNDLE_NAME, classLoader));
         sources.add(buildSource("localization/Midpoint", null));
         sources.add(buildSource(SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH, null));
+
+        // model security messages as fallback
+        ResourceBundleMessageSource modelSecurity = new ResourceBundleMessageSource();
+        modelSecurity.setBasename("com.evolveum.midpoint.security");
+        sources.add(modelSecurity);
+
+        // spring security messages as a fallback
+        ResourceBundleMessageSource springSecurity = new ResourceBundleMessageSource();
+        springSecurity.setBasename("org.springframework.security.messages");
+        sources.add(springSecurity);
     }
 
     @Override
@@ -63,6 +73,7 @@ public class LocalizationServiceImpl implements LocalizationService {
             try {
                 String value = source.getMessage(key, translated, locale);
                 if (StringUtils.isNotEmpty(value)) {
+                    //System.out.println("LSI: resolved [" + key + "] into [" + value + "]");
                     return value;
                 }
             } catch (NoSuchMessageException ex) {

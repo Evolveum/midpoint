@@ -36,6 +36,7 @@ public class LocalizationUtil {
 	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(
 			SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH);
 
+	// consider using LocalizationService instead
 	public static String resolve(String key) {
 		if (key != null && RESOURCE_BUNDLE.containsKey(key)) {
 			return RESOURCE_BUNDLE.getString(key);
@@ -44,6 +45,7 @@ public class LocalizationUtil {
 		}
 	}
 
+	// consider using LocalizationService instead
 	public static String resolve(String key, Object... params  ) {
 		if (key != null && RESOURCE_BUNDLE.containsKey(key)) {
 			return MessageFormat.format(RESOURCE_BUNDLE.getString(key), params);
@@ -115,5 +117,9 @@ public class LocalizationUtil {
 			}
 		}
 		return rv;
+	}
+
+	public static boolean isEmpty(LocalizableMessage message) {
+		return message == null || message.getKey() == null && message.getFallbackLocalizableMessage() == null && message.getFallbackMessage() == null;
 	}
 }

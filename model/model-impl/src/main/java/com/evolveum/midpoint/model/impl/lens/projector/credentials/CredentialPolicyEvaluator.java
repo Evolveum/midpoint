@@ -372,7 +372,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	private void addMetadataDelta() throws SchemaException {
 		Collection<? extends ItemDelta<?, ?>> metaDeltas = metadataManager.createModifyMetadataDeltas(
 				context, getCredentialsContainerPath().subPath(AbstractCredentialType.F_METADATA),
-				context.getFocusContext().getObjectDefinition(), now, task);
+				context.getFocusClass(), now, task);
 		for (ItemDelta<?, ?> metaDelta : metaDeltas) {
 			context.getFocusContext().swallowToSecondaryDelta(metaDelta);
 		}

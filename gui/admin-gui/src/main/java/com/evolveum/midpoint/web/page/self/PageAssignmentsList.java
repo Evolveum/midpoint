@@ -446,43 +446,41 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                     .previewChanges(WebComponentUtil.createDeltaCollection(delta), recomputeOptions, task, result);
             DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext
                     .getEvaluatedAssignmentTriple();
-            Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple
-                    .getPlusSet();
-            if (addedAssignments != null) {
-                for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
-                    for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
-                        for (EvaluatedPolicyRuleTrigger<?> trigger : policyRule.getAllTriggers()) {
-                            if (trigger instanceof EvaluatedExclusionTrigger) {
-                                EvaluatedExclusionTrigger exclusionTrigger = (EvaluatedExclusionTrigger) trigger;
-                                EvaluatedAssignment<F> conflictingAssignment = exclusionTrigger.getConflictingAssignment();
-                                PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>)evaluatedAssignment.getTarget();
-                                PrismObject<F> exclusionTargetObj = (PrismObject<F>)conflictingAssignment.getTarget();
+            Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple.getPlusSet();
+            for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
+                for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
+                    if (!policyRule.containsEnabledAction()) {
+                        continue;
+                    }
+                    // everything other than 'enforce' is a warning
+                    boolean isWarning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
+                    for (EvaluatedPolicyRuleTrigger<?> trigger : policyRule.getAllTriggers()) {
+                        if (trigger instanceof EvaluatedExclusionTrigger) {
+                            EvaluatedExclusionTrigger exclusionTrigger = (EvaluatedExclusionTrigger) trigger;
+                            EvaluatedAssignment<F> conflictingAssignment = exclusionTrigger.getConflictingAssignment();
+                            PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>)evaluatedAssignment.getTarget();
+                            PrismObject<F> exclusionTargetObj = (PrismObject<F>)conflictingAssignment.getTarget();
 
-                                AssignmentConflictDto<F> dto1 = new AssignmentConflictDto<>(exclusionTargetObj,
-                                        conflictingAssignment.getAssignmentType(true) != null);
-                                AssignmentConflictDto<F> dto2 = new AssignmentConflictDto<>(addedAssignmentTargetObj,
-                                        evaluatedAssignment.getAssignmentType(true) != null);
-                                // everything other than 'enforce' is a warning
-                                boolean isWarning = policyRule.containsEnabledAction()
-                                        && !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
-                                ConflictDto conflict = new ConflictDto(dto1, dto2, isWarning);
-                                String oid1 = exclusionTargetObj.getOid();
-                                String oid2 = addedAssignmentTargetObj.getOid();
-                                if (!conflictsMap.containsKey(oid1 + oid2) && !conflictsMap.containsKey(oid2 + oid1)) {
-                                    conflictsMap.put(oid1 + oid2, conflict);
-                                } else if (!isWarning) {
-                                    // error is stronger than warning, so we replace (potential) warnings with this error
-                                    // TODO Kate please review this
-                                    if (conflictsMap.containsKey(oid1 + oid2)) {
-                                        conflictsMap.replace(oid1 + oid2, conflict);
-                                    }
-                                    if (conflictsMap.containsKey(oid2 + oid1)) {
-                                        conflictsMap.replace(oid2 + oid1, conflict);
-                                    }
+                            AssignmentConflictDto<F> dto1 = new AssignmentConflictDto<>(exclusionTargetObj,
+                                    conflictingAssignment.getAssignmentType(true) != null);
+                            AssignmentConflictDto<F> dto2 = new AssignmentConflictDto<>(addedAssignmentTargetObj,
+                                    evaluatedAssignment.getAssignmentType(true) != null);
+                            ConflictDto conflict = new ConflictDto(dto1, dto2, isWarning);
+                            String oid1 = exclusionTargetObj.getOid();
+                            String oid2 = addedAssignmentTargetObj.getOid();
+                            if (!conflictsMap.containsKey(oid1 + oid2) && !conflictsMap.containsKey(oid2 + oid1)) {
+                                conflictsMap.put(oid1 + oid2, conflict);
+                            } else if (!isWarning) {
+                                // error is stronger than warning, so we replace (potential) warnings with this error
+                                // TODO Kate please review this
+                                if (conflictsMap.containsKey(oid1 + oid2)) {
+                                    conflictsMap.replace(oid1 + oid2, conflict);
+                                }
+                                if (conflictsMap.containsKey(oid2 + oid1)) {
+                                    conflictsMap.replace(oid2 + oid1, conflict);
                                 }
                             }
                         }
-
                     }
                 }
             }

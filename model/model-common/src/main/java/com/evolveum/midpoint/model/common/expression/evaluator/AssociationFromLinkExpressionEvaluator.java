@@ -22,6 +22,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.model.api.context.AssignmentPath;
+import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -84,16 +86,50 @@ public class AssociationFromLinkExpressionEvaluator
 			ExpressionEvaluationException, ObjectNotFoundException {
 
 		String desc = context.getContextDescription();
-		Object orderOneObject = context.getVariables().get(ExpressionConstants.VAR_ORDER_ONE_OBJECT);
-		if (orderOneObject == null) {
-			throw new ExpressionEvaluationException("No order one object variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
-		}
-		if (!(orderOneObject instanceof AbstractRoleType)) {
-			throw new ExpressionEvaluationException("Order one object variable in "+desc+" is not a role, it is "+orderOneObject.getClass().getName()
-					+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
-		}
-		AbstractRoleType thisRole = (AbstractRoleType)orderOneObject;
+		
+		AbstractRoleType thisRole;
+		
+		Integer assignmentPathIndex = evaluatorType.getAssignmentPathIndex();
+		if (assignmentPathIndex == null) {
+			// Legacy ... or default in simple cases
+			Object orderOneObject = context.getVariables().get(ExpressionConstants.VAR_ORDER_ONE_OBJECT);
+			if (orderOneObject == null) {
+				throw new ExpressionEvaluationException("No order one object variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
+			}
+			if (!(orderOneObject instanceof AbstractRoleType)) {
+				throw new ExpressionEvaluationException("Order one object variable in "+desc+" is not a role, it is "+orderOneObject.getClass().getName()
+						+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
+			}
+			
+			thisRole = (AbstractRoleType)orderOneObject;
+			
+		} else {
+			
+			AssignmentPath assignmentPath = (AssignmentPath) context.getVariables().get(ExpressionConstants.VAR_ASSIGNMENT_PATH);
+			if (assignmentPath == null) {
+				throw new ExpressionEvaluationException("No assignment path variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
+			}
+			
+			if (assignmentPath.isEmpty()) {
+				throw new ExpressionEvaluationException("Empty assignment path variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
+			}
 
+			LOGGER.info("ASSPATH {}:\n{}", evaluatorType.getDescription(), assignmentPath.debugDumpLazily(1));
+			
+			AssignmentPathSegment segment;
+			try {
+				segment = assignmentPath.getSegment(assignmentPathIndex);
+			} catch (IndexOutOfBoundsException e) {
+				throw new ExpressionEvaluationException("Wrong assignment path index in "+desc+"; Index "+assignmentPathIndex+" cannot be applied to a path of legth "+assignmentPath.size(), e);
+			}
+			
+			thisRole = (AbstractRoleType) segment.getSource();
+		}
+		
+		LOGGER.info("thisRole {}: {}", evaluatorType.getDescription(), thisRole);
+		
+		
+		
 		LOGGER.trace("Evaluating association from link on: {}", thisRole);
 
 		RefinedObjectClassDefinition rAssocTargetDef = (RefinedObjectClassDefinition) context.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);

@@ -1823,12 +1823,7 @@ public abstract class ShadowCache {
 					PrismProperty<?> newToken = change.getToken();
 					task.setExtensionProperty(newToken);
 					processedChanges++;
-					task.setProgress(task.getProgress() + 1); // because
-																// processedChanges
-																// are reflected
-																// into task
-																// only at task
-																// run finish
+					task.incrementProgressAndStoreStatsIfNeeded();
 					LOGGER.debug(
 							"Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
 					continue;
@@ -1845,24 +1840,16 @@ public abstract class ShadowCache {
                                 }     
                                 
 				if (!retryUnhandledError || isSuccess) {                                    
-					// // get updated token from change,
-					// // create property modification from new token
-					// // and replace old token with the new one
-					PrismProperty<?> newToken = change.getToken();
-					task.setExtensionProperty(newToken);
+					// get updated token from change, create property modification from new token and replace old token with the new one
+					task.setExtensionProperty(change.getToken());
 					processedChanges++;
-					task.setProgress(task.getProgress() + 1); // because
-																// processedChanges
-																// are reflected
-																// into task
-																// only at task
-																// run finish
+					task.incrementProgressAndStoreStatsIfNeeded();
 				}
 			}
 
 			// also if no changes was detected, update token
 			if (changes.isEmpty() && lastToken != null) {
-				LOGGER.trace("No changes to synchronize on " + ctx.getResource());
+				LOGGER.trace("No changes to synchronize on {}", ctx.getResource());
 				task.setExtensionProperty(lastToken);
 			}
 			task.savePendingModifications(parentResult);

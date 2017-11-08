@@ -527,7 +527,6 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
-<!--             <scope>runtime</scope> -->
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
@@ -536,12 +535,10 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
-            <!--<scope>runtime</scope>-->
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-ldap</artifactId>
-            <scope>runtime</scope>
         </dependency>
 
         <!--  WICKET DEPENDENCIES -->

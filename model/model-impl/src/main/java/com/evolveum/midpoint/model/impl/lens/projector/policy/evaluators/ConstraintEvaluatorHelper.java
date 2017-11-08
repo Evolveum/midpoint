@@ -40,9 +40,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.namespace.QName;
-
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createDisplayInformation;
 
 /**
  * @author mederly
@@ -53,19 +52,24 @@ public class ConstraintEvaluatorHelper {
 	@Autowired private PrismContext prismContext;
 	@Autowired protected ExpressionFactory expressionFactory;
 
+	// corresponds with PolicyRuleBasedAspect.processNameFromApprovalActions
 	public <F extends FocusType> ExpressionVariables createExpressionVariables(PolicyRuleEvaluationContext<F> rctx) {
 		ExpressionVariables var = new ExpressionVariables();
 		PrismObject<F> object = rctx.getObject();
 		var.addVariableDefinition(ExpressionConstants.VAR_USER, object);
 		var.addVariableDefinition(ExpressionConstants.VAR_FOCUS, object);
 		var.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object);
+		var.addVariableDefinition(ExpressionConstants.VAR_OBJECT_DISPLAY_INFORMATION, LocalizationUtil.createLocalizableMessageType(createDisplayInformation(object, false)));
 		if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
 			AssignmentPolicyRuleEvaluationContext actx = (AssignmentPolicyRuleEvaluationContext<F>) rctx;
-			var.addVariableDefinition(ExpressionConstants.VAR_TARGET, actx.evaluatedAssignment.getTarget());
+			PrismObject target = actx.evaluatedAssignment.getTarget();
+			var.addVariableDefinition(ExpressionConstants.VAR_TARGET, target);
+			var.addVariableDefinition(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION, LocalizationUtil.createLocalizableMessageType(createDisplayInformation(target, false)));
 			var.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment);
 			var.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, actx.evaluatedAssignment.getAssignmentType(actx.state == ObjectState.BEFORE));
 		} else {
 			var.addVariableDefinition(ExpressionConstants.VAR_TARGET, null);
+			var.addVariableDefinition(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION, null);
 			var.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null);
 			var.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, null);
 		}
@@ -90,32 +94,7 @@ public class ConstraintEvaluatorHelper {
 	public <F extends FocusType> LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		ExpressionVariables var = createExpressionVariables(rctx);
-		LocalizableMessageType rv = new LocalizableMessageType();
-		if (template.getKey() != null) {
-			rv.setKey(template.getKey());
-		} else if (template.getKeyExpression() != null) {
-			rv.setKey(evaluateString(template.getKeyExpression(), var, "localizable message key expression", rctx.task, result));
-		}
-		if (!template.getArgument().isEmpty() && !template.getArgumentExpression().isEmpty()) {
-			throw new IllegalArgumentException("Both argument and argumentExpression items are non empty");
-		} else if (!template.getArgumentExpression().isEmpty()) {
-			for (ExpressionType argumentExpression : template.getArgumentExpression()) {
-				String argument = evaluateString(argumentExpression, var,
-						"localizable message argument expression", rctx.task, result);
-				// TODO other argument types OR even localizable messages themselves!
-				rv.getArgument().add(new LocalizableMessageArgumentType().value(argument));
-			}
-		} else {
-			// TODO allow localizable messages templates here
-			rv.getArgument().addAll(template.getArgument());
-		}
-		if (template.getFallbackMessage() != null) {
-			rv.setFallbackMessage(template.getFallbackMessage());
-		} else if (template.getFallbackMessageExpression() != null) {
-			rv.setFallbackMessage(evaluateString(template.getFallbackMessageExpression(), var, "localizable message fallback expression", rctx.task, result));
-		}
-		return rv;
+		return LensUtil.createLocalizableMessageType(template, createExpressionVariables(rctx), expressionFactory, prismContext, rctx.task, result);
 	}
 
 	public <F extends FocusType> LocalizableMessage createLocalizableMessage(

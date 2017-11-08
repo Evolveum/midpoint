@@ -81,6 +81,15 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
         securityContext.setAuthentication(authentication);
     }
 
+	
+	
+	@Override
+	public void setupPreAuthenticatedSecurityContext(MidPointPrincipal principal) {
+		// Make sure that constructor with authorities is used. Otherwise the context will not be authenticated.
+		Authentication authentication = new PreAuthenticatedAuthenticationToken(principal, null, principal.getAuthorities());
+        setupPreAuthenticatedSecurityContext(authentication);
+	}
+
 	@Override
 	public void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) throws SchemaException {
 		MidPointPrincipal principal;
@@ -91,8 +100,7 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
 		} else {
 			principal = userProfileService.getPrincipal(user);
 		}
-		Authentication authentication = new PreAuthenticatedAuthenticationToken(principal, null);
-        setupPreAuthenticatedSecurityContext(authentication);
+		setupPreAuthenticatedSecurityContext(principal);
 	}
 	
 	@Override

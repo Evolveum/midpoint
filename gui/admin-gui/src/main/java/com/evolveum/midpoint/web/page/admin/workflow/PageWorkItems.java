@@ -16,19 +16,32 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -37,33 +50,64 @@ import java.util.List;
 public abstract class PageWorkItems extends PageAdminWorkItems {
 
     //private static final Trace LOGGER = TraceManager.getTrace(PageWorkItems.class);
+
     private static final String DOT_CLASS = PageWorkItems.class.getName() + ".";
+
     private static final String OPERATION_APPROVE_OR_REJECT_ITEMS = DOT_CLASS + "approveOrRejectItems";
     private static final String OPERATION_APPROVE_OR_REJECT_ITEM = DOT_CLASS + "approveOrRejectItem";
     private static final String OPERATION_CLAIM_ITEMS = DOT_CLASS + "claimItems";
     private static final String OPERATION_CLAIM_ITEM = DOT_CLASS + "claimItem";
     private static final String OPERATION_RELEASE_ITEMS = DOT_CLASS + "releaseItems";
     private static final String OPERATION_RELEASE_ITEM = DOT_CLASS + "releaseItem";
+    private static final String OPERATION_LOAD_DONOR = DOT_CLASS + "loadDonor";
+
     private static final String ID_WORK_ITEMS_PANEL = "workItemsPanel";
-
     private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_BACK = "back";
+    private static final String ID_CLAIM = "claim";
+    private static final String ID_RELEASE = "release";
+    private static final String ID_APPROVE = "approve";
+    private static final String ID_REJECT = "reject";
 
-    private boolean claimable;
-	private boolean all;
+    private WorkItemsPageType workItemsType;
 
-    public PageWorkItems(boolean claimable, boolean all) {
-        this.claimable = claimable;
-		this.all = all;
-        initLayout();
+    private IModel<PrismObject<UserType>> donorModel;
+
+    public PageWorkItems(WorkItemsPageType workItemsType) {
+        this.workItemsType = workItemsType;
+
+        donorModel = new LoadableModel<PrismObject<UserType>>(false) {
+
+            @Override
+            protected PrismObject<UserType> load() {
+                String oid = WebComponentUtil.getStringParameter(getPageParameters(), OnePageParameterEncoder.PARAMETER);
+
+                if (StringUtils.isEmpty(oid)) {
+                    return null;
+                }
+
+                Task task = createSimpleTask(OPERATION_LOAD_DONOR);
+                OperationResult result = task.getResult();
+
+                PrismObject<UserType> donor = WebModelServiceUtils.loadObject(UserType.class, oid,
+                        new ArrayList<>(), PageWorkItems.this, task, result);
+
+                return donor;
+            }
+        };
+
+        initLayout(donorModel);
     }
 
-    private void initLayout() {
+    private void initLayout(IModel<PrismObject<UserType>> donorModel) {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        WorkItemsPanel panel = new WorkItemsPanel(ID_WORK_ITEMS_PANEL, new WorkItemDtoProvider(PageWorkItems.this, claimable, all),
-                UserProfileStorage.TableId.PAGE_WORK_ITEMS, (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEMS),
-				WorkItemsPanel.View.FULL_LIST);
+        WorkItemsPanel panel = new WorkItemsPanel(ID_WORK_ITEMS_PANEL,
+                new WorkItemDtoProvider(PageWorkItems.this, workItemsType, donorModel),
+                UserProfileStorage.TableId.PAGE_WORK_ITEMS,
+                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEMS),
+                WorkItemsPanel.View.FULL_LIST);
 
         panel.setOutputMarkupId(true);
         mainForm.add(panel);
@@ -71,29 +115,58 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
         initItemButtons(mainForm);
     }
 
+    private VisibleEnableBehaviour claimableVisibleBehavior(boolean claimable) {
+        return new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                boolean p = claimable ? WorkItemsPageType.CLAIMABLE.equals(workItemsType) :
+                        !WorkItemsPageType.CLAIMABLE.equals(workItemsType);
+
+                return !WorkItemsPageType.ALL.equals(workItemsType) && p;
+            }
+        };
+    }
+
     private void initItemButtons(Form mainForm) {
-        AjaxButton claim = new AjaxButton("claim", createStringResource("pageWorkItems.button.claim")) {
+        AjaxButton back = new AjaxButton(ID_BACK, createStringResource("pageWorkItems.button.back")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                backPerformed(target);
+            }
+        };
+        back.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return WorkItemsPageType.ATTORNEY.equals(workItemsType);
+            }
+        });
+        mainForm.add(back);
+
+        AjaxButton claim = new AjaxButton(ID_CLAIM, createStringResource("pageWorkItems.button.claim")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 claimWorkItemsPerformed(target);
             }
         };
-        claim.setVisible(!all && claimable);
+        claim.add(claimableVisibleBehavior(true));
         mainForm.add(claim);
 
-        AjaxButton release = new AjaxButton("release", createStringResource("pageWorkItems.button.release")) {
+        AjaxButton release = new AjaxButton(ID_RELEASE, createStringResource("pageWorkItems.button.release")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 releaseWorkItemsPerformed(target);
             }
         };
-        release.setVisible(!all && !claimable);
+        claim.add(claimableVisibleBehavior(false));
         mainForm.add(release);
 
         // the following are shown irrespectively of whether the work item is assigned or not
-        AjaxButton approve = new AjaxButton("approve",
+        AjaxButton approve = new AjaxButton(ID_APPROVE,
                 createStringResource("pageWorkItems.button.approve")) {
 
             @Override
@@ -103,7 +176,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
         };
         mainForm.add(approve);
 
-        AjaxButton reject = new AjaxButton("reject",
+        AjaxButton reject = new AjaxButton(ID_REJECT,
                 createStringResource("pageWorkItems.button.reject")) {
 
             @Override
@@ -112,6 +185,16 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
             }
         };
         mainForm.add(reject);
+    }
+
+    private void backPerformed(AjaxRequestTarget target) {
+        PageParameters parameters = new PageParameters();
+
+        String oid = donorModel.getObject().getOid();
+        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+
+        PageAttorneySelection back = new PageAttorneySelection(parameters);
+        setResponsePage(back);
     }
 
     private boolean isSomeItemSelected(List<WorkItemDto> items, AjaxRequestTarget target) {
@@ -156,7 +239,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
         showResult(mainResult);
 
         resetWorkItemCountModel();
-		target.add(this);
+        target.add(this);
     }
 
     private void claimWorkItemsPerformed(AjaxRequestTarget target) {
@@ -186,8 +269,8 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
 
         showResult(mainResult);
 
-		resetWorkItemCountModel();
-		target.add(this);
+        resetWorkItemCountModel();
+        target.add(this);
     }
 
     private void releaseWorkItemsPerformed(AjaxRequestTarget target) {
@@ -217,7 +300,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
 
         showResult(mainResult);
 
-		resetWorkItemCountModel();
-		target.add(this);
+        resetWorkItemCountModel();
+        target.add(this);
     }
 }

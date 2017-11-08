@@ -143,12 +143,27 @@ public class MidPointAsserts {
 	public static <F extends FocusType> void assertAssignedRoles(PrismObject<F> user, String... roleOids) {
 		assertAssignedTargets(user, "roles", RoleType.COMPLEX_TYPE, roleOids);
 	}
+	
+	public static <F extends FocusType> void assertAssignedRoles(PrismObject<F> user, Collection<String> roleOids) {
+		assertAssignedTargets(user, "roles", RoleType.COMPLEX_TYPE, roleOids);
+	}
 
 	public static <F extends FocusType> void assertAssignedOrgs(PrismObject<F> user, String... orgOids) {
 		assertAssignedTargets(user, "orgs", OrgType.COMPLEX_TYPE, orgOids);
 	}
 
 	public static <F extends FocusType> void assertAssignedTargets(PrismObject<F> user, String typeDesc, QName type, String... expectedTargetOids) {
+		List<String> haveTagetOids = getAssignedOids(user, type);
+		PrismAsserts.assertSets("Wrong "+typeDesc+" in "+user, haveTagetOids, expectedTargetOids);
+	}
+	
+	public static <F extends FocusType> void assertAssignedTargets(PrismObject<F> user, String typeDesc, QName type, Collection<String> expectedTargetOids) {
+		List<String> haveTagetOids = getAssignedOids(user, type);
+		PrismAsserts.assertSets("Wrong "+typeDesc+" in "+user, haveTagetOids, expectedTargetOids);
+	}
+
+	
+	private static <F extends FocusType> List<String> getAssignedOids(PrismObject<F> user, QName type) {
 		F userType = user.asObjectable();
 		List<String> haveTagetOids = new ArrayList<>();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
@@ -159,7 +174,7 @@ public class MidPointAsserts {
 				}
 			}
 		}
-		PrismAsserts.assertSets("Wrong "+typeDesc+" in "+user, haveTagetOids, expectedTargetOids);
+		return haveTagetOids;
 	}
 
     public static <F extends FocusType> void assertNotAssignedResource(PrismObject<F> user, String resourceOid) {
@@ -207,8 +222,8 @@ public class MidPointAsserts {
         }
     }
 
-	public static void assertAssignedOrg(PrismObject<? extends FocusType> focus, String orgOid) {
-		assertAssigned(focus, orgOid, OrgType.COMPLEX_TYPE);
+	public static AssignmentType assertAssignedOrg(PrismObject<? extends FocusType> focus, String orgOid) {
+		return assertAssigned(focus, orgOid, OrgType.COMPLEX_TYPE);
 	}
 
 	public static void assertNotAssignedOrg(PrismObject<? extends FocusType> focus, String orgOid) {

@@ -160,7 +160,6 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         OperationResult opResult = task.getResult().createSubresult(OperationConstants.IMPORT_OBJECTS_FROM_FILE);
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(opResult);
-        runResult.setProgress(0);
 
         // Determine the input file from task extension
 

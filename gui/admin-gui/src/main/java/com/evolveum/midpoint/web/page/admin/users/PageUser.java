@@ -111,8 +111,8 @@ public class PageUser extends PageAdminFocus<UserType> {
     }
 
     @Override
-    protected void initializeModel(final PrismObject<UserType> objectToEdit) {
-        super.initializeModel(objectToEdit);
+    protected void initializeModel(final PrismObject<UserType> objectToEdit, boolean isReadonly) {
+        super.initializeModel(objectToEdit, isReadonly);
         delegationsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
             @Override
             protected List<AssignmentEditorDto> load() {

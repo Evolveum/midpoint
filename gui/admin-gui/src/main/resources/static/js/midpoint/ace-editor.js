@@ -48,6 +48,8 @@ function initEditor(textAreaId, readonly, resize, height, minHeight, mode) {
         enableBasicAutocompletion: true
     });
 
+    editor.getSession().setTabSize(4);
+
     editor.setTheme("ace/theme/eclipse");
     if (mode != null) {
         editor.getSession().setMode(mode);

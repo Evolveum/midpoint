@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
@@ -185,17 +186,21 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 
 	public void initialize(final PrismObject<O> objectToEdit) {
-		initializeModel(objectToEdit);
+		initialize(objectToEdit, false);
+	}
+
+	public void initialize(final PrismObject<O> objectToEdit, boolean isReadonly) {
+		initializeModel(objectToEdit, isReadonly);
 		initLayout();
 	}
 
-	protected void initializeModel(final PrismObject<O> objectToEdit) {
+	protected void initializeModel(final PrismObject<O> objectToEdit, boolean isReadonly) {
 		objectModel = new LoadableModel<ObjectWrapper<O>>(false) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected ObjectWrapper<O> load() {
-				return loadObjectWrapper(objectToEdit);
+				return loadObjectWrapper(objectToEdit, isReadonly);
 			}
 		};
 
@@ -258,7 +263,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	protected String getObjectOidParameter() {
 		PageParameters parameters = getPageParameters();
 		LOGGER.trace("Page parameters: {}", parameters);
-		StringValue oidValue = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+		StringValue oidValue = parameters.get(OnePageParameterEncoder.PARAMETER);
 		LOGGER.trace("OID parameter: {}", oidValue);
 		if (oidValue == null) {
 			return null;
@@ -274,7 +279,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return getObjectOidParameter() != null;
 	}
 
-	protected ObjectWrapper<O> loadObjectWrapper(PrismObject<O> objectToEdit) {
+	protected ObjectWrapper<O> loadObjectWrapper(PrismObject<O> objectToEdit, boolean isReadonly) {
 		Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
 		OperationResult result = task.getResult();
 		PrismObject<O> object = null;
@@ -340,6 +345,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		loadParentOrgs(wrapper, task, result);
 
 		wrapper.setShowEmpty(!isEditingFocus());
+		wrapper.setReadonly(isReadonly);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Loaded focus wrapper:\n{}", wrapper.debugDump());
@@ -673,9 +679,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		} catch (ObjectNotFoundException | SchemaException e) {
 			throw new SystemException("Cannot load GUI configuration: "+e.getMessage(), e);
 		}
-		if (adminGuiConfiguration == null) {
-			return null;
-		}
 		ObjectFormsType objectFormsType = adminGuiConfiguration.getObjectForms();
 		if (objectFormsType == null) {
 			return null;
@@ -704,5 +707,10 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 	public boolean isSaveOnConfigure() {
 		return saveOnConfigure;
+	}
+
+	public boolean isForcedPreview(){
+		GuiObjectDetailsPageType objectDetails = AdminGuiConfigTypeUtil.findObjectConfiguration(getCompileTimeClass(), getAdminGuiConfiguration());
+		return objectDetails != null && DetailsPageSaveMethodType.FORCED_PREVIEW.equals(objectDetails.getSaveMethod());
 	}
 }

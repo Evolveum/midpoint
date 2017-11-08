@@ -22,11 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -38,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -46,16 +43,16 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 
 /**
- * The task hander for automatic remediation.
+ * The task handler for automatic remediation.
  *
  * @author mederly
  */
 @Component
 public class AccessCertificationRemediationTaskHandler implements TaskHandler {
 
-	public static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TASK_PREFIX + "/remediation/handler-3";
+	private static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TASK_PREFIX + "/remediation/handler-3";
 
-    public static final String CLASS_DOT = AccessCertificationRemediationTaskHandler.class.getName() + ".";
+    private static final String CLASS_DOT = AccessCertificationRemediationTaskHandler.class.getName() + ".";
 
     @Autowired private TaskManager taskManager;
     @Autowired private CertificationManagerImpl certificationManager;
@@ -71,11 +68,18 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
 
+	@NotNull
+	@Override
+	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+		return new StatisticsCollectionStrategy()
+				.fromZero();
+		// implement iteration stats when needed
+	}
+
 	@Override
 	public TaskRunResult run(Task task) {
 		LOGGER.trace("Task run starting");
 
-		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(CLASS_DOT+"run");
         opResult.setSummarizeSuccesses(true);
 		TaskRunResult runResult = new TaskRunResult();
@@ -120,7 +124,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
                         caseHelper.markCaseAsRemedied(campaignOid, caseId, task, caseResult);
                         caseResult.computeStatus();
                         revokedOk++;
-						progress++;
+						task.incrementProgressAndStoreStatsIfNeeded();
                     } catch (Exception e) {     // TODO
                         String message = "Couldn't revoke case " + caseId + ": " + e.getMessage();
                         LoggingUtils.logUnexpectedException(LOGGER, message, e);
@@ -137,7 +141,6 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
             certificationManager.closeCampaign(campaignOid, task, opResult);
 
             runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-            runResult.setProgress(progress);
             LOGGER.trace("Task run stopping (campaign {})", ObjectTypeUtil.toShortString(campaign));
             return runResult;
 
@@ -145,7 +148,6 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
             LoggingUtils.logException(LOGGER, "Error while executing remediation task handler", e);
             opResult.recordFatalError("Error while executing remediation task handler: "+e.getMessage(), e);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            runResult.setProgress(progress);
             return runResult;
         }
 	}
@@ -170,7 +172,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
         return null;
     }
 
-    public void launch(AccessCertificationCampaignType campaign, Task callingTask, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+    public void launch(AccessCertificationCampaignType campaign, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
         LOGGER.info("Launching remediation task handler for campaign {} as asynchronous task", ObjectTypeUtil.toShortString(campaign));
 

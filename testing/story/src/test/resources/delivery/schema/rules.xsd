@@ -83,6 +83,13 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="roleRef" type="c:ObjectReferenceType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:indexed>false</a:indexed>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

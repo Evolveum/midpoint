@@ -24,7 +24,6 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -73,6 +72,7 @@ public class Validator {
 	private static final String END_LINE_NUMBER = "endLineNumber";
 	private boolean verbose = false;
 	private boolean validateSchemas = true;
+	private boolean validateName = true;
 	private boolean allowAnyType = false;
 	private EventHandler handler;
 	private PrismContext prismContext;
@@ -130,6 +130,14 @@ public class Validator {
 
 	public boolean getValidateSchema() {
 		return validateSchemas;
+	}
+
+	public boolean isValidateName() {
+		return validateName;
+	}
+
+	public void setValidateName(boolean validateName) {
+		this.validateName = validateName;
 	}
 
 	public void setAllowAnyType(boolean allowAnyType) {
@@ -262,7 +270,11 @@ public class Validator {
 					}
 					if (!cont.isCont()) {
 						if (stopAfterErrors > 0 && errors >= stopAfterErrors) {
-							validatorResult.recordFatalError("Too many errors (" + errors + ")");
+							if (errors == 1) {
+								validatorResult.recordFatalError("Stopping on error; " + (progress - errors) + " passed");
+							} else {
+								validatorResult.recordFatalError("Too many errors (" + errors + "); " + (progress - errors) + " passed");
+							}
 							return;
 						}
 					}
@@ -371,14 +383,11 @@ public class Validator {
 				return EventResult.skipObject(e.getMessage());
 			}
 
-			Objectable objectType = null;
-			if (object != null) {
-				objectType = object.asObjectable();
-				objectResult.addContext(OperationResult.CONTEXT_OBJECT, object.toString());
-			}
+			Objectable objectType = object.asObjectable();
+			objectResult.addContext(OperationResult.CONTEXT_OBJECT, object.toString());
 
 			if (verbose) {
-				LOGGER.trace("Processing OID " + objectType.getOid());
+				LOGGER.trace("Processing OID {}", objectType.getOid());
 			}
 
 			validateObject(objectType, objectResult);
@@ -479,13 +488,15 @@ public class Validator {
 
 	// BIG checks - checks that create subresults
 
-	void checkBasics(Objectable object, OperationResult objectResult) {
+	private void checkBasics(Objectable object, OperationResult objectResult) {
 		OperationResult subresult = objectResult.createSubresult(OPERATION_RESOURCE_BASICS_CHECK);
-		checkName(object, object.getName(), "name", subresult);
+		if (validateName) {
+			checkName(object, object.getName(), "name", subresult);
+		}
 		subresult.recordSuccessIfUnknown();
 	}
 
-	void checkResource(ResourceType resource, OperationResult objectResult) {
+	private void checkResource(ResourceType resource, OperationResult objectResult) {
 		OperationResult subresult = objectResult.createSubresult(OPERATION_RESOURCE_NAMESPACE_CHECK);
 		checkUri(resource, ResourceTypeUtil.getResourceNamespace(resource), "namespace", subresult);
 		subresult.recordSuccessIfUnknown();
@@ -493,7 +504,7 @@ public class Validator {
 
 	// Small checks - checks that don't create subresults
 
-	void checkName(Objectable object, PolyStringType value, String propertyName, OperationResult subResult) {
+	private void checkName(Objectable object, PolyStringType value, String propertyName, OperationResult subResult) {
 		// TODO: check for all whitespaces
 		// TODO: check for bad characters
 		if (value == null) {
@@ -506,7 +517,7 @@ public class Validator {
 		}
 	}
 
-	void checkUri(Objectable object, String value, String propertyName, OperationResult subResult) {
+	private void checkUri(Objectable object, String value, String propertyName, OperationResult subResult) {
 		// TODO: check for all whitespaces
 		// TODO: check for bad characters
 		if (StringUtils.isEmpty(value)) {
@@ -529,7 +540,7 @@ public class Validator {
 		subResult.recordFatalError(message);
 	}
 
-	void error(String message, Objectable object, String propertyName, OperationResult subResult) {
+	private void error(String message, Objectable object, String propertyName, OperationResult subResult) {
 		subResult.addContext(OperationResult.CONTEXT_OBJECT, object.toString());
 		subResult.addContext(OperationResult.CONTEXT_ITEM, propertyName);
 		subResult.recordFatalError("<" + propertyName + ">: " + message);

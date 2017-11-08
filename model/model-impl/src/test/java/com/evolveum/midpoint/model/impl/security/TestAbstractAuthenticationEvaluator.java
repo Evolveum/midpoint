@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.security;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -25,8 +24,10 @@ import java.io.File;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationMessageSource;
 import com.evolveum.midpoint.security.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
@@ -87,6 +88,9 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
 	protected static final String USER_GUYBRUSH_PASSWORD = "XmarksTHEspot";
 
+	@Autowired
+	private LocalizationMessageSource messageSource;
+	private MessageSourceAccessor messages;
 
 	@Autowired(required=true)
 	private UserProfileService userProfileService;
@@ -116,6 +120,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 
+		messages = new MessageSourceAccessor(messageSource);
+
 		((AuthenticationEvaluatorImpl)getAuthenticationEvaluator()).userProfileService = new UserProfileService() {
 
 			@Override
@@ -130,6 +136,13 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
 			@Override
 			public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException {
+				return getPrincipal(user, null, null);
+			}
+			
+			@Override
+			public MidPointPrincipal getPrincipal(PrismObject<UserType> user,
+					AuthorizationTransformer authorizationLimiter, OperationResult result)
+					throws SchemaException {
 				MidPointPrincipal principal = userProfileService.getPrincipal(user);
 				addFakeAuthorization(principal);
 				return principal;
@@ -141,6 +154,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 				addFakeAuthorization(principal);
 				return principal;
 			}
+
 		};
 	}
 
@@ -1042,31 +1056,31 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	}
 
 	private void assertBadPasswordException(BadCredentialsException e, String username) {
-		assertEquals("Wrong exception meessage (key)", "web.security.provider.invalid", e.getMessage());
+		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.invalid"), e.getMessage());
 	}
 
 	private void assertPasswordEncodingException(BadCredentialsException e, String principal) {
-		assertEquals("Wrong exception meessage (key)", "web.security.provider.password.encoding", e.getMessage());
+		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.password.encoding"), e.getMessage());
 	}
 
 	private void assertDeniedException(AccessDeniedException e, String principal) {
-		assertEquals("Wrong exception meessage (key)", "web.security.provider.access.denied", e.getMessage());
+		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.access.denied"), e.getMessage());
 	}
 
 	private void assertLockedException(LockedException e, String principal) {
-		assertEquals("Wrong exception meessage (key)", "web.security.provider.locked", e.getMessage());
+		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.locked"), e.getMessage());
 	}
 
 	private void assertDisabledException(DisabledException e, String principal) {
-		assertEquals("Wrong exception meessage (key)", "web.security.provider.disabled", e.getMessage());
+		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.disabled"), e.getMessage());
 	}
 
 	private void assertExpiredException(CredentialsExpiredException e, String principal) {
-		assertEquals("Wrong exception meessage (key)", "web.security.provider.password.bad", e.getMessage());
+		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.password.bad"), e.getMessage());
 	}
 
 	private void assertNoUserException(UsernameNotFoundException e, String principal) {
-		assertEquals("Wrong exception meessage (key)", "web.security.provider.invalid", e.getMessage());
+		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.invalid"), e.getMessage());
 	}
 
 	private ConnectionEnvironment createConnectionEnvironment() {

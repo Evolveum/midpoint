@@ -18,6 +18,7 @@ package com.evolveum.midpoint.task.quartzimpl;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.SUCCESS;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.UNKNOWN;
+import static java.util.Collections.singleton;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -150,7 +151,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     private StalledTasksWatcher stalledTasksWatcher = new StalledTasksWatcher(this);
 
     // task handlers (mapped from their URIs)
-    private Map<String,TaskHandler> handlers = new HashMap<String, TaskHandler>();
+    private Map<String,TaskHandler> handlers = new HashMap<>();
 
 	private final Set<TaskDeletionListener> taskDeletionListeners = new HashSet<>();
 
@@ -372,7 +373,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     @Override
     public boolean suspendTask(Task task, long waitTime, OperationResult parentResult) {
-        return suspendTasksResolved(oneItemSet(task), waitTime, parentResult);
+        return suspendTasksResolved(singleton(task), waitTime, parentResult);
     }
 
     @Override
@@ -551,8 +552,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	@Override
 	public Task createTaskInstance(String operationName) {
 		LightweightIdentifier taskIdentifier = generateTaskIdentifier();
-		TaskQuartzImpl taskImpl = new TaskQuartzImpl(this, taskIdentifier, operationName);
-		return taskImpl;
+		return new TaskQuartzImpl(this, taskIdentifier, operationName);
 	}
 
 	private LightweightIdentifier generateTaskIdentifier() {
@@ -704,10 +704,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         String oid;
         try {
 		     oid = repositoryService.addObject(taskPrism, null, result);
-        } catch (ObjectAlreadyExistsException e) {
-            result.recordFatalError("Couldn't add task to repository: " + e.getMessage(), e);
-            throw e;
-        } catch (SchemaException e) {
+        } catch (ObjectAlreadyExistsException | SchemaException e) {
             result.recordFatalError("Couldn't add task to repository: " + e.getMessage(), e);
             throw e;
         }
@@ -740,7 +737,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "suspendAndDeleteTasks");
         result.addArbitraryObjectCollectionAsParam("taskOids", taskOids);
 
-        List<Task> tasksToBeDeleted = new ArrayList<Task>();
+        List<Task> tasksToBeDeleted = new ArrayList<>();
         for (String oid : taskOids) {
             try {
                 Task task = getTask(oid, result);
@@ -866,37 +863,34 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 throw new IllegalStateException("Handler for lightweight task " + task + " couldn't be started because the task's state is " + task.getExecutionStatus());
             }
 
-            Runnable r = new Runnable() {
-                @Override
-                public void run() {
-                    LOGGER.debug("Lightweight task handler shell starting execution; task = {}", task);
+            Runnable r = () -> {
+                LOGGER.debug("Lightweight task handler shell starting execution; task = {}", task);
 
-                    try {
-	                    // Setup Spring Security context
-                    	securityContextManager.setupPreAuthenticatedSecurityContext(task.getOwner());
-                    } catch (SchemaException e) {
-                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't set up task security context {}", e, task);
-                        throw new SystemException(e.getMessage(), e);
-                    }
+                try {
+	                // Setup Spring Security context
+	                securityContextManager.setupPreAuthenticatedSecurityContext(task.getOwner());
+                } catch (SchemaException e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't set up task security context {}", e, task);
+                    throw new SystemException(e.getMessage(), e);
+                }
 
-                    try {
-                        task.setLightweightHandlerExecuting(true);
-                        lightweightTaskHandler.run(task);
-                    } catch (Throwable t) {
-                        LoggingUtils.logUnexpectedException(LOGGER, "Lightweight task handler has thrown an exception; task = {}", t, task);
-                    } finally {
-                        task.setLightweightHandlerExecuting(false);
-                    }
-                    LOGGER.debug("Lightweight task handler shell finishing; task = {}", task);
-                    try {
-                        // TODO what about concurrency here??!
-                        closeTask(task, task.getResult());
-                        // commented out, as currently LATs cannot participate in dependency relationships
-                        //task.checkDependentTasksOnClose(task.getResult());
-                        // task.updateStoredTaskResult();   // has perhaps no meaning for transient tasks
-                    } catch (Exception e) {     // todo
-                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't correctly close task {}", e, task);
-                    }
+                try {
+                    task.setLightweightHandlerExecuting(true);
+                    lightweightTaskHandler.run(task);
+                } catch (Throwable t) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Lightweight task handler has thrown an exception; task = {}", t, task);
+                } finally {
+                    task.setLightweightHandlerExecuting(false);
+                }
+                LOGGER.debug("Lightweight task handler shell finishing; task = {}", task);
+                try {
+                    // TODO what about concurrency here??!
+                    closeTask(task, task.getResult());
+                    // commented out, as currently LATs cannot participate in dependency relationships
+                    //task.checkDependentTasksOnClose(task.getResult());
+                    // task.updateStoredTaskResult();   // has perhaps no meaning for transient tasks
+                } catch (Exception e) {     // todo
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't correctly close task {}", e, task);
                 }
             };
 
@@ -1175,7 +1169,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             throw e;
         }
 
-        List<PrismObject<NodeType>> list = new ArrayList<PrismObject<NodeType>>();
+        List<PrismObject<NodeType>> list = new ArrayList<>();
 
         if (clusterStatusInformation != null) {
             for (PrismObject<NodeType> nodeInRepositoryPrism : nodesInRepository) {
@@ -1201,7 +1195,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
         LOGGER.trace("searchNodes returning {}", list);
         result.computeStatus();
-        return new SearchResultList(list);
+        return new SearchResultList<>(list);
     }
 
     private ClusterStatusInformation getClusterStatusInformation(Collection<SelectorOptions<GetOperationOptions>> options, Class<? extends ObjectType> objectClass, boolean allowCached, OperationResult result) {
@@ -1250,7 +1244,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             retval.add(taskInResult.asPrismObject());
         }
         result.computeStatus();
-        return new SearchResultList(retval);
+        return new SearchResultList<>(retval);
     }
 
     private TaskType addTransientTaskInformation(PrismObject<TaskType> taskInRepository, ClusterStatusInformation clusterStatusInformation,
@@ -1318,7 +1312,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Override
     public List<String> getAllTaskCategories() {
 
-        Set<String> categories = new HashSet<String>();
+        Set<String> categories = new HashSet<>();
         for (TaskHandler h : handlers.values()) {
             List<String> cat = h.getCategoryNames();
             if (cat != null) {
@@ -1779,7 +1773,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     List<Task> resolveTasksFromTaskTypes(List<PrismObject<TaskType>> taskPrisms, OperationResult result) throws SchemaException {
-        List<Task> tasks = new ArrayList<Task>(taskPrisms.size());
+        List<Task> tasks = new ArrayList<>(taskPrisms.size());
         for (PrismObject<TaskType> taskPrism : taskPrisms) {
             tasks.add(createTaskInstance(taskPrism, result));
         }
@@ -1874,6 +1868,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 executionTask.recordIterativeOperationEnd(taskName, null, TaskType.COMPLEX_TYPE, taskOid, started, t);
                 throw t;
             }
+	        executionTask.incrementProgressAndStoreStatsIfNeeded();
         }
         result.computeStatusIfUnknown();
 
@@ -1892,15 +1887,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     }
 
-    private<T> Set<T> oneItemSet(T item) {
-        Set<T> set = new HashSet<T>();
-        set.add(item);
-        return set;
-    }
-
-    // if there are problems with retrieving a task, we just log exception and put into operation result
+	// if there are problems with retrieving a task, we just log exception and put into operation result
     private List<Task> resolveTaskOids(Collection<String> oids, OperationResult parentResult) {
-        List<Task> retval = new ArrayList<Task>();
+        List<Task> retval = new ArrayList<>();
         OperationResult result = parentResult.createMinorSubresult(DOT_IMPL_CLASS + ".resolveTaskOids");
         for (String oid : oids) {
             try {

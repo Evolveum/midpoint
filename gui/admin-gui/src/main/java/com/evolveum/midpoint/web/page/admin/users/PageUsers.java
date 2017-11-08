@@ -266,10 +266,18 @@ public class PageUsers extends PageAdminUsers {
 	}
 
 	private List<InlineMenuItem> createRowActions(boolean isHeader) {
+    	int id = isHeader ?
+				InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_ENABLE.getMenuItemId() :
+				InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId();
+
 		List<InlineMenuItem> menu = new ArrayList<InlineMenuItem>();
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"),
-				new Model<Boolean>(false), new Model<Boolean>(false), false,
+		menu.add(new InlineMenuItem(
+				createStringResource("pageUsers.menu.enable"),
+				new Model<Boolean>(false),
+				new Model<Boolean>(false),
+				false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
+
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -281,10 +289,10 @@ public class PageUsers extends PageAdminUsers {
 							updateActivationPerformed(target, true, rowDto.getValue());
 						}
 					}
-				}, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_ENABLE.getMenuItemId()
-                : InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId(),
+				},
+				id,
 				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
-				DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS.toString()){
+				DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS.toString()) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -294,11 +302,10 @@ public class PageUsers extends PageAdminUsers {
 			}
 
 			@Override
-			public IModel<String> getConfirmationMessageModel(){
+			public IModel<String> getConfirmationMessageModel() {
 				String actionName = createStringResource("pageUsers.message.enableAction").getString();
 				return PageUsers.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 			}
-
 		});
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.disable"),

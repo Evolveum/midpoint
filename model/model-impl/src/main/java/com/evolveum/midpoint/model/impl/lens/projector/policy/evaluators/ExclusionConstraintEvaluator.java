@@ -146,8 +146,8 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 
 		AssignmentPath pathA = policyRule.getAssignmentPath();
 		AssignmentPath pathB = targetB.getAssignmentPath();
-		String infoA = computeAssignmentInfo(pathA, assignmentA.getTarget());
-		String infoB = computeAssignmentInfo(pathB, targetB.getTarget());
+		LocalizableMessage infoA = createObjectInfo(pathA, assignmentA.getTarget(), true);
+		LocalizableMessage infoB = createObjectInfo(pathB, targetB.getTarget(), false);
 		ObjectType objectA = getConflictingObject(pathA, assignmentA.getTarget());
 		ObjectType objectB = getConflictingObject(pathB, targetB.getTarget());
 
@@ -157,7 +157,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 	}
 
 	@NotNull
-	private <F extends FocusType> LocalizableMessage createMessage(String infoA, String infoB,
+	private <F extends FocusType> LocalizableMessage createMessage(LocalizableMessage infoA, LocalizableMessage infoB,
 			ExclusionPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
@@ -168,7 +168,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 	}
 
 	@NotNull
-	private <F extends FocusType> LocalizableMessage createShortMessage(String infoA, String infoB,
+	private <F extends FocusType> LocalizableMessage createShortMessage(LocalizableMessage infoA, LocalizableMessage infoB,
 			ExclusionPolicyConstraintType constraint, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
@@ -187,23 +187,22 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 				ObjectTypeUtil.toObjectable(defaultObject) : objects.get(objects.size()-1);
 	}
 
-	private String computeAssignmentInfo(AssignmentPath path, PrismObject<?> defaultObject) {
+	private LocalizableMessage createObjectInfo(AssignmentPath path, PrismObject<?> defaultObject, boolean startsWithUppercase) {
 		if (path == null) {
-			return String.valueOf(defaultObject);	// shouldn't occur
+			return ObjectTypeUtil.createDisplayInformation(defaultObject, startsWithUppercase);
 		}
 		List<ObjectType> objects = path.getFirstOrderChain();
 		if (objects.isEmpty()) {		// shouldn't occur
-			return String.valueOf(defaultObject);
+			return ObjectTypeUtil.createDisplayInformation(defaultObject, startsWithUppercase);
 		}
-		ObjectType last = objects.get(objects.size()-1);
-		StringBuilder sb = new StringBuilder();
-		sb.append(last);
-		if (objects.size() > 1) {
-			sb.append(objects.stream()
-					.map(o -> PolyString.getOrig(o.getName()))
-					.collect(Collectors.joining("->", " (", ")")));
+		PrismObject<?> last = objects.get(objects.size()-1).asPrismObject();
+		if (objects.size() == 1) {
+			return ObjectTypeUtil.createDisplayInformation(last, startsWithUppercase);
 		}
-		return sb.toString();
+		String pathString = objects.stream()
+				.map(o -> PolyString.getOrig(o.getName()))
+				.collect(Collectors.joining(" -> "));
+		return ObjectTypeUtil.createDisplayInformationWithPath(last, startsWithUppercase, pathString);
 	}
 
 	// ================== legacy

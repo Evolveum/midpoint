@@ -19,32 +19,26 @@ package com.evolveum.midpoint.certification.test;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NOT_DECIDED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REVOKE;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -538,12 +532,12 @@ jack->CEO                   none (A) -> A       elaine: null -> NR [STOP] | NR
 jack->CTO                   none (A) -> A       none (A) -> A             | A    elaine,administrator
          */
 
-        assertCaseReviewers(elaineCeoCase, NO_RESPONSE, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(elaineCeoCase, NO_RESPONSE, 3, asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
         assertCaseReviewers(guybrushCooCase, REVOKE, 2, Collections.singletonList(USER_ADMINISTRATOR_OID));
-        assertCaseReviewers(administratorCooCase, NO_RESPONSE, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
-        assertCaseReviewers(administratorCeoCase, NO_RESPONSE, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(administratorCooCase, NO_RESPONSE, 3, asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(administratorCeoCase, NO_RESPONSE, 3, asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
         assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, Collections.singletonList(USER_ELAINE_OID));
-        assertCaseReviewers(jackCtoCase, NO_RESPONSE, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(jackCtoCase, NO_RESPONSE, 3, asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
 
         assertCaseOutcome(caseList, USER_ELAINE_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID, REVOKE, REVOKE, null);
@@ -755,7 +749,7 @@ jack->CEO                   none (A) -> A       elaine: null -> NR [STOP] | NR
 jack->CTO                   none (A) -> A       none (A) -> A             | A    elaine:null,administrator:null -> NR       | NR   cheese
          */
 
-        assertCaseReviewers(elaineCeoCase, NOT_DECIDED, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(elaineCeoCase, NOT_DECIDED, 3, asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
         assertCaseReviewers(guybrushCooCase, REVOKE, 2, Collections.singletonList(USER_ADMINISTRATOR_OID));
         assertCaseReviewers(administratorCooCase, NO_RESPONSE, 4, Collections.singletonList(USER_CHEESE_OID));
         assertCaseReviewers(administratorCeoCase, NO_RESPONSE, 4, Collections.singletonList(USER_CHEESE_OID));
@@ -1010,6 +1004,28 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
         assertEquals(1, stat.getMarkedAsNotDecide());
         assertEquals(3, stat.getWithoutResponse());
+    }
+
+    @Test
+    public void test920CheckAfterClose() throws Exception {
+        final String TEST_NAME = "test920CheckAfterClose";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(userAdministrator.asPrismObject());
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
+        OperationResult result = task.getResult();
+
+        // WHEN
+        waitForCampaignTasks(campaignOid, 20000, result);
+
+        // THEN
+        userAdministrator = getUser(USER_ADMINISTRATOR_OID).asObjectable();
+        display("administrator", userAdministrator);
+        AssignmentType assignment = findAssignmentByTargetRequired(userAdministrator.asPrismObject(), ROLE_COO_OID);
+        assertCertificationMetadata(assignment.getMetadata(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
+                new HashSet<>(asList(USER_ADMINISTRATOR_OID, USER_ELAINE_OID, USER_CHEESE_OID)), singleton("ok"));
     }
 
 }

@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -51,8 +52,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevel
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.AUTO_COMPLETION_CONDITION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.NO_ASSIGNEES_FOUND;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.PROCESS;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -442,7 +442,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected List<ExpectedTask> getExpectedTasks() {
-				return singletonList(new ExpectedTask(roleRole29Oid, "Modifying assignment of role Role29 on user jack"));
+				return singletonList(new ExpectedTask(roleRole29Oid, "Modifying assignment of role \"Role29\" on user \"jack\""));
 			}
 
 			@Override
@@ -468,12 +468,12 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				return true;
+				return null;
 			}
 
 			@Override
 			public List<ApprovalInstruction> getApprovalSequence() {
-				return null;
+				return singletonList(new ApprovalInstruction(null, true, USER_ADMINISTRATOR_OID, "comment1"));
 			}
 
 			@Override
@@ -489,6 +489,17 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		PrismObject<UserType> jackAfter = getUser(userJackOid);
 		display("jack after", jackAfter);
 		assertAssignedRoles(jackAfter, roleRole29Oid);
+		assertAssignmentMetadata(jackAfter, roleRole29Oid, emptySet(), emptySet(), singleton(USER_ADMINISTRATOR_OID), singleton("comment1"));
+	}
+
+	private void assertAssignmentMetadata(PrismObject<? extends FocusType> object, String targetOid, Set<String> createApproverOids,
+			Set<String> createApprovalComments, Set<String> modifyApproverOids, Set<String> modifyApprovalComments) {
+		AssignmentType assignment = findAssignmentByTargetRequired(object, targetOid);
+		MetadataType metadata = assignment.getMetadata();
+		PrismAsserts.assertReferenceOids("Wrong create approvers", createApproverOids, metadata.getCreateApproverRef());
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong create comments", createApprovalComments, metadata.getCreateApprovalComment());
+		PrismAsserts.assertReferenceOids("Wrong modify approvers", modifyApproverOids, metadata.getModifyApproverRef());
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong modify comments", modifyApprovalComments, metadata.getModifyApprovalComment());
 	}
 
 	@Test
@@ -551,7 +562,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected List<ExpectedTask> getExpectedTasks() {
-				return singletonList(new ExpectedTask(roleRole29Oid, "Modifying assignment of role Role29 on user jack"));
+				return singletonList(new ExpectedTask(roleRole29Oid, "Modifying assignment of role \"Role29\" on user \"jack\""));
 			}
 
 			@Override
@@ -578,12 +589,12 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				return true;
+				return null;
 			}
 
 			@Override
 			public List<ApprovalInstruction> getApprovalSequence() {
-				return null;
+				return singletonList(new ApprovalInstruction(null, true, USER_ADMINISTRATOR_OID, "comment2"));
 			}
 
 			@Override
@@ -599,6 +610,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		PrismObject<UserType> jackAfter = getUser(userJackOid);
 		display("jack after", jackAfter);
 		assertAssignedRoles(jackAfter, roleRole29Oid);
+		assertAssignmentMetadata(jackAfter, roleRole29Oid, emptySet(), emptySet(), singleton(USER_ADMINISTRATOR_OID), singleton("comment2"));
 	}
 
 	@Test
@@ -680,7 +692,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected List<ExpectedTask> getExpectedTasks() {
-				return singletonList(new ExpectedTask(roleRole28Oid, "Assigning role Role28 to user jack"));
+				return singletonList(new ExpectedTask(roleRole28Oid, "Assigning role \"Role28\" to user \"jack\""));
 			}
 
 			@Override
@@ -709,7 +721,12 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				return true;
+				return null;
+			}
+
+			@Override
+			public List<ApprovalInstruction> getApprovalSequence() {
+				return singletonList(new ApprovalInstruction(null, true, USER_ADMINISTRATOR_OID, "comment3"));
 			}
 
 			@Override
@@ -725,6 +742,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		PrismObject<UserType> jack = getUser(userJackOid);
 		display("jack", jack);
 		assertAssignedRoles(jack, roleRole28Oid);
+		assertAssignmentMetadata(jack, roleRole28Oid, singleton(USER_ADMINISTRATOR_OID), singleton("comment3"), emptySet(), emptySet());
 	}
 
 	@Test
@@ -789,7 +807,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected List<ExpectedTask> getExpectedTasks() {
-				return singletonList(new ExpectedTask(roleRole28Oid, "Modifying assignment of role Role28 on user jack"));
+				return singletonList(new ExpectedTask(roleRole28Oid, "Modifying assignment of role \"Role28\" on user \"jack\""));
 			}
 
 			@Override
@@ -815,12 +833,12 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				return true;
+				return null;
 			}
 
 			@Override
 			public List<ApprovalInstruction> getApprovalSequence() {
-				return null;
+				return singletonList(new ApprovalInstruction(null, true, USER_ADMINISTRATOR_OID, "comment4"));
 			}
 
 			@Override
@@ -836,6 +854,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		PrismObject<UserType> jackAfter = getUser(userJackOid);
 		display("jack after", jackAfter);
 		assertAssignedRoles(jackAfter, roleRole28Oid);
+		assertAssignmentMetadata(jackAfter, roleRole28Oid, singleton(USER_ADMINISTRATOR_OID), singleton("comment3"), singleton(USER_ADMINISTRATOR_OID), singleton("comment4"));
 	}
 
 	@Test
@@ -898,7 +917,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@Override
 			protected List<ExpectedTask> getExpectedTasks() {
-				return singletonList(new ExpectedTask(roleRole28Oid, "Unassigning role Role28 from user jack"));
+				return singletonList(new ExpectedTask(roleRole28Oid, "Unassigning role \"Role28\" from user \"jack\""));
 			}
 
 			@Override
@@ -1086,9 +1105,9 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			@Override
 			protected List<ExpectedTask> getExpectedTasks() {
 				return Arrays.asList(
-						new ExpectedTask(roleRole21Oid, "Assigning role Role21 to user jack"),
-						new ExpectedTask(roleRole22Oid, "Assigning role Role22 to user jack"),
-						new ExpectedTask(roleRole23Oid, "Assigning role Role23 to user jack"));
+						new ExpectedTask(roleRole21Oid, "Assigning role \"Role21\" to user \"jack\""),
+						new ExpectedTask(roleRole22Oid, "Assigning role \"Role22\" to user \"jack\""),
+						new ExpectedTask(roleRole23Oid, "Assigning role \"Role23\" to user \"jack\""));
 			}
 
 			// after first step
@@ -1140,11 +1159,11 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 				List<ExpectedTask> tasks = getExpectedTasks();
 				List<ApprovalInstruction> instructions = new ArrayList<>();
 				instructions.add(new ApprovalInstruction(
-								new ExpectedWorkItem(userLead21Oid, roleRole21Oid, tasks.get(0)), approve1, userLead21Oid));
+								new ExpectedWorkItem(userLead21Oid, roleRole21Oid, tasks.get(0)), approve1, userLead21Oid, null));
 				instructions.add(new ApprovalInstruction(
-								new ExpectedWorkItem(userLead22Oid, roleRole22Oid, tasks.get(1)), approve2, userLead22Oid));
+								new ExpectedWorkItem(userLead22Oid, roleRole22Oid, tasks.get(1)), approve2, userLead22Oid, null));
 				instructions.add(new ApprovalInstruction(
-								new ExpectedWorkItem(userLead23Oid, roleRole23Oid, tasks.get(2)), approve3a, userLead23Oid));
+								new ExpectedWorkItem(userLead23Oid, roleRole23Oid, tasks.get(2)), approve3a, userLead23Oid, null));
 				if (approve3a) {
 					ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userSecurityApproverOid, roleRole23Oid, tasks.get(2));
 					ApprovalInstruction.CheckedRunnable before = () -> {
@@ -1156,7 +1175,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 						checkVisibleWorkItem(null, 0, task, task.getResult());
 					};
 					instructions.add(new ApprovalInstruction(expectedWorkItem, approve3b,
-							securityDeputy ? userSecurityApproverDeputyOid : userSecurityApproverOid, before, null));
+							securityDeputy ? userSecurityApproverDeputyOid : userSecurityApproverOid, null, before, null));
 				}
 				return instructions;
 			}
@@ -1349,7 +1368,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			@Override
 			protected List<ExpectedTask> getExpectedTasks() {
 				return Arrays.asList(
-						new ExpectedTask(roleRole23Oid, "Unassigning role Role23 from user jack"));
+						new ExpectedTask(roleRole23Oid, "Unassigning role \"Role23\" from user \"jack\""));
 			}
 
 			// after first step
@@ -1405,7 +1424,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 				List<ApprovalInstruction> instructions = new ArrayList<>();
 				instructions.add(new ApprovalInstruction(
 						new ExpectedWorkItem(userSecurityApproverOid, roleRole23Oid, tasks.get(0)), approve,
-						userSecurityApproverOid));
+						userSecurityApproverOid, null));
 				return instructions;
 			}
 		}, 1, immediate);

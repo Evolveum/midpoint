@@ -273,7 +273,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         return node;
     }
 
-    @Column(nullable = true)
+    @Column(nullable = true, unique = true)
     public String getTaskIdentifier() {
         return taskIdentifier;
     }

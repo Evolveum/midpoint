@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.RExclusion;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RAutoassignSpecification;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
@@ -58,7 +59,8 @@ import java.util.Set;
 @org.hibernate.annotations.Table(appliesTo = "m_abstract_role",
         indexes = {
 				@Index(name = "iAbstractRoleIdentifier", columnNames = "identifier"),
-				@Index(name = "iRequestable", columnNames = "requestable")})             // TODO correct index name
+				@Index(name = "iRequestable", columnNames = "requestable"),
+                @Index(name = "iAutoassignEnabled", columnNames = "autoassign_enabled")})
 @Persister(impl = MidPointJoinedPersister.class)
 public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T> {
 
@@ -71,6 +73,8 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
     private String approvalProcess;
 
     private REmbeddedReference ownerRef;
+
+    private RAutoassignSpecification autoassign;
 
     public Boolean getRequestable() {
         return requestable;
@@ -157,44 +161,49 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
 		this.displayName = displayName;
 	}
 
-	@Override
+    public RAutoassignSpecification getAutoassign() {
+        return autoassign;
+    }
+
+    public void setAutoassign(RAutoassignSpecification autoassign) {
+        this.autoassign = autoassign;
+    }
+
+    @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        if (!super.equals(o))
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
 
-        RAbstractRole that = (RAbstractRole) o;
+        RAbstractRole<?> that = (RAbstractRole<?>) o;
 
-        if (exclusion != null ? !exclusion.equals(that.exclusion) : that.exclusion != null)
-            return false;
-        if (approverRef != null ? !approverRef.equals(that.approverRef) : that.approverRef != null)
-            return false;
+        if (identifier != null ? !identifier.equals(that.identifier) : that.identifier != null) return false;
+        if (riskLevel != null ? !riskLevel.equals(that.riskLevel) : that.riskLevel != null) return false;
+        if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) return false;
+        if (exclusion != null ? !exclusion.equals(that.exclusion) : that.exclusion != null) return false;
+        if (requestable != null ? !requestable.equals(that.requestable) : that.requestable != null) return false;
+        if (approverRef != null ? !approverRef.equals(that.approverRef) : that.approverRef != null) return false;
         if (approvalProcess != null ? !approvalProcess.equals(that.approvalProcess) : that.approvalProcess != null)
             return false;
-        if (requestable != null ? !requestable.equals(that.requestable) : that.requestable != null)
-            return false;
-        if (ownerRef != null ? !ownerRef.equals(that.ownerRef) : that.ownerRef != null)
-            return false;
-		if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) return false;
-		if (identifier != null ? !identifier.equals(that.identifier) : that.identifier != null) return false;
-
-		return true;
+        if (ownerRef != null ? !ownerRef.equals(that.ownerRef) : that.ownerRef != null) return false;
+        return autoassign != null ? autoassign.equals(that.autoassign) : that.autoassign == null;
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (approvalProcess != null ? approvalProcess.hashCode() : 0);
+        result = 31 * result + (identifier != null ? identifier.hashCode() : 0);
+        result = 31 * result + (riskLevel != null ? riskLevel.hashCode() : 0);
+        result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
         result = 31 * result + (requestable != null ? requestable.hashCode() : 0);
+        result = 31 * result + (approvalProcess != null ? approvalProcess.hashCode() : 0);
         result = 31 * result + (ownerRef != null ? ownerRef.hashCode() : 0);
+        result = 31 * result + (autoassign != null ? autoassign.hashCode() : 0);
         return result;
     }
 
     public static <T extends AbstractRoleType> void copyFromJAXB(AbstractRoleType jaxb, RAbstractRole<T> repo,
-			RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
+                                                                 RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
 			throws DtoTranslationException {
 
         RFocus.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
@@ -203,6 +212,12 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
 		repo.setDisplayName(RPolyString.copyFromJAXB(jaxb.getDisplayName()));
 		repo.setIdentifier(jaxb.getIdentifier());
 		repo.setRiskLevel(jaxb.getRiskLevel());
+
+		if (jaxb.getAutoassign() != null) {
+		    RAutoassignSpecification aa = new RAutoassignSpecification();
+		    RAutoassignSpecification.copyFromJAXB(jaxb.getAutoassign(), aa);
+            repo.setAutoassign(aa);
+        }
 
 		for (AssignmentType inducement : jaxb.getInducement()) {
             RAssignment rInducement = new RAssignment(repo, RAssignmentOwner.ABSTRACT_ROLE);

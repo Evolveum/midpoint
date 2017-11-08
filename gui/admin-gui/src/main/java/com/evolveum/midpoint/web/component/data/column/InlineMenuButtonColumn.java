@@ -40,6 +40,8 @@ import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.create
 
 /**
  * Created by honchar.
+ *
+ * todo rewrite
  */
 public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonColumn<T>{
     protected List<InlineMenuItem> menuItems;
@@ -81,6 +83,11 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
             @Override
             protected String getButtonCssClass(int id) {
                 return InlineMenuButtonColumn.this.getButtonCssClass(id, menuItems);
+            }
+
+            @Override
+            public String getButtonIconCss(int id) {
+                return InlineMenuButtonColumn.this.getButtonIconCss(id, menuItems);
             }
 
             @Override
@@ -225,12 +232,18 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
         sb.append(DoubleButtonColumn.BUTTON_BASE_CLASS).append(" ");
         sb.append(getButtonColorCssClass(id, menuItems)).append(" ");
         sb.append(getButtonSizeCssClass(id)).append(" ");
+
+        return sb.toString();
+    }
+
+    protected String getButtonIconCss(int id, List<InlineMenuItem> menuItems) {
         for (InlineMenuItem menuItem : menuItems){
             if (menuItem.getId() == id){
-                sb.append(menuItem.getButtonIconCssClass()).append(" ");
+                return menuItem.getButtonIconCssClass() + " fa-fw"; //temporary size fix, should be moved somewhere...
             }
         }
-        return sb.toString();
+
+        return null;
     }
 
     public String getButtonTitle(int id, List<InlineMenuItem> menuItems) {

@@ -413,7 +413,7 @@ public class ProjectionCredentialsProcessor {
 		} else if (projectionContext.isModify()) {
 			ContainerDelta<MetadataType> metadataDelta = accountDelta.findContainerDelta(SchemaConstants.PATH_PASSWORD_METADATA);
 			if (metadataDelta == null) {
-				Collection<? extends ItemDelta<?,?>> modifyMetadataDeltas = operationalDataManager.createModifyMetadataDeltas(context, SchemaConstants.PATH_PASSWORD_METADATA, projectionContext.getObjectDefinition(), now, task);
+				Collection<? extends ItemDelta<?,?>> modifyMetadataDeltas = operationalDataManager.createModifyMetadataDeltas(context, SchemaConstants.PATH_PASSWORD_METADATA, projectionContext.getObjectTypeClass(), now, task);
 				for (ItemDelta itemDelta: modifyMetadataDeltas) {
 					itemDelta.setOriginTypeRecursive(OriginType.OUTBOUND);
 					projectionContext.swallowToSecondaryDelta(itemDelta);

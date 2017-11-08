@@ -40,6 +40,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -124,6 +125,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 				return securityContextManager;
 			}
 
+			@NotNull
 			@Override
 			public AdminGuiConfigurationType getAdminGuiConfiguration() {
 				Task task = createSimpleTask("getAdminGuiConfiguration");

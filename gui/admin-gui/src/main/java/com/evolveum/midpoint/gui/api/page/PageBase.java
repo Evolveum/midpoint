@@ -58,6 +58,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -69,6 +70,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
+import com.evolveum.midpoint.web.boot.Wro4jConfig;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
@@ -519,6 +521,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return modelDiagnosticService;
     }
 
+    @NotNull
     @Override
     public AdminGuiConfigurationType getAdminGuiConfiguration() {
         if (adminGuiConfiguration == null) {
@@ -553,20 +556,35 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	Task task = getPageTask();
-    	return getSecurityEnforcer().isAuthorized(operationUrl, phase, object, delta, target, ownerResolver, task, task.getResult());
+    	AuthorizationParameters<O,T> params = new AuthorizationParameters.Builder<O,T>()
+    		.object(object)
+    		.delta(delta)
+    		.target(target)
+    		.build();
+    	return getSecurityEnforcer().isAuthorized(operationUrl, phase, params, ownerResolver, task, task.getResult());
     }
 
     public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, OperationResult result)
 			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-    	getSecurityEnforcer().authorize(operationUrl, phase, object, delta, target, ownerResolver, getPageTask(), result);
+    	AuthorizationParameters<O,T> params = new AuthorizationParameters.Builder<O,T>()
+        		.object(object)
+        		.delta(delta)
+        		.target(target)
+        		.build();
+    	getSecurityEnforcer().authorize(operationUrl, phase, params, ownerResolver, getPageTask(), result);
     }
 
     public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver)
 			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
     	Task task = getPageTask();
-    	getSecurityEnforcer().authorize(operationUrl, phase, object, delta, target, ownerResolver, task, task.getResult());
+    	AuthorizationParameters<O,T> params = new AuthorizationParameters.Builder<O,T>()
+        		.object(object)
+        		.delta(delta)
+        		.target(target)
+        		.build();
+    	getSecurityEnforcer().authorize(operationUrl, phase, params, ownerResolver, task, task.getResult());
     }
 
     
@@ -981,7 +999,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 return;
             }
             MBeanServer server = servers.get(0);
-            ObjectName objectName = ObjectName.getInstance("wro4j-idm:type=WroConfiguration");
+            ObjectName objectName = ObjectName.getInstance(Wro4jConfig.WRO_MBEAN_NAME + ":type=WroConfiguration");
             server.invoke(objectName, "reloadCache", new Object[]{}, new String[]{});
             if (target != null) {
                 target.add(PageBase.this);
@@ -1087,7 +1105,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private OperationResult executeResultScriptHook(OperationResult result) {
         AdminGuiConfigurationType adminGuiConfiguration = getAdminGuiConfiguration();
-        if (adminGuiConfiguration == null || adminGuiConfiguration.getFeedbackMessagesHook() == null) {
+        if (adminGuiConfiguration.getFeedbackMessagesHook() == null) {
             return result;
         }
 
@@ -1331,7 +1349,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 AuthorizationConstants.AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_URL,
                 AuthorizationConstants.AUTZ_UI_CONFIGURATION_ABOUT_URL,
                 AuthorizationConstants.AUTZ_UI_CONFIGURATION_REPOSITORY_QUERY_URL,
-                AuthorizationConstants.AUTZ_UI_CONFIGURATION_SYNCHRONIZATION_ACCOUNTS_URL,
                 AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
                 AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
 
@@ -1389,6 +1406,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
+                AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL,
                 AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
                 AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             if (getWorkflowManager().isEnabled()) {
@@ -1444,7 +1462,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         addSystemMenuItem(systemItem, "PageAdmin.menu.top.configuration.adminGui",
                 PageSystemConfiguration.CONFIGURATION_TAB_ADMIN_GUI);
 
-        addMainMenuItem(item, "fa fa-address-book", "PageAdmin.menu.top.configuration.shadowsDetails", PageAccounts.class);
         addMainMenuItem(item, "fa fa-archive", "PageAdmin.menu.top.configuration.internals", PageInternals.class);
         addMainMenuItem(item, "fa fa-search", "PageAdmin.menu.top.configuration.repoQuery", PageRepositoryQuery.class);
         if (SystemConfigurationHolder.isExperimentalCodeEnabled()) {
@@ -1502,6 +1519,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         addMenuItem(item, "PageAdmin.menu.top.workItems.list", PageWorkItemsAllocatedToMe.class);
         addMenuItem(item, "PageAdmin.menu.top.workItems.listClaimable", PageWorkItemsClaimable.class);
+        addMenuItem(item, "PageAdmin.menu.top.workItems.listAttorney", PageAttorneySelection.class);
         addMenuItem(item, "PageAdmin.menu.top.workItems.listAll", PageWorkItemsAll.class);
         addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesRequestedBy", PageProcessInstancesRequestedBy.class);
         addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesRequestedFor", PageProcessInstancesRequestedFor.class);
@@ -1630,18 +1648,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private void createAdditionalMenu(SideBarMenuItem menu) {
         AdminGuiConfigurationType adminGuiConfig = loadAdminGuiConfiguration();
-        if (adminGuiConfig != null) {
-            List<RichHyperlinkType> menuList = loadAdminGuiConfiguration().getAdditionalMenuLink();
+        List<RichHyperlinkType> menuList = loadAdminGuiConfiguration().getAdditionalMenuLink();
 
-            Map<String, Class> urlClassMap = DescriptorLoader.getUrlClassMap();
-            if (menuList != null && menuList.size() > 0 && urlClassMap != null && urlClassMap.size() > 0) {
-                for (RichHyperlinkType link : menuList) {
-                    if (link.getTargetUrl() != null && !link.getTargetUrl().trim().equals("")) {
-                        AdditionalMenuItem item = new AdditionalMenuItem(link.getIcon() == null ? "" : link.getIcon().getCssClass(),
-                                getAdditionalMenuItemNameModel(link.getLabel()),
-                                link.getTargetUrl(), urlClassMap.get(link.getTargetUrl()));
-                        menu.getItems().add(item);
-                    }
+        Map<String, Class> urlClassMap = DescriptorLoader.getUrlClassMap();
+        if (menuList != null && menuList.size() > 0 && urlClassMap != null && urlClassMap.size() > 0) {
+            for (RichHyperlinkType link : menuList) {
+                if (link.getTargetUrl() != null && !link.getTargetUrl().trim().equals("")) {
+                    AdditionalMenuItem item = new AdditionalMenuItem(link.getIcon() == null ? "" : link.getIcon().getCssClass(),
+                            getAdditionalMenuItemNameModel(link.getLabel()),
+                            link.getTargetUrl(), urlClassMap.get(link.getTargetUrl()));
+                    menu.getItems().add(item);
                 }
             }
         }
@@ -1850,10 +1866,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         };
     }
 
-
+    @NotNull
     public AdminGuiConfigurationType loadAdminGuiConfiguration() {
         MidPointPrincipal user = SecurityUtils.getPrincipalUser();
-        AdminGuiConfigurationType adminGuiConfig = null;
+        AdminGuiConfigurationType adminGuiConfig = new AdminGuiConfigurationType();
         if (user == null) {
             return adminGuiConfig;
         } else {
@@ -1988,7 +2004,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         if (user != null && user.asObjectable().getTimezone() != null) {
             timeZone = user.asObjectable().getTimezone();
-        } else {
+        } else if (principal != null && principal.getAdminGuiConfiguration() != null) {
             timeZone = principal.getAdminGuiConfiguration().getDefaultTimezone();
         }
         if (timeZone != null) {
@@ -2076,7 +2092,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     protected String determineDataLanguage() {
         AdminGuiConfigurationType config = loadAdminGuiConfiguration();
-        if (config != null && config.getPreferredDataLanguage() != null) {
+        if (config.getPreferredDataLanguage() != null) {
             if (PrismContext.LANG_JSON.equals(config.getPreferredDataLanguage())) {
                 return PrismContext.LANG_JSON;
             } else if (PrismContext.LANG_YAML.equals(config.getPreferredDataLanguage())) {

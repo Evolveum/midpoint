@@ -39,7 +39,7 @@
         <description>
             Definition of a live sychnronization task. It will poll changelog and pull in changes
         </description>
-        <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
+        <taskIdentifier>1238546</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
 
@@ -54,17 +54,17 @@
 
     <task oid="1238546-1">
         <name>OpenDJ1 child 1</name>
-        <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff-1</taskIdentifier>
+        <taskIdentifier>1238546-1</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-        <parent>91919191-76e0-59e2-86d6-3d4f02d3ffff</parent>
+        <parent>1238546</parent>
         <completionTimestamp>2013-05-07T10:38:21.350+02:00</completionTimestamp>
     </task>
 
     <task oid="1238546-2">
         <name>OpenDJ1 child 2</name>
-        <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff-2</taskIdentifier>
+        <taskIdentifier>1238546-2</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-        <parent>91919191-76e0-59e2-86d6-3d4f02d3ffff</parent>
+        <parent>1238546</parent>
         <completionTimestamp>2013-05-07T10:38:21.350+02:00</completionTimestamp>
     </task>
 
@@ -74,7 +74,7 @@
         <description>
             Definition of a live sychnronization task. It will poll changelog and pull in changes
         </description>
-        <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
+        <taskIdentifier>1238547</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
 
@@ -92,7 +92,7 @@
         <description>
             Definition of a live sychnronization task. It will poll changelog and pull in changes
         </description>
-        <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
+        <taskIdentifier>1238548</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
 

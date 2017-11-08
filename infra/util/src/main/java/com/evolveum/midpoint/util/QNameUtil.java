@@ -65,7 +65,7 @@ public class QNameUtil {
 		return qNameToUri(qname, unqualifiedStartsWithHash, DEFAULT_QNAME_URI_SEPARATOR_CHAR);
 	}
 
-    public static String qNameToUri(QName qname, boolean unqualifiedStartsWithHash, char separatorChar) {
+	public static String qNameToUri(QName qname, boolean unqualifiedStartsWithHash, char separatorChar) {
         String qUri = qname.getNamespaceURI();
         StringBuilder sb = new StringBuilder(qUri);
 

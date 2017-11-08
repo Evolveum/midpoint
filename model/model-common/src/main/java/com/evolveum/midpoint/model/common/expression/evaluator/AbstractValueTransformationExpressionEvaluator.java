@@ -452,13 +452,13 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				throw (ObjectNotFoundException)originalException;
 			} else if (originalException instanceof SchemaException) {
 				throw (SchemaException)originalException;
-			} else if (originalException instanceof RuntimeException) {
-				throw (CommunicationException)originalException;
 			} else if (originalException instanceof CommunicationException) {
-				throw (ConfigurationException)originalException;
+				throw (CommunicationException)originalException;
 			} else if (originalException instanceof ConfigurationException) {
-				throw (SecurityViolationException)originalException;
+				throw (ConfigurationException)originalException;
 			} else if (originalException instanceof SecurityViolationException) {
+				throw (SecurityViolationException)originalException;
+			} else if (originalException instanceof RuntimeException) {
 				throw (RuntimeException)originalException;
 			} else {
 				throw new IllegalStateException("Unexpected exception: "+e+": "+e.getMessage(),e);

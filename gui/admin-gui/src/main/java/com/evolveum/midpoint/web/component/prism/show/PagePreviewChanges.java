@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.wf.ApprovalProcessesPreviewPanel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
@@ -183,16 +184,24 @@ public class PagePreviewChanges extends PageAdmin {
 		mainForm.add(new ScenePanel(ID_SECONDARY_DELTAS_SCENE, secondaryDeltasModel));
 
 		WebMarkupContainer policyViolationsContainer = new WebMarkupContainer(ID_POLICY_VIOLATIONS_CONTAINER);
-		policyViolationsContainer.add(new VisibleBehaviour(() -> !policyViolationsModel.getObject().isEmpty()));
+		policyViolationsContainer.add(new VisibleBehaviour(() -> !violationsEmpty()));
 		policyViolationsContainer.add(new EvaluatedTriggerGroupListPanel(ID_POLICY_VIOLATIONS, policyViolationsModel));
 		mainForm.add(policyViolationsContainer);
 
 		WebMarkupContainer approvalsContainer = new WebMarkupContainer(ID_APPROVALS_CONTAINER);
-		approvalsContainer.add(new VisibleBehaviour(() -> !approvalsModel.getObject().isEmpty()));
+		approvalsContainer.add(new VisibleBehaviour(() -> violationsEmpty() && !approvalsEmpty()));
 		approvalsContainer.add(new ApprovalProcessesPreviewPanel(ID_APPROVALS, approvalsModel));
 		mainForm.add(approvalsContainer);
 
 		initButtons(mainForm);
+	}
+
+	private boolean approvalsEmpty() {
+		return approvalsModel.getObject().isEmpty();
+	}
+
+	private boolean violationsEmpty() {
+		return EvaluatedTriggerGroupDto.isEmpty(policyViolationsModel.getObject());
 	}
 
 	private void initButtons(Form mainForm) {
@@ -210,6 +219,7 @@ public class PagePreviewChanges extends PageAdmin {
 				savePerformed(target);
 			}
 		};
+		save.add(new EnableBehaviour(() -> violationsEmpty()));
 		mainForm.add(save);
 	}
 

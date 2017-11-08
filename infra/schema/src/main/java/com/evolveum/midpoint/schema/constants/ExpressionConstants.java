@@ -108,4 +108,7 @@ public class ExpressionConstants {
 	public static final QName VAR_TASK = new QName(SchemaConstants.NS_C, "task");
 	public static final QName VAR_RULE_EVALUATION_CONTEXT = new QName(SchemaConstants.NS_C, "ruleEvaluationContext");
 	public static final QName VAR_STAGE_DEFINITION = new QName(SchemaConstants.NS_C, "stageDefinition");
+
+	public static final QName VAR_OBJECT_DISPLAY_INFORMATION = new QName(SchemaConstants.NS_C, "objectDisplayInformation");
+	public static final QName VAR_TARGET_DISPLAY_INFORMATION = new QName(SchemaConstants.NS_C, "targetDisplayInformation");
 }

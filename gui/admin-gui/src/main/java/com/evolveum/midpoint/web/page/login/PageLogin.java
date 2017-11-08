@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -141,8 +142,12 @@ public class PageLogin extends PageBase {
             return;
         }
 
-        String key = ex.getMessage() != null ? ex.getMessage() : "web.security.provider.unavailable";
-        error(getString(key));
+        String msg = ex.getMessage();
+        if (StringUtils.isEmpty(msg)) {
+            msg = getString("web.security.provider.unavailable");
+        }
+
+        error(msg);
 
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
 

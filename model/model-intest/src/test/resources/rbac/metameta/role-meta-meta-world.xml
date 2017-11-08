@@ -1,0 +1,114 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- This is a meta-role. A Role indented to be assigned to other roles.
+     I really mean assigned, not included or induced. -->
+
+<role oid="fd52fec2-bd56-11e7-9143-b381baa5aaed"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+    <name>World</name>
+     
+    <inducement>
+    	<description>RMM-I3</description>
+    	<construction>
+    		<description>RMM-I3</description>
+    		<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+    		<kind>account</kind>
+    		<intent>default</intent>
+    		<association>
+            	<ref>ri:group</ref>
+            	<outbound>
+            		<expression>
+            			<associationFromLink>
+            				<description>RMM-I3</description>
+            				<projectionDiscriminator>
+	            				<kind>entitlement</kind>
+	            				<intent>group</intent>
+            				</projectionDiscriminator>
+            				<assignmentPathIndex>1</assignmentPathIndex>
+            			</associationFromLink>
+            		</expression>
+            	</outbound>
+            </association>
+    	</construction>  
+    	<order>3</order>
+    </inducement>
+
+    <inducement>
+    	<description>RMM-I2</description>
+    	<construction>
+    		<description>RMM-I2</description>
+    		<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+    		<kind>entitlement</kind>
+    		<intent>group</intent>
+    		<association>
+            	<ref>ri:group</ref>
+            	<outbound>
+            		<expression>
+            			<associationFromLink>
+            				<description>RMM-I2</description>
+            				<projectionDiscriminator>
+	            				<kind>entitlement</kind>
+	            				<intent>group</intent>
+            				</projectionDiscriminator>
+            			</associationFromLink>
+            		</expression>
+            	</outbound>
+            </association>
+    	</construction>  
+    	<order>2</order>
+    </inducement>
+    
+    <inducement>
+    	<description>RMM-I1</description>
+    	<construction>
+    		<description>RMM-I1</description>
+    		<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+    		<kind>entitlement</kind>
+    		<intent>group</intent>
+    		<association>
+            	<ref>ri:group</ref>
+            	<outbound>
+            		<expression>
+            			<associationFromLink>
+            				<description>RMM-I1</description>
+            				<projectionDiscriminator>
+	            				<kind>entitlement</kind>
+	            				<intent>group</intent>
+            				</projectionDiscriminator>
+            			</associationFromLink>
+            		</expression>
+            	</outbound>
+            </association>
+    	</construction>  
+    	<order>1</order>
+    </inducement>
+    
+    <assignment>
+    	<description>RMM-I0</description>
+    	<construction>
+    		<description>RMM-I0</description>
+    		<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+    		<kind>entitlement</kind>
+    		<intent>group</intent>
+    	</construction> 
+    </assignment>
+
+</role>

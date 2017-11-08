@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.schema.CatalogImpl;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
 import org.apache.cxf.transport.servlet.CXFServlet;
+import org.apache.wicket.Application;
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
@@ -88,11 +89,17 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     public static void main(String[] args) {
         System.setProperty("xml.catalog.className", CatalogImpl.class.getName());
 
-        SpringApplication.run(MidPointSpringApplication.class, args);
+        configureApplication(new SpringApplicationBuilder()).run(args);
     }
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return configureApplication(application);
+    }
+
+    private static SpringApplicationBuilder configureApplication(SpringApplicationBuilder application) {
+        System.setProperty("spring.config.location", "${midpoint.home}/");
+
         return application.sources(MidPointSpringApplication.class);
     }
 
@@ -116,9 +123,9 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
         registration.setDispatcherTypes(DispatcherType.REQUEST, DispatcherType.ERROR);
         registration.addUrlPatterns("/*");
         registration.addInitParameter(WicketFilter.FILTER_MAPPING_PARAM, "/*");
-        registration.addInitParameter("configuration", "deployment");
+        registration.addInitParameter(Application.CONFIGURATION, "deployment");     // development
         registration.addInitParameter("applicationBean", "midpointApplication");
-        registration.addInitParameter("applicationFactoryClassName", "org.apache.wicket.spring.SpringWebApplicationFactory");
+        registration.addInitParameter(WicketFilter.APP_FACT_PARAM, "org.apache.wicket.spring.SpringWebApplicationFactory");
 
         return registration;
     }
@@ -178,7 +185,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
                     "/error/404"));
             container.addErrorPages(new ErrorPage(HttpStatus.GONE,
                     "/error/410"));
-            container.addErrorPages(new ErrorPage(HttpStatus.UNAUTHORIZED,
+            container.addErrorPages(new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR,
                     "/error"));
         }
     }

@@ -51,6 +51,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WO
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_RESULTING_DELTAS;
+import static java.util.Collections.emptySet;
 
 /**
  * Handles low-level task operations.
@@ -213,6 +214,16 @@ public class WfTaskUtil {
         return CloneUtil.cloneCollectionMembers(approvers.values());            // to ensure these are parent-less
     }
 
+    public Collection<String> getApproverCommentsFromTaskTree(Task task, OperationResult result) throws SchemaException {
+        Collection<String> rv = new HashSet<>();
+        List<Task> tasks = task.listSubtasksDeeply(result);
+        tasks.add(task);
+        for (Task aTask : tasks) {
+            rv.addAll(getApproverComments(WfContextUtil.getWorkflowContext(aTask.getTaskPrismObject())));
+        }
+        return rv;
+    }
+
     @NotNull
     private static List<ObjectReferenceType> getApprovedBy(WfContextType wfc) {
         return wfc == null ? Collections.emptyList() : wfc.getEvent().stream()
@@ -220,6 +231,15 @@ public class WfTaskUtil {
                 .filter(e -> ApprovalUtils.isApproved(e.getOutput()) && e.getInitiatorRef() != null)
                 .map(e -> e.getInitiatorRef())
                 .collect(Collectors.toList());
+    }
+
+    @NotNull
+    private static Collection<String> getApproverComments(WfContextType wfc) {
+        return wfc == null ? emptySet() : wfc.getEvent().stream()
+                .flatMap(MiscUtil.instancesOf(WorkItemCompletionEventType.class))
+                .filter(e -> ApprovalUtils.isApproved(e.getOutput()) && e.getInitiatorRef() != null && StringUtils.isNotEmpty(e.getOutput().getComment()))
+                .map(e -> e.getOutput().getComment())
+                .collect(Collectors.toSet());
     }
 
     // handlers are stored in the list in the order they should be executed; so the last one has to be pushed first

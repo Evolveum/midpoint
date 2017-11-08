@@ -19,6 +19,7 @@ package com.evolveum.midpoint.certification.test;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -34,10 +35,10 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
+import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -864,4 +865,24 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         assertEquals(1, stat.getWithoutResponse());
     }
 
+    @Test
+    public void test320CheckAfterClose() throws Exception {
+        final String TEST_NAME = "test320CheckAfterClose";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(userAdministrator.asPrismObject());
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
+        OperationResult result = task.getResult();
+
+        // WHEN
+        waitForCampaignTasks(campaignOid, 20000, result);
+
+        // THEN
+        roleCoo = getRole(ROLE_COO_OID).asObjectable();
+        display("COO", roleCoo);
+        AssignmentType inducement = findInducementByTarget(ROLE_COO_OID, ROLE_SUPERUSER_OID);
+        assertCertificationMetadata(inducement.getMetadata(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_ADMINISTRATOR_OID), singleton("I'm so procrastinative..."));
+    }
 }

@@ -836,10 +836,22 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
+    		<xsd:element name="createApprovalComment" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Comments of the approvers during the creation of the data. Note that these comments are in no
+						particular order, so basically it is not known who entered which comment.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+						<a:since>3.7</a:since>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
     		<xsd:element name="createApprovalTimestamp" type="xsd:dateTime" minOccurs="0">
     			<xsd:annotation>
     				<xsd:documentation>
-    					The timestamp of last modification approval.
+    					The timestamp of creation approval.
     				</xsd:documentation>
     				<xsd:appinfo>
     					<a:displayName>MetadataType.createApprovalTimestamp</a:displayName>
@@ -860,6 +872,18 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
+    		<xsd:element name="createTaskRef" type="tns:ObjectReferenceType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to the task that created the object (if it was a persistent one).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:operational>true</a:operational>
+						<a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
     		<xsd:element name="modifyTimestamp" type="xsd:dateTime" minOccurs="0">
     			<xsd:annotation>
     				<xsd:documentation>
@@ -893,13 +917,13 @@
     				<xsd:documentation>
     					<p>
 	    					Reference to the user that approved the last modification of the data (if there was such a user).
-	    					This is multi-value reference therefore multiple approvers may be recorded. Howerver the order and
+	    					This is multi-value reference therefore multiple approvers may be recorded. However the order and
 	    					hierarchy of the approvers is lost.
     					</p>
     					<p>
     						Even though this is multi-value reference it will get overwritten after each approval.
     						The multiple values are used only if all the approvers are known at the same time,
-    						e.g. if multi-level approval is evaluated at the same time. But generaly this refers
+    						e.g. if multi-level approval is evaluated at the same time. But generally this refers
     						only to the last approval event.
     					</p>
     				</xsd:documentation>
@@ -911,6 +935,23 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
+			<xsd:element name="modifyApprovalComment" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Comments of the approvers during the last modification of the data. Note that these comments are in no
+							particular order, so basically it is not known who entered which comment.
+						</p>
+						<p>
+							Even though this is multi-value property it will get overwritten after each approval.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:operational>true</a:operational>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
     		<xsd:element name="modifyApprovalTimestamp" type="xsd:dateTime" minOccurs="0">
     			<xsd:annotation>
     				<xsd:documentation>
@@ -935,19 +976,32 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
+			<xsd:element name="modifyTaskRef" type="tns:ObjectReferenceType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to the task that last modified the object (if it was a persistent one).
+						If the last modification was carried out by synchronous task, this reference will be empty.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:operational>true</a:operational>
+						<a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
     		<xsd:element name="lastProvisioningTimestamp" type="xsd:dateTime" minOccurs="0">
     			<xsd:annotation>
     				<xsd:documentation>
     					<p>
     						The timestamp last provisioning operation that was based on this object.
-    						E.g. the timestamp of last modificaiton od any account based on the
-    						data from the user. This valus is only updated if there was any
+    						E.g. the timestamp of last modification of any account based on the
+    						data from the user. This value is only updated if there was any
     						real change in the resource.
     					</p>
     					<p>
     						This meta-datum is used as an informational property that tells when
     						the data were last synchronized in outbound direction. But it has another
-    						imporatant role. It is used indirectly to trigger optimistic locking
+    						important role. It is used indirectly to trigger optimistic locking
     						conflicts that are used to detect a "clean" recompute (i.e. recompute
     						that is processing data without any outside interaction).
     					</p>
@@ -959,61 +1013,108 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
-    		
-            <!-- The following certification-related items might be enabled in the future.
-
-            <xsd:element name="certificationStartedTimestamp" type="xsd:dateTime" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        When last certification related to this item was started.
-                        NOTE we assume only one certification type deals with any specific item (object or assignment).
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:operational>true</a:operational>
-                        <a:indexed>true</a:indexed>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
+            <!--<xsd:element name="certificationStartedTimestamp" type="xsd:dateTime" minOccurs="0">-->
+                <!--<xsd:annotation>-->
+                    <!--<xsd:documentation>-->
+                        <!--When last certification related to this item was started.-->
+                        <!--NOTE we assume only one certification type deals with any specific item (object or assignment).-->
+                    <!--</xsd:documentation>-->
+                    <!--<xsd:appinfo>-->
+                        <!--<a:operational>true</a:operational>-->
+                        <!--<a:indexed>true</a:indexed>-->
+						<!--<a:since>3.7</a:since>-->
+                    <!--</xsd:appinfo>-->
+                <!--</xsd:annotation>-->
+            <!--</xsd:element>-->
+			<!--<xsd:element name="certificationCampaignRef" type="tns:ObjectReferenceType" minOccurs="0">-->
+				<!--<xsd:annotation>-->
+					<!--<xsd:documentation>-->
+						<!--Certification campaign applied to this item.-->
+						<!--(Should be set if and only if certificationStartedTimestamp is set.)-->
+					<!--</xsd:documentation>-->
+					<!--<xsd:appinfo>-->
+						<!--<a:operational>true</a:operational>-->
+						<!--<a:indexed>true</a:indexed>-->
+						<!--<a:objectReferenceTargetType>tns:AccessCertificationCampaignType</a:objectReferenceTargetType>-->
+						<!--<a:since>3.7</a:since>-->
+					<!--</xsd:appinfo>-->
+				<!--</xsd:annotation>-->
+			<!--</xsd:element>-->
             <xsd:element name="certificationFinishedTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         When last certification related to this item was finished.
+						Only certifications that resulted in non-null outcome are taken into account.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
-                        <a:indexed>true</a:indexed>
+						<a:since>3.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="certificationCampaignRef" type="tns:ObjectReferenceType" minOccurs="0">
+            <xsd:element name="certificationOutcome" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Certification campaign applied to this item.
-                        (Should be set if and only if certificationStartedTimestamp is set.)
+                        Outcome (URI) of the last certification.
+						Only certifications that resulted in non-null outcome are taken into account.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
-                        <a:indexed>true</a:indexed>
-                        <a:objectReferenceTargetType>tns:AccessCertificationCampaignType</a:objectReferenceTargetType>
+						<a:since>3.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="certifierRef" type="tns:ObjectReferenceType" minOccurs="0">
+            <xsd:element name="certifierRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to the user that certified the data.
                         Contrary to approver/modifierRef, this field is filled-in also when certifier denies the item status.
+						Only certifications that resulted in non-null outcome are taken into account.
+					</xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+						<a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="certifierComment" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+						<p>
+							Comments of the certifiers during the last certification of the data. Note that these comments are in no
+							particular order, so basically it is not known who entered which comment.
+						</p>
+						<p>
+							Even though this is multi-value property it will get overwritten after each approval.
+						</p>
+						<p>
+							Only certifications that resulted in non-null outcome are taken into account.
+						</p>
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
-                        <a:indexed>true</a:indexed>
-                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+						<a:since>3.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:element> -->
+            </xsd:element>
+            <xsd:element name="autoCreateIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+						<p>
+							Identifies the reason of automated creation of this object or assignment.
+							Currently it is the name of a mapping that caused creation of a given assignment.
+							In the future we might put here e.g. name of a policy rule or analogous entity.
+						</p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational>
+						<a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
     	</xsd:sequence>
     </xsd:complexType>
-
 
     <!-- Property-related types -->
 
@@ -4500,11 +4601,11 @@
 							property.
 						</p>
 						<p>
-							NOTE: outboub mapping for auxiliary object classes is not yet supported.
+							NOTE: outbound mapping for auxiliary object classes is not yet supported.
 						</p>
 						<p>
-							If toletant flag is set to true then midPoint will tolerate existing auxiliary object classes on resource
-							objects. MidPoitn will add/remove auxiliary object classes only if there is an explicit
+							If tolerant flag is set to true then midPoint will tolerate existing auxiliary object classes on resource
+							objects. MidPoint will add/remove auxiliary object classes only if there is an explicit
 							operation for that (e.g. assign/unassign of role with auxiliary object class definition).
 							If tolerant flag set to false then midPoint will strictly synchronize auxiliary object classes of resource
 							objects with the definition given in midPoint configuration. This is the default behavior.
@@ -6662,15 +6763,19 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         When set to true, allows attribute/property values that are set outside
-                        of this mapping. I. e. it allows other values that set by this mapping.
+                        of this mapping. I. e. it allows other values than those set by this mapping.
                         
                         The default value for tolerant setting depends on when the mapping is used.
                         It is assumed to be true in inbound mappings, it is assumed to be false
                         in other mappings. This default setting was chosen to maintain behaviour
                         which is compatible with previous midPoint versions.
 
+						Note: Do not confuse with tolerant setting that applies to the
+						resource attribute (schemaHandling). If in doubt, use that other
+						setting instead. That resource attribute tolerance is usually the
+						right answer.
+
                         Support for this setting is currently EXPERIMENTAL.
-                        Use the tolerant setting for resource attribute when needed.
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:since>3.4</a:since>
@@ -7679,9 +7784,37 @@
         <xsd:complexContent>
         	<xsd:extension base="tns:SearchObjectExpressionEvaluatorType">
 		        <xsd:sequence>
+		        	<xsd:element name="assignmentProperties" type="tns:AssignmentPropertiesSpecificationType" minOccurs="0">
+    					<xsd:annotation>
+    						<xsd:documentation>
+    							Properties of the new assignment.
+    						</xsd:documentation>
+    						<xsd:appinfo>
+    							<a:since>3.7</a:since>
+    						</xsd:appinfo>
+    					</xsd:annotation>
+    				</xsd:element>
 		        	<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
+		        		<xsd:annotation>
+		        			<xsd:documentation>
+		        				DEPRECATED. Use assignmentProperties instead.
+		        			</xsd:documentation>
+		        			<xsd:appinfo>
+		        				<a:deprecated>true</a:deprecated>
+		        				<a:deprecatedSince>3.7</a:deprecatedSince>
+		        			</xsd:appinfo>
+		        		</xsd:annotation>
 		        	</xsd:element>
 		        	<xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
+		        		<xsd:annotation>
+		        			<xsd:documentation>
+		        				DEPRECATED. Use assignmentProperties instead.
+		        			</xsd:documentation>
+		        			<xsd:appinfo>
+		        				<a:deprecated>true</a:deprecated>
+		        				<a:deprecatedSince>3.7</a:deprecatedSince>
+		        			</xsd:appinfo>
+		        		</xsd:annotation>
 		        	</xsd:element>
 		        </xsd:sequence>
 	        </xsd:extension>
@@ -7722,6 +7855,33 @@
 		        				tree upwards and create associations for all the orgs in the hierarchy.
 		        				Only orgs with the orgType mathing this specification will be processed.
 		        			</xsd:documentation>
+		        		</xsd:annotation>
+		        	</xsd:element>
+		        	<xsd:element name="assignmentPathIndex" type="xsd:int" minOccurs="0" maxOccurs="1">
+		        		<xsd:annotation>
+		        			<xsd:documentation>
+			        			<p>
+			        				Index to the assignment path. This index points to the object that should
+			        				be used as a source to get the link from.
+			        				Index 0 is the focal object, index 1 is the first (plain) role,
+			        				index 2 is meta-role, index 3 is meta-meta-role and so on.
+			        				Negative index can also be used, in that case the order is reversed:
+			        				index -1 is that last meta-meta-meta-...-role. index -2 is the one before
+			        				and so on.
+		        				</p>
+		        				<p>
+			        				If the index is not specified then a legacy algorithm will be used.
+			        				The legacy algorithm is guaranteed to work up to meta-role level.
+			        				For plain roles (order-one inducement) the role itself is selected.
+			        				For meta-roles (order-two inducement) the first (plain) role is selected.
+			        				At the meta-meta role level (order-three inducement) and above the
+			        				behavior is formally undefined and it may change in any future versions.
+			        				However, current behaviour roughly corresponds to assignment path index -2.
+		        				</p>
+		        			</xsd:documentation>
+		        			<xsd:appinfo>
+		        				<a:since>3.7</a:since>
+		        			</xsd:appinfo>
 		        		</xsd:annotation>
 		        	</xsd:element>
 		        </xsd:sequence>
@@ -9315,7 +9475,17 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
-					
+					<xsd:element name="autoassign" type="tns:AutoassignSpecificationType" minOccurs="0">
+		               <xsd:annotation>
+		                   <xsd:documentation>
+		                   		<p>
+			                       Specification of role autoassignmnt properties. Those properties
+			                       are evaluated to detect whether a role should be automatically
+			                       assigned to focus.
+		                       </p>
+		                   </xsd:documentation>
+		               </xsd:annotation>
+		           </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -9573,6 +9743,139 @@
      		</xsd:element>
      	</xsd:sequence>
      </xsd:complexType>
+     
+     <xsd:complexType name="AutoassignSpecificationType">
+     	<xsd:annotation>
+     		<xsd:documentation>
+     			<p>
+     				Specification of role autoassignmnt properties. Those properties
+                    are evaluated to detect whether a role should be automatically
+                    assigned to focus.
+     			</p>
+     		</xsd:documentation>
+     		<xsd:appinfo>
+     			<a:container/>
+     			<a:since>3.7</a:since>
+     		</xsd:appinfo>
+     	</xsd:annotation>
+     	<xsd:sequence>
+     		<xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="false">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					<p>
+	     					Flag indicating whether autoassign functionality is enabled for this
+	     					(abstract) role.
+     					</p>
+     					<p>
+     						Use with care. MidPoint will will have to process all the roles that
+     						have this flag set to true. All the roles will be looked up, autoassign
+     						specification will be processed to see if the focus is matching.
+     						This will happen all the time for all modification operations.
+     						Therefore it is disabled by default. Also, autoassign functionality
+     						needs to be globally enabled in system configuration.
+     					</p>
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>AutoassignSpecificationType.enabled</a:displayName>
+		               	<a:displayOrder>100</a:displayOrder>
+		               	<a:indexed>true</a:indexed>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element name="focus" type="tns:FocalAutoassignSpecificationType" minOccurs="0" maxOccurs="1">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					This is "focal" specification. It is applied on the focus (similarly to object template).
+     				</xsd:documentation>
+     				<xsd:appinfo>
+		               	<a:displayName>AutoassignSpecificationType.focus</a:displayName>
+		               	<a:displayOrder>110</a:displayOrder>
+		            </xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<!-- TODO: later: inbound -->
+     	</xsd:sequence>
+    </xsd:complexType>
+
+     <xsd:complexType name="FocalAutoassignSpecificationType">
+     	<xsd:annotation>
+     		<xsd:documentation>
+     			<p>
+     				Specification of role autoassignmnt properties. Those properties
+                    are evaluated to detect whether a role should be automatically
+                    assigned to focus.
+                    This is "focal" specification. It is applied on the focus (similarly
+                    to object template).
+     			</p>
+     		</xsd:documentation>
+     		<xsd:appinfo>
+     			<a:container/>
+     			<a:since>3.7</a:since>
+     		</xsd:appinfo>
+     	</xsd:annotation>
+     	<xsd:sequence>
+     		<xsd:element name="mapping" type="tns:AutoassignMappingType" minOccurs="0" maxOccurs="unbounded">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					<p>
+     						Mapping that decides whether the roles has to be assigned.
+     						The mapping is supposed to produce an assignment for this role.
+     						However, the assignment is fed as a default source to the
+     						mapping. Therefore all that the mapping usually needs is to
+     						specify the condition. However, mapping expression can still be
+     						used to manipulate content of the assignment.
+     					</p>
+     					<p>
+     						This is mostly equivalent to the object tempate mapping, but default
+     						target is set to the assignment of this role.
+     					</p>
+     				</xsd:documentation>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<!-- TODO: later: mapping is too flexible. It is will be difficult for the
+     		     role managers to be set from GUI. But we can support most of the policy rule
+     		     constraints here (PolicyConstraintsType). -->
+     	</xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="AutoassignMappingType">
+    	<xsd:annotation>
+    		<xsd:appinfo>
+    			<a:since>3.7</a:since>
+    		</xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:complexContent>
+    		<xsd:extension base="tns:MappingType">
+    			<xsd:sequence>
+    				<xsd:element name="assignmentProperties" type="tns:AssignmentPropertiesSpecificationType" minOccurs="0">
+    					<xsd:annotation>
+    						<xsd:documentation>
+    							Properties of the new assignment.
+    						</xsd:documentation>
+    					</xsd:annotation>
+    				</xsd:element>
+    			</xsd:sequence>
+    		</xsd:extension>
+    	</xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="AssignmentPropertiesSpecificationType">
+    	<xsd:annotation>
+    		<xsd:appinfo>
+    			<a:since>3.7</a:since>
+    		</xsd:appinfo>
+    	</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="relation" type="xsd:QName" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Relation that will be set for new assignment.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- TODO: later: activation, lifecycle -->
+		</xsd:sequence>
+    </xsd:complexType>
 
     <xsd:complexType name="AuthorizationType">
         <xsd:annotation>
@@ -9640,6 +9943,19 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+        	<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+	   			<xsd:annotation>
+    				<xsd:documentation>
+    					Relation(s) to which the authorization applies.
+    					This is applicable only to some authorizations, mostly those that
+    					create new object references (e.g. assign/unassign authorizations).
+    					If left empty it applies to all relations.
+    				</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.7</a:since>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+    		</xsd:element>
         	<xsd:element name="limitations" type="tns:AuthorizationLimitationsType" minOccurs="0" maxOccurs="1">
         		<xsd:annotation>
         			<xsd:documentation>
@@ -13134,6 +13450,9 @@
             <xsd:documentation>
                 A configuration for role management: role catalog, role assignments, etc.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="description" type="xsd:string" minOccurs="0"/>
@@ -13194,6 +13513,16 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="autoassignEnabled" type="xsd:boolean" minOccurs="0" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						Global switch that enables autoassign functionality for roles.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -16350,6 +16679,13 @@
         	<xsd:extension base="tns:AbstractObjectTypeConfigurationType">
 	       		<xsd:sequence>
 	           		<xsd:element name="summaryPanel" type="tns:SummaryPanelSpecificationType" minOccurs="0" maxOccurs="1"/>
+	           		<xsd:element name="saveMethod" type="tns:DetailsPageSaveMethodType" minOccurs="0" maxOccurs="1" default="direct">
+	           			<xsd:annotation>
+	           				<xsd:documentation>
+	           					Specifies the method how page save/preview buttons are shown and processed.
+	           				</xsd:documentation>
+	           			</xsd:annotation>
+	           		</xsd:element>
 	           	</xsd:sequence>	
         	</xsd:extension>
         </xsd:complexContent>
@@ -16374,6 +16710,44 @@
            		<xsd:element name="organization" type="tns:GuiFlexibleLabelType" minOccurs="0" maxOccurs="1"/>
            	</xsd:sequence>	
     </xsd:complexType>
+    
+    <xsd:simpleType name="DetailsPageSaveMethodType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies the method how page save/preview buttons are shown and processed.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="direct">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Direct save. Both save and preview buttons are displayed. User can save directly using
+                        save or go to preview and save there. If there are any errors on save (e.g. violated policy rules)
+                        then the errors are displayed after save.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DIRECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="forcedPreview">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        There is no save button on the details page. Only preview button is there. User must go
+                        to the preview page to save the results. The save button on the preview page will be dissabled
+                        if there are any errors during preview (e.g. policy rule violations).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FORCED_PREVIEW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO: maybe later: disable save altogether, leave only preview. -->
+        </xsd:restriction>
+    </xsd:simpleType>
     
     <xsd:complexType name="GuiFlexibleLabelType">
         <xsd:annotation>

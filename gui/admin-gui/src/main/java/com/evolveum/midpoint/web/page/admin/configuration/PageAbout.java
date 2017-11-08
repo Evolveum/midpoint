@@ -101,6 +101,7 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_PROVISIONING_DETAIL_NAME = "provisioningDetailName";
     private static final String ID_PROVISIONING_DETAIL_VALUE = "provisioningDetailValue";
     private static final String ID_JVM_PROPERTIES = "jvmProperties";
+    private static final String ID_CLEAR_CSS_JS_CACHE = "clearCssJsCache";
 
     private static final String[] PROPERTIES = new String[]{"file.separator", "java.class.path",
             "java.home", "java.vendor", "java.vendor.url", "java.version", "line.separator", "os.arch",
@@ -272,6 +273,16 @@ public class PageAbout extends PageAdminConfiguration {
             }
         };
         add(cleanupActivitiProcesses);
+
+        AjaxButton clearCssJsCache = new AjaxButton(ID_CLEAR_CSS_JS_CACHE,
+                createStringResource("PageAbout.button.clearCssJsCache")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                clearLessJsCache(target);
+            }
+        };
+        add(clearCssJsCache);
     }
 
     private RepositoryDiag loadRepoDiagModel() {

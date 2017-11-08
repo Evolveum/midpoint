@@ -90,8 +90,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 
 	@Override
-	protected void initializeModel(final PrismObject<F> objectToEdit) {
-		super.initializeModel(objectToEdit);
+	protected void initializeModel(final PrismObject<F> objectToEdit, boolean isReadonly) {
+		super.initializeModel(objectToEdit, isReadonly);
 
 		projectionModel = new LoadableModel<List<FocusSubwrapperDto<ShadowType>>>(false) {
 			private static final long serialVersionUID = 1L;
@@ -128,11 +128,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	protected void reviveModels() throws SchemaException {
 		super.reviveModels();
 		WebComponentUtil.revive(projectionModel, getPrismContext());
-	}
-
-	protected ObjectWrapper<F> loadFocusWrapper(PrismObject<F> userToEdit) {
-		ObjectWrapper<F> objectWrapper = super.loadObjectWrapper(userToEdit);
-		return objectWrapper;
 	}
 
 	@Override

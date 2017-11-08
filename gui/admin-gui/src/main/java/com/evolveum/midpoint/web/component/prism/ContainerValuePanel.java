@@ -20,7 +20,9 @@ import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -83,6 +85,9 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
             }
 
 
+            protected void reloadParentContainerPanel(AjaxRequestTarget target){
+                target.add(ContainerValuePanel.this);
+            }
         };
         header.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;
@@ -125,6 +130,13 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 				if (item.getModel().getObject() instanceof ContainerWrapper) {
 					PrismContainerPanel<C> containerPanel = new PrismContainerPanel("property", (IModel<ContainerWrapper<C>>) item.getModel(), true, form, isPanaleVisible, pageBase);
 					containerPanel.setOutputMarkupId(true);
+					item.add(new VisibleEnableBehaviour(){
+                        private static final long serialVersionUID = 1L;
+
+                        public boolean isVisible(){
+                            return containerPanel.isVisible();
+                        }
+                    });
 					item.add(containerPanel);
 					return;
 				}

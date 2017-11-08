@@ -25,4 +25,6 @@ import org.springframework.context.annotation.Profile;
 @Profile("cas")
 @Configuration
 public class CasSecurityConfig {
+
+    // TODO move configuration from ctx-web-security-cas.xml here
 }

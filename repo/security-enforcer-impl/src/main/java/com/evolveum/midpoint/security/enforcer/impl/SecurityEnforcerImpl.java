@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
@@ -80,6 +81,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -98,6 +100,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationLimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -138,21 +141,28 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	@Override
 	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, Task task, OperationResult result)
+			AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		MidPointPrincipal midPointPrincipal = getMidPointPrincipal();
+		return isAuthorizedInternal(getMidPointPrincipal(), operationUrl, phase, params, ownerResolver, null, task, result);
+	}
+	
+	private <O extends ObjectType, T extends ObjectType> boolean isAuthorizedInternal(MidPointPrincipal midPointPrincipal, String operationUrl, AuthorizationPhaseType phase,
+			AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, 
+			Consumer<Authorization> applicableAutzConsumer, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (phase == null) {
-			if (!isAuthorizedInternal(midPointPrincipal, operationUrl, AuthorizationPhaseType.REQUEST, object, delta, target, ownerResolver, task, result)) {
+			if (!isAuthorizedPhase(midPointPrincipal, operationUrl, AuthorizationPhaseType.REQUEST, params, ownerResolver, applicableAutzConsumer, task, result)) {
 				return false;
 			}
-			return isAuthorizedInternal(midPointPrincipal, operationUrl, AuthorizationPhaseType.EXECUTION, object, delta, target, ownerResolver, task, result);
+			return isAuthorizedPhase(midPointPrincipal, operationUrl, AuthorizationPhaseType.EXECUTION, params, ownerResolver, applicableAutzConsumer, task, result);
 		} else {
-			return isAuthorizedInternal(midPointPrincipal, operationUrl, phase, object, delta, target, ownerResolver, task, result);
+			return isAuthorizedPhase(midPointPrincipal, operationUrl, phase, params, ownerResolver, applicableAutzConsumer, task, result);
 		}
 	}
 
-	private <O extends ObjectType, T extends ObjectType> boolean isAuthorizedInternal(MidPointPrincipal midPointPrincipal, String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, Task task, OperationResult result)
+	private <O extends ObjectType, T extends ObjectType> boolean isAuthorizedPhase(MidPointPrincipal midPointPrincipal, String operationUrl, AuthorizationPhaseType phase,
+			AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, 
+			Consumer<Authorization> applicableAutzConsumer, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (AuthorizationConstants.AUTZ_NO_ACCESS_URL.equals(operationUrl)){
@@ -163,8 +173,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			throw new IllegalArgumentException("No phase");
 		}
 		boolean allow = false;
-		LOGGER.trace("AUTZ: evaluating authorization principal={}, op={}, phase={}, object={}, delta={}, target={}",
-				midPointPrincipal, operationUrl, phase, object, delta, target);
+		LOGGER.trace("AUTZ: evaluating authorization principal={}, op={}, phase={}, {}",
+				midPointPrincipal, operationUrl, phase, params.shortDumpLazily());
 		final Collection<ItemPath> allowedItems = new ArrayList<>();
 		Collection<Authorization> authorities = getAuthorities(midPointPrincipal);
 		if (authorities != null) {
@@ -193,23 +203,33 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							LOGGER.trace("  {} is applicable for phases {} (continuing evaluation)", autzHumanReadableDesc, phase);
 						}
 					}
+					
+					// relation
+					if (!isApplicableRelation(autz, params.getRelation())) {
+						LOGGER.trace("  {} not applicable for relation {}", autzHumanReadableDesc, params.getRelation());
+						continue;
+					}
 
 					// object
-					if (isApplicable(autz.getObject(), object, midPointPrincipal, ownerResolver, "object", autzHumanReadableDesc, task, result)) {
-						LOGGER.trace("  {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, object);
+					if (isApplicable(autz.getObject(), params.getObject(), midPointPrincipal, ownerResolver, "object", autzHumanReadableDesc, task, result)) {
+						LOGGER.trace("  {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, params.getObject());
 					} else {
 						LOGGER.trace("  {} not applicable for object {}, none of the object specifications match (breaking evaluation)",
-								autzHumanReadableDesc, object);
+								autzHumanReadableDesc, params.getObject());
 						continue;
 					}
 
 					// target
-					if (isApplicable(autz.getTarget(), target, midPointPrincipal, ownerResolver, "target", autzHumanReadableDesc, task, result)) {
-						LOGGER.trace("  {} applicable for target {} (continuing evaluation)", autzHumanReadableDesc, object);
+					if (isApplicable(autz.getTarget(), params.getTarget(), midPointPrincipal, ownerResolver, "target", autzHumanReadableDesc, task, result)) {
+						LOGGER.trace("  {} applicable for target {} (continuing evaluation)", autzHumanReadableDesc, params.getObject());
 					} else {
 						LOGGER.trace("  {} not applicable for target {}, none of the target specifications match (breaking evaluation)",
-								autzHumanReadableDesc, object);
+								autzHumanReadableDesc, params.getObject());
 						continue;
+					}
+					
+					if (applicableAutzConsumer != null) {
+						applicableAutzConsumer.accept(autz);
 					}
 
 					// authority is applicable to this situation. now we can process the decision.
@@ -232,7 +252,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						// Do NOT break here. Other authorization statements may still deny the operation
 					} else {
 						// item
-						if (isApplicableItem(autz, object, delta)) {
+						if (isApplicableItem(autz, params.getObject(), params.getDelta())) {
 							LOGGER.trace("  {}: Deny authorization applicable for items (continuing evaluation)", autzHumanReadableDesc);
 						} else {
 							LOGGER.trace("  {} not applicable for items (breaking evaluation)", autzHumanReadableDesc);
@@ -258,10 +278,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			} else {
 				// all items in the object and delta must be allowed
 
-				if (delta != null) {
-					allow = processAuthorizationDelta(delta, allowedItems, phase);
-				} else if (object != null) {
-					allow = processAuthorizationObject(object, allowedItems, phase);
+				if (params.hasDelta()) {
+					allow = processAuthorizationDelta(params.getDelta(), allowedItems, phase);
+				} else if (params.hasObject()) {
+					allow = processAuthorizationObject(params.getObject(), allowedItems, phase);
 				}
 			}
 		}
@@ -364,26 +384,26 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	@Override
 	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver,
+			AuthorizationParameters<O,T> params, OwnerResolver ownerResolver,
 			Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		boolean allow = isAuthorized(operationUrl, phase, object, delta, target, ownerResolver, task, result);
+		boolean allow = isAuthorized(operationUrl, phase, params, ownerResolver, task, result);
 		if (!allow) {
-			failAuthorization(operationUrl, phase, object, delta, target, result);
+			failAuthorization(operationUrl, phase, params, result);
 		}
 	}
 
 	@Override
 	public <O extends ObjectType, T extends ObjectType> void failAuthorization(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OperationResult result) throws SecurityViolationException {
+			AuthorizationParameters<O,T> params, OperationResult result) throws SecurityViolationException {
 		MidPointPrincipal principal = securityContextManager.getPrincipal();
 		String username = getQuotedUsername(principal);
 		String message;
-		if (target == null && object == null) {
+		if (params.getTarget() == null && params.getObject() == null) {
 			message = "User '"+username+"' not authorized for operation "+ operationUrl;
-		} else if (target == null) {
-			message = "User '"+username+"' not authorized for operation "+ operationUrl + " on " + object;
+		} else if (params.getTarget() == null) {
+			message = "User '"+username+"' not authorized for operation "+ operationUrl + " on " + params.getObject();
 		} else {
-			message = "User '"+username+"' not authorized for operation "+ operationUrl + " on " + object + " with target " + target;
+			message = "User '"+username+"' not authorized for operation "+ operationUrl + " on " + params.getObject() + " with target " + params.getTarget();
 		}
 		LOGGER.error("{}", message);
 		AuthorizationException e = new AuthorizationException(message);
@@ -738,7 +758,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		for(String configAction: configActions) {
 			boolean isAuthorized;
 			try {
-				isAuthorized = isAuthorized(configAction, null, null, null, null, null, task, task.getResult());
+				isAuthorized = isAuthorized(configAction, null, AuthorizationParameters.EMPTY, null, task, task.getResult());
 			} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 				throw new SystemException(e.getMessage(), e);
 			}
@@ -946,7 +966,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	@Override
 	public <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
-			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter, String limitAuthorizationAction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		MidPointPrincipal principal = getMidPointPrincipal();
 		LOGGER.trace("AUTZ: evaluating search pre-process principal={}, searchResultType={}, object={}: orig filter {}",
 				principal, searchResultType, object, origFilter);
@@ -956,14 +976,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		ObjectFilter finalFilter;
 		if (phase != null) {
 			finalFilter = preProcessObjectFilterInternal(principal, operationUrl, phase,
-					true, searchResultType, object, true, origFilter, "search pre-process", task, result);
+					true, searchResultType, object, true, origFilter, limitAuthorizationAction, "search pre-process", task, result);
 		} else {
 			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrl, null,
-					false, searchResultType, object, true, origFilter, "search pre-process", task, result);
+					false, searchResultType, object, true, origFilter, limitAuthorizationAction, "search pre-process", task, result);
 			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.REQUEST,
-					false, searchResultType, object, true, origFilter, "search pre-process", task, result);
+					false, searchResultType, object, true, origFilter, limitAuthorizationAction, "search pre-process", task, result);
 			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.EXECUTION,
-					false, searchResultType, object, true, origFilter, "search pre-process", task, result);
+					false, searchResultType, object, true, origFilter, limitAuthorizationAction, "search pre-process", task, result);
 			finalFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
 		}
 		LOGGER.trace("AUTZ: evaluated search pre-process principal={}, objectType={}: {}", principal, searchResultType, finalFilter);
@@ -987,14 +1007,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		ObjectFilter finalFilter;
 		if (phase != null) {
 			finalFilter = preProcessObjectFilterInternal(principal, operationUrl, phase,
-					true, searchResultType, object, includeSpecial, filter, "search permission", task, result);
+					true, searchResultType, object, includeSpecial, filter, null, "search permission", task, result);
 		} else {
 			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrl, null,
-					false, searchResultType, object, includeSpecial, filter, "search permission", task, result);
+					false, searchResultType, object, includeSpecial, filter, null, "search permission", task, result);
 			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.REQUEST,
-					false, searchResultType, object, includeSpecial, filter, "search permission", task, result);
+					false, searchResultType, object, includeSpecial, filter, null, "search permission", task, result);
 			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.EXECUTION,
-					false, searchResultType, object, includeSpecial, filter, "search permission", task, result);
+					false, searchResultType, object, includeSpecial, filter, null, "search permission", task, result);
 			finalFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
 		}
 		finalFilter = ObjectQueryUtil.simplify(finalFilter);
@@ -1005,7 +1025,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	private <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilterInternal(MidPointPrincipal principal, String operationUrl,
 			AuthorizationPhaseType phase, boolean includeNullPhase,
-			Class<T> objectType, PrismObject<O> object, boolean includeSpecial, ObjectFilter origFilter, String desc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+			Class<T> objectType, PrismObject<O> object, boolean includeSpecial, ObjectFilter origFilter, String limitAuthorizationAction, String desc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Collection<Authorization> authorities = getAuthorities(principal);
 
@@ -1037,6 +1057,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						LOGGER.trace("  Authorization is applicable for phases {} (continuing evaluation)", phase);
 					} else {
 						LOGGER.trace("  Authorization is not applicable for phase {}", phase);
+						continue;
+					}
+					
+					if (!isApplicableLimitations(autz, limitAuthorizationAction)) {
+						LOGGER.trace("  Authorization is limited to other action, not applicable for operation {}", operationUrl);
 						continue;
 					}
 
@@ -1343,6 +1368,29 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 	}
 
+	private boolean isApplicableLimitations(Authorization autz, String limitAuthorizationAction) {
+		if (limitAuthorizationAction == null) {
+			return true;
+		}
+		AuthorizationLimitationsType limitations = autz.getLimitations();
+		if (limitations == null) {
+			return true;
+		}
+		List<String> limitationsActions = limitations.getAction();
+		if (limitationsActions.isEmpty()) {
+			return true;
+		}
+		return limitationsActions.contains(limitAuthorizationAction);
+	}
+	
+	private boolean isApplicableRelation(Authorization autz, QName requestRelation) {
+		List<QName> autzRelation = autz.getRelation();
+		if (autzRelation == null || autzRelation.isEmpty()) {
+			return true;
+		}
+		return QNameUtil.contains(autzRelation, requestRelation);
+	}
+
 	/**
 	 * Very rudimentary and experimental implementation.
 	 */
@@ -1521,5 +1569,25 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return decisions;
 	}
 
-
+	@Override
+	public MidPointPrincipal createDonorPrincipal(MidPointPrincipal attorneyPrincipal, String attorneyAuthorizationAction, PrismObject<UserType> donor, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		if (attorneyPrincipal.getAttorney() != null) {
+			throw new UnsupportedOperationException("Transitive attorney is not supported yet");
+		}
+		
+		AuthorizationLimitationsCollector limitationsCollector = new AuthorizationLimitationsCollector();
+		AuthorizationParameters<UserType, ObjectType> autzParams = AuthorizationParameters.Builder.buildObject(donor);
+		boolean authorized = isAuthorizedInternal(attorneyPrincipal, attorneyAuthorizationAction, null, autzParams, null, limitationsCollector, task, result);
+		if (!authorized) {
+			failAuthorization(attorneyAuthorizationAction, null, autzParams, result);
+		}
+		
+		MidPointPrincipal donorPrincipal = securityContextManager.getUserProfileService().getPrincipal(donor, limitationsCollector, result);
+		donorPrincipal.setAttorney(attorneyPrincipal.getUser());
+		
+		// chain principals so we can easily drop the power of attorney and return back to original identity
+		donorPrincipal.setPreviousPrincipal(attorneyPrincipal);
+		
+		return donorPrincipal;
+	}
 }

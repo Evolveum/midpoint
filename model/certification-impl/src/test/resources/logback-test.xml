@@ -35,8 +35,8 @@
 	<logger name="com.evolveum.midpoint.common.monitor" level="TRACE" />
 	<logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.repo" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.task" level="INFO" />
 	<!--<logger name="org.hibernate.SQL" level="TRACE" />-->
-	<logger name="com.evolveum.midpoint.model.sync.LiveSyncTaskHandler" level="TRACE" />
 	<logger name="com.evolveum.midpoint.test" level="TRACE" />
 	<logger name="com.evolveum.midpoint.certification" level="TRACE" />
 	<logger name="PROFILING" level="TRACE" />

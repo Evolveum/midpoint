@@ -515,6 +515,15 @@
 				<ref>ri:members</ref>
 				<fetchStrategy>minimal</fetchStrategy>
 			</attribute>
+			
+			<association> <!-- Nested group -->
+            	<ref>ri:group</ref>
+            	<kind>entitlement</kind>
+            	<intent>group</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:members</associationAttribute>
+            	<valueAttribute>icfs:name</valueAttribute>
+            </association>
         </objectType>
         
         <objectType>

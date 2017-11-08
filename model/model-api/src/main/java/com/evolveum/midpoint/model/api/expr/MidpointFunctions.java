@@ -23,6 +23,7 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -1039,6 +1041,8 @@ public interface MidpointFunctions {
 	
 	boolean isFullShadow();
 
+	boolean isProjectionExists();
+
 	List<UserType> getMembers(String orgOid)
 			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
 			ObjectNotFoundException, ExpressionEvaluationException;
@@ -1088,4 +1092,15 @@ public interface MidpointFunctions {
 	TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+
+	String translate(LocalizableMessage message);
+
+	String translate(LocalizableMessageType message);
+
+	<F extends ObjectType> ModelContext<F> getModelContext();
+
+	<F extends ObjectType> ModelElementContext<F> getFocusContext();
+
+	ModelProjectionContext getProjectionContext();
+
 }

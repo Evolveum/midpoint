@@ -141,7 +141,6 @@ public class ReportCreateTaskHandler implements TaskHandler {
         runResult.setOperationResult(result);
 
         recordProgress(task, 0, result);
-        long progress = task.getProgress();
         JRSwapFile swapFile = null;
         JRAbstractLRUVirtualizer virtualizer = null; // http://community.jaspersoft.com/wiki/virtualizers-jasperreports
 
@@ -227,14 +226,15 @@ public class ReportCreateTaskHandler implements TaskHandler {
             saveReportOutputType(reportFilePath, parentReport, task, result);
             LOGGER.trace("create report output type : {}", reportFilePath);
 
-            processPostReportScript(parentReport.getPostReportScript().getCode(), reportFilePath, result);
+            if (parentReport.getPostReportScript() != null) {
+                processPostReportScript(parentReport.getPostReportScript().getCode(), reportFilePath, result);
+            }
             result.computeStatus();
 
         } catch (Exception ex) {
             LOGGER.error("CreateReport: {}", ex.getMessage(), ex);
             result.recordFatalError(ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            runResult.setProgress(progress);
             return runResult;
         } finally {
             if (swapFile != null) {
@@ -247,7 +247,6 @@ public class ReportCreateTaskHandler implements TaskHandler {
 
         // This "run" is finished. But the task goes on ...
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-        runResult.setProgress(progress);
         LOGGER.trace("CreateReportTaskHandler.run stopping");
         return runResult;
     }

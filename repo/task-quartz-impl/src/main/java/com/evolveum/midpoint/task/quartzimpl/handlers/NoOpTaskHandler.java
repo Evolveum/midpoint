@@ -24,7 +24,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -56,7 +55,6 @@ public class NoOpTaskHandler implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task task) {
 		
-		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(NoOpTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
@@ -93,7 +91,7 @@ public class NoOpTaskHandler implements TaskHandler {
         else
         	steps = 1;
 
-        LOGGER.info("NoOpTaskHandler run starting; progress = " + progress + ", steps to be executed = " + steps + ", delay for one step = " + delay  + " in task " + task.getName());
+        LOGGER.info("NoOpTaskHandler run starting; progress = " + task.getProgress() + ", steps to be executed = " + steps + ", delay for one step = " + delay  + " in task " + task.getName());
         
         for (int i = 0; i < steps; i++) {
         	LOGGER.info("NoOpTaskHandler: executing step " + (i+1) + " of " + steps + " in task " + task.getName());
@@ -112,18 +110,7 @@ public class NoOpTaskHandler implements TaskHandler {
         		}
 			}
 
-            progress++;
-            try {
-                task.setProgressImmediate(progress, opResult);
-            } catch (ObjectNotFoundException e) {
-                LoggingUtils.logException(LOGGER, "Cannot report progress for task {} because the task does not exist anymore.", e, task);
-                runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-                break;
-            } catch (SchemaException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Cannot report progress for task {} because of schema exception.", e, task);
-                runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-                break;
-            }
+            task.incrementProgressAndStoreStatsIfNeeded();
 
             if (!task.canRun()) {
 				LOGGER.info("NoOpTaskHandler: got a shutdown request, finishing task " + task.getName());
@@ -133,8 +120,7 @@ public class NoOpTaskHandler implements TaskHandler {
 
 		opResult.computeStatusIfUnknown();
 		
-		runResult.setProgress(progress);
-		LOGGER.info("NoOpTaskHandler run finishing; progress = " + progress + " in task " + task.getName());
+		LOGGER.info("NoOpTaskHandler run finishing; progress = " + task.getProgress() + " in task " + task.getName());
 		return runResult;
 	}
 

@@ -63,6 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -139,18 +140,19 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
 
+	@NotNull
+	@Override
+	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+		return new StatisticsCollectionStrategy()
+				.fromZero()
+				.maintainIterationStatistics()
+				.maintainSynchronizationStatistics()
+				.maintainActionsExecutedStatistics();
+	}
+
 	@Override
 	public TaskRunResult run(Task coordinatorTask) {
 		LOGGER.trace("ReconciliationTaskHandler.run starting");
-		coordinatorTask.startCollectingOperationStatsFromZero(true, true, true);
-		try {
-			return runInternal(coordinatorTask);
-		} finally {
-			coordinatorTask.storeOperationStats();
-		}
-	}
-
-	public TaskRunResult runInternal(Task coordinatorTask) {
 		ReconciliationTaskResult reconResult = new ReconciliationTaskResult();
 
 		boolean finishOperationsOnly = BooleanUtils.isTrue(
@@ -313,7 +315,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		opResult.computeStatus();
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		runResult.setProgress(coordinatorTask.getProgress());
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.getStatus());
 //			LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.dump());
@@ -331,11 +332,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		long resourceReconTime = afterResourceReconTimestamp - beforeResourceReconTimestamp;
 		long shadowReconTime = afterShadowReconTimestamp - afterResourceReconTimestamp;
 		LOGGER.info("Done executing reconciliation of resource {}, object class {}, Etime: {} ms (un-ops: {}, resource: {}, shadow: {})",
-				new Object[]{resource, objectclassDef,
-					etime,
-					unOpsTime,
-					resourceReconTime,
-					shadowReconTime});
+				resource, objectclassDef, etime, unOpsTime, resourceReconTime, shadowReconTime);
 
 		reconResult.setRunResult(runResult);
 		if (reconciliationTaskResultListener != null) {
@@ -416,7 +413,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
         if (LOGGER.isWarnEnabled()) {
             LOGGER.warn("Reconciliation on {} interrupted", resource);
         }
-        runResult.setProgress(task.getProgress());
         runResult.setRunResultStatus(TaskRunResultStatus.INTERRUPTED);          // not strictly necessary, because using task.canRun() == false the task manager knows we were interrupted
 		TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, task, opResult);	// TODO implement more seriously
     }
@@ -428,7 +424,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		opResult.recordFatalError(message, ex);
 		TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, task, opResult); // TODO implement more seriously
 		runResult.setRunResultStatus(runResultStatus);
-		runResult.setProgress(task.getProgress());
 
 		AuditEventRecord executionRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.EXECUTION);
 		executionRecord.setTarget(resource);
@@ -448,7 +443,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		LOGGER.error("Reconciliation: {}", new Object[]{message, ex});
 		opResult.recordFatalError(message, ex);
 		runResult.setRunResultStatus(runResultStatus);
-		runResult.setProgress(task.getProgress());
 	}
 
     // returns false in case of execution interruption
@@ -515,7 +509,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		// find accounts
 
-		LOGGER.trace("Shadow reconciliation starting for {}, {} -> {}", new Object[]{resource, startTimestamp, endTimestamp});
+		LOGGER.trace("Shadow reconciliation starting for {}, {} -> {}", resource, startTimestamp, endTimestamp);
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".shadowReconciliation");
 
 		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
@@ -532,40 +526,37 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		long started = System.currentTimeMillis();
 
-		final Holder<Long> countHolder = new Holder<Long>(0L);
+		final Holder<Long> countHolder = new Holder<>(0L);
 
-		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
-			@Override
-			public boolean handle(PrismObject<ShadowType> shadow, OperationResult parentResult) {
-				if ((objectclassDef instanceof RefinedObjectClassDefinition) && !((RefinedObjectClassDefinition)objectclassDef).matches(shadow.asObjectable())) {
-					return true;
-				}
-
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Shadow reconciliation of {}, fullSynchronizationTimestamp={}", shadow, shadow.asObjectable().getFullSynchronizationTimestamp());
-				}
-				long started = System.currentTimeMillis();
-				PrismObject<ShadowType> resourceShadow = null;
-				try {
-					task.recordIterativeOperationStart(shadow.asObjectable());
-					resourceShadow = reconcileShadow(shadow, resource, task);
-					task.recordIterativeOperationEnd(shadow.asObjectable(), started, null);
-				} catch (Throwable t) {
-					task.recordIterativeOperationEnd(shadow.asObjectable(), started, t);
-					throw t;
-				}
-
-				if (ShadowUtil.isProtected(resourceShadow)) {
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Skipping recording counter for {} because it is protected", shadow);
-					}
-					return task.canRun();
-				}
-
-				countHolder.setValue(countHolder.getValue() + 1);
-                incrementAndRecordProgress(task, new OperationResult("dummy"));     // reconcileShadow writes to its own dummy OperationResult, so we do the same here
-                return task.canRun();
+		ResultHandler<ShadowType> handler = (shadow, parentResult) -> {
+			if ((objectclassDef instanceof RefinedObjectClassDefinition) && !objectclassDef.matches(shadow.asObjectable())) {
+				return true;
 			}
+
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Shadow reconciliation of {}, fullSynchronizationTimestamp={}", shadow, shadow.asObjectable().getFullSynchronizationTimestamp());
+			}
+			long started1 = System.currentTimeMillis();
+			PrismObject<ShadowType> resourceShadow;
+			try {
+				task.recordIterativeOperationStart(shadow.asObjectable());
+				resourceShadow = reconcileShadow(shadow, resource, task);
+				task.recordIterativeOperationEnd(shadow.asObjectable(), started1, null);
+			} catch (Throwable t) {
+				task.recordIterativeOperationEnd(shadow.asObjectable(), started1, t);
+				throw t;
+			}
+
+			if (ShadowUtil.isProtected(resourceShadow)) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Skipping recording counter for {} because it is protected", shadow);
+				}
+				return task.canRun();
+			}
+
+			countHolder.setValue(countHolder.getValue() + 1);
+			incrementAndRecordProgress(task, new OperationResult("dummy"));     // reconcileShadow writes to its own dummy OperationResult, so we do the same here
+			return task.canRun();
 		};
 
 		repositoryService.searchObjectsIterative(ShadowType.class, query, handler, null, true, opResult);
@@ -576,7 +567,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		opResult.computeStatus();
 
 		LOGGER.trace("Shadow reconciliation finished, processed {} shadows for {}, result: {}",
-				new Object[]{countHolder.getValue(), resource, opResult.getStatus()});
+				countHolder.getValue(), resource, opResult.getStatus());
 
 		reconResult.setShadowReconCount(countHolder.getValue());
 
@@ -630,7 +621,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	}
 
 	private void processShadowReconError(Exception e, PrismObject<ShadowType> shadow, OperationResult opResult) {
-		LOGGER.error("Error reconciling shadow {}: {}", new Object[]{shadow, e.getMessage(), e});
+		LOGGER.error("Error reconciling shadow {}: {}", shadow, e.getMessage(), e);
 		opResult.recordFatalError(e);
 		// TODO: store error in the shadow?
 	}

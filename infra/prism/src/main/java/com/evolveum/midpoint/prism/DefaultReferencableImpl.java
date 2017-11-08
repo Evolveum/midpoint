@@ -46,8 +46,9 @@ public class DefaultReferencableImpl implements Referencable, Cloneable, Seriali
 	}
 
 	@Override
-	public void setupReferenceValue(PrismReferenceValue value) {
+	public DefaultReferencableImpl setupReferenceValue(PrismReferenceValue value) {
 		referenceValue = value;
+		return this;
 	}
 
 	@Override

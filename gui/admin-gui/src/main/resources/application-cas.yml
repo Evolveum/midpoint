@@ -1,0 +1,8 @@
+#auth:
+#  cas:
+#    midpoint:
+#      host: http://localhost:8080/midpoint
+#    send:
+#      renew: false
+#    server:
+#      host: http://localhost:9090/

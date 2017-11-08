@@ -1183,6 +1183,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+					<xsd:element name="approvalDisplayName" type="tns:LocalizableMessageTemplateType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								If not specified, the name is derived from triggered constraints (short messages).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
 					<xsd:choice>
                         <xsd:sequence>
                             <xsd:element name="approverRelation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
@@ -1409,9 +1416,26 @@
 				        <xsd:annotation>
 					        <xsd:documentation>
 						        What approval actions to include during approval schema creation for this process.
+								If they are not triggered an exception is thrown.
 					        </xsd:documentation>
 				        </xsd:annotation>
 			        </xsd:element>
+			        <xsd:element name="includeActionIfPresent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				        <xsd:annotation>
+					        <xsd:documentation>
+						        What approval actions to include during approval schema creation for this process.
+								If they are not triggered they are silently skipped.
+					        </xsd:documentation>
+				        </xsd:annotation>
+			        </xsd:element>
+					<xsd:element name="approvalDisplayName" type="tns:LocalizableMessageTemplateType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Name for approval process. If not specified, name from approval action(s) is taken.
+								If not specified even there, the name is derived from triggered constraints (short messages).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
 		        </xsd:sequence>
 	        </xsd:choice>
         </xsd:sequence>

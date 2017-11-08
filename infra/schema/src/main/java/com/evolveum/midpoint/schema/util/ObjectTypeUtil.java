@@ -748,11 +748,11 @@ public class ObjectTypeUtil {
 		}
 	}
 
-	public static LocalizableMessage createTechnicalObjectSpecification(PrismObject<?> object) {
+	public static LocalizableMessage createTechnicalDisplayInformation(PrismObject<?> object, boolean startsWithUppercase) {
 		if (object != null) {
 			return new LocalizableMessageBuilder()
 					.key(SchemaConstants.TECHNICAL_OBJECT_SPECIFICATION_KEY)
-					.arg(createObjectTypeSpecification(object.asObjectable().getClass().getSimpleName()))
+					.arg(createTypeDisplayInformation(object.asObjectable().getClass().getSimpleName(), startsWithUppercase))
 					.arg(object.asObjectable().getName())
 					.arg(object.getOid())
 					.build();
@@ -761,11 +761,11 @@ public class ObjectTypeUtil {
 		}
 	}
 
-	public static LocalizableMessage createObjectSpecification(PrismObject<?> object) {
+	public static LocalizableMessage createDisplayInformation(PrismObject<?> object, boolean startsWithUppercase) {
 		if (object != null) {
 			return new LocalizableMessageBuilder()
 					.key(SchemaConstants.OBJECT_SPECIFICATION_KEY)
-					.arg(createObjectTypeSpecification(object.asObjectable().getClass().getSimpleName()))
+					.arg(createTypeDisplayInformation(object.asObjectable().getClass().getSimpleName(), startsWithUppercase))
 					.arg(object.asObjectable().getName())
 					.build();
 		} else {
@@ -773,13 +773,27 @@ public class ObjectTypeUtil {
 		}
 	}
 
-	public static LocalizableMessage createObjectTypeSpecification(QName type) {
-		return createObjectTypeSpecification(type != null ? type.getLocalPart() : null);
+	public static LocalizableMessage createDisplayInformationWithPath(PrismObject<?> object, boolean startsWithUppercase, String path) {
+		if (object != null) {
+			return new LocalizableMessageBuilder()
+					.key(SchemaConstants.OBJECT_SPECIFICATION_WITH_PATH_KEY)
+					.arg(createTypeDisplayInformation(object.asObjectable().getClass().getSimpleName(), startsWithUppercase))
+					.arg(object.asObjectable().getName())
+					.arg(path)
+					.build();
+		} else {
+			return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!
+		}
 	}
 
-	public static LocalizableMessage createObjectTypeSpecification(String objectClassName) {
+	public static LocalizableMessage createTypeDisplayInformation(QName type, boolean startsWithUppercase) {
+		return createTypeDisplayInformation(type != null ? type.getLocalPart() : null, startsWithUppercase);
+	}
+
+	public static LocalizableMessage createTypeDisplayInformation(String objectClassName, boolean startsWithUppercase) {
+    	String prefix = startsWithUppercase ? SchemaConstants.OBJECT_TYPE_KEY_PREFIX : SchemaConstants.OBJECT_TYPE_LOWERCASE_KEY_PREFIX;
 		return new LocalizableMessageBuilder()
-						.key(SchemaConstants.OBJECT_TYPE_LOWERCASE_KEY_PREFIX + objectClassName)
+						.key(prefix + objectClassName)
 						.fallbackMessage(objectClassName)
 						.build();
 	}

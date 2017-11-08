@@ -203,43 +203,34 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 	protected List<ITab> createTabs(final PageAdminObjectDetails<R> parentPage) {
 		List<ITab> tabs = super.createTabs(parentPage);
 
-		FocusTabVisibleBehavior authorization = new FocusTabVisibleBehavior(unwrapModel(),
+		FocusTabVisibleBehavior authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_POLICY_RULES_URL);
+		tabs.add(
+				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.policyRules"), authorization) {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public WebMarkupContainer createPanel(String panelId) {
+						return createFocusPolicyRulesTabPanel(panelId, parentPage);
+					}
+
+					@Override
+					public String getCount() {
+						return Integer.toString(countPolicyRules());
+					}
+				});
+
+		authorization = new FocusTabVisibleBehavior(unwrapModel(),
 				ComponentConstants.UI_FOCUS_TAB_INDUCEMENTS_URL);
-		tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.inducement"), authorization)
-		{
+		tabs.add(new PanelTab(parentPage.createStringResource("FocusType.inducement"), authorization) {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
-				return new AssignmentTablePanel<R>(panelId, inducementsModel) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public List<AssignmentType> getAssignmentTypeList() {
-						return getObject().asObjectable().getInducement();
-					}
-
-					@Override
-					public String getExcludeOid() {
-						return getObject().getOid();
-					}
-					
-					@Override
-					public IModel<String> getLabel() {
-						return parentPage.createStringResource("FocusType.inducement");
-					}
-
-					@Override
-					protected boolean ignoreMandatoryAttributes(){
-						return true;
-					}
-				};
+				return new AbstractRoleInducementPanel<R>(panelId, getMainForm(), getObjectModel(), parentPage);
 			}
 
-			@Override
-			public String getCount() {
-				return Integer.toString(inducementsModel.getObject() == null ? 0 : inducementsModel.getObject().size());
-			}
 		});
 
 		authorization = new FocusTabVisibleBehavior(unwrapModel(),
@@ -288,4 +279,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 	public abstract AbstractRoleMemberPanel<R> createMemberPanel(String panelId);
 
+	private WebMarkupContainer createFocusPolicyRulesTabPanel(String panelId, PageAdminObjectDetails<R> parentPage) {
+		return new FocusPolicyRulesTabPanel<R>(panelId, getMainForm(), getObjectModel(), parentPage);
+	}
 }

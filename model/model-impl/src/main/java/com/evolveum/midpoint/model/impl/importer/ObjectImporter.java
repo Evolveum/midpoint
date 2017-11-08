@@ -47,7 +47,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +62,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.apache.commons.lang3.BooleanUtils.isNotTrue;
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
+import static org.apache.commons.lang3.BooleanUtils.isFalse;
+
 /**
  * Extension of validator used to import objects to the repository.
  * <p/>
@@ -75,48 +78,31 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ObjectImporter {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectImporter.class);
-//    private static final String OPERATION_RESOLVE_REFERENCE = ObjectImporter.class.getName()
-//            + ".resolveReference";
     private static final String OPERATION_VALIDATE_DYN_SCHEMA = ObjectImporter.class.getName()
             + ".validateDynamicSchema";
 
-
-    @Autowired(required = true)
-    private Protector protector;
-    @Autowired(required = true)
-    private LightweightIdentifierGenerator lightweightIdentifierGenerator;
-    @Autowired(required = true)
-    private PrismContext prismContext;
-    @Autowired(required = true)
-    private TaskManager taskManager;
-    @Autowired(required = true)
-	@Qualifier("cacheRepositoryService")
-	private RepositoryService repository;
-    @Autowired(required = true)
-    private ModelService modelService;
-    @Autowired(required = true)
-    private Clock clock;
+    @Autowired private Protector protector;
+    @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+    @Autowired private PrismContext prismContext;
+    @Autowired private TaskManager taskManager;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repository;
+    @Autowired private ModelService modelService;
+    @Autowired private Clock clock;
 
     private Migrator migrator = new Migrator();
 
     // this method is responsible for computing the operation result!
     public void importObjects(InputStream input, String language, ImportOptionsType options, Task task, OperationResult parentResult) {
-        importObjectsInternal(input, language, options, true, task, parentResult);
+        importObjectsInternal(input, language, options, task, parentResult);
     }
 
-    // TODO provide "noRaw" option in ImportOptionsType?
-//    public void importObjectsNotRaw(InputStream input, final ImportOptionsType options, final Task task, final OperationResult parentResult) {
-//        importObjectsInternal(input, options, false, task, parentResult);
-//    }
-
-    private void importObjectsInternal(InputStream input, String language, final ImportOptionsType options,
-		    final boolean raw, final Task task, final OperationResult parentResult) {
+    private void importObjectsInternal(InputStream input, String language, ImportOptionsType options, Task task, OperationResult parentResult) {
 
     	if (options != null) {
-		    if (BooleanUtils.isTrue(options.isSummarizeErrors())) {
+		    if (isTrue(options.isSummarizeErrors())) {
 			    parentResult.setSummarizeErrors(true);
 		    }
-		    if (BooleanUtils.isTrue(options.isSummarizeSucceses())) {
+		    if (isTrue(options.isSummarizeSucceses())) {
 			    parentResult.setSummarizeSuccesses(true);
 		    }
 	    }
@@ -133,7 +119,7 @@ public class ObjectImporter {
 			    public boolean handleData(PrismObject<?> object) {
 				    OperationResult objectResult = parentResult.createSubresult(OperationConstants.IMPORT_OBJECT);
 				    objectResult.addContext("objectNumber", index.incrementAndGet());
-				    importParsedObject(object, null, objectResult, options, task, raw);
+				    importParsedObject(object, objectResult, options, task);
 				    objectResult.computeStatusIfUnknown();
 					objectResult.cleanupResult();
 					parentResult.summarize();
@@ -176,7 +162,7 @@ public class ObjectImporter {
 			    @Override
 			    public <T extends Objectable> EventResult postMarshall(PrismObject<T> prismObjectObjectable,
 					    Element objectElement, OperationResult objectResult) {
-				    return importParsedObject(prismObjectObjectable, objectElement, objectResult, options, task, raw);
+				    return importParsedObject(prismObjectObjectable, objectResult, options, task);
 			    }
 
 			    @Override
@@ -188,7 +174,11 @@ public class ObjectImporter {
 		    Validator validator = new Validator(prismContext, handler);
 		    validator.setVerbose(true);
 		    if (options != null) {
-			    validator.setValidateSchema(BooleanUtils.isTrue(options.isValidateStaticSchema()));
+			    validator.setValidateSchema(isTrue(options.isValidateStaticSchema()));
+			    if (options.getModelExecutionOptions() != null && isFalse(options.getModelExecutionOptions().isRaw())) {
+			    	// model will take care of this
+				    validator.setValidateName(false);
+			    }
 		    }
 		    validator.setStopAfterErrors(stopAfterErrors);
 		    validator.validate(input, parentResult, OperationConstants.IMPORT_OBJECT);
@@ -196,8 +186,8 @@ public class ObjectImporter {
     }
 
 	@NotNull
-	private <T extends Objectable> EventResult importParsedObject(PrismObject<T> prismObjectObjectable, Element objectElement,
-			OperationResult objectResult, ImportOptionsType options, Task task, boolean raw) {
+	private <T extends Objectable> EventResult importParsedObject(PrismObject<T> prismObjectObjectable,
+			OperationResult objectResult, ImportOptionsType options, Task task) {
 		LOGGER.debug("Importing object {}", prismObjectObjectable);
 
 		T objectable = prismObjectObjectable.asObjectable();
@@ -208,6 +198,7 @@ public class ObjectImporter {
 		            new Object[]{prismObjectObjectable, message});
 		    return EventResult.skipObject(message);
 		}
+		//noinspection unchecked
 		PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) prismObjectObjectable;
 
 		if (LOGGER.isTraceEnabled()) {
@@ -232,7 +223,7 @@ public class ObjectImporter {
 			return EventResult.skipObject(objectResult.getMessage());
 		}
 
-		if (options != null && BooleanUtils.isTrue(options.isValidateDynamicSchema())) {
+		if (options != null && isTrue(options.isValidateDynamicSchema())) {
 		    validateWithDynamicSchemas(object, repository, objectResult);
 		}
 
@@ -241,7 +232,7 @@ public class ObjectImporter {
 			return EventResult.skipObject(objectResult.getMessage());
 		}
 
-		if (options != null && BooleanUtils.isTrue(options.isEncryptProtectedValues())) {
+		if (options != null && isTrue(options.isEncryptProtectedValues())) {
 			OperationResult opResult = objectResult.createMinorSubresult(ObjectImporter.class.getName()+".encryptValues");
 			try {
 				CryptoUtil.encryptValues(protector, object);
@@ -251,7 +242,7 @@ public class ObjectImporter {
 			}
 		}
 
-		if (options == null || !BooleanUtils.isTrue(options.isKeepMetadata())) {
+		if (options == null || !isTrue(options.isKeepMetadata())) {
 			MetadataType metaData = new MetadataType();
 				String channel = SchemaConstants.CHANNEL_OBJECT_IMPORT_URI;
 				metaData.setCreateChannel(channel);
@@ -268,7 +259,7 @@ public class ObjectImporter {
 		}
 
 		try {
-			importObjectToRepository(object, options, raw, task, objectResult);
+			importObjectToRepository(object, options, task, objectResult);
 		    LOGGER.info("Imported object {}", object);
 		} catch (SchemaException e) {
 		    objectResult.recordFatalError("Schema violation: "+e.getMessage(), e);
@@ -281,16 +272,22 @@ public class ObjectImporter {
 		    objectResult.recordFatalError("Unexpected problem: "+e.getMessage(), e);
 		    LOGGER.error("Import of object {} failed: Unexpected problem: {}", object, e.getMessage(), e);
 		} catch (ObjectNotFoundException e) {
+			objectResult.recordFatalError("Referred object not found: "+e.getMessage(), e);
 			LOGGER.error("Import of object {} failed: Object referred from this object was not found: {}", object, e.getMessage(), e);
 		} catch (ExpressionEvaluationException e) {
+			objectResult.recordFatalError("Expression evaluation error: "+e.getMessage(), e);
 			LOGGER.error("Import of object {} failed: Expression evaluation error: {}", object, e.getMessage(), e);
 		} catch (CommunicationException e) {
+			objectResult.recordFatalError("Communication error: "+e.getMessage(), e);
 			LOGGER.error("Import of object {} failed: Communication error: {}", object, e.getMessage(), e);
 		} catch (ConfigurationException e) {
+			objectResult.recordFatalError("Configuration error: "+e.getMessage(), e);
 			LOGGER.error("Import of object {} failed: Configuration error: {}", object, e.getMessage(), e);
 		} catch (PolicyViolationException e) {
+			objectResult.recordFatalError("Policy violation: "+e.getMessage(), e);
 			LOGGER.error("Import of object {} failed: Policy violation: {}", object, e.getMessage(), e);
 		} catch (SecurityViolationException e) {
+			objectResult.recordFatalError("Security violation: "+e.getMessage(), e);
 			LOGGER.error("Import of object {} failed: Security violation: {}", object, e.getMessage(), e);
 		}
 
@@ -303,9 +300,9 @@ public class ObjectImporter {
 		}
 	}
 
-	private <T extends ObjectType> void importObjectToRepository(PrismObject<T> object, ImportOptionsType options, boolean raw,
-                                         Task task, OperationResult objectResult) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-				ConfigurationException, PolicyViolationException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException {
+	private <T extends ObjectType> void importObjectToRepository(PrismObject<T> object, ImportOptionsType options, Task task,
+			OperationResult objectResult) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+			ConfigurationException, PolicyViolationException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException {
 
         OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".importObjectToRepository");
 
@@ -313,7 +310,7 @@ public class ObjectImporter {
         	options = new ImportOptionsType();
         }
 
-        if (BooleanUtils.isTrue(options.isKeepOid()) && object.getOid() == null) {
+        if (isTrue(options.isKeepOid()) && object.getOid() == null) {
 			// Try to check if there is existing object with the same type and name
         	ObjectQuery query = ObjectQueryUtil.createNameQuery(object);
         	List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, null, result);
@@ -324,8 +321,7 @@ public class ObjectImporter {
         }
 
         try {
-			String oid = addObject(object, BooleanUtils.isTrue(options.isOverwrite()),
-					BooleanUtils.isFalse(options.isEncryptProtectedValues()), raw, task, result);
+			String oid = addObject(object, isTrue(options.isOverwrite()), options, task, result);
 
             if (object.canRepresent(TaskType.class)) {
             	taskManager.onTaskCreate(oid, result);
@@ -333,9 +329,7 @@ public class ObjectImporter {
             result.recordSuccess();
 
         } catch (ObjectAlreadyExistsException e) {
-        	if (BooleanUtils.isTrue(options.isOverwrite() &&
-        		BooleanUtils.isNotTrue(options.isKeepOid()) &&
-        		object.getOid() == null)) {
+        	if (isTrue(options.isOverwrite()) && isNotTrue(options.isKeepOid()) && object.getOid() == null) {
      	 	 	// This is overwrite, without keep oid, therefore we do not have conflict on OID
         		// this has to be conflict on name. So try to delete the conflicting object and create new one (with a new OID).
         		result.muteLastSubresultError();
@@ -348,10 +342,10 @@ public class ObjectImporter {
          	 	 		if (object.canRepresent(TaskType.class)) {
          	 	 			taskManager.onTaskDelete(deletedOid, result);
          	 	 		}
-         	 	 		if (BooleanUtils.isTrue(options.isKeepOid())) {
+         	 	 		if (isTrue(options.isKeepOid())) {
          	 	 			object.setOid(deletedOid);
          	 	 		}
-         	 	 		addObject(object, false, BooleanUtils.isFalse(options.isEncryptProtectedValues()), raw, task, result);
+         	 	 		addObject(object, false, options, task, result);
 	         	 	 	if (object.canRepresent(TaskType.class)) {
 	         	 	 		taskManager.onTaskCreate(object.getOid(), result);
 	         	 	 	}
@@ -381,21 +375,28 @@ public class ObjectImporter {
         }
     }
 
-    private <T extends ObjectType> String addObject(PrismObject<T> object, boolean overwrite, boolean noCrypt, boolean raw,
-    		Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    private <T extends ObjectType> String addObject(PrismObject<T> object, boolean overwrite, ImportOptionsType importOptions,
+		    Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 
     	ObjectDelta<T> delta = ObjectDelta.createAddDelta(object);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
-		ModelExecuteOptions options = new ModelExecuteOptions();
-		options.setRaw(raw);
-		if (overwrite) {
-			options.setOverwrite(true);
+		ModelExecuteOptions modelOptions;
+	    if (importOptions.getModelExecutionOptions() != null) {
+		    modelOptions = ModelExecuteOptions.fromModelExecutionOptionsType(importOptions.getModelExecutionOptions());
+	    } else {
+		    modelOptions = new ModelExecuteOptions();
+	    }
+	    if (modelOptions.getRaw() == null) {
+		    modelOptions.setRaw(true);
+	    }
+		if (modelOptions.getOverwrite() == null) {
+			modelOptions.setOverwrite(overwrite);
 		}
-		if (noCrypt) {
-			options.setNoCrypt(true);
+		if (isFalse(importOptions.isEncryptProtectedValues()) && modelOptions.getNoCrypt() == null) {
+			modelOptions.setNoCrypt(true);
 		}
 
-		modelService.executeChanges(deltas, options, task, parentResult);
+		modelService.executeChanges(deltas, modelOptions, task, parentResult);
 
 		return deltas.iterator().next().getOid();
     }
@@ -407,7 +408,7 @@ public class ObjectImporter {
         try {
             repository.deleteObject(object.getCompileTimeClass(), object.getOid(), objectResult);
         } catch (ObjectNotFoundException e) {
-            // Cannot delete. The conflicting thing was obviously not OID. Just throw the original exception
+            // Cannot delete. The conflicting thing was obviously not OID.
             return null;
         }
         // deleted
@@ -430,7 +431,8 @@ public class ObjectImporter {
 
             // Only two object types have XML snippets that conform to the dynamic schema
 
-        	PrismObject<ResourceType> resource = (PrismObject<ResourceType>)object;
+	        //noinspection unchecked
+	        PrismObject<ResourceType> resource = (PrismObject<ResourceType>)object;
             ResourceType resourceType = resource.asObjectable();
             PrismContainer<ConnectorConfigurationType> configurationContainer = ResourceTypeUtil.getConfigurationContainer(resource);
             if (configurationContainer == null || configurationContainer.isEmpty()) {
@@ -460,7 +462,8 @@ public class ObjectImporter {
                 // Probably a malformed connector. To be kind of robust, lets allow the import.
                 // Mark the error ... there is nothing more to do
                 result.recordPartialError("Connector (OID:" + connectorOid + ") referenced from the resource has schema problems: " + e.getMessage(), e);
-                LOGGER.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}", new Object[]{connectorOid, resourceType.getName(), e.getMessage(), e});
+                LOGGER.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}",
+		                connectorOid, resourceType.getName(), e.getMessage(), e);
                 return;
             }
 

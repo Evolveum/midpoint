@@ -136,6 +136,9 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
     protected abstract List<ItemPath> collectContainersToShow();
     
     private boolean getAssignmentBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
+    	if (itemWrapper.getPath().equals(getAssignmentPath().append(AssignmentType.F_METADATA))){
+    		return true;
+		}
     	AssignmentType assignment = getModelObject().getContainerValue().getValue();
 		ObjectReferenceType targetRef = assignment.getTargetRef();
 		List<ItemPath> pathsToHide = new ArrayList<>();

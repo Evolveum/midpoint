@@ -1,0 +1,11 @@
+#auth:
+#  ldap:
+#    host: ldap://localhost:389/dc=example,dc=com
+#    manager: cn=admin,dc=example,dc=com
+#    password: secret
+#    dn:
+#      pattern: uid={0},ou=people
+#
+#    search:
+#      pattern: (uid={0})
+#      subtree: true

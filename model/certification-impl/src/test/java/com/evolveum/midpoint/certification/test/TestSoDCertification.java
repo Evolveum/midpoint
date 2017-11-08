@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
@@ -40,6 +41,8 @@ import java.util.List;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -468,4 +471,32 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         assertPercentComplete(campaign, 100, 100, 100);
     }
+
+	@Test
+	public void test210CheckAfterClose() throws Exception {
+		final String TEST_NAME = "test210CheckAfterClose";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator.asPrismObject());
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
+		OperationResult result = task.getResult();
+
+		// WHEN
+		waitForCampaignTasks(campaignOid, 20000, result);
+
+		// THEN
+		userJack = getUser(USER_JACK_OID).asObjectable();
+		display("jack", userJack);
+		assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest2bOid).getMetadata(),
+				SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), emptySet());
+		assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest2cOid).getMetadata(),
+				SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), emptySet());
+		assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest3aOid).getMetadata(),
+				SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), singleton("OK"));
+		assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest3bOid).getMetadata(),
+				SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), singleton("dunno"));
+	}
+
 }

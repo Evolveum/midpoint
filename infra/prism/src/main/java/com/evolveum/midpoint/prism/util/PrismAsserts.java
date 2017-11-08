@@ -25,6 +25,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 
@@ -32,25 +33,6 @@ import com.evolveum.midpoint.util.QNameUtil;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -917,12 +899,46 @@ public class PrismAsserts {
 			throw new IllegalStateException(e.getMessage(), e);
 		}
 	}
+	
+	public static <T> void assertSets(String message, Collection<T> actualValues, Collection<T> expectedValues) {
+		try {
+			assertSets(message, null, actualValues, expectedValues);
+		} catch (SchemaException e) {
+			// no matching rule. should not happen
+			throw new IllegalStateException(e.getMessage(), e);
+		}
+	}
 
 	public static <T> void assertSets(String message, MatchingRule<T> matchingRule, Collection<T> actualValues, T... expectedValues) throws SchemaException {
 		assertNotNull("Null set in " + message, actualValues);
 		assertEquals("Wrong number of values in " + message+ "; expected (real values) "
 				+PrettyPrinter.prettyPrint(expectedValues)+"; has (pvalues) "+actualValues,
 				expectedValues.length, actualValues.size());
+		for (T actualValue: actualValues) {
+			boolean found = false;
+			for (T value: expectedValues) {
+				if (matchingRule == null) {
+					if (value.equals(actualValue)) {
+						found = true;
+					}
+				} else {
+					if (matchingRule.match(value, actualValue)) {
+						found = true;
+					}
+				}
+			}
+			if (!found) {
+				fail("Unexpected value "+actualValue+" in " + message + "; expected (real values) "
+						+PrettyPrinter.prettyPrint(expectedValues)+"; has (pvalues) "+actualValues);
+			}
+		}
+	}
+	
+	public static <T> void assertSets(String message, MatchingRule<T> matchingRule, Collection<T> actualValues, Collection<T> expectedValues) throws SchemaException {
+		assertNotNull("Null set in " + message, actualValues);
+		assertEquals("Wrong number of values in " + message+ "; expected (real values) "
+				+PrettyPrinter.prettyPrint(expectedValues)+"; has (pvalues) "+actualValues,
+				expectedValues.size(), actualValues.size());
 		for (T actualValue: actualValues) {
 			boolean found = false;
 			for (T value: expectedValues) {
@@ -1138,6 +1154,10 @@ public class PrismAsserts {
 			"; was "+actualCollection;
 	}
 
+	public static <T> void assertEqualsCollectionUnordered(String message, Collection<T> expected, Collection<T> real) {
+		assertEquals(message, new HashSet<>(expected), new HashSet<>(real));
+	}
+
 	public static void assertOrigEqualsPolyStringCollectionUnordered(String message, Collection<PolyStringType> actualCollection, String... expectedValues) {
 		List<PolyStringType> expectedCollection = new ArrayList<>();
 		for (String expectedValue : expectedValues) {
@@ -1265,4 +1285,9 @@ public class PrismAsserts {
 		assertNull("Resolved object present in " + prv + ": " + prv.getObject(), prv.getObject());
 	}
 
+	public static void assertReferenceOids(String message, Collection<String> expectedOids,
+			Collection<? extends Referencable> realReferences) {
+		Set<String> realOids = realReferences.stream().map(r -> r.getOid()).collect(Collectors.toSet());
+		assertEquals(message, new HashSet<>(expectedOids), realOids);
+	}
 }

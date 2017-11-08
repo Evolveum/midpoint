@@ -22,11 +22,7 @@ import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -37,6 +33,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -58,15 +55,20 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
 
     public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3";
 
-    @Autowired
-	private TaskManager taskManager;
+    @Autowired private TaskManager taskManager;
+	@Autowired private ScriptingService scriptingService;
 
-    @Autowired
-    private ScriptingService scriptingService;
+	@NotNull
+	@Override
+	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+		return new StatisticsCollectionStrategy()
+				.fromZero()
+				.maintainIterationStatistics()
+				.maintainActionsExecutedStatistics();
+	}
 
 	@Override
 	public TaskRunResult run(Task task) {
-
 		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
 		TaskRunResult runResult = new TaskRunResult();
 
@@ -77,8 +79,6 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
         }
 
         try {
-            task.startCollectingOperationStatsFromZero(true, false, true);
-            task.setProgress(0);
             ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptProperty.getRealValue(), emptyMap(), task, result);
             LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
             LOGGER.debug("Execution result:\n", executionResult.getConsoleOutput());
@@ -88,13 +88,10 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
             result.recordFatalError("Couldn't execute script: " + e.getMessage(), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script", e);
             runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR);
-        } finally {
-            task.storeOperationStats();
         }
 
         task.getResult().computeStatus();
 		runResult.setOperationResult(task.getResult());
-        runResult.setProgress(task.getProgress());          // incremented directly in actions implementations
 		return runResult;
 	}
 

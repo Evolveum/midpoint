@@ -17,6 +17,8 @@ package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import java.util.Objects;
+
 /**
  * Single-purpose class to return task run results.
  *
@@ -84,20 +86,20 @@ public final class TaskRunResult {
 
     }
 
-	private long progress;
+	private Long progress;          // null means "do not update, take whatever is in the task"
 	private TaskRunResultStatus runResultStatus;
 	private OperationResult operationResult;
 
 	/**
 	 * @return the progress
 	 */
-	public long getProgress() {
+	public Long getProgress() {
 		return progress;
 	}
 	/**
 	 * @param progress the progress to set
 	 */
-	public void setProgress(long progress) {
+	public void setProgress(Long progress) {
 		this.progress = progress;
 	}
 	/**
@@ -122,36 +124,20 @@ public final class TaskRunResult {
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((operationResult == null) ? 0 : operationResult.hashCode());
-		result = prime * result + (int) (progress ^ (progress >>> 32));
-		result = prime * result
-				+ ((runResultStatus == null) ? 0 : runResultStatus.hashCode());
-		return result;
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof TaskRunResult))
+			return false;
+		TaskRunResult that = (TaskRunResult) o;
+		return Objects.equals(progress, that.progress) &&
+				runResultStatus == that.runResultStatus &&
+				Objects.equals(operationResult, that.operationResult);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		TaskRunResult other = (TaskRunResult) obj;
-		if (operationResult == null) {
-			if (other.operationResult != null)
-				return false;
-		} else if (!operationResult.equals(other.operationResult))
-			return false;
-		if (progress != other.progress)
-			return false;
-		if (runResultStatus != other.runResultStatus)
-			return false;
-		return true;
+	public int hashCode() {
+		return Objects.hash(progress, runResultStatus, operationResult);
 	}
 
 	@Override

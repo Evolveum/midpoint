@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -156,7 +157,7 @@ public class AssignmentPolicyAspectPart {
 			miscDataUtil.generateFocusOidIfNeeded(ctx.modelContext, focusDelta);
 		}
 		return prepareAssignmentRelatedTaskInstruction(approvalSchemaResult, evaluatedAssignment, deltaToApprove,
-				assignmentMode, ctx.modelContext, requester, result);
+				assignmentMode, requester, ctx, result);
 	}
 
 	private <T extends ObjectType> ObjectDelta<T> factorOutAssignmentModifications(EvaluatedAssignment<?> evaluatedAssignment,
@@ -259,7 +260,7 @@ public class AssignmentPolicyAspectPart {
 		// (3) actions from triggered rules
 		for (EvaluatedPolicyRule approvalRule : triggeredApprovalRules) {
 			for (ApprovalPolicyActionType approvalAction : approvalRule.getEnabledActions(ApprovalPolicyActionType.class)) {
-				builder.add(main.getSchemaFromAction(approvalAction), approvalAction.getCompositionStrategy(), targetObject, approvalRule);
+				builder.add(main.getSchemaFromAction(approvalAction), approvalAction, targetObject, approvalRule);
 			}
 		}
 		return builder.buildSchema(ctx, result);
@@ -268,15 +269,15 @@ public class AssignmentPolicyAspectPart {
 	private PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> prepareAssignmentRelatedTaskInstruction(
 			ApprovalSchemaBuilder.Result builderResult,
 			EvaluatedAssignment<?> evaluatedAssignment, ObjectDelta<? extends ObjectType> deltaToApprove,
-			PlusMinusZero assignmentMode, ModelContext<?> modelContext,
-			PrismObject<UserType> requester, OperationResult result) throws SchemaException {
+			PlusMinusZero assignmentMode, PrismObject<UserType> requester, ModelInvocationContext<?> ctx, OperationResult result) throws SchemaException {
 
+		ModelContext<?> modelContext = ctx.modelContext;
 		@SuppressWarnings("unchecked")
 		PrismObject<? extends ObjectType> target = (PrismObject<? extends ObjectType>) evaluatedAssignment.getTarget();
 		Validate.notNull(target, "assignment target is null");
 
-		LocalizableMessage processName = main.createProcessName(builderResult);
-		if (processName == null) {
+		LocalizableMessage processName = main.createProcessName(builderResult, evaluatedAssignment, ctx, result);
+		if (LocalizationUtil.isEmpty(processName) || PolicyRuleBasedAspect.USE_DEFAULT_NAME_MARKER.equals(processName.getKey())) {
 			processName = createDefaultProcessName(modelContext, assignmentMode, target);
 		}
 		String processNameInDefaultLocale = localizationService.translate(processName, Locale.getDefault());
@@ -317,8 +318,8 @@ public class AssignmentPolicyAspectPart {
 
 		return new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + "assignmentModification.toBe" + operationKey)
-				.arg(ObjectTypeUtil.createObjectSpecification(target))
-				.arg(ObjectTypeUtil.createObjectSpecification(asPrismObject(focus)))
+				.arg(ObjectTypeUtil.createDisplayInformation(target, false))
+				.arg(ObjectTypeUtil.createDisplayInformation(asPrismObject(focus), false))
 				.build();
 	}
 

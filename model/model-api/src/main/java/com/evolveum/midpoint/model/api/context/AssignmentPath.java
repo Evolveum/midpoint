@@ -42,6 +42,12 @@ import java.util.List;
 public interface AssignmentPath extends DebugDumpable, ShortDumpable {
 
 	List<? extends AssignmentPathSegment> getSegments();
+	
+	/**
+	 * Returns segment specified by index. Negative indexes work in reverse direction.
+	 * @throws IndexOutOfBoundsException
+	 */
+	AssignmentPathSegment getSegment(int index);
 
 	AssignmentPathSegment first();
 
@@ -83,4 +89,5 @@ public interface AssignmentPath extends DebugDumpable, ShortDumpable {
 			ConfigurationException, ExpressionEvaluationException {
 		return AssignmentPathUtil.collectExtensions(path, startAt, modelService, task, result);
 	}
+
 }

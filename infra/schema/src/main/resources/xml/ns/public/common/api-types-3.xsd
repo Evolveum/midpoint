@@ -115,7 +115,7 @@
             <xsd:element name="summarizeSucceses" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true the successfuly imported items will be summarized in the result.
+                        If set to true the successfully imported items will be summarized in the result.
                         WARNING: setting this to false may result in a very large result structure and may cause
                         overflow of
                         the system memory.
@@ -125,42 +125,42 @@
             <xsd:element name="summarizeErrors" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
+                        If set to true the import errors will be summarized in the result.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="referentialIntegrity" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
+                        TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="validateStaticSchema" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
+                        TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="validateDynamicSchema" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
+                        TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="encryptProtectedValues" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
+                        TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="fetchResourceSchema" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
+                        TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -169,6 +169,16 @@
                     <xsd:documentation>
                         If set to true then the importer will keep the metadata from the source file.
                         If set to false then the imported will re-generate metadata on each object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="modelExecutionOptions" type="c:ModelExecuteOptionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If present, these options are used for adding objects into the repository.
+                        Null option values might be overridden by import-related options. In particular, the missing
+                        "raw" option is overridden to "true". So, if you want the operation run in non-raw mode,
+                        set "raw" option to "false".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

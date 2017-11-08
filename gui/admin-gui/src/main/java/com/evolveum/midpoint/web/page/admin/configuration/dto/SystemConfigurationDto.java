@@ -95,13 +95,13 @@ public class SystemConfigurationDto implements Serializable {
 			aepLevel = AEPlevel.fromAEPLevelType(globalAEP);
 		}
 
-		CleanupPolicyType auditCleanup = config.getCleanupPolicy().getAuditRecords();
-		CleanupPolicyType taskCleanup = config.getCleanupPolicy().getClosedTasks();
+		CleanupPolicyType auditCleanup = config.getCleanupPolicy() != null ? config.getCleanupPolicy().getAuditRecords() : null;
+		CleanupPolicyType taskCleanup = config.getCleanupPolicy() != null ? config.getCleanupPolicy().getClosedTasks() : null;
 
 		deploymentInformation = config.getDeploymentInformation();
 
-		auditCleanupValue = auditCleanup.getMaxAge().toString();
-		taskCleanupValue = taskCleanup.getMaxAge().toString();
+		auditCleanupValue = auditCleanup != null && auditCleanup.getMaxAge() != null ? auditCleanup.getMaxAge().toString() : null;
+		taskCleanupValue = taskCleanup != null && taskCleanup.getMaxAge() != null ? taskCleanup.getMaxAge().toString() : null;
 
 		passPolicyDto = loadPasswordPolicy(config);
 		securityPolicyDto = loadSecurityPolicy(config);
@@ -187,8 +187,8 @@ public class SystemConfigurationDto implements Serializable {
 			projectionPolicy.setAssignmentPolicyEnforcement(globalAEP);
 			newObject.setGlobalAccountSynchronizationSettings(projectionPolicy);
 		}
-		Duration auditCleanupDuration = DatatypeFactory.newInstance().newDuration(getAuditCleanupValue());
-		Duration cleanupTaskDuration = DatatypeFactory.newInstance().newDuration(getTaskCleanupValue());
+		Duration auditCleanupDuration = getAuditCleanupValue() != null ? DatatypeFactory.newInstance().newDuration(getAuditCleanupValue()) : null;
+		Duration cleanupTaskDuration = getTaskCleanupValue() != null ? DatatypeFactory.newInstance().newDuration(getTaskCleanupValue()) : null;
 		CleanupPolicyType auditCleanup = new CleanupPolicyType();
 		CleanupPolicyType taskCleanup = new CleanupPolicyType();
 		auditCleanup.setMaxAge(auditCleanupDuration);

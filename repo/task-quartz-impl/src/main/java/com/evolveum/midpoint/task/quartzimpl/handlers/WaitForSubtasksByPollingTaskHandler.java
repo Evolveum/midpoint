@@ -89,8 +89,6 @@ public class WaitForSubtasksByPollingTaskHandler implements TaskHandler {
             status = TaskRunResultStatus.FINISHED;
         }
 
-        runResult.setOperationResult(null);                             // not to overwrite task's result
-        runResult.setProgress(task.getProgress());                      // not to overwrite task's progress
         runResult.setRunResultStatus(status);
 		LOGGER.info("WaitForSubtasksByPollingTaskHandler run finishing; in task " + task.getName());
 		return runResult;

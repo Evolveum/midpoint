@@ -38,10 +38,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -51,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -154,24 +152,16 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		this.logFinishInfo = logFinishInfo;
 	}
 
+	@NotNull
 	@Override
-	public TaskRunResult run(Task coordinatorTask) {
-        LOGGER.trace("{} run starting (coordinator task {})", taskName, coordinatorTask);
-        if (isPreserveStatistics()) {
-            coordinatorTask.startCollectingOperationStatsFromStoredValues(isEnableIterationStatistics(), isEnableSynchronizationStatistics(),
-                    isEnableActionsExecutedStatistics());
-        } else {
-            coordinatorTask.startCollectingOperationStatsFromZero(isEnableIterationStatistics(), isEnableSynchronizationStatistics(),
-                    isEnableActionsExecutedStatistics());
-        }
-        try {
-            return runInternal(coordinatorTask);
-        } finally {
-            coordinatorTask.storeOperationStats();
-        }
-    }
+	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+		return new StatisticsCollectionStrategy(!isPreserveStatistics(), isEnableIterationStatistics(),
+				isEnableSynchronizationStatistics(), isEnableActionsExecutedStatistics());
+	}
 
-    public TaskRunResult runInternal(Task coordinatorTask) {
+	@Override
+    public TaskRunResult run(Task coordinatorTask) {
+	    LOGGER.trace("{} run starting (coordinator task {})", taskName, coordinatorTask);
 		OperationResult opResult = new OperationResult(taskOperationPrefix + ".run");
 		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
 		TaskRunResult runResult = new TaskRunResult();
@@ -184,7 +174,6 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 			LOGGER.error("{}: Error while creating a result handler: {}", taskName, e.getMessage(), e);
 			opResult.recordFatalError("Error while creating a result handler: " + e.getMessage(), e);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(coordinatorTask.getProgress());
 			return runResult;
 		}
 		if (resultHandler == null) {
@@ -271,7 +260,6 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
                 LOGGER.trace("{}: expecting {} objects to be processed", taskName, expectedTotal);
             }
 
-            runResult.setProgress(0);
             coordinatorTask.setProgress(0);
             if (expectedTotal != null) {
                 coordinatorTask.setExpectedTotal(expectedTotal);
@@ -332,7 +320,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
         handlers.remove(coordinatorTask.getOid());
 
-        runResult.setProgress(resultHandler.getProgress());
+        runResult.setProgress(resultHandler.getProgress());     // TODO ?
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 
         if (logFinishInfo) {
@@ -369,7 +357,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		LOGGER.error("{}: {}: {}", taskName, message, e.getMessage(), e);
 		runResult.getOperationResult().recordStatus(opStatus, message + ": " + e.getMessage(), e);
 		runResult.setRunResultStatus(status);
-		runResult.setProgress(resultHandler.getProgress());
+		runResult.setProgress(resultHandler.getProgress());     // TODO ???
 		return runResult;
 
 	}

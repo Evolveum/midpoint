@@ -29,13 +29,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
-import com.evolveum.midpoint.task.api.LightweightTaskHandler;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskBinding;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
-import com.evolveum.midpoint.task.api.TaskRecurrence;
-import com.evolveum.midpoint.task.api.TaskWaitingReason;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -684,6 +678,16 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy) {
+
+    }
+
+    @Override
+    public void storeOperationStatsDeferred() {
+
+    }
+
+    @Override
     public OperationStatsType getAggregatedLiveOperationStats() {
         return null;
     }
@@ -782,18 +786,28 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public void startCollectingOperationStatsFromZero(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
-
-    }
-
-    @Override
-    public void startCollectingOperationStatsFromStoredValues(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
-
-    }
-
-    @Override
     public void storeOperationStats() {
 
+    }
+
+    @Override
+    public void storeOperationStatsIfNeeded() {
+
+    }
+
+    @Override
+    public Long getLastOperationStatsUpdateTimestamp() {
+        return null;
+    }
+
+    @Override
+    public void setOperationStatsUpdateInterval(long interval) {
+
+    }
+
+    @Override
+    public long getOperationStatsUpdateInterval() {
+        return 0;
     }
 
     @Override
@@ -816,6 +830,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override public void setWorkflowContext(WfContextType context) throws SchemaException {
+    }
+
+    @Override
+    public void incrementProgressAndStoreStatsIfNeeded() {
+
     }
 
     @Override

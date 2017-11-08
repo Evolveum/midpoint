@@ -243,6 +243,7 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_LIFECYCLE_STATE = new ItemPath(ObjectType.F_LIFECYCLE_STATE);
 	public static final ItemPath PATH_ROLE_MEMBERSHIP_REF = new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF);
 	public static final ItemPath PATH_AUXILIARY_OBJECT_CLASS = new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS);
+	public static final ItemPath PATH_AUTOASSIGN_ENABLED = new ItemPath(AbstractRoleType.F_AUTOASSIGN, AutoassignSpecificationType.F_ENABLED);
 
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";
@@ -334,16 +335,16 @@ public abstract class SchemaConstants {
 
 	public static final String NS_MODEL_CERTIFICATION = NS_MODEL + "/certification";
 	public static final String NS_MODEL_CERTIFICATION_OUTCOME = NS_MODEL_CERTIFICATION + "/outcome";
-	public static final String MODEL_CERTIFICATION_OUTCOME_ACCEPT =
-			QNameUtil.qNameToUri(new QName(NS_MODEL_CERTIFICATION_OUTCOME, "accept"));
-	public static final String MODEL_CERTIFICATION_OUTCOME_REVOKE =
-			QNameUtil.qNameToUri(new QName(NS_MODEL_CERTIFICATION_OUTCOME, "revoke"));
-	public static final String MODEL_CERTIFICATION_OUTCOME_REDUCE =
-			QNameUtil.qNameToUri(new QName(NS_MODEL_CERTIFICATION_OUTCOME, "reduce"));
-	public static final String MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED =
-			QNameUtil.qNameToUri(new QName(NS_MODEL_CERTIFICATION_OUTCOME, "notDecided"));
-	public static final String MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE =
-			QNameUtil.qNameToUri(new QName(NS_MODEL_CERTIFICATION_OUTCOME, "noResponse"));		// only for aggregated decisions
+	public static final QName MODEL_CERTIFICATION_OUTCOME_ACCEPT_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "accept");
+	public static final String MODEL_CERTIFICATION_OUTCOME_ACCEPT = QNameUtil.qNameToUri(MODEL_CERTIFICATION_OUTCOME_ACCEPT_QNAME);
+	public static final QName MODEL_CERTIFICATION_OUTCOME_REVOKE_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "revoke");
+	public static final String MODEL_CERTIFICATION_OUTCOME_REVOKE = QNameUtil.qNameToUri(MODEL_CERTIFICATION_OUTCOME_REVOKE_QNAME);
+	public static final QName MODEL_CERTIFICATION_OUTCOME_REDUCE_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "reduce");
+	public static final String MODEL_CERTIFICATION_OUTCOME_REDUCE = QNameUtil.qNameToUri(MODEL_CERTIFICATION_OUTCOME_REDUCE_QNAME);
+	public static final QName MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "notDecided");
+	public static final String MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED = QNameUtil.qNameToUri(MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED_QNAME);
+	public static final QName MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE_QNAME = new QName(NS_MODEL_CERTIFICATION_OUTCOME, "noResponse");
+	public static final String MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE = QNameUtil.qNameToUri(MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE_QNAME);		// only for aggregated decisions
 
 	public static final QName MODEL_EXTENSION_OBJECT_TYPE = new QName(NS_MODEL_EXTENSION, "objectType");
 	public static final QName MODEL_EXTENSION_OBJECT_QUERY = new QName(NS_MODEL_EXTENSION, "objectQuery");
@@ -541,6 +542,7 @@ public abstract class SchemaConstants {
 	public static final String POLICY_CONSTRAINTS_AFTER_KEY = "PolicyConstraints.after";
 	public static final String TECHNICAL_OBJECT_SPECIFICATION_KEY = "TechnicalObjectSpecification";
 	public static final String OBJECT_SPECIFICATION_KEY = "ObjectSpecification";
+	public static final String OBJECT_SPECIFICATION_WITH_PATH_KEY = "ObjectSpecificationWithPath";
 	public static final String POLICY_VIOLATION_EXCEPTION_AGGREGATE_KEY = "PolicyViolationException.message.aggregate";
 
 	//	// resetPassword

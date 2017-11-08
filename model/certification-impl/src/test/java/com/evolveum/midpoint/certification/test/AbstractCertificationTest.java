@@ -23,8 +23,10 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -632,5 +634,26 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
 	public void importTriggerTask(OperationResult result) throws FileNotFoundException {
 		importObjectFromFile(TASK_TRIGGER_SCANNER_FILE, result);
+	}
+
+	protected void waitForCampaignTasks(String campaignOid, int timeout, OperationResult result) throws CommonException {
+    	ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+			    .item(TaskType.F_OBJECT_REF).ref(campaignOid)
+			    .build();
+		SearchResultList<PrismObject<TaskType>> campaignTasks = repositoryService.searchObjects(TaskType.class, query, null, result);
+		for (PrismObject<TaskType> campaignTask : campaignTasks) {
+			if (campaignTask.asObjectable().getExecutionStatus() != TaskExecutionStatusType.CLOSED &&
+					campaignTask.asObjectable().getExecutionStatus() != TaskExecutionStatusType.SUSPENDED) {
+				waitForTaskFinish(campaignTask.getOid(), false, timeout);
+			}
+		}
+	}
+
+	protected void assertCertificationMetadata(MetadataType metadata, String expectedOutcome, Set<String> expectedCertifiers,
+			Set<String> expectedComments) {
+	    assertNotNull("No metadata", metadata);
+	    assertEquals("Wrong outcome", expectedOutcome, metadata.getCertificationOutcome());
+		PrismAsserts.assertReferenceOids("Wrong certifiers", expectedCertifiers, metadata.getCertifierRef());
+		assertEquals("Wrong certifier comments", expectedComments, new HashSet<>(metadata.getCertifierComment()));
 	}
 }

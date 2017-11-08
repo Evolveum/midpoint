@@ -69,27 +69,25 @@ public class MockSingleTaskHandler implements TaskHandler {
 	public TaskRunResult run(Task task) {
 		LOGGER.info("MockSingle.run starting (id = " + id + ")");
 
-		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(MockSingleTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();
 
 		runResult.setOperationResult(opResult);
 
 		// TODO
-		progress++;
+		task.incrementProgressAndStoreStatsIfNeeded();
 
 		opResult.recordSuccess();
 
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		runResult.setProgress(progress);
 
 		hasRun = true;
 
         if ("L1".equals(id)) {
             PrismProperty<Boolean> l1flag = task.getExtensionProperty(L1_FLAG_QNAME);
 
-            if (l1flag == null || l1flag.getRealValue() == false) {
+            if (l1flag == null || !l1flag.getRealValue()) {
 
                 LOGGER.info("L1 handler, first run - scheduling L2 handler");
                 ScheduleType l2Schedule = new ScheduleType();
@@ -102,10 +100,10 @@ public class MockSingleTaskHandler implements TaskHandler {
                 }
                 runResult.setRunResultStatus(TaskRunResultStatus.RESTART_REQUESTED);
             } else {
-                LOGGER.info("L1 handler, not the first run (progress = " + progress + ", l1Flag = " + l1flag.getRealValue() + "), exiting.");
+                LOGGER.info("L1 handler, not the first run (progress = " + task.getProgress() + ", l1Flag = " + l1flag.getRealValue() + "), exiting.");
             }
         } else if ("L2".equals(id)) {
-            if (progress == 5) {
+            if (task.getProgress() == 5) {
                 LOGGER.info("L2 handler, fourth run - scheduling L3 handler");
                 task.pushHandlerUri(TestQuartzTaskManagerContract.L3_TASK_HANDLER_URI, new ScheduleType(), null);
                 try {
@@ -114,23 +112,23 @@ public class MockSingleTaskHandler implements TaskHandler {
                     throw new SystemException("Cannot schedule L3 handler", e);
                 }
                 runResult.setRunResultStatus(TaskRunResultStatus.RESTART_REQUESTED);
-            } else if (progress < 5) {
-                LOGGER.info("L2 handler, progress = " + progress + ", continuing.");
-            } else if (progress > 5) {
-                LOGGER.info("L2 handler, progress too big, i.e. " + progress + ", exiting.");
+            } else if (task.getProgress() < 5) {
+                LOGGER.info("L2 handler, progress = " + task.getProgress() + ", continuing.");
+            } else if (task.getProgress() > 5) {
+                LOGGER.info("L2 handler, progress too big, i.e. " + task.getProgress() + ", exiting.");
                 try {
-                    ((TaskQuartzImpl) task).finishHandler(opResult);
+                    task.finishHandler(opResult);
                 } catch (Exception e) {
                     throw new SystemException("Cannot finish L2 handler", e);
                 }
             }
         } else if ("L3".equals(id)) {
-            LOGGER.info("L3 handler, simply exiting. Progress = " + progress);
+            LOGGER.info("L3 handler, simply exiting. Progress = " + task.getProgress());
         } else if ("WFS".equals(id)) {
 
             PrismProperty<Boolean> wfsFlag = task.getExtensionProperty(WFS_FLAG_QNAME);
 
-            if (wfsFlag == null || wfsFlag.getRealValue() == false) {
+            if (wfsFlag == null || !wfsFlag.getRealValue()) {
 
                 LOGGER.info("Wait-for-subtasks creating subtasks...");
 
@@ -146,12 +144,12 @@ public class MockSingleTaskHandler implements TaskHandler {
                     ArrayList<ItemDelta<?,?>> deltas = new ArrayList<>();
                     deltas.add(((TaskQuartzImpl) task).createExtensionDelta(wfsFlagDefinition, true));
                     runResult = ((TaskQuartzImpl) task).waitForSubtasks(2, deltas, opResult);
-                    runResult.setProgress(1);
+                    runResult.setProgress(1L);
                 } catch (Exception e) {
                     throw new SystemException("WaitForSubtasks failed.", e);
                 }
             } else {
-                LOGGER.info("Wait-for-subtasks seems to finish successfully; progress = " + progress + ", wfsFlag = " + wfsFlag.getRealValue());
+                LOGGER.info("Wait-for-subtasks seems to finish successfully; progress = " + task.getProgress() + ", wfsFlag = " + wfsFlag.getRealValue());
             }
 
         }

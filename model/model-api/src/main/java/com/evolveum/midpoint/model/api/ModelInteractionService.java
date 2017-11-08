@@ -19,14 +19,17 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.*;
@@ -38,6 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A service provided by the IDM Model that allows to improve the (user) interaction with the model.
@@ -144,6 +148,25 @@ public interface ModelInteractionService {
     <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
 
     /**
+     * Returns filter for lookup of donors or power of attorney. The donors are the users that have granted
+     * the power of attorney to the currently logged-in user.
+     * 
+     * TODO: authorization limitations
+     * 
+     * @param searchResultType type of the expected search results
+     * @param origFilter original filter (e.g. taken from GUI search bar)
+     * @param targetAuthorizationAction Authorization action that the attorney is trying to execute
+     *                 on behalf of donor. Only donors for which the use of this authorization was
+     *                 not limited will be returned (that does not necessarily mean that the donor
+     *                 is able to execute this action, it may be limited by donor's authorizations).
+     *                 If the parameter is null then all donors are returned.
+     * @param task task
+     * @param parentResult operation result
+     * @return original filter with AND clause limiting the search.
+     */
+    <T extends ObjectType> ObjectFilter getDonorFilter(Class<T> searchResultType, ObjectFilter origFilter, String targetAuthorizationAction, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+    
+    /**
      * TODO
      *
      * @param includeSpecial include special authorizations, such as "self". If set to false those authorizations
@@ -207,6 +230,7 @@ public interface ModelInteractionService {
      * the current user is authorized to read the underlying objects or not. However, it will always return only
      * values applicable for current user, therefore the authorization might be considered to be implicit in this case.
      */
+    @NotNull
     AdminGuiConfigurationType getAdminGuiConfiguration(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     SystemConfigurationType getSystemConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
@@ -290,4 +314,17 @@ public interface ModelInteractionService {
 	 * @return
 	 */
 	ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType);
+	
+	MidPointPrincipal assumePowerOfAttorney(PrismObject<UserType> donor, Task task, OperationResult result) 
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+	
+	MidPointPrincipal dropPowerOfAttorney(Task task, OperationResult result) 
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+
+	// Maybe a bit of hack: used to deduplicate processing of localizable message templates
+	@NotNull
+	LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
+			Map<QName, Object> variables, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+			ConfigurationException, SecurityViolationException;
 }
