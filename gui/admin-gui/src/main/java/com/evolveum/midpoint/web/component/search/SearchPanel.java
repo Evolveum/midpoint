@@ -130,7 +130,7 @@ public class SearchPanel extends BasePanel<Search> {
             }
         };
 
-        Form form = new Form(ID_FORM);
+        Form form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
         add(form);
 
         ListView items = new ListView<SearchItem>(ID_ITEMS,

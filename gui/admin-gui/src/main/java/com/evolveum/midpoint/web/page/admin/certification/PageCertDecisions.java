@@ -140,7 +140,7 @@ public class PageCertDecisions extends PageAdminCertification {
 
     //region Layout
     private void initLayout() {
-        Form mainForm = new Form(ID_MAIN_FORM);
+        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
         CertWorkItemDtoProvider provider = createProvider();
         int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL);
@@ -526,7 +526,7 @@ public class PageCertDecisions extends PageAdminCertification {
         }
 
         private void initLayout() {
-            final Form searchForm = new Form(ID_SEARCH_FORM);
+            final Form searchForm = new com.evolveum.midpoint.web.component.form.Form(ID_SEARCH_FORM);
             add(searchForm);
             searchForm.setOutputMarkupId(true);
 

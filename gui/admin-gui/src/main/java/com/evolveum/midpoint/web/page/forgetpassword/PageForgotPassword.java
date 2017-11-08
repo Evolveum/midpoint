@@ -106,7 +106,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 	}
 
 	private void initLayout() {
-		Form<?> form = new Form(ID_PWDRESETFORM);
+		Form<?> form = new com.evolveum.midpoint.web.component.form.Form(ID_PWDRESETFORM);
 		form.setOutputMarkupId(true);
 		form.add(new VisibleEnableBehaviour() {
 

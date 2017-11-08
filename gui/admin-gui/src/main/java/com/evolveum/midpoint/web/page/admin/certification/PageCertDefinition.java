@@ -154,7 +154,7 @@ public class PageCertDefinition extends PageAdminCertification {
 				new PropertyModel<>(definitionModel, CertDefinitionDto.F_PRISM_OBJECT), this);
 		add(summaryPanel);
 
-		Form mainForm = new Form(ID_MAIN_FORM);
+		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 		add(mainForm);
 
 		initTabs(mainForm);

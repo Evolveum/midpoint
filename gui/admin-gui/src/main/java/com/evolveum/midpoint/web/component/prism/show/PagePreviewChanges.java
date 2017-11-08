@@ -176,7 +176,7 @@ public class PagePreviewChanges extends PageAdmin {
 	}
 
 	private void initLayout() {
-		Form mainForm = new Form("mainForm");
+		Form mainForm = new com.evolveum.midpoint.web.component.form.Form("mainForm");
 		mainForm.setMultiPart(true);
 		add(mainForm);
 

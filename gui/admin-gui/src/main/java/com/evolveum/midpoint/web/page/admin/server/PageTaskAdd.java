@@ -221,7 +221,7 @@ public class PageTaskAdd extends PageAdminTasks {
     }
 
     private void initLayout() {
-        Form mainForm = new Form(ID_FORM_MAIN);
+        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_FORM_MAIN);
         add(mainForm);
 
         final DropDownChoice resource = new DropDownChoice<>(ID_RESOURCE,

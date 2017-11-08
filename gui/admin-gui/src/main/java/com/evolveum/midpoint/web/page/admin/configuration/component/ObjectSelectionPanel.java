@@ -168,7 +168,7 @@ public class ObjectSelectionPanel extends Panel {
     }
 
     public void initLayout(PageBase pageBase){
-        Form searchForm = new Form(ID_SEARCH_FORM);
+        Form searchForm = new com.evolveum.midpoint.web.component.form.Form(ID_SEARCH_FORM);
         searchForm.setOutputMarkupId(true);
         add(searchForm);
         searchForm.add(new VisibleEnableBehaviour(){

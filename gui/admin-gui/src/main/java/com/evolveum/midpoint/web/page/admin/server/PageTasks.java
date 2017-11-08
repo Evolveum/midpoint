@@ -228,7 +228,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		refreshPanel = new AutoRefreshPanel(ID_REFRESH_PANEL, refreshModel, this, false);
 		add(refreshPanel);
 
-        Form mainForm = new Form(ID_MAIN_FORM);
+        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
 		List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
@@ -1567,7 +1567,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         }
 
         private void initLayout() {
-            final Form searchForm = new Form(ID_SEARCH_FORM);
+            final Form searchForm = new com.evolveum.midpoint.web.component.form.Form(ID_SEARCH_FORM);
             add(searchForm);
             searchForm.setOutputMarkupId(true);
 

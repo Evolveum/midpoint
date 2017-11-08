@@ -81,7 +81,8 @@ import javax.servlet.DispatcherType;
         PropertyPlaceholderAutoConfiguration.class,
         SecurityAutoConfiguration.class,
         SecurityFilterAutoConfiguration.class,
-        ServerPropertiesAutoConfiguration.class
+        ServerPropertiesAutoConfiguration.class,
+        MultipartAutoConfiguration.class
 })
 @SpringBootConfiguration
 public class MidPointSpringApplication extends SpringBootServletInitializer {
@@ -123,7 +124,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
         registration.setDispatcherTypes(DispatcherType.REQUEST, DispatcherType.ERROR);
         registration.addUrlPatterns("/*");
         registration.addInitParameter(WicketFilter.FILTER_MAPPING_PARAM, "/*");
-        registration.addInitParameter(Application.CONFIGURATION, "deployment");     // development
+        registration.addInitParameter(Application.CONFIGURATION, "development");     // development
         registration.addInitParameter("applicationBean", "midpointApplication");
         registration.addInitParameter(WicketFilter.APP_FACT_PARAM, "org.apache.wicket.spring.SpringWebApplicationFactory");
 

@@ -44,7 +44,7 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
     }
 
     protected void initLayout() {
-        Form form = new Form(ID_FORM);
+        Form form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
         add(form);
 
         IModel<List<WizardStepDto>> stepsModel = new LoadableModel<List<WizardStepDto>>() {

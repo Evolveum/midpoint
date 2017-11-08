@@ -134,7 +134,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	private void initLayout() {
-		Form<O> mainForm = new Form<O>(ID_MAIN_FORM);
+		Form<O> mainForm = new com.evolveum.midpoint.web.component.form.Form<O>(ID_MAIN_FORM);
 		add(mainForm);
 
 		searchModel = initSearchModel();

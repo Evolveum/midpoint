@@ -94,7 +94,7 @@ public class MultiplicityPolicyPanel extends Panel implements Popupable {
 	}
 
 	private void initLayout() {
-		Form form = new Form(ID_MAIN_FORM);
+		Form form = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 		form.setOutputMarkupId(true);
 		add(form);
 

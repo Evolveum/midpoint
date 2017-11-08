@@ -44,7 +44,7 @@ public class InternalsTracesPanel extends BasePanel<Map<String,Boolean>>{
 		
 		setOutputMarkupId(true);
 		
-		Form form = new Form<>(ID_FORM);
+		Form form = new com.evolveum.midpoint.web.component.form.Form<>(ID_FORM);
 		form.setOutputMarkupId(true);
 		add(form);
 		
