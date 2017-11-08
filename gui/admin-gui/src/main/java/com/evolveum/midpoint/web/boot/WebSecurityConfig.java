@@ -118,7 +118,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.exceptionHandling()
                 .authenticationEntryPoint(wicketAuthenticationEntryPoint());
 
-        http.csrf().disable();
         http.headers().disable();
     }
 
