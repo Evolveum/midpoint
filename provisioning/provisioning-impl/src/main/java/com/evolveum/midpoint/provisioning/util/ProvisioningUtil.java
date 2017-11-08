@@ -188,7 +188,7 @@ public class ProvisioningUtil {
 			AttributeFetchStrategyType fetchStrategy = attributeDefinition.getFetchStrategy();
 			if (fetchStrategy != null && fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
 				explicit.add(attributeDefinition);
-			} else if (hasMinimal && (fetchStrategy != AttributeFetchStrategyType.MINIMAL || SelectorOptions.hasToLoadPath(attributeDefinition.getName(), ctx.getGetOperationOptions()))) {
+			} else if (hasMinimal && (fetchStrategy != AttributeFetchStrategyType.MINIMAL || SelectorOptions.isExplicitlyIncluded(attributeDefinition.getName(), ctx.getGetOperationOptions()))) {
 				explicit.add(attributeDefinition);
 			}
 		}
