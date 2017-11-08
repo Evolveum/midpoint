@@ -1503,7 +1503,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			return (ShadowType) shadowAssociationType.getShadowRef().asReferenceValue().getObject().asObjectable();
 		}
 		
-		LensProjectionContext projectionCtx = getProjectionContext();
+		LensProjectionContext projectionCtx = (LensProjectionContext) getProjectionContext();
 		if (projectionCtx == null) {
 			LOGGER.trace("No projection found. Skipping resolving entitlement");
 			return null;
