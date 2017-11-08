@@ -16,13 +16,18 @@
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 import java.util.Collection;
+import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,7 +36,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -41,15 +45,6 @@ import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.util.Utils;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -74,22 +69,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -386,9 +365,60 @@ public class FocusProcessor {
 		}
 
 		addIterationTokenDeltas(focusContext, iteration, iterationToken);
+		checkItemsLimitations(focusContext);
 		if (consistencyChecks) context.checkConsistence();
 
 	}
+
+	private <O extends ObjectType> void checkItemsLimitations(LensFocusContext<O> focusContext)
+			throws SchemaException {
+		Map<ItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap = focusContext.getItemDefinitionsMap();
+		PrismObject<O> objectNew = null;                    // lazily evaluated
+		for (Map.Entry<ItemPath, ObjectTemplateItemDefinitionType> entry : itemDefinitionsMap.entrySet()) {
+			for (PropertyLimitationsType limitation : entry.getValue().getLimitations()) {
+				if (!limitation.getLayer().contains(LayerType.MODEL)) {     // or should we apply SCHEMA-layer limitations as well?
+					continue;
+				}
+				if (objectNew == null) {
+					focusContext.recompute();
+					objectNew = focusContext.getObjectNew();
+					if (objectNew == null) {
+						return;         // nothing to check on DELETE operation
+					}
+				}
+				checkItemLimitations(objectNew, entry.getKey(), limitation);
+			}
+		}
+	}
+
+	private <O extends ObjectType> void checkItemLimitations(PrismObject<O> object, ItemPath path, PropertyLimitationsType limitation)
+			throws SchemaException {
+		Object item = object.find(path);
+		if (isTrue(limitation.isIgnore())) {
+			return;
+		}
+		int count = getValueCount(item);
+		Integer min = SchemaProcessorUtil.parseMultiplicity(limitation.getMinOccurs());
+		if (min != null && min > 0 && count < min) {
+			throw new SchemaException("Expected at least " + min + " values of " + path + ", got " + count);
+		}
+		Integer max = SchemaProcessorUtil.parseMultiplicity(limitation.getMaxOccurs());
+		if (max != null && max >= 0 && count > max) {
+			throw new SchemaException("Expected at most " + max + " values of " + path + ", got " + count);
+		}
+	}
+
+	private int getValueCount(Object item) {
+		if (item == null) {
+			return 0;
+		}
+		if (!(item instanceof Item)) {
+			throw new IllegalStateException("Expected Item but got " + item.getClass() + " instead");
+		}
+		return ((Item) item).getValues().size();
+	}
+
+
 
 	private <F extends FocusType> void applyObjectPolicyConstraints(LensFocusContext<F> focusContext, ObjectPolicyConfigurationType objectPolicyConfigurationType) throws SchemaException {
 		if (objectPolicyConfigurationType == null) {

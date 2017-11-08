@@ -1397,7 +1397,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	}
 
 	@Override
-	public List<ShadowType> getShadowsToActivate(Collection<ModelElementContext> projectionContexts) {
+	public List<ShadowType> getShadowsToActivate(Collection<? extends ModelElementContext> projectionContexts) {
 		List<ShadowType> shadows = new ArrayList<>();
 
 		for (ModelElementContext<ShadowType> projectionCtx : projectionContexts) {

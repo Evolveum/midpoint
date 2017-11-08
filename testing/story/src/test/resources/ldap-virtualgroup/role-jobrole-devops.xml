@@ -1,0 +1,32 @@
+<role oid="10000000-0000-0000-0000-000000006602" 
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+	  xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" 
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+	  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" 
+	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" 
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" 
+	  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" 
+	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" 
+	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <name>Job-Role-DevOps</name>
+      <inducement id="1">
+         <targetRef relation="org:default" type="c:RoleType">
+         	<filter>
+				<q:equal>
+					<q:path>c:name</q:path>
+					<q:value>IT-Role-Dev</q:value>
+				</q:equal>
+			</filter>
+         </targetRef>
+      </inducement>
+      <inducement id="2">
+         <targetRef relation="org:default" type="c:RoleType">
+         	<filter>
+				<q:equal>
+					<q:path>c:name</q:path>
+					<q:value>IT-Role-Op</q:value>
+				</q:equal>
+			</filter>
+         </targetRef>
+      </inducement>
+   </role>

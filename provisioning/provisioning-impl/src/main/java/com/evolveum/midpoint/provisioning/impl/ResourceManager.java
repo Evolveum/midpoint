@@ -855,11 +855,18 @@ public class ResourceManager {
 		
 			// We need to explicitly initialize the instance, e.g. in case that the schema and capabilities
 			// cannot be detected by the connector and therefore are provided in the resource
-			// TODO: this is not entirely correct. Maybe it needs its own test step. Or maybe
-			//       there must be a larger refactoring.
-			ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(connectorSpec.getResource(), prismContext);
-			Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
-			connector.initialize(resourceSchema, capabilities, ResourceTypeUtil.isCaseIgnoreAttributeNames(connectorSpec.getResource().asObjectable()), configResult);
+			//
+			// NOTE: the capabilities and schema that are used here are NOT necessarily those that are detected by the resource.
+			//       The detected schema will come later. The schema here is the one that is stored in the resource
+			//       definition (ResourceType). This may be schema that was detected previously. But it may also be a schema
+			//       that was manually defined. This is needed to be passed to the connector in case that the connector
+			//       cannot detect the schema and needs schema/capabilities definition to establish a connection.
+			//       Most connectors will just ignore the schema and capabilities that are provided here.
+			//       But some connectors may need it (e.g. CSV connector working with CSV file without a header).
+			//
+			ResourceSchema previousResourceSchema = RefinedResourceSchemaImpl.getResourceSchema(connectorSpec.getResource(), prismContext);
+			Collection<Object> previousCapabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
+			connector.initialize(previousResourceSchema, previousCapabilities, ResourceTypeUtil.isCaseIgnoreAttributeNames(connectorSpec.getResource().asObjectable()), configResult);
 			
 			configResult.recordSuccess();
 		} catch (CommunicationException e) {
@@ -912,12 +919,15 @@ public class ResourceManager {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.UP, parentResult);
 		}
 		
+		// === test CAPABILITIES ===
+		
 		OperationResult capabilitiesResult = parentResult
 				.createSubresult(ConnectorTestOperation.CONNECTOR_CAPABILITIES.getOperation());
-
 		try {
 			InternalMonitor.recordCount(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
+			
 			Collection<Object> retrievedCapabilities = connector.fetchCapabilities(capabilitiesResult);
+			
 			capabilityMap.put(connectorSpec.getConnectorName(), retrievedCapabilities);
 			capabilitiesResult.recordSuccess();
 		} catch (CommunicationException e) {

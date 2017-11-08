@@ -17,6 +17,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.*;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -67,7 +68,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectListPanel.class);
 
-	private Class<? extends O> type;
+	private ObjectTypes type;
 	private PageBase parentPage;
 
 	private LoadableModel<Search> searchModel;
@@ -83,7 +84,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	private String addutionalBoxCssClasses;
 
 	public Class<? extends O> getType() {
-		return type;
+		return (Class) type.getClassDefinition();
 	}
 
 	/**
@@ -91,29 +92,20 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	 */
 	public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
 			PageBase parentPage) {
-		super(id);
-		this.type = defaultType;
-		this.parentPage = parentPage;
-		this.options = options;
-		this.tableId = tableId;
-		initLayout();
+		this(id, defaultType, options, false, parentPage, null);
 	}
 
 	/**
 	 * @param defaultType specifies type of the object that will be selected by default. It can be changed.
 	 */
 	ObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect, PageBase parentPage) {
-		super(id);
-		this.type = defaultType;
-		this.parentPage = parentPage;
-		this.multiselect = multiselect;
-		initLayout();
+		this(id, defaultType, null, false, parentPage, null);
 	}
 
 	public ObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options,
 						   boolean multiselect, PageBase parentPage, List<O> selectedObjectsList) {
 		super(id);
-		this.type = defaultType;
+		this.type = defaultType  != null ? ObjectTypes.getObjectType(defaultType) : null;
 		this.parentPage = parentPage;
 		this.options = options;
 		this.multiselect = multiselect;
@@ -176,7 +168,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	protected Search createSearch() {
-		return SearchFactory.createSearch(type, parentPage);
+		return SearchFactory.createSearch(type.getClassDefinition(), parentPage);
 	}
 
 	private BoxedTablePanel<SelectableBean<O>> createTable() {
@@ -197,7 +189,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 			@Override
 			protected WebMarkupContainer createHeader(String headerId) {
-				return initSearch(headerId);
+				return ObjectListPanel.this.createHeader(headerId);
 			}
 
 			@Override
@@ -225,6 +217,10 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		return table;
 	}
 
+	protected WebMarkupContainer createHeader(String headerId) {
+		return initSearch(headerId);
+	}
+
 	protected List<IColumn<SelectableBean<O>, String>> initCustomColumns() {
 		LOGGER.trace("Start to init custom columns for table of type {}", type);
 		List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<IColumn<SelectableBean<O>, String>>();
@@ -238,7 +234,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			columns.add(checkboxColumn);
 		}
 
-		IColumn<SelectableBean<O>, String> iconColumn = ColumnUtils.createIconColumn(type);
+		IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(type.getClassDefinition());
 		columns.add(iconColumn);
 
 		columns.addAll(getCustomColumnsTransformed(customColumns));
@@ -282,7 +278,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			columns.add(checkboxColumn);
 		}
 
-		IColumn<SelectableBean<O>, String> iconColumn = ColumnUtils.createIconColumn(type);
+		IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(type.getClassDefinition());
 		columns.add(iconColumn);
 
 		IColumn<SelectableBean<O>, String> nameColumn = createNameColumn(null, null);
@@ -301,7 +297,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	protected BaseSortableDataProvider<SelectableBean<O>> initProvider() {
 		Set<O> selectedObjectsSet = selectedObjects == null ? null : new HashSet<O>(selectedObjects);
 		SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<O>(
-				parentPage, type, selectedObjectsSet) {
+				parentPage, (Class) type.getClassDefinition(), selectedObjectsSet) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -451,11 +447,13 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	}
 
-	public void refreshTable(Class<O> newType, AjaxRequestTarget target) {
+	public void refreshTable(Class<O> newTypeClass, AjaxRequestTarget target) {
+		ObjectTypes newType = ObjectTypes.getObjectType(newTypeClass);
+
 		BaseSortableDataProvider<SelectableBean<O>> provider = getDataProvider();
 		provider.setQuery(getQuery());
 		if (newType != null && provider instanceof SelectableBeanObjectDataProvider) {
-			((SelectableBeanObjectDataProvider<O>) provider).setType(newType);
+			((SelectableBeanObjectDataProvider<O>) provider).setType(newTypeClass);
 		}
 
 		BoxedTablePanel<SelectableBean<O>> table = getTable();
@@ -542,7 +540,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 				adminGuiConfig.getObjectLists().getObjectList() != null){
 			for (GuiObjectListType object : adminGuiConfig.getObjectLists().getObjectList()){
 				if (object.getType() != null &&
-						!type.getSimpleName().equals(object.getType().getLocalPart())){
+						!type.getClassDefinition().getSimpleName().equals(object.getType().getLocalPart())){
 					continue;
 				}
 				return object.getColumn();
@@ -557,7 +555,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	private String getItemDisplayName(GuiObjectColumnType column){
 		return parentPage.getPrismContext().getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(type).findItemDefinition(column.getPath().getItemPath()).getDisplayName();
+				.findObjectDefinitionByCompileTimeClass(type.getClassDefinition()).findItemDefinition(column.getPath().getItemPath()).getDisplayName();
 	}
 
 	public ObjectPaging getCurrentTablePaging(){

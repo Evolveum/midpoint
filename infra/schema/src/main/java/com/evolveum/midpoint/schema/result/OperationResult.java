@@ -591,8 +591,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
 		if (allNotApplicable && !getSubresults().isEmpty()) {
 			status = OperationResultStatus.NOT_APPLICABLE;
-		}
-		if (allSuccess && !getSubresults().isEmpty()) {
+		} else if (allSuccess && !getSubresults().isEmpty()) {
 			status = OperationResultStatus.SUCCESS;
 		} else {
 			status = newStatus;
@@ -1653,6 +1652,12 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
 	public void setMinor(boolean value) {
 		this.minor = value;
+	}
+
+	public void recordThrowableIfNeeded(Throwable t) {
+		if (isUnknown()) {
+			recordFatalError(t.getMessage(), t);
+		}
 	}
 
 	// primitive implementation - uncomment it if needed

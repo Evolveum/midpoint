@@ -50,7 +50,7 @@ public class ModelEvent extends BaseEvent {
     private static final Trace LOGGER = TraceManager.getTrace(ModelEvent.class);
 
     // we can expect that modelContext != null and focus context != null as well
-    private ModelContext modelContext;
+    private ModelContext<?> modelContext;
 
     public ModelEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ModelContext modelContext) {
         super(lightweightIdentifierGenerator);
@@ -61,11 +61,11 @@ public class ModelEvent extends BaseEvent {
         return modelContext;
     }
 
-    public ModelElementContext getFocusContext() {
+    public ModelElementContext<?> getFocusContext() {
         return modelContext.getFocusContext();
     }
 
-    public Collection<ModelElementContext> getProjectionContexts() {
+    public Collection<? extends ModelProjectionContext> getProjectionContexts() {
         return modelContext.getProjectionContexts();
     }
 
@@ -74,7 +74,7 @@ public class ModelEvent extends BaseEvent {
     }
 
     public List<ObjectDeltaOperation> getAllExecutedDeltas() {
-        List<ObjectDeltaOperation> retval = new ArrayList<ObjectDeltaOperation>();
+        List<ObjectDeltaOperation> retval = new ArrayList<>();
         retval.addAll(getFocusContext().getExecutedDeltas());
         for (Object o : modelContext.getProjectionContexts()) {
             ModelProjectionContext modelProjectionContext = (ModelProjectionContext) o;

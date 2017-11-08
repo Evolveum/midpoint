@@ -138,6 +138,17 @@ public class AssignmentPathImpl implements AssignmentPath {
 				.collect(Collectors.toList());
 	}
 
+	@Override
+	public ObjectType getProtoRole() {
+		ObjectType protoRole = null;
+		for (AssignmentPathSegmentImpl segment: segments) {
+			if (segment.isMatchingOrder() && segment.getTarget() != null) {
+				protoRole = segment.getTarget();
+			}
+		}
+		return protoRole;
+	}
+
 	/**
 	 * Shallow clone.
 	 */

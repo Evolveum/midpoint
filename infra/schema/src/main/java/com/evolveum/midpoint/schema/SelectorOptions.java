@@ -230,6 +230,39 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
 
         return false;
     }
+    
+    public static boolean isExplicitlyIncluded(QName attributeName, Collection<SelectorOptions<GetOperationOptions>> options) {
+    	return isExplicitlyIncluded(new ItemPath(attributeName), options);
+    }
+    
+    public static boolean isExplicitlyIncluded(ItemPath path, Collection<SelectorOptions<GetOperationOptions>> options) {
+        List<SelectorOptions<GetOperationOptions>> retrieveOptions = filterRetrieveOptions(options);
+        if (retrieveOptions.isEmpty()) {
+            return false;
+        }
+
+        for (SelectorOptions<GetOperationOptions> option : retrieveOptions) {
+            ObjectSelector selector = option.getSelector();
+            if (selector != null) {
+	            ItemPath selected = selector.getPath();
+	            if (!isPathInSelected(path, selected)) {
+	                continue;
+	            }
+            }
+
+            RetrieveOption retrieveOption = option.getOptions().getRetrieve();
+            switch (retrieveOption) {
+                case INCLUDE:
+                    return true;
+                case EXCLUDE:
+                case DEFAULT:
+                default:
+                    return false;
+            }
+        }
+
+        return false;
+    }
 
     private static boolean isPathInSelected(ItemPath path, ItemPath selected) {
         if (selected == null || path == null) {

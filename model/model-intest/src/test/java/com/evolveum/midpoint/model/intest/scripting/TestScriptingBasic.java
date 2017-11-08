@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singleton;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -95,6 +96,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File NOTIFICATION_ABOUT_JACK_TYPE2_FILE = new File(TEST_DIR, "notification-about-jack-type2.xml");
 	private static final File SCRIPTING_USERS_FILE = new File(TEST_DIR, "scripting-users.xml");
 	private static final File SCRIPTING_USERS_IN_BACKGROUND_FILE = new File(TEST_DIR, "scripting-users-in-background.xml");
+	private static final File SCRIPTING_USERS_IN_BACKGROUND_ASSIGN_FILE = new File(TEST_DIR, "scripting-users-in-background-assign.xml");
 	private static final File SCRIPTING_USERS_IN_BACKGROUND_TASK_FILE = new File(TEST_DIR, "scripting-users-in-background-task.xml");
 	private static final File START_TASKS_FROM_TEMPLATE_FILE = new File(TEST_DIR, "start-tasks-from-template.xml");
 	private static final File GENERATE_PASSWORDS_FILE = new File(TEST_DIR, "generate-passwords.xml");
@@ -763,12 +765,17 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 	    task.getTaskPrismObject()
 			    .findContainer(TaskType.F_EXTENSION)
 			    .findOrCreateProperty(USER_NAME_TASK_EXTENSION_PROPERTY)
-			    .addRealValue("jack");
+			    .addRealValue(USER_ADMINISTRATOR_USERNAME);
 	    task.getTaskPrismObject()
 			    .findContainer(TaskType.F_EXTENSION)
 			    .findOrCreateProperty(USER_DESCRIPTION_TASK_EXTENSION_PROPERTY)
-			    .addRealValue("jack description");
+			    .addRealValue("admin description");
 	    task.setHandlerUri(ScriptExecutionTaskHandler.HANDLER_URI);
+
+	    dummyTransport.clearMessages();
+	    boolean notificationsDisabled = notificationManager.isDisabled();
+	    notificationManager.setDisabled(false);
+
 	    taskManager.switchToBackground(task, result);
 
 	    waitForTaskFinish(task.getOid(), false);
@@ -777,9 +784,54 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 	    // THEN
 	    display(task.getResult());
 	    TestUtil.assertSuccess(task.getResult());
-	    PrismObject<UserType> jack = getUser(USER_JACK_OID);
-	    display("jack after creation", jack);
-	    assertEquals("Wrong description", "jack description", jack.asObjectable().getDescription());
+	    PrismObject<UserType> admin = getUser(USER_ADMINISTRATOR_OID);
+	    display("admin after operation", admin);
+	    assertEquals("Wrong description", "admin description", admin.asObjectable().getDescription());
+
+	    display("dummy transport", dummyTransport);
+	    notificationManager.setDisabled(notificationsDisabled);
+
+	    assertEquals("Wrong # of messages in dummy transport", 1,
+			    emptyIfNull(dummyTransport.getMessages("dummy:simpleUserNotifier")).size());
+	}
+
+    @Test
+	public void test507ScriptingUsersInBackgroundAssign() throws Exception {
+		final String TEST_NAME = "test507ScriptingUsersInBackgroundAssign";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(DOT_CLASS + TEST_NAME);
+	    task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+		OperationResult result = task.getResult();
+		ExecuteScriptType exec = prismContext.parserFor(SCRIPTING_USERS_IN_BACKGROUND_ASSIGN_FILE).parseRealValue();
+
+		// WHEN
+
+	    task.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, exec);
+	    task.setHandlerUri(ScriptExecutionTaskHandler.HANDLER_URI);
+
+	    dummyTransport.clearMessages();
+	    boolean notificationsDisabled = notificationManager.isDisabled();
+	    notificationManager.setDisabled(false);
+
+	    taskManager.switchToBackground(task, result);
+
+	    waitForTaskFinish(task.getOid(), false);
+	    task.refresh(result);
+
+	    // THEN
+	    display(task.getResult());
+	    TestUtil.assertSuccess(task.getResult());
+	    PrismObject<UserType> admin = getUser(USER_ADMINISTRATOR_OID);
+	    display("admin after operation", admin);
+	    assertAssignedRole(admin, ROLE_EMPTY_OID);
+
+	    display("dummy transport", dummyTransport);
+	    notificationManager.setDisabled(notificationsDisabled);
+
+	    assertEquals("Wrong # of messages in dummy transport", 1,
+			    emptyIfNull(dummyTransport.getMessages("dummy:simpleUserNotifier")).size());
 	}
 
     @Test

@@ -1069,7 +1069,7 @@ public interface MidpointFunctions {
 	/**
 	 * Used for account activation notifier to collect all shadows which are going to be activated.
 	 */
-	List<ShadowType> getShadowsToActivate(Collection<ModelElementContext> projectionContexts);
+	List<ShadowType> getShadowsToActivate(Collection<? extends ModelElementContext> projectionContexts);
 	
 	String createRegistrationConfirmationLink(UserType userType);
 	
