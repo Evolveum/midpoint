@@ -1078,6 +1078,8 @@ public interface MidpointFunctions {
 	String createAccountActivationLink(UserType userType);
 	
 	String getConst(String name);
+	
+	ShadowType resolveEntitlement(ShadowAssociationType shadowAssociationType);
 
 	ExtensionType collectExtensions(AssignmentPathType path, int startAt)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,

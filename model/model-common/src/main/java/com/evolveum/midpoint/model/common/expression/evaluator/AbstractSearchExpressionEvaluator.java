@@ -469,6 +469,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		context.setDefaultTargetContext(params.getDefaultTargetContext());
 		context.setSkipEvaluationMinus(true);
 		context.setSkipEvaluationPlus(false);
+		context.setVariableProducer(params.getVariableProducer());
 		PrismValueDeltaSetTriple<IV> outputTriple = expression.evaluate(context);
 		LOGGER.trace("output triple: {}", outputTriple.debugDump());
 		Collection<IV> pvalues = outputTriple.getNonNegativeValues();

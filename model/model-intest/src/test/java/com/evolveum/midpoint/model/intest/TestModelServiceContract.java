@@ -1319,6 +1319,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check account in dummy resource
         assertDefaultDummyAccount("jack", "Cpt. Jack Sparrow", true);
+        assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME,
+        		"Queen Anne's Revenge");
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -1384,6 +1386,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check account in dummy resource
         assertDefaultDummyAccount("jack", "Cpt. Jack Sparrow", true);
+        assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME,
+        		"Queen Anne's Revenge");
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -1436,7 +1440,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
-
+        
         assertDummyScriptsDelete();
 
         // Check audit
@@ -1610,7 +1614,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check audit
         display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertRecords(3);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);

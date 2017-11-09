@@ -185,8 +185,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     private ValuePolicyType accountPasswordPolicy;
 
-
-	/**
+    /**
      * Resource that hosts this projection.
      */
     transient private ResourceType resource;
@@ -200,6 +199,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	transient private boolean toBeArchived;
 
 	transient private String humanReadableName;
+	
+	private Map<String, PrismObject<ShadowType>> entitlementMap = new HashMap<>();
 
 	LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator resourceAccountType) {
     	super(ShadowType.class, lensContext);
@@ -387,6 +388,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public void setResource(ResourceType resource) {
         this.resource = resource;
     }
+    
+    public Map<String, PrismObject<ShadowType>> getEntitlementMap() {
+		return entitlementMap;
+	}
+    
+    public void setEntitlementMap(Map<String, PrismObject<ShadowType>> entitlementMap) {
+		this.entitlementMap = entitlementMap;
+	}
 
     @Override
 	public PrismObjectDefinition<ShadowType> getObjectDefinition() {

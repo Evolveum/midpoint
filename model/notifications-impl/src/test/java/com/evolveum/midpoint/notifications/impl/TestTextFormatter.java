@@ -140,8 +140,8 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         System.out.println("hide auxiliary paths + hide operational attributes: " + jackFormattedHideAuxAndOper);
 
         // THEN
-
-		final String CREATE_TIMESTAMP = "createTimestamp:";
+        // if fails with hidden operational attribute when it should be shown ('hide none'), check the schema.properties 
+		final String CREATE_TIMESTAMP = "Created at:";
 		final String EFFECTIVE_STATUS = "Effective status: ENABLED";
 		final String FAMILY_NAME = "Family name: Sparrow";
 		final String SHIP = "ship: Black Pearl";
@@ -198,22 +198,25 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         checkNotes(deltaFormattedHideAuxAndOper);
         checkNotes(deltaFormattedHideNone);
         checkNotes(deltaFormattedHideOper);
+        
+        // if fails with hidden operational attribute when it should be shown ('hide none'), check the schema.properties  
+        final String CREATE_TIMESTAMP = "Created at:";
 
-        assertTrue("hidden operational attribute when it should be shown ('hide none')", deltaFormattedHideNone.contains("createTimestamp:"));
+        assertTrue("hidden operational attribute when it should be shown ('hide none')", deltaFormattedHideNone.contains(CREATE_TIMESTAMP));
         assertTrue("hidden auxiliary attribute (family name) when it should be shown ('hide none')", deltaFormattedHideNone.contains("SPARROW"));
         assertTrue("hidden password change when it should be shown ('hide none')", deltaFormattedHideNone.contains("(protected string)"));
         assertTrue("hidden standard attribute when it should be shown ('hide none')", deltaFormattedHideNone.contains("BLACK PEARL"));
 
-        assertTrue("shown operational attribute when it should be hidden ('hide oper')", !deltaFormattedHideOper.contains("createTimestamp:"));
+        assertTrue("shown operational attribute when it should be hidden ('hide oper')", !deltaFormattedHideOper.contains(CREATE_TIMESTAMP));
         assertTrue("hidden auxiliary attribute (family name) when it should be shown ('hide oper')", deltaFormattedHideOper.contains("SPARROW"));
         assertTrue("hidden password change when it should be shown ('hide oper')", deltaFormattedHideOper.contains("(protected string)"));
         assertTrue("hidden standard attribute when it should be shown ('hide oper')", deltaFormattedHideOper.contains("BLACK PEARL"));
 
-        assertTrue("shown auxiliary attribute (metadata) when it should be hidden ('hide aux')", !deltaFormattedHideAux.contains("createTimestamp:"));
+        assertTrue("shown auxiliary attribute (metadata) when it should be hidden ('hide aux')", !deltaFormattedHideAux.contains(CREATE_TIMESTAMP));
         assertTrue("shown auxiliary attribute (family name) when it should be hidden ('hide aux')", !deltaFormattedHideAux.contains("SPARROW"));
         assertTrue("hidden standard attribute when it should be shown ('hide aux')", deltaFormattedHideAux.contains("BLACK PEARL"));
 
-        assertTrue("shown operational attribute when it should be hidden ('hide aux and oper')", !deltaFormattedHideAuxAndOper.contains("createTimestamp:"));
+        assertTrue("shown operational attribute when it should be hidden ('hide aux and oper')", !deltaFormattedHideAuxAndOper.contains(CREATE_TIMESTAMP));
         assertTrue("shown auxiliary attribute (family name) when it should be hidden ('hide aux and oper')", !deltaFormattedHideAuxAndOper.contains("SPARROW"));
         assertTrue("hidden standard attribute when it should be shown ('hide aux and oper')", deltaFormattedHideAuxAndOper.contains("BLACK PEARL"));
 

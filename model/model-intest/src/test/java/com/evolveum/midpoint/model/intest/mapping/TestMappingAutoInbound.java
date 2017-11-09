@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.intest.mapping;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
@@ -71,12 +72,14 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         repoAddObjectFromFile(ROLE_AUTOCRATIC_FILE, initResult);
         repoAddObjectFromFile(ROLE_AUTODIDACTIC_FILE, initResult);
         repoAddObjectFromFile(ROLE_AUTOGRAPHIC_FILE, initResult);
+        repoAddObjectFromFile(ROLE_AUTOTESTERS_FILE, initResult);
+        repoAddObjectFromFile(ROLE_ADMINS_FILE, initResult);
 	}
 
     /**
      * MID-2104
      */
-	@Test(enabled=false) // MID-2104 
+    @Test
     public void test100ImportFromResource() throws Exception {
 		final String TEST_NAME = "test100ImportFromResource";
         displayTestTitle(TEST_NAME);
@@ -125,7 +128,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     /**
      * MID-2104
      */
-	@Test(enabled=false) // MID-2104
+    @Test
     public void test110ModifyAccountTitleCraticAndReconcile() throws Exception {
 		final String TEST_NAME = "test110ModifyAccountTitleCraticAndReconcile";
         displayTestTitle(TEST_NAME);
@@ -154,7 +157,7 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     /**
      * MID-2104
      */
-	@Test(enabled=false) // MID-2104
+    @Test
     public void test112ModifyAccountTitleDidacticGraphicAndReconcile() throws Exception {
 		final String TEST_NAME = "test112ModifyAccountTitleDidacticGraphicAndReconcile";
         displayTestTitle(TEST_NAME);
@@ -178,10 +181,81 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         display("User after", userAfter);
         assertAssignedRole(userAfter, ROLE_AUTODIDACTIC_OID);
         assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
-        assertAssignments(userAfter, 1);
+        assertAssignments(userAfter, 2);
 	}
 
 	// TODO: tests with range (other role assignments present)
 	
 	// TODO: associations
+    
+    @Test
+    public void test200ImportFromResourceAssociations() throws Exception {
+		final String TEST_NAME = "test200ImportFromResourceAssociations";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        DummyGroup dummyGroup = new DummyGroup(GROUP_DUMMY_TESTERS_NAME);
+        getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).addGroup(dummyGroup);
+        
+        dummyGroup.addMember(USER_HERMAN_USERNAME);
+		
+		// WHEN
+        displayWhen(TEST_NAME);
+        modelService.importFromResource(RESOURCE_DUMMY_AUTOGREEN_OID, new QName(MidPointConstants.NS_RI, "AccountObjectClass"), task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        OperationResult subresult = result.getLastSubresult();
+        TestUtil.assertInProgress("importAccountsFromResource result", subresult);
+
+        waitForTaskFinish(task, true, 40000);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(task.getResult());
+
+        SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after import", users);
+
+        PrismObject<UserType> userHermanAfter = findUserByUsername(USER_HERMAN_USERNAME);
+        display("User after", userHermanAfter);
+        userHermanOid = userHermanAfter.getOid();
+        assertUser(userHermanAfter, userHermanAfter.getOid(), USER_HERMAN_USERNAME, USER_HERMAN_FULL_NAME, null, null);
+        assertAssignedRole(userHermanAfter, ROLE_AUTODIDACTIC_OID);
+        assertAssignedRole(userHermanAfter, ROLE_AUTOGRAPHIC_OID);
+        assertAssignedRole(userHermanAfter, ROLE_AUTOTESTERS_OID);
+        assertAssignments(userHermanAfter, 3);
+
+        assertEquals("Unexpected number of users", getNumberOfUsers() + 1, users.size());
+	}
+    
+    @Test
+    public void test300ModifyAccountDirectAssign() throws Exception {
+		final String TEST_NAME = "test300ModifyAccountDirectAssign";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignRole(userHermanOid, ROLE_ADMINS_OID);
+        reconcileUser(userHermanOid, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(userHermanOid);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_AUTODIDACTIC_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOTESTERS_OID);
+        assertAssignedRole(userAfter, ROLE_ADMINS_OID);
+        assertAssignments(userAfter, 4);
+	}
 }

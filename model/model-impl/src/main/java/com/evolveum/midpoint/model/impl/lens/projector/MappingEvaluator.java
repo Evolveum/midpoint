@@ -683,7 +683,7 @@ public class MappingEvaluator {
 		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration);
 		variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue());
 
-		Collection<V> targetValues = computeTargetValues(mappingType.getTarget(), defaultTargetObject, variables, mappingFactory.getObjectResolver(), contextDesc, task, result);
+		Collection<V> targetValues = ExpressionUtil.computeTargetValues(mappingType.getTarget(), defaultTargetObject, variables, mappingFactory.getObjectResolver(), contextDesc, task, result);
 
 		Mapping.Builder<V,D> mappingBuilder = mappingFactory.<V,D>createMappingBuilder(mappingType, contextDesc)
 				.sourceContext(focusOdo)
@@ -719,35 +719,35 @@ public class MappingEvaluator {
 		return mapping;
 	}
 
-    private <V extends PrismValue, F extends FocusType> Collection<V> computeTargetValues(VariableBindingDefinitionType target,
-			Object defaultTargetContext, ExpressionVariables variables, ObjectResolver objectResolver, String contextDesc,
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		if (target == null) {
-			// Is this correct? What about default targets?
-			return null;
-		}
-
-		ItemPathType itemPathType = target.getPath();
-		if (itemPathType == null) {
-			// Is this correct? What about default targets?
-			return null;
-		}
-		ItemPath path = itemPathType.getItemPath();
-
-		Object object = ExpressionUtil.resolvePath(path, variables, defaultTargetContext, objectResolver, contextDesc, task, result);
-		if (object == null) {
-			return new ArrayList<>();
-		} else if (object instanceof Item) {
-			return ((Item) object).getValues();
-		} else if (object instanceof PrismValue) {
-			return (List<V>) Collections.singletonList((PrismValue) object);
-		} else if (object instanceof ItemDeltaItem) {
-			ItemDeltaItem<V, ?> idi = (ItemDeltaItem<V, ?>) object;
-			PrismValueDeltaSetTriple<V> triple = idi.toDeltaSetTriple();
-			return triple != null ? triple.getNonNegativeValues() : new ArrayList<V>();
-		} else {
-			throw new IllegalStateException("Unsupported target value(s): " + object.getClass() + " (" + object + ")");
-		}
-	}
+//    private <V extends PrismValue, F extends FocusType> Collection<V> computeTargetValues(VariableBindingDefinitionType target,
+//			Object defaultTargetContext, ExpressionVariables variables, ObjectResolver objectResolver, String contextDesc,
+//			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+//		if (target == null) {
+//			// Is this correct? What about default targets?
+//			return null;
+//		}
+//
+//		ItemPathType itemPathType = target.getPath();
+//		if (itemPathType == null) {
+//			// Is this correct? What about default targets?
+//			return null;
+//		}
+//		ItemPath path = itemPathType.getItemPath();
+//
+//		Object object = ExpressionUtil.resolvePath(path, variables, defaultTargetContext, objectResolver, contextDesc, task, result);
+//		if (object == null) {
+//			return new ArrayList<>();
+//		} else if (object instanceof Item) {
+//			return ((Item) object).getValues();
+//		} else if (object instanceof PrismValue) {
+//			return (List<V>) Collections.singletonList((PrismValue) object);
+//		} else if (object instanceof ItemDeltaItem) {
+//			ItemDeltaItem<V, ?> idi = (ItemDeltaItem<V, ?>) object;
+//			PrismValueDeltaSetTriple<V> triple = idi.toDeltaSetTriple();
+//			return triple != null ? triple.getNonNegativeValues() : new ArrayList<V>();
+//		} else {
+//			throw new IllegalStateException("Unsupported target value(s): " + object.getClass() + " (" + object + ")");
+//		}
+//	}
 
 }

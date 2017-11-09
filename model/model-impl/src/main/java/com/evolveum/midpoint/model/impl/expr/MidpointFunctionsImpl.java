@@ -1493,6 +1493,39 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	}
 
 	@Override
+	public ShadowType resolveEntitlement(ShadowAssociationType shadowAssociationType) {
+		ObjectReferenceType shadowRef = shadowAssociationType.getShadowRef();
+		if (shadowRef == null) {
+			LOGGER.trace("No shadowRef in association {}", shadowAssociationType);
+			return null;
+		}
+		if (shadowRef.asReferenceValue().getObject() != null){
+			return (ShadowType) shadowAssociationType.getShadowRef().asReferenceValue().getObject().asObjectable();
+		}
+		
+		LensProjectionContext projectionCtx = (LensProjectionContext) getProjectionContext();
+		if (projectionCtx == null) {
+			LOGGER.trace("No projection found. Skipping resolving entitlement");
+			return null;
+		}
+		
+		Map<String, PrismObject<ShadowType>> entitlementMap = projectionCtx.getEntitlementMap();
+		if (entitlementMap == null) {
+			LOGGER.trace("No entitlement map present in projection context {}", projectionCtx);
+			return null;
+		}
+		
+		PrismObject<ShadowType> entitlement = entitlementMap.get(shadowRef.getOid());
+		if (entitlement == null) {
+			LOGGER.trace("No entitlement with oid {} found among resolved entitlement {}.", shadowRef, entitlementMap);
+			return null;
+		}
+		LOGGER.trace("Returning resolved entitlement: {}", entitlement);
+		return entitlement.asObjectable();
+		
+	}
+	
+	@Override
 	public ExtensionType collectExtensions(AssignmentPathType path, int startAt)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException {
