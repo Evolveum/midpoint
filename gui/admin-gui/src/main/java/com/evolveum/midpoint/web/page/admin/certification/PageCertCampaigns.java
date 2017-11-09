@@ -166,7 +166,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 	}
 
 	private void initLayout() {
-		Form mainForm = new Form(ID_MAIN_FORM);
+		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 		add(mainForm);
 
 		CertCampaignListItemDtoProvider provider = createProvider();

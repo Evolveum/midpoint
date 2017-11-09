@@ -206,7 +206,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
 
     private void initLayout() {
-        Form<?> mainForm = new Form<>(ID_MAIN_FORM);
+        Form<?> mainForm = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
 
         List<ITab> tabs = new ArrayList<>();
         tabs.add(new AbstractTab(createStringResource("PageSelfCredentials.tabs.password")) {

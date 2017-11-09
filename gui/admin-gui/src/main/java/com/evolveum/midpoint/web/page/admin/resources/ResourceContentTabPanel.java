@@ -127,7 +127,7 @@ public class ResourceContentTabPanel extends Panel {
 	private void initLayout(final IModel<PrismObject<ResourceType>> model, final PageBase parentPage) {
 		setOutputMarkupId(true);
 
-		final Form mainForm = new Form(ID_MAIN_FORM);
+		final Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 		mainForm.setOutputMarkupId(true);
 		mainForm.addOrReplace(initTable(model));
 		add(mainForm);

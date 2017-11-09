@@ -100,7 +100,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
     }
 
     private void initLayout(IModel<PrismObject<UserType>> donorModel) {
-        Form mainForm = new Form(ID_MAIN_FORM);
+        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
         WorkItemsPanel panel = new WorkItemsPanel(ID_WORK_ITEMS_PANEL,

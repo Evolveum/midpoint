@@ -216,7 +216,7 @@ public class PageDebugList extends PageAdminConfiguration {
 	}
 
 	private void initLayout() {
-		Form main = new Form(ID_MAIN_FORM);
+		Form main = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 		add(main);
 
 		DebugSearchDto dto = searchModel.getObject();
@@ -952,7 +952,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		}
 
 		private void initLayout(IModel<List<ObjectViewDto>> resourcesModel) {
-			final Form searchForm = new Form(ID_SEARCH_FORM);
+			final Form searchForm = new com.evolveum.midpoint.web.component.form.Form(ID_SEARCH_FORM);
 			add(searchForm);
 			searchForm.setOutputMarkupId(true);
 

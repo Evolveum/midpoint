@@ -126,7 +126,7 @@ public class PageAssignmentShoppingKart extends PageSelf {
 
         setOutputMarkupId(true);
 
-        Form mainForm = new Form(ID_MAIN_FORM);
+        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
         initHeaderPanel(mainForm);
@@ -444,7 +444,7 @@ public class PageAssignmentShoppingKart extends PageSelf {
     }
 
     private void initSearchPanel(WebMarkupContainer headerPanel) {
-        final Form searchForm = new Form(ID_SEARCH_FORM);
+        final Form searchForm = new com.evolveum.midpoint.web.component.form.Form(ID_SEARCH_FORM);
         searchForm.setOutputMarkupId(true);
 
         SearchPanel search = new SearchPanel(ID_SEARCH, (IModel) searchModel, false) {

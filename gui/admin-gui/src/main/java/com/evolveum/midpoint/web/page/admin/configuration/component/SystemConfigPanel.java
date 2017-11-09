@@ -45,7 +45,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 public class SystemConfigPanel extends BasePanel<SystemConfigurationDto> {
 
     private static final long serialVersionUID = 1L;
-    private static final String ID_GLOBAL_PASSWORD_POLICY_CHOOSER = "passwordPolicyChooser";
     private static final String ID_GLOBAL_SECURITY_POLICY_CHOOSER = "securityPolicyChooser";
     private static final String ID_OBJECT_POLICY_EDITOR = "objectPolicyEditor";
     private static final String ID_GLOBAL_CHOOSEASSIGNEMNTPOLICYENFORCEMENT = "chooseAssignmentPolicyEnforcement";
@@ -79,13 +78,9 @@ public class SystemConfigPanel extends BasePanel<SystemConfigurationDto> {
     }
 
     protected void initLayout() {
-
-        ChooseTypePanel<ValuePolicyType> passPolicyChoosePanel = new ChooseTypePanel<ValuePolicyType>(ID_GLOBAL_PASSWORD_POLICY_CHOOSER,
-                new PropertyModel<ObjectViewDto<ValuePolicyType>>(getModel(), SystemConfigurationDto.F_PASSWORD_POLICY));
-
         ChooseTypePanel<SecurityPolicyType> securityPolicyChoosePanel = new ChooseTypePanel<SecurityPolicyType>(ID_GLOBAL_SECURITY_POLICY_CHOOSER,
                 new PropertyModel<ObjectViewDto<SecurityPolicyType>>(getModel(), SystemConfigurationDto.F_SECURITY_POLICY));
-        add(passPolicyChoosePanel);
+
         add(securityPolicyChoosePanel);
 
         ObjectPolicyConfigurationEditor objectPolicyEditor = new ObjectPolicyConfigurationEditor(ID_OBJECT_POLICY_EDITOR,

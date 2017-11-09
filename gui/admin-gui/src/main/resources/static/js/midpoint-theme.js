@@ -19,6 +19,11 @@ $(window).load(function() {
     $("body").removeClass("custom-hold-transition");
 
     initAjaxStatusSigns();
+
+    Wicket.Event.subscribe('/ajax/call/failure', function( attrs, jqXHR, textStatus, jqEvent, errorThrown ) {
+        console.error("Ajax call failure:\n" + JSON.stringify(attrs.target.location)
+            + "\nStatus:\n" + JSON.stringify(textStatus));
+    });
 });
 
 function clickFuncWicket6(eventData) {
