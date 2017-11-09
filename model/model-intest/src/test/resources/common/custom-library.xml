@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<functionLibrary oid="c0c010c0-d34d-b33f-f00d-999999999999" 
+<functionLibrary oid="c0c010c0-d34d-b33f-f00d-999999999999"
 		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
