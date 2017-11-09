@@ -51,6 +51,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.RuntimeConfigurationType;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.core.request.mapper.MountedMapper;
@@ -58,6 +61,8 @@ import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.protocol.http.WebApplication;
+import org.apache.wicket.request.Request;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
@@ -71,8 +76,10 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -240,6 +247,23 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/error/410", PageError410.class, new PageParametersEncoder()));
 
         getRequestCycleListeners().add(new LoggingRequestCycleListener(this));
+
+        getAjaxRequestTargetListeners().add(new AjaxRequestTarget.AbstractListener() {
+
+            @Override
+            public void updateAjaxAttributes(AbstractDefaultAjaxBehavior behavior, AjaxRequestAttributes attributes) {
+                Request req = RequestCycle.get().getRequest();
+                HttpServletRequest httpReq = (HttpServletRequest) req.getContainerRequest();
+
+                CsrfToken csrfToken = (CsrfToken) httpReq.getAttribute("_csrf");
+                if (csrfToken != null) {
+                    String parameterName = csrfToken.getParameterName();
+                    String value = csrfToken.getToken();
+
+                    attributes.getExtraParameters().put(parameterName, value);
+                }
+            }
+        });
 
         //descriptor loader, used for customization
         new DescriptorLoader().loadData(this);
