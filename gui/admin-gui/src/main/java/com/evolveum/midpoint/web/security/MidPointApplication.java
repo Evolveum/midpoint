@@ -61,8 +61,6 @@ import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.protocol.http.WebApplication;
-import org.apache.wicket.request.Request;
-import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
@@ -79,7 +77,6 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -252,16 +249,15 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
             @Override
             public void updateAjaxAttributes(AbstractDefaultAjaxBehavior behavior, AjaxRequestAttributes attributes) {
-                Request req = RequestCycle.get().getRequest();
-                HttpServletRequest httpReq = (HttpServletRequest) req.getContainerRequest();
-
-                CsrfToken csrfToken = (CsrfToken) httpReq.getAttribute("_csrf");
-                if (csrfToken != null) {
-                    String parameterName = csrfToken.getParameterName();
-                    String value = csrfToken.getToken();
-
-                    attributes.getExtraParameters().put(parameterName, value);
+                CsrfToken csrfToken = SecurityUtils.getCsrfToken();
+                if (csrfToken == null) {
+                    return;
                 }
+
+                String parameterName = csrfToken.getParameterName();
+                String value = csrfToken.getToken();
+
+                attributes.getExtraParameters().put(parameterName, value);
             }
         });
 

@@ -120,15 +120,21 @@ public class SecurityUtils {
     }
 
     public static void appendHiddenInputForCsrf(Response resp) {
+        CsrfToken csrfToken = getCsrfToken();
+        if (csrfToken == null) {
+            return;
+        }
+
+        String parameterName = csrfToken.getParameterName();
+        String value = csrfToken.getToken();
+
+        resp.write("<input type=\"hidden\" name=\"" + parameterName + "\" value=\"" + value + "\"/>");
+    }
+
+    public static CsrfToken getCsrfToken() {
         Request req = RequestCycle.get().getRequest();
         HttpServletRequest httpReq = (HttpServletRequest) req.getContainerRequest();
 
-        CsrfToken csrfToken = (CsrfToken) httpReq.getAttribute("_csrf");
-        if (csrfToken != null) {
-            String parameterName = csrfToken.getParameterName();
-            String value = csrfToken.getToken();
-
-            resp.write("<input type=\"hidden\" name=\"" + parameterName + "\" value=\"" + value + "\"/>");
-        }
+        return (CsrfToken) httpReq.getAttribute("_csrf");
     }
 }
