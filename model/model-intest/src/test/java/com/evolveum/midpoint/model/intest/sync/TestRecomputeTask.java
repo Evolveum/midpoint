@@ -39,6 +39,8 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -136,29 +138,27 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 				new NameItemPathSegment(AssignmentType.F_CONSTRUCTION),
 				new IdItemPathSegment(60004L),
 				new NameItemPathSegment(ConstructionType.F_ATTRIBUTE));
-        PrismProperty<ResourceAttributeDefinitionType> attributeProperty = rolePirate.findProperty(attrItemPath);
+        PrismContainer<ResourceAttributeDefinitionType> attributeCont = rolePirate.findContainer(attrItemPath);
         assertNotNull("No attribute property in "+rolePirate);
-        PrismPropertyValue<ResourceAttributeDefinitionType> oldAttrPVal = null;
-        for (PrismPropertyValue<ResourceAttributeDefinitionType> pval: attributeProperty.getValues()) {
-        	ResourceAttributeDefinitionType attrType = pval.getValue();
+        PrismContainerValue<ResourceAttributeDefinitionType> oldAttrCVal = null;
+        for (PrismContainerValue<ResourceAttributeDefinitionType> cval: attributeCont.getValues()) {
+        	ResourceAttributeDefinitionType attrType = cval.getValue();
         	if (ItemPathUtil.getOnlySegmentQName(attrType.getRef()).getLocalPart().equals(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME)) {
-        		oldAttrPVal = pval;
+        		oldAttrCVal = cval;
         	}
         }
         assertNotNull("Definition for weapon attribute not found in "+rolePirate);
-        PrismPropertyValue<ResourceAttributeDefinitionType> newAttrPVal = oldAttrPVal.clone();
-        JAXBElement<?> cutlassExpressionEvalJaxbElement = newAttrPVal.getValue().getOutbound().getExpression().getExpressionEvaluator().get(0);
+        PrismContainerValue<ResourceAttributeDefinitionType> newAttrCVal = oldAttrCVal.clone();
+        JAXBElement<?> cutlassExpressionEvalJaxbElement = newAttrCVal.getValue().getOutbound().getExpression().getExpressionEvaluator().get(0);
         RawType cutlassValueEvaluator = (RawType) cutlassExpressionEvalJaxbElement.getValue();
         RawType daggerValueEvaluator = new RawType(new PrimitiveXNode<String>("dagger"), prismContext);
         JAXBElement<?> daggerExpressionEvalJaxbElement = new JAXBElement<Object>(SchemaConstants.C_VALUE, Object.class, daggerValueEvaluator);
-        newAttrPVal.getValue().getOutbound().getExpression().getExpressionEvaluator().add(daggerExpressionEvalJaxbElement);
-        newAttrPVal.getValue().getOutbound().setStrength(MappingStrengthType.STRONG);
+        newAttrCVal.getValue().getOutbound().getExpression().getExpressionEvaluator().add(daggerExpressionEvalJaxbElement);
+        newAttrCVal.getValue().getOutbound().setStrength(MappingStrengthType.STRONG);
 
-        ObjectDelta<RoleType> rolePirateDelta = ObjectDelta.createModificationDeleteProperty(RoleType.class, ROLE_PIRATE_OID,
-        		attrItemPath, prismContext, oldAttrPVal.getValue());
-        IntegrationTestTools.displayJaxb("AAAAAAAAAAA", newAttrPVal.getValue(), ConstructionType.F_ATTRIBUTE);
-        display("BBBBBB", newAttrPVal.getValue().toString());
-        rolePirateDelta.addModificationAddProperty(attrItemPath, newAttrPVal.getValue());
+        ObjectDelta<RoleType> rolePirateDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, ROLE_PIRATE_OID,
+        		attrItemPath, prismContext, oldAttrCVal.getValue().clone());
+        rolePirateDelta.addModificationAddContainer(attrItemPath, newAttrCVal.getValue());
 
         display("Role pirate delta", rolePirateDelta);
 		modelService.executeChanges(MiscSchemaUtil.createCollection(rolePirateDelta), null, task, result);

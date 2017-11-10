@@ -150,8 +150,6 @@ public class TestParseObjectTemplate {
 		assertPropertyValue(object, "name", PrismTestUtil.createPolyString("Default User Template"));
 		assertPropertyDefinition(object, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 
-		assertPropertyDefinition(object, "mapping", ObjectTemplateMappingType.COMPLEX_TYPE, 0, -1);
-
 	}
 
     // checks raw values of mappings

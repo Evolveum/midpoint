@@ -290,7 +290,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				+ ".repoAddObjectFromFile");
 		result.addParam("file", file.getPath());
 		LOGGER.debug("addObjectFromFile: {}", file);
-		PrismObject<T> object = prismContext.parseObject(file);
+		PrismObject<T> object;
+		try {
+			object = prismContext.parseObject(file);
+		} catch (SchemaException e) {
+			throw new SchemaException("Error parsing file "+file.getPath()+": "+e.getMessage(), e);
+		}
 
 		if (metadata) {
 			addBasicMetadata(object);
