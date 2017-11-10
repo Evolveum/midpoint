@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,11 +32,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  */
 public class EvaluatedConstructionImpl implements EvaluatedConstruction {
 
-    private PrismObject<ResourceType> resource;
-    private ShadowKindType kind;
-    private String intent;
-    private boolean directlyAssigned;
+    final private PrismObject<ResourceType> resource;
+    final private ShadowKindType kind;
+    final private String intent;
+    final private boolean directlyAssigned;
+    final private boolean weak;
 
+	public <F extends FocusType> EvaluatedConstructionImpl(Construction<F> construction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        resource = construction.getResource(task, result).asPrismObject();
+        kind = construction.getKind();
+        intent = construction.getIntent();
+        directlyAssigned = construction.getAssignmentPath() == null || construction.getAssignmentPath().size() == 1;
+        weak = construction.isWeak();
+    }
+    
     @Override
     public PrismObject<ResourceType> getResource() {
         return resource;
@@ -57,43 +66,29 @@ public class EvaluatedConstructionImpl implements EvaluatedConstruction {
         return directlyAssigned;
     }
 
-    public void setDirectlyAssigned(boolean directlyAssigned) {
-        this.directlyAssigned = directlyAssigned;
-    }
-
-    public <F extends FocusType> EvaluatedConstructionImpl(Construction<F> construction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        resource = construction.getResource(task, result).asPrismObject();
-        kind = construction.getKind();
-        intent = construction.getIntent();
-        directlyAssigned = construction.getAssignmentPath() == null || construction.getAssignmentPath().size() == 1;
-    }
-
     @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
+    public boolean isWeak() {
+		return weak;
+	}
 
-    // TODO polish
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        DebugUtil.debugDumpLabel(sb, "EvaluatedConstruction", indent);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "Resource", resource, indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "Kind", kind.value(), indent + 1);
-        sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, "Intent", intent, indent + 1);
+        DebugUtil.debugDumpLabelLn(sb, "EvaluatedConstruction", indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "resource", resource, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "kind", kind.value(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "intent", intent, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "directlyAssigned", directlyAssigned, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "weak", weak, indent + 1);
         return sb.toString();
     }
 
-    // TODO polish
     @Override
     public String toString() {
-        return "EvaluatedConstruction{" +
+        return "EvaluatedConstruction(" +
                 "resource=" + resource +
                 ", kind=" + kind +
-                ", intent='" + intent + '\'' +
-                '}';
+                ", intent='" + intent +
+                ')';
     }
 }
