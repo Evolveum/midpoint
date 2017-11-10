@@ -22,6 +22,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author mederly
@@ -54,5 +59,19 @@ public class SystemUtil {
 			throw e;
 		}
 		LOGGER.debug("Finished executing {}; result has a length of {} characters", command, output.length());
+	}
+	
+	public static void setPrivateFilePermissions(String fileName) throws IOException {
+		Set<PosixFilePermission> perms = new HashSet<>();
+		perms.add(PosixFilePermission.OWNER_READ);
+		perms.add(PosixFilePermission.OWNER_WRITE);
+		perms.add(PosixFilePermission.GROUP_READ);
+		perms.add(PosixFilePermission.GROUP_WRITE);
+		try {
+			Files.setPosixFilePermissions(Paths.get(fileName), perms);
+		} catch (UnsupportedOperationException e) {
+			// Windows. Sorry.
+			LOGGER.trace("Cannot set permissions for file {}, this is obviously not a POSIX system", fileName);
+		}
 	}
 }
