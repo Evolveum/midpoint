@@ -22,6 +22,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.SystemUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -35,6 +36,7 @@ import org.w3c.dom.Document;
 
 import javax.xml.parsers.DocumentBuilder;
 import java.io.File;
+import java.io.IOException;
 import java.util.Iterator;
 
 public class StartupConfiguration implements MidpointConfiguration {
@@ -202,6 +204,7 @@ public class StartupConfiguration implements MidpointConfiguration {
                         throw new SystemException(message);
                     }
                 }
+                SystemUtil.setPrivateFilePermissions(configFile.getPath());
                 //Load and parse properties
                 config.addProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME, midPointHomePath);
                 createXmlConfiguration(documentBuilder, configFile.getPath());
@@ -210,7 +213,12 @@ public class StartupConfiguration implements MidpointConfiguration {
                 LOGGER.error(message);
                 System.out.println(message);
                 throw new SystemException(message, e);      // there's no point in continuing with midpoint initialization
-            }
+            } catch (IOException e) {
+            	String message = "Unable to set permissions for configuration file [" + configFile + "]: " + e.getMessage();
+                LOGGER.warn(message);
+                System.out.println(message);
+                // Non-critical, continue
+			}
 
         } else {
             // Load from current directory

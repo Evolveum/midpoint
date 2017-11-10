@@ -17,7 +17,7 @@
 <suite name="Suite" parallel="none">
 	<test name="Test" parallel="none">
 		<classes>
-			<class name="com.evolveum.midpoint.init.ConfigurationLoadTest"/>
+			<class name="com.evolveum.midpoint.init.TestConfigurationLoad"/>
 		</classes>
 	</test>
 </suite>
