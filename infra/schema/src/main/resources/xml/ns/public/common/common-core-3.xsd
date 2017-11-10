@@ -9875,6 +9875,7 @@
     <xsd:complexType name="AutoassignMappingType">
     	<xsd:annotation>
     		<xsd:appinfo>
+    			<a:container/>
     			<a:since>3.7</a:since>
     		</xsd:appinfo>
     	</xsd:annotation>
@@ -9896,6 +9897,7 @@
     <xsd:complexType name="AssignmentPropertiesSpecificationType">
     	<xsd:annotation>
     		<xsd:appinfo>
+    			<a:container/>
     			<a:since>3.7</a:since>
     		</xsd:appinfo>
     	</xsd:annotation>
