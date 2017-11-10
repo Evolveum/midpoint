@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.web.boot;
 
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -24,4 +27,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class WebConfig {
 
+    @Bean
+    public MidPointApplication midpointApplication() {
+        return new MidPointApplication();
+    }
+
+    @Bean
+    public MidpointFormValidatorRegistry midpointFormValidatorRegistry() {
+        return new MidpointFormValidatorRegistry();
+    }
 }
