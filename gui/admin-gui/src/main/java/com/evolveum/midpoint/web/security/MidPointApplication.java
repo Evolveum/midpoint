@@ -89,7 +89,6 @@ import java.util.*;
 /**
  * @author lazyman
  */
-@Component("midpointApplication")
 public class MidPointApplication extends AuthenticatedWebApplication {
 
     /**

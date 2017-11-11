@@ -43,6 +43,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -65,6 +68,8 @@ import org.testng.AssertJUnit;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -624,5 +629,31 @@ public class TestUtil {
 	// WARNING! Only works on Linux
 	public static int getPid() throws NumberFormatException, IOException {
 		return Integer.parseInt(new File("/proc/self").getCanonicalFile().getName());
+	}
+	
+	public static void assertPrivateFilePermissions(File f) throws IOException {
+		try {
+			Set<PosixFilePermission> configPermissions = Files.getPosixFilePermissions(Paths.get(f.getPath()));
+			LOGGER.info("File {} permissions: {}", f, configPermissions);
+			assertPermission(f, configPermissions, PosixFilePermission.OWNER_READ);
+			assertPermission(f, configPermissions, PosixFilePermission.OWNER_WRITE);
+			assertNoPermission(f, configPermissions, PosixFilePermission.OWNER_EXECUTE);
+			assertPermission(f, configPermissions, PosixFilePermission.GROUP_READ);
+			assertPermission(f, configPermissions, PosixFilePermission.GROUP_WRITE);
+			assertNoPermission(f, configPermissions, PosixFilePermission.GROUP_EXECUTE);
+			assertNoPermission(f, configPermissions, PosixFilePermission.OTHERS_READ);
+			assertNoPermission(f, configPermissions, PosixFilePermission.OTHERS_WRITE);
+			assertNoPermission(f, configPermissions, PosixFilePermission.OTHERS_EXECUTE);
+		} catch (UnsupportedOperationException e) {
+			// Windows. Sorry. 
+		}
+	}
+
+	private static  void assertPermission(File f, Set<PosixFilePermission> permissions, PosixFilePermission permission) {
+		assertTrue(permissions.contains(permission), f.getPath() + ": missing permission "+permission);
+	}
+	
+	private static void assertNoPermission(File f, Set<PosixFilePermission> permissions, PosixFilePermission permission) {
+		assertFalse(permissions.contains(permission), f.getPath() + ": unexpected permission "+permission);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,19 +27,17 @@ import java.util.Iterator;
 import org.apache.commons.configuration.Configuration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-public class ConfigurationLoadTest {
+public class TestConfigurationLoad {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ConfigurationLoadTest.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TestConfigurationLoad.class);
 
-    @Test
-    public void dummyTest() {}
-
-	@Test(enabled = false)
-	public void t01simpleConfigTest() {
-		LOGGER.info("---------------- simpleConfigTest -----------------");
+	@Test
+	public void test010SimpleConfigTest() {
+		LOGGER.info("---------------- test010SimpleConfigTest -----------------");
 
 		System.clearProperty("midpoint.home");
 		LOGGER.info("midpoint.home => " + System.getProperty("midpoint.home"));
@@ -51,7 +49,7 @@ public class ConfigurationLoadTest {
 		sc.init();
 		Configuration c = sc.getConfiguration("midpoint.repository");
 		assertEquals(c.getString("repositoryServiceFactoryClass"),
-				"com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory");
+				"com.evolveum.midpoint.repo.sql.SqlRepositoryFactory");
 		LOGGER.info(sc.toString());
 
 		@SuppressWarnings("unchecked")
@@ -62,57 +60,46 @@ public class ConfigurationLoadTest {
 			LOGGER.info("  " + key + " = " + c.getString(key));
 		}
 
-		assertEquals(c.getInt("port"),1984);
-		assertEquals(c.getString("serverPath"), "" );
+		assertEquals(c.getBoolean("asServer"), true);
+		assertEquals(c.getString("baseDir"), System.getProperty("midpoint.home") );
 
 	}
 
-
+	/**
+	 * MID-3349
+	 */
 	@Test
-	public void t02directoryAndExtractionTest() {
-		LOGGER.info("---------------- directoryAndExtractionTest -----------------");
+	public void test020DirectoryAndExtractionTest() throws Exception {
+		LOGGER.info("---------------- test020DirectoryAndExtractionTest -----------------");
 
-		File f = new File("target/midPointHome");
+		File midpointHome = new File("target/midPointHome");
 		System.setProperty("midpoint.home", "target/midPointHome/");
 		StartupConfiguration sc = new StartupConfiguration();
 		assertNotNull(sc);
 		sc.init();
 
-		assertNotNull(f);
-		assertTrue(f.exists(),  "existence");
-		assertTrue(f.isDirectory(),  "type directory");
+		assertNotNull(midpointHome);
+		assertTrue(midpointHome.exists(),  "existence");
+		assertTrue(midpointHome.isDirectory(),  "type directory");
 
-		f = new File("target/midPointHome/config.xml");
-		assertTrue(f.exists(),  "existence");
-		assertTrue(f.isFile(),  "type file");
+		File configFile = new File(midpointHome, "config.xml");
+		assertTrue(configFile.exists(),  "existence");
+		assertTrue(configFile.isFile(),  "type file");
+		TestUtil.assertPrivateFilePermissions(configFile);
+		
+		ConfigurableProtectorFactory keystoreFactory = new ConfigurableProtectorFactory();
+		keystoreFactory.setConfiguration(sc);
+		keystoreFactory.init();
 
+		File keystoreFile = new File(midpointHome, "keystore.jceks");
+		assertTrue(keystoreFile.exists(),  "existence");
+		assertTrue(keystoreFile.isFile(),  "type file");
+		TestUtil.assertPrivateFilePermissions(keystoreFile);
+		
 		//cleanup
 		System.clearProperty("midpoint.home");
 
 	}
+	
 
-    @Test(enabled = false)
-	public void t03complexConfigTest() {
-		LOGGER.info("---------------- complexConfigTest -----------------");
-		System.setProperty("midpoint.home", "target/midPointHome/");
-		StartupConfiguration sc = new StartupConfiguration();
-		assertNotNull(sc);
-		sc.init();
-		Configuration c = sc.getConfiguration("midpoint");
-		assertEquals(c.getString("repository.repositoryServiceFactoryClass"),
-				"com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory");
-
-		@SuppressWarnings("unchecked")
-		Iterator<String> i = c.getKeys();
-
-		while ( i.hasNext()) {
-			String key = i.next();
-			LOGGER.info("  " + key + " = " + c.getString(key));
-		}
-
-		assertEquals(c.getString("repository.serverPath"), "target/midPointHome/" );
-
-		//cleanup
-		System.clearProperty("midpoint.home");
-	}
 }

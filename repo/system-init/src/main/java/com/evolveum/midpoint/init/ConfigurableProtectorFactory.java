@@ -19,6 +19,7 @@ package com.evolveum.midpoint.init;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.util.SystemUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -30,6 +31,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.security.KeyStore;
 
 /**
@@ -72,6 +74,12 @@ public class ConfigurableProtectorFactory {
             keystore.setKeyEntry("default", secretKey, "midpoint".toCharArray(), null);
 
             fos = new FileOutputStream(protectorConfig.getKeyStorePath());
+            try {
+            	SystemUtil.setPrivateFilePermissions(protectorConfig.getKeyStorePath());
+            } catch (IOException e) {
+            	LOGGER.warn("Unable to set file permissions for keystore {}: {}", protectorConfig.getKeyStorePath(), e.getMessage(), e);
+            	// Non-critical, continue
+            }
             keystore.store(fos, password);
             fos.close();
         } catch (Exception ex) {
@@ -81,7 +89,15 @@ public class ConfigurableProtectorFactory {
         }
     }
 
-    public Protector getProtector() {
+    public MidpointConfiguration getConfiguration() {
+		return configuration;
+	}
+
+	public void setConfiguration(MidpointConfiguration configuration) {
+		this.configuration = configuration;
+	}
+
+	public Protector getProtector() {
         ProtectorImpl protector = new ProtectorImpl();
         protector.setEncryptionKeyAlias(protectorConfig.getEncryptionKeyAlias());
         protector.setKeyStorePassword(protectorConfig.getKeyStorePassword());

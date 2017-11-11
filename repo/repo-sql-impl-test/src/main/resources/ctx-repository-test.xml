@@ -23,10 +23,10 @@
 
     <bean id="testSqlRepositoryBeanPostProcessor" class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryBeanPostProcessor"/>
 
-    <bean id="testSqlRepositoryFactory" class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory"
+    <bean id="testSqlRepositoryFactory" class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory" primary="true"
           depends-on="repositoryFactory"/>
 
-    <bean id="testSqlAuditFactory" class="com.evolveum.midpoint.repo.sql.testing.TestSqlAuditServiceFactory">
+    <bean id="testSqlAuditFactory" class="com.evolveum.midpoint.repo.sql.testing.TestSqlAuditServiceFactory" primary="true">
         <property name="repositoryFactory" ref="testSqlRepositoryFactory" />
     </bean>
 

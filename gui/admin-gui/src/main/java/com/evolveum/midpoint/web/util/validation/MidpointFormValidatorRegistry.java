@@ -24,7 +24,6 @@ import org.springframework.stereotype.Component;
  * @author semancik
  *
  */
-@Component
 public class MidpointFormValidatorRegistry {
 
 	private Collection<MidpointFormValidator> validators = new ArrayList<>();

@@ -51,7 +51,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${security.enable-csrf:true}")
     private boolean csrfEnabled;
-    @Value("${auth.logout.url}")
+    @Value("${auth.logout.url:/}")
     private String authLogoutUrl;
 
     @Bean
