@@ -43,6 +43,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
+import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -87,6 +88,8 @@ public class TestRbac extends AbstractRbacTest {
 	private String userBignoseOid;
 
 	private final String EXISTING_GOSSIP = "Black spot!";
+
+	private String accountJackRedOid;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
@@ -2468,10 +2471,13 @@ public class TestRbac extends AbstractRbacTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
 
-        assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        assertAssignedRole(userAfter, ROLE_JUDGE_OID);
+        accountJackRedOid = getSingleLinkOid(userAfter);
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
@@ -2688,7 +2694,6 @@ public class TestRbac extends AbstractRbacTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = createTask(TEST_NAME);
-        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2700,8 +2705,7 @@ public class TestRbac extends AbstractRbacTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
@@ -2737,8 +2741,7 @@ public class TestRbac extends AbstractRbacTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
@@ -2759,7 +2762,6 @@ public class TestRbac extends AbstractRbacTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = createTask(TEST_NAME);
-        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2771,8 +2773,7 @@ public class TestRbac extends AbstractRbacTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
@@ -2793,14 +2794,16 @@ public class TestRbac extends AbstractRbacTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = createTask(TEST_NAME);
-        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         assertAssignedNoRole(userBefore);
+        assertLinks(userBefore, 1);
+        assertLinked(userBefore, accountJackRedOid);
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -2808,8 +2811,7 @@ public class TestRbac extends AbstractRbacTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
@@ -2823,13 +2825,12 @@ public class TestRbac extends AbstractRbacTest {
 	 * MID-2850
 	 */
 	@Test
-    public void test762JackRecompute() throws Exception {
-		final String TEST_NAME = "test762JackRecompute";
+    public void test761JackRecompute() throws Exception {
+		final String TEST_NAME = "test761JackRecompute";
         displayTestTitle(TEST_NAME);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = createTask(TEST_NAME);
-        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2844,8 +2845,7 @@ public class TestRbac extends AbstractRbacTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
@@ -2859,13 +2859,12 @@ public class TestRbac extends AbstractRbacTest {
 	 * MID-2850
 	 */
 	@Test
-    public void test763JackReconcile() throws Exception {
-		final String TEST_NAME = "test763JackReconcile";
+    public void test762JackReconcile() throws Exception {
+		final String TEST_NAME = "test762JackReconcile";
         displayTestTitle(TEST_NAME);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         Task task = createTask(TEST_NAME);
-        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -2880,9 +2879,65 @@ public class TestRbac extends AbstractRbacTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+
+        assertAssignedRole(userAfter, ROLE_WEAK_GOSSIPER_OID);
+
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+
+	/**
+	 * MID-2850, MID-4119
+	 */
+	@Test
+    public void test763PreviewChanges() throws Exception {
+		final String TEST_NAME = "test763PreviewChanges";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        assertAssignedRole(userBefore, ROLE_WEAK_GOSSIPER_OID);
+
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+
+        ObjectDelta<UserType> delta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        ModelContext<ObjectType> context = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        display("Preview context", context);
+        assertNotNull("Null focus context", context.getFocusContext());
+        assertEquals("Wrong number of projection contexts", 1, context.getProjectionContexts().size());
+        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+        assertNotNull("null evaluatedAssignmentTriple", evaluatedAssignmentTriple);
+        assertTrue("Unexpected plus set in evaluatedAssignmentTriple", evaluatedAssignmentTriple.getPlusSet().isEmpty());
+        assertTrue("Unexpected minus set in evaluatedAssignmentTriple", evaluatedAssignmentTriple.getMinusSet().isEmpty());
+        Collection<? extends EvaluatedAssignment<?>> assignmentZeroSet = evaluatedAssignmentTriple.getZeroSet();
+        assertNotNull("null zero set in evaluatedAssignmentTriple", assignmentZeroSet);
+        assertEquals("Wrong size of zero set in evaluatedAssignmentTriple", 1, assignmentZeroSet.size());
+        EvaluatedAssignment<?> evaluatedAssignment = assignmentZeroSet.iterator().next();
+        display("Evaluated weak assignment", evaluatedAssignment);
+        
+        DeltaSetTriple<EvaluatedConstruction> evaluatedConstructions = evaluatedAssignment.getEvaluatedConstructions(task, result);
+        assertTrue("Unexpected plus set in evaluatedConstructions", evaluatedConstructions.getPlusSet().isEmpty());
+        assertTrue("Unexpected minus set in evaluatedConstructions", evaluatedConstructions.getMinusSet().isEmpty());
+        Collection<EvaluatedConstruction> constructionsZeroSet = evaluatedConstructions.getZeroSet();
+        assertEquals("Wrong size of zero set in evaluatedConstructions", 1, constructionsZeroSet.size());
+        EvaluatedConstruction evaluatedConstruction = constructionsZeroSet.iterator().next();
+        display("Evaluated weak evaluatedConstruction", evaluatedConstruction);
+        assertTrue("Construction not weak", evaluatedConstruction.isWeak());
+        
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
 
