@@ -30,7 +30,9 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -94,6 +96,7 @@ public class XsdTypeMapper {
         addMapping(QName.class, DOMUtil.XSD_QNAME, true);
 
         addMapping(PolyString.class, PrismConstants.POLYSTRING_TYPE_QNAME, true);
+        addMapping(RawType.class,  DOMUtil.XSD_STRING, false);
         addMappingExt(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);				// TODO remove
 
         xsdToJavaTypeMap.put(DOMUtil.XSD_ANYURI, String.class);
