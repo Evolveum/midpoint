@@ -51,7 +51,7 @@ Matches if (for any N) the value of 'attributeN' is different from 'valueN'.
 					<condition>
 						<script>
 							<code>
-								!rulesLib.execute('remediatorPresent', [ruleEvaluationContext : ruleEvaluationContext]).realValue			// remove '.realValue' hack
+								!rulesLib.execute('remediatorPresent', [ruleEvaluationContext : ruleEvaluationContext])			// remove '.realValue' hack
 							</code>
 						</script>
 					</condition>

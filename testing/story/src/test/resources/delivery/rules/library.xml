@@ -24,7 +24,7 @@
 		<name>evaluateAttributeValuePairs</name>
 		<parameter>
 			<name>object</name>
-			<type>ObjectType</type>
+			<type>c:ObjectType</type>
 		</parameter>
 		<parameter>
 			<name>ruleEvaluationContext</name>
@@ -61,7 +61,7 @@
 		<name>evaluateRolePresence</name>
 		<parameter>
 			<name>object</name>
-			<type>ObjectType</type>
+			<type>c:ObjectType</type>
 		</parameter>
 		<parameter>
 			<name>ruleEvaluationContext</name>

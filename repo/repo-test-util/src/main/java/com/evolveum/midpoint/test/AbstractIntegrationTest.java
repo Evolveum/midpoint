@@ -107,6 +107,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -2187,5 +2188,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected ItemPath getMetadataPath(QName propName) {
 		return new ItemPath(ObjectType.F_METADATA, propName);
+	}
+	
+	protected boolean isOsUnix() {
+		return SystemUtils.IS_OS_UNIX;
 	}
 }

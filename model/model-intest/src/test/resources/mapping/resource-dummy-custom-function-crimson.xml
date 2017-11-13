@@ -149,9 +149,10 @@
 									map.put("country", locality)
 									fixedDrink = myLib.execute("addCountry", map)
 								}
+								
 								log.info("drink: "+fixedDrink)
-								return fixedDrink
-							 
+								return fixedDrink.toString()
+								
 							</code>
 						</script>
 					</expression>
