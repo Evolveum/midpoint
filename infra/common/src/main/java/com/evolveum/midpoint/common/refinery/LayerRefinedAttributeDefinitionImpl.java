@@ -606,4 +606,14 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	public void setMaxOccurs(int maxOccurs) {
 		refinedAttributeDefinition.setMaxOccurs(maxOccurs);
 	}
+
+	@Override
+	public boolean canBeDefinitionOf(PrismProperty<T> item) {
+		return refinedAttributeDefinition.canBeDefinitionOf(item);
+	}
+
+	@Override
+	public boolean canBeDefinitionOf(PrismValue pvalue) {
+		return refinedAttributeDefinition.canBeDefinitionOf(pvalue);
+	}
 }

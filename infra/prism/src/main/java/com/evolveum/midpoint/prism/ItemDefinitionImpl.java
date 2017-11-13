@@ -328,6 +328,22 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
             throw new IllegalArgumentException("No definition for path " + path + " in " + this);
         }
     }
+    
+    @Override
+	public boolean canBeDefinitionOf(I item) {
+		if (item == null) {
+			return false;
+		}
+		ItemDefinition<?> itemDefinition = item.getDefinition();
+		if (itemDefinition != null) {
+			if (!QNameUtil.match(getTypeName(), itemDefinition.getTypeName())) {
+				return false;
+			}
+			// TODO: compare entire definition? Probably not.
+			return true;
+		}
+		return true;
+	}
 
 	@NotNull
 	@Override

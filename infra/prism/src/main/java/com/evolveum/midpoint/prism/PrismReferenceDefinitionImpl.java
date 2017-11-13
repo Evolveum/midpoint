@@ -137,6 +137,25 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
 		return new ReferenceDelta(path, this, prismContext);
 	}
 
+	@Override
+	public boolean canBeDefinitionOf(PrismValue pvalue) {
+		if (pvalue == null) {
+			return false;
+		}
+		if (!(pvalue instanceof PrismReferenceValue)) {
+			return false;
+		}
+		Itemable parent = pvalue.getParent();
+		if (parent != null) {
+			if (!(parent instanceof PrismReference)) {
+				return false;
+			}
+			return canBeDefinitionOf((PrismReference)parent);
+		} else {
+			return true;
+		}
+	}
+
 	@NotNull
 	@Override
 	public PrismReferenceDefinition clone() {

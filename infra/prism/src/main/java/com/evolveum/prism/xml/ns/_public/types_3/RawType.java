@@ -108,6 +108,10 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
     // itemDefinition may be null; in that case we do the best what we can
 	public <IV extends PrismValue,ID extends ItemDefinition> IV getParsedValue(@Nullable ItemDefinition itemDefinition, @Nullable QName itemName) throws SchemaException {
         if (parsed != null) {
+//        	Check too intense for normal operation?
+//        	if (!itemDefinition.canBeDefinitionOf(parsed)) {
+//				throw new SchemaException("Attempt to return parsed raw value "+parsed+" that does not match provided definition "+itemDefinition); 
+//			}
 			return (IV) parsed;
 		} else if (xnode != null) {
             IV value;
@@ -122,6 +126,9 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 					value = subItem.getValue(0);
 				} else {
 					value = null;
+				}
+				if (value != null && !itemDefinition.canBeDefinitionOf(value)) {
+					throw new SchemaException("Attempt to parse raw value into "+value+" that does not match provided definition "+itemDefinition); 
 				}
 				xnode = null;
 				parsed = value;
@@ -298,12 +305,30 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 		StringBuilder sb = new StringBuilder();
 		sb.append("RawType: ");
 		if (xnode != null) {
-			sb.append("(raw): ").append(xnode);
+			sb.append("(raw");
+			toStringExplicitType(sb);
+			sb.append("): ").append(xnode);
 		} else if (parsed != null) {
-			sb.append("(parsed): ").append(parsed);
+			sb.append("(parsed");
+			toStringExplicitType(sb);
+			sb.append("): ").append(parsed);
 		} else {
-			sb.append("(empty)");
+			sb.append("(empty");
+			toStringExplicitType(sb);
+			sb.append(")");
 		}
+		
 		return sb.toString();
+	}
+
+	private void toStringExplicitType(StringBuilder sb) {
+		if (explicitTypeDeclaration) {
+			sb.append(":");
+			if (explicitTypeName == null) {
+				sb.append("null");
+			} else {
+				sb.append(explicitTypeName.getLocalPart());
+			}
+		}
 	}
 }

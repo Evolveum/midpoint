@@ -23,6 +23,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -147,6 +149,26 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
     @Override
 	public PropertyDelta<T> createEmptyDelta(ItemPath path) {
 		return new PropertyDelta<T>(path, this, prismContext);
+	}
+
+	@Override
+	public boolean canBeDefinitionOf(PrismValue pvalue) {
+		if (pvalue == null) {
+			return false;
+		}
+		if (!(pvalue instanceof PrismPropertyValue<?>)) {
+			return false;
+		}
+		Itemable parent = pvalue.getParent();
+		if (parent != null) {
+			if (!(parent instanceof PrismProperty<?>)) {
+				return false;
+			}
+			return canBeDefinitionOf((PrismProperty)parent);
+		} else {
+			// TODO: maybe look actual value java type?
+			return true;
+		}
 	}
 
 	@NotNull
