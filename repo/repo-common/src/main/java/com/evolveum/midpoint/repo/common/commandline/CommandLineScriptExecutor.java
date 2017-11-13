@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
  */
 
 public class CommandLineScriptExecutor {
+	
     public static final int EXIT_SUCCESS = 0;
     public static final String QOTATION_MARK = "\"";
     public static final String REGEX_CODE_SPLITTER = "([^\"]\\S*|\".+?\")\\s*";// bash -c "echo Im not a number, im a ; echo free man"
@@ -40,25 +41,20 @@ public class CommandLineScriptExecutor {
     public static final String VARIABLE_REPORT_SOURCEDIR = "%source";
     public static final String VARIABLE_REPORT_NAME = "%name";
 
-    private OperationResult result;
+    private static final Trace LOGGER = TraceManager.getTrace(CommandLineScriptExecutor.class);
+    
     private String generatedOutputFilePath;
     private String generatedOutputName;
     private Boolean warningHasEmerged = false;
-    private static final Trace LOGGER = TraceManager.getTrace(CommandLineScriptExecutor.class);
 
-    public CommandLineScriptExecutor(String code, String generatedOutputFilePath, Map<String, String> variables, OperationResult parentResult) throws IOException, InterruptedException {
-        this.result = parentResult.createSubresult(CommandLineScriptExecutor.class.getSimpleName() + ".run");
+    public CommandLineScriptExecutor(String generatedOutputFilePath) {
         this.generatedOutputName = parseOutFileName(generatedOutputFilePath);
         this.generatedOutputFilePath = modifyFilepathDependingOnOS(generatedOutputFilePath);
-        if (!LOGGER.isDebugEnabled()) {
-        } else {
-            LOGGER.debug("The shell code to be executed: {}", code);
-        }
-
-        executeScript(code, variables);
     }
 
-    public void executeScript(String code, Map<String, String> variables) throws IOException, InterruptedException {
+    public void executeScript(String code, Map<String, String> variables, OperationResult parentResult) throws IOException, InterruptedException {
+    	OperationResult result = parentResult.createSubresult(CommandLineScriptExecutor.class.getSimpleName() + ".run");
+        LOGGER.debug("The shell code to be executed: {}", code);
         code = code.replaceAll("\n", " "); // Remove new lines, replace with space
         Matcher match = Pattern.compile(REGEX_CODE_SPLITTER).matcher(code);
 
@@ -78,10 +74,8 @@ public class CommandLineScriptExecutor {
             }
             scriptParts.add(processedCommand);
         }
-        if (!LOGGER.isDebugEnabled()) {
-        } else {
-            LOGGER.debug("The constructed list of commands: {}", scriptParts);
-        }
+        LOGGER.debug("The constructed list of commands: {}", scriptParts);
+
         ProcessBuilder processBuilder = new ProcessBuilder(scriptParts);
 
         if (variables != null && !variables.isEmpty()) {
@@ -90,10 +84,8 @@ public class CommandLineScriptExecutor {
                 environmentVariables.put(variableName, variables.get(variableName));
             }
         }
-        if (!LOGGER.isDebugEnabled()) {
-        } else {
-            LOGGER.debug("Starting process ", processBuilder.command());
-        }
+        LOGGER.debug("Starting process ", processBuilder.command());
+
         Process process = processBuilder.start();
         Integer exitValue = process.waitFor();
 
@@ -104,20 +96,20 @@ public class CommandLineScriptExecutor {
             try (InputStream errorInputStream = process.getErrorStream();
                  InputStream processInputStream = process.getInputStream()) {
                 if (errorInputStream == null) {
-                    evaluateExitValue(exitValue, readOutput(processInputStream));
+                    evaluateExitValue(exitValue, readOutput(processInputStream, result), result);
                 } else {
-                    evaluateExitValue(exitValue, readOutput(processInputStream, errorInputStream));
+                    evaluateExitValue(exitValue, readOutput(processInputStream, errorInputStream, result), result);
                 }
             }
         }
         result.computeStatus();
     }
 
-    private String readOutput(InputStream processInputStream) throws IOException {
-        return readOutput(processInputStream, null);
+    private String readOutput(InputStream processInputStream, OperationResult result) throws IOException {
+        return readOutput(processInputStream, null, result);
     }
 
-    private String readOutput(InputStream processInputStream, InputStream errorStream) throws IOException {
+    private String readOutput(InputStream processInputStream, InputStream errorStream, OperationResult result) throws IOException {
         // LOGGER.debug("Evaluating output ");
         StringBuilder outputBuilder = new StringBuilder();
         try (BufferedReader bufferedProcessOutputReader = new BufferedReader(new InputStreamReader(processInputStream))) {
@@ -130,10 +122,7 @@ public class CommandLineScriptExecutor {
                             outputBuilder.append(" * " + line + System.getProperty("line.separator"));
                         }
                         String aWarning = outputBuilder.toString();
-                        if (!LOGGER.isWarnEnabled()) {
-                        } else {
-                            LOGGER.warn(aWarning);
-                        }
+                        LOGGER.warn(aWarning);
 
                         result.recordWarning(aWarning);
                         warningHasEmerged = true;
@@ -154,24 +143,18 @@ public class CommandLineScriptExecutor {
         }
     }
 
-    private void evaluateExitValue(Integer exitValue, String message) {
+    private void evaluateExitValue(Integer exitValue, String message, OperationResult result) {
         StringBuilder messageBuilder = new StringBuilder();
         if (exitValue != EXIT_SUCCESS) {
             messageBuilder.append("Process exited with an error, the exit value: ").append(exitValue)
                     .append(". Only a part of the script might have been executed, the output: ").append(System.getProperty("line.separator")).append(message);
             String warnMessage = messageBuilder.toString();
-            if (!LOGGER.isWarnEnabled()) {
-            } else {
-                LOGGER.warn(warnMessage);
-            }
+            LOGGER.warn(warnMessage);
             if (!warningHasEmerged) {
                 result.recordWarning(warnMessage);
             }
         } else {
-            if (!LOGGER.isDebugEnabled()) {
-            } else {
-                LOGGER.debug("Script execution successful, the following output string was returned: {}", message);
-            }
+            LOGGER.debug("Script execution successful, the following output string was returned: {}", message);
             if (!warningHasEmerged) {
                 result.recordSuccess();
             }
@@ -200,10 +183,7 @@ public class CommandLineScriptExecutor {
             nameBuilder.append("'").append(exportName).append("'");
             exportName = nameBuilder.toString();
         }
-        if (!LOGGER.isDebugEnabled()) {
-        } else {
-            LOGGER.debug("The report file name: {}", exportName);
-        }
+        LOGGER.debug("The report file name: {}", exportName);
         return exportName;
     }
 }

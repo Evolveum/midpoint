@@ -397,7 +397,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 				SystemConfigurationType systemConfig = modelService
 						.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task,
 								result).asObjectable();
-				String icUrlPattern = systemConfig.getInfrastructure().getIntraClusterHttpUrlPattern();
+				String icUrlPattern = systemConfig.getInfrastructure() != null ? systemConfig.getInfrastructure().getIntraClusterHttpUrlPattern() : null;
 				String[] splitted = filePath.split("/");
 				String filename = splitted[splitted.length - 1];
 				reportData = ReportNodeUtils.executeOperation(hostName, filename, icUrlPattern, "GET");

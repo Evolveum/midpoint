@@ -552,7 +552,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 					sb.append("[ ");
 				}
 				Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
-				while(iterator.hasNext()) {
+				while (iterator.hasNext()) {
 					PrismPropertyValue<T> value = iterator.next();
 					if (value.isRaw()) {
 						sb.append(formatRawValueForDump(value.getRawElement()));

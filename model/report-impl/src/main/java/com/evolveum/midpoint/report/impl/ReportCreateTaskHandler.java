@@ -515,8 +515,9 @@ public class ReportCreateTaskHandler implements TaskHandler {
     private void processPostReportScript(String code,String reportOutputFilePath,OperationResult parentResult ){
         if (code!=null && !code.isEmpty()){
 
+        	CommandLineScriptExecutor commandLineScriptExecutor = new CommandLineScriptExecutor(reportOutputFilePath);
             try{
-                CommandLineScriptExecutor commandLineScriptExecutor = new CommandLineScriptExecutor(code,reportOutputFilePath,null, parentResult);
+            	commandLineScriptExecutor.executeScript(code, null, parentResult);
             }catch (Exception e) {
                 LOGGER.error("An exception has occurred during post report script execution {}",e.getLocalizedMessage());
                 // LoggingUtils.logExceptionAsWarning(LOGGER,"And unexpected exception occurred during post report script execution",e, task);
