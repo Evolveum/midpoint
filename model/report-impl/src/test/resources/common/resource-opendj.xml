@@ -25,83 +25,43 @@
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
           xmlns:my="http://whatever.com/my">
 
-    <!-- Resource printable name -->
     <name>Embedded Test OpenDJ</name>
 
-    <!-- Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
-          OID during import. -->
    <connectorRef type="ConnectorType">
 		<filter>
             <q:equal>
             <q:path>c:connectorType</q:path>
-                <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
+                <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
             </q:equal>
         </filter>
     </connectorRef>
 
-    <!-- Resource configuration section -->
-    <connectorConfiguration
-            xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector"
-            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-
-        <!-- Configuration specific for the LDAP connector -->
-        <icfc:configurationProperties>
-
-            <icfcldap:port>10389</icfcldap:port>
-            <icfcldap:host>localhost</icfcldap:host>
-            <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
-            <icfcldap:principal>cn=directory manager</icfcldap:principal>
-            <icfcldap:credentials>
-                <clearValue>secret</clearValue>
-            </icfcldap:credentials>
-            <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-            
-            <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
-        </icfc:configurationProperties>
-         <icfc:resultsHandlerConfiguration>
-   <icfc:enableFilteredResultsHandler>true</icfc:enableFilteredResultsHandler>
-   <icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
-  </icfc:resultsHandlerConfiguration>
-
-        <!-- Generic ICF configuration -->
-
-        <icfc:connectorPoolConfiguration>
-            <icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>
-
-            <icfc:minIdle>1</icfc:minIdle>
-            <icfc:maxIdle>10</icfc:maxIdle>
-            <icfc:maxObjects>10</icfc:maxObjects>
-            <icfc:maxWait>150000</icfc:maxWait>
-        </icfc:connectorPoolConfiguration>
-
-        <icfc:producerBufferSize>100</icfc:producerBufferSize>
-
-        <icfc:timeouts>
-            <icfc:create>-1</icfc:create>
-            <icfc:get>-1</icfc:get>
-            <icfc:update>-1</icfc:update>
-            <icfc:delete>-1</icfc:delete>
-            <icfc:test>-1</icfc:test>
-
-            <icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
-            <icfc:scriptOnResource>-1</icfc:scriptOnResource>
-            <icfc:authentication>-1</icfc:authentication>
-            <icfc:search>-1</icfc:search>
-            <icfc:validate>-1</icfc:validate>
-            <icfc:sync>-1</icfc:sync>
-
-            <icfc:schema>-1</icfc:schema>
-        </icfc:timeouts>
-
+    <connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
+					   
+		<icfc:configurationProperties>
+			<icfcldap:port>10389</icfcldap:port>
+			<icfcldap:host>localhost</icfcldap:host>
+			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+			<icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
+			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
+			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
+ 			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+ 			<icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
+		</icfc:configurationProperties>
+		
+		<icfc:resultsHandlerConfiguration>
+			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+		</icfc:resultsHandlerConfiguration>
+		
     </connectorConfiguration>
-
-	<!-- Resource namespace -->
-    <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
     
     <!-- No schema. It will be generated from the resource. -->
 

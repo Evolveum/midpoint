@@ -105,8 +105,47 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>test-util</artifactId>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
+			<groupId>org.springframework</groupId> 
+			<artifactId>spring-aspects</artifactId>
+			<scope>test</scope> 
+		</dependency>
+        <dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
+			<groupId>org.springframework</groupId> 
+			<artifactId>spring-aop</artifactId>
+			<scope>test</scope> 
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>task-quartz-impl</artifactId>
+			<version>3.7-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>		
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>security-impl</artifactId>
+			<version>3.7-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>audit-impl</artifactId>
+            <version>3.7-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-sql-impl-test</artifactId>
+			<version>3.7-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>system-init</artifactId>
 			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
@@ -117,9 +156,20 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>test-util</artifactId>
+			<version>3.7-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
 			<version>3.7-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
 			<scope>test</scope>
 		</dependency>
     </dependencies>

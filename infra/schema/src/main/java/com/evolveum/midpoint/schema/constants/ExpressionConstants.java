@@ -46,6 +46,7 @@ public class ExpressionConstants {
 	public static final QName VAR_PRISM_CONTEXT = new QName(SchemaConstants.NS_C, "prismContext");
 	public static final QName VAR_CONFIGURATION = new QName(SchemaConstants.NS_C, "configuration");
 	public static final QName VAR_ENTITLEMENT = new QName(SchemaConstants.NS_C, "entitlement");
+	public static final QName VAR_FILE = new QName(SchemaConstants.NS_C, "file");
 	
 	/**
 	 * User that is currently executing the operation.
