@@ -84,7 +84,7 @@ public class PageDebugView extends PageAdminConfiguration {
     private final IModel<Boolean> validateSchema = new Model<>(false);
     private final IModel<Boolean> switchToPlainText = new Model<>(false);
     private TextArea<String> plainTextarea;
-    final Form mainForm = new Form("mainForm");
+    final Form mainForm = new com.evolveum.midpoint.web.component.form.Form("mainForm");
     private String dataLanguage;
     private ObjectViewDto objectViewDto;
     private boolean isInitialized = false;

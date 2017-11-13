@@ -33,7 +33,7 @@ public class InternalsDebugUtilPanel extends BasePanel<InternalsConfigDto>{
 		super.onInitialize();
 		
 		setOutputMarkupId(true);
-		Form form = new Form(ID_FORM);
+		Form form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
 		form.setOutputMarkupId(true);
 		add(form);
 		CheckFormGroup detailed = new CheckFormGroup(ID_DETAILED_DEBUG_DUMP,

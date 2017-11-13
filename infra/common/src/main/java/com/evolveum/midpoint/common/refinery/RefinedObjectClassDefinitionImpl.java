@@ -225,6 +225,15 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 				.map(a -> a.getName())
 				.collect(Collectors.toCollection(HashSet::new));
 	}
+	
+	@Override
+	public Collection<? extends QName> getNamesOfAssociationsWithInboundExpressions() {
+		return getAssociationDefinitions().stream()
+				.filter(assocDef -> CollectionUtils.isNotEmpty(assocDef.getInboundMappingTypes()))
+				.map(a -> a.getName())
+				.collect(Collectors.toCollection(HashSet::new));
+	}
+	
 	//endregion
 
 	//region General information ========================================================
@@ -995,7 +1004,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
             // well with them. They may also be mandatory. We cannot pretend that they do not exist.
 
 			// TODO !!!! fix the cast
-            RefinedAttributeDefinition<?> rAttrDef = (RefinedAttributeDefinition<?>) RefinedAttributeDefinitionImpl.parse(road, attrDefType, ocDef,
+            RefinedAttributeDefinition<?> rAttrDef = RefinedAttributeDefinitionImpl.parse(road, attrDefType, ocDef,
             		rSchema.getPrismContext(), "in "+kind+" type " + intent + ", in " + contextDescription);
             if (!auxiliary) {
             	processIdentifiers(rAttrDef, ocDef);
@@ -1296,4 +1305,5 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	public boolean isShared() {
 		return shared;
 	}
+	
 }

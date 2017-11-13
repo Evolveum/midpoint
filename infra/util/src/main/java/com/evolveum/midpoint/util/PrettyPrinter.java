@@ -329,4 +329,9 @@ public class PrettyPrinter {
 		prettyPrinters.add(printerClass);
 	}
 
+	// For diagnostics only
+	public static List<Class<?>> getPrettyPrinters() {
+		return prettyPrinters;
+	}
+
 }

@@ -498,6 +498,11 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	public Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions() {
 		return refinedObjectClassDefinition.getNamesOfAssociationsWithOutboundExpressions();
 	}
+    
+    @Override
+	public Collection<? extends QName> getNamesOfAssociationsWithInboundExpressions() {
+    	return refinedObjectClassDefinition.getNamesOfAssociationsWithOutboundExpressions();
+	}
 
     @Override
 	public boolean matches(ShadowType shadowType) {
@@ -637,4 +642,5 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 			return true;		// ok?
 		}
 	}
+
 }

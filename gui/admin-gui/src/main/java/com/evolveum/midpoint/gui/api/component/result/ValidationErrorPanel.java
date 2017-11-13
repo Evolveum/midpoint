@@ -121,8 +121,6 @@ public class ValidationErrorPanel extends BasePanel<FeedbackMessage> {
 		};
 
 		box.add(close);
-
-
 	}
 
 	public void close(AjaxRequestTarget target){

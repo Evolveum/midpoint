@@ -407,41 +407,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			focusType.getParentOrg().addAll(orgsToAdd);
 		}
 
-// 		handleAssignmentForAdd(focus, UserType.F_ASSIGNMENT, assignmentsModel.getObject());
-
 	}
-
-
-	protected void handleAssignmentForAdd(PrismObject<F> focus, QName containerName,
-			List<AssignmentDto> assignments) throws SchemaException {
-		PrismObjectDefinition<F> userDef = focus.getDefinition();
-		PrismContainerDefinition<AssignmentType> assignmentDef = userDef.findContainerDefinition(containerName);
-
-		// handle added assignments
-		// existing user assignments are not relevant -> delete them
-		PrismContainer<AssignmentType> assignmentContainer = focus.findOrCreateContainer(containerName);
-		if (assignmentContainer != null && !assignmentContainer.isEmpty()){
-			assignmentContainer.clear();
-		}
-
-//		List<AssignmentEditorDto> assignments = getFocusAssignments();
-		for (AssignmentDto assDto : assignments) {
-			if (UserDtoStatus.DELETE.equals(assDto.getStatus())) {
-				continue;
-			}
-
-//			AssignmentType assignment = new AssignmentType();
-//			PrismContainerValue<AssignmentType> value = assDto.getNewValue(getPrismContext());
-//			assignment.setupContainerValue(value);
-//			value.applyDefinition(assignmentDef, false);
-			assignmentContainer.add(assDto.getAssignment().clone().asPrismContainerValue());
-
-			// todo remove this block [lazyman] after model is updated - it has
-			// to remove resource from accountConstruction
-			removeResourceFromAccConstruction(assDto.getAssignment());
-		}
-	}
-
 
 	@Override
 	protected void prepareObjectDeltaForModify(ObjectDelta<F> focusDelta) throws SchemaException {
@@ -459,36 +425,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		if (!refDelta.isEmpty()) {
 			focusDelta.addModification(refDelta);
 		}
-
-		// There may be assignments delta only if they are loaded. Otherwise the user didn't open
-		// the assignments tab at all. So, we are not loaded do not force load here. The load will
-		// only slow down the operation - especially if we have many assignments
-//		if (isAssignmentsLoaded()) {
-			// handle assignments
-//			PrismContainerDefinition<AssignmentType> def = objectDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
-//			handleAssignmentDeltas(focusDelta, getFocusAssignments(), def);
-//			List<AssignmentType> assignmentsList = new ArrayList<>();
-//			assignmentsList.addAll(getFocusAssignments());
-//			assignmentsList.addAll(getPolicyRulesModel().getObject());
-			//TODO perhaps not needed any more
-//			ContainerWrapper assignmentContainerWrapper = getObjectWrapper().findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
-//
-//			handleAssignmentExperimentalDeltas(focusDelta,
-//					assignmentContainerWrapper.getValues(),
-//					def, false);
-//		}
 	}
 
 	protected PrismObjectDefinition<F> getObjectDefinition() {
 		SchemaRegistry registry = getPrismContext().getSchemaRegistry();
 		return registry
 				.findObjectDefinitionByCompileTimeClass(getCompileTimeClass());
-	}
-
-
-	protected ContainerDelta handleAssignmentDeltas(ObjectDelta<F> focusDelta,
-			List<AssignmentEditorDto> assignments, PrismContainerDefinition def) throws SchemaException {
-		return handleAssignmentDeltas(focusDelta, assignments, def, false);
 	}
 
 	protected ContainerDelta handleAssignmentDeltas(ObjectDelta<F> focusDelta,

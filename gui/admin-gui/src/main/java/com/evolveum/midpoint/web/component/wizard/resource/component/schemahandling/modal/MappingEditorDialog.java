@@ -197,7 +197,7 @@ public class MappingEditorDialog extends ModalWindow {
 	}
 
 	public void initLayout(WebMarkupContainer content) {
-		Form form = new Form(ID_MAIN_FORM);
+		Form form = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 		form.setOutputMarkupId(true);
 		content.add(form);
 

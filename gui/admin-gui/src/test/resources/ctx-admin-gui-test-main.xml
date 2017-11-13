@@ -21,13 +21,7 @@
         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
        default-lazy-init="true" default-autowire="byName">
 
-    <bean name="midpointConfiguration" class="com.evolveum.midpoint.init.StartupConfiguration" init-method="init">
-    	<constructor-arg value="./target/midpoint-home" />
-        <constructor-arg value="config-test.xml" />
-    </bean>
-
     <import resource="classpath:ctx-common.xml" />
-    <import resource="classpath:ctx-configuration.xml" />
     <import resource="classpath*:ctx-repository-test.xml" />
     <import resource="classpath:ctx-repo-cache.xml" />
     <import resource="classpath:ctx-repo-common.xml" />
@@ -44,7 +38,5 @@
     <import resource="classpath*:ctx-notifications.xml" />
     <import resource="classpath:ctx-certification.xml" />
     <import resource="classpath:ctx-init.xml" />
-    <import resource="classpath:ctx-web-security.xml" />
-    <import resource="classpath:ctx-webapp.xml" />
-    <import resource="classpath:ctx-web-security-basic.xml" />
+    <!--<import resource="classpath:ctx-webapp.xml" />-->
 </beans>

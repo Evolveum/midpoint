@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 import javax.xml.validation.Schema;
@@ -27,6 +28,9 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentPreviewDialog;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -132,8 +136,16 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     }
 
 
-       protected void showAllAssignments(AjaxRequestTarget target) {
-       }
+    protected void showAllAssignments(AjaxRequestTarget target) {
+        PageBase pageBase = getPageBase();
+        List<AssignmentsPreviewDto> previewAssignmentsList = new ArrayList<>();
+        if (pageBase instanceof PageAdminFocus){
+            previewAssignmentsList = ((PageAdminFocus) pageBase).recomputeAssignmentsPerformed(target);
+        }
+        AssignmentPreviewDialog assignmentPreviewDialog = new AssignmentPreviewDialog(pageBase.getMainPopupBodyId(), previewAssignmentsList,
+                new ArrayList<>(), pageBase);
+        pageBase.showMainPopup(assignmentPreviewDialog, target);
+    }
 
        @Override
     protected void newAssignmentClickPerformed(AjaxRequestTarget target) {

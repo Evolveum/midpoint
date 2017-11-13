@@ -24,6 +24,7 @@
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -49,7 +50,7 @@
 		<icfc:configurationProperties>
 			<icfi:instanceId>autogreen</icfi:instanceId>
 			<icfi:supportValidity>true</icfi:supportValidity>
-			<icfi:generateDefaultValues>true</icfi:generateDefaultValues>
+			<icfi:generateDefaultValues>false</icfi:generateDefaultValues>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
@@ -93,7 +94,7 @@
 									<expression>
 								    	<trace>true</trace>
 										<script>
-											<code>'Auto' + title</code>
+											<code>'Auto' + input</code>
 										</script>
 									</expression>
 			                    </q:equal>
@@ -102,6 +103,27 @@
 					</expression>
 					<target>
 						<path>assignment</path>
+						<set>
+				            <condition>
+				                <script>
+				                    <code>
+				                         import com.evolveum.midpoint.schema.constants.*
+				                         import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+				                         
+				                        if (assignment.target != null) {
+				                        	log.info("### target roleType " + assignment.target.roleType)
+				                        	return assignment.target.roleType == 'auto'
+				                        }
+				                        
+				                        if (assignment.targetRef != null) {
+				                        	role = midpoint.getObject(RoleType.class, assignment.targetRef.oid)
+				                        	log.info("### role.roleType " + role.roleType)
+				                        	return ('auto')?.equals(role.roleType)
+				                        }
+				                    </code>
+				                </script>
+				            </condition>
+				        </set>
 					</target>
 					<!-- TODO: range: only roles that roleType==auto -->
 				</inbound>
@@ -109,9 +131,59 @@
 
             <association>
             	<ref>ri:group</ref>
-            	<tolerant>false</tolerant>
-				<tolerantValuePattern>LaNdLuBeRs</tolerantValuePattern>
-				<tolerantValuePattern>mapmakers</tolerantValuePattern>
+<!--             	<tolerant>false</tolerant> -->
+<!-- 				<tolerantValuePattern>LaNdLuBeRs</tolerantValuePattern> -->
+<!-- 				<tolerantValuePattern>mapmakers</tolerantValuePattern> -->
+				<inbound>
+					<strength>strong</strength>
+					<expression>
+						<assignmentTargetSearch>
+							<targetType>RoleType</targetType>
+			                <filter>
+			                    <q:equal>
+			                        <q:path>name</q:path>
+									<expression>
+								    	<trace>true</trace>
+										<script>
+											<code>
+												
+												entitlement1 = midpoint.resolveEntitlement(input);
+												log.info("### entitlement: " + entitlement)
+												log.info("### entitlementName: " + entitlement?.getName())
+												
+												return 'Auto' + entitlement?.getName()?.getNorm();
+											</code>
+										</script>
+									</expression>
+			                    </q:equal>
+			                </filter>
+			            </assignmentTargetSearch>
+					</expression>
+					<target>
+						<path>assignment</path>
+						<set>
+				            <condition>
+				                <script>
+				                    <code>
+				                        import com.evolveum.midpoint.schema.constants.*
+				                        import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+				                        
+				                        if (assignment.target != null) {
+				                        	log.info("### target roleType " + assignment.target.roleType)
+				                        	return assignment.target.roleType == 'auto'
+				                        }
+				                        
+				                        if (assignment.targetRef != null) {
+				                        	role = midpoint.getObject(RoleType.class, assignment.targetRef.oid)
+				                        	log.info("### role.roleType " + role.roleType)
+				                        	return ('auto')?.equals(role.roleType)
+				                        }
+				                    </code>
+				                </script>
+				            </condition>
+				        </set>
+					</target>
+				</inbound>
             	<kind>entitlement</kind>
             	<intent>group</intent>
             	<direction>objectToSubject</direction>
@@ -153,6 +225,21 @@
         	<intent>group</intent>
         	<default>true</default>
         	<objectClass>ri:GroupObjectClass</objectClass>
+        	
+        	<attribute>
+				<ref>icfs:name</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>name</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:members</ref>
+				<matchingRule>mr:distinguishedName</matchingRule>
+			</attribute>			
         </objectType>
         
         <objectType>
@@ -172,7 +259,108 @@
 	<synchronization>
 		<objectSynchronization>
 			<name>default account type</name>
+			<kind>account</kind>
 			<enabled>true</enabled>
+			<correlation>
+				<q:equal>
+					<q:path>c:name</q:path>
+					<expression>
+						<path>$account/attributes/icfs:name</path>
+					</expression>
+				</q:equal>
+			</correlation>
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+	            </action>
+	        </reaction>
+        </objectSynchronization>        
+        <objectSynchronization>
+			<name>privilege group type</name>
+			<kind>entitlement</kind>
+			<intent>privilege</intent>
+			<enabled>true</enabled>
+			<condition>
+				<script>
+					<code>
+						if (!shadow) return false;
+						
+						if (!shadow.getName()) return false;
+						
+						return shadow.getName().startsWith("priv");
+					</code>
+				</script>
+			</condition>
+			<correlation>
+				<q:equal>
+					<q:path>c:name</q:path>
+					<expression>
+						<path>$account/attributes/icfs:name</path>
+					</expression>
+				</q:equal>
+			</correlation>
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+	            </action>
+	        </reaction>
+        </objectSynchronization>       
+        <objectSynchronization>
+			<name>group group type</name>
+			<kind>entitlement</kind>
+			<intent>privilege</intent>
+			<enabled>true</enabled>
+			<condition>
+				<script>
+					<code>
+						if (!shadow) return false;
+						
+						if (!shadow.getName()) return false;
+						
+						return !shadow.getName().startsWith("priv");
+					</code>
+				</script>
+			</condition>
 			<correlation>
 				<q:equal>
 					<q:path>c:name</q:path>

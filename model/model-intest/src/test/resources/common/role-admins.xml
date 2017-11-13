@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,22 +13,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<html xmlns:wicket="http://wicket.apache.org">
-<body>
-<wicket:panel>
-    <div class="feedback-message box box-solid" wicket:id="detailsBox">
-	    <div class="box-header">
-	    	<i class="icon fa " wicket:id="iconType"></i>
-	        <b class="box-title" wicket:id="message">
-	        </b>
-	        <div class="box-tools pull-right">
-	       		<div wicket:id="close" data-widget="remove" class="btn btn-box-tool">
-					<i class="fa fa-times"/>
-				</div>
-	        </div>
-	    </div>
-	     
-    </div>
-</wicket:panel>
-</body>
-</html>
+<role oid="be835a70-e3f4-11e6-82cb-9b47ecb57v15"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>Admins</name>
+</role>

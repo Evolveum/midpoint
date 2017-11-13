@@ -91,7 +91,16 @@ public interface ConnectorInstance {
 	 *
 	 * If resource schema and capabilities are already cached by midPoint they may be passed to the connector instance.
 	 * Otherwise the instance may need to fetch them from the resource which may be less efficient.
+	 * 
+	 * NOTE: the capabilities and schema that are used here are NOT necessarily those that are detected by the resource.
+     *       The detected schema will come later. The schema here is the one that is stored in the resource
+     *       definition (ResourceType). This may be schema that was detected previously. But it may also be a schema
+     *       that was manually defined. This is needed to be passed to the connector in case that the connector
+     *       cannot detect the schema and needs schema/capabilities definition to establish a connection.
+     *       Most connectors will just ignore the schema and capabilities that are provided here.
+     *       But some connectors may need it (e.g. CSV connector working with CSV file without a header).
 	 *
+	 * TODO: caseIgnoreAttributeNames is probably not correct here. It should be provided in schema or capabilities?
 	 *
 	 * @param caseIgnoreAttributeNames
 	 * @param parentResult
@@ -99,7 +108,7 @@ public interface ConnectorInstance {
 	 * @throws GenericFrameworkException
 	 * @throws ConfigurationException
 	 */
-	void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult)
+	void initialize(ResourceSchema previousResourceSchema, Collection<Object> previousCapabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ConfigurationException;
 
 	/**

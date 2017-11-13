@@ -770,6 +770,7 @@
     					</p>
     				</xsd:documentation>
     				<xsd:appinfo>
+    					<a:displayName>MetadataType.requestTimestamp</a:displayName>
     					<a:operational>true</a:operational>
     					<a:since>3.5</a:since>
     				</xsd:appinfo>
@@ -781,6 +782,7 @@
     					Reference to the user that requested the operation.
     				</xsd:documentation>
     				<xsd:appinfo>
+    					<a:displayName>MetadataType.requestorRef</a:displayName>
     					<a:operational>true</a:operational>
     					<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
     				</xsd:appinfo>
@@ -799,6 +801,7 @@
     					</p>
     				</xsd:documentation>
     				<xsd:appinfo>
+    					<a:displayName>MetadataType.createTimestamp</a:displayName>
     					<a:operational>true</a:operational>
     					<a:indexed>true</a:indexed>
     					<a:since>3.5</a:since>
@@ -811,6 +814,7 @@
     					Reference to the user that created the data.
     				</xsd:documentation>
     				<xsd:appinfo>
+    					<a:displayName>MetadataType.creatorRef</a:displayName>
     					<a:operational>true</a:operational>
     					<a:indexed>true</a:indexed>
     					<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
@@ -825,6 +829,7 @@
     					hierarchy of the approvers is lost.
     				</xsd:documentation>
     				<xsd:appinfo>
+    					<a:displayName>MetadataType.createApproverRef</a:displayName>
     					<a:operational>true</a:operational>
     					<a:indexed>true</a:indexed>
     					<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
@@ -849,6 +854,7 @@
     					The timestamp of creation approval.
     				</xsd:documentation>
     				<xsd:appinfo>
+    					<a:displayName>MetadataType.createApprovalTimestamp</a:displayName>
     					<a:operational>true</a:operational>
     					<a:since>3.5</a:since>
     				</xsd:appinfo>
@@ -860,6 +866,7 @@
     					Channel in which the object was created.
     				</xsd:documentation>
     				<xsd:appinfo>
+    					<a:displayName>MetadataType.createChannel</a:displayName>
     					<a:operational>true</a:operational>
     					<a:indexed>true</a:indexed>
     				</xsd:appinfo>
@@ -886,6 +893,7 @@
     					modify timestamp.
     				</xsd:documentation>
     				<xsd:appinfo>
+    					<a:displayName>MetadataType.modifyTimestamp</a:displayName>
     					<a:operational>true</a:operational>
     					<a:indexed>true</a:indexed>
     				</xsd:appinfo>
@@ -897,6 +905,7 @@
     					Reference to the user that modified the data.
     				</xsd:documentation>
     				<xsd:appinfo>
+    					<a:displayName>MetadataType.modifierRef</a:displayName>
     					<a:operational>true</a:operational>
     					<a:indexed>true</a:indexed>
     					<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
@@ -919,6 +928,7 @@
     					</p>
     				</xsd:documentation>
     				<xsd:appinfo>
+    					<a:displayName>MetadataType.modifyApproverRef</a:displayName>
     					<a:operational>true</a:operational>
     					<a:indexed>true</a:indexed>
     					<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
@@ -948,6 +958,7 @@
     					The timestamp of last modification approval.
     				</xsd:documentation>
     				<xsd:appinfo>
+    					<a:displayName>MetadataType.modifyApprovalTimestamp</a:displayName>
     					<a:operational>true</a:operational>
     					<a:since>3.5</a:since>
     				</xsd:appinfo>
@@ -959,6 +970,7 @@
     					Channel in which the object was last modified.
     				</xsd:documentation>
     				<xsd:appinfo>
+    					<a:displayName>MetadataType.modifyChannel</a:displayName>
     					<a:operational>true</a:operational>
     					<a:indexed>true</a:indexed>
     				</xsd:appinfo>
@@ -995,6 +1007,7 @@
     					</p>
     				</xsd:documentation>
     				<xsd:appinfo>
+    					<a:displayName>MetadataType.lastProvisioningTimestamp</a:displayName>
     					<a:operational>true</a:operational>
     					<a:since>3.6.1</a:since>
     				</xsd:appinfo>
@@ -5320,6 +5333,9 @@
                 describe the decisions of the system administrator about the
                 way how that attribute or association is used in midPoint.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="ref" type="t:ItemPathType">
@@ -5427,6 +5443,9 @@
                 describe the decisions of the system administrator about the
                 way how that attribute or association is used in midPoint.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
         	<xsd:extension base="tns:ItemRefinedDefinitionType">
@@ -5555,6 +5574,9 @@
                 describe the decisions of the system administrator about the
                 way how that attribute is used in midPoint.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
         	<xsd:extension base="tns:ResourceItemDefinitionType">
@@ -5731,6 +5753,11 @@
     </xsd:complexType>
 
     <xsd:complexType name="ResourcePasswordDefinitionType">
+    	<xsd:annotation>
+    		<xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
+    	</xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
             <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
@@ -5756,7 +5783,7 @@
                         Reference to the account type password policy settings.
                     </xsd:documentation>
                     <xsd:appinfo>
-            			<a:objectReferenceTargetType>tns:PasswordPolicyType</a:objectReferenceTargetType>
+            			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -5768,6 +5795,9 @@
             <xsd:documentation>
                 Defines how the mapping of the activation section is handled for the resource.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="existence" type="tns:ResourceBidirectionalMappingType" minOccurs="0" maxOccurs="1">
@@ -5818,6 +5848,7 @@
             </xsd:documentation>
             <xsd:appinfo>
             	<a:since>3.6</a:since>
+            	<a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -5843,6 +5874,11 @@
     </xsd:complexType>
 
     <xsd:complexType name="ResourceBidirectionalMappingType">
+    	<xsd:annotation>
+    		<xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
+    	</xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
             <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
@@ -5863,6 +5899,11 @@
     </xsd:complexType>
     
     <xsd:complexType name="ResourceBidirectionalMappingAndDefinitionType">
+    	<xsd:annotation>
+    		<xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
+    	</xsd:annotation>
 	    <xsd:complexContent>
 	    	<xsd:extension base="tns:ResourceBidirectionalMappingType">
 	    		<xsd:sequence>
@@ -6120,6 +6161,9 @@
                 and therefore it describes the decisions of the system administrator about the
                 way how entitlements are used in midPoint.
      		</xsd:documentation>
+     		<xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
      	</xsd:annotation>
         <xsd:complexContent>
         	<xsd:extension base="tns:ResourceItemDefinitionType">
@@ -6687,6 +6731,9 @@
                 these cases may simplify the code, as it all can be handled by a
                 generic library reused in many places through the system.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -9828,6 +9875,7 @@
     <xsd:complexType name="AutoassignMappingType">
     	<xsd:annotation>
     		<xsd:appinfo>
+    			<a:container/>
     			<a:since>3.7</a:since>
     		</xsd:appinfo>
     	</xsd:annotation>
@@ -9849,6 +9897,7 @@
     <xsd:complexType name="AssignmentPropertiesSpecificationType">
     	<xsd:annotation>
     		<xsd:appinfo>
+    			<a:container/>
     			<a:since>3.7</a:since>
     		</xsd:appinfo>
     	</xsd:annotation>
@@ -10921,6 +10970,9 @@
                 describe the decisions of the system administrator about the
                 way how that attribute or association is used in midPoint.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
         	<xsd:extension base="tns:ItemRefinedDefinitionType">
@@ -10944,6 +10996,11 @@
     </xsd:complexType>
     
     <xsd:complexType name="ObjectTemplateMappingType">
+    	<xsd:annotation>
+    		<xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
+    	</xsd:annotation>
     	<xsd:complexContent>
     		<xsd:extension base="tns:MappingType">
     			<xsd:sequence>

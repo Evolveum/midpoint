@@ -46,9 +46,9 @@ import static org.testng.AssertJUnit.assertNotNull;
         "classpath*:ctx-workflow.xml"})
 public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests {
 
-    @Autowired(required = true)
+    @Autowired
     private ModelService modelService;
-    @Autowired(required = true)
+    @Autowired
     private InitialDataImport initialDataImport;
 
     @Test

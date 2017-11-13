@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.Handler;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -534,6 +535,10 @@ public class PrismBeanInspector {
     }
 
     private QName findTypeNameUncached(Field field, Class contentClass, String schemaNamespace) {
+    	if (RawType.class.equals(contentClass)) {
+    		// RawType is a meta-type. We do not really want to use field types of RawType class.
+    		return null;
+    	}
         if (field != null) {
 			XmlSchemaType xmlSchemaType = field.getAnnotation(XmlSchemaType.class);
             if (xmlSchemaType != null) {

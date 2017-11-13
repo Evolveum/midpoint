@@ -49,7 +49,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private AuthenticationProvider authenticationProvider;
 
-    @Value("${auth.logout.url}")
+    @Value("${security.enable-csrf:true}")
+    private boolean csrfEnabled;
+    @Value("${auth.logout.url:/}")
     private String authLogoutUrl;
 
     @Bean
@@ -118,7 +120,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.exceptionHandling()
                 .authenticationEntryPoint(wicketAuthenticationEntryPoint());
 
-        http.csrf().disable();
+        if (!csrfEnabled) {
+            http.csrf().disable();
+        }
+
         http.headers().disable();
     }
 

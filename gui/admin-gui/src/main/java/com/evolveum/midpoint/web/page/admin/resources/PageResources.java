@@ -154,7 +154,7 @@ public class PageResources extends PageAdminResources {
     }
 
 	private void initLayout() {
-		Form mainForm = new Form(ID_MAIN_FORM);
+		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 		add(mainForm);
 
 		Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.resolveItemsNamed(ResourceType.F_CONNECTOR);

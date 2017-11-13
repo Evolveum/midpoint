@@ -73,6 +73,11 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
             minusSet.add(myMember);
         }
     }
+    
+    @Override
+    protected boolean presentInSet(Collection<V> set, V item) {
+    	return set != null && PrismValue.containsRealValue(set, item);
+    }
 
 	public Class<V> getValueClass() {
 		V anyValue = getAnyValue();

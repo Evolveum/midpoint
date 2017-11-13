@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingType;
@@ -57,21 +58,35 @@ public class TestParseObjectTemplate {
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+		SchemaDebugUtil.initialize(); // Make sure the pretty printer is activated
+		System.out.println("Pretty printers:\n"+PrettyPrinter.getPrettyPrinters());
 	}
 
 
 	@Test
-	public void testParseObjectTemplateFile() throws Exception {
-		roundTrip("testParseObjectTemplateFile", OBJECT_TEMPLATE_FILE,
+	public void testParseObjectTemplateFileSingle() throws Exception {
+		single("testParseObjectTemplateFileSingle", OBJECT_TEMPLATE_FILE,
 				new QName(SchemaConstantsGenerated.NS_COMMON, "objectTemplate"));
 	}
 
 	@Test
-	public void testParseUserTemplateFile() throws Exception {
-		roundTrip("testParseUserTemplateFile", USER_TEMPLATE_FILE,
+	public void testParseUserTemplateFileSingle() throws Exception {
+		single("testParseUserTemplateFileSingle", USER_TEMPLATE_FILE,
 				new QName(SchemaConstantsGenerated.NS_COMMON, "userTemplate"));
 	}
 
+	@Test
+	public void testParseObjectTemplateFileRoundTrip() throws Exception {
+		roundTrip("testParseObjectTemplateFileRoundTrip", OBJECT_TEMPLATE_FILE,
+				new QName(SchemaConstantsGenerated.NS_COMMON, "objectTemplate"));
+	}
+
+	@Test
+	public void testParseUserTemplateFileRoundTrip() throws Exception {
+		roundTrip("testParseUserTemplateFileRoundTrip", USER_TEMPLATE_FILE,
+				new QName(SchemaConstantsGenerated.NS_COMMON, "userTemplate"));
+	}
+	
 	@Test
 	public void testParseWrongTemplateFile() throws Exception {
 		final String TEST_NAME = "testParseWrongTemplateFile";
@@ -95,8 +110,8 @@ public class TestParseObjectTemplate {
 		}
 	}
 
-	private void roundTrip(final String TEST_NAME, File file, QName elementName) throws Exception {
-		System.out.println("===[ "+TEST_NAME+" ]===");
+	private void single(final String TEST_NAME, File file, QName elementName) throws Exception {
+		System.out.println("\n\n===[ "+TEST_NAME+" ]===\n");
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -109,6 +124,25 @@ public class TestParseObjectTemplate {
 		System.out.println(object.debugDump());
 
 		assertObjectTemplate(object, elementName);
+		assertObjectTemplateInternals(object, elementName);
+	}
+	
+	private void roundTrip(final String TEST_NAME, File file, QName elementName) throws Exception {
+		System.out.println("\n\n===[ "+TEST_NAME+" ]===\n");
+
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+		// WHEN
+		PrismObject<ObjectTemplateType> object = prismContext.parseObject(file);
+
+		// THEN
+		System.out.println("Parsed object:");
+		System.out.println(object.debugDump());
+
+		assertObjectTemplate(object, elementName);
+		// do NOT go to the assertObjectTemplateInternals(...)
+		// that will parse the raw values and it may change the clean state
 
 		// WHEN
 		String xml = prismContext.serializeObjectToString(object, PrismContext.LANG_XML);
@@ -150,8 +184,6 @@ public class TestParseObjectTemplate {
 		assertPropertyValue(object, "name", PrismTestUtil.createPolyString("Default User Template"));
 		assertPropertyDefinition(object, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 
-		assertPropertyDefinition(object, "mapping", ObjectTemplateMappingType.COMPLEX_TYPE, 0, -1);
-
 	}
 
     // checks raw values of mappings
@@ -170,8 +202,9 @@ public class TestParseObjectTemplate {
                     for (JAXBElement evaluator : mappingType.getExpression().getExpressionEvaluator()) {
                         if (evaluator.getValue() instanceof RawType) {
                             RawType rawType = (RawType) evaluator.getValue();
+                        	System.out.println("\nraw assignment:\n" + rawType);
                             Item assignment = rawType.getParsedItem(assignmentDef);
-                            System.out.println("assignment:\n" + assignment.debugDump());
+                            System.out.println("\nassignment:\n" + assignment.debugDump());
                             assignmentValuesFound++;
                         }
                     }

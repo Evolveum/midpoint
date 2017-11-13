@@ -196,7 +196,7 @@ public class PageWorkItem extends PageAdminWorkItems {
                 new PropertyModel<>(workItemDtoModel, WorkItemDto.F_WORK_ITEM), workItemDtoModel, this);
         add(summaryPanel);
 
-        Form mainForm = new Form(ID_MAIN_FORM);
+        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         mainForm.setMultiPart(true);
         add(mainForm);
 

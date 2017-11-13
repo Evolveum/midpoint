@@ -50,14 +50,12 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 		PrismObject<T> abstractRole = getObjectWrapper().getObject();
 		PrismContainerDefinition<AssignmentType> def = abstractRole.getDefinition()
 				.findContainerDefinition(AbstractRoleType.F_INDUCEMENT);
-		handleAssignmentDeltas(focusDelta, inducementsModel.getObject(), def);
 	}
 
 
 	@Override
 	protected void prepareObjectForAdd(PrismObject<T> focus) throws SchemaException {
 		super.prepareObjectForAdd(focus);
-//		handleAssignmentForAdd(focus, AbstractRoleType.F_INDUCEMENT, inducementsModel.getObject());
 	}
 
 	@Override

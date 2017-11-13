@@ -482,6 +482,26 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     }
 
 	@Override
+	public boolean canBeDefinitionOf(PrismValue pvalue) {
+		if (pvalue == null) {
+			return false;
+		}
+		if (!(pvalue instanceof PrismContainerValue<?>)) {
+			return false;
+		}
+		Itemable parent = pvalue.getParent();
+		if (parent != null) {
+			if (!(parent instanceof PrismContainer<?>)) {
+				return false;
+			}
+			return canBeDefinitionOf((PrismContainer)parent);
+		} else {
+			// TODO: maybe look at the subitems?
+			return true;
+		}
+	}
+
+	@Override
 	public PrismContainerValue<C> createValue() {
 		return new PrismContainerValue<>(prismContext);
 	}

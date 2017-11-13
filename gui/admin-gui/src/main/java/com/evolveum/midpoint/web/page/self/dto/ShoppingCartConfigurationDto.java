@@ -42,6 +42,7 @@ public class ShoppingCartConfigurationDto implements Serializable {
             viewTypeList = new ArrayList<>(Arrays.asList(AssignmentViewType.values()));
             viewTypeList.remove(AssignmentViewType.USER_TYPE);
             defaultViewType = AssignmentViewType.ROLE_TYPE;
+            isUserAssignmentsViewAllowed = true;
             return;
         }
 

@@ -99,7 +99,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	 * @param defaultType specifies type of the object that will be selected by default. It can be changed.
 	 */
 	ObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect, PageBase parentPage) {
-		this(id, defaultType, null, false, parentPage, null);
+		this(id, defaultType, null, multiselect, parentPage, null);
 	}
 
 	public ObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options,
@@ -134,7 +134,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	private void initLayout() {
-		Form<O> mainForm = new Form<O>(ID_MAIN_FORM);
+		Form<O> mainForm = new com.evolveum.midpoint.web.component.form.Form<O>(ID_MAIN_FORM);
 		add(mainForm);
 
 		searchModel = initSearchModel();

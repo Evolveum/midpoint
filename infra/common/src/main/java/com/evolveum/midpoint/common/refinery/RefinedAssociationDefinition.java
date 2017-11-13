@@ -20,7 +20,11 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.BooleanUtils;
 
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import org.jetbrains.annotations.NotNull;
@@ -28,10 +32,13 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public class RefinedAssociationDefinition implements Serializable {
 	private static final long serialVersionUID = 1L;
 
+	private Map<LayerType, PropertyLimitations> limitationsMap;
+	
 	private ResourceObjectAssociationType resourceObjectAssociationType;
 	private RefinedObjectClassDefinition associationTarget;
 
@@ -71,15 +78,41 @@ public class RefinedAssociationDefinition implements Serializable {
 	public MappingType getOutboundMappingType() {
 		return resourceObjectAssociationType.getOutbound();
 	}
+	
+	public List<MappingType> getInboundMappingTypes() {
+		return resourceObjectAssociationType.getInbound();
+	}
 
 	public boolean isExclusiveStrong() {
 		return BooleanUtils.isTrue(resourceObjectAssociationType.isExclusiveStrong());
 	}
 
     public boolean isIgnored() {
-        return false;           // todo implement!
+    	return false;           // todo implement!
     }
-
+    
+    public boolean isIgnored(LayerType layer) {
+    	RefinedAttributeDefinition<?> assocationAttributeDef = associationTarget.findAttributeDefinition(resourceObjectAssociationType.getAssociationAttribute());
+    	if (assocationAttributeDef == null) {
+			throw new IllegalStateException("No such attribute :" + resourceObjectAssociationType.getAssociationAttribute()
+					+ " in kind: " + associationTarget.getKind() + ", intent: " + associationTarget.getIntent()
+					+ " as defined for association: " + resourceObjectAssociationType.getDisplayName());
+    	}
+    	
+    	return assocationAttributeDef.isIgnored(layer);
+    }
+    
+    public PropertyLimitations getLimitations(LayerType layer) {
+    	RefinedAttributeDefinition<?> assocationAttributeDef = associationTarget.findAttributeDefinition(resourceObjectAssociationType.getAssociationAttribute());
+    	if (assocationAttributeDef == null) {
+			throw new IllegalStateException("No such attribute :" + resourceObjectAssociationType.getAssociationAttribute()
+					+ " in kind: " + associationTarget.getKind() + ", intent: " + associationTarget.getIntent()
+					+ " as defined for association: " + resourceObjectAssociationType.getDisplayName());
+    	}
+    	
+    	return assocationAttributeDef.getLimitations(layer);
+    }
+        
     public boolean isTolerant() {
         return BooleanUtils.isNotFalse(resourceObjectAssociationType.isTolerant());
     }

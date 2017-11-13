@@ -51,6 +51,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.RuntimeConfigurationType;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.core.request.mapper.MountedMapper;
@@ -71,6 +74,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -85,7 +89,6 @@ import java.util.*;
 /**
  * @author lazyman
  */
-@Component("midpointApplication")
 public class MidPointApplication extends AuthenticatedWebApplication {
 
     /**
@@ -240,6 +243,22 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/error/410", PageError410.class, new PageParametersEncoder()));
 
         getRequestCycleListeners().add(new LoggingRequestCycleListener(this));
+
+        getAjaxRequestTargetListeners().add(new AjaxRequestTarget.AbstractListener() {
+
+            @Override
+            public void updateAjaxAttributes(AbstractDefaultAjaxBehavior behavior, AjaxRequestAttributes attributes) {
+                CsrfToken csrfToken = SecurityUtils.getCsrfToken();
+                if (csrfToken == null) {
+                    return;
+                }
+
+                String parameterName = csrfToken.getParameterName();
+                String value = csrfToken.getToken();
+
+                attributes.getExtraParameters().put(parameterName, value);
+            }
+        });
 
         //descriptor loader, used for customization
         new DescriptorLoader().loadData(this);

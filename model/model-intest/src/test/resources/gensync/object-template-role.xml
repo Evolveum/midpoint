@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2013-2015 Evolveum
+  ~ Copyright (c) 2013-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@
     
     <item>
     	<ref>roleType</ref>
-    	<valueEnumerationRef oid="70000000-0000-0000-1111-000000000021"/>
+    	<valueEnumerationRef oid="70000000-0000-0000-1111-000000000021" type="LookupTableType"/>
     </item>
     
     <mapping>

@@ -290,6 +290,12 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File ROLE_AUTOGRAPHIC_FILE = new File(COMMON_DIR, "role-autographic.xml");
 	protected static final String ROLE_AUTOGRAPHIC_OID = "be835a70-e3f4-11e6-82cb-9b47ebe57b11";
 	
+	protected static final File ROLE_AUTOTESTERS_FILE = new File(COMMON_DIR, "role-autotesters.xml");
+	protected static final String ROLE_AUTOTESTERS_OID = "be835a70-e3f4-11e6-82cb-9b47ecb57v14";
+	
+	protected static final File ROLE_ADMINS_FILE = new File(COMMON_DIR, "role-admins.xml");
+	protected static final String ROLE_ADMINS_OID = "be835a70-e3f4-11e6-82cb-9b47ecb57v15";
+	
 	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	protected static final String USER_JACK_USERNAME = "jack";

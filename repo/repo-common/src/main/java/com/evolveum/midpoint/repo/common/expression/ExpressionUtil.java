@@ -15,7 +15,9 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,11 +63,14 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.QueryInterpretationOfNoValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.jetbrains.annotations.Nullable;
 
@@ -218,6 +223,37 @@ public class ExpressionUtil {
 		} else {
 			throw new IllegalArgumentException(
 					"Unexpected root " + root + " (relative path:" + relativePath + ") in " + shortDesc);
+		}
+	}
+	
+	public static <V extends PrismValue, F extends FocusType> Collection<V> computeTargetValues(VariableBindingDefinitionType target,
+			Object defaultTargetContext, ExpressionVariables variables, ObjectResolver objectResolver, String contextDesc,
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		if (target == null) {
+			// Is this correct? What about default targets?
+			return null;
+		}
+
+		ItemPathType itemPathType = target.getPath();
+		if (itemPathType == null) {
+			// Is this correct? What about default targets?
+			return null;
+		}
+		ItemPath path = itemPathType.getItemPath();
+
+		Object object = resolvePath(path, variables, defaultTargetContext, objectResolver, contextDesc, task, result);
+		if (object == null) {
+			return new ArrayList<>();
+		} else if (object instanceof Item) {
+			return ((Item) object).getValues();
+		} else if (object instanceof PrismValue) {
+			return (List<V>) Collections.singletonList((PrismValue) object);
+		} else if (object instanceof ItemDeltaItem) {
+			ItemDeltaItem<V, ?> idi = (ItemDeltaItem<V, ?>) object;
+			PrismValueDeltaSetTriple<V> triple = idi.toDeltaSetTriple();
+			return triple != null ? triple.getNonNegativeValues() : new ArrayList<V>();
+		} else {
+			throw new IllegalStateException("Unsupported target value(s): " + object.getClass() + " (" + object + ")");
 		}
 	}
 

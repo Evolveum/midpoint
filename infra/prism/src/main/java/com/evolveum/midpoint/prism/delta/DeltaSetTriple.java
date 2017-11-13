@@ -235,7 +235,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
     	return presentInSet(zeroSet, item);
     }
 
-	private boolean presentInSet(Collection<T> set, T item) {
+	protected boolean presentInSet(Collection<T> set, T item) {
 		return set != null && set.contains(item);
 	}
 

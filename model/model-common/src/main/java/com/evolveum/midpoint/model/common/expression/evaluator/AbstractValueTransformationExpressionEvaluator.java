@@ -15,6 +15,16 @@
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -52,10 +62,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionRelativityModeType;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * @author Radovan Semancik
@@ -360,6 +366,10 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 					hasZero = true;
 				} else if (sourceTriple.presentInMinusSet(pval)) {
 					hasMinus = true;
+				}
+				if (evaluationContext != null && evaluationContext.getVariableProducer() != null) {
+					LOGGER.trace("$$$$$$$$$variable producer for {}", pval);
+					evaluationContext.getVariableProducer().produce(pval, variables);
 				}
 			}
 			if (!hasPlus && !hasMinus && !hasZero && !MiscUtil.isAllNull(pvalues)) {

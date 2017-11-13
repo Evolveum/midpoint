@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -1206,22 +1207,27 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
     protected void modifyAssignmentConstruction(LensContext<UserType> context, UserType jack,
                                                 String attributeName, String value, boolean add) throws SchemaException {
         assertEquals("jack's assignments", 1, jack.getAssignment().size());
-        PrismPropertyDefinition<ResourceAttributeDefinitionType> attributeDef =
+        PrismContainerDefinition<ResourceAttributeDefinitionType> attributeDef =
                 prismContext.getSchemaRegistry()
                         .findObjectDefinitionByCompileTimeClass(UserType.class)
-                        .findPropertyDefinition(new ItemPath(UserType.F_ASSIGNMENT,
+                        .findContainerDefinition(new ItemPath(UserType.F_ASSIGNMENT,
                                 AssignmentType.F_CONSTRUCTION,
                                 ConstructionType.F_ATTRIBUTE));
         assertNotNull("no attributeDef", attributeDef);
 
         Long assignmentId = jack.getAssignment().get(0).getId();
-        PropertyDelta<ResourceAttributeDefinitionType> attributeDelta = new PropertyDelta<ResourceAttributeDefinitionType>(
+        ContainerDelta<ResourceAttributeDefinitionType> attributeDelta = new ContainerDelta<ResourceAttributeDefinitionType>(
                 new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
                         new IdItemPathSegment(assignmentId),
                         new NameItemPathSegment(AssignmentType.F_CONSTRUCTION),
                         new NameItemPathSegment(ConstructionType.F_ATTRIBUTE)),
                 attributeDef, prismContext);
         ResourceAttributeDefinitionType attributeDefinitionType = new ResourceAttributeDefinitionType();
+        if (add) {
+            attributeDelta.addValueToAdd(attributeDefinitionType.asPrismContainerValue());
+        } else {
+            attributeDelta.addValueToDelete(attributeDefinitionType.asPrismContainerValue());
+        }
         attributeDefinitionType.setRef(new ItemPathType(new ItemPath(new QName(RESOURCE_DUMMY_NAMESPACE, attributeName))));
         MappingType outbound = new MappingType();
         outbound.setStrength(MappingStrengthType.STRONG);       // to see changes on the resource
@@ -1230,11 +1236,6 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         outbound.setExpression(expression);
         attributeDefinitionType.setOutbound(outbound);
 
-        if (add) {
-            attributeDelta.addValueToAdd(new PrismPropertyValue<>(attributeDefinitionType));
-        } else {
-            attributeDelta.addValueToDelete(new PrismPropertyValue<>(attributeDefinitionType));
-        }
 
         ObjectDelta<UserType> userDelta = new ObjectDelta<>(UserType.class, ChangeType.MODIFY, prismContext);
         userDelta.setOid(USER_JACK_OID);

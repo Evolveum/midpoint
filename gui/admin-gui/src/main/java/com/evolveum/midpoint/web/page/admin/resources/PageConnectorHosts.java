@@ -111,7 +111,7 @@ public class PageConnectorHosts extends PageAdminResources {
 	}
 
 	private void initLayout() {
-		Form<?> mainForm = new Form<>(ID_MAIN_FORM);
+		Form<?> mainForm = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
 		add(mainForm);
 
 		BoxedTablePanel<ConnectorHostType> connectorHosts = new BoxedTablePanel<ConnectorHostType>(

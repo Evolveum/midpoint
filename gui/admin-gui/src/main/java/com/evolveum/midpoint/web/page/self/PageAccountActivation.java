@@ -148,7 +148,7 @@ public class PageAccountActivation extends PageBase {
 
 		});
 
-		Form form = new Form<>(ID_MAIN_FORM);
+		Form form = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
 		activationContainer.add(form);
 
 		Label usernamePanel = new Label(ID_NAME, createStringResource("PageAccountActivation.activate.accounts.label", new PropertyModel<>(userModel, "name.orig")));
