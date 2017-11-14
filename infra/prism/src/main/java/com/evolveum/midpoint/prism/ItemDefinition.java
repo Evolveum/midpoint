@@ -153,4 +153,8 @@ public interface ItemDefinition<I extends Item> extends Definition {
 
 	// TODO remove this hack eventually
 	void setMaxOccurs(int maxOccurs);
+	
+	boolean canBeDefinitionOf(I item);
+	
+	boolean canBeDefinitionOf(PrismValue pvalue);
 }

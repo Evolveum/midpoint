@@ -50,10 +50,8 @@ public class PrismPanel<C extends Containerable> extends Panel {
 
 	private static final String STRIPED_CLASS = "striped";
 
-    private static final String ID_HEADER = "header";
     private static final String ID_CONTAINERS = "containers";
     private static final String ID_CONTAINER = "container";
-    private static final String ID_CONTAINER_METADATA = "containerMetadata";
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismPanel.class);
 
@@ -87,8 +85,6 @@ public class PrismPanel<C extends Containerable> extends Panel {
             @Override
             protected void populateItem(ListItem<ContainerWrapper<C>> item) {
                 createContainerPanel(item, isPanelVisible, form);
-                
-//                createMetadataPanel(model, item, containerPanel);
             }
         };
         containers.setReuseItems(true);

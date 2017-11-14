@@ -55,7 +55,8 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 
     private final static String ID_DISPLAY_NAME = "displayName";
     private final static String ID_ACTIVATION_PANEL = "activationPanel";
-    protected final static String ID_CONTAINERS = "otherContainers";
+    private final static String ID_BASIC_ASSIGNMENT_PANEL = "basicAssignmentPanel";
+    protected final static String ID_SPECIFIC_CONTAINERS = "specificContainers";
 
     public AbstractAssignmentDetailsPanel(String id, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel){
         super(id, assignmentModel);
@@ -123,7 +124,7 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
 		ContainerValueWrapper<AssignmentType> containerWrapper = getModelObject();
 		if (containerWrapper == null){}
 
-		ContainerValuePanel<AssignmentType> assignmentPanel = new ContainerValuePanel("basic", getModel(), true, form,
+		ContainerValuePanel<AssignmentType> assignmentPanel = new ContainerValuePanel(ID_BASIC_ASSIGNMENT_PANEL, getModel(), true, form,
 				itemWrapper -> getAssignmentBasicTabVisibity(itemWrapper, assignmentPath), pageBase);
 		add(assignmentPanel);
 
@@ -136,7 +137,7 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
     }
 
     protected void initContainersPanel(Form form, PageAdminObjectDetails<F> pageBase){
-		PrismPanel<AssignmentType> containers = new PrismPanel<>(ID_CONTAINERS, new ContainerWrapperListFromObjectWrapperModel<AssignmentType, F>(pageBase.getObjectModel(), collectContainersToShow()),
+		PrismPanel<AssignmentType> containers = new PrismPanel<>(ID_SPECIFIC_CONTAINERS, new ContainerWrapperListFromObjectWrapperModel<AssignmentType, F>(pageBase.getObjectModel(), collectContainersToShow()),
 				null, form, null, pageBase) ;
 		add(containers);
 	}

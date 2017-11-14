@@ -16,194 +16,157 @@
 
 package com.evolveum.midpoint.repo.common.commandline;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang.SystemUtils;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CommandLineScriptType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptArgumentType;
 
 /**
- * Created by matus on 7/17/2017.
+ * @author matus
+ * @author semancik
  */
-
+@Component
 public class CommandLineScriptExecutor {
-    public static final int EXIT_SUCCESS = 0;
-    public static final String QOTATION_MARK = "\"";
-    public static final String REGEX_CODE_SPLITTER = "([^\"]\\S*|\".+?\")\\s*";// bash -c "echo Im not a number, im a ; echo free man"
-    //-> [bash,-c,"echo Im not a number, im a ; echo free man"]
-    public static final String VARIABLE_REPORT_SOURCEDIR = "%source";
-    public static final String VARIABLE_REPORT_NAME = "%name";
+	
+    private static final String QUOTATION_MARK = "\"";
 
-    private OperationResult result;
-    private String generatedOutputFilePath;
-    private String generatedOutputName;
-    private Boolean warningHasEmerged = false;
     private static final Trace LOGGER = TraceManager.getTrace(CommandLineScriptExecutor.class);
-
-    public CommandLineScriptExecutor(String code, String generatedOutputFilePath, Map<String, String> variables, OperationResult parentResult) throws IOException, InterruptedException {
-        this.result = parentResult.createSubresult(CommandLineScriptExecutor.class.getSimpleName() + ".run");
-        this.generatedOutputName = parseOutFileName(generatedOutputFilePath);
-        this.generatedOutputFilePath = modifyFilepathDependingOnOS(generatedOutputFilePath);
-        if (!LOGGER.isDebugEnabled()) {
-        } else {
-            LOGGER.debug("The shell code to be executed: {}", code);
-        }
-
-        executeScript(code, variables);
-    }
-
-    public void executeScript(String code, Map<String, String> variables) throws IOException, InterruptedException {
-        code = code.replaceAll("\n", " "); // Remove new lines, replace with space
-        Matcher match = Pattern.compile(REGEX_CODE_SPLITTER).matcher(code);
-
-        List<String> scriptParts = new ArrayList<String>();
-
-        while (match.find()) {
-
-            String processedCommand = match.group(1);
-            if (processedCommand.startsWith(QOTATION_MARK) && processedCommand.endsWith(QOTATION_MARK)) {
-                processedCommand = processedCommand.substring(1, processedCommand.length() - 1);
-            }
-            if (processedCommand.contains(VARIABLE_REPORT_SOURCEDIR)) {
-                processedCommand = processedCommand.replace(VARIABLE_REPORT_SOURCEDIR, generatedOutputFilePath);
-            }
-            if (processedCommand.contains(VARIABLE_REPORT_NAME)) {
-                processedCommand = processedCommand.replace(VARIABLE_REPORT_NAME, generatedOutputName);
-            }
-            scriptParts.add(processedCommand);
-        }
-        if (!LOGGER.isDebugEnabled()) {
-        } else {
-            LOGGER.debug("The constructed list of commands: {}", scriptParts);
-        }
-        ProcessBuilder processBuilder = new ProcessBuilder(scriptParts);
-
-        if (variables != null && !variables.isEmpty()) {
-            Map<String, String> environmentVariables = processBuilder.environment();
-            for (String variableName : variables.keySet()) {
-                environmentVariables.put(variableName, variables.get(variableName));
-            }
-        }
-        if (!LOGGER.isDebugEnabled()) {
-        } else {
-            LOGGER.debug("Starting process ", processBuilder.command());
-        }
-        Process process = processBuilder.start();
-        Integer exitValue = process.waitFor();
-
-        if (exitValue == null) {
-            LOGGER.error("Unknown process error, process did not return an exit value.");
-        } else {
-
-            try (InputStream errorInputStream = process.getErrorStream();
-                 InputStream processInputStream = process.getInputStream()) {
-                if (errorInputStream == null) {
-                    evaluateExitValue(exitValue, readOutput(processInputStream));
-                } else {
-                    evaluateExitValue(exitValue, readOutput(processInputStream, errorInputStream));
-                }
-            }
-        }
+    
+    @Autowired private PrismContext prismContext;
+    @Autowired private ExpressionFactory expressionFactory;
+        
+    public void executeScript(CommandLineScriptType scriptType, ExpressionVariables variables, String shortDesc, Task task, OperationResult parentResult) throws IOException, InterruptedException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	
+    	OperationResult result = parentResult.createSubresult(CommandLineScriptExecutor.class.getSimpleName() + ".run");
+    	
+    	if (variables == null) {
+    		variables = new ExpressionVariables();
+    	}
+    	
+    	String expandedCode = expandMacros(scriptType, variables, shortDesc, task, result);
+    	
+    	// TODO: later: prepare agruments and environment
+    	
+    	String preparedCode = expandedCode.trim(); 
+    	LOGGER.debug("Prepared shell code: {}", preparedCode);
+    	
+    	CommandLineRunner runner = new CommandLineRunner(preparedCode, result);
+    	runner.setExectionMethod(scriptType.getExecutionMethod());
+    	
+    	runner.execute();
+    	
         result.computeStatus();
     }
 
-    private String readOutput(InputStream processInputStream) throws IOException {
-        return readOutput(processInputStream, null);
-    }
+    
+    private String expandMacros(CommandLineScriptType scriptType, ExpressionVariables variables, String shortDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	String code = scriptType.getCode();
+    	for (ProvisioningScriptArgumentType macroDef: scriptType.getMacro()) {
+    		
+    		String macroName = macroDef.getName();
+    		QName macroQName = new QName(SchemaConstants.NS_C, macroName);
+    		
+    		String expressionOutput = "";
+    		
+    		PrismPropertyDefinitionImpl<String> outputDefinition = new PrismPropertyDefinitionImpl(
+    				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+    		outputDefinition.setMaxOccurs(1);
+    		Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
+    				.makeExpression(macroDef, outputDefinition, shortDesc, task, result);
 
-    private String readOutput(InputStream processInputStream, InputStream errorStream) throws IOException {
-        // LOGGER.debug("Evaluating output ");
-        StringBuilder outputBuilder = new StringBuilder();
-        try (BufferedReader bufferedProcessOutputReader = new BufferedReader(new InputStreamReader(processInputStream))) {
-            String line = null;
-            if (errorStream != null) {
-                try (BufferedReader bufferedProcessErrorOutputReader = new BufferedReader(new InputStreamReader(errorStream))) {
-                    outputBuilder.append(" Partial error while executing post report script: ").append(System.getProperty("line.separator"));
-                    if (bufferedProcessErrorOutputReader.ready()) {
-                        while ((line = bufferedProcessErrorOutputReader.readLine()) != null) {
-                            outputBuilder.append(" * " + line + System.getProperty("line.separator"));
-                        }
-                        String aWarning = outputBuilder.toString();
-                        if (!LOGGER.isWarnEnabled()) {
-                        } else {
-                            LOGGER.warn(aWarning);
-                        }
+    		Collection<Source<?, ?>> sources = new ArrayList<>(1);
+    		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task,
+    				result);
+    		
+    		Object defaultObject = variables.get(macroQName);
+    		if (defaultObject != null) {
+	    		Item sourceItem;
+	    		if (defaultObject instanceof Item) {
+	    			sourceItem = (Item)defaultObject;
+	    		} else if (defaultObject instanceof String) {
+	    			PrismPropertyDefinitionImpl<String> sourceDefinition = new PrismPropertyDefinitionImpl(
+	        				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+	    			sourceDefinition.setMaxOccurs(1);
+	    			PrismProperty<String> sourceProperty = sourceDefinition.instantiate();
+	    			sourceProperty.setRealValue(defaultObject);
+	    			sourceItem = sourceProperty;
+	    		} else {
+	    			sourceItem = null;
+	    		}
+				Source<?, ?> defaultSource = new Source<>(sourceItem, null, sourceItem, macroQName);
+				context.setDefaultSource(defaultSource);
+				sources.add(defaultSource);
+    		}
 
-                        result.recordWarning(aWarning);
-                        warningHasEmerged = true;
-                    }
-                }
-            }
-            outputBuilder = new StringBuilder();
-            while ((line = bufferedProcessOutputReader.readLine()) != null) {
-                outputBuilder.append(line + System.getProperty("line.separator"));
-            }
-        }
-        if (outputBuilder != null) {
-            String outputString = outputBuilder.toString();
-            return outputString;
-        } else {
-            String outputString = "The process did not return any printable output";
-            return outputString;
-        }
-    }
+    		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context);
 
-    private void evaluateExitValue(Integer exitValue, String message) {
-        StringBuilder messageBuilder = new StringBuilder();
-        if (exitValue != EXIT_SUCCESS) {
-            messageBuilder.append("Process exited with an error, the exit value: ").append(exitValue)
-                    .append(". Only a part of the script might have been executed, the output: ").append(System.getProperty("line.separator")).append(message);
-            String warnMessage = messageBuilder.toString();
-            if (!LOGGER.isWarnEnabled()) {
-            } else {
-                LOGGER.warn(warnMessage);
-            }
-            if (!warningHasEmerged) {
-                result.recordWarning(warnMessage);
-            }
-        } else {
-            if (!LOGGER.isDebugEnabled()) {
-            } else {
-                LOGGER.debug("Script execution successful, the following output string was returned: {}", message);
-            }
-            if (!warningHasEmerged) {
-                result.recordSuccess();
-            }
-        }
-    }
+    		LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
 
-    private String modifyFilepathDependingOnOS(String filepath) {
+    		if (outputTriple != null) {
+	    		Collection<PrismPropertyValue<String>> nonNegativeValues = outputTriple.getNonNegativeValues();
+	    		if (nonNegativeValues != null && !nonNegativeValues.isEmpty()) {		
+	    			Collection<String> expressionOutputs = PrismValue.getRealValuesOfCollection((Collection) nonNegativeValues);    		
+		    		if (expressionOutputs != null && !expressionOutputs.isEmpty()) {
+		    			expressionOutput = StringUtils.join(expressionOutputs, ",");
+		    		}
+	    		}
+    		}
+    		
+    		code = replaceMacro(code, macroDef.getName(), expressionOutput);
+    	}
+    	return code;
+	}
+
+	private String replaceMacro(String code, String name, String value) {
+		return code.replace("%"+name+"%", value);
+	}
+
+    public String getOsSpecificFilePath(String filepath) {
         StringBuilder pathEscapedSpaces = new StringBuilder();
         if (SystemUtils.IS_OS_LINUX) {
             pathEscapedSpaces.append("'").append(filepath).append("'");
         } else if (SystemUtils.IS_OS_WINDOWS) {
             filepath = filepath.replace("/", "\\");
-            pathEscapedSpaces.append(QOTATION_MARK).append(filepath).append(QOTATION_MARK);
+            pathEscapedSpaces.append(QUOTATION_MARK).append(filepath).append(QUOTATION_MARK);
         } else {
             return filepath;
         }
         return pathEscapedSpaces.toString();
     }
-
-    private String parseOutFileName(String filepath) {
-        int divideAt = filepath.lastIndexOf("/") + 1;
-        StringBuilder nameBuilder = new StringBuilder();
-        String exportName = filepath.substring(divideAt);
-
-        if (SystemUtils.IS_OS_LINUX) {
-            nameBuilder.append("'").append(exportName).append("'");
-            exportName = nameBuilder.toString();
-        }
-        if (!LOGGER.isDebugEnabled()) {
-        } else {
-            LOGGER.debug("The report file name: {}", exportName);
-        }
-        return exportName;
-    }
+	
 }

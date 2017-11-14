@@ -750,7 +750,7 @@ public class ExpressionUtil {
 		return nonNegativeValues.iterator().next();
 	}
 
-	private static Collection<String> evaluateStringExpression(ExpressionVariables variables,
+	public static Collection<String> evaluateStringExpression(ExpressionVariables variables,
 			PrismContext prismContext, ExpressionType expressionType, ExpressionFactory expressionFactory,
 			String shortDesc, Task task, OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {

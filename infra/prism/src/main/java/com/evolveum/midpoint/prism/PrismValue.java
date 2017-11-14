@@ -433,10 +433,10 @@ public abstract class PrismValue implements IPrismValue {
 		}
 	}
 
-    public static <T> Set<T> getRealValuesOfCollection(Collection<PrismPropertyValue<T>> collection) {
+    public static <T> Set<T> getRealValuesOfCollection(Collection<? extends PrismValue> collection) {
         Set<T> retval = new HashSet<T>(collection.size());
-        for (PrismPropertyValue<T> value : collection) {
-            retval.add(value.getValue());
+        for (PrismValue value : collection) {
+            retval.add(value.getRealValue());
         }
         return retval;
     }

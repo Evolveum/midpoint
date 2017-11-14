@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
 <!--
   ~ Copyright (c) 2010-2017 Evolveum
   ~
@@ -15,11 +13,13 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="unit" parallel="false">
-    <test name="Default" preserve-order="true" parallel="false" verbose="10" enabled="true">
-        <classes>
-             <class name="com.evolveum.midpoint.report.TestReport"/>
-        </classes>
-    </test>
-</suite>
+<report oid="ec991962-c87e-11e7-8b73-73ef3f6057d7"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<name>Report plain echo</name>
+	<postReportScript>
+		<code>echo Hello</code>
+	</postReportScript>
+</report>

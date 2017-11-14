@@ -6658,19 +6658,32 @@
             	<a:since>3.7</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-        	<!-- TODO: later 
+        <xsd:sequence> 
+            <xsd:element name="macro" type="tns:ProvisioningScriptArgumentType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Command-line macro. Any occurence of the macro will be replaced in the command-line code.
+                        The order of arguments is not significant.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: later
             <xsd:element name="argument" type="tns:ProvisioningScriptArgumentType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Script arguments. The arguments will passed to the script
                         in any way suitable for the script. The argument name
-                        is "local" to the script (script-specific). Script name
+                        is "local" to the script (script-specific). Argument name
                         must be unique in the argument set.
                         The order of arguments is not significant.
                     </xsd:documentation>
                 </xsd:annotation>
-            </xsd:element> -->
+            </xsd:element>
+            <xsd:element name="environment" type="tns:ProvisioningScriptArgumentType" minOccurs="0" maxOccurs="unbounded">
+            </xsd:element>
+             -->
+            <xsd:element name="executionMethod" type="tns:CommandLineExecutionMethod">
+            </xsd:element>
             <xsd:element name="code" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -6684,6 +6697,43 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:simpleType name="CommandLineExecutionMethod">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="exec">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+                			Plain exececution using OS services (exec).
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXEC"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="shell">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+	                		Execution using UNIX-like shell (e.g. bash)
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SHELL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="ConnectorConfigurationType">
         <xsd:annotation>

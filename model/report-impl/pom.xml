@@ -228,6 +228,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>security-enforcer-impl</artifactId>
+			<version>3.7-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-test</artifactId>
             <version>3.7-SNAPSHOT</version>
@@ -277,6 +283,22 @@
 			<artifactId>system-init</artifactId>
 			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-sql-impl-test</artifactId>
+			<version>3.7-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
+			<groupId>org.springframework</groupId> 
+			<artifactId>spring-aspects</artifactId>
+			<scope>test</scope> 
+		</dependency>
+        <dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
+			<groupId>org.springframework</groupId> 
+			<artifactId>spring-aop</artifactId>
+			<scope>test</scope> 
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
