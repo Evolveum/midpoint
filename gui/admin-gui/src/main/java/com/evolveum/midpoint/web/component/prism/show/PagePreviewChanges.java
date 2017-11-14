@@ -219,7 +219,8 @@ public class PagePreviewChanges extends PageAdmin {
 				savePerformed(target);
 			}
 		};
-		save.add(new EnableBehaviour(() -> violationsEmpty()));
+		//save.add(new EnableBehaviour(() -> violationsEmpty()));           // does not work as expected (MID-4252)
+		save.add(new VisibleBehaviour(() -> violationsEmpty()));            // so hiding the button altogether
 		mainForm.add(save);
 	}
 
