@@ -62,26 +62,27 @@ import java.util.*;
 public class UserMenuPanel extends BasePanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(UserMenuPanel.class);
-    private static final String ID_USERNAME_LINK = "usernameLink";
-    private static final String ID_LOGOUT_LINK = "logoutLink";
 
-    private static final String ID_USERNAME = "username";
-
-    private static final String ID_EDIT_PROFILE = "editProfile";
-    private static final String ID_PASSWORD_QUESTIONS = "passwordQuestions";
-    private IModel<PasswordQuestionsDto> passwordQuestionsDtoIModel;
-    private IModel<List<SecurityQuestionDefinitionType>> securityPolicyQuestionsModel;
-//    private PrismObject<UserType> userModel;
-    private Model<PrismObject<UserType>> userModel = new Model<PrismObject<UserType>>();
     private static final String DOT_CLASS = UserMenuPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loaduser";
     private static final String OPERATION_LOAD_QUESTION_POLICY = DOT_CLASS + "LOAD Question Policy";
+
+    private static final String ID_USERNAME_LINK = "usernameLink";
+    private static final String ID_CSRF_FIELD = "csrfField";
+    private static final String ID_USERNAME = "username";
+    private static final String ID_EDIT_PROFILE = "editProfile";
+    private static final String ID_PASSWORD_QUESTIONS = "passwordQuestions";
     private static final String ID_ICON_BOX = "menuIconBox";
     private static final String ID_PHOTO = "menuPhoto";
     private static final String ID_ICON = "menuIcon";
     private static final String ID_PANEL_ICON_BOX = "menuPanelIconBox";
     private static final String ID_PANEL_PHOTO = "menuPanelPhoto";
     private static final String ID_PANEL_ICON = "menuPanelIcon";
+
+    private IModel<PasswordQuestionsDto> passwordQuestionsDtoIModel;
+    private IModel<List<SecurityQuestionDefinitionType>> securityPolicyQuestionsModel;
+//    private PrismObject<UserType> userModel;
+    private Model<PrismObject<UserType>> userModel = new Model<PrismObject<UserType>>();
 
     private boolean isUserModelLoaded = false;
     private boolean isPasswordModelLoaded = false;
@@ -211,10 +212,8 @@ public class UserMenuPanel extends BasePanel {
         username.setRenderBodyOnly(true);
         add(username);
 
-        ExternalLink logoutLink = new ExternalLink(ID_LOGOUT_LINK,
-                new Model<>(RequestCycle.get().getRequest().getContextPath() + "/j_spring_security_logout"),
-                createStringResource("UserMenuPanel.logout"));
-        add(logoutLink);
+        WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
+        add(csrfField);
 
         AjaxButton editPasswordQ = new AjaxButton(ID_PASSWORD_QUESTIONS,
                 createStringResource("UserMenuPanel.editPasswordQuestions")) {
