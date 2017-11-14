@@ -49,7 +49,7 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
 		setRemoveContainerButtonVisibility(policyRules);
 		setAddContainerButtonVisibility(policyRules);
 
-		PrismContainerPanel<PolicyRuleType> constraintsContainerPanel = new PrismContainerPanel(ID_CONTAINERS, policyRuleModel,
+		PrismContainerPanel<PolicyRuleType> constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINERS, policyRuleModel,
 				false, form, null, pageBase);
 		constraintsContainerPanel.setOutputMarkupId(true);
 		add(constraintsContainerPanel);
