@@ -57,7 +57,7 @@ public class WorkItemAllocationEvent extends WorkItemEvent {
 
 	@Override
 	public String toString() {
-		return "WorkItemCustomEvent:" + super.toString();
+		return "WorkItemAllocationEvent:" + super.toString();
 	}
 
 }
