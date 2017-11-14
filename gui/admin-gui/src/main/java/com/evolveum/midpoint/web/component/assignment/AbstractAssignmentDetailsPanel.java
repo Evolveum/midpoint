@@ -82,8 +82,10 @@ public abstract class AbstractAssignmentDetailsPanel<F extends FocusType> extend
     				com.evolveum.midpoint.schema.result.OperationResult result = task.getResult();
     				return (C) WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(), task, result).asObjectable();
     			}
-    			if (assignment.getConstruction() != null) {
-    				return (C) assignment.getConstruction();
+    			if (assignment.getConstruction() != null && assignment.getConstruction().getResourceRef() != null) {
+					Task task = getPageBase().createSimpleTask("Load resource");
+					com.evolveum.midpoint.schema.result.OperationResult result = task.getResult();
+					return (C) WebModelServiceUtils.loadObject(assignment.getConstruction().getResourceRef(), getPageBase(), task, result).asObjectable();
     			} else if (assignment.getPersonaConstruction() != null) {
     				return (C) assignment.getPersonaConstruction();
     			} else if (assignment.getPolicyRule() !=null) {
