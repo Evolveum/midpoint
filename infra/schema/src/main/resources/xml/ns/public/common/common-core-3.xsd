@@ -5379,6 +5379,9 @@
 						The object must produce the values of the correct type for this item otherwise an
 						error occurs.
 	                </xsd:documentation>
+	                <xsd:appinfo>
+            			<a:objectReferenceTargetType>tns:LookupTableType</a:objectReferenceTargetType>
+            		</xsd:appinfo>
 	            </xsd:annotation>
 	       	</xsd:element>
             <xsd:element name="tolerant" type="xsd:boolean" minOccurs="0" default="true">
