@@ -18,21 +18,33 @@ package com.evolveum.midpoint.web.component.progress;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
+import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.util.time.Duration;
 
+import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION;
@@ -53,11 +65,14 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
     private static final String ID_LOG_ITEM = "logItem";
     private static final String ID_EXECUTION_TIME = "executionTime";
     private static final String ID_PROGRESS_FORM = "progressForm";
-	private static final String ID_BACK = "back";
-	private static final String ID_ABORT = "abort";
-	private static final String ID_CONTINUE_EDITING = "continueEditing";
+    private static final String ID_BACK = "back";
+    private static final String ID_ABORT = "abort";
+    private static final String ID_CONTINUE_EDITING = "continueEditing";
 
-	private ProgressReporter progressReporter;
+    private AjaxSubmitButton abortButton;
+    private AjaxSubmitButton backButton;
+    private AjaxSubmitButton continueEditingButton;
+
     private Form progressForm;
     private long operationStartTime;            // if 0, operation hasn't start yet
     private long operationDurationTime;         // if >0, operation has finished
@@ -69,108 +84,38 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
         super(id);
     }
 
-    public ProgressPanel(String id, IModel<ProgressDto> model, ProgressReporter progressReporter, ProgressReportingAwarePage page) {
+    public ProgressPanel(String id, IModel<ProgressDto> model, ProgressReportingAwarePage page) {
         super(id, model);
-        this.progressReporter = progressReporter;
+
+        setOutputMarkupId(true);
+
         initLayout(page);
+
+        hide();
     }
 
     private void initLayout(ProgressReportingAwarePage page) {
-    	progressForm = new Form<>(ID_PROGRESS_FORM, true);
-    	add(progressForm);
+        progressForm = new Form<>(ID_PROGRESS_FORM, true);
+        add(progressForm);
 
         contentsPanel = new WebMarkupContainer(ID_CONTENTS_PANEL);
         contentsPanel.setOutputMarkupId(true);
         progressForm.add(contentsPanel);
 
-        ListView statusItemsListView = new ListView<ProgressReportActivityDto>(ID_ACTIVITIES, new AbstractReadOnlyModel<List<ProgressReportActivityDto>>() {
+        ListView statusItemsListView = new ListView<ProgressReportActivityDto>(ID_ACTIVITIES,
+                new AbstractReadOnlyModel<List<ProgressReportActivityDto>>() {
+
+                    @Override
+                    public List<ProgressReportActivityDto> getObject() {
+                        ProgressDto progressDto = ProgressPanel.this.getModelObject();
+                        return progressDto.getProgressReportActivities();
+                    }
+                }) {
+
             @Override
-            public List<ProgressReportActivityDto> getObject() {
-                ProgressDto progressDto = ProgressPanel.this.getModelObject();
-                return progressDto.getProgressReportActivities();
+            protected void populateItem(ListItem<ProgressReportActivityDto> item) {
+                populateStatusItem(item);
             }
-        }) {
-            protected void populateItem(final ListItem<ProgressReportActivityDto> item) {
-                item.add(new Label(ID_ACTIVITY_DESCRIPTION, new AbstractReadOnlyModel<String>() {
-                    @Override
-                    public String getObject() {
-                        ProgressReportActivityDto si = item.getModelObject();
-                        if (si.getActivityType() == RESOURCE_OBJECT_OPERATION && si.getResourceShadowDiscriminator() != null) {
-                            ResourceShadowDiscriminator rsd = si.getResourceShadowDiscriminator();
-                            return createStringResource(rsd.getKind()).getString()
-                                    + " (" + rsd.getIntent() + ") on " + si.getResourceName();             // TODO correct i18n
-                        } else {
-                            return createStringResource(si.getActivityType()).getString();
-                        }
-                    }
-                }));
-                item.add(createImageLabel(ID_ACTIVITY_STATE,
-                        new AbstractReadOnlyModel<String>() {
-
-                            @Override
-                            public String getObject() {
-                                OperationResultStatusType statusType = item.getModelObject().getStatus();
-                                if (statusType == null) {
-                                    return null;
-                                } else {
-                                    return OperationResultStatusPresentationProperties.parseOperationalResultStatus(statusType).getIcon() + " fa-lg";
-                                }
-                            }
-                        },
-                        new AbstractReadOnlyModel<String>() {
-
-                            @Override
-                            public String getObject() {     // TODO why this does not work???
-                                OperationResultStatusType statusType = item.getModelObject().getStatus();       // TODO i18n
-                                if (statusType == null) {
-                                    return null;
-                                } else {
-                                    return statusType.toString();
-                                }
-                            }
-                        }
-                ));
-                item.add(new Label(ID_ACTIVITY_COMMENT, new AbstractReadOnlyModel<String>() {
-                    @Override
-                    public String getObject() {
-                        ProgressReportActivityDto si = item.getModelObject();
-                        if (si.getResourceName() != null || si.getResourceOperationResultList() != null) {
-                            StringBuilder sb = new StringBuilder();
-                            boolean first = true;
-                            if (si.getResourceOperationResultList() != null) {
-                                for (ResourceOperationResult ror : si.getResourceOperationResultList()) {
-                                    if (!first) {
-                                        sb.append(", ");
-                                    } else {
-                                        first = false;
-                                    }
-                                    sb.append(createStringResource("ChangeType." + ror.getChangeType()).getString());
-                                    sb.append(":");
-                                    sb.append(createStringResource(ror.getResultStatus()).getString());
-                                }
-                            }
-                            if (si.getResourceObjectName() != null) {
-                                if (!first) {
-                                    sb.append(" -> ");
-                                }
-                                sb.append(si.getResourceObjectName());
-                            }
-                            return sb.toString();
-                        } else {
-                            return null;
-                        }
-                    }
-                }));
-            }
-
-            private Label createImageLabel(String id, IModel<String> cssClass, IModel<String> title) {
-                Label label = new Label(id);
-                label.add(AttributeModifier.replace("class", cssClass));
-                label.add(AttributeModifier.replace("title", title));           // does not work, currently
-
-                return label;
-            }
-
         };
         contentsPanel.add(statusItemsListView);
 
@@ -194,9 +139,10 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
             @Override
             public String getObject() {
                 if (operationDurationTime > 0) {
-                    return createStringResource("ProgressPanel.ExecutionTimeWhenFinished", operationDurationTime).getString();
+                    return getString("ProgressPanel.ExecutionTimeWhenFinished", operationDurationTime);
                 } else if (operationStartTime > 0) {
-                    return createStringResource("ProgressPanel.ExecutionTimeWhenRunning", (System.currentTimeMillis()-operationStartTime)/1000).getString();
+                    return getString("ProgressPanel.ExecutionTimeWhenRunning",
+                            (System.currentTimeMillis() - operationStartTime) / 1000);
                 } else {
                     return null;
                 }
@@ -207,63 +153,147 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
         initButtons(progressForm, page);
     }
 
+    private Label createImageLabel(String id, IModel<String> cssClass, IModel<String> title) {
+        Label label = new Label(id);
+        label.add(AttributeModifier.replace("class", cssClass));
+        label.add(AttributeModifier.replace("title", title));           // does not work, currently
+
+        return label;
+    }
+
+    private void populateStatusItem(ListItem<ProgressReportActivityDto> item) {
+        item.add(new Label(ID_ACTIVITY_DESCRIPTION, new AbstractReadOnlyModel<String>() {
+            @Override
+            public String getObject() {
+                ProgressReportActivityDto si = item.getModelObject();
+                if (si.getActivityType() == RESOURCE_OBJECT_OPERATION && si.getResourceShadowDiscriminator() != null) {
+                    ResourceShadowDiscriminator rsd = si.getResourceShadowDiscriminator();
+                    return createStringResource(rsd.getKind()).getString()
+                            + " (" + rsd.getIntent() + ") on " + si.getResourceName();             // TODO correct i18n
+                } else {
+                    return createStringResource(si.getActivityType()).getString();
+                }
+            }
+        }));
+        item.add(createImageLabel(ID_ACTIVITY_STATE,
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        OperationResultStatusType statusType = item.getModelObject().getStatus();
+                        if (statusType == null) {
+                            return null;
+                        } else {
+                            return OperationResultStatusPresentationProperties.parseOperationalResultStatus(statusType).getIcon() + " fa-lg";
+                        }
+                    }
+                },
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {     // TODO why this does not work???
+                        OperationResultStatusType statusType = item.getModelObject().getStatus();       // TODO i18n
+                        if (statusType == null) {
+                            return null;
+                        } else {
+                            return statusType.toString();
+                        }
+                    }
+                }
+        ));
+        item.add(new Label(ID_ACTIVITY_COMMENT, new AbstractReadOnlyModel<String>() {
+            @Override
+            public String getObject() {
+                ProgressReportActivityDto si = item.getModelObject();
+                if (si.getResourceName() != null || si.getResourceOperationResultList() != null) {
+                    StringBuilder sb = new StringBuilder();
+                    boolean first = true;
+                    if (si.getResourceOperationResultList() != null) {
+                        for (ResourceOperationResult ror : si.getResourceOperationResultList()) {
+                            if (!first) {
+                                sb.append(", ");
+                            } else {
+                                first = false;
+                            }
+                            sb.append(createStringResource("ChangeType." + ror.getChangeType()).getString());
+                            sb.append(":");
+                            sb.append(createStringResource(ror.getResultStatus()).getString());
+                        }
+                    }
+                    if (si.getResourceObjectName() != null) {
+                        if (!first) {
+                            sb.append(" -> ");
+                        }
+                        sb.append(si.getResourceObjectName());
+                    }
+                    return sb.toString();
+                } else {
+                    return null;
+                }
+            }
+        }));
+    }
+
+    private void configureButton(AjaxSubmitButton btn) {
+        btn.setVisible(false);
+        btn.setOutputMarkupId(true);
+        btn.setOutputMarkupPlaceholderTag(true);
+    }
+
     private void initButtons(final Form progressForm, final ProgressReportingAwarePage page) {
+        abortButton = new AjaxSubmitButton(ID_ABORT,
+                createStringResource("pageAdminFocus.button.abort")) {
 
-		AjaxSubmitButton abortButton = new AjaxSubmitButton(ID_ABORT,
-				createStringResource("pageAdminFocus.button.abort")) {
+            @Override
+            protected void onSubmit(AjaxRequestTarget target,
+                                    org.apache.wicket.markup.html.form.Form<?> form) {
+                progressReporter.onAbortSubmit(target);
+            }
 
-			@Override
-			protected void onSubmit(AjaxRequestTarget target,
-					org.apache.wicket.markup.html.form.Form<?> form) {
-				progressReporter.onAbortSubmit(target);
-			}
-
-			@Override
-			protected void onError(AjaxRequestTarget target,
-					org.apache.wicket.markup.html.form.Form<?> form) {
-				target.add(page.getFeedbackPanel());
-			}
-		};
-
-        progressReporter.registerAbortButton(abortButton);
+            @Override
+            protected void onError(AjaxRequestTarget target,
+                                   org.apache.wicket.markup.html.form.Form<?> form) {
+                target.add(page.getFeedbackPanel());
+            }
+        };
+        configureButton(abortButton);
         progressForm.add(abortButton);
 
-		AjaxSubmitButton backButton = new AjaxSubmitButton(ID_BACK,
-				createStringResource("pageAdminFocus.button.back")) {
+        backButton = new AjaxSubmitButton(ID_BACK,
+                createStringResource("pageAdminFocus.button.back")) {
 
-			@Override
-			protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
                 backPerformed(target);
-			}
+            }
 
-			@Override
-			protected void onError(AjaxRequestTarget target,
-					org.apache.wicket.markup.html.form.Form<?> form) {
-				target.add(page.getFeedbackPanel());
-			}
-		};
-		progressReporter.registerBackButton(backButton);
-		progressForm.add(backButton);
+            @Override
+            protected void onError(AjaxRequestTarget target,
+                                   org.apache.wicket.markup.html.form.Form<?> form) {
+                target.add(page.getFeedbackPanel());
+            }
+        };
+        configureButton(backButton);
+        progressForm.add(backButton);
 
-		AjaxSubmitButton continueEditingButton = new AjaxSubmitButton(ID_CONTINUE_EDITING,
-				createStringResource("pageAdminFocus.button.continueEditing")) {
+        continueEditingButton = new AjaxSubmitButton(ID_CONTINUE_EDITING,
+                createStringResource("pageAdminFocus.button.continueEditing")) {
 
-			@Override
-			protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-				ProgressReportingAwarePage page = (ProgressReportingAwarePage) getPage();
-				page.continueEditing(target);
-			}
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+                ProgressReportingAwarePage page = (ProgressReportingAwarePage) getPage();
+                page.continueEditing(target);
+            }
 
-			@Override
-			protected void onError(AjaxRequestTarget target,
-					org.apache.wicket.markup.html.form.Form<?> form) {
-				target.add(page.getFeedbackPanel());
-			}
-		};
-		progressReporter.registerContinueEditingButton(continueEditingButton);
-		progressForm.add(continueEditingButton);
-
-	}
+            @Override
+            protected void onError(AjaxRequestTarget target,
+                                   org.apache.wicket.markup.html.form.Form<?> form) {
+                target.add(page.getFeedbackPanel());
+            }
+        };
+        configureButton(continueEditingButton);
+        progressForm.add(continueEditingButton);
+    }
 
     protected void backPerformed(AjaxRequestTarget target) {
         PageBase page = getPageBase();
@@ -300,5 +330,155 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
         if (statisticsPanel != null && statisticsPanel.getModel() instanceof StatisticsDtoModel) {
             ((StatisticsDtoModel) (statisticsPanel.getModel())).invalidateCache();
         }
+    }
+
+    /**
+     * Should be called when "save" button is submitted.
+     * In future it could encapsulate auxiliary functionality that has to be invoked before starting the operation.
+     * Parent page is then responsible for the preparation of the operation and calling the executeChanges method below.
+     */
+    public void onBeforeSave() {
+        //todo implement
+    }
+
+    public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly,
+                               ModelExecuteOptions options, Task task, OperationResult result, AjaxRequestTarget target) {
+        //todo implement
+    }
+
+    public void clearProgressPanel() {
+        getModelObject().clear();
+    }
+
+    public boolean isAllSuccess() {
+        return getModelObject().allSuccess();
+    }
+
+    public ModelContext<? extends ObjectType> getPreviewResult() {
+        // todo implement
+        return null;
+    }
+
+    public void hideAbortButton(AjaxRequestTarget target) {
+        abortButton.setVisible(false);
+        target.add(abortButton);
+    }
+
+    public void showAbortButton(AjaxRequestTarget target) {
+        abortButton.setVisible(true);
+        target.add(abortButton);
+    }
+
+    public void hideBackButton(AjaxRequestTarget target) {
+        backButton.setVisible(false);
+        target.add(backButton);
+    }
+
+    public void hideContinueEditingButton(AjaxRequestTarget target) {
+        continueEditingButton.setVisible(false);
+        target.add(continueEditingButton);
+    }
+
+    public void showBackButton(AjaxRequestTarget target) {
+        backButton.setVisible(true);
+        target.add(backButton);
+    }
+
+    public void showContinueEditingButton(AjaxRequestTarget target) {
+        continueEditingButton.setVisible(true);
+        target.add(continueEditingButton);
+    }
+
+    // mess
+
+
+    private void startRefreshingProgressPanel(AjaxRequestTarget target) {
+        if (refreshingBehavior == null) {       // i.e. refreshing behavior has not been set yet
+            LOGGER.info("Creating refreshing behavior");
+            LOGGER.debug("Progress reporter {}, panel {}", ProgressReporter.this, ObjectUtils.identityToString(progressPanel));
+            refreshingBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(refreshInterval)) {
+
+                @Override
+                protected void onPostProcessTarget(AjaxRequestTarget target) {
+                    if (progressPanel != null) {
+                        progressPanel.invalidateCache();
+                    }
+
+                    LOGGER.debug("onPostProcessTarget {} {}", ProgressReporter.this, asyncOperationResult);
+                    LOGGER.debug("Progress reporter {}, panel {}", ProgressReporter.this, ObjectUtils.identityToString(progressPanel));
+
+                    if (asyncOperationResult != null) {         // by checking this we know that async operation has been finished
+                        asyncOperationResult.recomputeStatus(); // because we set it to in-progress
+
+                        stopRefreshingProgressPanel(target);
+
+                        parentPage.finishProcessing(target, asyncOperationResult, true);
+                        asyncOperationResult = null;
+                    }
+                }
+
+                @Override
+                public boolean isEnabled(Component component) {
+                    return component != null;
+                }
+            };
+            progressPanel.add(refreshingBehavior);
+            target.add(progressPanel);
+        }
+    }
+
+    private void stopRefreshingProgressPanel(AjaxRequestTarget target) {
+        if (refreshingBehavior != null) {
+            refreshingBehavior.stop(target);
+            // We cannot remove the behavior, as it would cause NPE because of component == null (since wicket 7.5)
+            //progressPanel.remove(refreshingBehavior);
+            refreshingBehavior = null;              // causes re-adding this behavior when re-saving changes
+        }
+    }
+
+    /**
+     * You have to call this method when Abort button is pressed
+     */
+    public void onAbortSubmit(AjaxRequestTarget target) {
+        if (progressListener == null) {
+            LOGGER.error("No progressListener (abortButton.onSubmit)");
+            return;         // should not occur
+        }
+        progressListener.setAbortRequested(true);
+        if (asyncExecutionThread != null) {
+            if (asyncExecutionThread.isAlive()) {
+                progressPanel.getModelObject().log("Abort requested, please wait...");      // todo i18n
+                asyncExecutionThread.interrupt();
+            } else {
+                progressPanel.getModelObject().log("Abort requested, but the execution seems to be already finished."); // todo i18n
+            }
+        } else {
+            progressPanel.getModelObject().log("Abort requested, please wait... (note: couldn't interrupt the thread)"); // todo i18n
+        }
+        progressPanel.hideAbortButton(target);
+    }
+
+    /**
+     * Creates and initializes a progress reporter instance. Should be called during initialization
+     * of respective wicket page.
+     *
+     * @param parentPage The parent page (user, org, role, ...)
+     * @param id         Wicket ID of the progress panel
+     * @return Progress reporter instance
+     */
+    public static ProgressReporter create(String id, ProgressReportingAwarePage parentPage) {
+        ProgressReporter reporter = new ProgressReporter();
+        reporter.progressPanel = new ProgressPanel(id, new Model<>(new ProgressDto()), reporter, parentPage);
+        reporter.progressPanel.setOutputMarkupId(true);
+        reporter.progressPanel.hide();
+
+        WebApplicationConfiguration config = parentPage.getWebApplicationConfiguration();
+        reporter.refreshInterval = config.getProgressRefreshInterval();
+        reporter.asynchronousExecution = config.isProgressReportingEnabled();
+        reporter.abortEnabled = config.isAbortEnabled();
+
+        reporter.parentPage = parentPage;
+
+        return reporter;
     }
 }
