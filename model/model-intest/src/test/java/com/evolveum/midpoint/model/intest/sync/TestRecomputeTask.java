@@ -140,25 +140,27 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 				new NameItemPathSegment(ConstructionType.F_ATTRIBUTE));
         PrismContainer<ResourceAttributeDefinitionType> attributeCont = rolePirate.findContainer(attrItemPath);
         assertNotNull("No attribute property in "+rolePirate);
-        PrismContainerValue<ResourceAttributeDefinitionType> oldAttrCVal = null;
+        PrismContainerValue<ResourceAttributeDefinitionType> oldAttrContainer = null;
         for (PrismContainerValue<ResourceAttributeDefinitionType> cval: attributeCont.getValues()) {
         	ResourceAttributeDefinitionType attrType = cval.getValue();
         	if (ItemPathUtil.getOnlySegmentQName(attrType.getRef()).getLocalPart().equals(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME)) {
-        		oldAttrCVal = cval;
+        		oldAttrContainer = cval;
         	}
         }
         assertNotNull("Definition for weapon attribute not found in "+rolePirate);
-        PrismContainerValue<ResourceAttributeDefinitionType> newAttrCVal = oldAttrCVal.clone();
-        JAXBElement<?> cutlassExpressionEvalJaxbElement = newAttrCVal.getValue().getOutbound().getExpression().getExpressionEvaluator().get(0);
+        PrismContainerValue<ResourceAttributeDefinitionType> newAttrContainer = oldAttrContainer.clone();
+        JAXBElement<?> cutlassExpressionEvalJaxbElement = newAttrContainer.getValue().getOutbound().getExpression().getExpressionEvaluator().get(0);
         RawType cutlassValueEvaluator = (RawType) cutlassExpressionEvalJaxbElement.getValue();
         RawType daggerValueEvaluator = new RawType(new PrimitiveXNode<String>("dagger"), prismContext);
         JAXBElement<?> daggerExpressionEvalJaxbElement = new JAXBElement<Object>(SchemaConstants.C_VALUE, Object.class, daggerValueEvaluator);
-        newAttrCVal.getValue().getOutbound().getExpression().getExpressionEvaluator().add(daggerExpressionEvalJaxbElement);
-        newAttrCVal.getValue().getOutbound().setStrength(MappingStrengthType.STRONG);
+        newAttrContainer.getValue().getOutbound().getExpression().getExpressionEvaluator().add(daggerExpressionEvalJaxbElement);
+        newAttrContainer.getValue().getOutbound().setStrength(MappingStrengthType.STRONG);
 
         ObjectDelta<RoleType> rolePirateDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, ROLE_PIRATE_OID,
-        		attrItemPath, prismContext, oldAttrCVal.getValue().clone());
-        rolePirateDelta.addModificationAddContainer(attrItemPath, newAttrCVal.getValue());
+        		attrItemPath, prismContext, oldAttrContainer.getValue().clone());
+        ResourceAttributeDefinitionType newAttrCVal = newAttrContainer.getValue();
+        newAttrCVal.asPrismContainerValue().setId(null);
+        rolePirateDelta.addModificationAddContainer(attrItemPath, newAttrCVal);
 
         display("Role pirate delta", rolePirateDelta);
 		modelService.executeChanges(MiscSchemaUtil.createCollection(rolePirateDelta), null, task, result);
