@@ -22,7 +22,7 @@ import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessagesModel;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
@@ -48,8 +48,8 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
 		final FeedbackMessage message = item.getModelObject();
 
 		if (message.getMessage() instanceof OpResult) {
-			OperationResultPanel panel = new OperationResultPanel("message",
-					new PropertyModel<OpResult>(item.getModel(), "message"), getPage()) {
+			final OpResult opResult = (OpResult) message.getMessage();
+			OperationResultPanel panel = new OperationResultPanel("message", Model.of(opResult), getPage()) {
 
 				private static final long serialVersionUID = 1L;
 
@@ -60,7 +60,7 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
 				}
 
 				protected void onAfterRender() {
-					((OpResult) message.getMessage()).setAlreadyShown(true);
+					opResult.setAlreadyShown(true);
 					super.onAfterRender();
 				};
 			};
@@ -69,13 +69,13 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
 				private static final long serialVersionUID = 1L;
 
 				public boolean isVisible() {
-					return !((OpResult) item.getModelObject().getMessage()).isAlreadyShown();
+					return !opResult.isAlreadyShown();
 				};
 			});
 
 			panel.setOutputMarkupId(true);
 			item.add(panel);
-		} else if (!(message.getMessage() instanceof OpResult)) {
+		} else {
 
 			message.markRendered();
 			ValidationErrorPanel validationPanel = new ValidationErrorPanel("message", item.getModel()) {

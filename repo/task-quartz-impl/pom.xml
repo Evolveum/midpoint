@@ -161,12 +161,6 @@
             <version>3.7-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-common</artifactId>
-            <version>3.7-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
         <dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
 			<groupId>org.springframework</groupId> 
 			<artifactId>spring-aspects</artifactId>

@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.security.impl;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -93,7 +92,7 @@ public class TestEmpty extends AbstractIntegrationTest {
 	@Test
 	public void test020UserProfileServiceMockUsername() throws Exception {
 		final String TEST_NAME = "test020UserProfileServiceMockUsername";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
 		assertPrincipalJack(principal);

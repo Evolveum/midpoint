@@ -15,6 +15,8 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRTemplate;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -57,6 +59,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -74,6 +77,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CommandLineScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -108,20 +112,12 @@ public class ReportCreateTaskHandler implements TaskHandler {
 
     private static String JASPER_VIRTUALIZER_PKG = "net.sf.jasperreports.engine.fill";
 
-    @Autowired
-    private TaskManager taskManager;
-
-    @Autowired
-    private ModelService modelService;
-
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired(required = true)
-    private ReportService reportService;
-
-    @Autowired(required = true)
-    private ObjectResolver objectResolver;
+    @Autowired private TaskManager taskManager;
+    @Autowired private ModelService modelService;
+    @Autowired private PrismContext prismContext;
+    @Autowired private ReportService reportService;
+    @Autowired private ObjectResolver objectResolver;
+    @Autowired private CommandLineScriptExecutor commandLineScriptExecutor;
 
     @PostConstruct
     private void initialize() {
@@ -227,7 +223,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
             LOGGER.trace("create report output type : {}", reportFilePath);
 
             if (parentReport.getPostReportScript() != null) {
-                processPostReportScript(parentReport.getPostReportScript().getCode(), reportFilePath, result);
+                processPostReportScript(parentReport, reportFilePath, task, result);
             }
             result.computeStatus();
 
@@ -512,20 +508,24 @@ public class ReportCreateTaskHandler implements TaskHandler {
         subResult.computeStatus();
     }
 
-    private void processPostReportScript(String code,String reportOutputFilePath,OperationResult parentResult ){
-        if (code!=null && !code.isEmpty()){
+    private void processPostReportScript(ReportType parentReport, String reportOutputFilePath, Task task, OperationResult parentResult ) {
+    	CommandLineScriptType scriptType = parentReport.getPostReportScript();
+        if (scriptType == null) {
+        	LOGGER.debug("No post report script found in {}, skipping", parentReport);
+        	return;
+        }
+        
+        ExpressionVariables variables = new ExpressionVariables();
+        variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, parentReport);
+        variables.addVariableDefinition(ExpressionConstants.VAR_FILE, commandLineScriptExecutor.getOsSpecificFilePath(reportOutputFilePath));
 
-        	CommandLineScriptExecutor commandLineScriptExecutor = new CommandLineScriptExecutor(reportOutputFilePath);
-            try{
-            	commandLineScriptExecutor.executeScript(code, null, parentResult);
-            }catch (Exception e) {
-                LOGGER.error("An exception has occurred during post report script execution {}",e.getLocalizedMessage());
-                // LoggingUtils.logExceptionAsWarning(LOGGER,"And unexpected exception occurred during post report script execution",e, task);
-            }
-        } else{
-            if(LOGGER.isDebugEnabled()){
-                LOGGER.debug("No post report script found");
-            }
+        try {
+        	
+			commandLineScriptExecutor.executeScript(scriptType, variables, "post-report script in "+parentReport, task, parentResult);
+			
+        } catch (Exception e) {
+            LOGGER.error("An exception has occurred during post report script execution {}",e.getLocalizedMessage());
+            // LoggingUtils.logExceptionAsWarning(LOGGER,"And unexpected exception occurred during post report script execution",e, task);
         }
     }
 
