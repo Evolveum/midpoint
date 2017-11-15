@@ -919,9 +919,13 @@ public final class WebComponentUtil {
 		}
 
 		C containerable = prismContainerValue.asContainerable();
-		if (containerable instanceof AssignmentType && ((AssignmentType) containerable).getTargetRef() != null) {
-			ObjectReferenceType assignemntTargetRef = ((AssignmentType) containerable).getTargetRef();
-			return getName(assignemntTargetRef) + " - " + normalizeRelation(assignemntTargetRef.getRelation()).getLocalPart();
+		if (containerable instanceof AssignmentType) {
+			if (((AssignmentType) containerable).getTargetRef() != null){
+				ObjectReferenceType assignemntTargetRef = ((AssignmentType) containerable).getTargetRef();
+				return getName(assignemntTargetRef) + " - " + normalizeRelation(assignemntTargetRef.getRelation()).getLocalPart();
+			} else {
+				return "AssignmentTypeDetailsPanel.containerTitle";
+			}
 		}
 
 		if (containerable instanceof ExclusionPolicyConstraintType){
@@ -936,6 +940,9 @@ public final class WebComponentUtil {
 			String displayName = (StringUtils.isEmpty(constraint.getName()) ? (constraint.asPrismContainerValue().getPath().last()) : constraint.getName())
 					+ (StringUtils.isEmpty(constraint.getDescription()) ? "" : (" - " + constraint.getDescription()));
 			return displayName;
+		}
+		if (containerable.getClass() != null){
+			return containerable.getClass().getSimpleName() + ".details";
 		}
 		return "ContainerPanel.containerProperties";
 	}
