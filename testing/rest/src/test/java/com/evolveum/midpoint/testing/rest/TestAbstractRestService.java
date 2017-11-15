@@ -965,7 +965,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		//TODO assert changed items
 	}
 
-	private OperationResult traceResponse(Response response){
+	private OperationResult traceResponse(Response response) throws SchemaException {
 		if (response.getStatus() != 200 && response.getStatus() != 201 && response.getStatus() != 204) {
 			OperationResultType result = response.readEntity(OperationResultType.class);
 			LOGGER.info("####RESULT");
@@ -983,7 +983,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
-		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
+		client.path("/rpc/validate");
 
 		getDummyAuditService().clear();
 
@@ -1008,7 +1008,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
-		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
+		client.path("/rpc/validate");
 
 		getDummyAuditService().clear();
 
