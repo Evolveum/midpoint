@@ -13914,6 +13914,15 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="assignment">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ASSIGNMENT"/>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>3.7</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="hasAssignment">
                 <xsd:annotation>
                     <xsd:appinfo>
