@@ -201,9 +201,7 @@ public class ObjectImporter {
 		//noinspection unchecked
 		PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) prismObjectObjectable;
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("IMPORTING object:\n{}", object.debugDump());
-		}
+		LOGGER.trace("IMPORTING object:\n{}", object.debugDumpLazily());
 
 		object = migrator.migrate(object);
 
@@ -258,37 +256,28 @@ public class ObjectImporter {
 			return EventResult.skipObject(objectResult.getMessage());
 		}
 
+		// TODO do reporting more seriously e.g. using localized messages
 		try {
 			importObjectToRepository(object, options, task, objectResult);
 		    LOGGER.info("Imported object {}", object);
 		} catch (SchemaException e) {
-		    objectResult.recordFatalError("Schema violation: "+e.getMessage(), e);
-		    LOGGER.error("Import of object {} failed: Schema violation: {}", object, e.getMessage(), e);
+			recordError(objectResult, object, "Schema violation", e);
 		} catch (ObjectAlreadyExistsException e) {
-			objectResult.recordFatalError("Object already exists: "+e.getMessage(), e);
-		    LOGGER.error("Import of object {} failed: Object already exists: {}", object, e.getMessage(), e);
-		    LOGGER.error("Object already exists", e);
+			recordError(objectResult, object, "Object already exists", e);
 		} catch (RuntimeException e) {
-		    objectResult.recordFatalError("Unexpected problem: "+e.getMessage(), e);
-		    LOGGER.error("Import of object {} failed: Unexpected problem: {}", object, e.getMessage(), e);
+			recordError(objectResult, object, "Unexpected problem", e);
 		} catch (ObjectNotFoundException e) {
-			objectResult.recordFatalError("Referred object not found: "+e.getMessage(), e);
-			LOGGER.error("Import of object {} failed: Object referred from this object was not found: {}", object, e.getMessage(), e);
+			recordError(objectResult, object, "Referred object not found", e);
 		} catch (ExpressionEvaluationException e) {
-			objectResult.recordFatalError("Expression evaluation error: "+e.getMessage(), e);
-			LOGGER.error("Import of object {} failed: Expression evaluation error: {}", object, e.getMessage(), e);
+			recordError(objectResult, object, "Expression evaluation error", e);
 		} catch (CommunicationException e) {
-			objectResult.recordFatalError("Communication error: "+e.getMessage(), e);
-			LOGGER.error("Import of object {} failed: Communication error: {}", object, e.getMessage(), e);
+			recordError(objectResult, object, "Communication error", e);
 		} catch (ConfigurationException e) {
-			objectResult.recordFatalError("Configuration error: "+e.getMessage(), e);
-			LOGGER.error("Import of object {} failed: Configuration error: {}", object, e.getMessage(), e);
+			recordError(objectResult, object, "Configuration error", e);
 		} catch (PolicyViolationException e) {
-			objectResult.recordFatalError("Policy violation: "+e.getMessage(), e);
-			LOGGER.error("Import of object {} failed: Policy violation: {}", object, e.getMessage(), e);
+			recordError(objectResult, object, "Policy violation", e);
 		} catch (SecurityViolationException e) {
-			objectResult.recordFatalError("Security violation: "+e.getMessage(), e);
-			LOGGER.error("Import of object {} failed: Security violation: {}", object, e.getMessage(), e);
+			recordError(objectResult, object, "Security violation", e);
 		}
 
 		objectResult.recordSuccessIfUnknown();
@@ -298,6 +287,17 @@ public class ObjectImporter {
 		} else {
 		    return EventResult.skipObject(objectResult.getMessage());
 		}
+	}
+
+	private void recordError(OperationResult objectResult, PrismObject<? extends ObjectType> object, String errorLabel, Exception e) {
+		String objectLabel = object != null && object.getName() != null
+				? object.asObjectable().getClass().getSimpleName() + " \"" + object.getName().getOrig() + "\""
+				: "object";
+		// We intentionally do NOT record the exception here, because it could override our message with the localizable
+		// one it (potentially) carries. And we really want to show the following message as it contains the name of the object
+		// that couldn't be imported. We hope the exception is recorded in some inner result.
+		objectResult.recordFatalError("Import of " + objectLabel + " failed: " + errorLabel + ": " + e.getMessage());
+		LOGGER.error("Import of object {} failed: {}: {}", object, errorLabel, e.getMessage(), e);
 	}
 
 	private <T extends ObjectType> void importObjectToRepository(PrismObject<T> object, ImportOptionsType options, Task task,
