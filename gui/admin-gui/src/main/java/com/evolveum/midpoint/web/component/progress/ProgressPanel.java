@@ -262,7 +262,7 @@ public class ProgressPanel extends BasePanel {
             @Override
             protected void onSubmit(AjaxRequestTarget target,
                                     org.apache.wicket.markup.html.form.Form<?> form) {
-                onAbortSubmit(target);
+                abortPerformed(target);
             }
 
             @Override
@@ -453,6 +453,12 @@ public class ProgressPanel extends BasePanel {
                     stopRefreshingProgressPanel(target);
 
                     PageBase page = getPageBase();
+                    if (reporter.isAbortRequested()) {
+                        page.showResult(asyncOperationResult);
+                        target.add(page.getFeedbackPanel());
+                        return;
+                    }
+
                     if (page instanceof ProgressReportingAwarePage) {
                         ProgressReportingAwarePage aware = (ProgressReportingAwarePage) page;
                         aware.finishProcessing(target, asyncOperationResult, true);
@@ -485,7 +491,7 @@ public class ProgressPanel extends BasePanel {
     /**
      * You have to call this method when Abort button is pressed
      */
-    public void onAbortSubmit(AjaxRequestTarget target) {
+    public void abortPerformed(AjaxRequestTarget target) {
         ProgressReporter reporter = reporterModel.getObject();
 
         if (reporter == null) {
@@ -494,6 +500,7 @@ public class ProgressPanel extends BasePanel {
         }
 
         reporter.setAbortRequested(true);
+
         Future future = reporter.getFuture();
         if (future != null) {
             if (!future.isDone()) {
