@@ -43,7 +43,9 @@
     <import resource="ctx-task.xml"/>
     <import resource="ctx-audit.xml"/>
     <import resource="ctx-security.xml"/>
+    <import resource="ctx-security-enforcer.xml"/>
     <import resource="classpath*:ctx-repository-test.xml"/>
+    <import resource="ctx-repo-common.xml"/>
     <import resource="ctx-repo-cache.xml"/>
     <import resource="ctx-configuration-test.xml"/>
 
