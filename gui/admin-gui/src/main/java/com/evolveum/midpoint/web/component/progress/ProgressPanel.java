@@ -46,6 +46,7 @@ import org.apache.wicket.util.time.Duration;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Future;
 
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION;
 import static com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto.ResourceOperationResult;
@@ -493,10 +494,11 @@ public class ProgressPanel extends BasePanel {
         }
 
         reporter.setAbortRequested(true);
-        if (asyncExecutionThread != null) {
-            if (asyncExecutionThread.isAlive()) {
+        Future future = reporter.getFuture();
+        if (future != null) {
+            if (!future.isDone()) {
                 reporter.getProgress().log(getString("ProgressPanel.abortRequested"));
-                asyncExecutionThread.interrupt();
+                future.cancel(true);
             } else {
                 reporter.getProgress().log(getString("ProgressPanel.abortRequestedFinished"));
             }

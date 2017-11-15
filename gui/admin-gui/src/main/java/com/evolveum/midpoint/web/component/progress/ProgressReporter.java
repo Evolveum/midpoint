@@ -46,6 +46,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.Future;
 
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.*;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
@@ -66,6 +67,8 @@ public class ProgressReporter implements ProgressListener, Serializable {
     private ProgressDto progress;
     private boolean abortRequested;
 
+    private Future future;
+
     // Operation result got from the asynchronous operation (null if async op not yet finished)
     private OperationResult asyncOperationResult;
     private ModelContext<? extends ObjectType> previewResult;
@@ -81,6 +84,8 @@ public class ProgressReporter implements ProgressListener, Serializable {
     public ProgressReporter(String id, MidPointApplication application) {
         this.id = id;
         this.application = application;
+
+        progress = new ProgressDto();
     }
 
     public String getId() {
@@ -178,6 +183,14 @@ public class ProgressReporter implements ProgressListener, Serializable {
         } else {
             // these two should not be visible in the list of activities
         }
+    }
+
+    public Future getFuture() {
+        return future;
+    }
+
+    public void setFuture(Future future) {
+        this.future = future;
     }
 
     @Override

@@ -48,6 +48,7 @@ import javax.servlet.http.HttpSession;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -191,7 +192,8 @@ public class ProgressReporterManager implements ISessionListener {
 
         result.recordInProgress();              // to disable showing not-final results (why does it work? and why is the result shown otherwise?)
 
-        executor.submit(execution);
+        Future future = executor.submit(execution);
+
     }
 
     private void cleanupReporter(Key key) {
