@@ -50,13 +50,7 @@ public interface ProgressReportingAwarePage {
 
     ModelInteractionService getModelInteractionService();
 
-    SecurityEnforcer getSecurityEnforcer();
-    
-    SecurityContextManager getSecurityContextManager();
-
     Task createSimpleTask(String name);
-
-    WebApplicationConfiguration getWebApplicationConfiguration();
 
     WebMarkupContainer getFeedbackPanel();
 

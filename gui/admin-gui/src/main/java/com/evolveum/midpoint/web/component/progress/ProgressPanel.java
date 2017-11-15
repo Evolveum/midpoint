@@ -24,13 +24,14 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import org.apache.commons.lang.ObjectUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -41,7 +42,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.util.time.Duration;
 
 import java.util.Collection;
@@ -53,7 +53,9 @@ import static com.evolveum.midpoint.web.component.progress.ProgressReportActivit
 /**
  * @author mederly
  */
-public class ProgressPanel extends BasePanel<ProgressDto> {
+public class ProgressPanel extends BasePanel {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ProgressPanel.class);
 
     private static final String ID_CONTENTS_PANEL = "contents";
     private static final String ID_ACTIVITIES = "progressReportActivities";
@@ -73,14 +75,12 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
     private AjaxSubmitButton backButton;
     private AjaxSubmitButton continueEditingButton;
 
+    private AjaxSelfUpdatingTimerBehavior refreshingBehavior;
+
     private WebMarkupContainer contentsPanel;
     private StatisticsPanel statisticsPanel;
 
     private IModel<ProgressReporter> reporterModel;
-
-    //todo move to progress reporter bean probably
-    private long operationStartTime;            // if 0, operation hasn't start yet
-    private long operationDurationTime;         // if >0, operation has finished
 
     public ProgressPanel(String id) {
         super(id);
@@ -113,7 +113,7 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
 
                     @Override
                     public List<ProgressReportActivityDto> getObject() {
-                        ProgressDto progressDto = ProgressPanel.this.getModelObject();
+                        ProgressDto progressDto = reporterModel.getObject().getProgress();
                         return progressDto.getProgressReportActivities();
                     }
                 }) {
@@ -132,7 +132,7 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
 
             @Override
             public List getObject() {
-                ProgressDto progressDto = ProgressPanel.this.getModelObject();
+                ProgressDto progressDto = reporterModel.getObject().getProgress();
                 return progressDto.getLogItems();
             }
         }) {
@@ -148,11 +148,13 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
 
             @Override
             public String getObject() {
-                if (operationDurationTime > 0) {
-                    return getString("ProgressPanel.ExecutionTimeWhenFinished", operationDurationTime);
-                } else if (operationStartTime > 0) {
+                ProgressReporter reporter = reporterModel.getObject();
+
+                if (reporter.getOperationDurationTime() > 0) {
+                    return getString("ProgressPanel.ExecutionTimeWhenFinished", reporter.getOperationDurationTime());
+                } else if (reporter.getOperationStartTime() > 0) {
                     return getString("ProgressPanel.ExecutionTimeWhenRunning",
-                            (System.currentTimeMillis() - operationStartTime) / 1000);
+                            (System.currentTimeMillis() - reporter.getOperationStartTime()) / 1000);
                 } else {
                     return null;
                 }
@@ -259,7 +261,7 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
             @Override
             protected void onSubmit(AjaxRequestTarget target,
                                     org.apache.wicket.markup.html.form.Form<?> form) {
-                progressReporter.onAbortSubmit(target);
+                onAbortSubmit(target);
             }
 
             @Override
@@ -323,15 +325,6 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
         contentsPanel.setVisible(false);
     }
 
-    public void recordExecutionStart() {
-        operationDurationTime = 0;
-        operationStartTime = System.currentTimeMillis();
-    }
-
-    public void recordExecutionStop() {
-        operationDurationTime = System.currentTimeMillis() - operationStartTime;
-    }
-
     public void setTask(Task task) {
         if (statisticsPanel != null && statisticsPanel.getModel() instanceof StatisticsDtoModel) {
             ((StatisticsDtoModel) statisticsPanel.getModel()).setTask(task);
@@ -356,19 +349,52 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
     public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly,
                                ModelExecuteOptions options, Task task, OperationResult result, AjaxRequestTarget target) {
         //todo implement
+        PageBase page = getPageBase();
+        ProgressReporterManager manager = page.getProgressReporterManager();
+
+        ProgressReporter reporter = reporterModel.getObject();
+
+        if (page instanceof ProgressReportingAwarePage) {
+            ProgressReportingAwarePage aware = (ProgressReportingAwarePage) page;
+            aware.startProcessing(target, result);
+        }
+
+        if (reporter.isAsynchronousExecution()) {
+            reporter.setAsyncOperationResult(null);
+
+            clearProgressPanel();
+            startRefreshingProgressPanel(target);
+            show();
+
+            if (reporter.isAbortEnabled()) {
+                showAbortButton(target);
+            }
+            showBackButton(target);
+
+            setTask(task);
+        }
+
+        manager.executeChanges(reporter.getId(), deltas, previewOnly, options, task, result);
+
+        if (page instanceof ProgressReportingAwarePage) {
+            ProgressReportingAwarePage aware = (ProgressReportingAwarePage) page;
+            aware.finishProcessing(target, result, reporter.isAsynchronousExecution());
+        }
     }
 
     public void clearProgressPanel() {
-        getModelObject().clear();
+        ProgressReporter reporter = reporterModel.getObject();
+        reporter.getProgress().clear();
     }
 
     public boolean isAllSuccess() {
-        return getModelObject().allSuccess();
+        ProgressReporter reporter = reporterModel.getObject();
+        return reporter.getProgress().allSuccess();
     }
 
     public ModelContext<? extends ObjectType> getPreviewResult() {
-        // todo implement
-        return null;
+        ProgressReporter reporter = reporterModel.getObject();
+        return reporter.getPreviewResult();
     }
 
     public void hideAbortButton(AjaxRequestTarget target) {
@@ -403,40 +429,47 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
 
     // mess
 
-
     private void startRefreshingProgressPanel(AjaxRequestTarget target) {
-        if (refreshingBehavior == null) {       // i.e. refreshing behavior has not been set yet
-            LOGGER.info("Creating refreshing behavior");
-            LOGGER.debug("Progress reporter {}, panel {}", ProgressReporter.this, ObjectUtils.identityToString(progressPanel));
-            refreshingBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(refreshInterval)) {
-
-                @Override
-                protected void onPostProcessTarget(AjaxRequestTarget target) {
-                    if (progressPanel != null) {
-                        progressPanel.invalidateCache();
-                    }
-
-                    LOGGER.debug("onPostProcessTarget {} {}", ProgressReporter.this, asyncOperationResult);
-                    LOGGER.debug("Progress reporter {}, panel {}", ProgressReporter.this, ObjectUtils.identityToString(progressPanel));
-
-                    if (asyncOperationResult != null) {         // by checking this we know that async operation has been finished
-                        asyncOperationResult.recomputeStatus(); // because we set it to in-progress
-
-                        stopRefreshingProgressPanel(target);
-
-                        parentPage.finishProcessing(target, asyncOperationResult, true);
-                        asyncOperationResult = null;
-                    }
-                }
-
-                @Override
-                public boolean isEnabled(Component component) {
-                    return component != null;
-                }
-            };
-            progressPanel.add(refreshingBehavior);
-            target.add(progressPanel);
+        if (refreshingBehavior != null) {
+            return;
         }
+
+        ProgressReporter reporter = reporterModel.getObject();
+        int refreshInterval = reporter.getRefreshInterval();
+
+        refreshingBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(refreshInterval)) {
+
+            @Override
+            protected void onPostProcessTarget(AjaxRequestTarget target) {
+                invalidateCache();
+
+                ProgressReporter reporter = reporterModel.getObject();
+
+                OperationResult asyncOperationResult = reporter.getAsyncOperationResult();
+                if (asyncOperationResult != null) {         // by checking this we know that async operation has been finished
+                    asyncOperationResult.recomputeStatus(); // because we set it to in-progress
+
+                    stopRefreshingProgressPanel(target);
+
+                    PageBase page = getPageBase();
+                    if (page instanceof ProgressReportingAwarePage) {
+                        ProgressReportingAwarePage aware = (ProgressReportingAwarePage) page;
+                        aware.finishProcessing(target, asyncOperationResult, true);
+                    }
+
+                    reporter.setAsyncOperationResult(null);
+                }
+            }
+
+            @Override
+            public boolean isEnabled(Component component) {
+                return component != null;
+            }
+        };
+
+        add(refreshingBehavior);
+
+        target.add(this);
     }
 
     private void stopRefreshingProgressPanel(AjaxRequestTarget target) {
@@ -452,46 +485,26 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
      * You have to call this method when Abort button is pressed
      */
     public void onAbortSubmit(AjaxRequestTarget target) {
-        if (progressListener == null) {
-            LOGGER.error("No progressListener (abortButton.onSubmit)");
+        ProgressReporter reporter = reporterModel.getObject();
+
+        if (reporter == null) {
+            LOGGER.error("No reporter/progressListener (abortButton.onSubmit)");
             return;         // should not occur
         }
-        progressListener.setAbortRequested(true);
+
+        reporter.setAbortRequested(true);
         if (asyncExecutionThread != null) {
             if (asyncExecutionThread.isAlive()) {
-                progressPanel.getModelObject().log("Abort requested, please wait...");      // todo i18n
+                reporter.getProgress().log(getString("ProgressPanel.abortRequested"));
                 asyncExecutionThread.interrupt();
             } else {
-                progressPanel.getModelObject().log("Abort requested, but the execution seems to be already finished."); // todo i18n
+                reporter.getProgress().log(getString("ProgressPanel.abortRequestedFinished"));
             }
         } else {
-            progressPanel.getModelObject().log("Abort requested, please wait... (note: couldn't interrupt the thread)"); // todo i18n
+            reporter.getProgress().log("ProgressPanel.abortRequestedNoInterrupt");
         }
-        progressPanel.hideAbortButton(target);
-    }
 
-    /**
-     * Creates and initializes a progress reporter instance. Should be called during initialization
-     * of respective wicket page.
-     *
-     * @param parentPage The parent page (user, org, role, ...)
-     * @param id         Wicket ID of the progress panel
-     * @return Progress reporter instance
-     */
-    public static ProgressReporter create(String id, ProgressReportingAwarePage parentPage) {
-        ProgressReporter reporter = new ProgressReporter();
-        reporter.progressPanel = new ProgressPanel(id, new Model<>(new ProgressDto()), reporter, parentPage);
-        reporter.progressPanel.setOutputMarkupId(true);
-        reporter.progressPanel.hide();
-
-        WebApplicationConfiguration config = parentPage.getWebApplicationConfiguration();
-        reporter.refreshInterval = config.getProgressRefreshInterval();
-        reporter.asynchronousExecution = config.isProgressReportingEnabled();
-        reporter.abortEnabled = config.isAbortEnabled();
-
-        reporter.parentPage = parentPage;
-
-        return reporter;
+        hideAbortButton(target);
     }
 
     private static class ProgressReporterModel implements IModel<ProgressReporter> {
@@ -518,7 +531,8 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
                 return reporter;
             }
 
-            reporter = manager.createReporter();
+            WebApplicationConfiguration config = page.getWebApplicationConfiguration();
+            reporter = manager.createReporter(config);
             id = reporter.getId();
 
             return reporter;

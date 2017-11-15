@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.progress;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
@@ -29,12 +30,12 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.users.DefaultGuiProgressListener;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ISessionListener;
 import org.apache.wicket.Session;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.cycle.RequestCycle;
@@ -55,6 +56,8 @@ public class ProgressReporterManager implements ISessionListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProgressReporterManager.class);
 
+    @Autowired
+    private MidPointApplication application;
     @Autowired
     private ModelService modelService;
     @Autowired
@@ -82,10 +85,14 @@ public class ProgressReporterManager implements ISessionListener {
         }
     }
 
-    public ProgressReporter createReporter() {
+    public ProgressReporter createReporter(WebApplicationConfiguration config) {
         Key key = createReporterIdentifier(UUID.randomUUID().toString());
 
-        ProgressReporter reporter = ProgressReporter.create(key.reporterId);
+        ProgressReporter reporter = new ProgressReporter(key.reporterId, application);
+        reporter.setRefreshInterval(config.getProgressRefreshInterval());
+        reporter.setAsynchronousExecution(config.isProgressReportingEnabled());
+        reporter.setAbortEnabled(config.isAbortEnabled());
+
         reporters.put(key, reporter);
 
         return reporter;
@@ -118,20 +125,19 @@ public class ProgressReporterManager implements ISessionListener {
             throw new IllegalStateException("Progress reporter with id '" + reporterId + "' doesn't exist");
         }
 
-        parentPage.startProcessing(target, result);
-
-        if (asynchronousExecution) {
-            executeChangesAsync(deltas, previewOnly, options, task, result);
+        if (reporter.isAsynchronousExecution()) {
+            executeChangesAsync(reporter, deltas, previewOnly, options, task, result);
         } else {
-            executeChangesSync(deltas, previewOnly, options, task, result);
+            executeChangesSync(reporter, deltas, previewOnly, options, task, result);
         }
     }
 
-    private void executeChangesSync(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly,
-                                    ModelExecuteOptions options, Task task, OperationResult result, AjaxRequestTarget target) {
+    private void executeChangesSync(ProgressReporter reporter, Collection<ObjectDelta<? extends ObjectType>> deltas,
+                                    boolean previewOnly, ModelExecuteOptions options, Task task, OperationResult result) {
         try {
             if (previewOnly) {
-                previewResult = modelInteractionService.previewChanges(deltas, options, task, result);
+                ModelContext previewResult = modelInteractionService.previewChanges(deltas, options, task, result);
+                reporter.setPreviewResult(previewResult);
             } else {
                 modelService.executeChanges(deltas, options, task, result);
             }
@@ -142,21 +148,12 @@ public class ProgressReporterManager implements ISessionListener {
                 result.recordFatalError(e.getMessage(), e);
             }
         }
-        parentPage.finishProcessing(target, result, false);
     }
 
-    private void executeChangesAsync(final Collection<ObjectDelta<? extends ObjectType>> deltas, final boolean previewOnly,
-                                     final ModelExecuteOptions options, final Task task, final OperationResult result, AjaxRequestTarget target) {
+    private void executeChangesAsync(ProgressReporter reporter, Collection<ObjectDelta<? extends ObjectType>> deltas,
+                                     boolean previewOnly, ModelExecuteOptions options, Task task, OperationResult result) {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        asyncOperationResult = null;
-
-        clearProgressPanel();
-        startRefreshingProgressPanel(target);
-        showProgressPanel();
-
-        progressPanel.setTask(task);
-        progressListener = new DefaultGuiProgressListener(parentPage, progressPanel.getModelObject());
         final HttpConnectionInformation connInfo = SecurityUtil.getCurrentConnectionInformation();
         Runnable execution = () -> {
             try {
@@ -164,8 +161,9 @@ public class ProgressReporterManager implements ISessionListener {
 
                 securityContextManager.storeConnectionInformation(connInfo);
                 securityContextManager.setupPreAuthenticatedSecurityContext(authentication);
-                progressPanel.recordExecutionStart();
+                reporter.recordExecutionStart();
 
+                //todo remove!!!!!!! [lazyman]
                 try {
                     Thread.sleep(3000l);
                 } catch (InterruptedException ex) {
@@ -173,10 +171,11 @@ public class ProgressReporterManager implements ISessionListener {
                 }
 
                 if (previewOnly) {
-                    previewResult = modelInteractionService
-                            .previewChanges(deltas, options, task, Collections.singleton(progressListener), result);
+                    ModelContext previewResult = modelInteractionService
+                            .previewChanges(deltas, options, task, Collections.singleton(reporter), result);
+                    reporter.setPreviewResult(previewResult);
                 } else {
-                    modelService.executeChanges(deltas, options, task, Collections.singleton(progressListener), result);
+                    modelService.executeChanges(deltas, options, task, Collections.singleton(reporter), result);
                 }
             } catch (CommonException | RuntimeException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Error executing changes", e);
@@ -186,14 +185,9 @@ public class ProgressReporterManager implements ISessionListener {
             } finally {
                 LOGGER.debug("Execution finish {}", result);
             }
-            progressPanel.recordExecutionStop();
-            asyncOperationResult = result;          // signals that the operation has finished
+            reporter.recordExecutionStop();
+            reporter.setAsyncOperationResult(result);          // signals that the operation has finished
         };
-
-        if (abortEnabled) {
-            showAbortButton(target);
-        }
-        showBackButton(target);
 
         result.recordInProgress();              // to disable showing not-final results (why does it work? and why is the result shown otherwise?)
 
