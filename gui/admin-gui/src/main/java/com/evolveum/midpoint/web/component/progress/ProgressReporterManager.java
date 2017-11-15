@@ -164,13 +164,6 @@ public class ProgressReporterManager implements ISessionListener {
                 securityContextManager.setupPreAuthenticatedSecurityContext(authentication);
                 reporter.recordExecutionStart();
 
-                //todo remove!!!!!!! [lazyman]
-                try {
-                    Thread.sleep(3000l);
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace();
-                }
-
                 if (previewOnly) {
                     ModelContext previewResult = modelInteractionService
                             .previewChanges(deltas, options, task, Collections.singleton(reporter), result);
@@ -190,14 +183,23 @@ public class ProgressReporterManager implements ISessionListener {
             reporter.setAsyncOperationResult(result);          // signals that the operation has finished
         };
 
-        result.recordInProgress();              // to disable showing not-final results (why does it work? and why is the result shown otherwise?)
+        result.recordInProgress(); // to disable showing not-final results (why does it work? and why is the result shown otherwise?)
 
         Future future = executor.submit(execution);
-
+        reporter.setFuture(future);
     }
 
     private void cleanupReporter(Key key) {
-        // todo implement interrupt thread execution and remove from reporters map
+        ProgressReporter reporter = reporters.get(key);
+        if (reporter == null) {
+            return;
+        }
+
+        if (reporter.getFuture() != null) {
+            reporter.getFuture().cancel(true);
+        }
+
+        reporters.remove(key);
     }
 
     private Key createReporterIdentifier(String reporterId) {

@@ -349,7 +349,7 @@ public class ProgressPanel extends BasePanel {
 
     public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly,
                                ModelExecuteOptions options, Task task, OperationResult result, AjaxRequestTarget target) {
-        //todo implement
+
         PageBase page = getPageBase();
         ProgressReporterManager manager = page.getProgressReporterManager();
 
@@ -377,7 +377,7 @@ public class ProgressPanel extends BasePanel {
 
         manager.executeChanges(reporter.getId(), deltas, previewOnly, options, task, result);
 
-        if (page instanceof ProgressReportingAwarePage) {
+        if (!reporter.isAsynchronousExecution() && page instanceof ProgressReportingAwarePage) {
             ProgressReportingAwarePage aware = (ProgressReportingAwarePage) page;
             aware.finishProcessing(target, result, reporter.isAsynchronousExecution());
         }
@@ -513,7 +513,7 @@ public class ProgressPanel extends BasePanel {
 
         private PageBase page;
 
-        private ProgressReporter reporter;
+        private transient ProgressReporter reporter;
         private String id;
 
         public ProgressReporterModel(PageBase page) {

@@ -44,7 +44,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.Future;
 
@@ -56,7 +55,7 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.EXIT
  * @author Viliam Repan (lazyman)
  * @author mederly
  */
-public class ProgressReporter implements ProgressListener, Serializable {
+public class ProgressReporter implements ProgressListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProgressReporter.class);
 
