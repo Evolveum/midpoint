@@ -172,8 +172,8 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         return deltas;
     }
 
-    public List<ObjectDelta<?>> getDeltaList() {
-        List<ObjectDelta<?>> rv = new ArrayList<>();
+    public List<ObjectDelta<? extends ObjectType>> getDeltaList() {
+        List<ObjectDelta<? extends ObjectType>> rv = new ArrayList<>();
         if (focusChange != null) {
             rv.add(focusChange);
         }

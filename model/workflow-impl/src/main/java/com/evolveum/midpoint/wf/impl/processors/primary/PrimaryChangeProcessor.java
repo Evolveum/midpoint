@@ -386,9 +386,9 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             throw new SystemException("Couldn't retrieve delta(s) from task " + wfTask.getTask(), e);
         }
         if (deltas != null) {
-            List<ObjectDelta<?>> deltaList = deltas.getDeltaList();
-            for (ObjectDelta delta : deltaList) {
-                auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
+            List<ObjectDelta<? extends ObjectType>> deltaList = deltas.getDeltaList();
+            for (ObjectDelta<? extends ObjectType> delta : deltaList) {
+                auditEventRecord.addDelta(new ObjectDeltaOperation<>(delta));
             }
         }
         return auditEventRecord;
@@ -410,8 +410,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     @Override
     public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
 			TaskEvent taskEvent, WfTask wfTask, OperationResult result) throws WorkflowException {
-        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause,
-				wfTask, result);
+        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, wfTask, result);
         try {
 			AbstractWorkItemOutputType output = workItem.getOutput();
         	// TODO - or merge with original deltas?
@@ -429,8 +428,8 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     private void addDeltasToEventRecord(AuditEventRecord auditEventRecord, ObjectTreeDeltas<?> deltas) {
         if (deltas != null) {
-			for (ObjectDelta<?> delta : deltas.getDeltaList()) {
-				auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
+			for (ObjectDelta<? extends ObjectType> delta : deltas.getDeltaList()) {
+				auditEventRecord.addDelta(new ObjectDeltaOperation<>(delta));
 			}
 		}
     }
