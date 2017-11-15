@@ -73,29 +73,35 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
     private AjaxSubmitButton backButton;
     private AjaxSubmitButton continueEditingButton;
 
-    private Form progressForm;
-    private long operationStartTime;            // if 0, operation hasn't start yet
-    private long operationDurationTime;         // if >0, operation has finished
-
     private WebMarkupContainer contentsPanel;
     private StatisticsPanel statisticsPanel;
 
+    private IModel<ProgressReporter> reporterModel;
+
+    //todo move to progress reporter bean probably
+    private long operationStartTime;            // if 0, operation hasn't start yet
+    private long operationDurationTime;         // if >0, operation has finished
+
     public ProgressPanel(String id) {
         super(id);
-    }
-
-    public ProgressPanel(String id, IModel<ProgressDto> model, ProgressReportingAwarePage page) {
-        super(id, model);
 
         setOutputMarkupId(true);
+    }
 
-        initLayout(page);
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        PageBase page = getPageBase();
+        reporterModel = new ProgressReporterModel(page);
+
+        initLayout();
 
         hide();
     }
 
-    private void initLayout(ProgressReportingAwarePage page) {
-        progressForm = new Form<>(ID_PROGRESS_FORM, true);
+    private void initLayout() {
+        Form progressForm = new Form<>(ID_PROGRESS_FORM, true);
         add(progressForm);
 
         contentsPanel = new WebMarkupContainer(ID_CONTENTS_PANEL);
@@ -123,12 +129,15 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
         contentsPanel.add(statisticsPanel);
 
         ListView logItemsListView = new ListView(ID_LOG_ITEMS, new AbstractReadOnlyModel<List>() {
+
             @Override
             public List getObject() {
                 ProgressDto progressDto = ProgressPanel.this.getModelObject();
                 return progressDto.getLogItems();
             }
         }) {
+
+            @Override
             protected void populateItem(ListItem item) {
                 item.add(new Label(ID_LOG_ITEM, item.getModel()));
             }
@@ -136,6 +145,7 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
         contentsPanel.add(logItemsListView);
 
         Label executionTime = new Label(ID_EXECUTION_TIME, new AbstractReadOnlyModel<String>() {
+
             @Override
             public String getObject() {
                 if (operationDurationTime > 0) {
@@ -150,7 +160,7 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
         });
         contentsPanel.add(executionTime);
 
-        initButtons(progressForm, page);
+        initButtons(progressForm);
     }
 
     private Label createImageLabel(String id, IModel<String> cssClass, IModel<String> title) {
@@ -163,6 +173,7 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
 
     private void populateStatusItem(ListItem<ProgressReportActivityDto> item) {
         item.add(new Label(ID_ACTIVITY_DESCRIPTION, new AbstractReadOnlyModel<String>() {
+
             @Override
             public String getObject() {
                 ProgressReportActivityDto si = item.getModelObject();
@@ -202,6 +213,7 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
                 }
         ));
         item.add(new Label(ID_ACTIVITY_COMMENT, new AbstractReadOnlyModel<String>() {
+
             @Override
             public String getObject() {
                 ProgressReportActivityDto si = item.getModelObject();
@@ -240,7 +252,7 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
         btn.setOutputMarkupPlaceholderTag(true);
     }
 
-    private void initButtons(final Form progressForm, final ProgressReportingAwarePage page) {
+    private void initButtons(final Form progressForm) {
         abortButton = new AjaxSubmitButton(ID_ABORT,
                 createStringResource("pageAdminFocus.button.abort")) {
 
@@ -253,7 +265,7 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
             @Override
             protected void onError(AjaxRequestTarget target,
                                    org.apache.wicket.markup.html.form.Form<?> form) {
-                target.add(page.getFeedbackPanel());
+                target.add(getPageBase().getFeedbackPanel());
             }
         };
         configureButton(abortButton);
@@ -270,7 +282,7 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
             @Override
             protected void onError(AjaxRequestTarget target,
                                    org.apache.wicket.markup.html.form.Form<?> form) {
-                target.add(page.getFeedbackPanel());
+                target.add(getPageBase().getFeedbackPanel());
             }
         };
         configureButton(backButton);
@@ -288,7 +300,7 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
             @Override
             protected void onError(AjaxRequestTarget target,
                                    org.apache.wicket.markup.html.form.Form<?> form) {
-                target.add(page.getFeedbackPanel());
+                target.add(getPageBase().getFeedbackPanel());
             }
         };
         configureButton(continueEditingButton);
@@ -480,5 +492,46 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
         reporter.parentPage = parentPage;
 
         return reporter;
+    }
+
+    private static class ProgressReporterModel implements IModel<ProgressReporter> {
+
+        private PageBase page;
+
+        private ProgressReporter reporter;
+        private String id;
+
+        public ProgressReporterModel(PageBase page) {
+            this.page = page;
+        }
+
+        @Override
+        public ProgressReporter getObject() {
+            if (reporter != null) {
+                return reporter;
+            }
+
+            ProgressReporterManager manager = page.getProgressReporterManager();
+            if (id != null) {
+                reporter = manager.getReporter(id);
+
+                return reporter;
+            }
+
+            reporter = manager.createReporter();
+            id = reporter.getId();
+
+            return reporter;
+        }
+
+        @Override
+        public void setObject(ProgressReporter object) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void detach() {
+            reporter = null;
+        }
     }
 }

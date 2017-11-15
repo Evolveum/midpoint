@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.boot;
 
+import com.evolveum.midpoint.web.component.progress.ProgressReporterManager;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import org.springframework.context.annotation.Bean;
@@ -35,5 +36,10 @@ public class WebConfig {
     @Bean
     public MidpointFormValidatorRegistry midpointFormValidatorRegistry() {
         return new MidpointFormValidatorRegistry();
+    }
+
+    @Bean
+    public ProgressReporterManager progressReporterManager() {
+        return new ProgressReporterManager();
     }
 }

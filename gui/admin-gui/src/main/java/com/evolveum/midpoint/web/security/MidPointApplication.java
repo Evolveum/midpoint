@@ -40,6 +40,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.component.GuiComponents;
+import com.evolveum.midpoint.web.component.progress.ProgressReporterManager;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.error.*;
 import com.evolveum.midpoint.web.page.login.PageLogin;
@@ -174,6 +175,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient SystemObjectCache systemObjectCache;
     @Autowired
     transient LocalizationService localizationService;
+    @Autowired
+    transient ProgressReporterManager progressReporterManager;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -476,5 +479,9 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     public static MidPointApplication get() {
         return (MidPointApplication) WebApplication.get();
+    }
+
+    public ProgressReporterManager getProgressReporterManager() {
+        return progressReporterManager;
     }
 }

@@ -81,6 +81,7 @@ import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.component.menu.MenuItem;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.progress.ProgressReporterManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
@@ -2103,5 +2104,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         } else {
             return PrismContext.LANG_XML;
         }
+    }
+
+    public ProgressReporterManager getProgressReporterManager() {
+        return MidPointApplication.get().getProgressReporterManager();
     }
 }
