@@ -2269,8 +2269,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// THEN
         displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
