@@ -63,7 +63,7 @@ public class ProgressReporter implements ProgressListener {
 
     private MidPointApplication application;
     private Map<String, String> nameCache = new HashMap<>();
-    private ProgressDto progress;
+    private ProgressDto progress = new ProgressDto();
     private boolean abortRequested;
 
     private Future future;
@@ -83,8 +83,6 @@ public class ProgressReporter implements ProgressListener {
     public ProgressReporter(String id, MidPointApplication application) {
         this.id = id;
         this.application = application;
-
-        progress = new ProgressDto();
     }
 
     public String getId() {

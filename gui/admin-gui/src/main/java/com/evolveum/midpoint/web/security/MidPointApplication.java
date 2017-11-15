@@ -267,6 +267,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
             }
         });
 
+        getSessionListeners().add(progressReporterManager);
+
         //descriptor loader, used for customization
         new DescriptorLoader().loadData(this);
     }

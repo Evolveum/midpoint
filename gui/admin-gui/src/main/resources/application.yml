@@ -5,8 +5,7 @@ spring:
 server:
   display-name: MidPoint
   session:
-    cookie:
-      max-age: 900
+    timeout: 900
   tomcat:
     basedir: ${midpoint.home}
 

@@ -77,7 +77,10 @@ public class ProgressReporterManager implements ISessionListener {
 
     @Override
     public void onUnbound(String sessionId) {
-        for (Key key : reporters.keySet()) {
+        Set<Key> keys = new HashSet();
+        keys.addAll(reporters.keySet());
+
+        for (Key key : keys) {
             if (!key.sessionId.equals(sessionId)) {
                 continue;
             }
