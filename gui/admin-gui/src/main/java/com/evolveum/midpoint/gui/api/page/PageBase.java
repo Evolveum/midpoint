@@ -1399,11 +1399,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL)) {
             items.add(createResourcesItems());
         }
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_URL,
-                AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-            items.add(createValuePolicieItems());
-        }
+// TODO uncomment after ValuePolicies pages are finished
+//        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_URL,
+//                AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+//            items.add(createValuePolicieItems());
+//        }
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
                 AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL,
@@ -1558,14 +1558,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return item;
     }
 
+    // Izolated until the referenced value policies pages are fully implemented
     private MainMenuItem createValuePolicieItems(){
         MainMenuItem item = new MainMenuItem("fa fa-asterisk", createStringResource("PageAdmin.menu.top.valuePolicies"),null);
-       // List<MenuItem> submenu = item.getItems();
 
-      //  MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.valuePolicies.list"), PageValuePolicies.class);
         addMenuItem(item, "PageAdmin.menu.top.valuePolicies.list", PageValuePolicies.class);
         addMenuItem(item,"PageAdmin.menu.top.valuePolicies.new", PageValuePolicy.class);
-        // submenu.add(list);
 
         return item;
     }
