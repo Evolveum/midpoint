@@ -396,7 +396,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         PrismProperty<Integer> property = (PrismProperty<Integer>) delayDefinition.instantiate();
         property.setRealValue(100);
 
-        PropertyDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), property.getDefinition(), prismContext);
+        PropertyDelta delta = new PropertyDelta<>(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), property.getDefinition(), prismContext);
         //delta.addV(property.getValues());
         delta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
 
@@ -513,7 +513,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // now pop the handlers
 
-        ((TaskQuartzImpl) task001).finishHandler(result);
+        task001.finishHandler(result);
         task001.refresh(result);
         AssertJUnit.assertEquals("Handler URI after first POP is not correct", "http://no-handler.org/1", task001.getHandlerUri());
         AssertJUnit.assertEquals("Schedule after first POP is not correct", st1, task001.getSchedule());
@@ -521,7 +521,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotSame("Task state after first POP should not be CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
         AssertJUnit.assertEquals("Extension element value is not correct after first POP", (Integer) 2, task001.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME).getRealValue(Integer.class));
 
-        ((TaskQuartzImpl) task001).finishHandler(result);
+        task001.finishHandler(result);
         task001.refresh(result);
         AssertJUnit.assertEquals("Handler URI after second POP is not correct", "http://no-handler.org/", task001.getHandlerUri());
         AssertJUnit.assertEquals("Schedule after second POP is not correct", st0, task001.getSchedule());
@@ -529,7 +529,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotSame("Task state after second POP should not be CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
         AssertJUnit.assertEquals("Extension element value is not correct after second POP", (Integer) 1, task001.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME).getRealValue(Integer.class));
 
-        ((TaskQuartzImpl) task001).finishHandler(result);
+        task001.finishHandler(result);
         task001.refresh(result);
         //AssertJUnit.assertNull("Handler URI after third POP is not null", task001.getHandlerUri());
         AssertJUnit.assertEquals("Handler URI after third POP is not correct", "http://no-handler.org/", task001.getHandlerUri());
@@ -614,9 +614,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // Test for presence of a result. It should be there and it should
         // indicate success
-        OperationResult taskResult = task1.getResult();
-        AssertJUnit.assertNotNull("Task result is null", taskResult);
-        AssertJUnit.assertTrue("Task did not yield 'success' status", taskResult.isSuccess());
+        assertSuccess(task1);
 
         // Test for no presence of handlers
         //AssertJUnit.assertNull("Handler is still present", task1.getHandlerUri());
@@ -652,7 +650,6 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // Read from repo
 
         PrismObject<TaskType> repoTask = repositoryService.getObject(TaskType.class, addedTask.getOid(), null, result);
-        TaskType repoTaskType = repoTask.asObjectable();
 
         extensionContainer = repoTask.getExtension();
         deadProperty = extensionContainer.findProperty(new QName(NS_WHATEVER, "dead"));
@@ -691,22 +688,26 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull("LastRunStartTimestamp is null", task.getLastRunStartTimestamp());
-        assertFalse("LastRunStartTimestamp is 0", task.getLastRunStartTimestamp().longValue() == 0);
+        assertFalse("LastRunStartTimestamp is 0", task.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertNotNull("LastRunFinishTimestamp is null", task.getLastRunFinishTimestamp());
-        assertFalse("LastRunFinishTimestamp is 0", task.getLastRunFinishTimestamp().longValue() == 0);
+        assertFalse("LastRunFinishTimestamp is 0", task.getLastRunFinishTimestamp() == 0);
 
         // The progress should be more at least 1 - so small because of lazy testing machine ... (wait time before task runs is 2 seconds)
         AssertJUnit.assertTrue("Task progress is too small (should be at least 1)", task.getProgress() >= 1);
 
         // Test for presence of a result. It should be there and it should
         // indicate success
-        OperationResult taskResult = task.getResult();
-        AssertJUnit.assertNotNull("Task result is null", taskResult);
-        AssertJUnit.assertTrue("Task did not yield 'success' status", taskResult.isSuccess());
+        assertSuccess(task);
 
         // Suspend the task (in order to keep logs clean), without much waiting
         taskManager.suspendTask(task, 100, result);
 
+    }
+
+    private void assertSuccess(Task task) {
+        OperationResult taskResult = task.getResult();
+        AssertJUnit.assertNotNull("Task result is null", taskResult);
+        AssertJUnit.assertTrue("Task did not yield 'success' status: it is " + taskResult.getStatus(), taskResult.isSuccess());
     }
 
     /*
@@ -756,18 +757,16 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
-        assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+        assertFalse(task.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertNotNull("Last run finish timestamp not set", task.getLastRunFinishTimestamp());
-        assertFalse("Last run finish timestamp is 0", task.getLastRunFinishTimestamp().longValue() == 0);
+        assertFalse("Last run finish timestamp is 0", task.getLastRunFinishTimestamp() == 0);
 
         // The progress should be more than 0 as the task has run at least once
         AssertJUnit.assertTrue("Task reported no progress", task.getProgress() > 0);
 
         // Test for presence of a result. It should be there and it should
         // indicate success
-        OperationResult taskResult = task.getResult();
-        AssertJUnit.assertNotNull("Task result is null", taskResult);
-        AssertJUnit.assertTrue("Task did not yield 'success' status", taskResult.isSuccess());
+        assertSuccess(task);
 
         // Test for no presence of handlers
 
@@ -819,9 +818,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
-        assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+        assertFalse(task.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertNotNull(task.getLastRunFinishTimestamp());
-        assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
+        assertFalse(task.getLastRunFinishTimestamp() == 0);
 
         // The progress should be more at least 1 - lazy neptunus... (wait time before task runs is 2 seconds)
         AssertJUnit.assertTrue("Progress is none or too small", task.getProgress() >= 1);
@@ -874,18 +873,16 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
-        assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+        assertFalse(task.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertNotNull(task.getLastRunFinishTimestamp());
-        assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
+        assertFalse(task.getLastRunFinishTimestamp() == 0);
 
         // The progress should be at least 2 as the task has run at least twice
         AssertJUnit.assertTrue("Task has not been executed at least twice", task.getProgress() >= 2);
 
         // Test for presence of a result. It should be there and it should
         // indicate success
-        OperationResult taskResult = task.getResult();
-        AssertJUnit.assertNotNull("Task result is null", taskResult);
-        AssertJUnit.assertTrue("Task did not yield 'success' status", taskResult.isSuccess());
+        assertSuccess(task);
 
         // Suspend the task (in order to keep logs clean), without much waiting
         taskManager.suspendTask(task, 100, result);
@@ -931,9 +928,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
-        assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+        assertFalse(task.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertNotNull("Last run finish timestamp not set", task.getLastRunFinishTimestamp());
-        assertFalse("Last run finish timestamp is 0", task.getLastRunFinishTimestamp().longValue() == 0);
+        assertFalse("Last run finish timestamp is 0", task.getLastRunFinishTimestamp() == 0);
 
         /*
          * Here the execution should be as follows:
@@ -951,9 +948,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // Test for presence of a result. It should be there and it should
         // indicate success
-        OperationResult taskResult = task.getResult();
-        AssertJUnit.assertNotNull("Task result is null", taskResult);
-        AssertJUnit.assertTrue("Task did not yield 'success' status", taskResult.isSuccess());
+        assertSuccess(task);
 
         // Test for no presence of handlers
 
@@ -1018,7 +1013,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
 
         AssertJUnit.assertNotNull("Task last start time is null", task.getLastRunStartTimestamp());
-        assertFalse("Task last start time is 0", task.getLastRunStartTimestamp().longValue() == 0);
+        assertFalse("Task last start time is 0", task.getLastRunStartTimestamp() == 0);
 
         // The progress should be more than 0
         AssertJUnit.assertTrue("Task has not reported any progress", task.getProgress() > 0);
@@ -1069,9 +1064,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());		// task cycle is 1000 ms, so it should be released now
 
         AssertJUnit.assertNotNull("LastRunStartTimestamp is null", task.getLastRunStartTimestamp());
-        assertFalse("LastRunStartTimestamp is 0", task.getLastRunStartTimestamp().longValue() == 0);
+        assertFalse("LastRunStartTimestamp is 0", task.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertNotNull(task.getLastRunFinishTimestamp());
-        assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
+        assertFalse(task.getLastRunFinishTimestamp() == 0);
         AssertJUnit.assertTrue(task.getProgress() > 0);
 
         // now let us suspend it (occurs during wait cycle, so we can put short timeout here)
@@ -1086,9 +1081,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
-        assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+        assertFalse(task.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertNotNull(task.getLastRunFinishTimestamp());
-        assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
+        assertFalse(task.getLastRunFinishTimestamp() == 0);
         AssertJUnit.assertTrue(task.getProgress() > 0);
 
 //        Thread.sleep(200);		// give the scheduler a chance to release the task
@@ -1128,7 +1123,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
-        assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+        assertFalse(task.getLastRunStartTimestamp() == 0);
 
         // now let us suspend it, without long waiting
 
@@ -1142,7 +1137,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 //        AssertJUnit.assertEquals("Task should be still claimed, as it is not definitely stopped", TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
-        assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+        assertFalse(task.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertNull(task.getLastRunFinishTimestamp());
         AssertJUnit.assertEquals("There should be no progress reported", 0, task.getProgress());
 
@@ -1159,7 +1154,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
         AssertJUnit.assertNotNull("Last run finish time is null", task.getLastRunStartTimestamp());
-        assertFalse("Last run finish time is zero", task.getLastRunStartTimestamp().longValue() == 0);
+        assertFalse("Last run finish time is zero", task.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertTrue("Progress is not reported", task.getProgress() > 0);
 
 //        Thread.sleep(200);		// give the scheduler a chance to release the task
@@ -1390,18 +1385,16 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // .. and last run should not be zero
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
-        assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+        assertFalse(task.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertNotNull("Last run finish timestamp not set", task.getLastRunFinishTimestamp());
-        assertFalse("Last run finish timestamp is 0", task.getLastRunFinishTimestamp().longValue() == 0);
+        assertFalse("Last run finish timestamp is 0", task.getLastRunFinishTimestamp() == 0);
 
         // The progress should be at least 2 as the task has run at least twice (once in each handler)
         AssertJUnit.assertTrue("Task reported progress lower than 2", task.getProgress() >= 2);
 
         // Test for presence of a result. It should be there and it should
         // indicate success
-        OperationResult taskResult = task.getResult();
-        AssertJUnit.assertNotNull("Task result is null", taskResult);
-        AssertJUnit.assertTrue("Task did not yield 'success' status", taskResult.isSuccess());
+        assertSuccess(task);
 
         // Test for no presence of handlers
 
@@ -1464,7 +1457,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         LOGGER.info("Deleting task {} and its subtasks", parentTask);
 
-        taskManager.suspendAndDeleteTasks(Arrays.asList(parentTask.getOid()), 2000L, true, result);
+        taskManager.suspendAndDeleteTasks(Collections.singletonList(parentTask.getOid()), 2000L, true, result);
 
         IntegrationTestTools.display("after suspendAndDeleteTasks", result.getLastSubresult());
         TestUtil.assertSuccessOrWarning("suspendAndDeleteTasks result is not success/warning", result.getLastSubresult());
@@ -1535,9 +1528,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
         AssertJUnit.assertNotNull("LastRunStartTimestamp is null", task.getLastRunStartTimestamp());
-        assertFalse("LastRunStartTimestamp is 0", task.getLastRunStartTimestamp().longValue() == 0);
+        assertFalse("LastRunStartTimestamp is 0", task.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertNotNull(task.getLastRunFinishTimestamp());
-        assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
+        assertFalse(task.getLastRunFinishTimestamp() == 0);
         AssertJUnit.assertTrue("no progress", task.getProgress() > 0);
 
         // now let us suspend it (occurs during wait cycle, so we can put short timeout here)
@@ -1765,7 +1758,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         String test = "999CheckingLeftovers";
         OperationResult result = createResult(test);
 
-        ArrayList<String> leftovers = new ArrayList<String>();
+        ArrayList<String> leftovers = new ArrayList<>();
         checkLeftover(leftovers, "005", result);
         checkLeftover(leftovers, "006", result);
         checkLeftover(leftovers, "008", result);
@@ -1793,12 +1786,12 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 		checkLeftover(leftovers, "120", result);
 		checkLeftover(leftovers, "130", result);
 
-        String message = "Leftover task(s) found:";
+        StringBuilder message = new StringBuilder("Leftover task(s) found:");
         for (String leftover : leftovers) {
-            message += " " + leftover;
+            message.append(" ").append(leftover);
         }
 
-        AssertJUnit.assertTrue(message, leftovers.isEmpty());
+        AssertJUnit.assertTrue(message.toString(), leftovers.isEmpty());
     }
 
     private void checkLeftover(ArrayList<String> leftovers, String testNumber, OperationResult result) throws Exception {
@@ -1855,17 +1848,13 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertEquals(value, attribute.iterator().next().getValue().toString());
     }
 
-    private <T extends ObjectType> PrismObject<T> unmarshallJaxbFromFile(String filePath, Class<T> clazz) throws IOException, JAXBException, SchemaException {
+    private <T extends ObjectType> PrismObject<T> unmarshallJaxbFromFile(String filePath) throws IOException, JAXBException, SchemaException {
         File file = new File(filePath);
         return PrismTestUtil.parseObject(file);
     }
 
     private <T extends ObjectType> PrismObject<T> addObjectFromFile(String filePath) throws Exception {
-    	return addObjectFromFile(filePath, false);
-    }
-
-    private <T extends ObjectType> PrismObject<T> addObjectFromFile(String filePath, boolean deleteIfExists) throws Exception {
-        PrismObject<T> object = (PrismObject<T>) unmarshallJaxbFromFile(filePath, ObjectType.class);
+        PrismObject<T> object = unmarshallJaxbFromFile(filePath);
         System.out.println("obj: " + object.getElementName());
         OperationResult result = new OperationResult(TestQuartzTaskManagerContract.class.getName() + ".addObjectFromFile");
         try {
