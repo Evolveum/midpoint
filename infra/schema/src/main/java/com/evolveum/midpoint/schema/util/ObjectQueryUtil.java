@@ -43,6 +43,8 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
 public class ObjectQueryUtil {
 
 	public static ObjectQuery createNameQuery(String name, PrismContext prismContext) throws SchemaException {
@@ -411,6 +413,16 @@ public class ObjectQueryUtil {
 			return simplifiedFilter;
 		} else if (filter instanceof UndefinedFilter || filter instanceof AllFilter) {
 			return null;
+		} else if (filter instanceof InOidFilter) {
+			if (isEmpty(((InOidFilter) filter).getOids())) {
+				// (MID-4193) InOid filter with empty lists are not reasonably evaluable in HQL.
+				// As a general rule we can assume that these filters would always yield zero records
+				// so they can be replaced by None filter. Should this assumption turn out to be invalid,
+				// remove this optimization and implement correct behavior in repo query interpreter.
+				return NoneFilter.createNone();
+			} else {
+				return filter.clone();
+			}
 		} else {
 			// Cannot simplify
 			return filter.clone();
