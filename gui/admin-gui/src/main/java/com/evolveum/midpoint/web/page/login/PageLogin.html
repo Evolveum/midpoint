@@ -49,19 +49,20 @@
 
                         <div wicket:id="csrfField"/>
 
-                        <!--<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>-->
+                        <wicket:link>
+                            <a class="btn" role="button" href="forgetpassword" wicket:id="forgetpassword">
+                                <wicket:message key="PageLogin.forgetPassword"/>
+                            </a>
+                        </wicket:link>
 
-                        <input type="submit" class="btn btn-primary pull-right" wicket:message="value:PageLogin.signIn"/>
+                        <div class="pull-right">
+                            <a class="btn btn-default" role="button" wicket:id="selfRegistration">
+                                <wicket:message key="PageLogin.selfRegistration"/>
+                            </a>
+
+                            <input type="submit" class="btn btn-primary" wicket:message="value:PageLogin.signIn"/>
+                        </div>
                     </form>
-					
-                    <wicket:link>
-                        <a class="btn" href="forgetpassword" wicket:id="forgetpassword">
-                            <wicket:message key="PageLogin.forgetPassword"/>
-                        </a>
-                    </wicket:link>
-                    <a class="btn btn-default pull-right" style="margin-right: 5px;" wicket:id="selfRegistration">
-						<wicket:message key="PageLogin.selfRegistration"/>
-					</a>
                 </div>
             </div>
         </div>
