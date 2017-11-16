@@ -143,42 +143,44 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		if (pageParameters == null) {
 			return null;
 		}
+
 		StringValue oidValue = pageParameters.get(PARAM_USER_OID);
 		if (oidValue != null) {
 			return oidValue.toString();
 		}
+
 		return null;
 	}
 
 	private UserType createUserModel(final String userOid) {
-
-		if (userOid != null) {
-			PrismObject<UserType> result = runPrivileged(new Producer<PrismObject<UserType>>() {
-
-				@Override
-				public PrismObject<UserType> run() {
-					LOGGER.trace("Loading preregistered user with oid {}.", userOid);
-					Task task = createAnonymousTask(OPERATION_LOAD_USER);
-					OperationResult result = new OperationResult(OPERATION_LOAD_USER);
-					PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, userOid,
-							PageSelfRegistration.this, task, result);
-					result.computeStatus();
-					return user;
-				}
-
-			});
-
-			if (result == null) {
-				LOGGER.error("Failed to load preregistered user");
-				getSession().error(
-						createStringResource("PageSelfRegistration.invalid.registration.link").getString());
-				throw new RestartResponseException(PageLogin.class);
-			}
-			return result.asObjectable();
+		if (userOid == null) {
+			LOGGER.trace("Registration process for new user started");
+			return instantiateUser();
 		}
-		LOGGER.trace("Registration process for new user started");
-		return instantiateUser();
 
+		PrismObject<UserType> result = runPrivileged(new Producer<PrismObject<UserType>>() {
+
+			@Override
+			public PrismObject<UserType> run() {
+				LOGGER.trace("Loading preregistered user with oid {}.", userOid);
+				Task task = createAnonymousTask(OPERATION_LOAD_USER);
+				OperationResult result = new OperationResult(OPERATION_LOAD_USER);
+				PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, userOid,
+						PageSelfRegistration.this, task, result);
+				result.computeStatus();
+				return user;
+			}
+
+		});
+
+		if (result == null) {
+			LOGGER.error("Failed to load preregistered user");
+			getSession().error(
+					createStringResource("PageSelfRegistration.invalid.registration.link").getString());
+			throw new RestartResponseException(PageLogin.class);
+		}
+
+		return result.asObjectable();
 	}
 
 	private UserType instantiateUser() {
@@ -230,7 +232,6 @@ public class PageSelfRegistration extends PageRegistrationBase {
 				submitRegistration(target);
 
 			}
-
 		};
 
 		mainForm.add(register);
