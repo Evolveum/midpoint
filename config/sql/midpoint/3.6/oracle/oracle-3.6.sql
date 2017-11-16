@@ -3,6 +3,7 @@
 
 CREATE TABLE m_abstract_role (
   approvalProcess    VARCHAR2(255 CHAR),
+  autoassign_enabled NUMBER(1, 0),
   displayName_norm   VARCHAR2(255 CHAR),
   displayName_orig   VARCHAR2(255 CHAR),
   identifier         VARCHAR2(255 CHAR),
@@ -269,6 +270,8 @@ CREATE TABLE m_audit_delta (
 
 CREATE TABLE m_audit_event (
   id                NUMBER(19, 0) NOT NULL,
+  attorneyName      VARCHAR2(255 CHAR),
+  attorneyOid       VARCHAR2(36 CHAR),
   channel           VARCHAR2(255 CHAR),
   eventIdentifier   VARCHAR2(255 CHAR),
   eventStage        NUMBER(10, 0),
@@ -276,6 +279,7 @@ CREATE TABLE m_audit_event (
   hostIdentifier    VARCHAR2(255 CHAR),
   initiatorName     VARCHAR2(255 CHAR),
   initiatorOid      VARCHAR2(36 CHAR),
+  initiatorType     NUMBER(10, 0),
   message           VARCHAR2(1024 CHAR),
   nodeIdentifier    VARCHAR2(255 CHAR),
   outcome           NUMBER(10, 0),
@@ -392,6 +396,13 @@ CREATE TABLE m_focus_policy_situation (
 ) INITRANS 30;
 
 CREATE TABLE m_form (
+  name_norm VARCHAR2(255 CHAR),
+  name_orig VARCHAR2(255 CHAR),
+  oid       VARCHAR2(36 CHAR) NOT NULL,
+  PRIMARY KEY (oid)
+) INITRANS 30;
+
+CREATE TABLE m_function_library (
   name_norm VARCHAR2(255 CHAR),
   name_orig VARCHAR2(255 CHAR),
   oid       VARCHAR2(36 CHAR) NOT NULL,
@@ -812,6 +823,9 @@ CREATE INDEX iAbstractRoleIdentifier ON m_abstract_role (identifier) INITRANS 30
 
 CREATE INDEX iRequestable ON m_abstract_role (requestable) INITRANS 30;
 
+CREATE INDEX iAutoassignEnabled
+  ON m_abstract_role (autoassign_enabled) INITRANS 30;
+
 ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT uc_acc_cert_campaign_name  UNIQUE (name_norm) INITRANS 30;
 
@@ -877,6 +891,9 @@ CREATE INDEX iFocusEffective ON m_focus (effectiveStatus) INITRANS 30;
 ALTER TABLE m_form
   ADD CONSTRAINT uc_form_name UNIQUE (name_norm) INITRANS 30;
 
+ALTER TABLE m_function_library
+  ADD CONSTRAINT uc_function_library_name UNIQUE (name_norm) INITRANS 30;
+
 ALTER TABLE m_generic_object
 ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm) INITRANS 30;
 
@@ -935,6 +952,9 @@ CREATE INDEX iOpExecInitiatorOid
 CREATE INDEX iOpExecStatus
   ON m_operation_execution (status) INITRANS 30;
 
+CREATE INDEX iOpExecOwnerOid
+  ON m_operation_execution (owner_oid) INITRANS 30;
+
 ALTER TABLE m_org
 ADD CONSTRAINT uc_org_name UNIQUE (name_norm) INITRANS 30;
 
@@ -983,6 +1003,9 @@ CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount) IN
 
 ALTER TABLE m_system_configuration
 ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm) INITRANS 30;
+
+ALTER TABLE m_task
+  ADD CONSTRAINT uc_task_identifier UNIQUE (taskIdentifier) INITRANS 30;
 
 CREATE INDEX iParent ON m_task (parent) INITRANS 30;
 
@@ -1153,6 +1176,11 @@ REFERENCES m_focus;
 
 ALTER TABLE m_form
   ADD CONSTRAINT fk_form
+FOREIGN KEY (oid)
+REFERENCES m_object;
+
+ALTER TABLE m_function_library
+  ADD CONSTRAINT fk_function_library
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
