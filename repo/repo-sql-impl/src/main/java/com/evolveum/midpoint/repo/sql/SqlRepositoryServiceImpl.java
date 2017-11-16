@@ -193,16 +193,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private <RV> RV executeAttemptsNoSchemaException(ObjectQuery query, String operationName, String operationVerb, OperationResult subResult,
+    private <RV> RV executeQueryAttemptsNoSchemaException(ObjectQuery query, String operationName, String operationVerb, OperationResult subResult,
             Supplier<RV> emptyQueryResultSupplier, ResultQueryBasedSupplier<RV> supplier) {
         try {
-            return executeAttempts(query, operationName, operationVerb, subResult, emptyQueryResultSupplier, supplier);
+            return executeQueryAttempts(query, operationName, operationVerb, subResult, emptyQueryResultSupplier, supplier);
         } catch (SchemaException e) {
             throw new AssertionError("Should not occur", e);
         }
     }
 
-    private <RV> RV executeAttempts(ObjectQuery query, String operationName, String operationVerb, OperationResult subResult,
+    private <RV> RV executeQueryAttempts(ObjectQuery query, String operationName, String operationVerb, OperationResult subResult,
             Supplier<RV> emptyQueryResultSupplier, ResultQueryBasedSupplier<RV> supplier) throws SchemaException {
 
         if (query != null) {
@@ -282,12 +282,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("query", query);
 
-        return executeAttempts(query, "searchObjects", "searching", subResult,
+        return executeQueryAttempts(query, "searchObjects", "searching", subResult,
                 () -> new SearchResultList<>(new ArrayList<PrismObject<T>>(0)),
                 (q) -> objectRetriever.searchObjectsAttempt(type, q, options, subResult));
     }
 
     // utility method that simplifies a query, and checks for trivial cases (minimizing client code for such situation)
+    // returns null if the query is equivalent to NONE (TODO this is counter-intuitive, fix that)
     private ObjectQuery simplify(ObjectQuery query, OperationResult subResult) {
         ObjectFilter filter = query.getFilter();
         filter = ObjectQueryUtil.simplify(filter);
@@ -320,7 +321,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         result.addParam("type", type.getName());
         result.addParam("query", query);
 
-        return executeAttempts(query, "searchContainers", "searching", result,
+        return executeQueryAttempts(query, "searchContainers", "searching", result,
                 () -> new SearchResultList<>(new ArrayList<T>(0)),
                 (q) -> objectRetriever.searchContainersAttempt(type, q, options, result));
     }
@@ -340,7 +341,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         result.addParam("type", type.getName());
         result.addParam("query", query);
 
-        return executeAttemptsNoSchemaException(query, "countContainers", "counting", result,
+        return executeQueryAttemptsNoSchemaException(query, "countContainers", "counting", result,
                 () -> 0,
                 (q) -> objectRetriever.countContainersAttempt(type, q, options, result));
     }
@@ -466,7 +467,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("query", query);
 
-        return executeAttemptsNoSchemaException(query, "countObjects", "counting", subResult,
+        return executeQueryAttemptsNoSchemaException(query, "countObjects", "counting", subResult,
                 () -> 0,
                 (q) -> objectRetriever.countObjectsAttempt(type, q, options, subResult));
     }
