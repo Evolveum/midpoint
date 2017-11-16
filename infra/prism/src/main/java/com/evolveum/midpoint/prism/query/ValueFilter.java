@@ -32,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -249,10 +250,10 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 	@Override
 	public boolean match(PrismContainerValue cvalue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 
-		Item objectItem = getObjectItem(cvalue);
+		Collection<PrismValue> objectItemValues = getObjectItemValues(cvalue);
 
 		boolean filterItemIsEmpty = getValues() == null || getValues().isEmpty();
-		boolean objectItemIsEmpty = objectItem == null || objectItem.isEmpty();
+		boolean objectItemIsEmpty = objectItemValues.isEmpty();
 
 		if (filterItemIsEmpty && !objectItemIsEmpty) {
 			return false;
@@ -265,10 +266,9 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 		return true;
 	}
 
-	// TODO revise
-	Item getObjectItem(PrismContainerValue value) {
-		ItemPath path = getFullPath();
-		return value.findItem(path);
+	@NotNull
+	Collection<PrismValue> getObjectItemValues(PrismContainerValue value) {
+		return value.getAllValues(getFullPath());
 	}
 
 	// TODO revise

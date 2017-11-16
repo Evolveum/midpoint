@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -113,15 +114,15 @@ public class EqualFilter<T> extends PropertyValueFilter<T> implements Itemable {
 		if (!super.match(cvalue, matchingRuleRegistry)){
 			return false;
 		}
-		Item objectItem = getObjectItem(cvalue);
-		if (objectItem == null || objectItem.isEmpty()) {
+		Collection<PrismValue> objectItemValues = getObjectItemValues(cvalue);
+		if (objectItemValues.isEmpty()) {
 			return true;					// because filter item is empty as well (checked by super.match)
 		}
 		Item filterItem = getFilterItem();
 		MatchingRule<?> matchingRule = getMatchingRuleFromRegistry(matchingRuleRegistry, filterItem);
 		for (Object filterValue : filterItem.getValues()) {
 			checkPrismPropertyValue(filterValue);
-			for (Object objectValue : objectItem.getValues()) {
+			for (Object objectValue : objectItemValues) {
 				checkPrismPropertyValue(objectValue);
 				if (matches((PrismPropertyValue<?>) filterValue, (PrismPropertyValue<?>) objectValue, matchingRule)) {
 					return true;

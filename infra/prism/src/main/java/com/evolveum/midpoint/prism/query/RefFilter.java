@@ -64,14 +64,14 @@ public class RefFilter extends ValueFilter<PrismReferenceValue, PrismReferenceDe
 	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 
 		Item filterItem = getFilterItem();
-		Item objectItem = getObjectItem(value);
+		Collection<PrismValue> objectItemValues = getObjectItemValues(value);
 
 		if (!super.match(value, matchingRuleRegistry)) {
 			return false;
 		}
 
 		boolean filterItemIsEmpty = getValues() == null || getValues().isEmpty();
-		boolean objectItemIsEmpty = objectItem == null || objectItem.isEmpty();
+		boolean objectItemIsEmpty = objectItemValues.isEmpty();
 
 		if (filterItemIsEmpty && objectItemIsEmpty) {
 			return true;
@@ -80,8 +80,7 @@ public class RefFilter extends ValueFilter<PrismReferenceValue, PrismReferenceDe
 		assert !filterItemIsEmpty;	// if both are empty, the previous statement causes 'return true'
 		assert !objectItemIsEmpty;	// if only one of them is empty, the super.match() returned false
 
-		List<Object> objectValues = objectItem.getValues();
-		for (Object v : objectValues) {
+		for (Object v : objectItemValues) {
 			if (!(v instanceof PrismReferenceValue)) {
 				throw new IllegalArgumentException("Not supported prism value for ref equals filter. It must be an instance of PrismReferenceValue but it is " + v.getClass());
 			}

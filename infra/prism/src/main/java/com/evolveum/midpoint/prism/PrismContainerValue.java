@@ -40,6 +40,9 @@ import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+
 /**
  * @author semancik
  *
@@ -1733,5 +1736,23 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 				((PrismContainer<?>) item).trimDefinitionTree(alwaysKeepInSub);
 			}
 		}
+	}
+
+	@NotNull
+	@Override
+	public Collection<PrismValue> getAllValues(ItemPath path) {
+		if (path.isEmpty()) {
+			return singleton(this);
+		}
+		Item<PrismValue, ItemDefinition> item = findItem(new ItemPath(path.first()));
+		if (item == null) {
+			return emptySet();
+		}
+		ItemPath rest = path.rest();
+		List<PrismValue> rv = new ArrayList<>();
+		for (PrismValue prismValue : item.getValues()) {
+			rv.addAll(prismValue.getAllValues(rest));
+		}
+		return rv;
 	}
 }
