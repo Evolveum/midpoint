@@ -214,7 +214,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 	}
 
 	private void initButtons(Form<?> form) {
-		AjaxSubmitButton submit = new AjaxSubmitButton(ID_SUBMIT) {
+		AjaxSubmitButton submit = new AjaxSubmitButton(ID_SUBMIT, createStringResource("PageForgetPassword.resetPassword")) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -232,7 +232,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 		submit.setOutputMarkupId(true);
 		form.add(submit);
 
-		AjaxButton backButton = new AjaxButton(ID_BACK) {
+		AjaxButton backButton = new AjaxButton(ID_BACK, createStringResource("PageForgetPassword.back")) {
 
 			private static final long serialVersionUID = 1L;
 
