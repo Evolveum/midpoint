@@ -89,6 +89,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WO
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -124,7 +125,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
 
         result.recomputeStatus();
-        AssertJUnit.assertTrue(result.isSuccess());
+        assertTrue(result.isSuccess());
     }
 
     @Test
@@ -1466,6 +1467,38 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test331InOidEmptyTest() throws Exception {
+        ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                .id(new String[0]).build();
+        query.setFilter(ObjectQueryUtil.simplify(query.getFilter()));
+        assertTrue("Wrongly reduced InOid filter: " + query.getFilter(), query.getFilter() instanceof NoneFilter);
+    }
+
+    @Test
+    public void test332OwnerInOidEmptyTest() throws Exception {
+        ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                .ownerId(new String[0]).build();
+        query.setFilter(ObjectQueryUtil.simplify(query.getFilter()));
+        assertTrue("Wrongly reduced InOid filter: " + query.getFilter(), query.getFilter() instanceof NoneFilter);
+    }
+
+    @Test
+    public void test333LongInOidEmptyTest() throws Exception {
+        ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                .id(new long[0]).build();
+        query.setFilter(ObjectQueryUtil.simplify(query.getFilter()));
+        assertTrue("Wrongly reduced InOid filter: " + query.getFilter(), query.getFilter() instanceof NoneFilter);
+    }
+
+    @Test
+    public void test334LongOwnerInOidEmptyTest() throws Exception {
+        ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                .ownerId(new long[0]).build();
+        query.setFilter(ObjectQueryUtil.simplify(query.getFilter()));
+        assertTrue("Wrongly reduced InOid filter: " + query.getFilter(), query.getFilter() instanceof NoneFilter);
+    }
+
+    @Test
     public void test335OwnerInOidTest() throws Exception {
         Session session = open();
         try {
@@ -1857,7 +1890,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);
         }
         opResult.computeStatusIfUnknown();
-        AssertJUnit.assertTrue(opResult.isSuccess());
+        assertTrue(opResult.isSuccess());
 
         checkQueryResult(ObjectType.class, "00000000-8888-6666-0000-100000000001", OrgFilter.Scope.ONE_LEVEL, 4);
         checkQueryResult(UserType.class, "00000000-8888-6666-0000-100000000001", OrgFilter.Scope.ONE_LEVEL, 1);
@@ -1904,13 +1937,13 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         assertEquals("Expected count doesn't match for searchObjects " + query, count, realCount);
 
         result.computeStatusIfUnknown();
-        AssertJUnit.assertTrue(result.isSuccess());
+        assertTrue(result.isSuccess());
 
         realCount = repositoryService.countObjects(type, query, result);
         assertEquals("Expected count doesn't match for countObjects " + query, count, realCount);
 
         result.computeStatusIfUnknown();
-        AssertJUnit.assertTrue(result.isSuccess());
+        assertTrue(result.isSuccess());
     }
 
     @Test
@@ -2583,19 +2616,19 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             List<PrismObject<GenericObjectType>> objects = repositoryService.searchObjects(GenericObjectType.class,
                     objectQuery, null, result);
             result.computeStatus();
-            AssertJUnit.assertTrue(result.isSuccess());
+            assertTrue(result.isSuccess());
 
             AssertJUnit.assertNotNull(objects);
             assertEquals(1, objects.size());
 
             PrismObject<GenericObjectType> obj = objects.get(0);
-            AssertJUnit.assertTrue(obj.getCompileTimeClass().equals(GenericObjectType.class));
+            assertTrue(obj.getCompileTimeClass().equals(GenericObjectType.class));
 
             result = new OperationResult("count");
             long count = repositoryService.countObjects(GenericObjectType.class, objectQuery,
                     result);
             result.computeStatus();
-            AssertJUnit.assertTrue(result.isSuccess());
+            assertTrue(result.isSuccess());
             assertEquals(1, count);
         } finally {
             close(session);
@@ -2638,18 +2671,18 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             List<PrismObject<UserType>> objects = repositoryService.searchObjects(UserType.class,
                     objectQuery, null, result);
             result.computeStatus();
-            AssertJUnit.assertTrue(result.isSuccess());
+            assertTrue(result.isSuccess());
 
             AssertJUnit.assertNotNull(objects);
             assertEquals(1, objects.size());
 
             PrismObject<UserType> obj = objects.get(0);
-            AssertJUnit.assertTrue(obj.getCompileTimeClass().equals(UserType.class));
+            assertTrue(obj.getCompileTimeClass().equals(UserType.class));
 
             result = new OperationResult("count");
             long count = repositoryService.countObjects(UserType.class, objectQuery, result);
             result.computeStatus();
-            AssertJUnit.assertTrue(result.isSuccess());
+            assertTrue(result.isSuccess());
             assertEquals(1, count);
         } finally {
             close(session);
