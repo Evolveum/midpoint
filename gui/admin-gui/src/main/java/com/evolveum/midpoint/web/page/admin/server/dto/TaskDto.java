@@ -156,7 +156,10 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	private HandlerDto handlerDto;
 
     //region Construction
-    public TaskDto(TaskType taskType, ModelService modelService, TaskService taskService, ModelInteractionService modelInteractionService,
+
+	// parentTaskBean can be filled-in for optimization purposes (MID-4238); but take care to provide it in a suitable form
+	// (e.g. with subtasks, if they are needed) - a conservative approach to this is implemented in fillInChildren
+    public TaskDto(TaskType taskType, TaskType parentTaskBean, ModelService modelService, TaskService taskService, ModelInteractionService modelInteractionService,
 			TaskManager taskManager, WorkflowManager workflowManager, TaskDtoProviderOptions options,
 			Task opTask, OperationResult parentResult, PageBase pageBase) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
         Validate.notNull(taskType, "Task must not be null.");
@@ -176,7 +179,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
         OperationResult thisOpResult = parentResult.createMinorSubresult(OPERATION_NEW);
         fillInHandlerUriList(taskType);
         fillInObjectRefAttributes(taskType, options, pageBase, opTask, thisOpResult);
-        fillInParentTaskAttributes(taskType, taskService, options, thisOpResult);
+        fillInParentTaskAttributes(taskType, parentTaskBean, taskService, options, thisOpResult);
         fillInOperationResultAttributes(taskType);
         if (options.isRetrieveModelContext()) {
             fillInModelContext(taskType, modelInteractionService, opTask, thisOpResult);
@@ -189,10 +192,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
         fillFromExtension();
 
-        for (TaskType child : taskType.getSubtask()) {
-            addChildTaskDto(new TaskDto(child, modelService, taskService, modelInteractionService, taskManager,
-					workflowManager, options, opTask, parentResult, pageBase));
-        }
+	    fillInChildren(taskType, modelService, taskService, modelInteractionService, taskManager, workflowManager, options,
+			    opTask, parentResult, pageBase);
 
 		if (options.isCreateHandlerDto()) {
 			handlerDto = HandlerDtoFactory.instance().createDtoForTask(this, pageBase, opTask, thisOpResult);
@@ -204,7 +205,20 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		originalEditableState = currentEditableState.clone();
     }
 
-    @Override
+	private void fillInChildren(@NotNull TaskType taskType, ModelService modelService, TaskService taskService,
+			ModelInteractionService modelInteractionService, TaskManager taskManager, WorkflowManager workflowManager,
+			TaskDtoProviderOptions options, Task opTask, OperationResult parentResult, PageBase pageBase)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		TaskType thisTaskWithChildren = null;
+		for (TaskType child : taskType.getSubtask()) {
+			TaskDto childTaskDto = new TaskDto(child, thisTaskWithChildren, modelService, taskService, modelInteractionService,
+					taskManager, workflowManager, options, opTask, parentResult, pageBase);
+			addChildTaskDto(childTaskDto);
+			thisTaskWithChildren = childTaskDto.parentTaskType;     // to avoid repeated reads
+		}
+	}
+
+	@Override
     public List<InlineMenuItem> getMenuItems() {
         if (menuItems == null) {
             menuItems = new ArrayList<>();
@@ -271,12 +285,21 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return WebModelServiceUtils.resolveReferenceName(taskType.getObjectRef(), pageBase, opTask, thisOpResult);
     }
 
-    private void fillInParentTaskAttributes(TaskType taskType, TaskService taskService, TaskDtoProviderOptions options, OperationResult thisOpResult) {
+    private void fillInParentTaskAttributes(TaskType taskType,
+		    TaskType parentTaskBean, TaskService taskService,
+		    TaskDtoProviderOptions options, OperationResult thisOpResult) {
         if (options.isGetTaskParent() && taskType.getParent() != null) {
             try {
-				Collection<SelectorOptions<GetOperationOptions>> getOptions =
-						options.isRetrieveSiblings() ? createCollection(TaskType.F_SUBTASK, createRetrieve()) : null;
-                parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), getOptions, thisOpResult).asObjectable();
+            	// we assume parentTaskBean was fetched using correct options (see fillInChildren)
+	            if (parentTaskBean != null) {
+		            //System.out.println("Using cached task (id = " + taskType.getParent() + "); for " + taskType);
+		            parentTaskType = parentTaskBean;
+	            } else {
+		            Collection<SelectorOptions<GetOperationOptions>> getOptions =
+				            options.isRetrieveSiblings() ? createCollection(TaskType.F_SUBTASK, createRetrieve()) : null;
+		            //System.out.println("Calling taskService.getTaskByIdentifier(" + taskType.getParent() + "); for " + taskType);
+		            parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), getOptions, thisOpResult).asObjectable();
+	            }
             } catch (SchemaException|ObjectNotFoundException|SecurityViolationException|ConfigurationException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve parent task for task {}", e, taskType.getOid());
             }
@@ -284,7 +307,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     private void fillInOperationResultAttributes(TaskType taskType) {
-        opResult = new ArrayList<OperationResult>();
+        opResult = new ArrayList<>();
         if (taskType.getResult() != null) {
             taskOperationResult = OperationResult.createOperationResult(taskType.getResult());
             opResult.add(taskOperationResult);
@@ -557,7 +580,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public String getCategory() {
         return taskType.getCategory();
     }
-    
+
     public List<String> getHandlerUriList() {
         return handlerUriList;
     }
@@ -623,7 +646,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public String getOid() {
         return taskType.getOid();
     }
-    
+
     public String getIdentifier() {
         return taskType.getTaskIdentifier();
     }
