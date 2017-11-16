@@ -214,7 +214,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		captcha.setOutputMarkupId(true);
 		mainForm.add(captcha);
 
-		AjaxSubmitButton register = new AjaxSubmitButton(ID_SUBMIT_REGISTRATION) {
+		AjaxSubmitButton register = new AjaxSubmitButton(ID_SUBMIT_REGISTRATION, createStringResource("PageSelfRegistration.register")) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -254,7 +254,8 @@ public class PageSelfRegistration extends PageRegistrationBase {
 
 		});
 
-		AjaxButton back = new AjaxButton(ID_BACK) {
+		AjaxButton back = new AjaxButton(ID_BACK, createStringResource("PageSelfRegistration.back")) {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -263,7 +264,6 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			}
 		};
 		mainForm.add(back);
-
 	}
 
 	private void initStaticFormLayout(Form<?> mainForm) {

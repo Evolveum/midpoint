@@ -100,6 +100,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/spring_security_login",
                         "/login",
                         "/forgotpassword",
+                        "/registration",
+                        "/confirm/registration",
+                        "/confirm/reset",
                         "/bootstrap").permitAll()
                 .anyRequest().fullyAuthenticated();
 
