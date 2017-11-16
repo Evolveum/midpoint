@@ -234,4 +234,34 @@ public class TestObjectQuery {
 		boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
 		AssertJUnit.assertFalse("filter matches object, but it should not", match);
 	}
+
+	@Test   // MID-4217
+	public void testRefPositive() throws Exception {
+		PrismObject<UserType> user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
+		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, getPrismContext())
+				.item(UserType.F_ACCOUNT_REF).ref("c0c010c0-d34d-b33f-f00d-aaaaaaaa1113")
+				.buildFilter();
+		boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
+		AssertJUnit.assertTrue("filter does not match object, but it should", match);
+	}
+
+	@Test   // MID-4217
+	public void testRefNegative() throws Exception {
+		PrismObject<UserType> user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
+		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, getPrismContext())
+				.item(UserType.F_ACCOUNT_REF).ref("xxxxxxxxxxxxxx")
+				.buildFilter();
+		boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
+		AssertJUnit.assertFalse("filter matches object, but it should not", match);
+	}
+
+	@Test
+	public void testRefRelationNegative() throws Exception {
+		PrismObject<UserType> user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
+		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, getPrismContext())
+				.item(UserType.F_ACCOUNT_REF).ref(new QName("a-relation"))
+				.buildFilter();
+		boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
+		AssertJUnit.assertFalse("filter matches object, but it should not", match);
+	}
 }

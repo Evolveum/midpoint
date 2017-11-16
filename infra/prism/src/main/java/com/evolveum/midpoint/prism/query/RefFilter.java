@@ -30,10 +30,11 @@ import java.util.List;
 
 public class RefFilter extends ValueFilter<PrismReferenceValue, PrismReferenceDefinition> {
 	private static final long serialVersionUID = 1L;
-	
-	boolean oidNullAsAny = false;
-	boolean targetTypeNullAsAny = false;
-	boolean relationNullAsAny = false;
+
+	// these are currently supported only by built-in match(..) method; e.g. the repo query interpreter simply ignores them
+	private boolean oidNullAsAny = false;
+	private boolean targetTypeNullAsAny = false;
+	private boolean relationNullAsAny = false;          // currently not supported at all
 	
 
 	public RefFilter(@NotNull ItemPath fullPath, @Nullable PrismReferenceDefinition definition,
@@ -61,97 +62,75 @@ public class RefFilter extends ValueFilter<PrismReferenceValue, PrismReferenceDe
 	}
 
 	@Override
-	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+	public boolean match(PrismContainerValue objectValue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 
 		Item filterItem = getFilterItem();
-		Collection<PrismValue> objectItemValues = getObjectItemValues(value);
+		Collection<PrismValue> objectItemValues = getObjectItemValues(objectValue);
 
-		if (!super.match(value, matchingRuleRegistry)) {
+		if (!super.match(objectValue, matchingRuleRegistry)) {
 			return false;
 		}
 
 		boolean filterItemIsEmpty = getValues() == null || getValues().isEmpty();
 		boolean objectItemIsEmpty = objectItemValues.isEmpty();
-
 		if (filterItemIsEmpty && objectItemIsEmpty) {
 			return true;
 		}
-
 		assert !filterItemIsEmpty;	// if both are empty, the previous statement causes 'return true'
 		assert !objectItemIsEmpty;	// if only one of them is empty, the super.match() returned false
 
-		for (Object v : objectItemValues) {
-			if (!(v instanceof PrismReferenceValue)) {
-				throw new IllegalArgumentException("Not supported prism value for ref equals filter. It must be an instance of PrismReferenceValue but it is " + v.getClass());
-			}
-			if (!isInFilterItem((PrismReferenceValue) v, filterItem)){
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	private boolean isInFilterItem(PrismReferenceValue v, Item filterItem) {
-		for (Object filterValue : filterItem.getValues()) {
-			if (!(filterValue instanceof PrismReferenceValue)) {
-				throw new IllegalArgumentException("Not supported prism value for ref equals filter. It must be an instance of PrismReferenceValue but it is " + v.getClass());
-			}
-			PrismReferenceValue filterRV = (PrismReferenceValue) filterValue;
-			if (valuesMatch(v, filterRV)) {
-				return true;
+		for (Object filterItemValue : filterItem.getValues()) {
+			checkPrismReferenceValue(filterItemValue);
+			for (Object objectItemValue : objectItemValues) {
+				checkPrismReferenceValue(objectItemValue);
+				if (valuesMatch(((PrismReferenceValue) filterItemValue), (PrismReferenceValue) objectItemValue)) {
+					return true;
+				}
 			}
 		}
 		return false;
 	}
 
-	private boolean valuesMatch(PrismReferenceValue value, PrismReferenceValue filterValue) {
-	
-		if (!matchOid(value.getOid(), filterValue.getOid())) {
+	private void checkPrismReferenceValue(Object value) {
+		if (!(value instanceof PrismReferenceValue)) {
+			throw new IllegalArgumentException("Not supported prism value for ref filter. It must be an instance of PrismReferenceValue but it is " + value.getClass());
+		}
+	}
+
+	private boolean valuesMatch(PrismReferenceValue filterValue, PrismReferenceValue objectValue) {
+		if (!matchOid(filterValue.getOid(), objectValue.getOid())) {
 			return false;
 		}
-		
 		if (!QNameUtil.match(PrismConstants.Q_ANY, filterValue.getRelation())) {
 			// similar to relation-matching code in PrismReferenceValue (but awkward to unify, so keeping separate)
 			PrismContext prismContext = getPrismContext();
-			QName thisRelation = value.getRelation();
+			QName objectRelation = objectValue.getRelation();
 			QName filterRelation = filterValue.getRelation();
 			if (prismContext != null) {
-				if (thisRelation == null) {
-					thisRelation = prismContext.getDefaultRelation();
+				if (objectRelation == null) {
+					objectRelation = prismContext.getDefaultRelation();
 				}
 				if (filterRelation == null) {
 					filterRelation = prismContext.getDefaultRelation();
 				}
 			}
-			if (!QNameUtil.match(thisRelation, filterRelation)) {
+			if (!QNameUtil.match(filterRelation, objectRelation)) {
 				return false;
 			}
 		}
-		
-		if (!matchTargetType(value.getTargetType(), filterValue.getTargetType())) {
+		if (!matchTargetType(filterValue.getTargetType(), objectValue.getTargetType())) {
 			return false;
 		}
-
 		return true;
 	}
 
-	private boolean matchOid(String oidValue, String filterValue) {
-		if (oidNullAsAny && filterValue == null) {
-			return true;
-		}
-		
-		return oidValue.equals(filterValue);
-		
-		
+	private boolean matchOid(String filterOid, String objectOid) {
+		return oidNullAsAny && filterOid == null || objectOid != null && objectOid.equals(filterOid);
 	}
-	private boolean matchTargetType(QName targetType, QName filterValue) {
-		if (targetTypeNullAsAny && filterValue == null) {
-			return true;
-		}
-		
-		return QNameUtil.match(targetType, filterValue);
-		
+
+	private boolean matchTargetType(QName filterType, QName objectType) {
+		return targetTypeNullAsAny && filterType == null || QNameUtil.match(objectType, filterType);
+
 	}
 	
 	@Override

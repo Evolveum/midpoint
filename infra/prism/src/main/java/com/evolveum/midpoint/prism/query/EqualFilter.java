@@ -110,21 +110,21 @@ public class EqualFilter<T> extends PropertyValueFilter<T> implements Itemable {
 	}
 
 	@Override
-	public boolean match(PrismContainerValue cvalue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		if (!super.match(cvalue, matchingRuleRegistry)){
+	public boolean match(PrismContainerValue objectValue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+		if (!super.match(objectValue, matchingRuleRegistry)){
 			return false;
 		}
-		Collection<PrismValue> objectItemValues = getObjectItemValues(cvalue);
+		Collection<PrismValue> objectItemValues = getObjectItemValues(objectValue);
 		if (objectItemValues.isEmpty()) {
 			return true;					// because filter item is empty as well (checked by super.match)
 		}
 		Item filterItem = getFilterItem();
 		MatchingRule<?> matchingRule = getMatchingRuleFromRegistry(matchingRuleRegistry, filterItem);
-		for (Object filterValue : filterItem.getValues()) {
-			checkPrismPropertyValue(filterValue);
-			for (Object objectValue : objectItemValues) {
-				checkPrismPropertyValue(objectValue);
-				if (matches((PrismPropertyValue<?>) filterValue, (PrismPropertyValue<?>) objectValue, matchingRule)) {
+		for (Object filterItemValue : filterItem.getValues()) {
+			checkPrismPropertyValue(filterItemValue);
+			for (Object objectItemValue : objectItemValues) {
+				checkPrismPropertyValue(objectItemValue);
+				if (matches((PrismPropertyValue<?>) filterItemValue, (PrismPropertyValue<?>) objectItemValue, matchingRule)) {
 					return true;
 				}
 			}
