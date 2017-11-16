@@ -965,7 +965,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		//TODO assert changed items
 	}
 
-	private OperationResult traceResponse(Response response){
+	private OperationResult traceResponse(Response response) throws SchemaException {
 		if (response.getStatus() != 200 && response.getStatus() != 201 && response.getStatus() != 204) {
 			OperationResultType result = response.readEntity(OperationResultType.class);
 			LOGGER.info("####RESULT");

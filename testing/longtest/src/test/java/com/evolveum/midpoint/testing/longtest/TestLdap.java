@@ -1,4 +1,3 @@
-package com.evolveum.midpoint.testing.longtest;
 /*
  * Copyright (c) 2010-2017 Evolveum
  *
@@ -14,9 +13,8 @@ package com.evolveum.midpoint.testing.longtest;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.evolveum.midpoint.testing.longtest;
 
-
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -93,37 +91,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-longtest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestLdap extends AbstractModelIntegrationTest {
+public class TestLdap extends AbstractLongTest {
 
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap");
 
-	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
-	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
-
-	protected static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
-	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
-	protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
-
-	protected static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
-	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
-
 	protected static final File ROLE_PIRATE_FILE = new File(TEST_DIR, "role-pirate.xml");
 	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
-
-	protected static final File RESOURCE_OPENDJ_FILE = new File(COMMON_DIR, "resource-opendj.xml");
-    protected static final String RESOURCE_OPENDJ_NAME = "Localhost OpenDJ";
-	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
-
-	protected static final File USER_BARBOSSA_FILE = new File(COMMON_DIR, "user-barbossa.xml");
-	protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
-	protected static final String USER_BARBOSSA_USERNAME = "barbossa";
-	protected static final String USER_BARBOSSA_FULL_NAME = "Hector Barbossa";
-
-	protected static final File USER_GUYBRUSH_FILE = new File (COMMON_DIR, "user-guybrush.xml");
-	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
-	protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
-	protected static final String USER_GUYBRUSH_FULL_NAME = "Guybrush Threepwood";
 
 	private static final String USER_LECHUCK_NAME = "lechuck";
 	private static final String ACCOUNT_LECHUCK_NAME = "lechuck";
@@ -134,8 +107,6 @@ public class TestLdap extends AbstractModelIntegrationTest {
 
     protected static final File TASK_DELETE_OPENDJ_ACCOUNTS_FILE = new File(TEST_DIR, "task-delete-opendj-accounts.xml");
     protected static final String TASK_DELETE_OPENDJ_ACCOUNTS_OID = "b22c5d72-18d4-11e5-b266-001e8c717e5b";
-
-    public static final String DOT_JPG_FILENAME = "src/test/resources/common/dot.jpg";
 
     private static final int NUM_INITIAL_USERS = 3;
 	// Make it at least 1501 so it will go over the 3000 entries size limit
@@ -167,26 +138,6 @@ public class TestLdap extends AbstractModelIntegrationTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		modelService.postInit(initResult);
-
-		// System Configuration
-        PrismObject<SystemConfigurationType> config;
-		try {
-			config = repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
-		} catch (ObjectAlreadyExistsException e) {
-			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
-					"looks like the previous test haven't cleaned it up", e);
-		}
-
-        // to get profiling facilities (until better API is available)
-//        LoggingConfigurationManager.configure(
-//                ProfilingConfigurationManager.checkSystemProfilingConfiguration(config),
-//                config.asObjectable().getVersion(), initResult);
-
-        // administrator
-		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
-		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
-		login(userAdministrator);
 
 		// Users
 		repoAddObjectFromFile(USER_BARBOSSA_FILE, initResult);

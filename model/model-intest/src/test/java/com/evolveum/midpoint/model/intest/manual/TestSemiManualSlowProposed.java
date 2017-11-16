@@ -64,6 +64,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  * Tests a slow semi manual resource with the use of proposed shadows.
  * The resource is "slow" in a way that it takes approx. a second to process a ticket.
  * This may cause all sorts of race conditions.
+ * 
+ * THIS TEST IS DISABLED MID-4166
  *
  * @author Radovan Semancik
  */

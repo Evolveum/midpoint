@@ -16,49 +16,22 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 
 /**
  * A page that supports progress reporting, e.g. page for editing users, orgs, roles.
- *
+ * <p>
  * Main responsibility of such a page is to correctly finish processing an operation
  * that could have been executed asynchronously.
- *
- * The interface also contains some methods common to all midPoint pages that are needed in this package.
- * (Should be done seriously, some day...)
  *
  * @author mederly
  */
 public interface ProgressReportingAwarePage {
 
-	void startProcessing(AjaxRequestTarget target, OperationResult result);
+    void startProcessing(AjaxRequestTarget target, OperationResult result);
 
     void finishProcessing(AjaxRequestTarget target, OperationResult result, boolean returningFromAsync);
 
-    // things from PageBase (todo factor this out eventually)
-
-    ModelService getModelService();
-
-    ModelInteractionService getModelInteractionService();
-
-    SecurityEnforcer getSecurityEnforcer();
-    
-    SecurityContextManager getSecurityContextManager();
-
-    Task createSimpleTask(String name);
-
-    WebApplicationConfiguration getWebApplicationConfiguration();
-
-    WebMarkupContainer getFeedbackPanel();
-
-	void continueEditing(AjaxRequestTarget target);
+    void continueEditing(AjaxRequestTarget target);
 }

@@ -32,7 +32,7 @@
         <xsd:documentation>
             Schema for audit event serialization.
             
-            Version: 3.6-SNAPSHOT
+            Version: 3.7-SNAPSHOT
             Recommended namespace prefix: audit
         </xsd:documentation>
     </xsd:annotation>
@@ -137,7 +137,26 @@
             <xsd:element name="initiatorRef" type="c:ObjectReferenceType" minOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Initiator is the (legal) entity on behalf of whom is the action executed.
+                        It is the subject of the operation. Authorizations of the initiator are
+                        used to evaluate access to the operation. This is the entity who is formally
+                        responsible for the operation. Although initiator is always a user in 
+                        midPoint 3.7 and earlier, the initiator may be an organization in later
+                        midPoint versions.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
+            		</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="attorneyRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Attorney is the (physical) user who have executed the action.
+                        This is the user that have logged-in to the user interface. This is the
+                        user that pressed the button to execute the action. This is always identity
+                        of a user and it will always be a user. It cannot be a company or any other
+                        virtual entity.
                     </xsd:documentation>
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
@@ -147,14 +166,18 @@
             <xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Object that is a primary target of an operation (if applicable).
+                        In case that operation targets more than one object, the "primary" or
+                        the most important is recorded (e.g. the user object)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="targetOwnerRef" type="c:ObjectReferenceType" minOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Owner of the object that is a target of this operation (if applicable).
+                        E.g. a owner of a task that is being stopped, owner of an account that
+                        is being modified, etc.
                     </xsd:documentation>
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
