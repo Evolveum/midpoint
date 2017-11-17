@@ -44,6 +44,8 @@ public class UploadDownloadPanel extends InputPanel {
     private static final String ID_BUTTON_DOWNLOAD = "download";
     private static final String ID_BUTTON_DELETE = "remove";
     private static final String ID_INPUT_FILE = "fileInput";
+    private String downloadFileName = null;
+    private String downloadContentType = "text/plain";
 
     public UploadDownloadPanel(String id, boolean isReadOnly) {
         super(id);
@@ -79,12 +81,14 @@ public class UploadDownloadPanel extends InputPanel {
         add(fileUpload);
 
         final AjaxDownloadBehaviorFromStream downloadBehavior = new AjaxDownloadBehaviorFromStream() {
-			
-			@Override
-			protected InputStream initStream() {
-				return getStream();
-			}
+
+            @Override
+            protected InputStream initStream() {
+                return getStream();
+            }
 		};
+        downloadBehavior.setContentType(getDownloadContentType());
+        downloadBehavior.setFileName(getDownloadFileName());
 		add(downloadBehavior);
 		
         add(new AjaxSubmitButton(ID_BUTTON_DOWNLOAD) {
@@ -153,9 +157,17 @@ public class UploadDownloadPanel extends InputPanel {
 
     public void updateValue(byte[] file) {
     }
-    
+
     public InputStream getStream() {
-    	return null;
+        return null;
+    }
+
+    public String getDownloadFileName() {
+        return downloadFileName;
+    }
+
+    public String getDownloadContentType() {
+        return downloadContentType;
     }
     
     private void downloadPerformed(AjaxDownloadBehaviorFromStream downloadBehavior,

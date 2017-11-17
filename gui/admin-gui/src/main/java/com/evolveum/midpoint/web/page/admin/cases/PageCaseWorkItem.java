@@ -223,10 +223,18 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_DEADLINE, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_DEADLINE)));
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_OUTCOME, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_OUTCOME)));
 		mainForm.add(new Label(ID_CASE_WORK_ITEM_COMMENT, new PropertyModel<>(caseWorkItemDtoModel, CaseWorkItemDto.F_COMMENT)));
-		Panel evidencePanel = new UploadDownloadPanel(ID_CASE_WORK_ITEM_EVIDENCE, true){
+		UploadDownloadPanel evidencePanel = new UploadDownloadPanel(ID_CASE_WORK_ITEM_EVIDENCE, true){
 			@Override
 			public InputStream getStream() {
 				return new ByteArrayInputStream(caseWorkItemDtoModel.getObject().getEvidence());
+			}
+			@Override
+			public String getDownloadFileName() {
+				return caseWorkItemDtoModel.getObject().getEvidenceFilename();
+			}
+			@Override
+			public String getDownloadContentType() {
+				return caseWorkItemDtoModel.getObject().getEvidenceContentType();
 			}
 		};
 		evidencePanel.add(new VisibleEnableBehaviour() {
@@ -316,7 +324,9 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 			if (evidenceUploadField != null) {
 				FileUpload evidence = evidenceUploadField.getFileUpload();
 				if (evidence != null) {
-					output = output.evidence(evidence.getBytes());
+					String filename = evidence.getClientFileName();
+					String contentType = evidence.getContentType();
+					output = output.evidence(evidence.getBytes()).evidenceContentType(contentType).evidenceFilename(filename);
 				}
 			}
 			cms.completeWorkItem(caseId, caseWorkItemId, output, task, result);

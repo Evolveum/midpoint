@@ -111,6 +111,14 @@ public class CaseWorkItemDto extends Selectable {
         return WorkItemTypeUtil.getEvidence(workItem);
     }
 
+    public String getEvidenceFilename() {
+        return WorkItemTypeUtil.getEvidenceFilename(workItem);
+    }
+
+    public String getEvidenceContentType() {
+        return WorkItemTypeUtil.getEvidenceContentType(workItem);
+    }
+
     public void setEvidence(byte[] value) {
         if (workItem.getOutput() == null) {
             workItem.beginOutput().evidence(value);

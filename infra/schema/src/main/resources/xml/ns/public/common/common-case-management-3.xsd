@@ -297,6 +297,8 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="evidenceFilename" type="xsd:string" minOccurs="0" />
+            <xsd:element name="evidenceContentType" type="xsd:string" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
 
