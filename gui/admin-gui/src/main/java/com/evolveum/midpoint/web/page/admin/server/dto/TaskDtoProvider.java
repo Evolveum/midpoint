@@ -130,7 +130,7 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
 	public TaskDto createTaskDto(PrismObject<TaskType> task, Task opTask, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
-        return new TaskDto(task.asObjectable(), getModel(), getTaskService(),
+        return new TaskDto(task.asObjectable(), null, getModel(), getTaskService(),
                 getModelInteractionService(), getTaskManager(), getWorkflowManager(), options, opTask, result, (PageBase)component);
     }
 

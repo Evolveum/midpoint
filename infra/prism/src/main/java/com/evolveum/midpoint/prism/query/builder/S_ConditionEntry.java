@@ -50,9 +50,10 @@ public interface S_ConditionEntry {
 	S_MatchingRuleEntry contains(Object value);
 	S_MatchingRuleEntry containsPoly(String orig, String norm);
 	S_MatchingRuleEntry containsPoly(String orig);
-	S_AtomicFilterExit ref(QName relation);
+	S_AtomicFilterExit ref(QName relation);                 // TODO is this supported by repo query interpreter?
     S_AtomicFilterExit ref(PrismReferenceValue... value);
     S_AtomicFilterExit ref(Collection<PrismReferenceValue> values);
+    S_AtomicFilterExit ref(Collection<PrismReferenceValue> values, boolean nullTypeAsAny);      // beware, 'nullTypeAsAny' is supported only by built-in match(..) method
     S_AtomicFilterExit ref(String... oid);
     S_AtomicFilterExit ref(String oid, QName targetTypeName);
     S_AtomicFilterExit isNull();

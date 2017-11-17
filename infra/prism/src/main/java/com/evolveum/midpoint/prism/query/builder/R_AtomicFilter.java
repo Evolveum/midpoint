@@ -243,7 +243,14 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
 	@Override
 	public S_AtomicFilterExit ref(Collection<PrismReferenceValue> values) {
-		return new R_AtomicFilter(this, RefFilter.createReferenceEqual(itemPath, referenceDefinition, values));
+		return ref(values, false);
+	}
+
+	@Override
+	public S_AtomicFilterExit ref(Collection<PrismReferenceValue> values, boolean nullTypeAsAny) {
+        RefFilter filter = RefFilter.createReferenceEqual(itemPath, referenceDefinition, values);
+        filter.setTargetTypeNullAsAny(nullTypeAsAny);
+        return new R_AtomicFilter(this, filter);
 	}
 
 	@Override
@@ -251,7 +258,8 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     	if (oids.length == 1 && oids[0] == null) {
     		return ref(Collections.emptyList());
 		} else {
-    		return ref(Arrays.stream(oids).map(oid -> new PrismReferenceValue(oid)).collect(Collectors.toList()));
+    	    // when OIDs are specified, we allow any type
+    		return ref(Arrays.stream(oids).map(oid -> new PrismReferenceValue(oid)).collect(Collectors.toList()), true);
 		}
     }
 

@@ -20,13 +20,13 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -71,7 +71,7 @@ public class BaseAuditHelper {
 		AuditEventRecord record = new AuditEventRecord();
         record.setEventType(WORKFLOW_PROCESS_INSTANCE);
         record.setEventStage(stage);
-		record.setInitiator(wfTask.getRequesterIfExists(result));
+		record.setInitiator(wfTask.getRequesterIfExists(result));           // set real principal in case of explicitly requested process termination (MID-4263)
 
 		ObjectReferenceType objectRef = resolveIfNeeded(wfc.getObjectRef(), result);
 		record.setTarget(objectRef.asReferenceValue());
@@ -168,7 +168,7 @@ public class BaseAuditHelper {
 			WfTask wfTask, OperationResult result) throws WorkflowException {
 
         AuditEventRecord record = prepareWorkItemAuditReportCommon(workItem, wfTask, AuditEventStage.EXECUTION, result);
-		setCurrentUserAsInitiator(record);
+		setInitiatorAndAttorneyFromPrincipal(record);
 
 		if (cause != null) {
 			if (cause.getType() != null) {
@@ -204,11 +204,13 @@ public class BaseAuditHelper {
         return record;
     }
 
-	private void setCurrentUserAsInitiator(AuditEventRecord record) {
+	private void setInitiatorAndAttorneyFromPrincipal(AuditEventRecord record) {
 		try {
-			@SuppressWarnings("unchecked")
-			PrismObject<UserType> principal = securityContextManager.getPrincipal().getUser().asPrismObject();
-			record.setInitiator(principal);
+			MidPointPrincipal principal = securityContextManager.getPrincipal();
+			record.setInitiator(principal.getUser().asPrismObject());
+			if (principal.getAttorney() != null) {
+				record.setAttorney(principal.getAttorney().asPrismObject());
+			}
 		} catch (SecurityViolationException e) {
 			record.setInitiator(null);
 			LOGGER.warn("No initiator known for auditing work item event: " + e.getMessage(), e);

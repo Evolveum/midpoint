@@ -19,4 +19,8 @@ CREATE INDEX iAutoassignEnabled
   ON m_abstract_role (autoassign_enabled) INITRANS 30;
 
 ALTER TABLE m_task
-  ADD CONSTRAINT UK_59yhlpgtqu3a9wvnw0ujx4xl1 UNIQUE (taskIdentifier) INITRANS 30;
+  ADD CONSTRAINT uc_task_identifier UNIQUE (taskIdentifier) INITRANS 30;
+
+ALTER TABLE m_audit_event ADD attorneyName VARCHAR2(255 CHAR);
+ALTER TABLE m_audit_event ADD attorneyOid VARCHAR2(36 CHAR);
+ALTER TABLE m_audit_event ADD initiatorType NUMBER(10, 0);

@@ -111,6 +111,15 @@ public final class ClassMapper {
         throw new IllegalArgumentException("Couldn't find hql type for qname " + qname);
     }
 
+	@Contract("!null -> !null; null -> null")
+    public static RObjectType getHQLTypeForClass(Class<? extends ObjectType> clazz) {
+    	if (clazz == null) {
+    		return null;
+		} else {
+            return getHQLTypeForQName(ObjectTypes.getObjectType(clazz).getTypeQName());
+        }
+    }
+
     public static Class<? extends RObject> getHqlClassForHqlName(String hqlName) {
         if (hqlName == null) {
             return null;

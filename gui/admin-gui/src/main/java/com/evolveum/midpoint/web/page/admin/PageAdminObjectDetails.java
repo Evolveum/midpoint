@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
+import com.evolveum.midpoint.web.component.progress.ProgressPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
@@ -57,7 +58,6 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
-import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
@@ -87,13 +87,14 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 	protected static final String ID_SUMMARY_PANEL = "summaryPanel";
 	protected static final String ID_MAIN_PANEL = "mainPanel";
+	private static final String ID_PROGRESS_PANEL = "progressPanel";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageAdminObjectDetails.class);
 
 	private LoadableModel<ObjectWrapper<O>> objectModel;
 	private LoadableModel<List<FocusSubwrapperDto<OrgType>>> parentOrgModel;
 
-	private ProgressReporter progressReporter;
+	private ProgressPanel progressPanel;
 
 	// used to determine whether to leave this page or stay on it (after
 	// operation finishing)
@@ -173,8 +174,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		this.delta = delta;
 	}
 
-	public ProgressReporter getProgressReporter() {
-		return progressReporter;
+	public ProgressPanel getProgressPanel() {
+		return progressPanel;
 	}
 
 	protected void reviveModels() throws SchemaException {
@@ -228,12 +229,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		mainPanel.setOutputMarkupId(true);
 		add(mainPanel);
 
-		progressReporter = createProgressReporter("progressPanel");
-		add(progressReporter.getProgressPanel());
-	}
-
-	protected ProgressReporter createProgressReporter(String id) {
-		return ProgressReporter.create(id, this);
+		progressPanel = new ProgressPanel(ID_PROGRESS_PANEL);
+		add(progressPanel);
 	}
 
 	protected abstract FocusSummaryPanel<O> createSummaryPanel();
@@ -415,14 +412,14 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	 * This will be called from the main form when save button is pressed.
 	 */
 	public void savePerformed(AjaxRequestTarget target) {
-		progressReporter.onSaveSubmit();
+		progressPanel.onBeforeSave();
 		OperationResult result = new OperationResult(OPERATION_SAVE);
 		previewRequested = false;
 		saveOrPreviewPerformed(target, result, false);
 	}
 
 	public void previewPerformed(AjaxRequestTarget target) {
-		progressReporter.onSaveSubmit();
+		progressPanel.onBeforeSave();
 		OperationResult result = new OperationResult(OPERATION_PREVIEW_CHANGES);
 		previewRequested = true;
 		saveOrPreviewPerformed(target, result, true);
@@ -485,7 +482,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 						if (checkValidationErrors(target, validationErrors)) {
 							return;
 						}
-						progressReporter.executeChanges(deltas, previewOnly, options, task, result, target);
+						progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
 					} else {
 						result.recordSuccess();
 					}
@@ -530,15 +527,15 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 						if (checkValidationErrors(target, validationErrors)) {
 							return;
 						}
-						progressReporter.executeChanges(deltas, previewOnly, options, task, result, target);
+						progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
 					} else if (!deltas.isEmpty()) {
 						Collection<SimpleValidationError> validationErrors = performCustomValidation(null, deltas);
 						if (checkValidationErrors(target, validationErrors)) {
 							return;
 						}
-						progressReporter.executeChanges(deltas, previewOnly, options, task, result, target);
+						progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
 					} else {
-						progressReporter.clearProgressPanel();			// from previous attempts (useful only if we would call finishProcessing at the end, but that's not the case now)
+						progressPanel.clearProgressPanel();			// from previous attempts (useful only if we would call finishProcessing at the end, but that's not the case now)
 						if (!previewOnly) {
 							if (!isAnythingChanged) {
 								result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));

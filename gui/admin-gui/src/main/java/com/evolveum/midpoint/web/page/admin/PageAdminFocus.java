@@ -157,7 +157,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 		boolean canExitPage;
 		if (returningFromAsync) {
-			canExitPage = getProgressReporter().isAllSuccess();			// if there's at least a warning in the progress table, we would like to keep the table open
+			canExitPage = getProgressPanel().isAllSuccess();			// if there's at least a warning in the progress table, we would like to keep the table open
 		} else {
 			canExitPage = !canContinueEditing;							// no point in staying on page if we cannot continue editing (in synchronous case i.e. no progress table present)
 		}
@@ -167,38 +167,38 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			redirectBack();
 		} else {
 			if (returningFromAsync) {
-				getProgressReporter().showBackButton(target);
-				getProgressReporter().hideAbortButton(target);
+				getProgressPanel().showBackButton(target);
+				getProgressPanel().hideAbortButton(target);
 			}
             showResult(result);
 			target.add(getFeedbackPanel());
 
 			if (canContinueEditing) {
-				getProgressReporter().hideBackButton(target);
-				getProgressReporter().showContinueEditingButton(target);
+				getProgressPanel().hideBackButton(target);
+				getProgressPanel().showContinueEditingButton(target);
 			}
 		}
 	}
 
 	private void finishPreviewProcessing(AjaxRequestTarget target, OperationResult result) {
 		getMainPanel().setVisible(true);
-		getProgressReporter().getProgressPanel().hide();
-		getProgressReporter().hideAbortButton(target);
-		getProgressReporter().hideBackButton(target);
-		getProgressReporter().hideContinueEditingButton(target);
+		getProgressPanel().hide();
+		getProgressPanel().hideAbortButton(target);
+		getProgressPanel().hideBackButton(target);
+		getProgressPanel().hideContinueEditingButton(target);
 
 		showResult(result);
 		target.add(getFeedbackPanel());
-		navigateToNext(new PagePreviewChanges(getProgressReporter().getPreviewResult(), getModelInteractionService()));
+		navigateToNext(new PagePreviewChanges(getProgressPanel().getPreviewResult(), getModelInteractionService()));
 	}
 
 	@Override
 	public void continueEditing(AjaxRequestTarget target) {
 		getMainPanel().setVisible(true);
-		getProgressReporter().getProgressPanel().hide();
-		getProgressReporter().hideAbortButton(target);
-		getProgressReporter().hideBackButton(target);
-		getProgressReporter().hideContinueEditingButton(target);
+		getProgressPanel().hide();
+		getProgressPanel().hideAbortButton(target);
+		getProgressPanel().hideBackButton(target);
+		getProgressPanel().hideContinueEditingButton(target);
 		target.add(this);
 	}
 
