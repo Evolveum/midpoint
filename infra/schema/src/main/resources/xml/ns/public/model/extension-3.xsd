@@ -155,6 +155,18 @@
         </xsd:annotation>
     </xsd:element>
     
+    <xsd:element name="iterationMethod" type="c:IterationMethodType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How to iterate through objects. Should be used only when really needed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:element name="objectDelta" type="t:ObjectDeltaType">
         <xsd:annotation>
             <xsd:documentation>
