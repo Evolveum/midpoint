@@ -30,6 +30,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.StringUtils;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 import java.util.List;
 
 /**
@@ -266,5 +267,17 @@ public class ExpressionUtil {
 			throw new SchemaException("Content cannot be parsed as a search filter: " + DebugUtil.debugDump(rootXNode.getSubnode()));
 		}
 	}
+
+	public static JAXBElement findEvaluatorByName(ExpressionType expression, QName elementName){
+        if (isEmpty(expression) || elementName == null){
+            return null;
+        }
+        for (JAXBElement<?> element : expression.getExpressionEvaluator()){
+            if (element != null && element.getName().equals(elementName)){
+                return element;
+            }
+        }
+        return null;
+    }
 
 }

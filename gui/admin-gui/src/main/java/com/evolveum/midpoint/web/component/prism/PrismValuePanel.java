@@ -433,7 +433,7 @@ public class PrismValuePanel extends Panel {
 						new PropertyModel<LockoutStatusType>(valueWrapperModel, baseExpression));
 			}
 			if (ExpressionType.COMPLEX_TYPE.equals(valueType)) {
-				return new ExpressionEditorPanel(id, new PropertyModel<ExpressionType>(valueWrapperModel, baseExpression), pageBase);
+				return new ExpressionValuePanel(id, new PropertyModel<ExpressionType>(valueWrapperModel, baseExpression));
 			}
 
 			if (DOMUtil.XSD_DATETIME.equals(valueType)) {

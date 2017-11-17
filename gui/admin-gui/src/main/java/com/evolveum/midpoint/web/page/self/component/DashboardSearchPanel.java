@@ -150,46 +150,6 @@ public class DashboardSearchPanel extends SimplePanel<T> {
             searchForm.add(li);
 
 
-//            final RepeatingView searchTypes = new RepeatingView(ID_SEARCH_TYPE_ITEM);
-//            searchTypes.setOutputMarkupId(true);
-//            if (accessibleSearchTypes.size() > 1) {
-//                for (int i = 0; i < accessibleSearchTypes.size(); i++) {
-//                    if (i == selectedSearchType){
-//                        continue;
-//                    }
-//                    final String searchTypeItem = accessibleSearchTypes.get(i);
-//                    final AjaxSubmitLink searchTypeLink = new AjaxSubmitLink(searchTypes.newChildId()) {
-//                        @Override
-//                        public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-//                                selectedSearchType = accessibleSearchTypes.indexOf(searchTypeItem);
-//                                target.add(DashboardSearchPanel.this.get(createComponentPath(ID_SEARCH_FORM, ID_SEARCH_BUTTON)));
-//                                target.add(DashboardSearchPanel.this.get(createComponentPath(ID_SEARCH_FORM, ID_SEARCH_TYPES)));
-////                                target.add(DashboardSearchPanel.this.get(createComponentPath(ID_SEARCH_FORM, ID_SEARCH_TYPES, ID_SEARCH_TYPE_ITEM)));
-//                        }
-//
-//                        @Override
-//                        protected void onComponentTag(final ComponentTag tag) {
-//                            super.onComponentTag(tag);
-//                            tag.put("value", searchTypeItem);
-//                        }
-//
-//                    };
-//                    searchTypeLink.setOutputMarkupId(true);
-//                    Label linkLabel = new Label(ID_LINK_LABEL, new Model<String>() {
-//                        public String getObject() {
-//                            return searchTypeItem;
-//                        }
-//                    });
-//                    linkLabel.setOutputMarkupId(true);
-//                    searchTypeLink.add(linkLabel);
-//                    searchTypes.add(searchTypeLink);
-//                }
-//            }
-//            list.add(searchTypes);
-//            if (accessibleSearchTypes.size() == 1){
-//                list.setVisible(false);
-//            }
-//            searchForm.add(list);
         }
     }
 
