@@ -75,6 +75,10 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto>{
 
 	}
 
+	public WebMarkupContainer getButtonContainer(){
+		return (WebMarkupContainer)get(ID_BUTTON_CONTAINER);
+	}
+
 	 private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
 	        final InlineMenuItem item = menuItem.getModelObject();
 
