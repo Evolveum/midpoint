@@ -641,4 +641,8 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 		}
 		return property;
 	}
+
+	public static <T> T getRealValue(PrismProperty<T> property) {
+    	return property != null ? property.getRealValue() : null;
+	}
 }

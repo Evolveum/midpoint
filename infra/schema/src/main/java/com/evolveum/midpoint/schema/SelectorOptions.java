@@ -151,6 +151,19 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
 		return null;
 	}
 
+	public static <T> Collection<SelectorOptions<T>> updateRootOptions(Collection<SelectorOptions<T>> options, Consumer<T> updater, Supplier<T> newValueSupplier) {
+		if (options == null) {
+			options = new ArrayList<>();
+		}
+		T rootOptions = findRootOptions(options);
+		if (rootOptions == null) {
+			rootOptions = newValueSupplier.get();
+			options.add(new SelectorOptions<>(rootOptions));
+		}
+		updater.accept(rootOptions);
+		return options;
+	}
+
 	/**
 	 * Finds all the options for given path. TODO could there be more than one?
 	 * Returns live objects that could be modified by client.
