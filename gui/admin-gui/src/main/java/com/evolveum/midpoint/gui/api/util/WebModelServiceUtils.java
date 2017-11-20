@@ -64,6 +64,8 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.Session;
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
+
 /**
  * Utility class that contains methods that interact with ModelService and other
  * midPoint components.
@@ -94,7 +96,7 @@ public class WebModelServiceUtils {
 		if (ref.getTargetName() != null) {
 			return ref.getTargetName().getOrig();
 		}
-        PrismObject<ObjectType> object = resolveReferenceRaw(ref, page, task, result);
+        PrismObject<ObjectType> object = resolveReferenceNoFetch(ref, page, task, result);
         if (object == null) {
             return ref.getOid();
         } else {
@@ -103,7 +105,7 @@ public class WebModelServiceUtils {
         }
     }
 
-    public static <T extends ObjectType> PrismObject<T> resolveReferenceRaw(ObjectReferenceType reference, PageBase page, Task task, OperationResult result) {
+    public static <T extends ObjectType> PrismObject<T> resolveReferenceNoFetch(ObjectReferenceType reference, PageBase page, Task task, OperationResult result) {
         if (reference == null) {
             return null;
         }
@@ -120,8 +122,7 @@ public class WebModelServiceUtils {
             LOGGER.error("No definition for {} was found", reference.getType());
             return null;
         }
-        return loadObject(definition.getCompileTimeClass(), reference.getOid(),
-				SelectorOptions.createCollection(GetOperationOptions.createRaw()), page, task, result);
+        return loadObject(definition.getCompileTimeClass(), reference.getOid(), createNoFetchCollection(), page, task, result);
     }
 
     public static <O extends ObjectType> List<ObjectReferenceType> createObjectReferenceList(Class<O> type, PageBase page, Map<String, String> referenceMap){
