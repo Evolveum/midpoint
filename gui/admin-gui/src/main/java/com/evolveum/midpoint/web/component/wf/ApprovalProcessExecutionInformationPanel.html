@@ -28,20 +28,31 @@
                 <td>
                     <i wicket:id="currentStageMarker" style="margin-right: 20px" class="fa fa-hand-o-right fa-2x text-danger"></i>
                 </td>
+                <!-- TODO: width? -->
+                <!-- TODO: labels: approval stage, approver, performer -->
                 <td style="text-align:center">
-                    <div style="border: 1px dotted; border-radius: 10px; padding: 10px; margin: 10px">
-                        <span wicket:id="approvers">
-                            <span wicket:id="approverName" style="border: 1px solid; border-radius: 5px; padding: 5px; margin: 5px"></span>
-                            <span wicket:id="performerName"></span>
-                            <span wicket:id="outcome"></span>
-                            <span wicket:id="junction" style="font-size:120%; margin: 10px"></span>
-                        </span>
-                        <span wicket:id="automatedOutcome"></span>
+                    <div class="process-box">
+                    	<div class="box-label">
+                    		<span class="process-label" wicket:id="stageName"></span>
+                    		<span class="process-outcome" wicket:id="stageOutcome"></span>
+                    	</div>
+                    	<div class="box-content">
+	                        <div class="process-box" wicket:id="approvers">
+	                        	<div class="box-label">
+	                            	<span class="process-label" wicket:id="approverName"></span>
+	                            	<span class="process-outcome" wicket:id="outcome"></span>
+	                            </div>
+	                            
+	                            <!-- TODO: enclosure? -->
+	                            <div class="box-content">
+	                            	<span wicket:id="performerName">
+	                            	</span><span wicket:id="junction" style="font-size:120%; margin: 10px"></span>
+                            	</div>
+	                            
+	                        </div>
+	                        <span wicket:id="automatedOutcome"></span>
+	                    </div>
                     </div>
-                </td>
-                <td style="text-align:center; font-style:italic; padding-left: 30px">
-                    <span wicket:id="stageName"></span>
-                    <span wicket:id="stageOutcome"></span>
                 </td>
             </tr>
         </div>

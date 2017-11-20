@@ -91,7 +91,8 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
                         ApproverEngagementDto ae = approversListItem.getModelObject();
 
                         // original approver name
-                        approversListItem.add(new Label(ID_APPROVER_NAME, nameOf(ae.getApproverRef())));
+                        approversListItem.add(new Label(ID_APPROVER_NAME, 
+                        		getApproverLabel("ApprovalProcessExecutionInformationPanel.approver", ae.getApproverRef())));
 
                         // outcome
                         WorkItemOutcomeType outcome = ae.getOutput() != null
@@ -123,7 +124,7 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
 
                         // performer
                         approversListItem.add(new Label(ID_PERFORMER_NAME,
-		                        ae.getCompletedBy() != null ? "(" + nameOf(ae.getCompletedBy()) + ")": ""));
+                        		getApproverLabel("ApprovalProcessExecutionInformationPanel.performer", ae.getCompletedBy())));
 
                         // junction
 	                    Label junctionLabel = new Label(ID_JUNCTION, stage.isFirstDecides() ? "" : " & ");      // or "+" for first decides? probably not
@@ -148,11 +149,7 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
                 automatedOutcomeLabel.setVisible(stage.getAutomatedCompletionReason() != null);
                 stagesListItem.add(automatedOutcomeLabel);
 
-                stagesListItem.add(new Label(ID_STAGE_NAME,
-                        stage.getStageName() != null || stage.getStageDisplayName() != null
-                                ? WfContextUtil.getStageInfo(stageNumber, numberOfStages, stage.getStageName(), stage.getStageDisplayName())
-                                : ApprovalProcessExecutionInformationPanel.this.getString("ApprovalProcessExecutionInformationPanel.stage",
-                                stageNumber, numberOfStages)));
+                stagesListItem.add(new Label(ID_STAGE_NAME, getStageNameLabel(stage, stageNumber, numberOfStages)));
 
 	            ApprovalLevelOutcomeType stageOutcome = stage.getOutcome();
 	            ApprovalOutcomeIcon stageOutcomeIcon;
@@ -180,12 +177,33 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
 	            stageOutcomePanel.add(new VisibleBehaviour(() -> stageOutcomeIcon != ApprovalOutcomeIcon.EMPTY));
 	            stagesListItem.add(stageOutcomePanel);
             }
+
         };
         add(stagesList);
     }
 
-    private String nameOf(ObjectReferenceType ref) {
-        return MiscUtil.emptyIfNull(WebComponentUtil.getName(ref));
-    }
+	private String getStageNameLabel(ApprovalStageExecutionInformationDto stage, int stageNumber, int numberOfStages) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getString("ApprovalProcessExecutionInformationPanel.stage"));
+		if (stage.getStageName() != null || stage.getStageDisplayName() != null) {
+			sb.append(": ");
+			sb.append(WfContextUtil.getStageInfo(stageNumber, numberOfStages, stage.getStageName(), stage.getStageDisplayName()));
+			return sb.toString();
+		} else {
+			sb.append(stageNumber).append("/").append(numberOfStages);
+			return sb.toString();
+		}
+	}
 
+	private String getApproverLabel(String labelKey, ObjectReferenceType ref) {
+		if (ref == null) {
+			return "";
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append(getString(labelKey));
+		sb.append(": ");
+		sb.append(WebComponentUtil.getName(ref));
+		return sb.toString();	
+	}
+    
 }
