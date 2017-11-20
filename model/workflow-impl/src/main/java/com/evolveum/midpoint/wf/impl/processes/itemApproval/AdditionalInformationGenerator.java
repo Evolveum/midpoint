@@ -92,7 +92,7 @@ class AdditionalInformationGenerator {
 			return;
 		}
 		InformationType info = new InformationType();
-		info.setTitle(LocalizationUtil.createForKey("AdditionalInformationGenerator.exclusionsTitle"));
+		info.setLocalizableTitle(LocalizationUtil.createForKey("AdditionalInformationGenerator.exclusionsTitle"));
 		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
 			EvaluatedExclusionTriggerType exclusion = (EvaluatedExclusionTriggerType) trigger;
 			InformationPartType part = new InformationPartType();
@@ -110,7 +110,7 @@ class AdditionalInformationGenerator {
 				sb.append(" (").append(conflictingPathInfo).append(")");
 			}
 			sb.append(".");
-			part.setText(LocalizationUtil.createForFallbackMessage(sb.toString()));   // TODO localizable
+			part.setLocalizableText(LocalizationUtil.createForFallbackMessage(sb.toString()));   // TODO localizable
 			info.getPart().add(part);
 		}
 		infoList.add(info);
@@ -122,10 +122,10 @@ class AdditionalInformationGenerator {
 			return;
 		}
 		InformationType info = new InformationType();
-		info.setTitle(LocalizationUtil.createForKey("AdditionalInformationGenerator.notes"));
+		info.setLocalizableTitle(LocalizationUtil.createForKey("AdditionalInformationGenerator.notes"));
 		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
 			InformationPartType part = new InformationPartType();
-			part.setText(trigger.getMessage());
+			part.setLocalizableText(trigger.getMessage());
 			info.getPart().add(part);
 		}
 		infoList.add(info);
