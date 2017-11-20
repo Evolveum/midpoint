@@ -69,6 +69,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.boot.Wro4jConfig;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -2106,5 +2107,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public ProgressReporterManager getProgressReporterManager() {
         return MidPointApplication.get().getProgressReporterManager();
+    }
+
+    public AsyncWebProcessManager getAsyncWebProcessManager() {
+        return MidPointApplication.get().getAsyncWebProcessManager();
     }
 }

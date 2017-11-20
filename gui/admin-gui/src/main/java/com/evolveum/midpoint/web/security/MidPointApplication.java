@@ -41,8 +41,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
-import com.evolveum.midpoint.web.component.GuiComponents;
 import com.evolveum.midpoint.web.component.progress.ProgressReporterManager;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.error.*;
@@ -181,15 +181,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient LocalizationService localizationService;
     @Autowired
     transient ProgressReporterManager progressReporterManager;
+    @Autowired
+    transient AsyncWebProcessManager asyncWebProcessManager;
 
     private WebApplicationConfiguration webApplicationConfiguration;
-
-    @Override
-    protected void onDestroy() {
-        GuiComponents.destroy();
-
-        super.onDestroy();
-    }
 
     @Override
     public Class<? extends PageBase> getHomePage() {
@@ -208,8 +203,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         getJavaScriptLibrarySettings().setJQueryReference(
                 new PackageResourceReference(MidPointApplication.class,
                         "../../../../../webjars/adminlte/2.3.11/plugins/jQuery/jquery-2.2.3.min.js"));
-
-        GuiComponents.init();
 
         getComponentInstantiationListeners().add(new SpringComponentInjector(this));
 
@@ -497,5 +490,9 @@ public class MidPointApplication extends AuthenticatedWebApplication {
             throw new RestartResponseException(PageLogin.class);
         }
         return WebModelServiceUtils.createSimpleTask(operation, user.getUser().asPrismObject(), getTaskManager());
+    }
+
+    public AsyncWebProcessManager getAsyncWebProcessManager() {
+        return asyncWebProcessManager;
     }
 }

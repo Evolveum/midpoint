@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.boot;
 
+import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.component.progress.ProgressReporterManager;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
@@ -41,5 +42,10 @@ public class WebConfig {
     @Bean
     public ProgressReporterManager progressReporterManager() {
         return new ProgressReporterManager();
+    }
+
+    @Bean
+    public AsyncWebProcessManager asyncWebProcessManager() {
+        return new AsyncWebProcessManager();
     }
 }
