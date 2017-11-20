@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressi
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -73,17 +75,29 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
     }
 
     private void initLayout(){
+        setOutputMarkupId(true);
+
         DropdownButtonDto addValueButtonDto = new DropdownButtonDto("", "",
                 getPageBase().createStringResource("ExpressionValuePanel.specifyExpression").getString(),
                 createAddButtonInlineMenuItems());
 
         DropdownButtonPanel addValueButtonPanel = new DropdownButtonPanel(ID_ADD_EXPRESSION_VALUE_BUTTON, addValueButtonDto){
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected String getSpecialButtonClass(){
                 return "btn-sm btn-default";
             }
         };
         addValueButtonPanel.setOutputMarkupId(true);
+        addValueButtonPanel.getButtonContainer().add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isEnabled(){
+                return  !(get(ID_LITERAL_VALUE_CONTAINER).isVisible() || get(ID_ASSOCIATION_TARGET_SEARCH_CONTAINER).isVisible());
+            }
+        });
         add(addValueButtonPanel);
 
         initValueExpressionPanel();
@@ -93,11 +107,21 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
     private void initValueExpressionPanel(){
         WebMarkupContainer literalValueContainer = new WebMarkupContainer(ID_LITERAL_VALUE_CONTAINER);
         literalValueContainer.setOutputMarkupId(true);
+        literalValueContainer.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                return !StringUtils.isEmpty(getValueExpressionValue());
+            }
+        });
         add(literalValueContainer);
 
         TextPanel<String> literalValueInput = new TextPanel<String>(ID_LITERAL_VALUE_INPUT, Model.of(getValueExpressionValue()));
         literalValueInput.setOutputMarkupId(true);
         literalValueInput.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior(){
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected void onUpdate(AjaxRequestTarget target){
             }
@@ -105,10 +129,12 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         literalValueContainer.add(literalValueInput);
 
         AjaxLink removeButton = new AjaxLink(ID_DELETE_VALUE_BUTTON) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-
+                ExpressionUtil.removeEvaluatorByName(ExpressionValuePanel.this.getModelObject(), SchemaConstantsGenerated.C_VALUE);
+                target.add(ExpressionValuePanel.this);
             }
         };
         literalValueContainer.add(removeButton);
@@ -117,13 +143,23 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
     private void initAssociationTargetSearchExpressionPanel(){
         WebMarkupContainer targetSearchContainer = new WebMarkupContainer(ID_ASSOCIATION_TARGET_SEARCH_CONTAINER);
         targetSearchContainer.setOutputMarkupId(true);
+        targetSearchContainer.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+           @Override
+            public boolean isVisible(){
+               return getFilterValuesMap() != null && !getFilterValuesMap().isEmpty();
+           }
+        });
         add(targetSearchContainer);
 
         AjaxLink removeButton = new AjaxLink(ID_DELETE_TARGET_SEARCH_EXP_BUTTON) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-
+                ExpressionUtil.removeEvaluatorByName(ExpressionValuePanel.this.getModelObject(), SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH);
+                target.add(ExpressionValuePanel.this);
             }
         };
         targetSearchContainer.add(removeButton);
@@ -131,6 +167,8 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         TextPanel<ItemPathType> targetSearchFilterPathInput = new TextPanel<ItemPathType>(ID_TARGET_SEARCH_PATH_INPUT, Model.of(getTargetSearchExpPathValue()));
         targetSearchFilterPathInput.setOutputMarkupId(true);
         targetSearchFilterPathInput.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior(){
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected void onUpdate(AjaxRequestTarget target){
             }
@@ -140,6 +178,8 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         TextPanel<String> targetSearchFilterValueInput = new TextPanel<String>(ID_TARGET_SEARCH_VALUE_INPUT, Model.of(getTargetSearchExpValue()));
         targetSearchFilterValueInput.setOutputMarkupId(true);
         targetSearchFilterValueInput.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior(){
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected void onUpdate(AjaxRequestTarget target){
             }

@@ -280,4 +280,16 @@ public class ExpressionUtil {
         return null;
     }
 
+    public static void removeEvaluatorByName(ExpressionType expression, QName elementName){
+        if (isEmpty(expression) || elementName == null){
+            return;
+        }
+        for (JAXBElement<?> element : expression.getExpressionEvaluator()){
+            if (element != null && element.getName().equals(elementName)){
+                expression.getExpressionEvaluator().remove(element);
+                return;
+            }
+        }
+    }
+
 }
