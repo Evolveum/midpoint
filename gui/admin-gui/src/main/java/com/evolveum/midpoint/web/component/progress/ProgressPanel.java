@@ -597,8 +597,6 @@ public class ProgressPanel extends BasePanel {
 
                     reporter.recordExecutionStart();
 
-                    Thread.sleep(6000L);    //todo remove!!!
-
                     if (previewOnly) {
                         ModelContext previewResult = modelInteraction
                                 .previewChanges(deltas, options, task, Collections.singleton(reporter), result);
