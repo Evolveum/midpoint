@@ -739,8 +739,9 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 			sb.append(" weak");
 		}
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "isValid", isValid(), indent + 1);
-		sb.append("\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "isValid", isValid(), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "wasValid", getWasValid(), indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "relativityMode", getRelativityMode(), indent + 1);
 		DebugUtil.debugDumpLabel(sb, "auxiliary object classes", indent + 1);
 		if (auxiliaryObjectClassDefinitions == null) {
 			sb.append(" (null)");
@@ -783,12 +784,29 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 
 	@Override
 	public String toString() {
-		return "Construction(" +
-				(refinedObjectClassDefinition == null ?
-						getConstructionType() : refinedObjectClassDefinition.getShadowDiscriminator()) +
-				" in " + getSource() +
-				(isValid() ? "" : ", invalid") +
-				")";
+		StringBuilder sb = new StringBuilder("Construction(");
+		if (refinedObjectClassDefinition == null) {
+			sb.append(getConstructionType());
+		} else {
+			sb.append(refinedObjectClassDefinition.getShadowDiscriminator());
+		}
+		sb.append(" in ").append(getSource());
+//		if (getRelativityMode() != null) {
+//			sb.append(", ").append(getRelativityMode());
+//		}
+		if (isValid()) {
+			if (!getWasValid()) {
+				sb.append(", invalid->valid");
+			}
+		} else {
+			if (getWasValid()) {
+				sb.append(", valid->invalid");
+			} else {
+				sb.append(", invalid");
+			}
+		}
+		sb.append(")");
+		return sb.toString();
 	}
 
 }

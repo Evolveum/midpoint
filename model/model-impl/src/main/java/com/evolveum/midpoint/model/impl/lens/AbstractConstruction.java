@@ -19,6 +19,7 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -45,8 +46,9 @@ public abstract class AbstractConstruction<F extends FocusType, T extends Abstra
 	private ObjectDeltaObject<F> focusOdo;
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
-
 	private boolean isValid = true;
+	private boolean wasValid = true;
+	private PlusMinusZero relativityMode;
 
 	public AbstractConstruction(T constructionType, ObjectType source) {
 		this.constructionType = constructionType;
@@ -128,6 +130,22 @@ public abstract class AbstractConstruction<F extends FocusType, T extends Abstra
 
 	public void setValid(boolean isValid) {
 		this.isValid = isValid;
+	}
+
+	public boolean getWasValid() {
+		return wasValid;
+	}
+
+	public void setWasValid(boolean wasValid) {
+		this.wasValid = wasValid;
+	}
+
+	public PlusMinusZero getRelativityMode() {
+		return relativityMode;
+	}
+
+	public void setRelativityMode(PlusMinusZero relativityMode) {
+		this.relativityMode = relativityMode;
 	}
 
 	public AssignmentPathImpl getAssignmentPath() {

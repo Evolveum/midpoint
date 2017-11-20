@@ -475,6 +475,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		construction.setChannel(channel);
 		construction.setOrderOneObject(segment.getOrderOneObject());
 		construction.setValid(isValid);
+		construction.setRelativityMode(mode);
 		
 		// Do not evaluate the construction here. We will do it in the second pass. Just prepare everything to be evaluated.
 		if (mode == null) {
@@ -505,6 +506,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		construction.setOriginType(OriginType.ASSIGNMENTS);
 		construction.setChannel(channel);
 		construction.setValid(isValid);
+		construction.setRelativityMode(mode);
 		
 		ctx.evalAssignment.addPersonaConstruction(construction, mode);
 	}

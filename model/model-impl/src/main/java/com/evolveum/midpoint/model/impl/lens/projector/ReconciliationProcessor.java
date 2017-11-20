@@ -244,7 +244,7 @@ public class ReconciliationProcessor {
 
 		if (!isTolerantAuxiliaryObjectClasses(projCtx)) {
 			for (PrismPropertyValue<QName> isPValue : arePValues) {
-				if (!isInPvwoValues(valueMatcher, isPValue.getValue(), shouldBePValues)) {
+				if (!isInPvwoValues(valueMatcher, isPValue.getValue(), shouldBePValues, true)) {
 					auxObjectClassChanged = true;
 					recordDelta(valueMatcher, projCtx, ItemPath.EMPTY_PATH, propDef, ModificationType.DELETE,
 							isPValue.getValue(), null, "it is not given");
@@ -432,11 +432,17 @@ public class ReconciliationProcessor {
 		// nor from secondary delta (because these got there from mappings).
 
 		boolean hasStrongShouldBePValue = false;
+		boolean hasOtherNonWeakValues = false;
 		for (ItemValueWithOrigin<? extends PrismPropertyValue<T>,PrismPropertyDefinition<T>> shouldBePValue : shouldBePValues) {
-			if (shouldBePValue.getMapping() != null
-					&& shouldBePValue.getMapping().getStrength() == MappingStrengthType.STRONG) {
-				hasStrongShouldBePValue = true;
-				break;
+			if (shouldBePValue.getMapping() != null) {
+					if (shouldBePValue.getMapping().getStrength() == MappingStrengthType.STRONG) {
+						hasStrongShouldBePValue = true;
+						hasOtherNonWeakValues = true;
+						break;
+					}
+					if (shouldBePValue.getMapping().getStrength() == null || shouldBePValue.getMapping().getStrength() == MappingStrengthType.NORMAL) {
+						hasOtherNonWeakValues = true;
+					}
 			}
 		}
 
@@ -521,7 +527,7 @@ public class ReconciliationProcessor {
 			}
 		}
 
-		decideIfTolerate(projCtx, attributeDefinition, arePValues, shouldBePValues, valueMatcher);
+		decideIfTolerate(projCtx, attributeDefinition, arePValues, shouldBePValues, valueMatcher, hasOtherNonWeakValues);
 
 	}
 
@@ -785,7 +791,7 @@ public class ReconciliationProcessor {
 			RefinedAttributeDefinition<T> attributeDefinition,
 			Collection<PrismPropertyValue<T>> arePValues,
 			Collection<ItemValueWithOrigin<PrismPropertyValue<T>,PrismPropertyDefinition<T>>> shouldBePValues,
-			ValueMatcher<T> valueMatcher) throws SchemaException {
+			ValueMatcher<T> valueMatcher, boolean hasOtherNonWeakValues) throws SchemaException {
 
 		for (PrismPropertyValue<T> isPValue : arePValues) {
 			if (matchPattern(attributeDefinition.getTolerantValuePattern(), isPValue, valueMatcher)){
@@ -799,7 +805,7 @@ public class ReconciliationProcessor {
 			}
 
 			if (!attributeDefinition.isTolerant()) {
-				if (!isInPvwoValues(valueMatcher, isPValue.getValue(), shouldBePValues)) {
+				if (!isInPvwoValues(valueMatcher, isPValue.getValue(), shouldBePValues, hasOtherNonWeakValues)) {
 					recordDeleteDelta(isPValue, attributeDefinition, valueMatcher, projCtx, "it is not given by any mapping and the attribute is not tolerant");
 				}
 			}
@@ -1054,7 +1060,8 @@ public class ReconciliationProcessor {
     }
 
 	private <T> boolean isInPvwoValues(ValueMatcher<T> valueMatcher, T value,
-			Collection<ItemValueWithOrigin<PrismPropertyValue<T>,PrismPropertyDefinition<T>>> shouldBePvwos) {
+			Collection<ItemValueWithOrigin<PrismPropertyValue<T>,PrismPropertyDefinition<T>>> shouldBePvwos,
+			boolean hasOtherNonWeakValues) {
 
 		if (shouldBePvwos == null || shouldBePvwos.isEmpty()) {
 			return false;
@@ -1064,6 +1071,9 @@ public class ReconciliationProcessor {
 			if (!shouldBePvwo.isValid()) {
         		continue;
         	}
+			if (hasOtherNonWeakValues && shouldBePvwo.getMapping() != null && shouldBePvwo.getMapping().getStrength() == MappingStrengthType.WEAK) {
+				continue;
+			}
 			PrismPropertyValue<T> shouldBePPValue = shouldBePvwo.getItemValue();
 			T shouldBeValue = shouldBePPValue.getValue();
 			if (matchValue(value, shouldBeValue, valueMatcher)) {

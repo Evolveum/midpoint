@@ -83,6 +83,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	private PrismObject<?> target;
 	private boolean isValid;
+	private boolean wasValid;
 	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
 	private boolean presentInCurrentObject;
 	private boolean presentInOldObject;
@@ -294,6 +295,14 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		this.isValid = isValid;
 	}
 
+	public boolean getWasValid() {
+		return wasValid;
+	}
+
+	public void setWasValid(boolean wasValid) {
+		this.wasValid = wasValid;
+	}
+
 	public boolean isForceRecon() {
 		return forceRecon;
 	}
@@ -315,6 +324,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		for (Construction<F> construction :constructionTriple.getAllValues()) {
 			construction.setFocusOdo(focusOdo);
 			construction.setSystemConfiguration(systemConfiguration);
+			construction.setWasValid(wasValid);
 			LOGGER.trace("Evaluating construction '{}' in {}", construction, construction.getSource());
 			construction.evaluate(task, result);
 		}
