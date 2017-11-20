@@ -28,12 +28,16 @@ public class AsyncWebProcessModel<T> implements IModel<AsyncWebProcess<T>> {
     private String id;
 
     public AsyncWebProcessModel() {
-        this(true);
+        this(true, null);
     }
 
-    public AsyncWebProcessModel(boolean createProcessEagerly) {
+    public AsyncWebProcessModel(T data) {
+        this(true, data);
+    }
+
+    public AsyncWebProcessModel(boolean createProcessEagerly, T data) {
         if (createProcessEagerly) {
-            createProcess();
+            createProcess(data);
         }
     }
 
@@ -47,7 +51,11 @@ public class AsyncWebProcessModel<T> implements IModel<AsyncWebProcess<T>> {
             return process;
         }
 
-        return createProcess();
+        return createProcess(null);
+    }
+
+    public T getProcessData() {
+        return getObject().getData();
     }
 
     @Override
@@ -60,7 +68,7 @@ public class AsyncWebProcessModel<T> implements IModel<AsyncWebProcess<T>> {
         process = null;
     }
 
-    private AsyncWebProcess createProcess() {
+    private AsyncWebProcess createProcess(T data) {
         AsyncWebProcessManager manager = MidPointApplication.get().getAsyncWebProcessManager();
         if (id != null) {
             process = manager.getProcess(id);
@@ -68,7 +76,7 @@ public class AsyncWebProcessModel<T> implements IModel<AsyncWebProcess<T>> {
             return process;
         }
 
-        process = manager.createProcess();
+        process = manager.createProcess(data);
         id = process.getId();
 
         return process;

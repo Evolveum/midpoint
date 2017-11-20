@@ -19,16 +19,27 @@ package com.evolveum.midpoint.web.component.progress;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.HttpConnectionInformation;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
+import com.evolveum.midpoint.web.application.AsyncWebProcessModel;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -43,9 +54,13 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.time.Duration;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION;
@@ -81,7 +96,7 @@ public class ProgressPanel extends BasePanel {
     private WebMarkupContainer contentsPanel;
     private StatisticsPanel statisticsPanel;
 
-    private IModel<ProgressReporter> reporterModel;
+    private AsyncWebProcessModel<ProgressReporter> reporterModel;
 
     public ProgressPanel(String id) {
         super(id);
@@ -94,7 +109,15 @@ public class ProgressPanel extends BasePanel {
         super.onInitialize();
 
         PageBase page = getPageBase();
-        reporterModel = new ProgressReporterModel(page);
+
+        WebApplicationConfiguration config = page.getWebApplicationConfiguration();
+
+        ProgressReporter reporter = new ProgressReporter(MidPointApplication.get());
+        reporter.setRefreshInterval(config.getProgressRefreshInterval());
+        reporter.setAsynchronousExecution(config.isProgressReportingEnabled());
+        reporter.setAbortEnabled(config.isAbortEnabled());
+
+        reporterModel = new AsyncWebProcessModel<>(reporter);
 
         initLayout();
 
@@ -114,7 +137,9 @@ public class ProgressPanel extends BasePanel {
 
                     @Override
                     public List<ProgressReportActivityDto> getObject() {
-                        ProgressDto progressDto = reporterModel.getObject().getProgress();
+                        ProgressReporter reporter = reporterModel.getProcessData();
+                        ProgressDto progressDto = reporter.getProgress();
+
                         return progressDto.getProgressReportActivities();
                     }
                 }) {
@@ -133,7 +158,9 @@ public class ProgressPanel extends BasePanel {
 
             @Override
             public List getObject() {
-                ProgressDto progressDto = reporterModel.getObject().getProgress();
+                ProgressReporter reporter = reporterModel.getProcessData();
+                ProgressDto progressDto = reporter.getProgress();
+
                 return progressDto.getLogItems();
             }
         }) {
@@ -149,7 +176,7 @@ public class ProgressPanel extends BasePanel {
 
             @Override
             public String getObject() {
-                ProgressReporter reporter = reporterModel.getObject();
+                ProgressReporter reporter = reporterModel.getProcessData();
 
                 if (reporter.getOperationDurationTime() > 0) {
                     return getString("ProgressPanel.ExecutionTimeWhenFinished", reporter.getOperationDurationTime());
@@ -347,13 +374,21 @@ public class ProgressPanel extends BasePanel {
         //todo implement
     }
 
+    /**
+     * Executes changes on behalf of the parent page. By default, changes are executed asynchronously (in
+     * a separate thread). However, when set in the midpoint configuration, changes are executed synchronously.
+     *
+     * @param deltas  Deltas to be executed.
+     * @param options Model execution options.
+     * @param task    Task in context of which the changes have to be executed.
+     * @param result  Operation result.
+     */
     public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly,
                                ModelExecuteOptions options, Task task, OperationResult result, AjaxRequestTarget target) {
 
         PageBase page = getPageBase();
-        ProgressReporterManager manager = page.getProgressReporterManager();
 
-        ProgressReporter reporter = reporterModel.getObject();
+        ProgressReporter reporter = reporterModel.getProcessData();
 
         if (page instanceof ProgressReportingAwarePage) {
             ProgressReportingAwarePage aware = (ProgressReportingAwarePage) page;
@@ -373,9 +408,11 @@ public class ProgressPanel extends BasePanel {
             showBackButton(target);
 
             setTask(task);
-        }
 
-        manager.executeChanges(reporter.getId(), deltas, previewOnly, options, task, result);
+            executeChangesAsync(reporter, deltas, previewOnly, options, task, result);
+        } else {
+            executeChangesSync(reporter, deltas, previewOnly, options, task, result);
+        }
 
         if (!reporter.isAsynchronousExecution() && page instanceof ProgressReportingAwarePage) {
             ProgressReportingAwarePage aware = (ProgressReportingAwarePage) page;
@@ -384,17 +421,17 @@ public class ProgressPanel extends BasePanel {
     }
 
     public void clearProgressPanel() {
-        ProgressReporter reporter = reporterModel.getObject();
+        ProgressReporter reporter = reporterModel.getProcessData();
         reporter.getProgress().clear();
     }
 
     public boolean isAllSuccess() {
-        ProgressReporter reporter = reporterModel.getObject();
+        ProgressReporter reporter = reporterModel.getProcessData();
         return reporter.getProgress().allSuccess();
     }
 
     public ModelContext<? extends ObjectType> getPreviewResult() {
-        ProgressReporter reporter = reporterModel.getObject();
+        ProgressReporter reporter = reporterModel.getProcessData();
         return reporter.getPreviewResult();
     }
 
@@ -435,7 +472,7 @@ public class ProgressPanel extends BasePanel {
             return;
         }
 
-        ProgressReporter reporter = reporterModel.getObject();
+        ProgressReporter reporter = reporterModel.getProcessData();
         int refreshInterval = reporter.getRefreshInterval();
 
         refreshingBehavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(refreshInterval)) {
@@ -444,7 +481,7 @@ public class ProgressPanel extends BasePanel {
             protected void onPostProcessTarget(AjaxRequestTarget target) {
                 invalidateCache();
 
-                ProgressReporter reporter = reporterModel.getObject();
+                ProgressReporter reporter = reporterModel.getProcessData();
 
                 OperationResult asyncOperationResult = reporter.getAsyncOperationResult();
                 if (asyncOperationResult != null) {         // by checking this we know that async operation has been finished
@@ -492,7 +529,7 @@ public class ProgressPanel extends BasePanel {
      * You have to call this method when Abort button is pressed
      */
     public void abortPerformed(AjaxRequestTarget target) {
-        ProgressReporter reporter = reporterModel.getObject();
+        ProgressReporter reporter = reporterModel.getProcessData();
 
         if (reporter == null) {
             LOGGER.error("No reporter/progressListener (abortButton.onSubmit)");
@@ -501,7 +538,7 @@ public class ProgressPanel extends BasePanel {
 
         reporter.setAbortRequested(true);
 
-        Future future = reporter.getFuture();
+        Future future = reporterModel.getObject().getFuture();
         if (future != null) {
             if (!future.isDone()) {
                 reporter.getProgress().log(getString("ProgressPanel.abortRequested"));
@@ -516,45 +553,77 @@ public class ProgressPanel extends BasePanel {
         hideAbortButton(target);
     }
 
-    private static class ProgressReporterModel implements IModel<ProgressReporter> {
+    private void executeChangesSync(ProgressReporter reporter, Collection<ObjectDelta<? extends ObjectType>> deltas,
+                                    boolean previewOnly, ModelExecuteOptions options, Task task, OperationResult result) {
+        try {
+            MidPointApplication application = MidPointApplication.get();
 
-        private PageBase page;
-
-        private transient ProgressReporter reporter;
-        private String id;
-
-        public ProgressReporterModel(PageBase page) {
-            this.page = page;
-        }
-
-        @Override
-        public ProgressReporter getObject() {
-            if (reporter != null) {
-                return reporter;
+            if (previewOnly) {
+                ModelInteractionService service = application.getModelInteractionService();
+                ModelContext previewResult = service.previewChanges(deltas, options, task, result);
+                reporter.setPreviewResult(previewResult);
+            } else {
+                ModelService service = application.getModel();
+                service.executeChanges(deltas, options, task, result);
             }
-
-            ProgressReporterManager manager = page.getProgressReporterManager();
-            if (id != null) {
-                reporter = manager.getReporter(id);
-
-                return reporter;
+            result.computeStatusIfUnknown();
+        } catch (CommonException | RuntimeException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Error executing changes", e);
+            if (!result.isFatalError()) {       // just to be sure the exception is recorded into the result
+                result.recordFatalError(e.getMessage(), e);
             }
-
-            WebApplicationConfiguration config = page.getWebApplicationConfiguration();
-            reporter = manager.createReporter(config);
-            id = reporter.getId();
-
-            return reporter;
         }
+    }
 
-        @Override
-        public void setObject(ProgressReporter object) {
-            throw new UnsupportedOperationException();
-        }
+    private void executeChangesAsync(ProgressReporter reporter, Collection<ObjectDelta<? extends ObjectType>> deltas,
+                                     boolean previewOnly, ModelExecuteOptions options, Task task, OperationResult result) {
 
-        @Override
-        public void detach() {
-            reporter = null;
-        }
+        MidPointApplication application = MidPointApplication.get();
+
+        final ModelInteractionService modelInteraction = application.getModelInteractionService();
+        final ModelService model = application.getModel();
+
+        final SecurityContextManager secManager = application.getSecurityContextManager();
+
+        final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        final HttpConnectionInformation connInfo = SecurityUtil.getCurrentConnectionInformation();
+
+        Callable<Void> execution = new SecurityContextAwareCallable<Void>(secManager, auth, connInfo) {
+
+            @Override
+            public Void callWithContextPrepared() throws Exception {
+                try {
+                    LOGGER.debug("Execution start");
+
+                    reporter.recordExecutionStart();
+
+                    Thread.sleep(6000L);    //todo remove!!!
+
+                    if (previewOnly) {
+                        ModelContext previewResult = modelInteraction
+                                .previewChanges(deltas, options, task, Collections.singleton(reporter), result);
+                        reporter.setPreviewResult(previewResult);
+                    } else {
+                        model.executeChanges(deltas, options, task, Collections.singleton(reporter), result);
+                    }
+                } catch (CommonException | RuntimeException e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Error executing changes", e);
+                    if (!result.isFatalError()) {       // just to be sure the exception is recorded into the result
+                        result.recordFatalError(e.getMessage(), e);
+                    }
+                } finally {
+                    LOGGER.debug("Execution finish {}", result);
+                }
+                reporter.recordExecutionStop();
+                reporter.setAsyncOperationResult(result);          // signals that the operation has finished
+
+                return null;
+            }
+        };
+
+        result.recordInProgress(); // to disable showing not-final results (why does it work? and why is the result shown otherwise?)
+
+        AsyncWebProcessManager manager = application.getAsyncWebProcessManager();
+        manager.submit(reporterModel.getId(), execution);
     }
 }
