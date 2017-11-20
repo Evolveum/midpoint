@@ -15,21 +15,30 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -110,8 +119,14 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 	@Autowired private AssignmentProcessor assignmentProcessor;
     @Autowired private Clock clock;
+	@Autowired private ObjectResolver objectResolver;
+	@Autowired private MappingFactory mappingFactory;
+	@Autowired private MappingEvaluator mappingEvaluator;
+	@Autowired private ActivationComputer activationComputer;
 
-    // first part
+
+
+	// first part
     private RoleType role1, role2, role4, role5, role6;
     private OrgType org3;
     private RoleType metarole1, metarole2, metarole3, metarole4;
@@ -492,6 +507,76 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		// let's consider it OK for the moment
 		assertTargetPolicyRules(evaluatedAssignment, "guybrush-0",
 				"barbossa-0 R1-1 R2-1 MR2-2 O3-1 MR1-2 MR3-2 R5-1 R4-1 MMR1-3 MR4-2 R6-1");
+		assertAuthorizations(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
+		assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
+	}
+
+	// goes through assignmentEvaluator in order to employ login mode
+	// MID-4176
+	@Test(enabled = FIRST_PART)
+	public void test062JackDeputyOfGuybrushDeputyOfBarbossaInLoginMode() throws Exception {
+		final String TEST_NAME = "test062JackDeputyOfGuybrushDeputyOfBarbossaInLoginMode";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		AssignmentType jackGuybrushAssignment = new AssignmentType(prismContext)
+				.targetRef(USER_GUYBRUSH_OID, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY);
+		jack.asObjectable().getAssignment().add(jackGuybrushAssignment);
+		LensContext<UserType> context = new LensContextPlaceholder<>(jack, prismContext);
+
+		AssignmentEvaluator<UserType> assignmentEvaluator = new AssignmentEvaluator.Builder<UserType>()
+				.repository(repositoryService)
+				.focusOdo(new ObjectDeltaObject<>(jack, null, jack))
+				.lensContext(context)
+				.channel(context.getChannel())
+				.objectResolver(objectResolver)
+				.systemObjectCache(systemObjectCache)
+				.prismContext(prismContext)
+				.mappingFactory(mappingFactory)
+				.mappingEvaluator(mappingEvaluator)
+				.activationComputer(activationComputer)
+				.now(clock.currentTimeXMLGregorianCalendar())
+				.systemConfiguration(context.getSystemConfiguration())
+				.loginMode(true)
+				.build();
+
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(jackGuybrushAssignment));
+		assignmentIdi.recompute();
+
+		// WHEN
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator
+				.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, jack.asObjectable(), jack.toString(), task, result);
+
+		// THEN
+		display("Output context", context);
+		display("Evaluated assignment", evaluatedAssignment);
+
+		result.computeStatus();
+		assertSuccess("Assignment evaluator failed (result)", result);
+
+		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
+
+		assertTargets(evaluatedAssignment, true, "R1 R2 O3 R4 R5 R6", null, null, null, null, null);
+		assertTargets(evaluatedAssignment, false, "guybrush barbossa MR1 MR2 MR3 MR4 MMR1", null, null, null, null, null);
+		assertMembershipRef(evaluatedAssignment, "");
+		assertOrgRef(evaluatedAssignment, "O3");
+		assertDelegation(evaluatedAssignment, "guybrush barbossa R1 R2 O3 R4 R5 R6");
+		PrismReferenceValue guybrushRef = evaluatedAssignment.getDelegationRefVals().stream()
+				.filter(v -> USER_GUYBRUSH_OID.equals(v.getOid())).findFirst().orElseThrow(
+						() -> new AssertionError("No guybrush ref in delegation ref vals"));
+		assertEquals("Wrong relation for guybrush delegation", SchemaConstants.ORG_DEPUTY, guybrushRef.getRelation());
+
+		// the following entities are not evaluated in login mode
+		assertConstructions(evaluatedAssignment, (String) null, null, null, null, null, null);
+		assertFocusMappings(evaluatedAssignment, (String) null);
+		assertFocusPolicyRules(evaluatedAssignment, (String) null);
+
+		assertTargetPolicyRules(evaluatedAssignment, (String) null, null);
 		assertAuthorizations(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
 		assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
 	}
