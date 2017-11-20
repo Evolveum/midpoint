@@ -31,6 +31,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.repo.sql.data.audit.*;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -65,6 +66,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author lazyman
@@ -236,7 +239,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 				AuditEventRecord audit = RAuditEventRecord.fromRepo(raudit, getPrismContext());
 
 				// TODO what if original name (in audit log) differs from the current one (in repo) ?
-				audit.setInitiator(resolve(session, raudit.getInitiatorOid(), raudit.getInitiatorName(), RObjectType.USER));
+				audit.setInitiator(resolve(session, raudit.getInitiatorOid(), raudit.getInitiatorName(), defaultIfNull(raudit.getInitiatorType(), RObjectType.USER)));
+				audit.setAttorney(resolve(session, raudit.getAttorneyOid(), raudit.getAttorneyName(), RObjectType.USER));
 				audit.setTarget(resolve(session, raudit.getTargetOid(), raudit.getTargetName(), raudit.getTargetType()));
 				audit.setTargetOwner(resolve(session, raudit.getTargetOwnerOid(), raudit.getTargetOwnerName(), RObjectType.USER));
 				count++;
@@ -316,7 +320,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		return value;
 	}
 
-	private PrismObject resolve(Session session, String oid, String defaultName, RObjectType defaultType) throws SchemaException {
+	// using generic parameter to avoid typing warnings
+	private <X extends ObjectType> PrismObject<X> resolve(Session session, String oid, String defaultName, RObjectType defaultType) throws SchemaException {
 		if (oid == null) {
 			return null;
 		}
@@ -336,6 +341,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		} else {
 			result = null;
 		}
+		//noinspection unchecked
 		return result;
 	}
 

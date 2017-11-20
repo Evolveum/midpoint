@@ -348,6 +348,7 @@ public abstract class SchemaConstants {
 
 	public static final QName MODEL_EXTENSION_OBJECT_TYPE = new QName(NS_MODEL_EXTENSION, "objectType");
 	public static final QName MODEL_EXTENSION_OBJECT_QUERY = new QName(NS_MODEL_EXTENSION, "objectQuery");
+	public static final QName MODEL_EXTENSION_ITERATION_METHOD = new QName(NS_MODEL_EXTENSION, "iterationMethod");
 	public static final QName MODEL_EXTENSION_OBJECT_DELTA = new QName(NS_MODEL_EXTENSION, "objectDelta");
 	public static final QName MODEL_EXTENSION_WORKER_THREADS = new QName(NS_MODEL_EXTENSION, "workerThreads");
 	public static final QName MODEL_EXTENSION_OPTION_RAW = new QName(NS_MODEL_EXTENSION, "optionRaw");

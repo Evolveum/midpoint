@@ -160,7 +160,7 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
 		            switch (stageOutcome) {
 			            case APPROVE: stageOutcomeIcon = ApprovalOutcomeIcon.APPROVED; break;
 			            case REJECT: stageOutcomeIcon = ApprovalOutcomeIcon.REJECTED; break;
-			            case SKIP: stageOutcomeIcon = ApprovalOutcomeIcon.APPROVED; break;          // TODO something more specific?
+			            case SKIP: stageOutcomeIcon = ApprovalOutcomeIcon.SKIPPED; break;
 			            default: stageOutcomeIcon = ApprovalOutcomeIcon.UNKNOWN; break;          // perhaps should throw AssertionError instead
 		            }
 	            } else {

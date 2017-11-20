@@ -61,6 +61,7 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -1284,16 +1285,9 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		for (int i=0;i<indent;i++) {
-			sb.append(INDENT_STRING);
-		}
+		DebugUtil.indentDebugDump(sb, indent);
 		sb.append(toString());
 		return sb.toString();
 	}
@@ -1330,6 +1324,24 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	public String getIdentifier() {
 		return mappingType != null ? mappingType.getName() : null;
 	}
+
+	@Override
+	public String toHumanReadableDescription() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("mapping ");
+		if (mappingType != null && mappingType.getName() != null) {
+			sb.append("'").append(mappingType.getName()).append("'");
+		} else {
+			sb.append(getMappingDisplayName());
+		}
+		if (originObject != null) {
+			sb.append(" in ");
+			sb.append(originObject);
+		}
+		return sb.toString();
+	}
+
+
 
 	/**
 	 * Builder is used to construct a configuration of Mapping object, which - after building - becomes
@@ -1836,4 +1848,5 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			return Mapping.getStrength(mappingType);
 		}
 	}
+
 }

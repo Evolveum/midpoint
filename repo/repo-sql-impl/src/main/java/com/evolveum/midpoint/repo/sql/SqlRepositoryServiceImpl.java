@@ -73,6 +73,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jdbc.Work;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -786,44 +787,73 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			}
 		}
 
-        if (getConfiguration().isIterativeSearchByPaging()) {
-            if (strictlySequential) {
-                objectRetriever.searchObjectsIterativeByPagingStrictlySequential(type, query, handler, options, subResult);
-            } else {
-                objectRetriever.searchObjectsIterativeByPaging(type, query, handler, options, subResult);
-            }
-            return null;
+		// We don't try to be smarter than our client: if he explicitly requests e.g. single transaction
+	    // against DB that does not support it, or if he requests simple paging where strictly sequential one is
+	    // indicated, we will obey (with a warning in some cases).
+	    IterationMethodType iterationMethod;
+	    IterationMethodType specificIterationMethod = GetOperationOptions.getIterationMethod(SelectorOptions.findRootOptions(options));
+        if (specificIterationMethod == null || specificIterationMethod == IterationMethodType.DEFAULT) {
+	        if (getConfiguration().isIterativeSearchByPaging()) {
+		        iterationMethod = strictlySequential ? IterationMethodType.STRICTLY_SEQUENTIAL_PAGING : IterationMethodType.SIMPLE_PAGING;
+	        } else {
+		        iterationMethod = IterationMethodType.SINGLE_TRANSACTION;
+	        }
+        } else {
+        	iterationMethod = specificIterationMethod;
         }
 
-        /*
-         * Here we store OIDs that were already sent to the client during previous attempts.
-         */
-        Set<String> retrievedOids = new HashSet<>();
-
-//        turned off until resolved 'unfinished operation' warning
-//        SqlPerformanceMonitor pm = getPerformanceMonitor();
-//        long opHandle = pm.registerOperationStart(SEARCH_OBJECTS_ITERATIVE);
-
-        final String operation = "searching iterative";
-        int attempt = 1;
-        try {
-            while (true) {
-                try {
-                    objectRetriever.searchObjectsIterativeAttempt(type, query, handler, options, subResult, retrievedOids);
-                    return null;
-                } catch (RuntimeException ex) {
-                    attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, subResult);
-//                    pm.registerOperationNewAttempt(opHandle, attempt);
-                }
-            }
-        } finally {
-//            pm.registerOperationFinish(opHandle, attempt);
+        if (strictlySequential && iterationMethod == IterationMethodType.SIMPLE_PAGING) {
+        	LOGGER.warn("Using simple paging where strictly sequential one is indicated: type={}, query={}", type, query);
+        } else if (getConfiguration().isIterativeSearchByPaging() && specificIterationMethod == IterationMethodType.SINGLE_TRANSACTION) {
+        	// we should introduce some 'native iteration supported' flag for the DB configuration to avoid false warnings here
+	        // based on 'iterativeSearchByPaging' setting for databases that support native iteration
+	        LOGGER.warn("Using single transaction iteration where DB indicates paging should be used: type={}, query={}", type, query);
         }
-        // TODO conflict checking (if needed)
+
+	    LOGGER.trace("Using iteration method {} for type={}, query={}", iterationMethod, type, query);
+
+        switch (iterationMethod) {
+        	case SINGLE_TRANSACTION: searchObjectsIterativeBySingleTransaction(type, query, handler, options, subResult); break;
+        	case SIMPLE_PAGING: objectRetriever.searchObjectsIterativeByPaging(type, query, handler, options, subResult); break;
+	        case STRICTLY_SEQUENTIAL_PAGING: objectRetriever.searchObjectsIterativeByPagingStrictlySequential(type, query, handler, options, subResult); break;
+	        default: throw new AssertionError("iterationMethod: " + iterationMethod);
+        }
+	    return null;
     }
 
-    @Override
-    public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException {
+	@Nullable
+	private <T extends ObjectType> SearchResultMetadata searchObjectsIterativeBySingleTransaction(Class<T> type,
+			ObjectQuery query, ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult subResult)
+			throws SchemaException {
+		/*
+		 * Here we store OIDs that were already sent to the client during previous attempts.
+		 */
+		Set<String> retrievedOids = new HashSet<>();
+
+		//        turned off until resolved 'unfinished operation' warning
+		//        SqlPerformanceMonitor pm = getPerformanceMonitor();
+		//        long opHandle = pm.registerOperationStart(SEARCH_OBJECTS_ITERATIVE);
+
+		final String operation = "searching iterative";
+		int attempt = 1;
+		try {
+			while (true) {
+				try {
+					objectRetriever.searchObjectsIterativeAttempt(type, query, handler, options, subResult, retrievedOids);
+					return null;
+				} catch (RuntimeException ex) {
+					attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, subResult);
+					//                    pm.registerOperationNewAttempt(opHandle, attempt);
+				}
+			}
+		} finally {
+			//            pm.registerOperationFinish(opHandle, attempt);
+		}
+		// TODO conflict checking (if needed)
+	}
+
+	@Override
+	public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException {
         Validate.notNull(upperOrgOid, "upperOrgOid must not be null.");
         Validate.notNull(lowerObjectOids, "lowerObjectOids must not be null.");
 

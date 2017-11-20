@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil.arrangeForPresentationExt;
+import static java.util.Collections.singleton;
 
 /**
  * @author mederly
@@ -114,7 +115,22 @@ public class EvaluatedTriggerGroupDto implements Serializable {
 	}
 
 	public static boolean isEmpty(Collection<EvaluatedTriggerGroupDto> groups) {
+		// original implementation (after migration from 3.6 to 3.7 is over)
+//		return groups.stream()
+//				.allMatch(g -> g.getTriggers().isEmpty());
+
+		// temporary implementation for 3.7 - assuming we can display a trigger only if 'message' is not null and/or it has some children
 		return groups.stream()
-				.allMatch(g -> g.getTriggers().isEmpty());
+				.allMatch(g -> triggersAreEmpty(g.getTriggers()));
+
+	}
+
+	private static boolean triggersAreEmpty(Collection<EvaluatedTriggerDto> triggers) {
+		return triggers.stream()
+				.allMatch(t -> triggerIsEmpty(t));
+	}
+
+	private static boolean triggerIsEmpty(EvaluatedTriggerDto trigger) {
+		return trigger.getMessage() == null && isEmpty(singleton(trigger.getChildren()));
 	}
 }

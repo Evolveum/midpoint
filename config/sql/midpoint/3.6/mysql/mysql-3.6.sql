@@ -13,6 +13,7 @@
 
 CREATE TABLE m_abstract_role (
   approvalProcess    VARCHAR(255),
+  autoassign_enabled BIT,
   displayName_norm   VARCHAR(255),
   displayName_orig   VARCHAR(255),
   identifier         VARCHAR(255),
@@ -330,6 +331,8 @@ CREATE TABLE m_audit_delta (
 
 CREATE TABLE m_audit_event (
   id                BIGINT NOT NULL,
+  attorneyName      VARCHAR(255),
+  attorneyOid       VARCHAR(36),
   channel           VARCHAR(255),
   eventIdentifier   VARCHAR(255),
   eventStage        INTEGER,
@@ -337,6 +340,7 @@ CREATE TABLE m_audit_event (
   hostIdentifier    VARCHAR(255),
   initiatorName     VARCHAR(255),
   initiatorOid      VARCHAR(36),
+  initiatorType     INTEGER,
   message           VARCHAR(1024),
   nodeIdentifier    VARCHAR(255),
   outcome           INTEGER,
@@ -489,6 +493,16 @@ CREATE TABLE m_focus_policy_situation (
   ENGINE = InnoDB;
 
 CREATE TABLE m_form (
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
+  oid       VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE TABLE m_function_library (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
   oid       VARCHAR(36) NOT NULL,
@@ -1013,6 +1027,9 @@ CREATE INDEX iAbstractRoleIdentifier ON m_abstract_role (identifier);
 
 CREATE INDEX iRequestable ON m_abstract_role (requestable);
 
+CREATE INDEX iAutoassignEnabled
+  ON m_abstract_role (autoassign_enabled);
+
 ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT uc_acc_cert_campaign_name  UNIQUE (name_norm);
 
@@ -1078,6 +1095,9 @@ CREATE INDEX iFocusEffective ON m_focus (effectiveStatus);
 ALTER TABLE m_form
   ADD CONSTRAINT uc_form_name UNIQUE (name_norm);
 
+ALTER TABLE m_function_library
+  ADD CONSTRAINT uc_function_library_name UNIQUE (name_norm);
+
 ALTER TABLE m_generic_object
 ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm);
 
@@ -1136,6 +1156,9 @@ CREATE INDEX iOpExecInitiatorOid
 CREATE INDEX iOpExecStatus
   ON m_operation_execution (status);
 
+CREATE INDEX iOpExecOwnerOid
+  ON m_operation_execution (owner_oid);
+
 ALTER TABLE m_org
 ADD CONSTRAINT uc_org_name UNIQUE (name_norm);
 
@@ -1186,6 +1209,9 @@ CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount);
 
 ALTER TABLE m_system_configuration
 ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm);
+
+ALTER TABLE m_task
+  ADD CONSTRAINT uc_task_identifier UNIQUE (taskIdentifier);
 
 CREATE INDEX iParent ON m_task (parent);
 
@@ -1356,6 +1382,11 @@ REFERENCES m_focus (oid);
 
 ALTER TABLE m_form
   ADD CONSTRAINT fk_form
+FOREIGN KEY (oid)
+REFERENCES m_object (oid);
+
+ALTER TABLE m_function_library
+  ADD CONSTRAINT fk_function_library
 FOREIGN KEY (oid)
 REFERENCES m_object (oid);
 

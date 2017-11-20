@@ -17,6 +17,7 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GetOperationOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -152,7 +153,15 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	 */
 	private Boolean attachDiagData;
 
+	/**
+	 * TODO
+	 */
 	private DefinitionProcessingOption definitionProcessing;
+
+	/**
+	 * Whether to override default iteration method (in searchObjectsIterative) configured for particular DBMS.
+	 */
+	private IterationMethodType iterationMethod;
 
 	public RetrieveOption getRetrieve() {
 		return retrieve;
@@ -699,11 +708,32 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	}
 
 	/**
-	 * Whether to attach diagnostics data to the returned object(s).
+	 * TODO
 	 */
 	public static GetOperationOptions createDefinitionProcessing(DefinitionProcessingOption value) {
 		GetOperationOptions opts = new GetOperationOptions();
 		opts.setDefinitionProcessing(value);
+		return opts;
+	}
+
+	public IterationMethodType getIterationMethod() {
+		return iterationMethod;
+	}
+
+	public void setIterationMethod(IterationMethodType iterationMethod) {
+		this.iterationMethod = iterationMethod;
+	}
+
+	public static IterationMethodType getIterationMethod(GetOperationOptions options) {
+		return options != null ? options.iterationMethod : null;
+	}
+
+	/**
+	 * Whether to override default iteration method (in searchObjectsIterative) configured for particular DBMS.
+	 */
+	public static GetOperationOptions createIterationMethod(IterationMethodType value) {
+		GetOperationOptions opts = new GetOperationOptions();
+		opts.setIterationMethod(value);
 		return opts;
 	}
 

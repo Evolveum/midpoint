@@ -44,9 +44,11 @@ import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
+import com.evolveum.midpoint.model.impl.lens.IvwoConsolidator;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.StrengthSelector;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.Item;
@@ -312,12 +314,22 @@ public class ObjectTemplateProcessor {
 			boolean isNonTolerant = templateItemDefinition != null && Boolean.FALSE.equals(templateItemDefinition.isTolerant());
 
 			ItemDelta aprioriItemDelta = getAprioriItemDelta(targetObjectAPrioriDelta, itemPath);
-			boolean filterExistingValues = !isNonTolerant;	// if non-tolerant, we want to gather ZERO & PLUS sets
-			ItemDefinition itemDefinition = focusDefinition.findItemDefinition(itemPath);
-			ItemDelta itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
-					itemDefinition, aprioriItemDelta, targetObject, null, null,
-					addUnchangedValues, filterExistingValues, false, contextDesc, true);
-
+			
+			IvwoConsolidator consolidator = new IvwoConsolidator<>();
+			consolidator.setItemPath(itemPath);
+			consolidator.setIvwoTriple(outputTriple);
+			consolidator.setItemDefinition(focusDefinition.findItemDefinition(itemPath));
+			consolidator.setAprioriItemDelta(aprioriItemDelta);
+			consolidator.setItemContainer(targetObject);
+			consolidator.setValueMatcher(null);
+			consolidator.setComparator(null);
+			consolidator.setAddUnchangedValues(addUnchangedValues);
+			consolidator.setFilterExistingValues(!isNonTolerant); // if non-tolerant, we want to gather ZERO & PLUS sets
+			consolidator.setExclusiveStrong(false);
+			consolidator.setContextDescription(contextDesc);
+			consolidator.setStrengthSelector(StrengthSelector.ALL);
+			
+			ItemDelta itemDelta = consolidator.consolidateToDelta();
 
 			// Do a quick version of reconciliation. There is not much to reconcile as both the source and the target
 			// is focus. But there are few cases to handle, such as strong mappings, and sourceless normal mappings.
@@ -671,11 +683,24 @@ public class ObjectTemplateProcessor {
 			}
 			Class<F> focusClass = context.getFocusContext().getObjectTypeClass();
 			ItemDefinition<?> itemDefinition = getObjectDefinition(focusClass).findItemDefinition(path);
+			
 			// TODO not much sure about the parameters
-			ItemDelta itemDelta = LensUtil
-					.consolidateTripleToDelta(path, (DeltaSetTriple) triple, itemDefinition,
-							getAprioriItemDelta(focusOdo.getObjectDelta(), path), focusOdo.getNewObject(), null, null,
-							true, true, false, " updating chained source (" + path + ") in " + contextDesc, true);
+			IvwoConsolidator consolidator = new IvwoConsolidator<>();
+			consolidator.setItemPath(path);
+			consolidator.setIvwoTriple(triple);
+			consolidator.setItemDefinition(itemDefinition);
+			consolidator.setAprioriItemDelta(getAprioriItemDelta(focusOdo.getObjectDelta(), path));
+			consolidator.setItemContainer(focusOdo.getNewObject());
+			consolidator.setValueMatcher(null);
+			consolidator.setComparator(null);
+			consolidator.setAddUnchangedValues(true);
+			consolidator.setFilterExistingValues(true);
+			consolidator.setExclusiveStrong(false);
+			consolidator.setContextDescription(" updating chained source (" + path + ") in " + contextDesc);
+			consolidator.setStrengthSelector(StrengthSelector.ALL);
+			
+			ItemDelta itemDelta = consolidator.consolidateToDelta();
+			
 			LOGGER.trace("Updating focus ODO with delta:\n{}", itemDelta.debugDumpLazily());
 			focusOdoCloned.update(itemDelta);
 		}

@@ -25,10 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class SubstringFilter<T> extends PropertyValueFilter<T> {
@@ -89,14 +86,11 @@ public class SubstringFilter<T> extends PropertyValueFilter<T> {
 
 	@Override
 	public boolean match(PrismContainerValue containerValue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		Item item = getObjectItem(containerValue);
-		if (item == null) {
-			return false;           // no use matching empty values
-		}
+		Collection<PrismValue> objectItemValues = getObjectItemValues(containerValue);
+
+		MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, getFilterItem());
 		
-		MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, item);
-		
-		for (Object val : item.getValues()) {
+		for (Object val : objectItemValues) {
 			if (val instanceof PrismPropertyValue) {
 				Object value = ((PrismPropertyValue) val).getValue();
 				for (Object o : toRealValues()) {

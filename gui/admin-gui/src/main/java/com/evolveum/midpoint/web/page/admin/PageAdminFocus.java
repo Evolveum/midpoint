@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.web.page.admin;
 
-import com.evolveum.midpoint.gui.api.model.CountableLoadableModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -35,14 +34,11 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
@@ -951,7 +947,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 	protected AssignmentsPreviewDto createAssignmentsPreviewDto(ObjectReferenceType reference,
 																Task task, OperationResult result) {
-		PrismObject<? extends FocusType> targetObject = WebModelServiceUtils.resolveReferenceRaw(reference,
+		PrismObject<? extends FocusType> targetObject = WebModelServiceUtils.resolveReferenceNoFetch(reference,
 				PageAdminFocus.this, task, result);
 
 		return createAssignmentsPreviewDto(targetObject, true,
@@ -964,7 +960,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
             if (RoleType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())
                     || OrgType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())
                     || ServiceType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())){
-                PrismObject<AbstractRoleType> targetObject = WebModelServiceUtils.resolveReferenceRaw(assignment.getTargetRef(),
+                PrismObject<AbstractRoleType> targetObject = WebModelServiceUtils.resolveReferenceNoFetch(assignment.getTargetRef(),
                         PageAdminFocus.this, task, result);
                 Boolean isDelegable = false;
 				if (targetObject != null) {

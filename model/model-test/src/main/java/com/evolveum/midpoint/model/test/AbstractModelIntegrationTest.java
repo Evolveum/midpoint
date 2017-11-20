@@ -1171,6 +1171,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, options, task, result);
 	}
 
+	protected <F extends FocusType> void unassign(Class<F> focusClass, String focusOid, AssignmentType currentAssignment, ModelExecuteOptions options, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
+		assignmentDelta.addValuesToDelete(currentAssignment.asPrismContainerValue().clone());
+		modifications.add(assignmentDelta);
+		ObjectDelta<F> focusDelta = ObjectDelta.createModifyDelta(focusOid, modifications, focusClass, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(focusDelta);
+		modelService.executeChanges(deltas, options, task, result);
+	}
+	
 	/**
 	 * Executes unassign delta by removing each assignment individually by id.
 	 */
@@ -1748,15 +1759,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected AssignmentType getUserAssignment(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		PrismObject<UserType> user = getUser(userOid);
-		List<AssignmentType> assignments = user.asObjectable().getAssignment();
-		for (AssignmentType assignment: assignments) {
-			ObjectReferenceType targetRef = assignment.getTargetRef();
-			if (targetRef != null && roleOid.equals(targetRef.getOid())) {
-				return assignment;
-			}
-		}
-		return null;
+		return getAssignment(getUser(userOid), roleOid);
 	}
 
 	protected AssignmentType getUserAssignment(String userOid, String roleOid, QName relation)
@@ -1771,6 +1774,23 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			}
 		}
 		return null;
+	}
+	
+	protected <F extends FocusType> AssignmentType getAssignment(PrismObject<F> focus, String roleOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
+		for (AssignmentType assignment: assignments) {
+			ObjectReferenceType targetRef = assignment.getTargetRef();
+			if (targetRef != null && roleOid.equals(targetRef.getOid())) {
+				return assignment;
+			}
+		}
+		return null;
+	}
+
+	protected ItemPath getAssignmentPath(long id) {
+		return new ItemPath(
+				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
+				new IdItemPathSegment(id));
 	}
 
 	protected <F extends FocusType> void assertNoAssignments(PrismObject<F> user) {

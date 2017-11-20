@@ -13,10 +13,14 @@ ALTER TABLE m_function_library
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
-ALTER TABLE m_abstract_role ADD COLUMN autoassign_enabled BIT;
+ALTER TABLE m_abstract_role ADD autoassign_enabled BIT;
 
 CREATE INDEX iAutoassignEnabled
   ON m_abstract_role (autoassign_enabled);
 
 ALTER TABLE m_task
-  ADD CONSTRAINT UK_59yhlpgtqu3a9wvnw0ujx4xl1 UNIQUE (taskIdentifier);
+  ADD CONSTRAINT uc_task_identifier UNIQUE (taskIdentifier);
+
+ALTER TABLE m_audit_event ADD attorneyName NVARCHAR(255) COLLATE database_default;
+ALTER TABLE m_audit_event ADD attorneyOid NVARCHAR(36) COLLATE database_default;
+ALTER TABLE m_audit_event ADD initiatorType INT;

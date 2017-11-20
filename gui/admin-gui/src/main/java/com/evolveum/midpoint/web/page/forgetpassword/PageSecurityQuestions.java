@@ -630,7 +630,7 @@ public class PageSecurityQuestions extends PageBase {
 			 *
 			 * message.setSubject("Engerek KYS Yeni Şifreniz");
 			 *
-			 * message.setText("User Login : " + userLogin + "\n Password : " +
+			 * message.setLocalizableText("User Login : " + userLogin + "\n Password : " +
 			 * password + "\n"); message.setFrom(new InternetAddress(sender));
 			 * message.addRecipient(Message.RecipientType.TO, new
 			 * InternetAddress(receiver)); Transport transport =

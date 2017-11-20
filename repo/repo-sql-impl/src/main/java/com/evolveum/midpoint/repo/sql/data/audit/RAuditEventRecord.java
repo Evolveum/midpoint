@@ -75,9 +75,13 @@ public class RAuditEventRecord implements Serializable {
 	private String nodeIdentifier;
 	private String remoteHostAddress;
 
-	// prism object - user
+	// prism object
 	private String initiatorOid;
 	private String initiatorName;
+	private RObjectType initiatorType;
+	// prism object - user
+	private String attorneyOid;
+	private String attorneyName;
 	// prism object
 	private String targetOid;
 	private String targetName;
@@ -200,6 +204,20 @@ public class RAuditEventRecord implements Serializable {
 	}
 
 	@Enumerated(EnumType.ORDINAL)
+	public RObjectType getInitiatorType() {
+		return initiatorType;
+	}
+
+	@Column(length = RUtil.COLUMN_LENGTH_OID)
+	public String getAttorneyOid() {
+		return attorneyOid;
+	}
+
+	public String getAttorneyName() {
+		return attorneyName;
+	}
+
+	@Enumerated(EnumType.ORDINAL)
 	public ROperationResultStatus getOutcome() {
 		return outcome;
 	}
@@ -308,6 +326,18 @@ public class RAuditEventRecord implements Serializable {
 		this.initiatorOid = initiatorOid;
 	}
 
+	public void setInitiatorType(RObjectType initiatorType) {
+		this.initiatorType = initiatorType;
+	}
+
+	public void setAttorneyOid(String attorneyOid) {
+		this.attorneyOid = attorneyOid;
+	}
+
+	public void setAttorneyName(String attorneyName) {
+		this.attorneyName = attorneyName;
+	}
+
 	public void setOutcome(ROperationResultStatus outcome) {
 		this.outcome = outcome;
 	}
@@ -370,6 +400,9 @@ public class RAuditEventRecord implements Serializable {
 				Objects.equals(nodeIdentifier, that.nodeIdentifier) &&
 				Objects.equals(initiatorOid, that.initiatorOid) &&
 				Objects.equals(initiatorName, that.initiatorName) &&
+				Objects.equals(initiatorType, that.initiatorType) &&
+				Objects.equals(attorneyOid, that.attorneyOid) &&
+				Objects.equals(attorneyName, that.attorneyName) &&
 				Objects.equals(targetOid, that.targetOid) &&
 				Objects.equals(targetName, that.targetName) &&
 				targetType == that.targetType &&
@@ -392,12 +425,10 @@ public class RAuditEventRecord implements Serializable {
 	public int hashCode() {
 		return Objects
 				.hash(id, timestamp, eventIdentifier, sessionIdentifier, taskIdentifier, taskOID, hostIdentifier,
-						remoteHostAddress,
-						nodeIdentifier, initiatorOid, initiatorName, targetOid, targetName, targetType, targetOwnerOid,
-						targetOwnerName,
-						eventType, eventStage, deltas, channel, outcome, parameter, message, changedItems, propertyValues,
-						referenceValues,
-						result);
+						remoteHostAddress, nodeIdentifier, initiatorOid, initiatorName, initiatorType,
+						attorneyOid, attorneyName, targetOid, targetName, targetType, targetOwnerOid,
+						targetOwnerName, eventType, eventStage, deltas, channel, outcome, parameter, message,
+						changedItems, propertyValues, referenceValues, result);
 	}
 
 	public static RAuditEventRecord toRepo(AuditEventRecord record, PrismContext prismContext)
@@ -447,9 +478,15 @@ public class RAuditEventRecord implements Serializable {
 				repo.setTargetOwnerOid(targetOwner.getOid());
 			}
 			if (record.getInitiator() != null) {
-				PrismObject<UserType> initiator = record.getInitiator();
+				PrismObject<? extends ObjectType> initiator = record.getInitiator();
 				repo.setInitiatorName(getOrigName(initiator));
 				repo.setInitiatorOid(initiator.getOid());
+				repo.setInitiatorType(ClassMapper.getHQLTypeForClass(initiator.asObjectable().getClass()));
+			}
+			if (record.getAttorney() != null) {
+				PrismObject<UserType> attorney = record.getAttorney();
+				repo.setAttorneyName(getOrigName(attorney));
+				repo.setAttorneyOid(attorney.getOid());
 			}
 
 			for (ObjectDeltaOperation<?> delta : record.getDeltas()) {
@@ -548,7 +585,7 @@ public class RAuditEventRecord implements Serializable {
 		audit.setRepoId(repo.getId());
 
 		return audit;
-		// initiator, target, targetOwner
+		// initiator, attorney, target, targetOwner
 
 	}
 

@@ -21,15 +21,7 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.UNKNOWN;
 import static java.util.Collections.singleton;
 
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -1006,7 +998,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         OperationResult result = taskInMemory.getResult();
         if (result != null) {
-            task.setResultTransient(taskInMemory.getResult().clone());
+        	try {
+		        task.setResultTransient(taskInMemory.getResult().clone());
+	        } catch (ConcurrentModificationException e) {
+        		// This can occur, see MID-3954/MID-4088. We will use operation result that was fetched from the repository
+		        // (it might be a bit outdated).
+		        LOGGER.warn("Concurrent access to operation result denied; using data from the repository (see MID-3954/MID-4088): {}", task, e);
+	        }
         } else {
             task.setResultTransient(null);
         }
@@ -1040,7 +1038,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	// retrieves only "heavyweight" subtasks
     private void fillInSubtasks(TaskType task, ClusterStatusInformation clusterStatusInformation, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
-        boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options);
+	    boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options);
         boolean retrieveRetryTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RETRY_TIMESTAMP), options);
         boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options);
 

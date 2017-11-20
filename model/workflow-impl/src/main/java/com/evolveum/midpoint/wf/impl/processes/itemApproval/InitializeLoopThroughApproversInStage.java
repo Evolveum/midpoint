@@ -62,7 +62,7 @@ public class InitializeLoopThroughApproversInStage implements JavaDelegate {
 	    AutomatedCompletionReasonType automatedCompletionReason = computationResult.getAutomatedCompletionReason();
 	    Set<ObjectReferenceType> approverRefs = computationResult.getApproverRefs();
 
-	    if (predeterminedOutcome != null && predeterminedOutcome != SKIP) {
+	    if (predeterminedOutcome != null) {
 		    recordAutoCompletionDecision(wfTask.getOid(), predeterminedOutcome, automatedCompletionReason, stageNumber, opResult);
 	    }
 
