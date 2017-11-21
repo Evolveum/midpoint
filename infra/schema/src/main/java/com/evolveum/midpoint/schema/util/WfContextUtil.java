@@ -158,7 +158,7 @@ public class WfContextUtil {
 		return sb.toString();
 	}
 
-	private static void appendNumber(Integer stageNumber, Integer stageCount, StringBuilder sb) {
+	public static void appendNumber(Integer stageNumber, Integer stageCount, StringBuilder sb) {
 		if (stageNumber != null) {
 			boolean parentheses = sb.length() > 0;
 			if (parentheses) {

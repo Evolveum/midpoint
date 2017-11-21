@@ -68,7 +68,7 @@ public class CertCampaignDto extends Selectable {
         if (ownerRef == null) {
             return null;
         }
-        PrismObject<? extends ObjectType> ownerObject = WebModelServiceUtils.resolveReferenceRaw(ownerRef, page, task, result);
+        PrismObject<? extends ObjectType> ownerObject = WebModelServiceUtils.resolveReferenceNoFetch(ownerRef, page, task, result);
         if (ownerObject == null) {
             return null;
         }

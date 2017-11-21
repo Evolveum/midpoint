@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,6 +74,10 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 	public boolean isValid() {
 		return construction == null || construction.isValid();
 	}
+	
+	public boolean wasValid() {
+		return construction == null || construction.getWasValid();
+	}
 
 	public <T> boolean equalsRealValue(V pvalue, ValueMatcher<T> valueMatcher) throws SchemaException {
 		if (itemValue == null) {
@@ -125,11 +129,6 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 			ivwoSet.add(ivwo);
 		}
 		return ivwoSet;
-	}
-
-	@Override
-	public String debugDump() {
-		return debugDump(0);
 	}
 
 	@Override

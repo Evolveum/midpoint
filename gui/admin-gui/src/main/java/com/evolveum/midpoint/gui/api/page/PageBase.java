@@ -69,6 +69,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.boot.Wro4jConfig;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -81,7 +82,6 @@ import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.component.menu.MenuItem;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
-import com.evolveum.midpoint.web.component.progress.ProgressReporterManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
@@ -2104,7 +2104,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
     }
 
-    public ProgressReporterManager getProgressReporterManager() {
-        return MidPointApplication.get().getProgressReporterManager();
+    public AsyncWebProcessManager getAsyncWebProcessManager() {
+        return MidPointApplication.get().getAsyncWebProcessManager();
     }
 }

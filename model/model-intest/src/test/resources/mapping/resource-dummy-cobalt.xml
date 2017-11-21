@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- COBALT dummy resource for testing. It has mostly WEAK non-tolerant mappings. -->
+
+<resource oid="7f8a927c-cac4-11e7-9733-9f90849f6d4a"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<name>Dummy Resource Cobalt</name>
+	<connectorRef type="c:ConnectorType">
+		<filter>
+			<q:and>
+				<q:equal>
+					<q:path>connectorType</q:path>
+					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+				</q:equal>
+				<q:equal>
+					<q:path>connectorVersion</q:path>
+					<q:value>2.0</q:value>
+				</q:equal>
+			</q:and>
+		</filter>
+	</connectorRef>
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+					   
+		<icfc:configurationProperties>
+			<icfi:instanceId>cobalt</icfi:instanceId>
+			<icfi:supportValidity>true</icfi:supportValidity>
+			<icfi:passwordReadabilityMode>incomplete</icfi:passwordReadabilityMode>
+		</icfc:configurationProperties>
+
+	</connectorConfiguration>
+	
+	<schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
+			<displayName>Default Account</displayName>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Username</displayName>
+				<tolerant>false</tolerant>
+				<outbound>
+				    <strength>weak</strength>
+				    <source>
+				    	<path>name</path>
+				    </source>
+					<expression>
+						<script>
+							<code>name + iterationToken</code>
+						</script>
+					</expression>
+				</outbound>
+				<inbound>
+					<target>
+						<path>$user/name</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>icfs:uid</ref>
+				<displayName>UID</displayName>
+			</attribute>
+			<attribute>
+				<ref>ri:fullname</ref>
+				<displayName>Full Name</displayName>
+				<tolerant>false</tolerant>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$user/fullName</path>
+					</source>
+					<expression>
+						<script>
+							<!-- It is important to have script here, not just asIs.
+							     The script will process the delta differently (ADD/DELETE instead of REPLACE) -->
+							<code>fullName?.toString()</code>
+						</script>
+					</expression>
+				</outbound>
+				<inbound>
+					<strength>weak</strength>
+					<target>
+						<path>$user/fullName</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:ship</ref>
+				<displayName>Ship</displayName>
+				<tolerant>false</tolerant>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$user/organizationalUnit</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<!-- MID-4236 -->
+				<ref>ri:location</ref>
+				<displayName>Location</displayName>
+				<tolerant>false</tolerant>
+				<outbound>
+					<exclusive>false</exclusive>
+					<strength>weak</strength>
+					<source>
+						<path>
+							$user/locality
+						</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:drink</ref>
+				<tolerant>false</tolerant>
+				<outbound>
+					<strength>weak</strength>
+					<expression>
+						<generate>
+							<mode>uuid</mode>
+						</generate>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:quote</ref>
+				<displayName>Quote</displayName>
+				<tolerant>false</tolerant>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$user/description</path>
+					</source>
+					<source>
+						<path>$user/fullName</path>
+					</source>
+					<expression>
+						<script>
+							<!-- It is important to have script here, not just asIs.
+							     The script will process the delta differently (ADD/DELETE instead of REPLACE) -->
+							<code>description + ' -- ' + fullName</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:gossip</ref>
+				<tolerant>true</tolerant>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$configuration/name</path>
+					</source>
+				</outbound>
+			</attribute>
+			<iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+			<activation>
+            	<administrativeStatus>
+            		<outbound>
+            			<strength>weak</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+            		</outbound>
+            	</administrativeStatus>
+            	<validFrom>
+            		<outbound>
+            			<strength>weak</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+            		</outbound>
+            	</validFrom>
+            	<validTo>
+            		<outbound>
+            			<strength>weak</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+            		</outbound>
+            	</validTo>
+            </activation>
+            <credentials>
+                <password>
+                    <outbound>
+                    	<strength>weak</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>
+                </password>
+            </credentials>
+		</objectType>
+	</schemaHandling>
+	
+	<synchronization>
+		<objectSynchronization>
+			<enabled>true</enabled>
+			<correlation>
+				<q:equal>
+					<q:path>c:name</q:path>
+					<expression>
+						<script>
+							<code>
+								basic.getAttributeValue(account, 
+									'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name')
+							</code>
+						</script>
+					</expression>
+				</q:equal>
+			</correlation>
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+	            </action>
+	        </reaction>
+			<!-- We don't want the this resource to be authoritative w.r.t. creating user objects. This causes
+			     conflicts with green resource, which is also authoritative in this respect. Conflicts appear
+			     when one of the accounts is deleted. Synchronization processes then (sometimes) re-create
+			     the user because of the existence of the other account. -->
+	        <!-- <reaction>
+	            <situation>unmatched</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+	            </action>
+	        </reaction> -->
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#NoNsEnSe</channel>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>
+	            </action>
+	        </reaction>
+        </objectSynchronization>
+	</synchronization>
+	
+</resource>

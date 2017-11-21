@@ -657,4 +657,42 @@ public class ProjectionValuesProcessor {
 	}
 
 
+	public <O extends ObjectType> void processPostRecon(LensContext<O> context,
+			LensProjectionContext projectionContext, String activityDescription, Task task, OperationResult result)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
+			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+		LensFocusContext<O> focusContext = context.getFocusContext();
+    	if (focusContext == null) {
+    		return;
+    	}
+    	if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+    		// We can do this only for focus types.
+    		return;
+    	}
+    	OperationResult processorResult = result.createMinorSubresult(ProjectionValuesProcessor.class.getName()+".processAccountsValuesPostRecon");
+    	processorResult.recordSuccessIfUnknown();
+    	processProjectionsPostRecon((LensContext<? extends FocusType>) context, projectionContext,
+    			activityDescription, task, processorResult);
+
+	}
+	
+	private <F extends FocusType> void processProjectionsPostRecon(LensContext<F> context,
+			LensProjectionContext projContext, String activityDescription, Task task, OperationResult result)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
+			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+
+		SynchronizationPolicyDecision policyDecision = projContext.getSynchronizationPolicyDecision();
+		if (policyDecision != null && policyDecision == SynchronizationPolicyDecision.UNLINK) {
+			// We will not update accounts that are being unlinked.
+			// we cannot skip deleted accounts here as the delete delta will be skipped as well
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Skipping post-recon processing of value for {} because the decision is {}", projContext.getHumanReadableName(), policyDecision);
+			}
+			return;
+		}
+
+		consolidationProcessor.consolidateValuesPostRecon(context, projContext, task, result);
+
+	}
+	
 }

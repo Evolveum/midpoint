@@ -228,6 +228,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
             }
 			evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
 			evaluatedAssignment.setPresentInOldObject(presentInOld);
+			evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
 			collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 
         } else {
@@ -252,6 +253,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
                     }
 					evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
 					evaluatedAssignment.setPresentInOldObject(presentInOld);
+					evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
 					collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
         		} else if (willHaveValue) {
         			// add
@@ -261,6 +263,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
                     }
 					evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
 					evaluatedAssignment.setPresentInOldObject(presentInOld);
+					evaluatedAssignment.setWasValid(false);
                     collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
         		} else if (hadValue) {
         			// delete
@@ -270,6 +273,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
                     }
 					evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
 					evaluatedAssignment.setPresentInOldObject(presentInOld);
+					evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
                     collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
         		} else if (assignmentElement.isOld()) {
         			// This is OK, safe to skip. This is just an relic of earlier processing.
@@ -302,6 +306,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                        }
 							evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
 							evaluatedAssignment.setPresentInOldObject(presentInOld);
+							evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
 							collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 	                	} else {
 	                		if (LOGGER.isTraceEnabled()) {
@@ -313,6 +318,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                        }
 							evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
 							evaluatedAssignment.setPresentInOldObject(presentInOld);
+							evaluatedAssignment.setWasValid(false);
 		                    collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 	                	}
 
@@ -327,6 +333,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                    }
 						evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
 						evaluatedAssignment.setPresentInOldObject(presentInOld);
+						evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
 	                    collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 
 	                } else {
@@ -353,6 +360,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                        }
 							evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
 							evaluatedAssignment.setPresentInOldObject(presentInOld);
+							evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
 			                collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, true);
 	                	} else if (isValid) {
 	                		// Assignment became valid. We need to place it in plus set to initiate provisioning
@@ -366,6 +374,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                        }
 							evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
 							evaluatedAssignment.setPresentInOldObject(presentInOld);
+							evaluatedAssignment.setWasValid(false);
 		                    collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, true);
 	                	} else {
 	                		// Assignment became invalid. We need to place is in minus set to initiate deprovisioning
@@ -379,6 +388,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                        }
 							evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
 							evaluatedAssignment.setPresentInOldObject(presentInOld);
+							evaluatedAssignment.setWasValid(true);
 	                        collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, true);
 	                	}
 	                }
@@ -394,6 +404,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                }
 					evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
 					evaluatedAssignment.setPresentInOldObject(presentInOld);
+					evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
 	                collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 	            }
         	}
@@ -497,7 +508,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 			String assignmentPlacementDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 		OperationResult result = parentResult.createMinorSubresult(AssignmentProcessor.class.getSimpleName()+".evaluateAssignment");
 		result.addParam("assignmentDescription", assignmentPlacementDesc);
-        try{
+        try {
 			// Evaluate assignment. This follows to the assignment targets, follows to the inducements,
         	// evaluates all the expressions, etc.
         	EvaluatedAssignmentImpl<F> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, mode, evaluateOld, source, assignmentPlacementDesc, task, result);

@@ -74,11 +74,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -233,6 +229,11 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public final class WebComponentUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(WebComponentUtil.class);
+
+	private static final String KEY_BOOLEAN_NULL = "Boolean.NULL";
+	private static final String KEY_BOOLEAN_TRUE = "Boolean.TRUE";
+	private static final String KEY_BOOLEAN_FALSE = "Boolean.FALSE";
+
 	private static DatatypeFactory df = null;
 
 	private static Map<Class<?>, Class<? extends PageBase>> objectDetailsPageMap;
@@ -2185,7 +2186,8 @@ public final class WebComponentUtil {
 				SchemaConstants.PATH_PASSWORD, new ItemPath(ShadowType.F_ASSOCIATION));
 	}
 
-	public static boolean checkShadowActivationAndPasswordVisibility(ItemWrapper itemWrapper, IModel<ObjectWrapper<ShadowType>> shadowModel) {
+	public static boolean checkShadowActivationAndPasswordVisibility(ItemWrapper itemWrapper,
+																	 IModel<ObjectWrapper<ShadowType>> shadowModel) {
 		
 		ObjectWrapper<ShadowType> shadowWrapper = shadowModel.getObject();
 		PrismObject<ShadowType> shadow = shadowWrapper.getObject();
@@ -2219,5 +2221,67 @@ public final class WebComponentUtil {
 		
 		return true;
 		
+	}
+
+	public static <T> DropDownChoice createTriStateCombo(String id, IModel<Boolean> model) {
+		final IChoiceRenderer<T> renderer = new IChoiceRenderer<T>() {
+
+
+			@Override
+			public T getObject(String id, IModel<? extends List<? extends T>> choices) {
+				return id != null ? choices.getObject().get(Integer.parseInt(id)) : null;
+			}
+
+			@Override
+			public String getDisplayValue(T object) {
+				String key;
+				if (object == null) {
+					key = KEY_BOOLEAN_NULL;
+				} else {
+					Boolean b = (Boolean) object;
+					key = b ? KEY_BOOLEAN_TRUE : KEY_BOOLEAN_FALSE;
+				}
+
+				StringResourceModel model = PageBase.createStringResourceStatic(null, key);
+
+				return model.getString();
+			}
+
+			@Override
+			public String getIdValue(T object, int index) {
+				return Integer.toString(index);
+			}
+
+
+
+		};
+
+		DropDownChoice dropDown = new DropDownChoice(id, model, createChoices(), renderer) {
+
+			@Override
+			protected CharSequence getDefaultChoice(String selectedValue) {
+				StringResourceModel model = PageBase.createStringResourceStatic(null, KEY_BOOLEAN_NULL);
+
+				return model.getString();
+			}
+		};
+		dropDown.setNullValid(true);
+
+		return dropDown;
+	}
+
+	private static IModel<List<Boolean>> createChoices() {
+		return new AbstractReadOnlyModel<List<Boolean>>() {
+
+			@Override
+			public List<Boolean> getObject() {
+				List<Boolean> list = new ArrayList<>();
+				list.add(null);
+				list.add(Boolean.TRUE);
+				list.add(Boolean.FALSE);
+
+				return list;
+			}
+		};
 	}
 }
