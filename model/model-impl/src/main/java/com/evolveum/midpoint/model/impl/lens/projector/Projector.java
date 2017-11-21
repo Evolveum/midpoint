@@ -395,6 +395,15 @@ public class Projector {
 					},
 					partialProcessingOptions::getProjectionReconciliation);
 
+	        LensUtil.partialExecute("projectionValuesPostRecon",
+					() -> {
+						projectionValuesProcessor.processPostRecon(context, projectionContext, activityDescription, task, result);
+				    	if (consistencyChecks) context.checkConsistence();
+				
+				    	projectionContext.recompute();
+				    	if (consistencyChecks) context.checkConsistence();
+					},
+					partialProcessingOptions::getProjectionValues);
 
 	        LensUtil.partialExecute("projectionLifecycle",
 					() -> {

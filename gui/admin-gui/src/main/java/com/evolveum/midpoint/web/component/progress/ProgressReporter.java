@@ -59,14 +59,11 @@ public class ProgressReporter implements ProgressListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProgressReporter.class);
 
-    private String id;
-
     private MidPointApplication application;
+
     private Map<String, String> nameCache = new HashMap<>();
     private ProgressDto progress = new ProgressDto();
     private boolean abortRequested;
-
-    private Future future;
 
     // Operation result got from the asynchronous operation (null if async op not yet finished)
     private OperationResult asyncOperationResult;
@@ -80,13 +77,8 @@ public class ProgressReporter implements ProgressListener {
     private boolean asynchronousExecution;
     private boolean abortEnabled;
 
-    public ProgressReporter(String id, MidPointApplication application) {
-        this.id = id;
+    public ProgressReporter(MidPointApplication application) {
         this.application = application;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public OperationResult getAsyncOperationResult() {
@@ -180,14 +172,6 @@ public class ProgressReporter implements ProgressListener {
         } else {
             // these two should not be visible in the list of activities
         }
-    }
-
-    public Future getFuture() {
-        return future;
-    }
-
-    public void setFuture(Future future) {
-        this.future = future;
     }
 
     @Override

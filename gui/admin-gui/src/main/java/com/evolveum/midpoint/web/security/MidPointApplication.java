@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -41,9 +42,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
+import com.evolveum.midpoint.web.application.AsyncWebProcessManagerImpl;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
-import com.evolveum.midpoint.web.component.GuiComponents;
-import com.evolveum.midpoint.web.component.progress.ProgressReporterManager;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.error.*;
 import com.evolveum.midpoint.web.page.login.PageLogin;
@@ -54,6 +55,7 @@ import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
+import org.apache.wicket.ISessionListener;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -176,20 +178,15 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     @Autowired
     transient SecurityEnforcer securityEnforcer;
     @Autowired
+    transient SecurityContextManager securityContextManager;
+    @Autowired
     transient SystemObjectCache systemObjectCache;
     @Autowired
     transient LocalizationService localizationService;
     @Autowired
-    transient ProgressReporterManager progressReporterManager;
+    transient AsyncWebProcessManager asyncWebProcessManager;
 
     private WebApplicationConfiguration webApplicationConfiguration;
-
-    @Override
-    protected void onDestroy() {
-        GuiComponents.destroy();
-
-        super.onDestroy();
-    }
 
     @Override
     public Class<? extends PageBase> getHomePage() {
@@ -208,8 +205,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         getJavaScriptLibrarySettings().setJQueryReference(
                 new PackageResourceReference(MidPointApplication.class,
                         "../../../../../webjars/adminlte/2.3.11/plugins/jQuery/jquery-2.2.3.min.js"));
-
-        GuiComponents.init();
 
         getComponentInstantiationListeners().add(new SpringComponentInjector(this));
 
@@ -267,7 +262,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
             }
         });
 
-        getSessionListeners().add(progressReporterManager);
+        getSessionListeners().add((ISessionListener) asyncWebProcessManager);
 
         //descriptor loader, used for customization
         new DescriptorLoader().loadData(this);
@@ -487,15 +482,19 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         return (MidPointApplication) WebApplication.get();
     }
 
-    public ProgressReporterManager getProgressReporterManager() {
-        return progressReporterManager;
-    }
-
     public Task createSimpleTask(String operation) {
         MidPointPrincipal user = SecurityUtils.getPrincipalUser();
         if (user == null) {
             throw new RestartResponseException(PageLogin.class);
         }
         return WebModelServiceUtils.createSimpleTask(operation, user.getUser().asPrismObject(), getTaskManager());
+    }
+
+    public AsyncWebProcessManager getAsyncWebProcessManager() {
+        return asyncWebProcessManager;
+    }
+
+    public SecurityContextManager getSecurityContextManager() {
+        return securityContextManager;
     }
 }

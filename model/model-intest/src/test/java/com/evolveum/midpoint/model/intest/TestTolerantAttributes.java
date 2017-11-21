@@ -123,56 +123,58 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
         // Check account in dummy resource
         assertAccount(userJack, RESOURCE_DUMMY_BLACK_OID);
-
  	}
 
+	/**
+	 * We are trying to add value to the resource (through a mapping). This value matches
+	 * intolerant pattern. But as this value is explicitly added by a mapping from a primary
+	 * delta then the value should be set to resource even in that case.
+	 */
 	@Test
-	public void test101modifyAddAttributesIntolerantPattern() throws Exception{
-		 TestUtil.displayTestTitle(this, "test101modifyAddAttributesIntolerantPattern");
+	public void test101ModifyAddAttributesIntolerantPattern() throws Exception {
+		final String TEST_NAME = "test101ModifyAddAttributesIntolerantPattern";
+		displayTestTitle(TEST_NAME);
 
-	        // GIVEN
-	        Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test101modifyAddAttributesIntolerantPattern");
-	        OperationResult result = task.getResult();
-	        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-	        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-	        PropertyDelta propertyDelta = PropertyDelta.createModificationAddProperty(new ItemPath(UserType.F_DESCRIPTION), getUserDefinition().findPropertyDefinition(UserType.F_DESCRIPTION), "This value will be not added");
-			userDelta.addModification(propertyDelta);
-			Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+        PropertyDelta propertyDelta = PropertyDelta.createModificationAddProperty(
+        		new ItemPath(UserType.F_DESCRIPTION), getUserDefinition().findPropertyDefinition(UserType.F_DESCRIPTION), 
+        		"This value will be not added");
+		userDelta.addModification(propertyDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 
-			modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
+		// WHEN
+		displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
 
-			result.computeStatus();
-	        TestUtil.assertSuccess(result);
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
-	     // Check value in "quote attribute"
-			PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-	        assertUserJack(userJack);
-	        UserType userJackType = userJack.asObjectable();
-	        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-	        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
-	        accountOid = accountRefType.getOid();
-	        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
-	        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
-	        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
-	        assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
+		// Check value in "quote attribute"
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        assertUserJack(userJack);
+        accountOid = getSingleLinkOid(userJack);
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
 
-			// Check shadow
-	        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-	        assertAccountShadowRepo(accountShadow, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME));
+		// Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        assertAccountShadowRepo(accountShadow, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME));
 
-	        // Check account
-	        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-	        assertAccountShadowModel(accountModel, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME));
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        assertAccountShadowModel(accountModel, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_BLACK_NAME));
 
-	        // Check account in dummy resource
-	        assertAccount(userJack, RESOURCE_DUMMY_BLACK_OID);
+        // Check account in dummy resource
+        assertAccount(userJack, RESOURCE_DUMMY_BLACK_OID);
 
-	        // Check value of quote attribute
-	        assertDummyAccountAttribute(RESOURCE_DUMMY_BLACK_NAME, "jack", "quote", null);
-
+        // Check value of quote attribute
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BLACK_NAME, "jack", "quote", "This value will be not added");
 	}
-
 
 	@Test
 	public void test102modifyAddAttributeTolerantPattern() throws Exception{
@@ -218,9 +220,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
 	        // Check value of quote attribute
 	        assertDummyAccountAttribute(RESOURCE_DUMMY_BLACK_NAME, "jack", "quote", "res-thiIsOk");
-
 	}
-
 
 	@Test
 	public void test103modifyReplaceAttributeIntolerant() throws Exception{
@@ -266,7 +266,6 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
 	        // Check value of drink attribute
 	        assertDummyAccountAttribute(RESOURCE_DUMMY_BLACK_NAME, "jack", "gossip", null);
-
 	}
 
 	@Test
@@ -314,7 +313,6 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
 	        // Check value of drink attribute
 	        assertDummyAccountAttribute(RESOURCE_DUMMY_BLACK_NAME, "jack", "gossip", "thiIsOk");
-
 	}
 
 	@Test
@@ -340,8 +338,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 			} catch (PolicyViolationException ex){
 				//this is expected
 			}
-			}
-
+	}
 
 
 }
