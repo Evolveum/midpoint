@@ -106,6 +106,21 @@
 			</expression>
 		</condition>
 	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>Immutable inducements</name>
+		<policyConstraints>
+			<modification>
+				<item>inducement</item>
+			</modification>
+		</policyConstraints>
+		<policyActions>
+			<enforcement/>
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+			<subtype>immutable-inducements</subtype>
+		</focusSelector>
+	</globalPolicyRule>
     <adminGuiConfiguration>
 	    <userDashboardLink>
 	    	<targetUrl>/foo</targetUrl>

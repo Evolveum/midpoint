@@ -36,6 +36,7 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
@@ -74,6 +75,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	protected static final File ROLE_CYCLIC_REFERENCES_FILE = new File(TEST_DIR, "role-cyclic-references.xml");
 	protected static final File ROLE_UNRESOLVABLE_REFERENCES_FILE = new File(TEST_DIR, "role-unresolvable-references.xml");
 	protected static final File ROLE_AMBIGUOUS_REFERENCE_FILE = new File(TEST_DIR, "role-ambiguous-reference.xml");
+	protected static final File ROLE_IMMUTABLE_INDUCEMENTS_FILE = new File(TEST_DIR, "role-immutable-inducements.xml");
 
 	private static final int STUDENT_TARGET_RULES = 6;          // one is global
 	private static final int STUDENT_FOCUS_RULES = 21;
@@ -82,6 +84,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 	private String rolePersonOid;
 	private String roleTemporaryOid;
+	private String roleImmutableInducementsOid;
 	private String roleStudentOid;
 	private String userJoeOid;
 	private String userFrankOid;
@@ -91,6 +94,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		super.initSystem(initTask, initResult);
 		setDefaultUserTemplate(USER_TEMPLATE_OID);
 
+		roleImmutableInducementsOid = repoAddObjectFromFile(ROLE_IMMUTABLE_INDUCEMENTS_FILE, initResult).getOid();  // using repo because the inducement is present in the object
 		rolePersonOid = addAndRecompute(ROLE_PERSON_FILE, initTask, initResult);
 		roleTemporaryOid = addAndRecompute(ROLE_TEMPORARY_FILE, initTask, initResult);
 		roleStudentOid = addAndRecompute(ROLE_STUDENT_FILE, initTask, initResult);
@@ -814,5 +818,39 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		}
 	}
 
+	// MID-4270
+	@Test
+	public void test300ModifyInducement() throws Exception {
+		final String TEST_NAME = "test300ModifyInducement";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		ObjectDelta<RoleType> delta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+				.item(RoleType.F_INDUCEMENT, 1L, AssignmentType.F_DESCRIPTION).replace("hi")
+				.asObjectDeltaCast(roleImmutableInducementsOid);
+		LensContext<RoleType> context = createLensContext(RoleType.class);
+		context.createFocusContext().setPrimaryDelta(delta);
+		display("Input context", context);
+
+		assertFocusModificationSanity(context);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		try {
+			clockwork.run(context, task, result);
+			TestUtil.displayThen(TEST_NAME);
+			fail("unexpected success");
+		} catch (PolicyViolationException e) {
+			TestUtil.displayThen(TEST_NAME);
+			System.out.println("Expected exception: " + e);
+			e.printStackTrace(System.out);
+			if (!e.getMessage().contains("Role \"Immutable inducements\" is to be modified")) {
+				fail("Exception message was not as expected: " + e.getMessage());
+			}
+		}
+	}
 
 }
