@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -47,6 +48,8 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
 import java.util.List;
+
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
  * @author semancik
@@ -142,7 +145,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 		} else if (delta.isDelete()) {
 			return objectOld != null && objectOld.containsItem(path, false);
 		} else {
-			return delta.findItemDelta(path) != null;
+			return ItemDelta.pathMatches(emptyIfNull(delta.getModifications()), path, 0);
 		}
 	}
 

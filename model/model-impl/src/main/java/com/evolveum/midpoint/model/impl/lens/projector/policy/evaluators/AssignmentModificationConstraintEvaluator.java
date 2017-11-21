@@ -166,12 +166,6 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 	}
 
 	private boolean pathMatches(Collection<? extends ItemDelta<?, ?>> deltas, ItemPath path) {
-		for (ItemDelta<?, ?> delta : emptyIfNull(deltas)) {
-			// TODO what about changes like extension/cities[2]/name (in delta) vs. extension/cities/name (in spec)
-			if (path.isSubPathOrEquivalent(delta.getPath().tail(2))) {
-				return true;
-			}
-		}
-		return false;
+		return ItemDelta.pathMatches(emptyIfNull(deltas), path, 2);
 	}
 }
