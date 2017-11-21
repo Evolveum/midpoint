@@ -763,7 +763,7 @@ main:       while (remaining > 0) {
                 remaining -= objects.size();
             }
         } finally {
-            if (result != null && result.isUnknown()) {
+            if (result.isUnknown()) {
                 result.computeStatus();
             }
             result.setSummarizeSuccesses(true);
@@ -826,7 +826,7 @@ main:       for (;;) {
                 }
             }
         } finally {
-            if (result != null && result.isUnknown()) {
+            if (result.isUnknown()) {
                 result.computeStatus();
             }
         }

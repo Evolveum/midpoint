@@ -1217,8 +1217,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User jack", user);
@@ -1252,8 +1251,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User jack", user);
@@ -1309,8 +1307,10 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK);
 
         // Title is tolerant. Reconcile will not remove the value.
+        // It might seem that role unassign should remove the Swashbuckler value. But it should not
+        // because the role is not valid (expired)
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate");
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate", "Swashbuckler");
 	}
 
     @Test

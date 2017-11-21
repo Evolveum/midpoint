@@ -1537,7 +1537,21 @@
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element name="order" type="xsd:int" minOccurs="0" />
-			<xsd:element name="title" type="tns:LocalizableMessageType" minOccurs="0" />
+			<xsd:element name="localizableTitle" type="tns:LocalizableMessageType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="title" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>3.7</a:deprecatedSince>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="part" type="tns:InformationPartType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
     </xsd:complexType>
@@ -1550,7 +1564,21 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="text" type="tns:LocalizableMessageType" minOccurs="0" />
+			<xsd:element name="localizableText" type="tns:LocalizableMessageType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="text" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>3.7</a:deprecatedSince>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="hasMarkup" type="xsd:boolean" minOccurs="0" />
 		</xsd:sequence>
 	</xsd:complexType>

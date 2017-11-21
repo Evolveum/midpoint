@@ -79,8 +79,7 @@ import javax.servlet.DispatcherType;
         PropertyPlaceholderAutoConfiguration.class,
         SecurityAutoConfiguration.class,
         SecurityFilterAutoConfiguration.class,
-        ServerPropertiesAutoConfiguration.class,
-        MultipartAutoConfiguration.class
+        ServerPropertiesAutoConfiguration.class
 })
 @SpringBootConfiguration
 public class MidPointSpringApplication extends SpringBootServletInitializer {

@@ -15306,6 +15306,67 @@
 		</xsd:restriction>
 	</xsd:simpleType>
 
+	<xsd:simpleType name="IterationMethodType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How to iterate through entities in searchObjectsIterative method.
+				Can be used to avoid long-running transactions in some cases.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="default">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="DEFAULT"/>
+						<xsd:documentation>
+							Uses the default method configured for the particular database.
+							For H2, MySQL/MariaDB the default is to emulate iteration via paging,
+							for other databases it is traditional sequential read.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="singleTransaction">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="SINGLE_TRANSACTION"/>
+						<xsd:documentation>
+							Fetches objects in single DB transaction. Not supported for all DBMSs.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="simplePaging">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="SIMPLE_PAGING"/>
+						<xsd:documentation>
+							Uses the "simple paging" method: takes objects (e.g.) numbered 0 to 49, then 50 to 99,
+							then 100 to 149, and so on. The disadvantage is that if the order of objects is changed
+							during operation (e.g. by inserting/deleting some of them) then some objects can be
+							processed multiple times, where others can be skipped.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="strictlySequentialPaging">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="STRICTLY_SEQUENTIAL_PAGING"/>
+						<xsd:documentation>
+							Uses the "strictly sequential paging" method: sorting returned objects by OID. This
+							is (almost) reliable in such a way that no object would be skipped. However, custom
+							paging cannot be used in this mode.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
 	<xsd:complexType name="ModelExecuteOptionsType">
         <xsd:annotation>
             <xsd:documentation>

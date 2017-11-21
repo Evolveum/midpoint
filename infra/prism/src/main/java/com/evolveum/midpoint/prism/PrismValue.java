@@ -34,6 +34,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+
 /**
  * @author semancik
  *
@@ -518,6 +521,18 @@ public abstract class PrismValue implements IPrismValue {
 			return ((Referencable) realValue).asReferenceValue();
 		} else {
 			return new PrismPropertyValue<>(realValue);
+		}
+	}
+
+
+	// Path may contain ambiguous segments (e.g. assignment/targetRef when there are more assignments)
+	// Note that the path can contain name segments only (at least for now)
+	@NotNull
+	public Collection<PrismValue> getAllValues(ItemPath path) {
+		if (path.isEmpty()) {
+			return singleton(this);
+		} else {
+			return emptySet();
 		}
 	}
 }

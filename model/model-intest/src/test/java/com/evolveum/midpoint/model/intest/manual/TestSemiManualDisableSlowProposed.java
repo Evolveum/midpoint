@@ -65,6 +65,8 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * @author Radovan Semancik
+ * 
+ * THIS TEST IS DISABLED MID-4166
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

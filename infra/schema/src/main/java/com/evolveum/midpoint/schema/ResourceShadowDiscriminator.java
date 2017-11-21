@@ -259,6 +259,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
     	return toHumanReadableDescription();
 	}
 
+    @Override
     public String toHumanReadableDescription() {
     	StringBuilder sb = new StringBuilder("RSD(");
     	sb.append(kind==null?"null":kind.value());

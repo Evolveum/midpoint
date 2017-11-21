@@ -22,11 +22,15 @@ import com.evolveum.midpoint.web.component.util.LocalizableMessageModel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationPartType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+
+import static com.evolveum.midpoint.schema.util.LocalizationUtil.getLocalizableMessageOrDefault;
 
 /**
  * @author mederly
@@ -43,8 +47,14 @@ public class InformationPanel extends BasePanel<InformationType> {
 	}
 
 	private void initLayout() {
-		Label titleLabel = new Label(ID_TITLE, new LocalizableMessageModel(new PropertyModel<>(getModel(), InformationType.F_TITLE.getLocalPart()), this));
-		titleLabel.add(new VisibleBehaviour(() -> getModelObject().getTitle() != null));
+		Label titleLabel = new Label(ID_TITLE, new LocalizableMessageModel(new AbstractReadOnlyModel<LocalizableMessageType>() {
+			@Override
+			public LocalizableMessageType getObject() {
+				InformationType info = getModelObject();
+				return getLocalizableMessageOrDefault(info.getLocalizableTitle(), info.getTitle());
+			}
+		}, this));
+		titleLabel.add(new VisibleBehaviour(() -> getModelObject().getLocalizableTitle() != null && getModelObject().getTitle() != null));
 		add(titleLabel);
 
 		ListView<InformationPartType> list = new ListView<InformationPartType>(ID_PARTS,
@@ -52,7 +62,8 @@ public class InformationPanel extends BasePanel<InformationType> {
 			@Override
 			protected void populateItem(ListItem<InformationPartType> item) {
 				InformationPartType part = item.getModelObject();
-				Label label = new Label(ID_PART, WebComponentUtil.resolveLocalizableMessage(part.getText(), InformationPanel.this));
+				Label label = new Label(ID_PART, WebComponentUtil.resolveLocalizableMessage(
+						getLocalizableMessageOrDefault(part.getLocalizableText(), part.getText()), InformationPanel.this));
 				if (Boolean.TRUE.equals(part.isHasMarkup())) {
 					label.setEscapeModelStrings(false);
 				}

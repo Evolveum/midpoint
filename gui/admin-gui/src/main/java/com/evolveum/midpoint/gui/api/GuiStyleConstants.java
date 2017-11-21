@@ -101,6 +101,7 @@ public class GuiStyleConstants {
 	public static final String CLASS_APPROVAL_OUTCOME_ICON_UNKNOWN_COLORED = "fa fa-check text-warning";
 	public static final String CLASS_APPROVAL_OUTCOME_ICON_APPROVED_COLORED = "fa fa-check text-success";
 	public static final String CLASS_APPROVAL_OUTCOME_ICON_REJECTED_COLORED = "fa fa-times text-danger";
+	public static final String CLASS_APPROVAL_OUTCOME_ICON_SKIPPED_COLORED = "fa fa-step-forward text-success";
 	public static final String CLASS_APPROVAL_OUTCOME_ICON_IN_PROGRESS_COLORED = "fa fa-clock-o text-info";
 	public static final String CLASS_APPROVAL_OUTCOME_ICON_FUTURE_COLORED = "fa fa-question-circle text-warning";
 	public static final String CLASS_APPROVAL_OUTCOME_ICON_CANCELLED_COLORED = "fa fa-ban text-warning";

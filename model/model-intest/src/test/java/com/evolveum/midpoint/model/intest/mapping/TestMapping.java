@@ -41,7 +41,9 @@ import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTes
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -60,7 +62,11 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -91,8 +97,30 @@ public class TestMapping extends AbstractMappingTest {
 	protected static final String RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME = "customFunction";
 	protected static final String RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAMESPACE = MidPointConstants.NS_RI;
 
+	// COBALT: weak non-tolerant mappings
+	protected static final File RESOURCE_DUMMY_COBALT_FILE = new File(TEST_DIR, "resource-dummy-cobalt.xml");
+	protected static final String RESOURCE_DUMMY_COBALT_OID = "7f8a927c-cac4-11e7-9733-9f90849f6d4a";
+	protected static final String RESOURCE_DUMMY_COBALT_NAME = "cobalt";
+	protected static final String RESOURCE_DUMMY_COBALT_NAMESPACE = MidPointConstants.NS_RI;
+	
 	protected static final File ROLE_ANTINIHILIST_FILE = new File(TEST_DIR, "role-antinihilist.xml");
 	protected static final String ROLE_ANTINIHILIST_OID = "4c5c6c44-bd7d-11e7-99ef-9b82464da93d";
+	
+	protected static final File ROLE_BLUE_TITANIC_FILE = new File(TEST_DIR, "role-blue-titanic.xml");
+	protected static final String ROLE_BLUE_TITANIC_OID = "97f8d44a-cab5-11e7-9d72-fbe451f26944";
+	private static final String ROLE_TITANIC_SHIP_VALUE = "Titanic";
+	
+	protected static final File ROLE_BLUE_POETRY_FILE = new File(TEST_DIR, "role-blue-poetry.xml");
+	protected static final String ROLE_BLUE_POETRY_OID = "22d3d4f6-cabc-11e7-9441-4b5c10dd30e0";
+	private static final String ROLE_POETRY_QUOTE_VALUE = "Oh freddled gruntbuggly";
+	
+	protected static final File ROLE_COBALT_NEVERLAND_FILE = new File(TEST_DIR, "role-cobalt-neverland.xml");
+	protected static final String ROLE_COBALT_NEVERLAND_OID = "04aca9d6-caca-11e7-9c6a-97b71af3e545";
+	private static final String ROLE_COBALT_NEVERLAND_VALUE = "Neverland";
+
+	private static final String CAPTAIN_JACK_FULL_NAME = "Captain Jack Sparrow";
+	
+	private static final String SHIP_BLACK_PEARL = "Black Pearl";
 	
 	protected static final String USER_GUYBRUSH_PASSWORD_1_CLEAR = "1wannaBEaP1rat3";
 	protected static final String USER_GUYBRUSH_PASSWORD_2_CLEAR = "1wannaBEtheP1rat3";
@@ -107,6 +135,7 @@ public class TestMapping extends AbstractMappingTest {
 	protected static final String DRINK_GRAPPA = "grappa";
 	protected static final String DRINK_GIN = "gin";
 	protected static final String DRINK_MEZCAL = "mezcal";
+	
 
 
 	@Override
@@ -119,8 +148,13 @@ public class TestMapping extends AbstractMappingTest {
 				RESOURCE_DUMMY_LIGHT_CRIMSON_FILE, RESOURCE_DUMMY_LIGHT_CRIMSON_OID, initTask, initResult);
 		initDummyResourcePirate(RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME,
 				RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_FILE, RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_OID, initTask, initResult);
+		initDummyResourcePirate(RESOURCE_DUMMY_COBALT_NAME,
+				RESOURCE_DUMMY_COBALT_FILE, RESOURCE_DUMMY_COBALT_OID, initTask, initResult);
 		
 		repoAddObjectFromFile(ROLE_ANTINIHILIST_FILE, initResult);
+		repoAddObjectFromFile(ROLE_BLUE_TITANIC_FILE, initResult);
+		repoAddObjectFromFile(ROLE_BLUE_POETRY_FILE, initResult);
+		repoAddObjectFromFile(ROLE_COBALT_NEVERLAND_FILE, initResult);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 	}
@@ -170,7 +204,7 @@ public class TestMapping extends AbstractMappingTest {
         assertNotNull("No drink UUID", drinkUuidBlue);
         display("Drink UUID", drinkUuidBlue.toString());
 
-        assertAccountShip(userJack, ACCOUNT_JACK_DUMMY_FULLNAME, null, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
+        assertAccountShip(userJack, ACCOUNT_JACK_DUMMY_FULLNAME, null, RESOURCE_DUMMY_BLUE_NAME, task);
 		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME,
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Where's the rum? -- Jack Sparrow");
 
@@ -198,7 +232,7 @@ public class TestMapping extends AbstractMappingTest {
 		// WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
-        		PrismTestUtil.createPolyString("Cpt. Jack Sparrow"));
+        		PrismTestUtil.createPolyString(CAPTAIN_JACK_FULL_NAME));
 
 		// THEN
         displayThen(TEST_NAME);
@@ -206,14 +240,13 @@ public class TestMapping extends AbstractMappingTest {
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Cpt. Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
 
-		assertAccountShip(userJack, "Jack Sparrow", null, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
+		assertAccountShip(userJack, USER_JACK_FULL_NAME, null, RESOURCE_DUMMY_BLUE_NAME, task);
 
-		// 'quote' is non-tolerant attribute. As the source of the mapping is changed, the current
-		// value is no longer legal and the reconciliation has to remove it.
-		assertNoDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME);
+		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME,
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, 
+				getQuote(USER_JACK_DESCRIPTION, CAPTAIN_JACK_FULL_NAME));
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -238,7 +271,7 @@ public class TestMapping extends AbstractMappingTest {
 		// WHEN
         displayWhen(TEST_NAME);
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME,
-        		PrismTestUtil.createPolyString("Captain Jack Sparrow"));
+        		PrismTestUtil.createPolyString(CAPTAIN_JACK_FULL_NAME));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
 
@@ -248,14 +281,15 @@ public class TestMapping extends AbstractMappingTest {
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
 
-		assertAccountShip(userJack, "Jack Sparrow", null, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
+		assertAccountShip(userJack, USER_JACK_FULL_NAME, null, RESOURCE_DUMMY_BLUE_NAME, task);
 
 		// The quote attribute was empty before this operation. So the weak mapping kicks in
 		// and sets a new value.
 		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Where's the rum? -- Captain Jack Sparrow");
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, 
+				getQuote(USER_JACK_DESCRIPTION, CAPTAIN_JACK_FULL_NAME));
 
 
         // Check audit
@@ -263,7 +297,7 @@ public class TestMapping extends AbstractMappingTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
@@ -287,9 +321,9 @@ public class TestMapping extends AbstractMappingTest {
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
 
-		assertAccountShip(userJack, "Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
+		assertAccountShip(userJack, USER_JACK_FULL_NAME, "Black Pearl", RESOURCE_DUMMY_BLUE_NAME, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -329,9 +363,9 @@ public class TestMapping extends AbstractMappingTest {
 
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
 
-		assertAccountShip(userJack, "Jack Sparrow", "Flying Dutchman", getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
+		assertAccountShip(userJack, USER_JACK_FULL_NAME, "Flying Dutchman", RESOURCE_DUMMY_BLUE_NAME, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -375,9 +409,9 @@ public class TestMapping extends AbstractMappingTest {
 
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
 
-		assertAccountShip(userJack, "Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
+		assertAccountShip(userJack, USER_JACK_FULL_NAME, "Black Pearl", RESOURCE_DUMMY_BLUE_NAME, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -417,9 +451,9 @@ public class TestMapping extends AbstractMappingTest {
 
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
 
-		assertAccountShip(userJack, "Jack Sparrow", "HMS Dauntless", getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
+		assertAccountShip(userJack, USER_JACK_FULL_NAME, "HMS Dauntless", RESOURCE_DUMMY_BLUE_NAME, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -463,9 +497,9 @@ public class TestMapping extends AbstractMappingTest {
 
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
 
-		assertAccountShip(userJack, "Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
+		assertAccountShip(userJack, USER_JACK_FULL_NAME, SHIP_BLACK_PEARL, RESOURCE_DUMMY_BLUE_NAME, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -477,10 +511,417 @@ public class TestMapping extends AbstractMappingTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
+	
+	/**
+	 * Assign Blue Titanic role. This role has strong mapping to blue resource
+	 * ship attribute. The weak mapping on blue resource should NOT be applied.
+	 * MID-4236
+	 */
+	@Test
+    public void test110AssignBlueTitanic() throws Exception {
+		final String TEST_NAME = "test110AssignBlueTitanic";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        assignRole(USER_JACK_OID, ROLE_BLUE_TITANIC_OID, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
+
+		assertAccountShip(userAfter, USER_JACK_FULL_NAME, ROLE_TITANIC_SHIP_VALUE, RESOURCE_DUMMY_BLUE_NAME, task);
+	}
+	
+	@Test
+    public void test111Recompute() throws Exception {
+		final String TEST_NAME = "test111Recompute";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        recomputeUser(USER_JACK_OID, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
+
+		assertAccountShip(userAfter, USER_JACK_FULL_NAME, ROLE_TITANIC_SHIP_VALUE, RESOURCE_DUMMY_BLUE_NAME, task);
+	}
+	
+	/**
+	 * Disable assignment of Blue Titanic role.
+	 * The weak mapping should kick in and return black pearl back.
+	 * MID-4236
+	 */
+	@Test
+    public void test112DisableBlueTitanicAssignment() throws Exception {
+		final String TEST_NAME = "test112DisableBlueTitanicAssignment";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+		AssignmentType titanicAssignment = getAssignment(userBefore, ROLE_BLUE_TITANIC_OID);
+		ItemPath assignmentStatusPath = new ItemPath(
+				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
+				new IdItemPathSegment(titanicAssignment.getId()),
+				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
+				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+
+		// WHEN
+		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.DISABLED);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
+
+		assertAccountShip(userAfter, USER_JACK_FULL_NAME, SHIP_BLACK_PEARL, RESOURCE_DUMMY_BLUE_NAME, task);
+	}
+	
+	/**
+	 * MID-4236
+	 */
+	@Test
+    public void test113Recompute() throws Exception {
+		final String TEST_NAME = "test113Recompute";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        recomputeUser(USER_JACK_OID, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
+
+		assertAccountShip(userAfter, USER_JACK_FULL_NAME, SHIP_BLACK_PEARL, RESOURCE_DUMMY_BLUE_NAME, task);
+	}
+	
+	/**
+	 * MID-4236
+	 */
+	@Test
+    public void test114Reconcile() throws Exception {
+		final String TEST_NAME = "test114Reconcile";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        reconcileUser(USER_JACK_OID, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
+
+		assertAccountShip(userAfter, USER_JACK_FULL_NAME, SHIP_BLACK_PEARL, RESOURCE_DUMMY_BLUE_NAME, task);
+	}
+	
+	/**
+	 * Re-enable assignment of Blue Titanic role.
+	 * MID-4236
+	 */
+	@Test
+    public void test115EnableBlueTitanicAssignment() throws Exception {
+		final String TEST_NAME = "test115EnableBlueTitanicAssignment";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+		AssignmentType titanicAssignment = getAssignment(userBefore, ROLE_BLUE_TITANIC_OID);
+		ItemPath assignmentStatusPath = new ItemPath(
+				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
+				new IdItemPathSegment(titanicAssignment.getId()),
+				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
+				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+
+		// WHEN
+		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.ENABLED);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
+
+		assertAccountShip(userAfter, USER_JACK_FULL_NAME, ROLE_TITANIC_SHIP_VALUE, RESOURCE_DUMMY_BLUE_NAME, task);
+	}
 
 	@Test
-    public void test109ModifyUserUnassignAccountBlue() throws Exception {
-		final String TEST_NAME = "test109ModifyUserUnassignAccountBlue";
+    public void test118UnassignBlueTitanic() throws Exception {
+		final String TEST_NAME = "test118UnassignBlueTitanic";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+		AssignmentType titanicAssignment = getAssignment(userBefore, ROLE_BLUE_TITANIC_OID);
+
+		// WHEN
+        unassign(UserType.class, USER_JACK_OID, titanicAssignment, null, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
+
+		assertAccountShip(userAfter, USER_JACK_FULL_NAME, SHIP_BLACK_PEARL, RESOURCE_DUMMY_BLUE_NAME, task);
+	}
+
+	/**
+	 * Assign Blue Poetry role. This role has strong mapping to blue resource
+	 * quote attribute. The weak mapping on blue resource should NOT be applied.
+	 * This is similar to Blue Titanic, but quote attribute is non-tolerant.
+	 * MID-4236
+	 */
+	@Test
+    public void test120AssignBluePoetry() throws Exception {
+		final String TEST_NAME = "test120AssignBluePoetry";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, 
+				getQuote(USER_JACK_DESCRIPTION, CAPTAIN_JACK_FULL_NAME));
+        
+		// WHEN
+        assignRole(USER_JACK_OID, ROLE_BLUE_POETRY_OID, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
+
+		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, ROLE_POETRY_QUOTE_VALUE);
+	}
+	
+	@Test
+    public void test121Recompute() throws Exception {
+		final String TEST_NAME = "test121Recompute";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        recomputeUser(USER_JACK_OID, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
+
+		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, ROLE_POETRY_QUOTE_VALUE);
+	}
+	
+	/**
+	 * MID-4236
+	 */
+	@Test
+    public void test122DisableBlueTitanicAssignment() throws Exception {
+		final String TEST_NAME = "test122DisableBlueTitanicAssignment";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+		AssignmentType poetryAssignment = getAssignment(userBefore, ROLE_BLUE_POETRY_OID);
+		ItemPath assignmentStatusPath = new ItemPath(
+				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
+				new IdItemPathSegment(poetryAssignment.getId()),
+				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
+				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+
+		// WHEN
+		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.DISABLED);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
+
+		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME,
+				getQuote(USER_JACK_DESCRIPTION, CAPTAIN_JACK_FULL_NAME));
+	}
+	
+	/**
+	 * MID-4236
+	 */
+	@Test
+    public void test123Recompute() throws Exception {
+		final String TEST_NAME = "test123Recompute";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        recomputeUser(USER_JACK_OID, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
+
+		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME,
+				getQuote(USER_JACK_DESCRIPTION, CAPTAIN_JACK_FULL_NAME));
+	}
+	
+	/**
+	 * MID-4236
+	 */
+	@Test
+    public void test124Reconcile() throws Exception {
+		final String TEST_NAME = "test124Reconcile";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        reconcileUser(USER_JACK_OID, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
+
+		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME,
+				getQuote(USER_JACK_DESCRIPTION, CAPTAIN_JACK_FULL_NAME));
+	}
+	
+	/**
+	 * Re-enable assignment of Blue Poetry role.
+	 * MID-4236
+	 */
+	@Test
+    public void test125EnableBluePoetryAssignment() throws Exception {
+		final String TEST_NAME = "test125EnableBluePoetryAssignment";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+		AssignmentType poetryAssignment = getAssignment(userBefore, ROLE_BLUE_POETRY_OID);
+		ItemPath assignmentStatusPath = new ItemPath(
+				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
+				new IdItemPathSegment(poetryAssignment.getId()),
+				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
+				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+
+		// WHEN
+		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.ENABLED);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
+
+		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, ROLE_POETRY_QUOTE_VALUE);
+	}
+
+	@Test
+    public void test128UnassignBluePoetry() throws Exception {
+		final String TEST_NAME = "test128UnassignBluePoetry";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+		AssignmentType poetryAssignment = getAssignment(userBefore, ROLE_BLUE_POETRY_OID);
+
+		// WHEN
+        unassign(UserType.class, USER_JACK_OID, poetryAssignment, null, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
+
+		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME,
+				getQuote(USER_JACK_DESCRIPTION, CAPTAIN_JACK_FULL_NAME));
+		assertAccountShip(userAfter, USER_JACK_FULL_NAME, SHIP_BLACK_PEARL, RESOURCE_DUMMY_BLUE_NAME, task);
+	}
+
+	@Test
+    public void test129ModifyUserUnassignAccountBlue() throws Exception {
+		final String TEST_NAME = "test129ModifyUserUnassignAccountBlue";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -490,7 +931,7 @@ public class TestMapping extends AbstractMappingTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, false);
-        userDelta.addModificationReplaceProperty(UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Jack Sparrow"));
+        userDelta.addModificationReplaceProperty(UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
         userDelta.addModificationReplaceProperty(UserType.F_ORGANIZATIONAL_UNIT);
         deltas.add(userDelta);
 
@@ -501,7 +942,7 @@ public class TestMapping extends AbstractMappingTest {
 		assertSuccess(result);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack);
 		// Check accountRef
         assertUserNoAccountRefs(userJack);
 
@@ -519,13 +960,444 @@ public class TestMapping extends AbstractMappingTest {
         dummyAuditService.assertExecutionSuccess();
 	}
 
+	
+	@Test
+    public void test140AssignCobaltAccount() throws Exception {
+		final String TEST_NAME = "test140AssignCobaltAccount";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+		assertUserJack(userBefore);
+		assertLinks(userBefore, 0);
+		assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME);
+		assertNoDummyAccount(RESOURCE_DUMMY_COBALT_NAME, USER_JACK_USERNAME);
+        
+		// WHEN
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_COBALT_OID, null, task, result);
+
+		// THEN
+        assertSuccess(result);
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter);
+		assertLinks(userAfter, 1);
+
+		assertDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+		assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, USER_JACK_LOCALITY);
+	}
+	
+	/**
+	 * Destroy the value of account location attribute. Recompute should fix it.
+	 * This is a "control group" for MID-4236
+	 */
+	@Test
+    public void test141DestroyAndRecompute() throws Exception {
+		final String TEST_NAME = "test141DestroyAndRecompute";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        dummyAccountBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME,
+        		"Wrongland");
+        display("Account before", dummyAccountBefore);
+
+		// WHEN
+        recomputeUser(USER_JACK_OID, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter);
+
+		DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+		display("Account after", dummyAccountAfter);
+		assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, USER_JACK_LOCALITY);
+	}
+	
+	/**
+	 * Destroy the value of account location attribute. Reconcile should fix it.
+	 * This is a "control group" for MID-4236
+	 */
+	@Test
+    public void test142DestroyAndReconcile() throws Exception {
+		final String TEST_NAME = "test142DestroyAndReconcile";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        dummyAccountBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME,
+        		"Wrongland");
+        display("Account before", dummyAccountBefore);
+
+		// WHEN
+        reconcileUser(USER_JACK_OID, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter);
+
+		DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+		display("Account after", dummyAccountAfter);
+		assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, USER_JACK_LOCALITY);
+	}
+	
+	/**
+	 * Destroy the value of account location attribute. Recompute should fix it.
+	 * This is a "control group" for MID-4236
+	 */
+	@Test
+    public void test143ClearAndRecompute() throws Exception {
+		final String TEST_NAME = "test143ClearAndRecompute";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME
+        		/* no value */);
+        display("Account before", dummyAccountBefore);
+
+		// WHEN
+        recomputeUser(USER_JACK_OID, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter);
+
+		DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+		display("Account after", dummyAccountAfter);
+		assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, USER_JACK_LOCALITY);
+	}
+
+	
+	/**
+	 * Assign Cobalt role. This role has strong mapping to cobalt resource
+	 * location attribute. The weak mapping on cobalt resource should NOT be applied.
+	 * This is similar to Blue Titanic, but location attribute is non-tolerant and single-value.
+	 * MID-4236
+	 */
+	@Test
+    public void test150AssignCobaltNeverland() throws Exception {
+		final String TEST_NAME = "test150AssignCobaltNeverland";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        assignRole(USER_JACK_OID, ROLE_COBALT_NEVERLAND_OID, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter);
+		assertLinks(userAfter, 1);
+
+		assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, ROLE_COBALT_NEVERLAND_VALUE);
+	}
+	
+	@Test
+    public void test151Recompute() throws Exception {
+		final String TEST_NAME = "test151Recompute";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        recomputeUser(USER_JACK_OID, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter);
+
+		assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, ROLE_COBALT_NEVERLAND_VALUE);
+	}
+		
+	/**
+	 * MID-4236
+	 */
+	@Test
+    public void test152DisableCobalNeverlandAssignment() throws Exception {
+		final String TEST_NAME = "test152DisableCobalNeverlandAssignment";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+		AssignmentType roleAssignment = getAssignment(userBefore, ROLE_COBALT_NEVERLAND_OID);
+		ItemPath assignmentStatusPath = new ItemPath(
+				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
+				new IdItemPathSegment(roleAssignment.getId()),
+				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
+				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+
+		// WHEN
+		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.DISABLED);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter);
+
+		assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, USER_JACK_LOCALITY);
+	}
+	
+	/**
+	 * MID-4236
+	 */
+	@Test
+    public void test153Recompute() throws Exception {
+		final String TEST_NAME = "test153Recompute";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        recomputeUser(USER_JACK_OID, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter);
+
+		assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, USER_JACK_LOCALITY);
+	}
+	
+	/**
+	 * MID-4236
+	 */
+	@Test
+    public void test154Reconcile() throws Exception {
+		final String TEST_NAME = "test154Reconcile";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        reconcileUser(USER_JACK_OID, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter);
+
+		assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, USER_JACK_LOCALITY);
+	}
+	
+	/**
+	 * Destroy the value of account location attribute. Recompute should fix it.
+	 * MID-4236 (this is where it is really reproduced)
+	 */
+	@Test
+    public void test155DestroyAndRecompute() throws Exception {
+		final String TEST_NAME = "test155DestroyAndRecompute";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        dummyAccountBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME,
+        		"Wrongland");
+        display("Account before", dummyAccountBefore);
+
+		// WHEN
+        recomputeUser(USER_JACK_OID, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter);
+
+		DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+		display("Account after", dummyAccountAfter);
+		assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, USER_JACK_LOCALITY);
+	}
+	
+	/**
+	 * Destroy the value of account location attribute. Recompute should fix it.
+	 * MID-4236 (this is where it is really reproduced)
+	 */
+	@Test
+    public void test156ClearAndRecompute() throws Exception {
+		final String TEST_NAME = "test156ClearAndRecompute";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME
+        		/* no value */);
+        display("Account before", dummyAccountBefore);
+
+		// WHEN
+        recomputeUser(USER_JACK_OID, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter);
+
+		DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+		display("Account after", dummyAccountAfter);
+		assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, USER_JACK_LOCALITY);
+	}
+	
+	/**
+	 * Re-enable assignment of Blue Poetry role.
+	 * MID-4236
+	 */
+	@Test
+    public void test157EnableCobaltNeverlandAssignment() throws Exception {
+		final String TEST_NAME = "test157EnableCobaltNeverlandAssignment";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+		AssignmentType roleAssignment = getAssignment(userBefore, ROLE_COBALT_NEVERLAND_OID);
+		ItemPath assignmentStatusPath = new ItemPath(
+				new NameItemPathSegment(FocusType.F_ASSIGNMENT),
+				new IdItemPathSegment(roleAssignment.getId()),
+				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
+				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS));
+
+		// WHEN
+		modifyUserReplace(USER_JACK_OID, assignmentStatusPath, task, result, ActivationStatusType.ENABLED);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter);
+
+		assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, ROLE_COBALT_NEVERLAND_VALUE);
+	}
+
+	@Test
+    public void test158UnassignCobaltNeverland() throws Exception {
+		final String TEST_NAME = "test158UnassignCobaltNeverland";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+		AssignmentType roleAssignment = getAssignment(userBefore, ROLE_COBALT_NEVERLAND_OID);
+
+		// WHEN
+        unassign(UserType.class, USER_JACK_OID, roleAssignment, null, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter);
+
+		assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, USER_JACK_LOCALITY);
+	}
+
+	@Test
+    public void test159UnassignCobaltAccount() throws Exception {
+		final String TEST_NAME = "test159UnassignCobaltAccount";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+		display("User before", userBefore);
+        
+		// WHEN
+        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_COBALT_OID, null, task, result);
+
+		// THEN
+        assertSuccess(result);
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter);
+		assertLinks(userAfter, 0);
+
+		assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME);
+		assertNoDummyAccount(RESOURCE_DUMMY_COBALT_NAME, USER_JACK_USERNAME);
+	}
 
 	/**
 	 * Red dummy has STRONG mappings.
 	 */
 	@Test
-    public void test120ModifyUserAssignAccountDummyRed() throws Exception {
-		final String TEST_NAME = "test120ModifyUserAssignAccountDummyRed";
+    public void test160ModifyUserAssignAccountDummyRed() throws Exception {
+		final String TEST_NAME = "test160ModifyUserAssignAccountDummyRed";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -558,7 +1430,7 @@ public class TestMapping extends AbstractMappingTest {
         assertAccountShadowModel(accountModel, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
 
         // Check account in dummy resource
-        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Jack Sparrow", true);
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", USER_JACK_FULL_NAME, true);
 
  		assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
  				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "mouth", "pistol");
@@ -577,8 +1449,8 @@ public class TestMapping extends AbstractMappingTest {
 	}
 
 	@Test
-    public void test121ModifyUserFullName() throws Exception {
-		final String TEST_NAME = "test121ModifyUserFullName";
+    public void test161ModifyUserFullName() throws Exception {
+		final String TEST_NAME = "test161ModifyUserFullName";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -588,16 +1460,16 @@ public class TestMapping extends AbstractMappingTest {
 
 		// WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
-        		PrismTestUtil.createPolyString("Captain Jack Sparrow"));
+        		PrismTestUtil.createPolyString(CAPTAIN_JACK_FULL_NAME));
 
 		// THEN
         assertSuccess(result);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
 
-		assertAccountShip(userJack, "Captain Jack Sparrow", null, getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
+		assertAccountShip(userJack, CAPTAIN_JACK_FULL_NAME, null, RESOURCE_DUMMY_RED_NAME, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -611,8 +1483,8 @@ public class TestMapping extends AbstractMappingTest {
 	}
 
 	@Test
-    public void test122ModifyUserOrganizationalUnit() throws Exception {
-		final String TEST_NAME = "test122ModifyUserOrganizationalUnit";
+    public void test162ModifyUserOrganizationalUnit() throws Exception {
+		final String TEST_NAME = "test162ModifyUserOrganizationalUnit";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -629,9 +1501,9 @@ public class TestMapping extends AbstractMappingTest {
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
 
-		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
+		assertAccountShip(userJack, CAPTAIN_JACK_FULL_NAME, "Black Pearl", RESOURCE_DUMMY_RED_NAME, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -645,8 +1517,8 @@ public class TestMapping extends AbstractMappingTest {
 	}
 
 	@Test
-    public void test123ModifyAccountShip() throws Exception {
-		final String TEST_NAME = "test123ModifyAccountShip";
+    public void test163ModifyAccountShip() throws Exception {
+		final String TEST_NAME = "test163ModifyAccountShip";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -679,9 +1551,9 @@ public class TestMapping extends AbstractMappingTest {
 
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
 
-		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
+		assertAccountShip(userJack, CAPTAIN_JACK_FULL_NAME, "Black Pearl", RESOURCE_DUMMY_RED_NAME, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -698,8 +1570,8 @@ public class TestMapping extends AbstractMappingTest {
 	 * (replace with the same value that was already there).
 	 */
 	@Test
-    public void test124ModifyAccountShipReplaceEmpty() throws Exception {
-		final String TEST_NAME = "test124ModifyAccountShipReplaceEmpty";
+    public void test164ModifyAccountShipReplaceEmpty() throws Exception {
+		final String TEST_NAME = "test164ModifyAccountShipReplaceEmpty";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -724,9 +1596,9 @@ public class TestMapping extends AbstractMappingTest {
 
  		userJack = getUser(USER_JACK_OID);
  		display("User after change execution", userJack);
- 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+ 		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
 
- 		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
+ 		assertAccountShip(userJack, CAPTAIN_JACK_FULL_NAME, "Black Pearl", RESOURCE_DUMMY_RED_NAME, task);
 
          // Check audit
          display("Audit", dummyAuditService);
@@ -740,8 +1612,8 @@ public class TestMapping extends AbstractMappingTest {
 	}
 
 	@Test
-    public void test126ModifyAccountShipDelete() throws Exception {
-		final String TEST_NAME = "test126ModifyAccountShipDelete";
+    public void test166ModifyAccountShipDelete() throws Exception {
+		final String TEST_NAME = "test166ModifyAccountShipDelete";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -774,9 +1646,9 @@ public class TestMapping extends AbstractMappingTest {
 
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
 
-		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
+		assertAccountShip(userJack, CAPTAIN_JACK_FULL_NAME, "Black Pearl", RESOURCE_DUMMY_RED_NAME, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -793,8 +1665,8 @@ public class TestMapping extends AbstractMappingTest {
 	 * Reconciliation should be triggered.
 	 */
 	@Test
-    public void test128ModifyUserOrganization() throws Exception {
-		final String TEST_NAME = "test128ModifyUserOrganization";
+    public void test168ModifyUserOrganization() throws Exception {
+		final String TEST_NAME = "test168ModifyUserOrganization";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -811,9 +1683,9 @@ public class TestMapping extends AbstractMappingTest {
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
 
-		assertAccountShip(userJack, "Captain Jack Sparrow", "Brethren of the Coast / Black Pearl", getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
+		assertAccountShip(userJack, CAPTAIN_JACK_FULL_NAME, "Brethren of the Coast / Black Pearl", RESOURCE_DUMMY_RED_NAME, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -830,8 +1702,8 @@ public class TestMapping extends AbstractMappingTest {
 	 * Note: red resource disables account on unsassign, does NOT delete it
 	 */
 	@Test
-    public void test138ModifyUserUnassignAccountRed() throws Exception {
-		final String TEST_NAME = "test138ModifyUserUnassignAccountRed";
+    public void test178ModifyUserUnassignAccountRed() throws Exception {
+		final String TEST_NAME = "test178ModifyUserUnassignAccountRed";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -854,7 +1726,7 @@ public class TestMapping extends AbstractMappingTest {
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
 
 		String accountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
 		PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
@@ -868,7 +1740,7 @@ public class TestMapping extends AbstractMappingTest {
 		XMLGregorianCalendar disableTimestamp = accountRed.asObjectable().getActivation().getDisableTimestamp();
 		TestUtil.assertBetween("Wrong disableTimestamp", start, end, disableTimestamp);
 
-		assertAccountShip(userJack, "Captain Jack Sparrow", "Brethren of the Coast / Black Pearl", false, getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
+		assertAccountShip(userJack, CAPTAIN_JACK_FULL_NAME, "Brethren of the Coast / Black Pearl", false, getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
 
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
@@ -889,8 +1761,8 @@ public class TestMapping extends AbstractMappingTest {
 	 * So let's delete the account explicitly to make room for the following tests
 	 */
 	@Test
-    public void test139DeleteAccountRed() throws Exception {
-		final String TEST_NAME = "test139DeleteAccountRed";
+    public void test179DeleteAccountRed() throws Exception {
+		final String TEST_NAME = "test179DeleteAccountRed";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -912,7 +1784,7 @@ public class TestMapping extends AbstractMappingTest {
 		assertSuccess(result);
 
 		userJack = getUser(USER_JACK_OID);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
 		assertNoLinkedAccount(userJack);
 
         // Check if dummy resource accounts are gone
@@ -935,8 +1807,8 @@ public class TestMapping extends AbstractMappingTest {
 	 * Default dummy has combination of NORMAL, WEAK and STRONG mappings.
 	 */
 	@Test
-    public void test140ModifyUserAssignAccountDummyDefault() throws Exception {
-		final String TEST_NAME = "test140ModifyUserAssignAccountDummyDefault";
+    public void test180ModifyUserAssignAccountDummyDefault() throws Exception {
+		final String TEST_NAME = "test180ModifyUserAssignAccountDummyDefault";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -947,7 +1819,7 @@ public class TestMapping extends AbstractMappingTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID,
         		RESOURCE_DUMMY_OID, null, true);
-        userDelta.addModificationReplaceProperty(UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Jack Sparrow"));
+        userDelta.addModificationReplaceProperty(UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
         userDelta.addModificationReplaceProperty(UserType.F_ORGANIZATIONAL_UNIT);
         deltas.add(userDelta);
 
@@ -971,7 +1843,7 @@ public class TestMapping extends AbstractMappingTest {
         assertAccountShadowModel(accountModel, accountOid, "jack", getDummyResourceType());
 
         // Check account in dummy resource
-        assertDummyAccount(null, "jack", "Jack Sparrow", true);
+        assertDummyAccount(null, "jack", USER_JACK_FULL_NAME, true);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -988,8 +1860,8 @@ public class TestMapping extends AbstractMappingTest {
 	 * fullName mapping is NORMAL, the change should go through
 	 */
 	@Test
-    public void test141ModifyUserFullName() throws Exception {
-		final String TEST_NAME = "test141ModifyUserFullName";
+    public void test181ModifyUserFullName() throws Exception {
+		final String TEST_NAME = "test181ModifyUserFullName";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -999,16 +1871,16 @@ public class TestMapping extends AbstractMappingTest {
 
 		// WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
-        		PrismTestUtil.createPolyString("Captain Jack Sparrow"));
+        		PrismTestUtil.createPolyString(CAPTAIN_JACK_FULL_NAME));
 
 		// THEN
         assertSuccess(result);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow");
 
-		assertAccountShip(userJack, "Captain Jack Sparrow", null, dummyResourceCtl, task);
+		assertAccountShip(userJack, CAPTAIN_JACK_FULL_NAME, null, null, task);
 
 		// Check audit
         display("Audit", dummyAuditService);
@@ -1025,8 +1897,8 @@ public class TestMapping extends AbstractMappingTest {
 	 * location mapping is STRONG
 	 */
 	@Test
-    public void test142ModifyUserLocality() throws Exception {
-		final String TEST_NAME = "test142ModifyUserLocality";
+    public void test182ModifyUserLocality() throws Exception {
+		final String TEST_NAME = "test182ModifyUserLocality";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1043,9 +1915,9 @@ public class TestMapping extends AbstractMappingTest {
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow", "Fountain of Youth");
 
-		assertAccountLocation(userJack, "Captain Jack Sparrow", "Fountain of Youth", dummyResourceCtl, task);
+		assertAccountLocation(userJack, CAPTAIN_JACK_FULL_NAME, "Fountain of Youth", dummyResourceCtl, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -1059,8 +1931,8 @@ public class TestMapping extends AbstractMappingTest {
 	}
 
 	@Test
-    public void test143ModifyAccountLocation() throws Exception {
-		final String TEST_NAME = "test143ModifyAccountLocation";
+    public void test183ModifyAccountLocation() throws Exception {
+		final String TEST_NAME = "test183ModifyAccountLocation";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1093,9 +1965,9 @@ public class TestMapping extends AbstractMappingTest {
 
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow", "Fountain of Youth");
 
-		assertAccountLocation(userJack, "Captain Jack Sparrow", "Fountain of Youth", dummyResourceCtl, task);
+		assertAccountLocation(userJack, CAPTAIN_JACK_FULL_NAME, "Fountain of Youth", dummyResourceCtl, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -1112,8 +1984,8 @@ public class TestMapping extends AbstractMappingTest {
 	 * (replace with the same value that was already there).
 	 */
 	@Test
-    public void test144ModifyAccountLocationReplaceEmpty() throws Exception {
-		final String TEST_NAME = "test144ModifyAccountLocationReplaceEmpty";
+    public void test184ModifyAccountLocationReplaceEmpty() throws Exception {
+		final String TEST_NAME = "test184ModifyAccountLocationReplaceEmpty";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1138,9 +2010,9 @@ public class TestMapping extends AbstractMappingTest {
 
  		userJack = getUser(USER_JACK_OID);
  		display("User after change execution", userJack);
- 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
+ 		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow", "Fountain of Youth");
 
- 		assertAccountLocation(userJack, "Captain Jack Sparrow", "Fountain of Youth", dummyResourceCtl, task);
+ 		assertAccountLocation(userJack, CAPTAIN_JACK_FULL_NAME, "Fountain of Youth", dummyResourceCtl, task);
 
          // Check audit
          display("Audit", dummyAuditService);
@@ -1154,8 +2026,8 @@ public class TestMapping extends AbstractMappingTest {
 	}
 
 	@Test
-    public void test145ModifyAccountLocationDelete() throws Exception {
-		final String TEST_NAME = "test145ModifyAccountLocationDelete";
+    public void test185ModifyAccountLocationDelete() throws Exception {
+		final String TEST_NAME = "test185ModifyAccountLocationDelete";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1188,9 +2060,9 @@ public class TestMapping extends AbstractMappingTest {
 
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
+		assertUserJack(userJack, CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow", "Fountain of Youth");
 
-		assertAccountLocation(userJack, "Captain Jack Sparrow", "Fountain of Youth", dummyResourceCtl, task);
+		assertAccountLocation(userJack, CAPTAIN_JACK_FULL_NAME, "Fountain of Youth", dummyResourceCtl, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -1202,8 +2074,8 @@ public class TestMapping extends AbstractMappingTest {
 	}
 
 	@Test
-    public void test148ModifyUserRename() throws Exception {
-		final String TEST_NAME = "test148ModifyUserRename";
+    public void test188ModifyUserRename() throws Exception {
+		final String TEST_NAME = "test188ModifyUserRename";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1220,9 +2092,9 @@ public class TestMapping extends AbstractMappingTest {
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "renamedJack", "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
+		assertUserJack(userJack, "renamedJack", CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow", "Fountain of Youth");
 
-		assertAccountRename(userJack, "renamedJack", "Captain Jack Sparrow", dummyResourceCtl, task);
+		assertAccountRename(userJack, "renamedJack", CAPTAIN_JACK_FULL_NAME, dummyResourceCtl, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -1237,8 +2109,8 @@ public class TestMapping extends AbstractMappingTest {
 
 
 	@Test
-    public void test149ModifyUserUnassignAccountDummy() throws Exception {
-		final String TEST_NAME = "test149ModifyUserUnassignAccountDummy";
+    public void test189ModifyUserUnassignAccountDummy() throws Exception {
+		final String TEST_NAME = "test189ModifyUserUnassignAccountDummy";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1257,7 +2129,7 @@ public class TestMapping extends AbstractMappingTest {
 		assertSuccess(result);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		assertUserJack(userJack, "renamedJack", "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
+		assertUserJack(userJack, "renamedJack", CAPTAIN_JACK_FULL_NAME, "Jack", "Sparrow", "Fountain of Youth");
 		// Check accountRef
         assertUserNoAccountRefs(userJack);
 
@@ -1277,8 +2149,8 @@ public class TestMapping extends AbstractMappingTest {
 
 
 	private void assertAccountShip(PrismObject<UserType> userJack, String expectedFullName, String expectedShip,
-			DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
-		assertAccount(userJack, expectedFullName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, expectedShip, true, resourceCtl, task);
+			String dummyResourceName, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
+		assertAccount(userJack, expectedFullName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, expectedShip, true, getDummyResourceController(dummyResourceName), task);
 	}
 
 	private void assertAccountShip(PrismObject<UserType> userJack, String expectedFullName, String expectedShip,

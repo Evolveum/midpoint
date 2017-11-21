@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.component.input;
 
-import com.evolveum.midpoint.web.component.GuiComponents;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -32,7 +32,7 @@ public class TriStateComboPanel extends InputPanel {
     public TriStateComboPanel(String id, final IModel<Boolean> model) {
         super(id);
 
-        DropDownChoice combo = GuiComponents.createTriStateCombo(ID_COMBO, model);
+        DropDownChoice combo = WebComponentUtil.createTriStateCombo(ID_COMBO, model);
         add(combo);
     }
 

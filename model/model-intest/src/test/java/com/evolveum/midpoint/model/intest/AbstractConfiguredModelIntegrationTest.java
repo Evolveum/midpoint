@@ -303,6 +303,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String USER_JACK_GIVEN_NAME = "Jack";
 	protected static final String USER_JACK_FAMILY_NAME = "Sparrow";
 	protected static final String USER_JACK_ADDITIONAL_NAME = "Jackie";
+	protected static final String USER_JACK_DESCRIPTION = "Where's the rum?";
 	protected static final String USER_JACK_EMPLOYEE_TYPE = "CAPTAIN";
 	protected static final String USER_JACK_EMPLOYEE_NUMBER = "emp1234";
 	protected static final String USER_JACK_LOCALITY = "Caribbean";
@@ -756,4 +757,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected void displayPasswordNotifications() {
 		displayNotifications(NOTIFIER_ACCOUNT_PASSWORD_NAME);
 	}
+	
+	protected Object getQuote(String description, String fullName) {
+		return description + " -- " + fullName;
+	}
+
 }

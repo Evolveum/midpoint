@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.util;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -31,7 +32,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -44,6 +44,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -54,6 +55,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.xml.namespace.QName;
 import java.util.*;
+
+import static com.evolveum.midpoint.prism.PrismProperty.getRealValue;
 
 /**
  * @author semancik
@@ -270,11 +273,20 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
                 throw new IllegalStateException("Unexpected ObjectAlreadyExistsException when updating task progress/expectedTotal", e);
             }
 
-            resultHandler.createWorkerThreads(coordinatorTask, opResult);
-            if (!useRepository) {
-                modelObjectResolver.searchIterative((Class<O>) type, query, queryOptions, resultHandler, coordinatorTask, opResult);
+            Collection<SelectorOptions<GetOperationOptions>> searchOptions;
+	        IterationMethodType iterationMethod = getIterationMethodFromTask(coordinatorTask);
+            if (iterationMethod != null) {
+            	searchOptions = CloneUtil.cloneCollectionMembers(queryOptions);
+            	searchOptions = SelectorOptions.updateRootOptions(searchOptions, o -> o.setIterationMethod(iterationMethod), GetOperationOptions::new);
             } else {
-                repositoryService.searchObjectsIterative(type, query, (ResultHandler) resultHandler, queryOptions, false, opResult);    // TODO think about this
+            	searchOptions = queryOptions;
+            }
+
+	        resultHandler.createWorkerThreads(coordinatorTask, opResult);
+            if (!useRepository) {
+                modelObjectResolver.searchIterative((Class<O>) type, query, searchOptions, resultHandler, coordinatorTask, opResult);
+            } else {
+                repositoryService.searchObjectsIterative((Class<O>) type, query, resultHandler, searchOptions, false, opResult);    // TODO think about this
             }
             resultHandler.completeProcessing(coordinatorTask, opResult);
 
@@ -508,12 +520,11 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	}
 
     protected QueryType getObjectQueryTypeFromTask(Task task) {
-        PrismProperty<QueryType> objectQueryPrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        if (objectQueryPrismProperty != null && objectQueryPrismProperty.getRealValue() != null) {
-            return objectQueryPrismProperty.getRealValue();
-        } else {
-            return null;
-        }
+        return getRealValue(task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
+    }
+
+    protected IterationMethodType getIterationMethodFromTask(Task task) {
+    	return getRealValue(task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_ITERATION_METHOD));
     }
 
     protected Class<? extends ObjectType> getTypeFromTask(Task task, Class<? extends ObjectType> defaultType) {

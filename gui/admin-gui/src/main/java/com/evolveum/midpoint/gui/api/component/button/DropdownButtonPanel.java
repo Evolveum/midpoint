@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.api.component.button;
 import java.io.Serializable;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
 public class DropdownButtonPanel extends BasePanel<DropdownButtonDto>{
 
 	private static final long serialVersionUID = 1L;
+	private static final String ID_BUTTON_CONTAINER = "buttonContainer";
 	private static final String ID_INFO = "info";
 	private static final String ID_ICON = "icon";
 	private static final String ID_LABEL = "label";
@@ -45,17 +47,20 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto>{
 	}
 
 	private void initLayout(DropdownButtonDto model){
-
+		WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_BUTTON_CONTAINER);
+		buttonContainer.setOutputMarkupId(true);
+		buttonContainer.add(AttributeAppender.append("class", getSpecialButtonClass()));
+		add(buttonContainer);
 
 		Label info = new Label(ID_INFO, model.getInfo());
-		add(info);
+		buttonContainer.add(info);
 
 		Label label = new Label(ID_LABEL, model.getLabel());
-		add(label);
+		buttonContainer.add(label);
 
 		WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
 		icon.add(AttributeModifier.append("class", model.getIcon()));
-		add(icon);
+		buttonContainer.add(icon);
 
 
 		 ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_MENU_ITEM, new Model((Serializable) model.getMenuItems())) {
@@ -70,6 +75,10 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto>{
 
 	}
 
+	public WebMarkupContainer getButtonContainer(){
+		return (WebMarkupContainer)get(ID_BUTTON_CONTAINER);
+	}
+
 	 private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
 	        final InlineMenuItem item = menuItem.getModelObject();
 
@@ -78,5 +87,8 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto>{
 	        menuItem.add(menuItemBody);
 	    }
 
+	    protected String getSpecialButtonClass(){
+			return "btn-app";
+		}
 
 }

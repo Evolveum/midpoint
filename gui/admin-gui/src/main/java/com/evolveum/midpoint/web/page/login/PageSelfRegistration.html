@@ -21,113 +21,82 @@
 <body>
 <wicket:extend>
 
- <div class="col-md-offset-2 col-md-8 col-lg-offset-2  col-lg-4">
-    	<div class="panel panel-default">
-    		<div class="box-body">
-    			  <form wicket:id="mainForm">
-    			  		<div style="text-align: center">
-    			  			<h3  wicket:id="welcome" />
-    			  		</div>
-    			  		<div>
-    			  			<label wicket:id="additionalText"></label>
-    			  		</div>
-    			  		<div wicket:id="staticForm">
-	    			  		<table class="table table-striped">
-	    			  			<tr>
-	    			  				<td>
-	    			  					
-	                               			<wicket:message key="UserType.givenName"/>
-	                               			<span style="color: #f00; font-weight: bold;"
-	                								wicket:message="title:prismPropertyPanel.required">*</span>
-	                            		
-	    			  				</td>
-	    			  				<td>
-	    			  			
-			                                <div wicket:id="firstName" />
-			                           		
-	    			  				</td>
-	    			  			</tr>
-	    			  			<tr>
-	    			  				<td>
-	    			  					
-			                                <wicket:message key="UserType.familyName"/>
-			                         		<span style="color: #f00; font-weight: bold;"
-	                								wicket:message="title:prismPropertyPanel.required">*</span>
-	    			  				</td>
-	    			  				<td>
-	    			  					
-			                                <div wicket:id="lastName" />
-			                           
-	    			  				</td>
-	    			  			</tr>
-	    			  			<tr>
-	    			  				<td>
-	    			  					
-			                                <wicket:message key="UserType.emailAddress"/>
-			                          		<span style="color: #f00; font-weight: bold;"
-	                								wicket:message="title:prismPropertyPanel.required">*</span>
-	    			  				</td>
-	    			  				<td>
-	    			  				
-			                                <div wicket:id="email" />
-			                          
-	    			  				</td>
-	    			  			</tr>   
-	    			  			
-	    			  			<tr>
-	    			  				<td>
-	    			  					
-			                                <wicket:message key="PageLogin.password"/>
-			                           		<span style="color: #f00; font-weight: bold;"
-	                								wicket:message="title:prismPropertyPanel.required">*</span>
-	                						<i wicket:id="tooltip" />
-	    			  				</td>
-	    			  				<td>
-	    			  					 <div>
-			                                <div wicket:id="password" />
-			                            </div>
-	    			  				</td>
-	    			  			</tr>
-	    			  			
-	    			  		</table>
-	    			  	</div>
-    			        
-    			        <div wicket:id="dynamicForm">
-    			        	<div wicket:id="registrationForm"></div>
-    			        </div>
-    			        
-    			        
-    			        
-    			        <div class="col-md-offset-4 col-offset-4" wicket:id="captcha" />
-    			        
-						<div class="col-md-offset-5 col-offset-4">
-                        	<a class="btn btn-default" wicket:id="back">
-                        		 <label class="col-md-4 col-lg-4 control-label">
-		                             <wicket:message key="pageAdminFocus.button.back"/>
-		                         </label>
-                        	</a>
-                        	<a class="btn btn-primary" wicket:id="submitRegistration">
-                        		 <label class="col-md-4 col-lg-4 control-label">
-		                             <wicket:message key="PageSelfRegistration.register"/>
-		                         </label>
-                        	</a>
-                        	
-                        </div>
-                        <div wicket:id="feedback" />
-                        
-                        
-                    </form>
-                    
-                    
+    <div class="col-md-offset-2 col-md-8 col-lg-offset-2  col-lg-4">
+        <div class="panel panel-default">
+            <div class="box-body">
+                <form wicket:id="mainForm">
+                    <div style="text-align: center">
+                        <h3 wicket:id="welcome"/>
+                    </div>
+                    <div>
+                        <label wicket:id="additionalText"></label>
+                    </div>
+                    <div wicket:id="staticForm">
+                        <table class="table table-striped">
+                            <tr>
+                                <td>
+                                    <wicket:message key="UserType.givenName"/>
+                                    <span style="color: #f00; font-weight: bold;"
+                                          wicket:message="title:prismPropertyPanel.required">*</span>
+                                </td>
+                                <td>
+                                    <div class="col-md-11" wicket:id="firstName"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <wicket:message key="UserType.familyName"/>
+                                    <span style="color: #f00; font-weight: bold;"
+                                          wicket:message="title:prismPropertyPanel.required">*</span>
+                                </td>
+                                <td>
+                                    <div class="col-md-11" wicket:id="lastName"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <wicket:message key="UserType.emailAddress"/>
+                                    <span style="color: #f00; font-weight: bold;"
+                                          wicket:message="title:prismPropertyPanel.required">*</span>
+                                </td>
+                                <td>
+                                    <div class="col-md-11" wicket:id="email"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <wicket:message key="PageLogin.password"/>
+                                    <span style="color: #f00; font-weight: bold;"
+                                          wicket:message="title:prismPropertyPanel.required">*</span>
+                                    <i wicket:id="tooltip"/>
+                                </td>
+                                <td>
+                                    <div wicket:id="password"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
 
-	<div style="text-align: center">
-		<h2 wicket:id="registrationInfo"></h2>
-	</div>
-				
-  			</div>				
-    			
-    		</div>
-    	</div>
+                    <div wicket:id="dynamicForm">
+                        <div wicket:id="registrationForm"></div>
+                    </div>
+
+                    <div class="col-md-offset-6">
+                        <div wicket:id="captcha"/>
+
+                        <a class="btn btn-default" wicket:id="back"/>
+                        <a class="btn btn-primary" wicket:id="submitRegistration"/>
+                    </div>
+
+                    <div wicket:id="feedback"/>
+                </form>
+
+                <div style="text-align: center">
+                    <h2 wicket:id="registrationInfo"></h2>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <wicket:remove>This css is used to hide sidebar menu</wicket:remove>
     <style type="text/css">

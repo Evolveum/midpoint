@@ -99,6 +99,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/j_spring_security_check",
                         "/spring_security_login",
                         "/login",
+                        "/forgotpassword",
+                        "/registration",
+                        "/confirm/registration",
+                        "/confirm/reset",
+                        "/error/401",
+                        "/error/403",
                         "/bootstrap").permitAll()
                 .anyRequest().fullyAuthenticated();
 

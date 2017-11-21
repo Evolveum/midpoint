@@ -122,4 +122,9 @@ public class LocalizationUtil {
 	public static boolean isEmpty(LocalizableMessage message) {
 		return message == null || message.getKey() == null && message.getFallbackLocalizableMessage() == null && message.getFallbackMessage() == null;
 	}
+
+	// migration-related method: if localizable message is present, defaultValue is ignored (i.e. it is not the same as fallbackMessage in LocalizableMessageType)
+	public static LocalizableMessageType getLocalizableMessageOrDefault(LocalizableMessageType localizableMessage, String defaultValue) {
+		return localizableMessage != null ? localizableMessage : new LocalizableMessageType().fallbackMessage(defaultValue);
+	}
 }
