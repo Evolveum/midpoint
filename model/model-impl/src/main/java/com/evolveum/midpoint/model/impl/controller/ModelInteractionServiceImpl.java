@@ -1038,7 +1038,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		// user-level policy
 		CredentialsPolicyType policy = null;
-		if (object.getCompileTimeClass().isAssignableFrom(UserType.class)) {
+		if (object != null && object.getCompileTimeClass().isAssignableFrom(UserType.class)) {
 			policy = getCredentialsPolicy((PrismObject<UserType>) object, task, parentResult);
 		}
 
@@ -1114,6 +1114,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			}
 			path = target.getPath().getItemPath();
 
+			if (object == null) {
+				LOGGER.error("Object which values should be validated is null. Nothing to validate.");
+				parentResult.recordFatalError("Object which values should be validated is null. Nothing to validate.");
+				throw new SchemaException("Object which values should be validated is null. Nothing to validate.");
+			}
+			
 			PrismProperty<T> property = object.findProperty(path);
 			if (property == null || property.isEmpty()) {
 				LOGGER.error("Attribute {} has no value. Nothing to validate.", property);

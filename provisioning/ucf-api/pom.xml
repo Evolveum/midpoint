@@ -20,7 +20,7 @@
 	<name>Unified Connector Framework - api</name>
 	<groupId>com.evolveum.midpoint.provisioning</groupId>
 	<artifactId>ucf-api</artifactId>
-	<version>3.7-SNAPSHOT</version>
+<!-- 	<version>3.7-SNAPSHOT</version> -->
 	<packaging>jar</packaging>
 	<parent>
 		<artifactId>provisioning</artifactId>
