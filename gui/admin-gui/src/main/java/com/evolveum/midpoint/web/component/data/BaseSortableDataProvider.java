@@ -317,14 +317,14 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         }
     }
 
-    private void setExportLimitValue(){
+    private void setExportLimitValue() {
         OperationResult result = new OperationResult(OPERATION_GET_EXPORT_SIZE_LIMIT);
         try {
             AdminGuiConfigurationType adminGui = getModelInteractionService().getAdminGuiConfiguration(null, result);
             if (adminGui.getDefaultExportSettings() != null && adminGui.getDefaultExportSettings().getSizeLimit() != null) {
                 exportLimit = adminGui.getDefaultExportSettings().getSizeLimit();
             }
-        } catch (Exception ex){
+        } catch (Exception ex) {
             LOGGER.error("Unable to get default export size limit, ", ex);
         }
     }
