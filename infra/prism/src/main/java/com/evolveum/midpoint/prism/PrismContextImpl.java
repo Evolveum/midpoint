@@ -62,6 +62,7 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull private final PrismMarshaller prismMarshaller;
 	@NotNull private final BeanMarshaller beanMarshaller;
 	@NotNull private final BeanUnmarshaller beanUnmarshaller;
+	private ParsingMigrator parsingMigrator;
 	private PrismMonitor monitor = null;
 
 	private SchemaDefinitionFactory definitionFactory;
@@ -280,6 +281,15 @@ public class PrismContextImpl implements PrismContext {
 		return lexicalProcessorRegistry.detectLanguage(file);
 	}
 
+	@Override
+	public ParsingMigrator getParsingMigrator() {
+		return parsingMigrator;
+	}
+
+	@Override
+	public void setParsingMigrator(ParsingMigrator parsingMigrator) {
+		this.parsingMigrator = parsingMigrator;
+	}
 	//endregion
 
     //region adopt(...) methods
