@@ -124,13 +124,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .successHandler(authenticationSuccessHandler()).permitAll();
 
         http.exceptionHandling()
-                .authenticationEntryPoint(wicketAuthenticationEntryPoint());
+                .authenticationEntryPoint(wicketAuthenticationEntryPoint())
+                .accessDeniedHandler(accessDeniedHandler());
 
         if (!csrfEnabled) {
             http.csrf().disable();
         }
 
         http.headers().disable();
+    }
+
+    @Bean
+    public MidPointAccessDeniedHandler accessDeniedHandler() {
+        return new MidPointAccessDeniedHandler();
     }
 
     @Profile({"!ldap", "!cas"})
