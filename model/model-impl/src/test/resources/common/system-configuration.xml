@@ -121,6 +121,58 @@
 			<subtype>immutable-inducements</subtype>
 		</focusSelector>
 	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>No addition/deletion of inducements</name>
+		<policyConstraints>
+			<modification>
+				<operation>modify</operation>
+				<item>inducement</item>
+				<exactPathMatch>true</exactPathMatch>
+			</modification>
+		</policyConstraints>
+		<policyActions>
+			<enforcement/>
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+			<subtype>no-inducements-add-delete</subtype>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>No addition/deletion of inducements (via expression)</name>
+		<policyConstraints>
+			<modification>
+				<item>inducement</item>
+				<expression>
+					<script>
+						<code>
+							import com.evolveum.midpoint.prism.delta.*
+							import com.evolveum.midpoint.prism.path.*
+
+							def delta = ruleEvaluationContext.focusContext?.primaryDelta
+							def inducementPath = new ItemPath("inducement")
+							if (delta.isModify()) {
+								for (ItemDelta itemDelta : delta.modifications) {
+									if (inducementPath.equivalent(itemDelta.path)) {
+										// itemDelta is either add, delete or replace (for inducement as a whole)
+										return true
+									}
+								}
+							}
+							false
+						</code>
+					</script>
+				</expression>
+			</modification>
+		</policyConstraints>
+		<policyActions>
+			<enforcement/>
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+			<subtype>no-inducements-add-delete-via-expression</subtype>
+		</focusSelector>
+	</globalPolicyRule>
     <adminGuiConfiguration>
 	    <userDashboardLink>
 	    	<targetUrl>/foo</targetUrl>

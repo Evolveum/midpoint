@@ -18,6 +18,8 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -48,5 +50,18 @@ public abstract class ModificationConstraintEvaluator<T extends ModificationPoli
 			// TODO derive more precise information from executed deltas, if needed
 		}
 		return stateKey;
+	}
+
+	boolean expressionPasses(T constraint, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException {
+		if (constraint.getExpression() != null) {
+			if (!evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx),
+					"expression in modification constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result)) {
+				return false;
+			}
+			// TODO retrieve localization messages from return (it should be Object then, not Boolean)
+		}
+		return true;
 	}
 }
