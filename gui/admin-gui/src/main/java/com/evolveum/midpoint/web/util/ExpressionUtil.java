@@ -17,8 +17,16 @@
 package com.evolveum.midpoint.web.util;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismContextImpl;
+import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
+import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.ValueParser;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -26,12 +34,17 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.security.access.method.P;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.List;
+import java.util.Map;
 
 /**
  *  @author shood
@@ -292,4 +305,111 @@ public class ExpressionUtil {
         }
     }
 
+    public static void updateRawTypeEvaluatorValue(ExpressionType expression, String value, PrismContext prismContext){
+        JAXBElement<RawType> element = findEvaluatorByName(expression, SchemaConstants.C_VALUE);
+        if (element == null){
+            element = new JAXBElement(SchemaConstants.C_VALUE, RawType.class,
+                    new RawType(prismContext));
+        }
+        element.setValue(new RawType(new PrimitiveXNode<String>(value), prismContext));
+        expression.getExpressionEvaluator().add(element);
+    }
+
+    public static JAXBElement createAssociationTargetSearchElement(){
+        JAXBElement evaluator = new JAXBElement(SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH, JAXBElement.GlobalScope.class,
+                new JAXBElement.GlobalScope());
+        SearchObjectExpressionEvaluatorType searchObjectExpressionEvaluatorType = new SearchObjectExpressionEvaluatorType();
+        SearchFilterType filterType = new SearchFilterType();
+        MapXNode filterClauseNode = new MapXNode();
+        MapXNode values = new MapXNode();
+        values.put(new QName("path"), new PrimitiveXNode<ItemPathType>());
+        values.put(new QName("value"), new PrimitiveXNode());
+        filterClauseNode.put(new QName("equal"), values);
+        filterType.setFilterClauseXNode(filterClauseNode);
+        searchObjectExpressionEvaluatorType.setFilter(filterType);
+
+        evaluator.setValue(searchObjectExpressionEvaluatorType);
+        return evaluator;
+    }
+
+    public static MapXNode getOrCreateAssociationTargetSearchValues(ExpressionType expression){
+        JAXBElement element = findEvaluatorByName(expression, SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH);
+        if (element == null){
+            element = createAssociationTargetSearchElement();
+        }
+        SearchObjectExpressionEvaluatorType evaluator = (SearchObjectExpressionEvaluatorType) element.getValue();
+        if (evaluator == null){
+            evaluator = new SearchObjectExpressionEvaluatorType();
+        }
+        SearchFilterType filterType = evaluator.getFilter();
+        if (filterType == null){
+            filterType = new SearchFilterType();
+        }
+        MapXNode filterClauseNode = filterType.getFilterClauseXNode();
+        if (filterClauseNode == null){
+            filterClauseNode = new MapXNode();
+        }
+        if (!filterClauseNode.containsKey(new QName("equal"))){
+            filterClauseNode.put(new QName("equal"), null);
+        }
+        MapXNode values = (MapXNode)filterClauseNode.get(new QName("equal"));
+        if (values == null){
+            values = new MapXNode();
+        }
+
+        return values;
+    }
+
+    public static void updateAssociationTargetSearchPath(ExpressionType expression, ItemPathType path){
+        MapXNode values = getOrCreateAssociationTargetSearchValues(expression);
+        if (!values.containsKey(new QName("path"))){
+            values.put(new QName("path"), null);
+        }
+        PrimitiveXNode<ItemPathType> pathValue = (PrimitiveXNode<ItemPathType>)values.get(new QName("path"));
+        if (pathValue == null){
+            pathValue = new PrimitiveXNode<ItemPathType>();
+        }
+        pathValue.setValue(path, null);
+
+    }
+
+    public static void updateAssociationTargetSearchValue(ExpressionType expression, String newValue){
+        JAXBElement element = findEvaluatorByName(expression, SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH);
+        if (element == null){
+            element = createAssociationTargetSearchElement();
+        }
+        SearchObjectExpressionEvaluatorType evaluator = (SearchObjectExpressionEvaluatorType) element.getValue();
+        if (evaluator == null){
+            evaluator = new SearchObjectExpressionEvaluatorType();
+        }
+        SearchFilterType filterType = evaluator.getFilter();
+        if (filterType == null){
+            filterType = new SearchFilterType();
+        }
+        MapXNode filterClauseNode = filterType.getFilterClauseXNode();
+        if (filterClauseNode == null){
+            filterClauseNode = new MapXNode();
+        }
+        if (!filterClauseNode.containsKey(new QName("equal"))){
+            filterClauseNode.put(new QName("equal"), null);
+        }
+        filterClauseNode.remove(new QName("equal"));
+        MapXNode values = (MapXNode)filterClauseNode.get(new QName("equal"));
+        if (values == null){
+            values = new MapXNode();
+        }
+
+        QName valueQName = new QName("value");
+        values.remove(valueQName);
+        if (!values.containsKey(valueQName)){
+            values.put(valueQName, null);
+        }
+
+        PrimitiveXNode value = (PrimitiveXNode)values.get(valueQName);
+        if (value == null){
+            value = new PrimitiveXNode();
+        }
+        value.setValue(newValue, null);
+//        values.replace(valueQName, value);
+    }
 }
