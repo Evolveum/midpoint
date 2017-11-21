@@ -15,44 +15,44 @@
  */
 package com.evolveum.midpoint.model.impl.migrator;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertNotNull;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import com.evolveum.midpoint.model.impl.migrator.Migrator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
 import difflib.DiffUtils;
 import difflib.Patch;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
  *
  */
-public class TestMigrator {
+@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+public class TestMigrator extends AbstractTestNGSpringContextTests {
+
+	@Autowired PrismContext prismContext;
+	@Autowired Migrator migrator;
 
 	public static final File TEST_DIR = new File("src/test/resources/migrator");
 	private static final File TEST_DIR_BEFORE = new File(TEST_DIR, "before");
@@ -60,10 +60,9 @@ public class TestMigrator {
 
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+//		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+//		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-
 
 	@Test
 	public void testMigrateUserTemplate() throws Exception {
@@ -82,9 +81,6 @@ public class TestMigrator {
 
 	@Test
 	public void testUserCredentials() throws Exception{
-		Migrator migrator = createMigrator();
-
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		PrismObject<UserType> oldUser = prismContext.parseObject(new File(TEST_DIR + "/user-migrate-credentials.xml"));
 
 		PrismObject<UserType> newUser = migrator.migrate(oldUser);
@@ -103,9 +99,6 @@ public class TestMigrator {
 
 	private <O extends ObjectType> void assertSimpleMigration(File fileOld, File fileNew) throws SchemaException, IOException {
 		// GIVEN
-		Migrator migrator = createMigrator();
-
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		PrismObject<O> objectOld = prismContext.parseObject(fileOld);
 
 		// WHEN
@@ -117,12 +110,12 @@ public class TestMigrator {
 		assertNotNull("No migrated object "+fileOld.getName(), objectNew);
 
 		IntegrationTestTools.display("Migrated object "+fileOld.getName(), objectNew);
-		String migratedXml = PrismTestUtil.serializeObjectToString(objectNew, PrismContext.LANG_XML);
+		String migratedXml = prismContext.serializeObjectToString(objectNew, PrismContext.LANG_XML);
 		IntegrationTestTools.display("Migrated object XML "+fileOld.getName(), migratedXml);
 
 		PrismObject<O> expectedObject = prismContext.parseObject(fileNew);
 		IntegrationTestTools.display("Expected object "+fileOld.getName(), expectedObject);
-		String expectedXml = PrismTestUtil.serializeObjectToString(expectedObject, PrismContext.LANG_XML);
+		String expectedXml = prismContext.serializeObjectToString(expectedObject, PrismContext.LANG_XML);
 		IntegrationTestTools.display("Expected object XML "+fileOld.getName(), expectedXml);
 
 		List<String> expectedXmlLines = MiscUtil.splitLines(expectedXml);
@@ -133,9 +126,4 @@ public class TestMigrator {
 		PrismAsserts.assertEquivalent("Unexpected migration result for "+fileOld.getName(), expectedObject, objectNew);
 		assertEquals("Unexpected element name for "+fileOld.getName(), expectedObject.getElementName(), objectNew.getElementName());
 	}
-
-	private Migrator createMigrator() {
-		return new Migrator();
-	}
-
 }
