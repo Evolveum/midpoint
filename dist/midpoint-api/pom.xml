@@ -103,7 +103,7 @@
 
 			<plugin>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.10.3</version>
+				<version>3.0.0-M1</version>
 				<configuration>
 					<includeDependencySources>true</includeDependencySources>
 					<dependencySourceIncludes>
@@ -112,6 +112,7 @@
 					<quiet>false</quiet>
 					<debug>true</debug>
 				</configuration>
+				
 				<executions>
 					<execution>
 						<id>javadoc-jar</id>
@@ -147,7 +148,7 @@
 					<plugin>
 					  <groupId>org.apache.maven.plugins</groupId>
 					  <artifactId>maven-javadoc-plugin</artifactId>
-					  <version>2.10.3</version>
+					  <version>3.0.0-M1</version>
 					  <executions>
 				        <execution>
 				            <id>javadoc-jar</id>
@@ -161,8 +162,7 @@
 		                            <dependencySourceInclude>com.evolveum.*:*</dependencySourceInclude>
 		                        </dependencySourceIncludes>
 		                        <quiet>false</quiet>
-		                        <debug>true</debug>
-                                                
+		                        <debug>true</debug>                
 				                <additionalparam>-Xdoclint:none</additionalparam>
 				                <failOnError>false</failOnError>
 				            </configuration>

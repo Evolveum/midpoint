@@ -20,7 +20,6 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.evolveum.midpoint.tools</groupId>
     <artifactId>schema-dist-maven-plugin</artifactId>
-    <version>3.7-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>midPoint Tools - schema dist maven plugin</name>
     <parent>

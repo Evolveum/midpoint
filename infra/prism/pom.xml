@@ -20,7 +20,6 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.evolveum.midpoint.infra</groupId>
     <artifactId>prism</artifactId>
-    <version>3.7-SNAPSHOT</version>
     <name>midPoint Infrastructure - prism</name>
     <parent>
         <artifactId>infra</artifactId>
@@ -46,7 +45,7 @@
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-xjc</artifactId>
-            <version>${jaxb-xjc.version}</version>
+<!--             <version>${jaxb-xjc.version}</version> -->
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>

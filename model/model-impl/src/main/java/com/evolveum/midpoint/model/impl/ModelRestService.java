@@ -176,7 +176,7 @@ public class ModelRestService {
 			response = createBadPolicyItemsDefinitionResponse("Policy items definition must not be null", parentResult);
 		} else {
 			try {
-				modelInteraction.generateValue(null, policyItemsDefinition, task, parentResult);
+				modelInteraction.generateValue(object, policyItemsDefinition, task, parentResult);
 				parentResult.computeStatusIfUnknown();
 
 				if (parentResult.isSuccess()) {

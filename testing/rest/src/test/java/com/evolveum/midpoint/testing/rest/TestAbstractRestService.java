@@ -993,6 +993,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
 
+		traceResponse(response);
+		
 		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
 		IntegrationTestTools.display("Audit", getDummyAuditService());

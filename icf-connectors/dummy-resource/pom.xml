@@ -20,7 +20,7 @@
 	<name>Dummy Resource</name>
 	<groupId>com.evolveum.icf</groupId>
 	<artifactId>dummy-resource</artifactId>
-	<version>3.7-SNAPSHOT</version>
+<!-- 	<version>3.7-SNAPSHOT</version> -->
 	<packaging>jar</packaging>
 	<parent>
 		<artifactId>icf-connectors</artifactId>

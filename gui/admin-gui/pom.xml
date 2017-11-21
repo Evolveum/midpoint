@@ -20,7 +20,7 @@
     <groupId>com.evolveum.midpoint.gui</groupId>
     <artifactId>admin-gui</artifactId>
     <packaging>war</packaging>
-    <version>3.7-SNAPSHOT</version>
+<!--     <version>3.7-SNAPSHOT</version> -->
     <parent>
         <artifactId>gui</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
@@ -805,7 +805,6 @@
             <dependency>
 				<groupId>org.apache.poi</groupId>
 				<artifactId>poi</artifactId>
-				<version>3.10.1</version>
 			</dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
