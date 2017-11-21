@@ -1005,6 +1005,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			return false;
 		}
 
+		// Subtype
+		String specSubtype = objectSelector.getSubtype();
+		if (specSubtype != null) {
+			Collection<String> actualSubtypeValues = ObjectTypeUtil.getSubtypeValues(object);
+			if (!actualSubtypeValues.contains(specSubtype)) {
+				logger.trace("{} subtype mismatch, expected {}, was {}", logMessagePrefix, specSubtype, actualSubtypeValues);
+				return false;
+			}
+		}
+
 		// Filter
 		if (specFilterType != null) {
 			ObjectFilter specFilter = QueryJaxbConvertor.createObjectFilter(object.getCompileTimeClass(), specFilterType, object.getPrismContext());

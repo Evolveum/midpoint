@@ -256,10 +256,13 @@ public class ItemPath implements Serializable, Cloneable {
 	 */
 	@NotNull
 	public ItemPath tail(int n) {
-		if (segments.size() < n) {
+		if (n == 0) {
+			return this;
+		} else if (segments.size() < n) {
 			return EMPTY_PATH;
+		} else {
+			return new ItemPath(segments.subList(n, segments.size()));
 		}
-		return new ItemPath(segments.subList(n, segments.size()));
 	}
 
 	@NotNull
