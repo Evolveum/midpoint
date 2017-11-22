@@ -6849,20 +6849,38 @@
             <xsd:element name="tolerant" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        When set to true, allows attribute/property values that are set outside
-                        of this mapping. I. e. it allows other values than those set by this mapping.
-                        
-                        The default value for tolerant setting depends on when the mapping is used.
-                        It is assumed to be true in inbound mappings, it is assumed to be false
-                        in other mappings. This default setting was chosen to maintain behaviour
-                        which is compatible with previous midPoint versions.
-
-						Note: Do not confuse with tolerant setting that applies to the
-						resource attribute (schemaHandling). If in doubt, use that other
-						setting instead. That resource attribute tolerance is usually the
-						right answer.
-
-                        Support for this setting is currently EXPERIMENTAL.
+                    	<p>
+	                        When set to true, allows attribute/property values that are set outside
+	                        of this mapping. I. e. it allows other values than those set by this mapping.
+                        </p>
+                        <p>
+	                        The default value for tolerant setting depends on when the mapping is used.
+	                        It is assumed to be false for all mappings. However, for outbound mappings
+	                        the real behavior of reconciliation is determined by the tolerance of the
+	                        attribute and not tolerance of the mapping (see below).
+	                        This default setting was chosen to maintain behaviour
+	                        which is compatible with previous midPoint versions.
+                        </p>
+                        <p>
+                        	Note: Mapping tolerance is an interim feature. In fact it is mostly
+                        	redundant. The same behavior can be achieved by using mapping
+                        	range. However, mapping range is not fully supported in all mappings
+                        	and all situations. Therefore mapping tolerance can be used in the
+                        	meantime to achieve the desired functionality. However, mapping
+                        	tolerance will get deprecated in the midPoint version in which
+                        	mapping range achieve full functionality. Therefore it is recommended
+                        	to use mapping tolerance only as a last resort. It is recommended
+                        	to use mapping range instead of tolerance if the range can be used.
+                        </p>
+                        <p>
+							Note: Do not confuse with tolerant setting that applies to the
+							resource attribute (schemaHandling). If in doubt, use that other
+							setting instead. That resource attribute tolerance is usually the
+							right answer.
+						</p>
+						<p>
+                        	Support for this setting is currently EXPERIMENTAL.
+                       	</p>
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:since>3.4</a:since>

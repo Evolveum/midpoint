@@ -53,6 +53,7 @@
         <module>gui-i18n</module>
         <module>repo-ninja</module>
         <module>schema-dist-maven-plugin</module>
+        <module>midpoint-war-layout</module>
     </modules>
     <dependencies> <!-- Not used, but required for surefire plugin not to complain -->
     	<dependency>
