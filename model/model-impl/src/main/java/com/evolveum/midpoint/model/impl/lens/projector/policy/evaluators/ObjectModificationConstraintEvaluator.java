@@ -50,6 +50,7 @@ import javax.xml.bind.JAXBElement;
 import java.util.List;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
  * @author semancik
@@ -72,7 +73,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 		}
 		ObjectPolicyRuleEvaluationContext<F> ctx = (ObjectPolicyRuleEvaluationContext<F>) rctx;
 
-		if (modificationConstraintMatches(constraint.getValue(), ctx)) {
+		if (modificationConstraintMatches(constraint.getValue(), ctx, result)) {
 			LocalizableMessage message = createMessage(constraint, rctx, result);
 			LocalizableMessage shortMessage = createShortMessage(constraint, rctx, result);
 			return new EvaluatedModificationTrigger(PolicyConstraintKindType.OBJECT_MODIFICATION, constraint.getValue(), 
@@ -118,7 +119,9 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 	// TODO discriminate between primary and secondary changes (perhaps make it configurable)
 	// Primary changes are "approvable", secondary ones are not.
 	private <F extends FocusType> boolean modificationConstraintMatches(ModificationPolicyConstraintType constraint,
-			ObjectPolicyRuleEvaluationContext<F> ctx) throws SchemaException {
+			ObjectPolicyRuleEvaluationContext<F> ctx, OperationResult result)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+			SecurityViolationException, ExpressionEvaluationException {
 		if (!operationMatches(ctx.focusContext, constraint.getOperation())) {
 			LOGGER.trace("Rule {} operation not applicable", ctx.policyRule.getName());
 			return false;
@@ -130,22 +133,26 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 		if (summaryDelta == null) {
 			return false;
 		}
+		boolean exactPathMatch = isTrue(constraint.isExactPathMatch());
 		for (ItemPathType path : constraint.getItem()) {
-			if (!pathMatches(summaryDelta, ctx.focusContext.getObjectOld(), path.getItemPath())) {
+			if (!pathMatches(summaryDelta, ctx.focusContext.getObjectOld(), path.getItemPath(), exactPathMatch)) {
 				return false;
 			}
+		}
+		if (!expressionPasses(constraint, ctx, result)) {
+			return false;
 		}
 		return true;
 	}
 
-	private <F extends FocusType> boolean pathMatches(ObjectDelta<?> delta, PrismObject<F> objectOld, ItemPath path)
-			throws SchemaException {
+	private <F extends FocusType> boolean pathMatches(ObjectDelta<?> delta, PrismObject<F> objectOld, ItemPath path,
+			boolean exactPathMatch) throws SchemaException {
 		if (delta.isAdd()) {
 			return delta.getObjectToAdd().containsItem(path, false);
 		} else if (delta.isDelete()) {
 			return objectOld != null && objectOld.containsItem(path, false);
 		} else {
-			return ItemDelta.pathMatches(emptyIfNull(delta.getModifications()), path, 0);
+			return ItemDelta.pathMatches(emptyIfNull(delta.getModifications()), path, 0, exactPathMatch);
 		}
 	}
 

@@ -2009,11 +2009,17 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		return rv;
 	}
 
-	public static boolean pathMatches(@NotNull Collection<? extends ItemDelta<?, ?>> deltas, @NotNull ItemPath path, int segmentsToSkip) {
+	public static boolean pathMatches(@NotNull Collection<? extends ItemDelta<?, ?>> deltas, @NotNull ItemPath path, int segmentsToSkip, boolean exactMatch) {
 		for (ItemDelta<?, ?> delta : deltas) {
 			ItemPath modifiedPath = delta.getPath().tail(segmentsToSkip).removeIdentifiers();   // because of extension/cities[2]/name (in delta) vs. extension/cities/name (in spec)
-			if (path.isSubPathOrEquivalent(modifiedPath)) {
-				return true;
+			if (exactMatch) {
+				if (path.equivalent(modifiedPath)) {
+					return true;
+				}
+			} else {
+				if (path.isSubPathOrEquivalent(modifiedPath)) {
+					return true;
+				}
 			}
 		}
 		return false;

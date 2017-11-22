@@ -17,6 +17,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.WicketRuntimeException;
@@ -132,9 +133,13 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
         private static final long serialVersionUID = 1L;
 
+        private boolean canCountBeforeExporting;
+
         public <O extends ObjectType> ButtonBar(String id, String markupId, MainObjectListPanel<O> markupProvider) {
             super(id, markupId, markupProvider);
 
+            // TODO if displaying shadows in the repository (and not from resource) we can afford to count the objects
+            this.canCountBeforeExporting = markupProvider.getType() == null || !ShadowType.class.isAssignableFrom(markupProvider.getType());
             initLayout(markupProvider);
         }
 
@@ -218,7 +223,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             });
             add(importObject);
 
-            CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(ID_EXPORT_DATA) {
+            CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(ID_EXPORT_DATA, canCountBeforeExporting) {
 
             	private static final long serialVersionUID = 1L;
 
