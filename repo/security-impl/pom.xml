@@ -56,11 +56,13 @@
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
 			<version>3.7-SNAPSHOT</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-api</artifactId>
 			<version>3.7-SNAPSHOT</version>
+			<scope>test</scope>
 		</dependency>
 
 		<dependency>
