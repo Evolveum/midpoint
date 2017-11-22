@@ -50,7 +50,7 @@
 			<name>name</name>
 			<script>
 				<code>
-					object.getName().orig()
+					object.getName().getOrig()
 				</code>
 			</script>
 		</macro>
