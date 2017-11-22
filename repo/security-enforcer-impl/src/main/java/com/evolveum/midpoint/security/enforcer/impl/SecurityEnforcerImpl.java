@@ -86,6 +86,7 @@ import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -173,8 +174,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			throw new IllegalArgumentException("No phase");
 		}
 		boolean allow = false;
-		LOGGER.trace("AUTZ: evaluating authorization principal={}, op={}, phase={}, {}",
-				midPointPrincipal, operationUrl, phase, params.shortDumpLazily());
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("AUTZ: evaluating authorization principal={}, op={}, phase={}, {}",
+				getUsername(midPointPrincipal), operationUrl, phase, params.shortDump());
+		}
 		final Collection<ItemPath> allowedItems = new ArrayList<>();
 		Collection<Authorization> authorities = getAuthorities(midPointPrincipal);
 		if (authorities != null) {
@@ -182,48 +185,48 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				if (authority instanceof Authorization) {
 					Authorization autz = (Authorization)authority;
 					String autzHumanReadableDesc = autz.getHumanReadableDesc();
-					LOGGER.trace("Evaluating {}", autzHumanReadableDesc);
+					LOGGER.trace("  Evaluating {}", autzHumanReadableDesc);
 
 					// First check if the authorization is applicable.
 
 					// action
 					if (!autz.getAction().contains(operationUrl) && !autz.getAction().contains(AuthorizationConstants.AUTZ_ALL_URL)) {
-						LOGGER.trace("  {} not applicable for operation {}", autzHumanReadableDesc, operationUrl);
+						LOGGER.trace("    {} not applicable for operation {}", autzHumanReadableDesc, operationUrl);
 						continue;
 					}
 
 					// phase
 					if (autz.getPhase() == null) {
-						LOGGER.trace("  {} is applicable for all phases (continuing evaluation)", autzHumanReadableDesc);
+						LOGGER.trace("    {} is applicable for all phases (continuing evaluation)", autzHumanReadableDesc);
 					} else {
 						if (autz.getPhase() != phase) {
-							LOGGER.trace("  {} is not applicable for phases {} (breaking evaluation)", autzHumanReadableDesc, phase);
+							LOGGER.trace("    {} is not applicable for phases {} (breaking evaluation)", autzHumanReadableDesc, phase);
 							continue;
 						} else {
-							LOGGER.trace("  {} is applicable for phases {} (continuing evaluation)", autzHumanReadableDesc, phase);
+							LOGGER.trace("    {} is applicable for phases {} (continuing evaluation)", autzHumanReadableDesc, phase);
 						}
 					}
 					
 					// relation
 					if (!isApplicableRelation(autz, params.getRelation())) {
-						LOGGER.trace("  {} not applicable for relation {}", autzHumanReadableDesc, params.getRelation());
+						LOGGER.trace("    {} not applicable for relation {}", autzHumanReadableDesc, params.getRelation());
 						continue;
 					}
 
 					// object
 					if (isApplicable(autz.getObject(), params.getObject(), midPointPrincipal, ownerResolver, "object", autzHumanReadableDesc, task, result)) {
-						LOGGER.trace("  {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, params.getObject());
+						LOGGER.trace("    {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, params.getObject());
 					} else {
-						LOGGER.trace("  {} not applicable for object {}, none of the object specifications match (breaking evaluation)",
+						LOGGER.trace("    {} not applicable for object {}, none of the object specifications match (breaking evaluation)",
 								autzHumanReadableDesc, params.getObject());
 						continue;
 					}
 
 					// target
 					if (isApplicable(autz.getTarget(), params.getTarget(), midPointPrincipal, ownerResolver, "target", autzHumanReadableDesc, task, result)) {
-						LOGGER.trace("  {} applicable for target {} (continuing evaluation)", autzHumanReadableDesc, params.getObject());
+						LOGGER.trace("    {} applicable for target {} (continuing evaluation)", autzHumanReadableDesc, params.getObject());
 					} else {
-						LOGGER.trace("  {} not applicable for target {}, none of the target specifications match (breaking evaluation)",
+						LOGGER.trace("    {} not applicable for target {}, none of the target specifications match (breaking evaluation)",
 								autzHumanReadableDesc, params.getObject());
 						continue;
 					}
@@ -241,24 +244,24 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						// attributes. this ended with allow for whole object (MID-2018)
 						Collection<ItemPath> allowed = getItems(autz);
 						if (allow && allowedItems.isEmpty()){
-							LOGGER.trace("  {}: ALLOW operation {} (but continue evaluation)", autzHumanReadableDesc, operationUrl);
+							LOGGER.trace("    {}: ALLOW operation {} (but continue evaluation)", autzHumanReadableDesc, operationUrl);
 						} else if (allow && allowed.isEmpty()){
 							allowedItems.clear();
 						} else {
 							allowedItems.addAll(allowed);
 						}
-						LOGGER.trace("  {}: ALLOW operation {} (but continue evaluation)", autzHumanReadableDesc, operationUrl);
+						LOGGER.trace("    {}: ALLOW operation {} (but continue evaluation)", autzHumanReadableDesc, operationUrl);
 						allow = true;
 						// Do NOT break here. Other authorization statements may still deny the operation
 					} else {
 						// item
 						if (isApplicableItem(autz, params.getObject(), params.getDelta())) {
-							LOGGER.trace("  {}: Deny authorization applicable for items (continuing evaluation)", autzHumanReadableDesc);
+							LOGGER.trace("    {}: Deny authorization applicable for items (continuing evaluation)", autzHumanReadableDesc);
 						} else {
-							LOGGER.trace("  {} not applicable for items (breaking evaluation)", autzHumanReadableDesc);
+							LOGGER.trace("    {} not applicable for items (breaking evaluation)", autzHumanReadableDesc);
 							continue;
 						}
-						LOGGER.trace("  {}: DENY operation {}", autzHumanReadableDesc, operationUrl);
+						LOGGER.trace("    {}: DENY operation {}", autzHumanReadableDesc, operationUrl);
 						allow = false;
 						// Break right here. Deny cannot be overridden by allow. This decision cannot be changed.
 						break;
@@ -274,7 +277,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			// Still check allowedItems. We may still deny the operation.
 			if (allowedItems.isEmpty()) {
 				// This means all items are allowed. No need to check anything
-				LOGGER.trace("  Empty list of allowed items, operation allowed");
+				LOGGER.trace("    Empty list of allowed items, operation allowed");
 			} else {
 				// all items in the object and delta must be allowed
 
@@ -287,7 +290,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("AUTZ result: principal={}, operation={}: {}", midPointPrincipal, operationUrl, allow);
+			LOGGER.trace("AUTZ result: principal={}, operation={}: {}",
+					getUsername(midPointPrincipal), prettyActionUrl(operationUrl), allow);
 		}
 		return allow;
 	}
@@ -433,7 +437,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	private <O extends ObjectType> boolean isApplicable(SubjectedObjectSelectorType objectSelector, PrismObject<O> object,
 			MidPointPrincipal principal, OwnerResolver ownerResolver, String desc, String autzHumanReadableDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ObjectFilterExpressionEvaluator filterExpressionEvaluator = createFilterEvaluator(principal, desc, autzHumanReadableDesc, task, result);
-		if (!repositoryService.selectorMatches(objectSelector, object, filterExpressionEvaluator, LOGGER, "  " + autzHumanReadableDesc + " not applicable for " + desc + " because of ")) {
+		if (!repositoryService.selectorMatches(objectSelector, object, filterExpressionEvaluator, LOGGER, "    " + autzHumanReadableDesc + " not applicable for " + desc + " because of")) {
 			return false;
 		}
 
@@ -454,10 +458,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						// or during initial import. Therefore we are not going to die here. Just ignore it.
 					} else {
 						if (principalOid.equals(object.getOid())) {
-							LOGGER.trace("  {}: 'self' authorization applicable for {}", autzHumanReadableDesc, desc);
+							LOGGER.trace("    {}: 'self' authorization applicable for {}", autzHumanReadableDesc, desc);
 							return true;
 						} else {
-							LOGGER.trace("  {}: 'self' authorization not applicable for {}, principal OID: {}, {} OID {}",
+							LOGGER.trace("    {}: 'self' authorization not applicable for {}, principal OID: {}, {} OID {}",
 									autzHumanReadableDesc, desc, principalOid, desc, object.getOid());
 						}
 					}
@@ -467,7 +471,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}
 			return false;
 		} else {
-			LOGGER.trace("  {}: specials empty: {}", autzHumanReadableDesc, specSpecial);
+			LOGGER.trace("    {}: specials empty: {}", autzHumanReadableDesc, specSpecial);
 		}
 
 		// orgRelation
@@ -475,14 +479,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			boolean match = false;
 			for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
 				if (matchesOrgRelation(object, subjectParentOrgRef, specOrgRelation, autzHumanReadableDesc, desc)) {
-					LOGGER.trace("  org {} applicable for {}, object OID {} because subject org {} matches",
+					LOGGER.trace("    org {} applicable for {}, object OID {} because subject org {} matches",
 							autzHumanReadableDesc, desc, object.getOid(), subjectParentOrgRef.getOid());
 					match = true;
 					break;
 				}
 			}
 			if (!match) {
-				LOGGER.trace("  org {} not applicable for {}, object OID {} because none of the subject orgs matches",
+				LOGGER.trace("    org {} not applicable for {}, object OID {} because none of the subject orgs matches",
 						autzHumanReadableDesc, desc, object.getOid());
 				return false;
 			}
@@ -493,14 +497,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			boolean match = false;
 			for (ObjectReferenceType subjectRoleMembershipRef: principal.getUser().getRoleMembershipRef()) {
 				if (matchesRoleRelation(object, subjectRoleMembershipRef, specRoleRelation, autzHumanReadableDesc, desc)) {
-					LOGGER.trace("  {} applicable for {}, object OID {} because subject role relation {} matches",
+					LOGGER.trace("    {} applicable for {}, object OID {} because subject role relation {} matches",
 							autzHumanReadableDesc, desc, object.getOid(), subjectRoleMembershipRef.getOid());
 					match = true;
 					break;
 				}
 			}
 			if (!match) {
-				LOGGER.trace("  {} not applicable for {}, object OID {} because none of the subject roles matches",
+				LOGGER.trace("    {} not applicable for {}, object OID {} because none of the subject roles matches",
 						autzHumanReadableDesc, desc, object.getOid());
 				return false;
 			}
@@ -513,20 +517,20 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				if (ownerResolver == null) {
 					ownerResolver = securityContextManager.getUserProfileService();
 					if (ownerResolver == null) {
-						LOGGER.trace("  {}: owner object spec not applicable for {}, object OID {} because there is no owner resolver",
+						LOGGER.trace("    {}: owner object spec not applicable for {}, object OID {} because there is no owner resolver",
 								autzHumanReadableDesc, desc, object.getOid());
 						return false;
 					}
 				}
 				PrismObject<? extends FocusType> owner = ownerResolver.resolveOwner(object);
 				if (owner == null) {
-					LOGGER.trace("  {}: owner object spec not applicable for {}, object OID {} because it has no owner",
+					LOGGER.trace("    {}: owner object spec not applicable for {}, object OID {} because it has no owner",
 							autzHumanReadableDesc, desc, object.getOid());
 					return false;
 				}
 				boolean ownerApplicable = isApplicable(ownerSpec, owner, principal, ownerResolver, "owner of "+desc, autzHumanReadableDesc, task, result);
 				if (!ownerApplicable) {
-					LOGGER.trace("  {}: owner object spec not applicable for {}, object OID {} because owner does not match (owner={})",
+					LOGGER.trace("    {}: owner object spec not applicable for {}, object OID {} because owner does not match (owner={})",
 							autzHumanReadableDesc, desc, object.getOid(), owner);
 					return false;
 				}
@@ -539,7 +543,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					throw new SchemaException("Unsupported non-self delegator clause");
 				}
 				if (!object.canRepresent(UserType.class)) {
-					LOGGER.trace("  {}: delegator object spec not applicable for {}, because the object is not user",
+					LOGGER.trace("    {}: delegator object spec not applicable for {}, because the object is not user",
 							autzHumanReadableDesc, desc);
 					return false;
 				}
@@ -567,7 +571,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					}
 					
 					if (!found) {
-						LOGGER.trace("  {}: delegator object spec not applicable for {}, object OID {} because delegator does not match",
+						LOGGER.trace("    {}: delegator object spec not applicable for {}, object OID {} because delegator does not match",
 								autzHumanReadableDesc, desc, object.getOid());
 						return false;
 					}
@@ -576,7 +580,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}
 		}
 
-		LOGGER.trace("  {} applicable for {} (filter)", autzHumanReadableDesc, desc);
+		LOGGER.trace("    {} applicable for {} (filter)", autzHumanReadableDesc, desc);
 		return true;
 	}
 
@@ -859,21 +863,23 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		if (object == null) {
 			throw new IllegalArgumentException("Cannot compile security constraints of null object");
 		}
-		LOGGER.trace("AUTZ: evaluating security constraints principal={}, object={}", principal, object);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("AUTZ: evaluating security constraints principal={}, object={}", getUsername(principal), object);
+		}
 		ObjectSecurityConstraintsImpl objectSecurityConstraints = new ObjectSecurityConstraintsImpl();
 		Collection<Authorization> authorities = getAuthorities(principal);
 		if (authorities != null) {
 			for (Authorization autz: authorities) {
 				String autzHumanReadableDesc = autz.getHumanReadableDesc();
-				LOGGER.trace("Evaluating {}", autzHumanReadableDesc);
+				LOGGER.trace("  Evaluating {}", autzHumanReadableDesc);
 
 				// skip action applicability evaluation. We are interested in all actions
 
 				// object
 				if (isApplicable(autz.getObject(), object, principal, ownerResolver, "object", autzHumanReadableDesc, task, result)) {
-					LOGGER.trace("  {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, object);
+					LOGGER.trace("    {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, object);
 				} else {
-					LOGGER.trace("  {} not applicable for object {}, none of the object specifications match (breaking evaluation)",
+					LOGGER.trace("    {} not applicable for object {}, none of the object specifications match (breaking evaluation)",
 							autzHumanReadableDesc, object);
 					continue;
 				}
@@ -908,7 +914,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("AUTZ: evaluated security constraints principal={}, object={}:\n{}",
-					principal, object, objectSecurityConstraints.debugDump());
+					getUsername(principal), object, objectSecurityConstraints.debugDump(1));
 		}
 
 		return objectSecurityConstraints;
@@ -968,8 +974,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	public <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
 			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter, String limitAuthorizationAction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		MidPointPrincipal principal = getMidPointPrincipal();
-		LOGGER.trace("AUTZ: evaluating search pre-process principal={}, searchResultType={}, object={}: orig filter {}",
-				principal, searchResultType, object, origFilter);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("AUTZ: evaluating search pre-process principal={}, searchResultType={}, object={}: orig filter {}",
+				getUsername(principal), searchResultType, object, origFilter);
+		}
 		if (origFilter == null) {
 			origFilter = AllFilter.createAll();
 		}
@@ -986,7 +994,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					false, searchResultType, object, true, origFilter, limitAuthorizationAction, "search pre-process", task, result);
 			finalFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
 		}
-		LOGGER.trace("AUTZ: evaluated search pre-process principal={}, objectType={}: {}", principal, searchResultType, finalFilter);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("AUTZ: evaluated search pre-process principal={}, objectType={}: {}", 
+				getUsername(principal), getObjectType(searchResultType), finalFilter);
+		}
 		if (finalFilter instanceof AllFilter) {
 			// compatibility
 			return null;
@@ -999,8 +1010,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			AuthorizationPhaseType phase, Class<T> searchResultType, PrismObject<O> object, boolean includeSpecial, ObjectFilter filter, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		MidPointPrincipal principal = getMidPointPrincipal();
-		LOGGER.trace("AUTZ: evaluating search permission principal={}, searchResultType={}, object={}: filter {}",
-				principal, searchResultType, object, filter);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("AUTZ: evaluating search permission principal={}, searchResultType={}, object={}: filter {}",
+				getUsername(principal), searchResultType, object, filter);
+		}
 		if (filter == null) {
 			return true;
 		}
@@ -1019,7 +1032,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		finalFilter = ObjectQueryUtil.simplify(finalFilter);
 		boolean decision = !(finalFilter instanceof NoneFilter);
-		LOGGER.trace("AUTZ: evaluated search permission principal={}, objectType={}, evulated from filter: {}: decision={}", principal, searchResultType, finalFilter, decision);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("AUTZ: evaluated search permission principal={}, objectType={}, evulated from filter: {}: decision={}", 
+					getUsername(principal), getObjectType(searchResultType), finalFilter, decision);
+		}
 		return decision;
 	}
 
@@ -1035,7 +1051,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		QueryItemsSpec queryItemsSpec = new QueryItemsSpec();
 		queryItemsSpec.addRequiredItems(origFilter); // MID-3916
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(" Initial query items spec {}", queryItemsSpec.shortDump());
+			LOGGER.trace("  phase={}, initial query items spec {}", phase, queryItemsSpec.shortDump());
 		}
 
 		boolean hasAllowAll = false;
@@ -1044,24 +1060,24 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				if (authority instanceof Authorization) {
 					Authorization autz = (Authorization)authority;
 					String autzHumanReadableDesc = autz.getHumanReadableDesc();
-					LOGGER.trace("Evaluating {}", autzHumanReadableDesc);
+					LOGGER.trace("  Evaluating {}", autzHumanReadableDesc);
 
 					// action
 					if (!autz.getAction().contains(operationUrl) && !autz.getAction().contains(AuthorizationConstants.AUTZ_ALL_URL)) {
-						LOGGER.trace("  Authorization not applicable for operation {}", operationUrl);
+						LOGGER.trace("    Authorization not applicable for operation {}", operationUrl);
 						continue;
 					}
 
 					// phase
 					if (autz.getPhase() == phase || (includeNullPhase && autz.getPhase() == null)) {
-						LOGGER.trace("  Authorization is applicable for phases {} (continuing evaluation)", phase);
+						LOGGER.trace("    Authorization is applicable for phases {} (continuing evaluation)", phase);
 					} else {
-						LOGGER.trace("  Authorization is not applicable for phase {}", phase);
+						LOGGER.trace("    Authorization is not applicable for phase {}", phase);
 						continue;
 					}
 					
 					if (!isApplicableLimitations(autz, limitAuthorizationAction)) {
-						LOGGER.trace("  Authorization is limited to other action, not applicable for operation {}", operationUrl);
+						LOGGER.trace("    Authorization is limited to other action, not applicable for operation {}", operationUrl);
 						continue;
 					}
 
@@ -1080,9 +1096,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 						// .. but we need to decide whether this authorization is applicable to the object
 						if (isApplicable(autz.getObject(), object, principal, null, "object", autzHumanReadableDesc, task, result)) {
-							LOGGER.trace("  Authorization is applicable for object {}", object);
+							LOGGER.trace("    Authorization is applicable for object {}", object);
 						} else {
-							LOGGER.trace("  Authorization is not applicable for object {}", object);
+							LOGGER.trace("    Authorization is not applicable for object {}", object);
 							continue;
 						}
 					}
@@ -1090,7 +1106,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					boolean applicable = true;
 					if (objectSpecTypes == null || objectSpecTypes.isEmpty()) {
 
-						LOGGER.trace("  No {} specification in authorization (authorization is universaly applicable)", objectTargetSpec);
+						LOGGER.trace("    No {} specification in authorization (authorization is universaly applicable)", objectTargetSpec);
 						autzObjSecurityFilter = AllFilter.createAll();
 
 					} else {
@@ -1115,11 +1131,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								}
 								Class<?> specObjectClass = specObjectDef.getCompileTimeClass();
 								if (!objectType.isAssignableFrom(specObjectClass)) {
-									LOGGER.trace("  Authorization not applicable for object because of type mismatch, authorization {}, query {}",
+									LOGGER.trace("    Authorization not applicable for object because of type mismatch, authorization {}, query {}",
 											new Object[]{specObjectClass, objectType});
 									continue;
 								} else {
-									LOGGER.trace("  Authorization is applicable for object because of type match, authorization {}, query {}",
+									LOGGER.trace("    Authorization is applicable for object because of type match, authorization {}, query {}",
 											new Object[]{specObjectClass, objectType});
 									// The spec type is a subclass of requested type. So it might be returned from the search.
 									// We need to use type filter.
@@ -1140,7 +1156,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								} else if (TaskType.class.isAssignableFrom(objectType)) {
 									objSpecSecurityFilter = applyOwnerFilterOwnerRef(new ItemPath(TaskType.F_OWNER_REF), objSpecSecurityFilter,  principal, objectDefinition);
 								} else {
-									LOGGER.trace("  Authorization not applicable for object because it has owner specification (this is not applicable for search)");
+									LOGGER.trace("    Authorization not applicable for object because it has owner specification (this is not applicable for search)");
 									continue;
 								}
 							}
@@ -1167,7 +1183,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							List<SpecialObjectSpecificationType> specSpecial = objectSpecType.getSpecial();
 							if (specSpecial != null && !specSpecial.isEmpty()) {
 								if (!includeSpecial) {
-									LOGGER.trace("  Skipping authorization, because specials are present: {}", specSpecial);
+									LOGGER.trace("    Skipping authorization, because specials are present: {}", specSpecial);
 									applicable = false;
 								}
 								if (specFilterType != null || specOrgRef != null || specOrgRelation != null || specRoleRelation != null) {
@@ -1185,7 +1201,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                                 objSpecSecurityFilter = specTypeQName != null ?
                                         TypeFilter.createType(specTypeQName, specialFilter) : specialFilter;
 							} else {
-								LOGGER.trace("  specials empty: {}", specSpecial);
+								LOGGER.trace("    specials empty: {}", specSpecial);
 							}
 
 							// Filter
@@ -1198,10 +1214,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									ObjectQueryUtil.assertNotRaw(specFilter, "Filter in authorization object has undefined items. Maybe a 'type' specification is missing in the authorization?");
 									ObjectQueryUtil.assertPropertyOnly(specFilter, "Filter in authorization object is not property-only filter");
 								}
-								LOGGER.trace("  applying property filter {}", specFilter);
+								LOGGER.trace("    applying property filter {}", specFilter);
 								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, specFilter);
 							} else {
-								LOGGER.trace("  filter empty");
+								LOGGER.trace("    filter empty");
 							}
 
 							// Org
@@ -1209,9 +1225,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								ObjectFilter orgFilter = QueryBuilder.queryFor(ObjectType.class, prismContext)
 										.isChildOf(specOrgRef.getOid()).buildFilter();
 								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, orgFilter);
-								LOGGER.trace("  applying org filter {}", orgFilter);
+								LOGGER.trace("    applying org filter {}", orgFilter);
 							} else {
-								LOGGER.trace("  org empty");
+								LOGGER.trace("    org empty");
 							}
 
 							// orgRelation
@@ -1241,9 +1257,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									objSpecOrgRelationFilter = NoneFilter.createNone();
 								}
 								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecOrgRelationFilter);
-								LOGGER.trace("  applying orgRelation filter {}", objSpecOrgRelationFilter);
+								LOGGER.trace("    applying orgRelation filter {}", objSpecOrgRelationFilter);
 							} else {
-								LOGGER.trace("  orgRelation empty");
+								LOGGER.trace("    orgRelation empty");
 							}
 
 							// roleRelation
@@ -1251,7 +1267,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								ObjectFilter objSpecRoleRelationFilter = processRoleRelationFilter(principal, autz, specRoleRelation, queryItemsSpec, origFilter);
 								if (objSpecRoleRelationFilter == null) {
 									if (autz.maySkipOnSearch()) {
-										LOGGER.trace("  not applying roleRelation filter because it is not efficient and maySkipOnSearch is set", objSpecRoleRelationFilter);
+										LOGGER.trace("    not applying roleRelation filter because it is not efficient and maySkipOnSearch is set", objSpecRoleRelationFilter);
 										applicable = false;
 									} else {
 										objSpecRoleRelationFilter = NoneFilter.createNone();
@@ -1262,7 +1278,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									LOGGER.trace("  applying roleRelation filter {}", objSpecRoleRelationFilter);
 								}
 							} else {
-								LOGGER.trace("  roleRelation empty");
+								LOGGER.trace("    roleRelation empty");
 							}
 
 							if (objSpecTypeFilter != null) {
@@ -1303,7 +1319,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								if (ObjectQueryUtil.isAll(autzObjSecurityFilter)) {
 									// This is "deny all". We cannot have anything stronger than that.
 									// There is no point in continuing the evaluation.
-									LOGGER.trace("AUTZ {}: principal={}, operation={}: deny all", desc, new Object[]{getUsername(principal), operationUrl});
+									if (LOGGER.isTraceEnabled()) {
+										LOGGER.trace("AUTZ {} done: principal={}, operation={}, phase={}: deny all",
+												desc, getUsername(principal), prettyActionUrl(operationUrl), phase);
+									}
 									NoneFilter secFilter = NoneFilter.createNone();
 									traceFilter("secFilter", null, secFilter);
 									return secFilter;
@@ -1330,8 +1349,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		List<ItemPath> unsatisfiedItems = queryItemsSpec.evaluateUnsatisfierItems();
 		if (!unsatisfiedItems.isEmpty()) {
-			LOGGER.trace("AUTZ {}: principal={}, operation={}: deny because items {} are not allowed",
-					desc, getUsername(principal), operationUrl, unsatisfiedItems);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("AUTZ {} done: principal={}, operation={}, phase={}: deny because items {} are not allowed",
+						desc, getUsername(principal), prettyActionUrl(operationUrl), phase, unsatisfiedItems);
+			}
 			NoneFilter secFilter = NoneFilter.createNone();
 			traceFilter("secFilter", null, secFilter);
 			return secFilter;
@@ -1342,7 +1363,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			origWithAllowFilter = origFilter;
 		} else if (securityFilterAllow == null) {
 			// Nothing has been allowed. This means default deny.
-			LOGGER.trace("AUTZ {}: principal={}, operation={}: default deny",  desc, getUsername(principal), operationUrl);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("AUTZ {} done: principal={}, operation={}, phase={}: default deny", 
+						desc, getUsername(principal), prettyActionUrl(operationUrl), phase);
+			}
 			NoneFilter secFilter = NoneFilter.createNone();
 			traceFilter("secFilter", null, secFilter);
 			return secFilter;
@@ -1352,16 +1376,18 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 		if (securityFilterDeny == null) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("AUTZ {}: principal={}, operation={}: allow:\n{}", desc,
-						getUsername(principal), operationUrl, origWithAllowFilter==null?"null":origWithAllowFilter.debugDump());
+				LOGGER.trace("AUTZ {} done: principal={}, operation={}, phase={}: allow\n  Filter:\n{}", 
+						desc, getUsername(principal), prettyActionUrl(operationUrl), phase, 
+						origWithAllowFilter==null?"null":origWithAllowFilter.debugDump(2));
 			}
 			traceFilter("origWithAllowFilter", null, origWithAllowFilter);
 			return origWithAllowFilter;
 		} else {
 			ObjectFilter secFilter = ObjectQueryUtil.filterAnd(origWithAllowFilter, NotFilter.createNot(securityFilterDeny));
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("AUTZ {}: principal={}, operation={}: allow (with deny clauses):\n{}", desc,
-						getUsername(principal), operationUrl, secFilter==null?"null":secFilter.debugDump());
+				LOGGER.trace("AUTZ {} done: principal={}, operation={}, phase={}: allow (with deny clauses)\n  Filter:\n{}", desc,
+						getUsername(principal), prettyActionUrl(operationUrl), phase,
+						secFilter==null?"null":secFilter.debugDump(2));
 			}
 			traceFilter("secFilter", null, secFilter);
 			return secFilter;
@@ -1485,8 +1511,19 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	}
 
-	private Object getUsername(MidPointPrincipal principal) {
+	private String getUsername(MidPointPrincipal principal) {
 		return principal==null?null:principal.getUsername();
+	}
+	
+	private String prettyActionUrl(String fullUrl) {
+		return DebugUtil.shortenUrl(AuthorizationConstants.NS_SECURITY_PREFIX, fullUrl);
+	}
+	
+	private <O extends ObjectType> String getObjectType(Class<O> type) {
+		if (type == null) {
+			return null;
+		}
+		return type.getSimpleName();
 	}
 
 	@Override
@@ -1497,36 +1534,36 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 		for(Authorization autz: getAuthorities(midPointPrincipal)) {
 			String autzHumanReadableDesc = autz.getHumanReadableDesc();
-			LOGGER.trace("Evaluating {}", autzHumanReadableDesc);
+			LOGGER.trace("  Evaluating {}", autzHumanReadableDesc);
 
 			// First check if the authorization is applicable.
 
 			// action
 			if (!autz.getAction().contains(operationUrl) && !autz.getAction().contains(AuthorizationConstants.AUTZ_ALL_URL)) {
-				LOGGER.trace("  {} not applicable for operation {}", autzHumanReadableDesc, operationUrl);
+				LOGGER.trace("    {} not applicable for operation {}", autzHumanReadableDesc, operationUrl);
 				continue;
 			}
 
 			// phase
 			if (autz.getPhase() != null && autz.getPhase() != AuthorizationPhaseType.REQUEST) {
-				LOGGER.trace("  {} is not applicable for phase {} (breaking evaluation)", autzHumanReadableDesc, AuthorizationPhaseType.REQUEST);
+				LOGGER.trace("    {} is not applicable for phase {} (breaking evaluation)", autzHumanReadableDesc, AuthorizationPhaseType.REQUEST);
 				continue;
 			}
 
 			// object
 			if (isApplicable(autz.getObject(), object, midPointPrincipal, ownerResolver, "object", autzHumanReadableDesc, task, result)) {
-				LOGGER.trace("  {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, object);
+				LOGGER.trace("    {} applicable for object {} (continuing evaluation)", autzHumanReadableDesc, object);
 			} else {
-				LOGGER.trace("  {} not applicable for object {}, none of the object specifications match (breaking evaluation)",
+				LOGGER.trace("    {} not applicable for object {}, none of the object specifications match (breaking evaluation)",
 						autzHumanReadableDesc, object);
 				continue;
 			}
 
 			// target
 			if (isApplicable(autz.getTarget(), target, midPointPrincipal, ownerResolver, "target", autzHumanReadableDesc, task, result)) {
-				LOGGER.trace("  {} applicable for target {} (continuing evaluation)", autzHumanReadableDesc, object);
+				LOGGER.trace("    {} applicable for target {} (continuing evaluation)", autzHumanReadableDesc, object);
 			} else {
-				LOGGER.trace("  {} not applicable for target {}, none of the target specifications match (breaking evaluation)",
+				LOGGER.trace("    {} not applicable for target {}, none of the target specifications match (breaking evaluation)",
 						autzHumanReadableDesc, object);
 				continue;
 			}
@@ -1536,13 +1573,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
 				Collection<ItemPath> items = getItems(autz);
 				if (items.isEmpty()) {
-					LOGGER.trace("  {}: ALLOW all items (but continue evaluation)", autzHumanReadableDesc);
+					LOGGER.trace("    {}: ALLOW all items (but continue evaluation)", autzHumanReadableDesc);
 					if (decisions.getDefaultDecision() != AuthorizationDecisionType.DENY) {
 						decisions.setDefaultDecision(AuthorizationDecisionType.ALLOW);
 					}
 				} else {
 					for(ItemPath item: items) {
-						LOGGER.trace("  {}: ALLOW item {} (but continue evaluation)", autzHumanReadableDesc, item);
+						LOGGER.trace("    {}: ALLOW item {} (but continue evaluation)", autzHumanReadableDesc, item);
 						if (decisions.getItemDecisionMap().get(item) != AuthorizationDecisionType.DENY) {
 							decisions.getItemDecisionMap().put(item, AuthorizationDecisionType.ALLOW);
 						}
@@ -1551,14 +1588,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			} else {
 				Collection<ItemPath> items = getItems(autz);
 				if (items.isEmpty()) {
-					LOGGER.trace("  {}: DENY all items (breaking evaluation)", autzHumanReadableDesc);
+					LOGGER.trace("    {}: DENY all items (breaking evaluation)", autzHumanReadableDesc);
 					// Total deny. Reset everything. Return just deny
 					decisions = new ItemSecurityDecisions();
 					decisions.setDefaultDecision(AuthorizationDecisionType.DENY);
 					break;
 				} else {
 					for(ItemPath item: items) {
-						LOGGER.trace("  {}: DENY item {} (but continue evaluation)", autzHumanReadableDesc, item);
+						LOGGER.trace("    {}: DENY item {} (but continue evaluation)", autzHumanReadableDesc, item);
 						decisions.getItemDecisionMap().put(item, AuthorizationDecisionType.DENY);
 					}
 				}
