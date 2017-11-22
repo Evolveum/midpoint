@@ -106,8 +106,18 @@
                        <goals>
                            <goal>repackage</goal>
                        </goals>
+                       <configuration>
+                           <layoutFactory implementation="com.evolveum.midpoint.tools.layout.MidPointWarLayoutFactory"/>
+                       </configuration>
                    </execution>
                </executions>
+               <dependencies>
+                   <dependency>
+                       <groupId>com.evolveum.midpoint</groupId>
+                       <artifactId>midpoint-war-layout</artifactId>
+                       <version>${project.version}</version>
+                   </dependency>
+               </dependencies>
            </plugin>
        </plugins>
     </build>
