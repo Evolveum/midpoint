@@ -125,6 +125,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
+
 /**
  * Processor that takes changes from accounts and synchronization deltas and updates user attributes if necessary
  * (by creating secondary user object delta {@link ObjectDelta}).
@@ -291,7 +293,7 @@ public class InboundProcessor {
 	    Collection<ItemDelta<V, D>> deltas = evaluateInboundMapping(mappingsToTarget, context, projContext, task, result);
 	    
 	    if (deltas == null) {
-	    	LOGGER.trace("No focus delta poduces from inboud mappings");
+	    	LOGGER.trace("No focus delta produces from inbound mappings");
 	    	return;
 	    }
 	    
@@ -829,28 +831,25 @@ public class InboundProcessor {
 				
 				DeltaSetTriple<ItemValueWithOrigin<V, D>> itemValueWithOrigin = ItemValueWithOrigin.createOutputTriple(mapping);
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Inbound mapping for {} returned triple:\n{}", mapping.getDefaultSource().debugDump(),
+					LOGGER.trace("Inbound mapping for {}\nreturned triple:\n{}", mapping.getDefaultSource().debugDump(),
 							itemValueWithOrigin == null ? "null" : itemValueWithOrigin.debugDump());
 				}
 				if (itemValueWithOrigin != null) {
-					
 					allTriples.addAllToMinusSet(itemValueWithOrigin.getMinusSet());
 					allTriples.addAllToPlusSet(itemValueWithOrigin.getPlusSet());
 					allTriples.addAllToZeroSet(itemValueWithOrigin.getZeroSet());
 				}
-				
 			}
 			AssignmentPolicyEnforcementType assignmentEnforcement = projectionCtx.getAssignmentPolicyEnforcementType();
 			DeltaSetTriple<ItemValueWithOrigin<V, D>> consolidatedTriples = consolidateTriples(allTriples, assignmentEnforcement);
 			
-			LOGGER.trace("Consolidated triples {} \nfor mapping for item {}", consolidatedTriples.debugDump(), mappingEntry.getKey());
+			LOGGER.trace("Consolidated triples {} \nfor mapping for item {}", consolidatedTriples.debugDumpLazily(), mappingEntry.getKey());
 			
 			Mapping<V, D> firstMapping = mappingEntry.getValue().iterator().next();
 			outputDeltas.add(
 					collectOutputDelta(mappingEntry.getKey(), firstMapping.getOutputPath(), focusNew,
-							consolidatedTriples,
-					firstMapping.isTolerant() == Boolean.TRUE ? true : false,	
-					hasRange(mappingEntry.getValue()), projectionCtx.isDelete()));	
+							consolidatedTriples, isTrue(firstMapping.isTolerant()),
+							hasRange(mappingEntry.getValue()), projectionCtx.isDelete()));
 		}
     	
     	
@@ -1009,7 +1008,10 @@ public class InboundProcessor {
     }
     
     
-    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> ItemDelta<V, D> collectOutputDelta(ItemDefinition outputDefinition, ItemPath outputPath, PrismObject<F> focusNew, DeltaSetTriple<ItemValueWithOrigin<V, D>> consolidatedTriples, boolean tolerant, boolean hasRange, boolean isDelete) throws SchemaException {
+    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> ItemDelta<V, D> collectOutputDelta(
+    		ItemDefinition outputDefinition, ItemPath outputPath, PrismObject<F> focusNew,
+		    DeltaSetTriple<ItemValueWithOrigin<V, D>> consolidatedTriples, boolean tolerant,
+		    boolean hasRange, boolean isDelete) throws SchemaException {
 		
 //    	ItemPath outputPath = inboundMappingType.getOutputPath();
 		ItemDelta outputFocusItemDelta = outputDefinition.createEmptyDelta(outputPath);
@@ -1095,7 +1097,7 @@ public class InboundProcessor {
 		}		
 		
 		if (isDelete) {
-			LOGGER.trace("Skipping comarision of user's property to produces delta. Projection is going to be deleted, clean up just attributes from this projection.");
+			LOGGER.trace("Skipping comparison of user's property to produces delta. Projection is going to be deleted, clean up just attributes from this projection.");
 			return outputFocusItemDelta;
 		}
 		
@@ -1110,7 +1112,7 @@ public class InboundProcessor {
 			
 			if (hasRange) {
 				LOGGER.trace("Skipping merge for diff delta because mapping contains range. All plus/minus/zero set were computed during renge checking");
-				LOGGER.trace("Returining delta: {}", outputFocusItemDelta.debugDump());
+				LOGGER.trace("Returning delta: {}", outputFocusItemDelta.debugDump());
 				return outputFocusItemDelta;
 			}
 			

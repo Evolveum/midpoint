@@ -48,6 +48,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private AuthenticationProvider authenticationProvider;
+    @Autowired
+    private MidPointGuiAuthorizationEvaluator accessDecisionManager;
 
     @Value("${security.enable-csrf:true}")
     private boolean csrfEnabled;
@@ -96,6 +98,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
+                .accessDecisionManager(accessDecisionManager)
                 .antMatchers("/j_spring_security_check",
                         "/spring_security_login",
                         "/login",

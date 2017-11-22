@@ -252,7 +252,7 @@ public enum ObjectTypes {
 
     @SuppressWarnings("unchecked")
     @NotNull
-    public static ObjectTypes getObjectType(Class<? extends ObjectType> objectType) {
+    public static ObjectTypes getObjectType(@NotNull Class<? extends ObjectType> objectType) {
 		ObjectTypes rv = getObjectTypeIfKnown(objectType);
 		if (rv == null) {
 			throw new IllegalArgumentException("Unsupported object type " + objectType);
@@ -260,7 +260,7 @@ public enum ObjectTypes {
 		return rv;
 	}
 
-    public static ObjectTypes getObjectTypeIfKnown(Class<?> objectType) {
+    public static ObjectTypes getObjectTypeIfKnown(@NotNull Class<?> objectType) {
         for (ObjectTypes type : values()) {
             if (type.getClassDefinition().equals(objectType)) {
                 return type;

@@ -370,7 +370,6 @@ public class ContextLoader {
 
 	private <O extends ObjectType> void setPrimaryDeltaOldValue(LensElementContext<O> ctx) throws SchemaException, ObjectNotFoundException {
 		if (ctx.getPrimaryDelta() != null && ctx.getObjectOld() != null && ctx.isModify()) {
-			PrismObject<O> objectOld = ctx.getObjectOld();
 			for (ItemDelta<?,?> itemDelta: ctx.getPrimaryDelta().getModifications()) {
 				LensUtil.setDeltaOldValue(ctx, itemDelta);
 			}
