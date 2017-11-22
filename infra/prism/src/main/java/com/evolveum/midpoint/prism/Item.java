@@ -433,10 +433,10 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 		if (newValue.getPrismContext() == null) {
 			newValue.setPrismContext(prismContext);
 		}
-    	newValue.setParent(this);
     	if (checkUniqueness && containsEquivalentValue(newValue)) {
     		return false;
     	}
+	    newValue.setParent(this);
 	    D definition = getDefinition();
 	    if (definition != null) {
 		    if (!values.isEmpty() && definition.isSingleValue()) {
@@ -469,6 +469,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 			// TODO or include a special test condition here; see MID-3828
 			if (val.representsSameValue(newValue, false) || val.equalsRealValue(newValue)) {
     			iterator.remove();
+    			val.setParent(null);
     			changed = true;
     		}
     	}

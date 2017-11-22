@@ -896,32 +896,31 @@ public abstract class ResourceContentPanel extends Panel {
 	}
 
 	protected void importResourceObject(ShadowType selected, AjaxRequestTarget target) {
-		List<ShadowType> selectedShadow = null;
+		List<ShadowType> selectedShadows;
 		if (selected != null) {
-			selectedShadow = new ArrayList<>();
-			selectedShadow.add(selected);
+			selectedShadows = new ArrayList<>();
+			selectedShadows.add(selected);
 		} else {
-			selectedShadow = getTable().getSelectedObjects();
+			selectedShadows = getTable().getSelectedObjects();
 		}
 
 		OperationResult result = new OperationResult(OPERATION_IMPORT_OBJECT);
 		Task task = pageBase.createSimpleTask(OPERATION_IMPORT_OBJECT);
 
-		if (selectedShadow == null || selectedShadow.isEmpty()) {
+		if (selectedShadows == null || selectedShadows.isEmpty()) {
 			result.recordWarning("Nothing select to import");
 			getPageBase().showResult(result);
 			target.add(getPageBase().getFeedbackPanel());
 			return;
 		}
 
-		for (ShadowType shadow : selectedShadow) {
+		for (ShadowType shadow : selectedShadows) {
 			try {
 				getPageBase().getModelService().importFromResource(shadow.getOid(), task, result);
 			} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
 					| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 				result.recordPartialError("Could not import account " + shadow, e);
 				LOGGER.error("Could not import account {} ", shadow, e);
-				continue;
 			}
 		}
 
