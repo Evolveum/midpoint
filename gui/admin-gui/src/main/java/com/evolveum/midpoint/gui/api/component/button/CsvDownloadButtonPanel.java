@@ -23,7 +23,6 @@ import org.apache.wicket.util.resource.IResourceStream;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AbstractAjaxDownloadBehavior;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import sun.rmi.runtime.Log;
 
 public abstract class CsvDownloadButtonPanel extends BasePanel {
 
@@ -33,12 +32,19 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
 
 	private static final String ID_EXPORT_DATA = "exportData";
 
-   public CsvDownloadButtonPanel(String id) {
-	   super(id);
-	   initLayout();
-   }
+	private final boolean canCountBeforeExporting;
 
-private static final long serialVersionUID = 1L;
+	public CsvDownloadButtonPanel(String id, boolean canCountBeforeExporting) {
+		super(id);
+		this.canCountBeforeExporting = canCountBeforeExporting;
+		initLayout();
+	}
+
+	public CsvDownloadButtonPanel(String id) {
+		this(id, true);
+	}
+
+	private static final long serialVersionUID = 1L;
 
 	private void initLayout() {
     	CSVDataExporter csvDataExporter = new CSVDataExporter() {
@@ -87,27 +93,39 @@ private static final long serialVersionUID = 1L;
             	try {
 					AdminGuiConfigurationType adminGuiConfig = getPageBase().getModelInteractionService().getAdminGuiConfiguration(null,
 							new OperationResult(OPERATION_GET_EXPORT_SIZE_LIMIT));
-					if (adminGuiConfig.getDefaultExportSettings() != null && adminGuiConfig.getDefaultExportSettings().getSizeLimit() != null){
+					if (adminGuiConfig.getDefaultExportSettings() != null && adminGuiConfig.getDefaultExportSettings().getSizeLimit() != null) {
 						exportSizeLimit = adminGuiConfig.getDefaultExportSettings().getSizeLimit();
 					}
-				} catch (Exception ex){
+				} catch (Exception ex) {
 					LOGGER.error("Unable to get csv export size limit,", ex);
 				}
-				if (exportSizeLimit >= 0){
-					ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
-							createStringResource("CsvDownloadButtonPanel.confirmationMessage", exportSizeLimit)){
-						private static final long serialVersionUID = 1L;
+	            boolean askForSizeLimitConfirmation;
+	            if (exportSizeLimit < 0) {
+		            askForSizeLimitConfirmation = false;
+	            } else {
+		            if (canCountBeforeExporting) {
+			            IDataProvider<?> dataProvider = getDataTable().getDataProvider();
+			            long size = dataProvider.size();
+			            askForSizeLimitConfirmation = size > exportSizeLimit;
+		            } else {
+			            askForSizeLimitConfirmation = true;     // size is unknown
+		            }
+	            }
+	            if (askForSizeLimitConfirmation) {
+		            ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
+				            createStringResource("CsvDownloadButtonPanel.confirmationMessage", exportSizeLimit)) {
+			            private static final long serialVersionUID = 1L;
 
-						@Override
-						public void yesPerformed(AjaxRequestTarget target) {
-							getPageBase().hideMainPopup(target);
-							ajaxDownloadBehavior.initiate(target);
-						}
-					};
-					getPageBase().showMainPopup(confirmationPanel, target);
-				} else {
-					ajaxDownloadBehavior.initiate(target);
-				}
+			            @Override
+			            public void yesPerformed(AjaxRequestTarget target) {
+				            getPageBase().hideMainPopup(target);
+				            ajaxDownloadBehavior.initiate(target);
+			            }
+		            };
+		            getPageBase().showMainPopup(confirmationPanel, target);
+	            } else {
+		            ajaxDownloadBehavior.initiate(target);
+	            }
             }
         };
         add(exportDataLink);
