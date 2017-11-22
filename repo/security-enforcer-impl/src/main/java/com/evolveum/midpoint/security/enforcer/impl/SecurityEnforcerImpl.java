@@ -776,7 +776,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	@Override
 	public boolean supports(ConfigAttribute attribute) {
-		if (attribute instanceof SecurityConfig) {
+		if (attribute instanceof SecurityConfig
+				// class name equals, because WebExpressionConfigAttribute is non public class
+				|| "org.springframework.security.web.access.expression.WebExpressionConfigAttribute".equals(attribute.getClass().getName())) {
 			return true;
 		} else {
 			return false;
