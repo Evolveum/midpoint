@@ -27,6 +27,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
@@ -37,7 +38,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author semancik
  *
  */
-public class MidPointPrincipal implements UserDetails,  DebugDumpable {
+public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDumpable {
 	private static final long serialVersionUID = 8299738301872077768L;
 	
 	// TODO: user may be switched to FocusType later (MID-4205)
@@ -270,4 +271,12 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
         rv.setOid(user.getOid());
         return rv;
     }
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		sb.append(user);
+		if (attorney != null) {
+			sb.append("[").append(attorney).append("]");
+		}
+	}
 }

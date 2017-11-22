@@ -170,6 +170,9 @@
         <object>
             <type>ServiceType</type>
         </object>
+        <object> <!-- Deputy delegations may have users as targets -->
+            <type>UserType</type>
+        </object>
     </authorization>
     <authorization>
     	<name>assignment-target-read-task</name>
