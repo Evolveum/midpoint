@@ -37,20 +37,21 @@
                     		<span class="process-outcome" wicket:id="stageOutcome"></span>
                     	</div>
                     	<div class="box-content">
-	                        <div class="process-box" wicket:id="approvers">
-	                        	<div class="box-label">
-	                            	<span class="process-label" wicket:id="approverName"></span>
-	                            	<span class="process-outcome" wicket:id="outcome"></span>
-	                            </div>
+                            <div wicket:id="approvers">
+                                <div class="process-box">
+                                    <div class="box-label">
+                                        <span class="process-label" wicket:id="approverName"></span>
+                                        <span class="process-outcome" wicket:id="outcome"></span>
+                                    </div>
 	                            
-	                            <!-- TODO: enclosure? -->
-	                            <div class="box-content">
-	                            	<span wicket:id="performerName">
-	                            	</span><span wicket:id="junction" style="font-size:120%; margin: 10px"></span>
-                            	</div>
-	                            
-	                        </div>
-	                        <span wicket:id="automatedOutcome"></span>
+                                    <!-- TODO: enclosure? -->
+                                    <div class="box-content" wicket:id="approvalBoxContent">
+                                        <span wicket:id="performerName"></span>
+                                    </div>
+                                </div>
+                                <span wicket:id="junction" style="font-size:120%; margin: 10px"></span>
+                            </div>
+                            <span wicket:id="automatedOutcome"></span>
 	                    </div>
                     </div>
                 </td>
