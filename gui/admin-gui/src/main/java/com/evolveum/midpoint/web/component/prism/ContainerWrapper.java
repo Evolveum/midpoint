@@ -390,14 +390,14 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 
 	public <O extends ObjectType> void collectModifications(ObjectDelta<O> delta) throws SchemaException {
 
-		for (ContainerValueWrapper<C> itemWrapper : getValues()) {
-			if (!itemWrapper.hasChanged()) {
+		for (ContainerValueWrapper<C> containerValueWrapper : getValues()) {
+			if (!containerValueWrapper.hasChanged()) {
 				continue;
 			}
 
-			switch (itemWrapper.getStatus()) {
+			switch (containerValueWrapper.getStatus()) {
 				case ADDED:
-					PrismContainerValue<C> valueToAdd = itemWrapper.createContainerValueAddDelta();
+					PrismContainerValue<C> valueToAdd = containerValueWrapper.createContainerValueAddDelta();
 					if (getItemDefinition().isMultiValue()) {
 						delta.addModificationAddContainer(getPath(), valueToAdd);
 						break;
@@ -405,10 +405,10 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 					delta.addModificationReplaceContainer(getPath(), valueToAdd);
 					break;
 				case NOT_CHANGED:
-					itemWrapper.collectModifications(delta);
+					containerValueWrapper.collectModifications(delta);
 					break;
 				case DELETED:
-					delta.addModificationDeleteContainer(getPath(), itemWrapper.getContainerValue().clone());
+					delta.addModificationDeleteContainer(getPath(), containerValueWrapper.getContainerValue().clone());
 					break;
 			}
 		}
