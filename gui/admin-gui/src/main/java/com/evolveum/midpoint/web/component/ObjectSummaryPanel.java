@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsSetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
@@ -31,7 +30,7 @@ public abstract class ObjectSummaryPanel<O extends ObjectType> extends AbstractS
 	private static final long serialVersionUID = -3755521482914447912L;
 
 	public ObjectSummaryPanel(String id, Class<O> type, final IModel<PrismObject<O>> model, ModelServiceLocator serviceLocator) {
-		super(id, new ContainerableFromPrismObjectModel(model), serviceLocator, determineConfig(type, serviceLocator.getAdminGuiConfiguration()));
+		super(id, new ContainerableFromPrismObjectModel<>(model), serviceLocator, determineConfig(type, serviceLocator.getAdminGuiConfiguration()));
 	}
 
 	private static <O extends ObjectType> SummaryPanelSpecificationType determineConfig(Class<O> type, AdminGuiConfigurationType adminGuiConfig) {

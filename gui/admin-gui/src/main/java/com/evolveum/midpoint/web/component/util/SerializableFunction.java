@@ -16,21 +16,11 @@
 
 package com.evolveum.midpoint.web.component.util;
 
-import org.jetbrains.annotations.NotNull;
+import java.io.Serializable;
+import java.util.function.Function;
 
 /**
  * @author mederly
  */
-public class EnableBehaviour extends VisibleEnableBehaviour {
-
-	@NotNull private final SerializableSupplier<Boolean> producer;
-
-	public EnableBehaviour(@NotNull SerializableSupplier<Boolean> producer) {
-		this.producer = producer;
-	}
-
-	@Override
-	public boolean isEnabled() {
-		return producer.get();
-	}
+public interface SerializableFunction<T, R> extends Function<T, R>, Serializable {
 }

@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.util;
+package com.evolveum.midpoint.gui.api.model;
 
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author mederly
  */
-public class EnableBehaviour extends VisibleEnableBehaviour {
+public class ReadOnlyModel<T> extends AbstractReadOnlyModel<T> {
 
-	@NotNull private final SerializableSupplier<Boolean> producer;
+	@NotNull private final SerializableSupplier<T> objectSupplier;
 
-	public EnableBehaviour(@NotNull SerializableSupplier<Boolean> producer) {
-		this.producer = producer;
+	public ReadOnlyModel(@NotNull SerializableSupplier<T> objectSupplier) {
+		this.objectSupplier = objectSupplier;
 	}
 
 	@Override
-	public boolean isEnabled() {
-		return producer.get();
+	public T getObject() {
+		return objectSupplier.get();
 	}
 }

@@ -21,20 +21,19 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
 import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
 import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -179,15 +178,32 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	}
 
 	@Override
+	protected IModel<String> getDisplayNameModel() {
+		return new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				// temporary code
+				TaskDto taskDto = parentPage.getTaskDto();
+				String name = WfGuiUtil.getLocalizedProcessName(taskDto.getWorkflowContext(), TaskSummaryPanel.this);
+				if (name == null) {
+					name = WfGuiUtil.getLocalizedTaskName(taskDto.getWorkflowContext(), TaskSummaryPanel.this);
+				}
+				if (name == null) {
+					name = taskDto.getName();
+				}
+				return name;
+			}
+		};
+	}
+
+	@Override
 	protected IModel<String> getTitleModel() {
 		return new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
 				TaskDto taskDto = parentPage.getTaskDto();
 				if (taskDto.isWorkflow()) {
-					return getString("TaskSummaryPanel.requestedBy", parentPage.getTaskDto().getRequestedBy());
-//						return getString("TaskSummaryPanel.requestedByAndOn",
-//								parentPage.getTaskDto().getRequestedBy(), getRequestedOn());
+					return getString("TaskSummaryPanel.requestedBy", taskDto.getRequestedBy());
 				} else {
 					TaskType taskType = getModelObject();
 					String rv;
@@ -256,7 +272,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 				if (started == 0) {
 					return null;
 				}
-				if ((TaskExecutionStatus.RUNNABLE.equals(taskType.getExecutionStatus()) && taskType.getNodeAsObserved() != null)
+				if (taskType.getExecutionStatus() == TaskExecutionStatusType.RUNNABLE && taskType.getNodeAsObserved() != null
 						|| finished == 0 || finished < started) {
 
                     PatternDateConverter pdc = new PatternDateConverter

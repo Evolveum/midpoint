@@ -16,15 +16,12 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 /**
@@ -57,8 +54,7 @@ public class LinkColumn<T> extends AbstractColumn<T, String> implements IExporta
     }
 
     @Override
-    public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId,
-                             final IModel<T> rowModel) {
+    public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, final IModel<T> rowModel) {
 
     	IModel model = createLinkModel(rowModel);
         cellItem.add(new LinkPanel(componentId, model) {
@@ -85,7 +81,7 @@ public class LinkColumn<T> extends AbstractColumn<T, String> implements IExporta
 
     @Override
     public IModel<String> getDataModel(IModel<T> rowModel) {
-        return new PropertyModel<String>(rowModel, propertyExpression);
+        return new PropertyModel<>(rowModel, propertyExpression);
     }
 
 }

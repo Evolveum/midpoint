@@ -17,11 +17,11 @@
 package com.evolveum.midpoint.web.component.util;
 
 import java.io.Serializable;
+import java.util.function.Supplier;
 
 /**
  * @author mederly
  */
 @FunctionalInterface
-public interface SerializableBooleanProducer extends Serializable {
-	boolean run();
+public interface SerializableSupplier<T> extends Supplier<T>, Serializable {
 }

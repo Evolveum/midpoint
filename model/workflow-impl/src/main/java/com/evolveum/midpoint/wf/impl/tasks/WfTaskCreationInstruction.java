@@ -168,6 +168,11 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 	    }
 	}
 
+	// use only for the root task
+	public void setLocalizableTaskName(LocalizableMessage name) {
+		wfContext.setLocalizableTaskName(name != null ? LocalizationUtil.createLocalizableMessageType(name) : null);
+	}
+
     public void setTaskName(String taskName) {
         this.taskName = new PolyStringType(taskName);
     }

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.wf;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.GenericColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
@@ -40,12 +42,10 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
@@ -58,6 +58,7 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObje
 import static com.evolveum.midpoint.web.component.wf.WorkItemsPanel.View.FULL_LIST;
 import static com.evolveum.midpoint.web.component.wf.WorkItemsPanel.View.ITEMS_FOR_PROCESS;
 import static com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto.F_STAGE_INFO;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author lazyman
@@ -71,7 +72,7 @@ public class WorkItemsPanel extends BasePanel {
 		FULL_LIST,				// selectable, full information
 		DASHBOARD, 				// not selectable, reduced info (on dashboard)
 		ITEMS_FOR_PROCESS		// work items for a process
-	};
+	}
 
     private ISortableDataProvider<WorkItemDto, String> provider;
 
@@ -136,14 +137,14 @@ public class WorkItemsPanel extends BasePanel {
 			columns.add(new PropertyColumn<>(createStringResource("WorkItemsPanel.escalationLevel"),
 					WorkItemDto.F_ESCALATION_LEVEL_NUMBER));
 			if (view == FULL_LIST) {
-				columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.actors"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
+				columns.add(new PropertyColumn<>(createStringResource("WorkItemsPanel.actors"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
 			}
 		} else {
 			columns.add(createNameColumn());
 			columns.add(createStageColumn());
-			columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.actors"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
-            columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.created"), WorkItemDto.F_CREATED_FORMATTED));
-            columns.add(new PropertyColumn(createStringResource("WorkItemsPanel.deadline"), WorkItemDto.F_DEADLINE_FORMATTED));
+			columns.add(new PropertyColumn<>(createStringResource("WorkItemsPanel.actors"), WorkItemDto.F_ASSIGNEE_OR_CANDIDATES));
+            columns.add(new PropertyColumn<>(createStringResource("WorkItemsPanel.created"), WorkItemDto.F_CREATED_FORMATTED));
+            columns.add(new PropertyColumn<>(createStringResource("WorkItemsPanel.deadline"), WorkItemDto.F_DEADLINE_FORMATTED));
 			columns.add(new PropertyColumn<>(createStringResource("WorkItemsPanel.escalationLevel"),
 					WorkItemDto.F_ESCALATION_LEVEL_NUMBER));
 		}
@@ -161,6 +162,11 @@ public class WorkItemsPanel extends BasePanel {
 			nameColumn = new LinkColumn<WorkItemDto>(createStringResource("WorkItemsPanel.name"), WorkItemDto.F_NAME,
 					WorkItemDto.F_NAME) {
 				@Override
+				protected IModel<String> createLinkModel(IModel<WorkItemDto> rowModel) {
+					return createWorkItemNameModel(rowModel);
+				}
+
+				@Override
 				public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
 					PageParameters parameters = new PageParameters();
 					parameters.add(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getWorkItemId());
@@ -168,20 +174,18 @@ public class WorkItemsPanel extends BasePanel {
 				}
 			};
         } else {
-			nameColumn = new AbstractColumn<WorkItemDto, String>(createStringResource("WorkItemsPanel.name")) {
-				@Override
-				public void populateItem(Item<ICellPopulator<WorkItemDto>> item, String componentId,
-						final IModel<WorkItemDto> rowModel) {
-					item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
-						@Override
-						public Object getObject() {
-							return rowModel.getObject().getName();
-						}
-					}));
-				}
-			};
+			nameColumn = new GenericColumn<>(createStringResource("WorkItemsPanel.name"), rowModel -> createWorkItemNameModel(rowModel));
         }
 		return nameColumn;
+	}
+
+	private IModel<String> createWorkItemNameModel(IModel<WorkItemDto> workItemDtoModel) {
+		return new ReadOnlyModel<>(() -> {
+			WorkItemDto workItemDto = workItemDtoModel.getObject();
+			return defaultIfNull(
+					WfGuiUtil.getLocalizedProcessName(workItemDto.getWorkflowContext(), WorkItemsPanel.this),
+					workItemDto.getName());
+		});
 	}
 
 	@NotNull
@@ -207,7 +211,8 @@ public class WorkItemsPanel extends BasePanel {
         return selected;
     }
 
-	IColumn<WorkItemDto, String> createObjectNameColumn(final String headerKey) {
+	@SuppressWarnings("SameParameterValue")
+	private IColumn<WorkItemDto, String> createObjectNameColumn(final String headerKey) {
 		return new LinkColumn<WorkItemDto>(createStringResource(headerKey), WorkItemDto.F_OBJECT_NAME) {
 			private static final long serialVersionUID = 1L;
 
@@ -224,7 +229,8 @@ public class WorkItemsPanel extends BasePanel {
 		};
 	}
 
-	IColumn<WorkItemDto, String> createTargetNameColumn(final String headerKey) {
+	@SuppressWarnings("SameParameterValue")
+	private IColumn<WorkItemDto, String> createTargetNameColumn(final String headerKey) {
 		return new LinkColumn<WorkItemDto>(createStringResource(headerKey), WorkItemDto.F_TARGET_NAME) {
 
 			@Override
@@ -259,7 +265,7 @@ public class WorkItemsPanel extends BasePanel {
 
 	}
 
-	public IColumn<WorkItemDto, String> createTypeIconColumn(final boolean object) {		// true = object, false = target
+	private IColumn<WorkItemDto, String> createTypeIconColumn(final boolean object) {		// true = object, false = target
 		return new IconColumn<WorkItemDto>(createStringResource("")) {
 			@Override
 			protected IModel<String> createIconModel(IModel<WorkItemDto> rowModel) {
