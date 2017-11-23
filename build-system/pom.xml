@@ -91,6 +91,7 @@
         <surefire.version>2.20.1</surefire.version>
         <reflections.version>0.9.11</reflections.version>
         <guava.version>20.0</guava.version>
+        <jcommander.version>1.72</jcommander.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -1205,6 +1206,12 @@
 	            <artifactId>ionicons</artifactId>
 	            <version>3.0.0</version>
 	        </dependency>
+
+            <dependency>
+                <groupId>com.beust</groupId>
+                <artifactId>jcommander</artifactId>
+                <version>${jcommander.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
