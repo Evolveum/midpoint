@@ -508,6 +508,14 @@ public class FocusProcessor {
 					// some of the mappings will use effectiveStatus as a source, therefore there has to be a delta for the mapping to work correctly
 					recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
 				} else {
+					//check computed effective status current with the saved one - e.g. there can be some inconsistencies so we need to check and force the change.. in other cases, effectvie status will be stored with 
+					// incorrect value. Maybe another option is to not compute effectiveStatusCurrent if there is an existing (saved) effective status in the user.. TODO
+					if (activationCurrent != null && activationCurrent.getEffectiveStatus() != null) {
+						ActivationStatusType effectiveStatusSaved = activationCurrent.getEffectiveStatus();
+						if (effectiveStatusSaved != effectiveStatusNew) {
+							recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
+						}
+					}
 					LOGGER.trace("Skipping effective status processing because there was no change ({} -> {})", effectiveStatusCurrent, effectiveStatusNew);
 				}
 			}
