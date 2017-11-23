@@ -28,13 +28,6 @@
 		<roleType>operational</roleType>
 	</role>
 	
-	<role oid="08bd752e-1cf1-11e6-90a3-a3ad27be3da2">
-		<name>System Administrator</name>
-		<description>Permission to access the system with system administrator privileges. Non-requestable role. This role has to be explicitly assigned by IDM administrator.</description>
-		<requestable>false</requestable>
-		<roleType>operational</roleType>
-	</role>
-
 	<role oid="a04fd258-ce0a-11e7-819c-435b398f7636">
 		<name>Business Metarole</name>
 		<description>Metarole for business roles.</description>
@@ -219,7 +212,7 @@
 		<description>Basic employee role</description>
 		<inducement>
 			<description>Automatically include privilege to access midPoint end-user GUI.</description>
-			<targetRef oid="00000000-0000-0000-0000-000000000008" type="RoleType" /> <!-- End User -->
+			<targetRef oid="d032653c-ce0d-11e7-a372-87f071f39cab" type="RoleType" /> <!-- Evolveum End User -->
 		</inducement>
 		<inducement>
 			<description>Automatically assign employee LDAP account.</description>
@@ -239,6 +232,12 @@
 		<inducement>
 			<targetRef oid="2e242b4c-07f5-11e7-9369-83a5c3b84cb2" type="RoleType" /> <!-- Employee -->
 		</inducement>
+		<inducement>
+			<targetRef oid="b70d8ae8-cf96-11e7-9fed-cb4449227dd2" type="RoleType" /> <!-- Management Responsibility -->
+		</inducement>
+		<inducement>
+			<targetRef oid="5d516f6e-cf97-11e7-97d6-6fb8d2e8c59f" type="RoleType" /> <!-- Addresssbook Maintenance Responsibility -->
+		</inducement>		
 		<requestable>false</requestable>
 		<roleType>job</roleType>
 	</role>
@@ -250,6 +249,12 @@
 		</inducement>
 		<inducement>
 			<targetRef oid="ae97e3fa-07ea-11e7-a354-13b959d5572d" type="RoleType" /> <!-- Software Developer -->
+		</inducement>
+		<inducement>
+			<targetRef oid="b70d8ae8-cf96-11e7-9fed-cb4449227dd2" type="RoleType" /> <!-- Management Responsibility -->
+		</inducement>
+		<inducement>
+			<targetRef oid="5d516f6e-cf97-11e7-97d6-6fb8d2e8c59f" type="RoleType" /> <!-- Addresssbook Maintenance Responsibility -->
 		</inducement>
 		<requestable>false</requestable>
 		<roleType>job</roleType>
@@ -328,6 +333,9 @@
 		<inducement>
 			<targetRef oid="2e242b4c-07f5-11e7-9369-83a5c3b84cb2" type="RoleType" /> <!-- Employee -->
 		</inducement>
+		<inducement>
+			<targetRef oid="b70d8ae8-cf96-11e7-9fed-cb4449227dd2" type="RoleType" /> <!-- Management Responsibility -->
+		</inducement>
 		<requestable>false</requestable>
 		<roleType>job</roleType>
 	</role>
@@ -354,20 +362,45 @@
 		<roleType>job</roleType>
 	</role>
 	
+	<role oid="b70d8ae8-cf96-11e7-9fed-cb4449227dd2">
+		<name>Management Responsibility</name>
+		<inducement>
+			<targetRef oid="00000000-0000-0000-0000-00000000000c" type="RoleType" /> <!-- Delegator -->
+		</inducement>
+		<requestable>false</requestable>
+		<roleType>responsibility</roleType>
+	</role>
+	
+	<role oid="5d516f6e-cf97-11e7-97d6-6fb8d2e8c59f">
+		<name>Addressbook Maintenance Responsibility</name>
+		<requestable>false</requestable>
+		<delegable>true</delegable>
+		<roleType>responsibility</roleType>
+		<authorization>
+	    	<name>addressbook-maintenance</name>
+	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+	        <object>
+	    		<type>UserType</type>
+	    	</object>
+	    	<item>telephoneNumber</item>
+	    	<item>locality</item>
+	    </authorization>
+	</role>
+	
 	<role oid="d032653c-ce0d-11e7-a372-87f071f39cab"
 	      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 	    <name>Evolveum End User</name>
 	    <description>Role authorizing end users to log in, change their passwords and review assigned accounts.</description>
 	    <authorization>
-	    	<name>gui-self-service-access</name>
+	    	<name>eeu-gui-self-service-access</name>
 	    	<description>
 	    		Allow access to all self-service operations in GUI.
 	    	</description>
 	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</action>
 	    </authorization>
 	    <authorization>
-	    	<name>read-users</name>
+	    	<name>eeu-read-users</name>
 	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
 	        <object>
 	            <type>UserType</type>
@@ -378,7 +411,7 @@
 	        <item>familyName</item>
 	    </authorization>
 	    <authorization>
-	    	<name>read-roles</name>
+	    	<name>eeu-read-roles</name>
 	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
 	        <object>
 	            <type>RoleType</type>
@@ -390,12 +423,12 @@
 	        <item>roleType</item>
 	    </authorization>
 	    <authorization>
-	    	<name>workflow-end-user</name>
+	    	<name>eeu-workflow-end-user</name>
 	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myRequests</action>
 	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#requestsAboutMe</action>
 	    </authorization>
 	    <authorization>
-	    	<name>self-read</name>
+	    	<name>eeu-self-read</name>
 	    	<description>
 	    		Allow to read all the properties of "self" object. I.e. every logged-in user can read
 	    		object that represent his own identity.
@@ -406,7 +439,7 @@
 	        </object>
 	    </authorization>
 	    <authorization>
-		    <name>self-shadow-read</name>
+		    <name>eeu-self-shadow-read</name>
 	    	<description>
 	    		Allow to read all the properties of all the shadows that belong to "self" object. 
 	    		I.e. every logged-in user can read all his accounts.
@@ -420,7 +453,7 @@
 	        </object>
 	    </authorization>
 	    <authorization>
-	    	<name>self-persona-read</name>
+	    	<name>eeu-self-persona-read</name>
 	    	<description>
 	    		Allow to read all the personas of currently logged-in user.
 	    	</description>
@@ -433,7 +466,7 @@
 	    	</object>
 	    </authorization>
 	    <authorization>
-	    	<name>self-credentials-request</name>
+	    	<name>eeu-self-credentials-request</name>
 	    	<description>
 	    		Allow to modify user's own credentials.
 	    		Note that this is a request phase authorization. It also requires corresponding execution-phase authorization.
@@ -446,7 +479,7 @@
 	    	<item>credentials</item>
 	    </authorization>
 	    <authorization>
-	    	<name>self-shadow-credentials-request</name>
+	    	<name>eeu-self-shadow-credentials-request</name>
 	    	<description>
 	    		Allow to modify credentials of all users accounts.
 	    		Note that this is a request phase authorization. It also requires corresponding execution-phase authorization.
@@ -462,7 +495,7 @@
 	    	<item>credentials</item>
 	    </authorization>
 	    <authorization>
-	    	<name>assign-requestable-roles</name>
+	    	<name>eeu-assign-requestable-roles</name>
 	    	<description>
 	    		Allow to assign requestable roles. This allows to request roles in a request-and-approve process.
 	    	    The requestable roles will be displayed in the role request dialog by default.
@@ -485,7 +518,7 @@
 	    	</target>
 	    </authorization>
 	    <authorization>
-	    	<name>self-execution-modify</name>
+	    	<name>eeu-self-execution-modify</name>
 	    	<description>
 	    		Authorization that allows to self-modification of some properties, but only in execution phase. 
 	    		The limitation real limitation of these operations is done in the request phase.
@@ -501,7 +534,7 @@
 	    	<item>assignment</item>
 	    </authorization>
 	    <authorization>
-	    	<name>self-shadow-execution-add-modify-delete</name>
+	    	<name>eeu-self-shadow-execution-add-modify-delete</name>
 	    	<description>
 	    		Authorization that allows to self-modification of user's accounts, but only in execution phase.
 	    		The real limitation of these operations is done in the request phase.
@@ -518,7 +551,7 @@
 	    	</object>
 	    </authorization>
 	    <authorization>
-	    	<name>assignment-target-read</name>
+	    	<name>eeu-assignment-target-read</name>
 	    	<description>
 	    		Authorization that allows to read all the object that are possible assignment targets. We want that
 	    		to display the targets in the selection windows.
@@ -540,7 +573,7 @@
 	        </object>
 	    </authorization>
 	    <authorization>
-	    	<name>assignment-target-read-task</name>
+	    	<name>eeu-assignment-target-read-task</name>
 	    	<description>
 	    		Authorization that allows to read workflow status of tasks. This is used to display requests
 	    		to the end users, especially in the "My Requests" box in user dashboard.
@@ -554,7 +587,7 @@
 	        <item>workflowContext</item>
 	    </authorization>
 	    <authorization>
-	    	<name>self-owned-task-read</name>
+	    	<name>eeu-self-owned-task-read</name>
 	    	<description>
 	    		Authorization that allows to see all tasks owned by a currently logged-in user.
 	    	</description>
@@ -567,7 +600,7 @@
 	        </object>
 	    </authorization>
 	    <authorization>
-	    	<name>self-owned-task-add-execute-changes</name>
+	    	<name>eeu-self-owned-task-add-execute-changes</name>
 	    	<description>
 	    		Authorization to create a new 'execute changes' task owned by a currently logged-in user.
 	    		This is needed to execute asynchronous operations from the GUI.

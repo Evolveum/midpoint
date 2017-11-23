@@ -80,7 +80,9 @@ public class AuthorizationParameters<O extends ObjectType, T extends ObjectType>
 		shortDumpElement(sb, "delta", delta);
 		shortDumpElement(sb, "target", target);
 		shortDumpElement(sb, "relation", relation);
-		sb.setLength(sb.length() - 2);
+		if (sb.length() > 1) {
+			sb.setLength(sb.length() - 2);
+		}
 	}
 
 	private void shortDumpElement(StringBuilder sb, String label, Object o) {

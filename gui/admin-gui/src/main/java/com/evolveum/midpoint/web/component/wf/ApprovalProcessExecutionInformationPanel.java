@@ -19,7 +19,6 @@ package com.evolveum.midpoint.web.component.wf;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
@@ -38,6 +37,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import java.util.Objects;
+
 /**
  * TEMPORARY IMPLEMENTATION. Replace with something graphically nice.
  *
@@ -53,6 +54,7 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
     private static final String ID_OUTCOME = "outcome";
     private static final String ID_PERFORMER_NAME = "performerName";
     private static final String ID_JUNCTION = "junction";
+    private static final String ID_APPROVAL_BOX_CONTENT = "approvalBoxContent";
     private static final String ID_STAGE_NAME = "stageName";
     private static final String ID_STAGE_OUTCOME = "stageOutcome";
     private static final String ID_ARROW = "arrow";
@@ -122,13 +124,17 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
                         outcomePanel.add(new VisibleBehaviour(() -> outcomeIcon != ApprovalOutcomeIcon.EMPTY));
                         approversListItem.add(outcomePanel);
 
-                        // performer
-                        approversListItem.add(new Label(ID_PERFORMER_NAME,
+	                    // content (incl. performer)
+	                    WebMarkupContainer approvalBoxContent = new WebMarkupContainer(ID_APPROVAL_BOX_CONTENT);
+	                    approversListItem.add(approvalBoxContent);
+	                    approvalBoxContent.add(new VisibleBehaviour(() -> ae.getCompletedBy() != null &&
+			                    !Objects.equals(ae.getCompletedBy().getOid(), ae.getApproverRef().getOid())));
+	                    approvalBoxContent.add(new Label(ID_PERFORMER_NAME,
                         		getApproverLabel("ApprovalProcessExecutionInformationPanel.performer", ae.getCompletedBy())));
 
                         // junction
 	                    Label junctionLabel = new Label(ID_JUNCTION, stage.isFirstDecides() ? "" : " & ");      // or "+" for first decides? probably not
-	                    junctionLabel.setVisible(!ae.isLast());
+	                    junctionLabel.setVisible(!stage.isFirstDecides() && !ae.isLast());                       // not showing "" to save space (if aligned vertically)
 	                    approversListItem.add(junctionLabel);
                     }
                 };

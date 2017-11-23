@@ -636,4 +636,14 @@ public class DebugUtil {
 		};
 	}
 
+	public static String shortenUrl(String prefix, String fullUrl) {
+		if (fullUrl == null) {
+			return null;
+		}
+		if (fullUrl.startsWith(prefix)) {
+			return "..."+fullUrl.substring(prefix.length());
+		} else {
+			return fullUrl;
+		}
+	}
 }
