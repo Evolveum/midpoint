@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -179,21 +180,18 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
 	@Override
 	protected IModel<String> getDisplayNameModel() {
-		return new AbstractReadOnlyModel<String>() {
-			@Override
-			public String getObject() {
-				// temporary code
-				TaskDto taskDto = parentPage.getTaskDto();
-				String name = WfGuiUtil.getLocalizedProcessName(taskDto.getWorkflowContext(), TaskSummaryPanel.this);
-				if (name == null) {
-					name = WfGuiUtil.getLocalizedTaskName(taskDto.getWorkflowContext(), TaskSummaryPanel.this);
-				}
-				if (name == null) {
-					name = taskDto.getName();
-				}
-				return name;
+		return new ReadOnlyModel<>(() -> {
+			// temporary code
+			TaskDto taskDto = parentPage.getTaskDto();
+			String name = WfGuiUtil.getLocalizedProcessName(taskDto.getWorkflowContext(), TaskSummaryPanel.this);
+			if (name == null) {
+				name = WfGuiUtil.getLocalizedTaskName(taskDto.getWorkflowContext(), TaskSummaryPanel.this);
 			}
-		};
+			if (name == null) {
+				name = taskDto.getName();
+			}
+			return name;
+		});
 	}
 
 	@Override

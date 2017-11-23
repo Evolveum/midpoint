@@ -16,17 +16,21 @@
 package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.web.component.AbstractSummaryPanel;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
+import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author mederly
@@ -58,6 +62,16 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 			}
 		};
 		addTag(isAssignedTag);
+	}
+
+	@Override
+	protected IModel<String> getDisplayNameModel() {
+		return new ReadOnlyModel<>(() -> {
+			WorkItemDto workItemDto = dtoModel.getObject();
+			return defaultIfNull(
+					WfGuiUtil.getLocalizedProcessName(workItemDto.getWorkflowContext(), WorkItemSummaryPanel.this),
+					workItemDto.getName());
+		});
 	}
 
 	@Override
