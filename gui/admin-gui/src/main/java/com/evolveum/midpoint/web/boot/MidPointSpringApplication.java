@@ -23,6 +23,7 @@ import org.apache.cxf.transport.servlet.CXFServlet;
 import org.apache.wicket.Application;
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.Banner;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
@@ -99,6 +100,8 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
 
     private static SpringApplicationBuilder configureApplication(SpringApplicationBuilder application) {
         System.setProperty("spring.config.location", "${midpoint.home}/");
+
+        application.bannerMode(Banner.Mode.LOG);
 
         return application.sources(MidPointSpringApplication.class);
     }
@@ -178,8 +181,8 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
 
         @Override
         public void customize(ConfigurableEmbeddedServletContainer container) {
-
             super.customize(container);
+
             container.addErrorPages(new ErrorPage(HttpStatus.UNAUTHORIZED,
                     "/error/401"));
             container.addErrorPages(new ErrorPage(HttpStatus.FORBIDDEN,
