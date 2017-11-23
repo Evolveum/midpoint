@@ -1,6 +1,10 @@
 package com.evolveum.midpoint.ninja.action;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.ninja.impl.ConfigurationException;
+import com.evolveum.midpoint.ninja.impl.NinjaException;
+import com.evolveum.midpoint.ninja.opts.DeleteOptions;
+import com.evolveum.midpoint.ninja.util.FileReference;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -13,13 +17,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.ninja.impl.ConfigurationException;
-import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.opts.DeleteOptions;
-import com.evolveum.midpoint.ninja.util.FileReference;
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.ApplicationContext;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -64,10 +62,7 @@ public class DeleteRepositoryAction extends RepositoryAction<DeleteOptions> {
     }
 
     private void deleteByFilter() throws SchemaException, IOException {
-        ApplicationContext appContext = context.getApplicationContext();
-        PrismContext prismContext = appContext.getBean(PrismContext.class);
-
-        ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), prismContext);
+        ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context);
 
         deleteByFilter(filter);
     }

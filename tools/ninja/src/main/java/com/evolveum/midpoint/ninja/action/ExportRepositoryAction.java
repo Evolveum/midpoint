@@ -104,7 +104,7 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
             opts = GetOperationOptions.createRawCollection();
         }
 
-        ObjectQuery query = NinjaUtils.createObjectQuery(options.getFilter(), prismContext);
+        ObjectQuery query = NinjaUtils.createObjectQuery(options.getFilter(), context);
 
         ResultHandler handler = (object, parentResult) -> {
             try {

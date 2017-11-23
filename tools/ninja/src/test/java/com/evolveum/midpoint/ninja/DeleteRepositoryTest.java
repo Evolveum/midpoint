@@ -51,6 +51,6 @@ public class DeleteRepositoryTest extends BaseTest {
             }
         };
 
-        executeTest(input, preExecValidator, postExecValidator);
+        executeTest(preExecValidator, postExecValidator, input);
     }
 }

@@ -13,6 +13,6 @@ public class ListKeysTest extends BaseTest {
 
         String[] input = new String[]{"-m", getMidpointHome(), "keys"};
 
-        executeTest(input, null, null);
+        executeTest(null, null, input);
     }
 }

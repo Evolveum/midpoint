@@ -92,10 +92,7 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
     }
 
     private void importByFilter(Reader reader) throws SchemaException, IOException, ObjectNotFoundException {
-        ApplicationContext appContext = context.getApplicationContext();
-        PrismContext prismContext = appContext.getBean(PrismContext.class);
-
-        ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), prismContext);
+        ObjectFilter filter = NinjaUtils.createObjectFilter(options.getFilter(), context);
 
         importByFilter(filter, false, reader);
     }
@@ -149,7 +146,7 @@ public class ImportRepositoryAction extends RepositoryAction<ImportOptions> {
         };
 
         Validator validator = new Validator(prismContext, handler);
-        validator.validate(new ReaderInputStream(reader), result, OPERATION_IMPORT);
+        validator.validate(new ReaderInputStream(reader, context.getCharset()), result, OPERATION_IMPORT);
 
         result.recomputeStatus();
 

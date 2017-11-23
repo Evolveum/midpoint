@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.ninja.util;
 
 import com.beust.jcommander.JCommander;
+import com.evolveum.midpoint.ninja.impl.NinjaContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismParserNoIO;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
@@ -64,13 +65,13 @@ public class NinjaUtils {
         return null;
     }
 
-    public static ObjectFilter createObjectFilter(FileReference strFilter, PrismContext prismContext)
+    public static ObjectFilter createObjectFilter(FileReference strFilter, NinjaContext context)
             throws IOException, SchemaException {
-        ObjectQuery query = createObjectQuery(strFilter, prismContext);
+        ObjectQuery query = createObjectQuery(strFilter, context);
         return query != null ? query.getFilter() : null;
     }
 
-    public static ObjectQuery createObjectQuery(FileReference ref, PrismContext context)
+    public static ObjectQuery createObjectQuery(FileReference ref, NinjaContext context)
             throws IOException, SchemaException {
 
         if (ref == null) {
@@ -80,13 +81,14 @@ public class NinjaUtils {
         String filterStr = ref.getValue();
         if (ref.getReference() != null) {
             File file = ref.getReference();
-            filterStr = FileUtils.readFileToString(file);
+            filterStr = FileUtils.readFileToString(file, context.getCharset());
         }
 
-        PrismParserNoIO parser = context.parserFor(filterStr);
+        PrismContext prismContext = context.getPrismContext();
+        PrismParserNoIO parser = prismContext.parserFor(filterStr);
         RootXNode root = parser.parseToXNode();
 
-        ObjectFilter filter = QueryConvertor.parseFilter(root.toMapXNode(), context);
+        ObjectFilter filter = QueryConvertor.parseFilter(root.toMapXNode(), prismContext);
         return ObjectQuery.createObjectQuery(filter);
     }
 

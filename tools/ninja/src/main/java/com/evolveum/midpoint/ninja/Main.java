@@ -10,6 +10,8 @@ import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import org.apache.commons.io.FileUtils;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -36,7 +38,7 @@ public class Main {
         if (base.isVersion()) {
             try {
                 Path path = Paths.get(Main.class.getResource("/version").toURI());
-                String version = FileUtils.readFileToString(path.toFile());
+                String version = FileUtils.readFileToString(path.toFile(), StandardCharsets.UTF_8);
                 System.out.println(version);
             } catch (Exception ex) {
             }

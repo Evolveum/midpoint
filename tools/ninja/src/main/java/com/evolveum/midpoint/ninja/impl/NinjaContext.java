@@ -17,11 +17,12 @@
 package com.evolveum.midpoint.ninja.impl;
 
 import com.beust.jcommander.JCommander;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.ninja.opts.BaseOptions;
 import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 import com.evolveum.midpoint.ninja.util.InitializationBeanPostprocessor;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
@@ -149,5 +150,13 @@ public class NinjaContext {
         String charset = base.getCharset();
 
         return Charset.forName(charset);
+    }
+
+    public PrismContext getPrismContext() {
+        if (context == null) {
+            return null;
+        }
+
+        return context.getBean(PrismContext.class);
     }
 }

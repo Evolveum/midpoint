@@ -71,8 +71,12 @@ public class BaseTest {
         return context;
     }
 
-    protected void executeTest(String[] args, ExecutionValidator preExecutionValidator,
-                               ExecutionValidator postExecutionValidator) {
+    protected void executeTest(String... args) {
+        executeTest(null, null, args);
+    }
+
+    protected void executeTest(ExecutionValidator preExecutionValidator,
+                               ExecutionValidator postExecutionValidator, String... args) {
 
         Main main = new Main() {
 
