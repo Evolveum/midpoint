@@ -61,6 +61,12 @@ public class SecurityUtil {
 			LOGGER.debug("Denied access to {} by {} {}", object, getSubjectDescription(), message);
 		}
 	}
+	
+	public static void logSecurityDeny(MidPointPrincipal midPointPrincipal, Object object, String message) {
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Denied access to {} by {} {}", object, midPointPrincipal, message);
+		}
+	}
 
 	public static void logSecurityDeny(Object object, String message, Throwable cause, Collection<String> requiredAuthorizations) {
 		if (LOGGER.isDebugEnabled()) {

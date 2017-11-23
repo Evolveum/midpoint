@@ -4055,8 +4055,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			assertTrue("AuthorizationEvaluator.isAuthorized: Principal "+principal+" NOT authorized for action "+action,
 					securityEnforcer.isAuthorized(action, phase, AuthorizationParameters.EMPTY, null, task, result));
 			if (phase == null) {
-				securityEnforcer.decide(SecurityContextHolder.getContext().getAuthentication(), createSecureObject(),
-					createConfigAttributes(action));
+				List<String> requiredActions = new ArrayList<>(1);
+				requiredActions.add(action);
+				securityEnforcer.decideAccess(getSecurityContextPrincipal(), requiredActions, task, result);
 			}
 		} finally {
 			SecurityContextHolder.setContext(origContext);

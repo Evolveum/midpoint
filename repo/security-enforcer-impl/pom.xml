@@ -89,14 +89,6 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-        </dependency>
-		<dependency> <!-- Needed for MethodInvocation object used by Spring Security -->
-			<groupId>aopalliance</groupId>
-			<artifactId>aopalliance</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aop</artifactId>

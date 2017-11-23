@@ -23,19 +23,13 @@ import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
-import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.SecurityConfig;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.FilterInvocation;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -80,7 +74,7 @@ import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.security.enforcer.api.AccessDecision;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -95,7 +89,6 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -144,16 +137,18 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
 			AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return isAuthorizedInternal(getMidPointPrincipal(), operationUrl, phase, params, ownerResolver, null, task, result);
+		AccessDecision decision = isAuthorizedInternal(getMidPointPrincipal(), operationUrl, phase, params, ownerResolver, null, task, result);
+		return decision.equals(AccessDecision.ALLOW);
 	}
 	
-	private <O extends ObjectType, T extends ObjectType> boolean isAuthorizedInternal(MidPointPrincipal midPointPrincipal, String operationUrl, AuthorizationPhaseType phase,
+	private <O extends ObjectType, T extends ObjectType> AccessDecision isAuthorizedInternal(MidPointPrincipal midPointPrincipal, String operationUrl, AuthorizationPhaseType phase,
 			AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, 
 			Consumer<Authorization> applicableAutzConsumer, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (phase == null) {
-			if (!isAuthorizedPhase(midPointPrincipal, operationUrl, AuthorizationPhaseType.REQUEST, params, ownerResolver, applicableAutzConsumer, task, result)) {
-				return false;
+			AccessDecision requestPhaseDecision = isAuthorizedPhase(midPointPrincipal, operationUrl, AuthorizationPhaseType.REQUEST, params, ownerResolver, applicableAutzConsumer, task, result);
+			if (!requestPhaseDecision.equals(AccessDecision.ALLOW)) {
+				return requestPhaseDecision;
 			}
 			return isAuthorizedPhase(midPointPrincipal, operationUrl, AuthorizationPhaseType.EXECUTION, params, ownerResolver, applicableAutzConsumer, task, result);
 		} else {
@@ -161,19 +156,19 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 	}
 
-	private <O extends ObjectType, T extends ObjectType> boolean isAuthorizedPhase(MidPointPrincipal midPointPrincipal, String operationUrl, AuthorizationPhaseType phase,
+	private <O extends ObjectType, T extends ObjectType> AccessDecision isAuthorizedPhase(MidPointPrincipal midPointPrincipal, String operationUrl, AuthorizationPhaseType phase,
 			AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, 
 			Consumer<Authorization> applicableAutzConsumer, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		if (AuthorizationConstants.AUTZ_NO_ACCESS_URL.equals(operationUrl)){
-			return false;
+		if (AuthorizationConstants.AUTZ_NO_ACCESS_URL.equals(operationUrl)) {
+			return AccessDecision.DENY;
 		}
 
 		if (phase == null) {
 			throw new IllegalArgumentException("No phase");
 		}
-		boolean allow = false;
+		AccessDecision decision = AccessDecision.DEFAULT;
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("AUTZ: evaluating authorization principal={}, op={}, phase={}, {}",
 				getUsername(midPointPrincipal), operationUrl, phase, params.shortDump());
@@ -236,22 +231,22 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					}
 
 					// authority is applicable to this situation. now we can process the decision.
-					AuthorizationDecisionType decision = autz.getDecision();
-					if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
+					AuthorizationDecisionType autzDecision = autz.getDecision();
+					if (autzDecision == null || autzDecision.equals(AuthorizationDecisionType.ALLOW)) {
 						// if there is more than one role which specify
 						// different authz (e.g one role specify allow for whole
 						// object, the other role specify allow only for some
 						// attributes. this ended with allow for whole object (MID-2018)
 						Collection<ItemPath> allowed = getItems(autz);
-						if (allow && allowedItems.isEmpty()){
+						if (decision.equals(AccessDecision.ALLOW) && allowedItems.isEmpty()){
 							LOGGER.trace("    {}: ALLOW operation {} (but continue evaluation)", autzHumanReadableDesc, operationUrl);
-						} else if (allow && allowed.isEmpty()){
+						} else if (decision.equals(AccessDecision.ALLOW) && allowed.isEmpty()){
 							allowedItems.clear();
 						} else {
 							allowedItems.addAll(allowed);
 						}
 						LOGGER.trace("    {}: ALLOW operation {} (but continue evaluation)", autzHumanReadableDesc, operationUrl);
-						allow = true;
+						decision = AccessDecision.ALLOW;
 						// Do NOT break here. Other authorization statements may still deny the operation
 					} else {
 						// item
@@ -262,7 +257,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							continue;
 						}
 						LOGGER.trace("    {}: DENY operation {}", autzHumanReadableDesc, operationUrl);
-						allow = false;
+						decision = AccessDecision.DENY;
 						// Break right here. Deny cannot be overridden by allow. This decision cannot be changed.
 						break;
 					}
@@ -273,7 +268,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}
 		}
 
-		if (allow) {
+		if (decision.equals(AccessDecision.ALLOW)) {
 			// Still check allowedItems. We may still deny the operation.
 			if (allowedItems.isEmpty()) {
 				// This means all items are allowed. No need to check anything
@@ -282,18 +277,22 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				// all items in the object and delta must be allowed
 
 				if (params.hasDelta()) {
-					allow = processAuthorizationDelta(params.getDelta(), allowedItems, phase);
+					if (!processAuthorizationDelta(params.getDelta(), allowedItems, phase)) {
+						decision = AccessDecision.DEFAULT;
+					}
 				} else if (params.hasObject()) {
-					allow = processAuthorizationObject(params.getObject(), allowedItems, phase);
+					if (!processAuthorizationObject(params.getObject(), allowedItems, phase)) {
+						decision = AccessDecision.DEFAULT;
+					}
 				}
 			}
 		}
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("AUTZ result: principal={}, operation={}: {}",
-					getUsername(midPointPrincipal), prettyActionUrl(operationUrl), allow);
+					getUsername(midPointPrincipal), prettyActionUrl(operationUrl), decision);
 		}
-		return allow;
+		return decision;
 	}
 
 	private <O extends ObjectType> boolean processAuthorizationObject(PrismContainer<O> object, final Collection<ItemPath> allowedItems, AuthorizationPhaseType phase) {
@@ -729,75 +728,25 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 
 	/**
-	 * Spring security method. It is practically applicable only for simple cases.
+	 * Simple access control decision similar to that used by spring security.
+	 * It is practically applicable only for simple (non-parametric) cases such as access to GUI pages.
+	 * However, it supports authorization hierarchies. Therefore the ordering of elements in
+	 * required actions is important.
 	 */
 	@Override
-	public void decide(Authentication authentication, Object object,
-			Collection<ConfigAttribute> configAttributes) throws AccessDeniedException,
-			InsufficientAuthenticationException {
-		if (object instanceof MethodInvocation) {
-			MethodInvocation methodInvocation = (MethodInvocation)object;
-			// TODO
-		} else if (object instanceof FilterInvocation) {
-			FilterInvocation filterInvocation = (FilterInvocation)object;
-			// TODO
-		} else {
-			SecurityUtil.logSecurityDeny(object, ": Unknown type of secure object");
-			throw new IllegalArgumentException("Unknown type of secure object");
-		}
+	public AccessDecision decideAccess(MidPointPrincipal principal, List<String> requiredActions, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		Object principalObject = authentication.getPrincipal();
-		if (!(principalObject instanceof MidPointPrincipal)) {
-			if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principalObject)){
-				SecurityUtil.logSecurityDeny(object, ": Not logged in");
-				throw new InsufficientAuthenticationException("Not logged in.");
+		AccessDecision finalDecision = AccessDecision.DEFAULT;
+		for(String requiredAction: requiredActions) {
+			AccessDecision decision = isAuthorizedInternal(principal, requiredAction, null, AuthorizationParameters.EMPTY, null, null, task, result);
+			if (AccessDecision.DENY.equals(decision)) {
+				return AccessDecision.DENY;
 			}
-			throw new IllegalArgumentException("Expected that spring security principal will be of type "+
-					MidPointPrincipal.class.getName()+" but it was "+principalObject.getClass());
-		}
-
-		Collection<String> configActions = SecurityUtil.getActions(configAttributes);
-
-		Task task = taskManager.createTaskInstance(SecurityEnforcerImpl.class.getName() + ".decide");
-		for(String configAction: configActions) {
-			boolean isAuthorized;
-			try {
-				isAuthorized = isAuthorized(configAction, null, AuthorizationParameters.EMPTY, null, task, task.getResult());
-			} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-				throw new SystemException(e.getMessage(), e);
-			}
-			if (isAuthorized) {
-				return;
+			if (AccessDecision.ALLOW.equals(decision)) {
+				finalDecision = AccessDecision.ALLOW;
 			}
 		}
-
-		SecurityUtil.logSecurityDeny(object, ": Not authorized", null, configActions);
-
-		// Sparse exception method by purpose. We do not want to expose details to attacker.
-		// Better message is logged.
-		throw new AccessDeniedException("Not authorized");
-	}
-
-	@Override
-	public boolean supports(ConfigAttribute attribute) {
-		if (attribute instanceof SecurityConfig
-				// class name equals, because WebExpressionConfigAttribute is non public class
-				|| "org.springframework.security.web.access.expression.WebExpressionConfigAttribute".equals(attribute.getClass().getName())) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	@Override
-	public boolean supports(Class<?> clazz) {
-		if (MethodInvocation.class.isAssignableFrom(clazz)) {
-			return true;
-		} else if (FilterInvocation.class.isAssignableFrom(clazz)) {
-			return true;
-		} else {
-			return false;
-		}
+		return finalDecision;
 	}
 
 	private String getQuotedUsername(Authentication authentication) {
@@ -1616,8 +1565,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		
 		AuthorizationLimitationsCollector limitationsCollector = new AuthorizationLimitationsCollector();
 		AuthorizationParameters<UserType, ObjectType> autzParams = AuthorizationParameters.Builder.buildObject(donor);
-		boolean authorized = isAuthorizedInternal(attorneyPrincipal, attorneyAuthorizationAction, null, autzParams, null, limitationsCollector, task, result);
-		if (!authorized) {
+		AccessDecision decision = isAuthorizedInternal(attorneyPrincipal, attorneyAuthorizationAction, null, autzParams, null, limitationsCollector, task, result);
+		if (!decision.equals(AccessDecision.ALLOW)) {
 			failAuthorization(attorneyAuthorizationAction, null, autzParams, result);
 		}
 		

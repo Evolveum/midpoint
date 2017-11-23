@@ -15,8 +15,13 @@
  */
 package com.evolveum.midpoint.security.enforcer.api;
 
+import java.util.List;
+
 import org.jetbrains.annotations.Nullable;
 import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.Authentication;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -44,7 +49,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author Radovan Semancik
  *
  */
-public interface SecurityEnforcer extends AccessDecisionManager {
+public interface SecurityEnforcer {
+	
+	/**
+	 * Simple access control decision similar to that used by spring security.
+	 * It is practically applicable only for simple (non-parametric) cases such as access to GUI pages.
+	 * However, it supports authorization hierarchies. Therefore the ordering of elements in
+	 * required actions is important.
+	 */
+	AccessDecision decideAccess(MidPointPrincipal principal, List<String> requiredActions, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**
 	 * Produces authorization error with proper message and logs it using proper logger.
