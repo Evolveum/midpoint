@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,8 +23,6 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import org.apache.commons.lang.StringUtils;
@@ -491,7 +488,14 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		if (toDelete == null){
 			return;
 		}
-		toDelete.forEach(value -> value.setStatus(ValueStatus.DELETED));
+		toDelete.forEach(value -> {
+			if (value.getStatus() == ValueStatus.ADDED) {
+				ContainerWrapper wrapper = AssignmentPanel.this.getModelObject();
+				wrapper.getValues().remove(value);
+			} else {
+				value.setStatus(ValueStatus.DELETED);
+			}
+		});
 		refreshTable(target);
 	}
 
