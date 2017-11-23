@@ -695,7 +695,26 @@
     </xsd:complexType>
     <xsd:element name="assignmentModificationPolicyConstraint" type="tns:AssignmentModificationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
 
-    <xsd:complexType name="HasAssignmentPolicyConstraintType">
+	<xsd:complexType name="AssignmentPolicyConstraintType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Original (3.6) name for AssignmentModificationPolicyConstraintType.
+				Provided here for migration purposes.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>3.5</a:since>
+				<a:deprecated>true</a:deprecated>
+				<a:deprecatedSince>3.7</a:deprecatedSince>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AssignmentModificationPolicyConstraintType">
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="HasAssignmentPolicyConstraintType">
         <xsd:annotation>
             <xsd:documentation>
                 Constraint that triggers when the focus has given assignment(s).
