@@ -18,16 +18,13 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
-
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -37,20 +34,18 @@ import java.util.List;
 /**
  * @author shood
  * @author mederly
- *
+ * <p>
  * todo rewrite
- *
  * @deprecated generates incorrect HTML, buttons have different dimensions, looks bad. Overcomplicated code.
  */
 public class MultiButtonPanel<T> extends BasePanel<T> {
 
     private static final String ID_BUTTONS = "buttons";
-    private static final String ID_ICON = "icon";
 
     protected IModel<List<InlineMenuItem>> menuItemsModel = null;
     protected int numberOfButtons;
 
-    public MultiButtonPanel(String id, int numberOfButtons, IModel<T> model, IModel<List<InlineMenuItem>> menuItemsModel){
+    public MultiButtonPanel(String id, int numberOfButtons, IModel<T> model, IModel<List<InlineMenuItem>> menuItemsModel) {
         super(id, model);
         this.numberOfButtons = numberOfButtons;
         this.menuItemsModel = menuItemsModel;
@@ -68,13 +63,17 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
         add(buttons);
         for (int id = 0; id < numberOfButtons; id++) {
             final int finalId = getButtonId(id);
-            AjaxButton button = new AjaxButton(String.valueOf(finalId), createStringResource(getCaption(finalId))) {
+            AjaxIconButton button = new AjaxIconButton(String.valueOf(finalId),
+                    createIconModel(finalId),
+                    createStringResource(getCaption(finalId))) {
 
-            	private static final long serialVersionUID = 1L;
-				@Override
+                private static final long serialVersionUID = 1L;
+
+                @Override
                 public void onClick(AjaxRequestTarget target) {
                     clickPerformed(finalId, target, MultiButtonPanel.this.getModel());
                 }
+
                 @Override
                 protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
                     super.updateAjaxAttributes(attributes);
@@ -85,27 +84,25 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
 
             button.add(new VisibleEnableBehaviour() {
 
-            	private static final long serialVersionUID = 1L;
-            	@Override
-                public boolean isEnabled(){
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public boolean isEnabled() {
                     return MultiButtonPanel.this.isButtonEnabled(finalId, MultiButtonPanel.this.getModel());
                 }
+
                 @Override
-                public boolean isVisible(){
+                public boolean isVisible() {
                     return MultiButtonPanel.this.isButtonVisible(finalId, MultiButtonPanel.this.getModel());
                 }
             });
 
             button.add(AttributeAppender.append("class", getButtonCssClass(finalId)));
             if (!isButtonEnabled(finalId, getModel())) {
-            	button.add(AttributeAppender.append("class", "disabled"));
+                button.add(AttributeAppender.append("class", "disabled"));
             }
 
             button.add(new AttributeAppender("title", getButtonTitle(finalId)));
-
-            Label icon = new Label(ID_ICON);
-            icon.add(AttributeModifier.replace("class", createIconModel(finalId)));
-            button.add(icon);
 
             buttons.add(button);
         }
@@ -150,7 +147,7 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
         return DoubleButtonColumn.BUTTON_SIZE_CLASS.DEFAULT.toString();
     }
 
-    protected int getButtonId(int id){
+    protected int getButtonId(int id) {
         return id;
     }
 
@@ -165,7 +162,7 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
     public void clickPerformed(int id, AjaxRequestTarget target, IModel<T> model) {
     }
 
-    public AjaxButton getButton(int id){
+    public AjaxButton getButton(int id) {
         return (AjaxButton) get(ID_BUTTONS).get(String.valueOf(id));
     }
 
