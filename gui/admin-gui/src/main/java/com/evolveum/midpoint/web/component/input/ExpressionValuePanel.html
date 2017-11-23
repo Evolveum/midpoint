@@ -20,12 +20,15 @@
     <div class=btn-group>
         <div wicket:id="addExpressionValueButton" />
     </div>
-    <div wicket:id="literalValueContainer" class="row">
-        <div class="col-md-1"><wicket:message key="ExpressionValuePanel.literalValueTitle"/></div>
-        <div wicket:id="literalValueInput" class="col-md-8"/>
-        <a wicket:id="deleteValueButton" class="btn btn-sm btn-danger" title="Remove">
-            <i class="fa fa-minus"/>
-        </a>
+    <div wicket:id="shadowRefValueContainer" class="row">
+        <div class="row">
+            <h4 class="col-md-4 box-title"><wicket:message key="ExpressionValuePanel.shadowRefValueTitle"/></h4>
+            <a wicket:id="deleteShadowRefValueButton" class="btn btn-sm btn-danger pull-right" title="Remove">
+                <i class="fa fa-minus"/>
+            </a>
+        </div>
+        <div wicket:id="shadowRefValueInput"/>
+
     </div>
 
     <div wicket:id="associationTargetSearchContainer" class="row">
