@@ -229,6 +229,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
 		PrismObject<ShadowType> shadow = getShadowModel(accountJackOid);
 		shadow.findReference(ShadowType.F_RESOURCE_REF).getValue().setObject(resourceDummy);
+		display("Shadow", shadow);
 
 		// WHEN
 		displayWhen(TEST_NAME);

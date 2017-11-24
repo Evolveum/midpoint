@@ -48,6 +48,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.MidPointGuiAuthorizationEvaluator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -70,6 +72,8 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
 	protected static final File ROLE_UI_DENY_ALLOW_FILE = new File(TEST_DIR, "role-ui-deny-allow.xml");
 	protected static final String ROLE_UI_DENY_ALLOW_OID = "da47fcf6-d02b-11e7-9e78-f31ae9aa0674";
 	
+	private static final Trace LOGGER = TraceManager.getTrace(TestIntegrationSecurity.class);
+	
 	@Autowired private UserProfileService userProfileService;
 	
 	private MidPointGuiAuthorizationEvaluator midPointGuiAuthorizationEvaluator;
@@ -87,8 +91,12 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
 		// Temporary ... until initial object load is fixed
 //		ch.qos.logback.classic.Logger l = (ch.qos.logback.classic.Logger)org.slf4j.LoggerFactory.getLogger("com.evolveum.midpoint.web");
 //		l.setLevel(ch.qos.logback.classic.Level.TRACE);
+//		l = (ch.qos.logback.classic.Logger)org.slf4j.LoggerFactory.getLogger("com.evolveum.midpoint.test");
+//		l.setLevel(ch.qos.logback.classic.Level.TRACE);
 	}
 
+	
+	// TODO: decide tests with anon user
 	
 	@Test
     public void test100DecideNoRole() throws Exception {
@@ -105,6 +113,9 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         // WHEN
         displayWhen(TEST_NAME);
 
+        assertAllow(authentication, "/login");
+        assertAllow(authentication, "/");
+        assertDeny(authentication, "/noautz");
         assertDeny(authentication, "/admin/users");
         assertDeny(authentication, "/self/dashboard");
         assertDeny(authentication, "/admin/config/system");
@@ -130,6 +141,9 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         // WHEN
         displayWhen(TEST_NAME);
 
+        assertAllow(authentication, "/login");
+        assertAllow(authentication, "/");
+        assertDeny(authentication, "/noautz");
         assertAllow(authentication, "/admin/users");
         assertAllow(authentication, "/self/dashboard");
         assertAllow(authentication, "/admin/config/system");
@@ -155,6 +169,9 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         // WHEN
         displayWhen(TEST_NAME);
 
+        assertAllow(authentication, "/login");
+        assertAllow(authentication, "/");
+        assertDeny(authentication, "/noautz");
         assertDeny(authentication, "/admin/users");
         assertDeny(authentication, "/self/dashboard");
         assertDeny(authentication, "/admin/config/system");
@@ -184,6 +201,9 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         // WHEN
         displayWhen(TEST_NAME);
 
+        assertAllow(authentication, "/login");
+        assertAllow(authentication, "/");
+        assertDeny(authentication, "/noautz");
         assertAllow(authentication, "/self/dashboard");
         assertAllow(authentication, "/admin/users");
         assertDeny(authentication, "/admin/config/system");
@@ -193,26 +213,31 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
 		displayThen(TEST_NAME);
 
 	}
-	
-	// TODO: permitAll page
-	// TODO: access to unauthorized page
-	// TODO: access to page without annotations
-	
+		
 	private void assertAllow(Authentication authentication, String path) {
 		try {
+			LOGGER.debug("*** Attempt to DECIDE {} (expected allow)", path);
+			
 			midPointGuiAuthorizationEvaluator.decide(authentication, createFilterInvocation(path), createAuthConfigAttributes());
+			
+			display("DECIDE OK allowed access to " + path);
         } catch (AccessDeniedException e) {
+        	display("DECIDE WRONG failed to allowed access to " + path);
         	throw new AssertionError("Expected that access to "+path+" is allowed, but it was denied", e);
-        }			
+        }
 	}
 
 	private void assertDeny(Authentication authentication, String path) {
 		try {
+			LOGGER.debug("*** Attempt to DECIDE {} (expected deny)", path);
+			
 	        midPointGuiAuthorizationEvaluator.decide(authentication, createFilterInvocation(path), createAuthConfigAttributes());
 	     
+	        display("DECIDE WRONG failed to deny access to " + path);
 	        fail("Expected that access to "+path+" is denied, but it was allowed");
         } catch (AccessDeniedException e) {
         	// expected
+        	display("DECIDE OK denied access to " + path);
         }
 		
 	}
