@@ -330,35 +330,24 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("ContainervalueWrapper: ");// .append(PrettyPrinter.prettyPrint(getName())).append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "displayName", getDisplayName(), indent + 1);
+		sb.append("ContainerValueWrapper: ");// .append(PrettyPrinter.prettyPrint(getName()));
 		sb.append("\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "displayName", getDisplayName(), indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "status", status == null ? null : status.toString(), indent + 1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "main", isMain(), indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "readonly", readonly, indent + 1);
-		sb.append("\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "main", isMain(), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "readonly", readonly, indent + 1);
 		// DebugUtil.debugDumpWithLabel(sb, "showInheritedObjectAttributes",
 		// showInheritedObjectAttributes, indent + 1);
 		// sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "path", path == null ? null : path.toString(), indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "containerDefinition", getDefinition() == null ? null : getDefinition().toString(),
+		DebugUtil.debugDumpWithLabelLn(sb, "path", path == null ? null : path.toString(), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "containerDefinition", getDefinition() == null ? null : getDefinition().toString(),
 				indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "container", containerValue == null ? null : containerValue.toString(), indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpLabel(sb, "properties", indent + 1);
-		sb.append("\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "container", containerValue == null ? null : containerValue.toString(), indent + 1);
+		DebugUtil.debugDumpLabelLn(sb, "properties", indent + 1);
 		DebugUtil.debugDump(sb, properties, indent + 2, false);
 		return sb.toString();
 	}

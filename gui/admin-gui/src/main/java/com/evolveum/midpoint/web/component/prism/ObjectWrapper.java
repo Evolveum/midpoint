@@ -595,35 +595,19 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("ObjectWrapper(\n");
-		DebugUtil.debugDumpWithLabel(sb, "displayName", displayName, indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "description", description, indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "object", object == null ? null : object.toString(), indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "objectOld", objectOld == null ? null : objectOld.toString(), indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "oldDelta", oldDelta, indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "status", status == null ? null : status.toString(), indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "headerStatus", headerStatus == null ? null : headerStatus.toString(), indent + 1);
-		sb.append("\n");
+		sb.append("ObjectWrapper:\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "displayName", displayName, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "description", description, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "object", object == null ? null : object.toString(), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "objectOld", objectOld == null ? null : objectOld.toString(), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "oldDelta", oldDelta, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "status", status == null ? null : status.toString(), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "headerStatus", headerStatus == null ? null : headerStatus.toString(), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "loadOptions", loadOptions, indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "containers", containers, indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "loadOptions", loadOptions, indent + 1);
-		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append(")");
 		return sb.toString();
 	}
 }
