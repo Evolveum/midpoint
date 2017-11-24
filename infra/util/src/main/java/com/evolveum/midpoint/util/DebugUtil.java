@@ -296,8 +296,9 @@ public class DebugUtil {
 			sb.append(getCollectionOpeningSymbol(values));
 			sb.append(getCollectionClosingSymbol(values));
 		} else {
+			sb.append(" (").append(values.size()).append(")");
 			sb.append("\n");
-			sb.append(debugDump(values, indent + 1));
+			debugDump(sb, values, indent + 1, true);
 		}
 	}
 
