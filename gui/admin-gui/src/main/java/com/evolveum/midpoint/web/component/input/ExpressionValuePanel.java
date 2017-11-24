@@ -15,16 +15,27 @@
  */
 package com.evolveum.midpoint.web.component.input;
 
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -50,6 +61,7 @@ import org.springframework.security.config.annotation.web.configurers.Expression
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -63,6 +75,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionValuePanel.class);
     private static final String DOT_CLASS = ExpressionValuePanel.class.getName() + ".";
     private static final String OPERATION_LOAD_SHADOW = DOT_CLASS + ".loadShadowTypeObject";
+    private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + ".loadResourceTypeObject";
 
     private final static String ID_ADD_EXPRESSION_VALUE_BUTTON = "addExpressionValueButton";
     private final static String ID_SHADOW_REF_VALUE_CONTAINER = "shadowRefValueContainer";
@@ -73,8 +86,11 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
     private final static String ID_TARGET_SEARCH_PATH_INPUT = "targetSearchPathInput";
     private final static String ID_TARGET_SEARCH_VALUE_INPUT = "targetSearchValueInput";
 
-    public ExpressionValuePanel(String id, IModel<ExpressionType> model){
+    ConstructionType construction;
+
+    public ExpressionValuePanel(String id, IModel<ExpressionType> model, ConstructionType construction){
         super(id, model);
+        this.construction = construction;
     }
 
     @Override
@@ -133,8 +149,38 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
             @Override
             protected ObjectQuery getChooseQuery() {
-                return new ObjectQuery();
+                ObjectQuery query = new ObjectQuery();
 
+                ExpressionType expression = ExpressionValuePanel.this.getModelObject();
+                if (expression == null || construction == null){
+                    return new ObjectQuery();
+                }
+                PrismObject<ResourceType> resource = getResource();
+                if (resource == null){
+                    return new ObjectQuery();
+                }
+
+                try {
+                    RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
+                    RefinedObjectClassDefinition oc = refinedResourceSchema.getRefinedDefinition(construction.getKind(), construction.getIntent());
+                    Collection<RefinedAssociationDefinition> refinedAssociationDefinitions = oc.getAssociationDefinitions();
+
+                    for (RefinedAssociationDefinition refinedAssociationDefinition : refinedAssociationDefinitions) {
+                        S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, getPageBase().getPrismContext());
+                        List<ObjectFilter> orFilterClauses = new ArrayList<>();
+                        refinedAssociationDefinition.getIntents()
+                                .forEach(intent -> orFilterClauses.add(atomicFilter.item(ShadowType.F_INTENT).eq(intent).buildFilter()));
+                        OrFilter intentFilter = OrFilter.createOr(orFilterClauses);
+
+                        AndFilter filter = (AndFilter) atomicFilter.item(ShadowType.F_KIND).eq(refinedAssociationDefinition.getKind()).and()
+                                .item(ShadowType.F_RESOURCE_REF).ref(resource.getOid(), ResourceType.COMPLEX_TYPE).buildFilter();
+                        filter.addCondition(intentFilter);
+                        query.setFilter(filter);
+                    }
+                } catch (SchemaException ex) {
+                    LOGGER.error("Couldn't create query filter for ShadowType popup list" , ex.getErrorTypeMessage());
+                }
+                return query;
             }
 
             @Override
@@ -310,5 +356,15 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
         return  menuList;
     }
 
+    private PrismObject<ResourceType> getResource(){
+        ResourceType resource = construction.getResource();
+        if (resource != null){
+            return resource.asPrismObject();
+        }
+        ObjectReferenceType resourceRef = construction.getResourceRef();
+        OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_RESOURCE);
+        return WebModelServiceUtils.resolveReferenceNoFetch(resourceRef, getPageBase(), task, result);
+    }
 
 }

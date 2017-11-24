@@ -211,7 +211,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 	}
 
 	private Collection<SelectorOptions<GetOperationOptions>> getOptions() {
-		if (ObjectTypes.SHADOW.getTypeQName().equals(typeModel.getObject())) {
+		if (ObjectTypes.SHADOW.getTypeQName().equals(typeModel.getObject() != null ? typeModel.getObject().getTypeQName() : null)) {
 			return SelectorOptions.createCollection(ItemPath.EMPTY_PATH, GetOperationOptions.createNoFetch());
 		}
 		return null;
