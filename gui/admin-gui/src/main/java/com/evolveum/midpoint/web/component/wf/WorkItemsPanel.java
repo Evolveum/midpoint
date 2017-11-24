@@ -18,8 +18,10 @@ package com.evolveum.midpoint.web.component.wf;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -30,14 +32,17 @@ import com.evolveum.midpoint.web.component.data.column.GenericColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
+import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -170,13 +175,20 @@ public class WorkItemsPanel extends BasePanel {
 				public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
 					PageParameters parameters = new PageParameters();
 					parameters.add(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getWorkItemId());
-					getPageBase().navigateToNext(PageWorkItem.class, parameters);
+					PageWorkItem page = Session.get().getPageFactory().newPage(PageWorkItem.class, parameters);
+					page.setPowerDonor(determinePowerDonor());
+					getPageBase().navigateToNext(page);
 				}
 			};
         } else {
 			nameColumn = new GenericColumn<>(createStringResource("WorkItemsPanel.name"), rowModel -> createWorkItemNameModel(rowModel));
         }
 		return nameColumn;
+	}
+
+	private PrismObject<UserType> determinePowerDonor() {
+		PageBase pageBase = getPageBase();
+		return pageBase instanceof PageWorkItems ? ((PageWorkItems) pageBase).getPowerDonor() : null;
 	}
 
 	private IModel<String> createWorkItemNameModel(IModel<WorkItemDto> workItemDtoModel) {

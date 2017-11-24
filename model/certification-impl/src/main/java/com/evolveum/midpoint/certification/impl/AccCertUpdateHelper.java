@@ -388,6 +388,7 @@ public class AccCertUpdateHelper {
 		MidPointPrincipal principal = securityContextManager.getPrincipal();
 		result.addContext("user", toShortString(principal.getUser()));
 		ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getUser());
+		ObjectReferenceType attorney = ObjectTypeUtil.createObjectRef(principal.getAttorney());
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
         List<ItemDelta<?, ?>> deltas = new ArrayList<>();
@@ -417,6 +418,7 @@ public class AccCertUpdateHelper {
 			WorkItemDelegationEventType event = WfContextUtil.createDelegationEvent(null, assigneesBefore, delegatedTo, method, causeInformation);
 			event.setTimestamp(now);
 			event.setInitiatorRef(initiator);
+			event.setAttorneyRef(attorney);
 			event.setWorkItemId(workItem.getId());
 			event.setEscalationLevel(workItem.getEscalationLevel());
 
@@ -450,6 +452,7 @@ public class AccCertUpdateHelper {
 		MidPointPrincipal principal = securityContextManager.getPrincipal();
 		result.addContext("user", toShortString(principal.getUser()));
 		ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getUser());
+		ObjectReferenceType attorney = ObjectTypeUtil.createObjectRef(principal.getAttorney());
 
 		List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(
 				CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
@@ -509,6 +512,7 @@ public class AccCertUpdateHelper {
 			WorkItemDelegationEventType event = WfContextUtil.createDelegationEvent(newEscalationLevel, assigneesBefore, delegatedTo, method, causeInformation);
 			event.setTimestamp(now);
 			event.setInitiatorRef(initiator);
+			event.setAttorneyRef(attorney);
 			event.setWorkItemId(workItem.getId());
 			event.setEscalationLevel(workItem.getEscalationLevel());
 

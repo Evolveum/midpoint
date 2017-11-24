@@ -41,7 +41,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -198,17 +197,23 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
             return;
         }
 
-        OperationResult mainResult = new OperationResult(OPERATION_APPROVE_OR_REJECT_ITEMS);
-        WorkflowService workflowService = getWorkflowService();
-        for (WorkItemDto workItemDto : workItemDtoList) {
-            OperationResult result = mainResult.createSubresult(OPERATION_APPROVE_OR_REJECT_ITEM);
-            try {
-                workflowService.completeWorkItem(workItemDto.getWorkItemId(), approve, null, null, result);
-                result.computeStatus();
-            } catch (Exception e) {
-                result.recordPartialError("Couldn't approve/reject work item due to an unexpected exception.", e);
+	    OperationResult mainResult = new OperationResult(OPERATION_APPROVE_OR_REJECT_ITEMS);
+        try {
+	        assumePowerOfAttorneyIfRequested(mainResult);
+	        WorkflowService workflowService = getWorkflowService();
+            for (WorkItemDto workItemDto : workItemDtoList) {
+                OperationResult result = mainResult.createSubresult(OPERATION_APPROVE_OR_REJECT_ITEM);
+                try {
+                    workflowService.completeWorkItem(workItemDto.getWorkItemId(), approve, null, null, result);
+                    result.computeStatus();
+                } catch (Exception e) {
+                    result.recordPartialError("Couldn't approve/reject work item due to an unexpected exception.", e);
+                }
             }
+        } finally {
+	        dropPowerOfAttorneyIfRequested(mainResult);
         }
+
         if (mainResult.isUnknown()) {
             mainResult.recomputeStatus();
         }
@@ -223,7 +228,19 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
         target.add(this);
     }
 
-    private void claimWorkItemsPerformed(AjaxRequestTarget target) {
+	private void assumePowerOfAttorneyIfRequested(OperationResult result) {
+		if (workItemsType == WorkItemsPageType.ATTORNEY) {
+			WebModelServiceUtils.assumePowerOfAttorney(donorModel.getObject(), getModelInteractionService(), getTaskManager(), result);
+		}
+	}
+
+	private void dropPowerOfAttorneyIfRequested(OperationResult result) {
+		if (workItemsType == WorkItemsPageType.ATTORNEY) {
+			WebModelServiceUtils.dropPowerOfAttorney(getModelInteractionService(), getTaskManager(), result);
+		}
+	}
+
+	private void claimWorkItemsPerformed(AjaxRequestTarget target) {
         List<WorkItemDto> workItemDtoList = getWorkItemsPanel().getSelectedWorkItems();
         if (!isSomeItemSelected(workItemDtoList, target)) {
             return;
@@ -289,5 +306,9 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
 
         resetWorkItemCountModel();
         target.add(this);
+    }
+
+    public PrismObject<UserType> getPowerDonor() {
+    	return workItemsType == WorkItemsPageType.ATTORNEY ? donorModel.getObject() : null;
     }
 }

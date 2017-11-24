@@ -278,8 +278,23 @@
             <xsd:element name="initiatorRef" type="c:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        User who initiated this action. (Typically, a user who performed an action.)
-                        Might be null if unknown.
+                        Initiator is the (legal) entity on behalf of whom is the action executed.
+                        When completing the work item in "attorney mode" the initiator is the user
+                        under which authority was the work item approved.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="attorneyRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Attorney is the (physical) user who have executed the action.
+                        This is the user that have logged-in to the user interface. This is the
+                        user that pressed the button to execute the action. This is always identity
+                        of a user and it will always be a user. It cannot be a company or any other
+                        virtual entity.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>

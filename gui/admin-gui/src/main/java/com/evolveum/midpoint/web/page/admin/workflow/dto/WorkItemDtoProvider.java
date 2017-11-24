@@ -17,8 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -69,9 +69,6 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 
     private static final String OPERATION_LIST_ITEMS = DOT_CLASS + "listItems";
     private static final String OPERATION_COUNT_ITEMS = DOT_CLASS + "countItems";
-    private static final String OPERATION_ASSUME_POWER_OF_ATTORNEY = DOT_CLASS + "assumePowerOfAttorney";
-    private static final String OPERATION_DROP_POWER_OF_ATTORNEY = DOT_CLASS + "dropPowerOfAttorney";
-
 
     private WorkItemsPageType workItemsPageType;
     private IModel<PrismObject<UserType>> donorModel;
@@ -94,59 +91,35 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 
     @Override
     public Iterator<? extends WorkItemDto> iterator(long first, long count) {
-        assumePowerOfAttorney();
+        assumePowerOfAttorneyIfRequested();
 
         try {
             return super.iterator(first, count);
         } finally {
-            dropPowerOfAttorney();
+            dropPowerOfAttorneyIfRequested();
         }
     }
 
     @Override
     public long size() {
-        assumePowerOfAttorney();
+        assumePowerOfAttorneyIfRequested();
 
         try {
             return super.size();
         } finally {
-            dropPowerOfAttorney();
+            dropPowerOfAttorneyIfRequested();
         }
     }
 
-    private void assumePowerOfAttorney() {
-        if (!WorkItemsPageType.ATTORNEY.equals(workItemsPageType)) {
-            return; // nothing to assume
-        }
-
-        ModelInteractionService service = getModelInteractionService();
-
-        Task task = getTaskManager().createTaskInstance();
-        OperationResult result = new OperationResult(OPERATION_ASSUME_POWER_OF_ATTORNEY);
-
-        try {
-            service.assumePowerOfAttorney(donorModel.getObject(), task, result);
-        } catch (CommonException ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assume power attorney", ex);
-            result.recordFatalError("Couldn't assume power of attorney", ex);
+    private void assumePowerOfAttorneyIfRequested() {
+        if (workItemsPageType == WorkItemsPageType.ATTORNEY) {
+            WebModelServiceUtils.assumePowerOfAttorney(donorModel.getObject(), getModelInteractionService(), getTaskManager(), null);
         }
     }
 
-    private void dropPowerOfAttorney() {
-        if (!WorkItemsPageType.ATTORNEY.equals(workItemsPageType)) {
-            return; // nothing to drop
-        }
-
-        ModelInteractionService service = getModelInteractionService();
-
-        Task task = getTaskManager().createTaskInstance();
-        OperationResult result = new OperationResult(OPERATION_DROP_POWER_OF_ATTORNEY);
-
-        try {
-            service.dropPowerOfAttorney(task, result);
-        } catch (CommonException ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't drop power of attorney", ex);
-            result.recordFatalError("Couldn't drop power of attorney", ex);
+    private void dropPowerOfAttorneyIfRequested() {
+        if (workItemsPageType == WorkItemsPageType.ATTORNEY) {
+            WebModelServiceUtils.dropPowerOfAttorney(getModelInteractionService(), getTaskManager(), null);
         }
     }
 

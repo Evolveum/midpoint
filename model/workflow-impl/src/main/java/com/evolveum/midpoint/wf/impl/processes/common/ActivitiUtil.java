@@ -177,6 +177,7 @@ public class ActivitiUtil implements Serializable {
 			Map<String, Object> variables, PrismContext prismContext) {
 		if (currentUser != null) {
 			event.setInitiatorRef(ObjectTypeUtil.createObjectRef(currentUser.getUser()));
+			event.setAttorneyRef(ObjectTypeUtil.createObjectRef(currentUser.getAttorney()));
 		}
 		event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 		event.setExternalWorkItemId(workItemId);

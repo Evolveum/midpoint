@@ -34,6 +34,7 @@ import java.util.Date;
 public class DecisionDto extends Selectable {
 
     public static final String F_USER = "user";
+    public static final String F_ATTORNEY = "attorney";
     public static final String F_ORIGINAL_ACTOR = "originalActor";
     public static final String F_STAGE = "stage";
     public static final String F_OUTCOME = "outcome";
@@ -42,6 +43,7 @@ public class DecisionDto extends Selectable {
     public static final String F_ESCALATION_LEVEL_NUMBER = "escalationLevelNumber";
 
     private String user;
+    private String attorney;
     private String originalActor;
     private String stage;
     private Boolean outcome;
@@ -56,6 +58,10 @@ public class DecisionDto extends Selectable {
     public String getUser() {
         return user;
     }
+
+	public String getAttorney() {
+		return attorney;
+	}
 
 	public String getOriginalActor() {
 		return originalActor;
@@ -97,6 +103,7 @@ public class DecisionDto extends Selectable {
 		// we want to show user decisions, automatic decisions and delegations
 		DecisionDto rv = new DecisionDto();
 		rv.user = WebComponentUtil.getName(e.getInitiatorRef());
+		rv.attorney = WebComponentUtil.getName(e.getAttorneyRef());
 		rv.stage = WfContextUtil.getStageInfoTODO(e.getStageNumber());
 		rv.time = XmlTypeConverter.toDate(e.getTimestamp());
 

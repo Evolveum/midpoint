@@ -18,11 +18,13 @@ package com.evolveum.midpoint.gui.api.util;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.RelationalValueSearchQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -46,15 +48,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.AuthorizationException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -83,6 +76,8 @@ public class WebModelServiceUtils {
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
     private static final String OPERATION_LOAD_OBJECT_REFS = DOT_CLASS + "loadObjectReferences";
     private static final String OPERATION_COUNT_OBJECT = DOT_CLASS + "countObjects";
+	private static final String OPERATION_ASSUME_POWER_OF_ATTORNEY = DOT_CLASS + "assumePowerOfAttorney";
+	private static final String OPERATION_DROP_POWER_OF_ATTORNEY = DOT_CLASS + "dropPowerOfAttorney";
 
 	public static String resolveReferenceName(ObjectReferenceType ref, PageBase page) {
 		Task task = page.createSimpleTask(WebModelServiceUtils.class.getName() + ".resolveReferenceName");
@@ -590,4 +585,33 @@ public class WebModelServiceUtils {
 	public static ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType, PageBase pageBase){
         return pageBase.getModelInteractionService().getEffectiveStatus(lifecycleStatus, activationType);
     }
+
+	public static void assumePowerOfAttorney(PrismObject<UserType> donor,
+	        ModelInteractionService modelInteractionService, TaskManager taskManager, OperationResult parentResult) {
+	    Task task = taskManager.createTaskInstance();
+	    OperationResult result = OperationResult.createSubResultOrNewResult(parentResult, OPERATION_ASSUME_POWER_OF_ATTORNEY);
+
+	    try {
+	        modelInteractionService.assumePowerOfAttorney(donor, task, result);
+	    } catch (CommonException ex) {
+	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assume power of attorney", ex);
+	        result.recordFatalError("Couldn't assume power of attorney", ex);
+	    } finally {
+	    	result.computeStatusIfUnknown();
+	    }
+	}
+
+	public static void dropPowerOfAttorney(ModelInteractionService modelInteractionService, TaskManager taskManager, OperationResult parentResult) {
+	    Task task = taskManager.createTaskInstance();
+		OperationResult result = OperationResult.createSubResultOrNewResult(parentResult, OPERATION_DROP_POWER_OF_ATTORNEY);
+
+	    try {
+	        modelInteractionService.dropPowerOfAttorney(task, result);
+	    } catch (CommonException ex) {
+	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't drop power of attorney", ex);
+	        result.recordFatalError("Couldn't drop power of attorney", ex);
+	    } finally {
+	    	result.computeStatusIfUnknown();
+	    }
+	}
 }

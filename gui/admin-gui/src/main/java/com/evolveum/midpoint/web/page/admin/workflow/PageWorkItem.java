@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -100,6 +101,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 
 	private LoadableModel<WorkItemDto> workItemDtoModel;
 	private String taskId;
+	private PrismObject<UserType> powerDonor;
 
     public PageWorkItem(PageParameters parameters) {
 
@@ -121,6 +123,15 @@ public class PageWorkItem extends PageAdminWorkItems {
 	@Override
 	protected void createBreadcrumb() {
 		createInstanceBreadcrumb();			// to preserve page state (e.g. approver's comment)
+	}
+
+	@SuppressWarnings("unused")
+	public PrismObject<UserType> getPowerDonor() {
+		return powerDonor;
+	}
+
+	public void setPowerDonor(PrismObject<UserType> powerDonor) {
+		this.powerDonor = powerDonor;
 	}
 
 	private WorkItemDto loadWorkItemDtoIfNecessary() {
@@ -214,25 +225,32 @@ public class PageWorkItem extends PageAdminWorkItems {
         VisibleBehaviour isAllowedToSubmit = new VisibleBehaviour(() ->
 				{
 					try {
+						assumePowerOfAttorneyIfRequested(null);
 						return getWorkflowManager().isCurrentUserAuthorizedToSubmit(workItemDtoModel.getObject().getWorkItem(), getPageTask(), getPageTask().getResult());
 					} catch (ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 						LoggingUtils.logUnexpectedException(LOGGER, "Authorization error: " + e.getMessage(), e);
 						return false;
+					} finally {
+						dropPowerOfAttorneyIfRequested(null);
 					}
 				});
 
 		VisibleBehaviour isAllowedToDelegate = new VisibleBehaviour(() ->
 				{
 					try {
+						assumePowerOfAttorneyIfRequested(null);
 						return getWorkflowManager().isCurrentUserAuthorizedToDelegate(workItemDtoModel.getObject().getWorkItem(), getPageTask(), getPageTask().getResult());
 					} catch (ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 						LoggingUtils.logUnexpectedException(LOGGER, "Authorization error: " + e.getMessage(), e);
 						return false;
+					} finally {
+						dropPowerOfAttorneyIfRequested(null);
 					}
 				});
 
 		VisibleBehaviour isAllowedToClaim = new VisibleBehaviour(() ->
 				workItemDtoModel.getObject().getWorkItem().getAssigneeRef() == null &&
+						powerDonor == null &&           // to keep things simple
                         getWorkflowManager().isCurrentUserAuthorizedToClaim(workItemDtoModel.getObject().getWorkItem()));
 
         VisibleBehaviour isAllowedToRelease = new VisibleBehaviour(() -> {
@@ -245,6 +263,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 			}
 			String principalOid = principal.getOid();
 			return workItem.getAssigneeRef() != null
+					&& powerDonor == null           // to keep things simple
 					&& workItem.getAssigneeRef().stream().anyMatch(ref -> ref.getOid().equals(principalOid))
 					&& (!workItem.getCandidateRef().isEmpty());
 		});
@@ -295,7 +314,12 @@ public class PageWorkItem extends PageAdminWorkItems {
 				}
 			}
 			ObjectDelta delta = getWorkItemPanel().getDeltaFromForm();
-            getWorkflowService().completeWorkItem(dto.getWorkItemId(), approved, dto.getApproverComment(), delta, result);
+			try {
+				assumePowerOfAttorneyIfRequested(result);
+				getWorkflowService().completeWorkItem(dto.getWorkItemId(), approved, dto.getApproverComment(), delta, result);
+			} finally {
+				dropPowerOfAttorneyIfRequested(result);
+			}
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save work item.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save work item", ex);
@@ -325,7 +349,12 @@ public class PageWorkItem extends PageAdminWorkItems {
 		try {
 			WorkItemDto dto = workItemDtoModel.getObject();
 			List<ObjectReferenceType> delegates = Collections.singletonList(ObjectTypeUtil.createObjectRef(delegate));
-			getWorkflowService().delegateWorkItem(dto.getWorkItemId(), delegates, WorkItemDelegationMethodType.ADD_ASSIGNEES, result);
+			try {
+				assumePowerOfAttorneyIfRequested(result);
+				getWorkflowService().delegateWorkItem(dto.getWorkItemId(), delegates, WorkItemDelegationMethodType.ADD_ASSIGNEES, result);
+			} finally {
+				dropPowerOfAttorneyIfRequested(result);
+			}
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't delegate work item.", ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delegate work item", ex);
@@ -354,4 +383,17 @@ public class PageWorkItem extends PageAdminWorkItems {
         }
         processResult(target, result, true);
     }
+
+	private void assumePowerOfAttorneyIfRequested(OperationResult result) {
+		if (powerDonor != null) {
+			WebModelServiceUtils.assumePowerOfAttorney(powerDonor, getModelInteractionService(), getTaskManager(), result);
+		}
+	}
+
+	private void dropPowerOfAttorneyIfRequested(OperationResult result) {
+		if (powerDonor != null) {
+			WebModelServiceUtils.dropPowerOfAttorney(getModelInteractionService(), getTaskManager(), result);
+		}
+	}
+
 }

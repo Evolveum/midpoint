@@ -72,6 +72,7 @@ public class PageAuditLogDetails extends PageBase {
     private static final String ID_PARAMETERS_NODE_IDENTIFIER = "nodeIdentifier";
     private static final String ID_PARAMETERS_REMOTE_HOST_ADDRESS = "remoteHostAddress";
     private static final String ID_PARAMETERS_EVENT_INITIATOR = "initiatorRef";
+    private static final String ID_PARAMETERS_EVENT_ATTORNEY = "attorneyRef";
     private static final String ID_PARAMETERS_EVENT_TARGET = "targetRef";
     private static final String ID_PARAMETERS_EVENT_TARGET_OWNER = "targetOwnerRef";
     private static final String ID_PARAMETERS_EVENT_TYPE = "eventType";
@@ -300,6 +301,13 @@ public class PageAuditLogDetails extends PageBase {
                         new OperationResult(ID_PARAMETERS_EVENT_INITIATOR))));
         initiatorRef.setOutputMarkupId(true);
         eventDetailsPanel.add(initiatorRef);
+
+		final Label attorneyRef = new Label(ID_PARAMETERS_EVENT_ATTORNEY,
+                new Model<>(WebModelServiceUtils.resolveReferenceName(recordModel.getObject().getAttorneyRef(), this,
+                        createSimpleTask(ID_PARAMETERS_EVENT_ATTORNEY),
+                        new OperationResult(ID_PARAMETERS_EVENT_ATTORNEY))));
+        attorneyRef.setOutputMarkupId(true);
+        eventDetailsPanel.add(attorneyRef);
 
         final Label targetRef = new Label(ID_PARAMETERS_EVENT_TARGET,
                 new Model<>(WebModelServiceUtils.resolveReferenceName(recordModel.getObject().getTargetRef(), this,

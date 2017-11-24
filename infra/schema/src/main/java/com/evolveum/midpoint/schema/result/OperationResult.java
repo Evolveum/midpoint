@@ -1660,6 +1660,14 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 	}
 
+	public static OperationResult createSubResultOrNewResult(OperationResult parentResult, String operation) {
+		if (parentResult == null) {
+			return new OperationResult(operation);
+		} else {
+			return parentResult.createSubresult(operation);
+		}
+	}
+
 	// primitive implementation - uncomment it if needed
 //    public OperationResult clone() {
 //        return CloneUtil.clone(this);

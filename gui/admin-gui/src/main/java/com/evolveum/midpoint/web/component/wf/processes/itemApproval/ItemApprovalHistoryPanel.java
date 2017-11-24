@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.wf.processes.itemApproval;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -25,7 +26,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalProcessStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
@@ -49,25 +49,21 @@ public class ItemApprovalHistoryPanel extends BasePanel<WfContextType> {
 
     private void initLayout(UserProfileStorage.TableId tableId, int pageSize) {
 
-        add(new DecisionsPanel(ID_DECISIONS_DONE, new AbstractReadOnlyModel<List<DecisionDto>>() {
-            @Override
-            public List<DecisionDto> getObject() {
-                List<DecisionDto> rv = new ArrayList<>();
-                WfContextType wfContextType = getModelObject();
-				if (wfContextType == null) {
-					return rv;
-				}
-				if (!wfContextType.getEvent().isEmpty()) {
-					wfContextType.getEvent().forEach(e -> addIgnoreNull(rv, DecisionDto.create(e, getPageBase())));
-				} else {
-					ItemApprovalProcessStateType instanceState = WfContextUtil.getItemApprovalProcessInfo(wfContextType);
-					if (instanceState != null) {
-						instanceState.getDecisions().forEach(d -> addIgnoreNull(rv, DecisionDto.create(d)));
-					}
-				}
-                return rv;
-            }
-        }, tableId, pageSize));
-
+        add(new DecisionsPanel(ID_DECISIONS_DONE, new ReadOnlyModel<>(() -> {
+	        List<DecisionDto> rv = new ArrayList<>();
+	        WfContextType wfContextType = getModelObject();
+	        if (wfContextType == null) {
+		        return rv;
+	        }
+	        if (!wfContextType.getEvent().isEmpty()) {
+		        wfContextType.getEvent().forEach(e -> addIgnoreNull(rv, DecisionDto.create(e, getPageBase())));
+	        } else {
+		        ItemApprovalProcessStateType instanceState = WfContextUtil.getItemApprovalProcessInfo(wfContextType);
+		        if (instanceState != null) {
+			        instanceState.getDecisions().forEach(d -> addIgnoreNull(rv, DecisionDto.create(d)));
+		        }
+	        }
+	        return rv;
+        }), tableId, pageSize));
     }
 }
