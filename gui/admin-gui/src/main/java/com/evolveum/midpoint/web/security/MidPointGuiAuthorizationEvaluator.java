@@ -158,22 +158,28 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             throws AccessDeniedException, InsufficientAuthenticationException {
 		
 		// Too lound, just for testing
-		LOGGER.trace("decide input: authentication={}, object={}, configAttributes={}",
-				authentication, object, configAttributes);
+//		LOGGER.trace("decide input: authentication={}, object={}, configAttributes={}",
+//				authentication, object, configAttributes);
 				
         if (!(object instanceof FilterInvocation)) {
-        	// TODO: is this OK?
         	LOGGER.trace("DECIDE: PASS because object is not FilterInvocation, it is {}", object);
             return;
         }
 
-        if (configAttributes == null) {
-        	// TODO: is this OK?
-        	LOGGER.trace("DECIDE: PASS because config attributes are null");
+        FilterInvocation filterInvocation = (FilterInvocation) object;
+        if (isPermitAll(filterInvocation)) {
+        	LOGGER.trace("DECIDE: authentication={}, object={}: ALLOW ALL (permitAll)",
+        			authentication, object);
+            return;
+        }
+        
+        if ("/".equals(filterInvocation.getRequest().getServletPath())) {
+        	// Special case, this is in fact "magic" redirect to home page or login page. It handles autz in its own way.
+        	LOGGER.trace("DECIDE: authentication={}, object={}: ALLOW ALL (/)",
+        			authentication, object);
             return;
         }
 
-        FilterInvocation filterInvocation = (FilterInvocation) object;
         List<String> requiredActions = new ArrayList<>(); 
 
         for (PageUrlMapping urlMapping : PageUrlMapping.values()) {
@@ -185,20 +191,12 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             addSecurityConfig(filterInvocation, requiredActions, entry.getKey(), entry.getValue());
         }
         
-        LOGGER.info("REQ: {}", requiredActions);
-        
         if (requiredActions.isEmpty()) {
-        	// TODO: is this OK?
-        	// E.g. login pages go through this. Maybe add permitAll annotation to that page?
-        	LOGGER.trace("DECIDE: PASS because determined empty required actions from {}", filterInvocation);
-            return;
-        }
-        
-        //all users has permission to access these resources
-        if (requiredActions.contains(AuthorizationConstants.AUTZ_UI_PERMIT_ALL_URL)) {
-        	LOGGER.trace("DECIDE: authentication={}, object={}, requiredActions={}: ALLOW ALL",
-            			authentication, object, requiredActions);
-            return;
+        	LOGGER.trace("DECIDE: DENY because determined empty required actions from {}", filterInvocation);
+        	SecurityUtil.logSecurityDeny(object, ": Not authorized (page without authorizations)", null, requiredActions);
+    		// Sparse exception method by purpose. We do not want to expose details to attacker.
+    		// Better message is logged.
+    		throw new AccessDeniedException("Not authorized");
         }
         
 		Object principalObject = authentication.getPrincipal();
@@ -243,6 +241,16 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     		throw new AccessDeniedException("Not authorized");
 		}
     }
+
+	private boolean isPermitAll(FilterInvocation filterInvocation) {
+		for (String url: DescriptorLoader.getPermitAllUrls()) {
+			AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
+			if (matcher.matches(filterInvocation.getRequest())) {
+				return true;
+	        }
+		}
+		return false;
+	}
 
 	private void addSecurityConfig(FilterInvocation filterInvocation, List<String> requiredActions,
                       String url, DisplayableValue<String>[] actions) {

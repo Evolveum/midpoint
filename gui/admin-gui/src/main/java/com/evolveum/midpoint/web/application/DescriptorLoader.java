@@ -38,6 +38,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 import java.io.InputStream;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * @author lazyman
@@ -47,6 +48,7 @@ public final class DescriptorLoader implements DebugDumpable {
     private static final Trace LOGGER = TraceManager.getTrace(DescriptorLoader.class);
 
     private static Map<String, DisplayableValue<String>[]> actions = new HashMap<>();
+    private static List<String> permitAllUrls = new ArrayList<>();
     private static Map<String, Class> urlClassMap = new HashMap<>();
     
     private String baseFileName = "/descriptor.xml";
@@ -74,6 +76,10 @@ public final class DescriptorLoader implements DebugDumpable {
 
 	public void setCustomFileName(String customFileName) {
 		this.customFileName = customFileName;
+	}
+	
+	public static Collection<String> getPermitAllUrls() {
+		return permitAllUrls;
 	}
 
 	public void loadData(MidPointApplication application) {
@@ -135,6 +141,12 @@ public final class DescriptorLoader implements DebugDumpable {
     }
 
     private void loadActions(PageDescriptor descriptor) {
+    	
+    	if (descriptor.permitAll()) {
+    		foreachUrl(descriptor, url -> permitAllUrls.add(url));
+    		return;
+    	}
+    	
         List<AuthorizationActionValue> actions = new ArrayList<>();
 
         //avoid of setting guiAll authz for "public" pages (e.g. login page)
@@ -160,9 +172,13 @@ public final class DescriptorLoader implements DebugDumpable {
             actions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_GUI_ALL_URL,
                     AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
         }
-
-        for (String url : descriptor.url()) {
-            this.actions.put(buildPrefixUrl(url), actions.toArray(new DisplayableValue[actions.size()]));
+        
+        foreachUrl(descriptor, url -> this.actions.put(url, actions.toArray(new DisplayableValue[actions.size()])));
+    }
+    
+    private void foreachUrl(PageDescriptor descriptor, Consumer<String> urlConsumer) {
+    	for (String url : descriptor.url()) {
+    		urlConsumer.accept(buildPrefixUrl(url));
         }
 
         for (Url url : descriptor.urls()) {
@@ -170,7 +186,7 @@ public final class DescriptorLoader implements DebugDumpable {
             if (StringUtils.isEmpty(urlForSecurity)) {
                 urlForSecurity = buildPrefixUrl(url.mountUrl());
             }
-            this.actions.put(urlForSecurity, actions.toArray(new DisplayableValue[actions.size()]));
+            urlConsumer.accept(urlForSecurity);
         }
     }
 
