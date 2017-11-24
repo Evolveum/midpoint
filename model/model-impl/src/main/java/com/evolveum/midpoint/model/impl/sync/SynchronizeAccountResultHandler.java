@@ -109,14 +109,10 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		return objectClassDef;
 	}
 
-	/*
+	/**
 	 * This methods will be called for each search result. It means it will be
 	 * called for each account on a resource. We will pretend that the account
 	 * was created and invoke notification interface.
-	 *
-	 * @see
-	 * com.evolveum.midpoint.provisioning.api.ResultHandler#handle(com.evolveum
-	 * .midpoint.xml.ns._public.common.common_1.ObjectType)
 	 */
 	@Override
 	protected boolean handleObject(PrismObject<ShadowType> accountShadow, Task workerTask, OperationResult result) {
@@ -145,8 +141,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 
 		ShadowType newShadowType = accountShadow.asObjectable();
 		if (newShadowType.isProtectedObject() != null && newShadowType.isProtectedObject()) {
-			LOGGER.trace("{} skipping {} because it is protected",
-					getProcessShortNameCapitalized(), accountShadow);
+			LOGGER.trace("{} skipping {} because it is protected", getProcessShortNameCapitalized(), accountShadow);
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
 			return true;
 		}
