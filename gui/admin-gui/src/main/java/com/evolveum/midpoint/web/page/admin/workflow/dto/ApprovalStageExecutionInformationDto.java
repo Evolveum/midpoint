@@ -143,6 +143,7 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 					engagement.setCompletedAt(completionEvent.getTimestamp());
 					resolve(completionEvent.getInitiatorRef(), resolver, session, opTask, result);
 					engagement.setCompletedBy(completionEvent.getInitiatorRef());
+					engagement.setAttorney(completionEvent.getAttorneyRef());
 					engagement.setOutput(completionEvent.getOutput());
 				}
 			} else if (event instanceof StageCompletionEventType) {

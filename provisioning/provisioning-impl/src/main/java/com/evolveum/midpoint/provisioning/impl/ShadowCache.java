@@ -1768,7 +1768,7 @@ public abstract class ShadowCache {
 
 		final ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);
 
-		List<Change> changes = null;
+		List<Change> changes;
 		try {
 
 			changes = resouceObjectConverter.fetchChanges(ctx, lastToken, parentResult);

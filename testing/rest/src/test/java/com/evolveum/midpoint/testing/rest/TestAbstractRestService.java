@@ -983,7 +983,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
-		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
+		client.path("/rpc/validate");
 
 		getDummyAuditService().clear();
 
@@ -993,6 +993,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
 
+		traceResponse(response);
+		
 		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
 		IntegrationTestTools.display("Audit", getDummyAuditService());
@@ -1008,7 +1010,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
-		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
+		client.path("/rpc/validate");
 
 		getDummyAuditService().clear();
 

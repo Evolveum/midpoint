@@ -73,6 +73,8 @@ import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 /**
  * The task hander for reconciliation.
  *
@@ -96,27 +98,15 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	 */
 	private ReconciliationTaskResultListener reconciliationTaskResultListener;
 
-	@Autowired(required = true)
-	private TaskManager taskManager;
-
-	@Autowired(required = true)
-	private ProvisioningService provisioningService;
-
-	@Autowired(required = true)
+	@Autowired private TaskManager taskManager;
+	@Autowired private ProvisioningService provisioningService;
+	@Autowired private PrismContext prismContext;
+	@Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
+	@Autowired private AuditService auditService;
+	@Autowired private Clock clock;
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
-
-	@Autowired(required = true)
-	private PrismContext prismContext;
-
-	@Autowired(required = true)
-	private ChangeNotificationDispatcher changeNotificationDispatcher;
-
-	@Autowired(required = true)
-	private AuditService auditService;
-
-	@Autowired(required = true)
-	private Clock clock;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
 
@@ -173,9 +163,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			throw new IllegalArgumentException("Resource OID is missing in task extension");
 		}
 
-        recordProgress(coordinatorTask, 0, opResult);
-        // todo consider setting expectedTotal to null here
-
 		PrismObject<ResourceType> resource;
 		ObjectClassComplexTypeDefinition objectclassDef;
 		try {
@@ -211,7 +198,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		} catch (SecurityViolationException ex) {
 			processErrorPartial(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, null, coordinatorTask, opResult);
 			return runResult;
-
 		} catch (ExpressionEvaluationException ex) {
 			processErrorPartial(runResult, "Expression error", ex, TaskRunResultStatus.PERMANENT_ERROR, null, coordinatorTask, opResult);
 			return runResult;
@@ -266,6 +252,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			processErrorPartial(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, coordinatorTask, opResult);
 		}
 
+		resetExpectedTotal(coordinatorTask, opResult);              // for next phases, it looks strangely to see progress e.g. 2/1
+
 		long beforeResourceReconTimestamp = clock.currentTimeMillis();
 		long afterResourceReconTimestamp;
 		long afterShadowReconTimestamp;
@@ -317,7 +305,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.getStatus());
-//			LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.dump());
 		}
 
 		AuditEventRecord executionRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.EXECUTION);
@@ -341,6 +328,17 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, coordinatorTask, opResult);
 		return runResult;
+	}
+
+	private void resetExpectedTotal(Task coordinatorTask, OperationResult opResult) {
+		if (defaultIfNull(coordinatorTask.getExpectedTotal(), 0L) > 0) {
+			coordinatorTask.setExpectedTotal(null);
+			try {
+				coordinatorTask.savePendingModifications(opResult);
+			} catch (Throwable t) {
+				throw new SystemException("Couldn't update the task: " + t.getMessage(), t);
+			}
+		}
 	}
 
 	/**
@@ -460,6 +458,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 				objectclassDef, "reconciliation", coordinatorTask, changeNotificationDispatcher, taskManager);
 		handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
 		handler.setStopOnError(false);
+		handler.setEnableSynchronizationStatistics(true);
+		handler.setEnableActionsExecutedStatistics(true);
 
 		coordinatorTask.setExpectedTotal(null);
 
@@ -583,7 +583,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION+".shadowReconciliation.object");
 		try {
 			Collection<SelectorOptions<GetOperationOptions>> options = null;
-			if (Utils.isDryRun(task)){
+			if (Utils.isDryRun(task)) {
 				 options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
 			}
 			return provisioningService.getObject(ShadowType.class, shadow.getOid(), options, task, opResult);
@@ -687,17 +687,12 @@ public class ReconciliationTaskHandler implements TaskHandler {
 				RepositoryCache.exit();
 			}
 
-			// TODO record statistics as well
-            incrementAndRecordProgress(task, opResult);
+			task.incrementProgressAndStoreStatsIfNeeded();
 
             if (!task.canRun()) {
                 break;
             }
 		}
-
-		task.setExpectedTotal(null);		// for next phases, it looks strangely to see progress e.g. 2/1
-
-		// for each try the operation again
 
 		String message = "Processing unfinished operations done. Out of " + shadows.size() + " objects, "
 				+ processedSuccess + " were processed successfully and processing of " + processedFailure + " resulted in failure. " +

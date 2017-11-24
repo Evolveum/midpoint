@@ -21,6 +21,7 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ProgressInformation;
+import com.evolveum.midpoint.model.impl.migrator.Migrator;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -147,6 +148,7 @@ public class Clockwork {
 	@Autowired private TaskManager taskManager;
 	@Autowired private OperationalDataManager metadataManager;
 	@Autowired private ContextFactory contextFactory;
+	@Autowired private Migrator migrator;
 
 	@Autowired(required = false)
 	private HookRegistry hookRegistry;
@@ -736,6 +738,7 @@ public class Clockwork {
 		auditFinalExecution(context, task, result);
 		logFinalReadable(context, task, result);
 		recordOperationExecution(context, null, task, result);
+		migrator.executeAfterOperationMigration(context, result);
 
 		HookOperationMode opmode = personaProcessor.processPersonaChanges(context, task, result);
 		if (opmode == HookOperationMode.BACKGROUND) {

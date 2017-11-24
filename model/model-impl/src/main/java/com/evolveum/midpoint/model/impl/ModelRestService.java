@@ -55,6 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.jetbrains.annotations.NotNull;
@@ -101,7 +102,9 @@ public class ModelRestService {
 	public static final String OPERATION_GET_LOG_FILE_CONTENT = CLASS_DOT + "getLogFileContent";
 	public static final String OPERATION_GET_LOG_FILE_SIZE = CLASS_DOT + "getLogFileSize";
 	public static final String OPERATION_VALIDATE_VALUE = CLASS_DOT +  "validateValue";
+	public static final String OPERATION_VALIDATE_VALUE_RPC = CLASS_DOT +  "validateValueRpc";
 	public static final String OPERATION_GENERATE_VALUE = CLASS_DOT +  "generateValue";
+	public static final String OPERATION_GENERATE_VALUE_RPC = CLASS_DOT +  "generateValueRpc";
 
 	private static final String CURRENT = "current";
 	private static final String VALIDATE = "validate";
@@ -138,12 +141,41 @@ public class ModelRestService {
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GENERATE_VALUE);
 
 		Class<O> clazz = ObjectTypes.getClassFromRestType(type);
+
+		Response response = null;
+		try {
+			PrismObject<O> object = model.getObject(clazz, oid, null, task, parentResult);
+			response = generateValue(object, policyItemsDefinition, task, parentResult);
+		} catch (Exception ex) {
+			parentResult.computeStatus();
+			response = RestServiceUtil.handleException(parentResult, ex);
+
+		}
+
+		finishRequest(task);
+		return response;
+	
+	}
+	
+	@POST
+	@Path("/rpc/generate")
+	@Consumes({"application/xml", "application/json", "application/yaml"})
+	@Produces({"application/xml", "application/json", "application/yaml"})
+	public <O extends ObjectType> Response generateValue(PolicyItemsDefinitionType policyItemsDefinition,
+			@Context MessageContext mc) {
+
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GENERATE_VALUE_RPC);
+
+		return generateValue(null, policyItemsDefinition, task, parentResult);
+	}
+	
+	private <O extends ObjectType> Response generateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task, OperationResult parentResult){
 		Response response;
 		if (policyItemsDefinition == null) {
-			response = createNoPolicyItemsDefinitionsResponse(parentResult);
+			response = createBadPolicyItemsDefinitionResponse("Policy items definition must not be null", parentResult);
 		} else {
 			try {
-				PrismObject<O> object = model.getObject(clazz, oid, null, task, parentResult);
 				modelInteraction.generateValue(object, policyItemsDefinition, task, parentResult);
 				parentResult.computeStatusIfUnknown();
 
@@ -153,25 +185,15 @@ public class ModelRestService {
 					response = RestServiceUtil.createResponse(Response.Status.BAD_REQUEST, parentResult, parentResult);
 				}
 
-//				ResponseBuilder responseBuilder = Response.ok(policyItemsDefinition);
-//				response = responseBuilder.build();
-
 			} catch (Exception ex) {
 				parentResult.computeStatus();
 				response = RestServiceUtil.handleException(parentResult, ex);
 			}
 		}
-		finishRequest(task);
 		return response;
 	}
 
-	private Response createNoPolicyItemsDefinitionsResponse(OperationResult parentResult) {
-		LOGGER.error("Policy items definition must not be null");
-		parentResult.recordFatalError("Policy items definition must not be null");
-		return Response.status(Status.BAD_REQUEST).entity(parentResult).build();
-	}
-
-	@POST
+		@POST
 	@Path("/{type}/{oid}/validate")
 	@Consumes({"application/xml", "application/json", "application/yaml"})
 	@Produces({"application/xml", "application/json", "application/yaml"})
@@ -181,12 +203,51 @@ public class ModelRestService {
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_VALIDATE_VALUE);
 
 		Class<O> clazz = ObjectTypes.getClassFromRestType(type);
+		Response response = null;
+		try {
+			PrismObject<O> object = model.getObject(clazz, oid, null, task, parentResult);
+			response = validateValue(object, policyItemsDefinition, task, parentResult);
+		} catch (Exception ex) {
+			parentResult.computeStatus();
+			response = RestServiceUtil.handleException(parentResult, ex);
+		}
+		
+		finishRequest(task);
+		return response;
+	}
+	
+	@POST
+	@Path("/rpc/validate")
+	@Consumes({"application/xml", "application/json", "application/yaml"})
+	@Produces({"application/xml", "application/json", "application/yaml"})
+	public <O extends ObjectType> Response validateValue(PolicyItemsDefinitionType policyItemsDefinition, @Context MessageContext mc) {
+
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_VALIDATE_VALUE);
+
+		Response response = validateValue(null, policyItemsDefinition, task, parentResult);
+		finishRequest(task);
+		return response;
+		
+	}
+	
+	private <O extends ObjectType> Response validateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task, OperationResult parentResult) {
 		Response response;
 		if (policyItemsDefinition == null) {
-			response = createNoPolicyItemsDefinitionsResponse(parentResult);
-		} else {
+			response = createBadPolicyItemsDefinitionResponse("Policy items definition must not be null", parentResult);
+			finishRequest(task);
+			return response;
+			
+		}
+		
+		if (CollectionUtils.isEmpty(policyItemsDefinition.getPolicyItemDefinition())) {
+			response = createBadPolicyItemsDefinitionResponse("No definitions for items", parentResult);
+			finishRequest(task);
+			return response;
+		}
+		
+		
 			try {
-				PrismObject<O> object = model.getObject(clazz, oid, null, task, parentResult);
 				modelInteraction.validateValue(object, policyItemsDefinition, task, parentResult);
 
 				parentResult.computeStatusIfUnknown();
@@ -202,12 +263,17 @@ public class ModelRestService {
 				parentResult.computeStatus();
 				response = RestServiceUtil.handleException(parentResult, ex);
 			}
-		}
+		
 
-		finishRequest(task);
 		return response;
 	}
 
+	private Response createBadPolicyItemsDefinitionResponse(String message, OperationResult parentResult) {
+		LOGGER.error(message);
+		parentResult.recordFatalError(message);
+		return Response.status(Status.BAD_REQUEST).entity(parentResult).build();
+	}
+	
 	@GET
 	@Path("/users/{id}/policy")
 	public Response getValuePolicyForUser(@PathParam("id") String oid, @Context MessageContext mc) {

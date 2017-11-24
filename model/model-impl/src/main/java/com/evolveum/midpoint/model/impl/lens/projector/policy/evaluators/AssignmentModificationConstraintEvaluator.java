@@ -50,6 +50,7 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
  * @author semancik
@@ -72,7 +73,8 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 		if (!ctx.isDirect ||
 				!operationMatches(constraint, ctx.inPlus, ctx.inZero, ctx.inMinus) ||
 				!relationMatches(constraint, ctx) ||
-				!pathsMatch(constraint, ctx)) {
+				!pathsMatch(constraint, ctx) ||
+				!expressionPasses(constraint, ctx, result)) {
 			return null;
 		}
 		// TODO check modifications
@@ -141,6 +143,8 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 	private <F extends FocusType> boolean pathsMatch(AssignmentModificationPolicyConstraintType constraint,
 			AssignmentPolicyRuleEvaluationContext<F> ctx) throws SchemaException {
 
+		boolean exactMatch = isTrue(constraint.isExactPathMatch());
+
 		// hope this is correctly filled in
 		if (constraint.getItem().isEmpty()) {
 			if (ctx.inPlus || ctx.inMinus) {
@@ -154,7 +158,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 			ItemPath itemPath = path.getItemPath();
 			if (ctx.inPlus && !pathMatches(ctx.evaluatedAssignment.getAssignmentType(false), itemPath) ||
 					ctx.inMinus && !pathMatches(ctx.evaluatedAssignment.getAssignmentType(true), itemPath) ||
-					ctx.inZero && !pathMatches(ctx.evaluatedAssignment.getAssignmentIdi().getSubItemDeltas(), itemPath)) {
+					ctx.inZero && !pathMatches(ctx.evaluatedAssignment.getAssignmentIdi().getSubItemDeltas(), itemPath, exactMatch)) {
 				return false;
 			}
 		}
@@ -165,13 +169,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 		return assignment.asPrismContainerValue().containsItem(path, false);
 	}
 
-	private boolean pathMatches(Collection<? extends ItemDelta<?, ?>> deltas, ItemPath path) {
-		for (ItemDelta<?, ?> delta : emptyIfNull(deltas)) {
-			// TODO what about changes like extension/cities[2]/name (in delta) vs. extension/cities/name (in spec)
-			if (path.isSubPathOrEquivalent(delta.getPath().tail(2))) {
-				return true;
-			}
-		}
-		return false;
+	private boolean pathMatches(Collection<? extends ItemDelta<?, ?>> deltas, ItemPath path, boolean exactMatch) {
+		return ItemDelta.pathMatches(emptyIfNull(deltas), path, 2, exactMatch);
 	}
 }

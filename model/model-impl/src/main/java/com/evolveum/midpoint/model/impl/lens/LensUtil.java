@@ -80,14 +80,13 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
-import static java.util.Collections.singleton;
+import static java.util.Collections.emptySet;
 
 /**
  * @author semancik
@@ -803,20 +802,37 @@ public class LensUtil {
 		if (itemDelta.getEstimatedOldValues() != null) {
 			return;
 		}
-		if (ctx.getObjectOld() != null) {
-			Item<PrismValue, ItemDefinition> itemOld = ctx.getObjectOld().findItem(itemDelta.getPath());
+		if (ctx.getObjectOld() == null) {
+			return;
+		}
+		Item<PrismValue, ItemDefinition> itemOld = ctx.getObjectOld().findItem(itemDelta.getPath());
+		if (itemOld != null) {
+			//noinspection unchecked
+			itemDelta.setEstimatedOldValues((Collection) PrismValue.cloneCollection(itemOld.getValues()));
+			return;
+		}
+		// Here we need to distinguish whether the item is missing because it is not filled in (e.g. familyName in MID-4237)
+		// or because it was not loaded (as for attributes or associations).
+		if (!isItemLoadable(ctx.getObjectOld(), itemDelta.getPath())) {
+			itemDelta.setEstimatedOldValues(emptySet());
+			return;
+		}
+		// get the old data from current object. Still better estimate than nothing
+		if (ctx.getObjectCurrent() != null) {
+			itemOld = ctx.getObjectCurrent().findItem(itemDelta.getPath());
 			if (itemOld != null) {
+				//noinspection unchecked
 				itemDelta.setEstimatedOldValues((Collection) PrismValue.cloneCollection(itemOld.getValues()));
-			} else {
-				// get the old data from current object. Still better estimate than nothing
-				if (ctx.getObjectCurrent() != null) {
-					 itemOld = ctx.getObjectCurrent().findItem(itemDelta.getPath());
-					 if (itemOld != null) {
-						 itemDelta.setEstimatedOldValues((Collection) PrismValue.cloneCollection(itemOld.getValues()));
-					 }
-				}
 			}
 		}
+	}
+
+	// a heuristic by now
+	private static <O extends ObjectType> boolean isItemLoadable(PrismObject<O> object, ItemPath path) {
+		if (!(object.asObjectable() instanceof ShadowType)) {
+			return false;
+		}
+		return path.startsWithName(ShadowType.F_ATTRIBUTES) || path.startsWithName(ShadowType.F_ASSOCIATION);
 	}
 
 	public static <O extends ObjectType> void setDeltaOldValue(LensElementContext<O> ctx, ObjectDelta<O> objectDelta) {

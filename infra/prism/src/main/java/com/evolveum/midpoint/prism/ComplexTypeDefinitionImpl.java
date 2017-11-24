@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.path.ParentPathSegment;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -249,7 +250,19 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 				}
             }
         }
-		return found;
+        if (found != null) {
+	        return found;
+        }
+		if (isXsdAnyMarker()) {
+			SchemaRegistry schemaRegistry = getSchemaRegistry();
+			if (schemaRegistry != null) {
+				ItemDefinition def = schemaRegistry.findItemDefinitionByElementName(firstName);
+				if (def != null) {
+					return (ID) def.findItemDefinition(rest, clazz);
+				}
+			}
+		}
+		return null;
 	}
 	//endregion
 

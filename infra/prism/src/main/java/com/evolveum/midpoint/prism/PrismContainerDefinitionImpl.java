@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
@@ -25,15 +24,14 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -202,48 +200,24 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     @Override
 	public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest, @NotNull Class<ID> clazz) {
 
-		// we need to be compatible with older versions..soo if the path does
-		// not contains qnames with namespaces defined (but the prefix was
-		// specified) match definition according to the local name
-        if (StringUtils.isEmpty(firstName.getNamespaceURI())) {
-        	for (ItemDefinition def : getDefinitions()){
-        		if (QNameUtil.match(firstName, def.getName())){
-        			return (ID) def.findItemDefinition(rest, clazz);
-        		}
-        	}
-        }
+	    for (ItemDefinition def : getDefinitions()) {
+		    if (QNameUtil.match(firstName, def.getName())) {
+			    return (ID) def.findItemDefinition(rest, clazz);
+		    }
+	    }
 
-        for (ItemDefinition def : getDefinitions()) {
-            if (firstName.equals(def.getName())) {
-                return (ID) def.findItemDefinition(rest, clazz);
-            }
+        if (complexTypeDefinition != null && complexTypeDefinition.isXsdAnyMarker()) {
+	        SchemaRegistry schemaRegistry = getSchemaRegistry();
+	        if (schemaRegistry != null) {
+		        ItemDefinition def = schemaRegistry.findItemDefinitionByElementName(firstName);
+		        if (def != null) {
+			        return (ID) def.findItemDefinition(rest, clazz);
+		        }
+	        }
         }
-
-//        if (isRuntimeSchema()) {
-//            return findRuntimeItemDefinition(firstName, rest, clazz);
-//        }
 
         return null;
     }
-
-//    @Override
-//	public <T> PrismPropertyDefinition<T> findPropertyDefinition(ItemPath path) {
-//        while (!path.isEmpty() && !(path.first() instanceof NameItemPathSegment)) {
-//    		path = path.rest();
-//    	}
-//        if (path.isEmpty()) {
-//            throw new IllegalArgumentException("Property path is empty while searching for property definition in " + this);
-//        }
-//        QName firstName = ((NameItemPathSegment)path.first()).getName();
-//        if (path.size() == 1) {
-//            return findPropertyDefinition(firstName);
-//        }
-//        PrismContainerDefinition pcd = findContainerDefinition(firstName);
-//        if (pcd == null) {
-//            throw new IllegalArgumentException("There is no " + firstName + " subcontainer in " + this);
-//        }
-//        return pcd.findPropertyDefinition(path.rest());
-//    }
 
     /**
      * Returns set of property definitions.

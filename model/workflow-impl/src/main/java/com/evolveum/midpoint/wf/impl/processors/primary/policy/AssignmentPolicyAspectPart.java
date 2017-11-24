@@ -293,8 +293,8 @@ public class AssignmentPolicyAspectPart {
 		instruction.setObjectRef(modelContext, result);
 		instruction.setTargetRef(createObjectRef(target), result);
 
-		String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
-		instruction.setTaskName("Approval " + andExecuting + "of: " + processNameInDefaultLocale);
+		String andExecution = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
+		instruction.setTaskName("Approval " + andExecution + "of: " + processNameInDefaultLocale);
 		instruction.setProcessInstanceName(processNameInDefaultLocale);
 		instruction.setLocalizableProcessInstanceName(processName);
 

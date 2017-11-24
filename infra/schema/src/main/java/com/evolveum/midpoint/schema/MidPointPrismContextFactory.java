@@ -71,6 +71,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		if (InternalsConfig.isPrismMonitoring()) {
 			context.setMonitor(new InternalMonitor());
 		}
+		context.setParsingMigrator(new MidpointParsingMigrator());
 		return context;
 	}
 

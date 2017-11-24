@@ -91,7 +91,7 @@ public class ObjectPolicyAspectPart {
 		LOGGER.trace("extractObjectBasedInstructions: triggeredApprovalActionRules:\n{}", debugDumpLazily(triggeredApprovalActionRules));
 
 		if (!triggeredApprovalActionRules.isEmpty()) {
-			addObjectOidIfNeeded(focusDelta, ctx.modelContext);
+			generateObjectOidIfNeeded(focusDelta, ctx.modelContext);
 			ProcessSpecifications processSpecifications = ProcessSpecifications.createFromRules(triggeredApprovalActionRules, prismContext);
 			LOGGER.trace("Process specifications:\n{}", debugDumpLazily(processSpecifications));
 			for (ProcessSpecification processSpecificationEntry : processSpecifications.getSpecifications()) {
@@ -99,7 +99,7 @@ public class ObjectPolicyAspectPart {
 					break;  // we're done
 				}
 				WfProcessSpecificationType processSpecification = processSpecificationEntry.basicSpec;
-				List<ObjectDelta<T>> deltasToApprove = getDeltasToApprove(focusDelta, processSpecification);
+				List<ObjectDelta<T>> deltasToApprove = extractDeltasToApprove(focusDelta, processSpecification);
 				LOGGER.trace("Deltas to approve:\n{}", debugDumpLazily(deltasToApprove));
 				if (deltasToApprove.isEmpty()) {
 					continue;
@@ -118,7 +118,7 @@ public class ObjectPolicyAspectPart {
 			ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
 			if (builder.addPredefined(object, SchemaConstants.ORG_OWNER, result)) {
 				LOGGER.trace("Added default approval action, as no explicit one was found");
-				addObjectOidIfNeeded(focusDelta, ctx.modelContext);
+				generateObjectOidIfNeeded(focusDelta, ctx.modelContext);
 				List<ObjectDelta<T>> deltasToApprove = singletonList(focusDelta.clone());
 				focusDelta.clear();
 				buildSchemaForObject(requester, instructions, ctx, result, deltasToApprove, builder);
@@ -126,7 +126,7 @@ public class ObjectPolicyAspectPart {
 		}
 	}
 
-	private <T extends ObjectType> void addObjectOidIfNeeded(ObjectDelta<T> focusDelta, ModelContext<T> modelContext) {
+	private <T extends ObjectType> void generateObjectOidIfNeeded(ObjectDelta<T> focusDelta, ModelContext<T> modelContext) {
 		if (focusDelta.isAdd()) {
 			if (focusDelta.getObjectToAdd().getOid() == null) {
 				String newOid = OidUtil.generateOid();
@@ -146,15 +146,15 @@ public class ObjectPolicyAspectPart {
 		}
 	}
 
-	private <T extends ObjectType> List<ObjectDelta<T>> getDeltasToApprove(ObjectDelta<T> focusDelta, WfProcessSpecificationType processSpecification)
+	private <T extends ObjectType> List<ObjectDelta<T>> extractDeltasToApprove(ObjectDelta<T> focusDelta, WfProcessSpecificationType processSpecification)
 			throws SchemaException {
 		List<ObjectDelta<T>> rv = new ArrayList<>();
 		if (processSpecification == null || processSpecification.getDeltaFrom().isEmpty()) {
-			return addWholeDelta(focusDelta, rv);
+			return takeWholeDelta(focusDelta, rv);
 		}
 		for (DeltaSourceSpecificationType sourceSpec : processSpecification.getDeltaFrom()) {
 			if (sourceSpec == null || sourceSpec.getItem().isEmpty() && sourceSpec.getItemValue() == null) {
-				return addWholeDelta(focusDelta, rv);
+				return takeWholeDelta(focusDelta, rv);
 			} else if (!sourceSpec.getItem().isEmpty()) {
 				ObjectDelta.FactorOutResultSingle<T> out = focusDelta.factorOut(ItemPathType.toItemPathList(sourceSpec.getItem()), false);
 				addIgnoreNull(rv, out.offspring);
@@ -168,7 +168,7 @@ public class ObjectPolicyAspectPart {
 	}
 
 	@NotNull
-	private <T extends ObjectType> List<ObjectDelta<T>> addWholeDelta(ObjectDelta<T> focusDelta, List<ObjectDelta<T>> rv) {
+	private <T extends ObjectType> List<ObjectDelta<T>> takeWholeDelta(ObjectDelta<T> focusDelta, List<ObjectDelta<T>> rv) {
 		rv.add(focusDelta.clone());
 		focusDelta.clear();
 		return rv;

@@ -29,8 +29,17 @@ import org.apache.wicket.model.IModel;
  */
 public abstract class AjaxIconButton extends AjaxLink<String> {
 
+    private IModel<String> title;
+
     public AjaxIconButton(String id, IModel<String> icon, IModel<String> title) {
         super(id, icon);
+
+        this.title = title;
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
 
         if (title != null) {
             add(AttributeModifier.replace("title", title));
@@ -39,13 +48,16 @@ public abstract class AjaxIconButton extends AjaxLink<String> {
 
     @Override
     public void onComponentTagBody(final MarkupStream markupStream, final ComponentTag openTag) {
+        StringBuilder sb = new StringBuilder();
+
         String icon = getModelObject();
         if (StringUtils.isNotEmpty(icon)) {
-            replaceComponentTagBody(markupStream, openTag, "<i class=\"" + icon + "\"></i>");
-            return;
+            sb.append("<i class=\"").append(icon).append("\"></i>");
+        } else {
+            sb.append(title.getObject());
         }
 
-        super.onComponentTagBody(markupStream, openTag);
+        replaceComponentTagBody(markupStream, openTag, sb.toString());
     }
 
     @Override

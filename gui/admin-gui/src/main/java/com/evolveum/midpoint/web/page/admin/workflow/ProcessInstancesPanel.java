@@ -1,13 +1,16 @@
 package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.GenericColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
@@ -39,6 +42,7 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObje
 import static com.evolveum.midpoint.web.page.admin.workflow.ProcessInstancesPanel.View.FULL_LIST;
 import static com.evolveum.midpoint.web.page.admin.workflow.ProcessInstancesPanel.View.TASKS_FOR_PROCESS;
 import static com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto.*;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author Kate
@@ -147,6 +151,12 @@ public class ProcessInstancesPanel extends BasePanel {
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
 				AuthorizationConstants.AUTZ_UI_TASK_URL)) {
 			return new LinkColumn<ProcessInstanceDto>(createStringResource("MyRequestsPanel.name"), "name") {
+
+				@Override
+				protected IModel createLinkModel(IModel<ProcessInstanceDto> rowModel) {
+					return createProcessNameModel(rowModel);
+				}
+
 				@Override
 				public void onClick(AjaxRequestTarget target, IModel<ProcessInstanceDto> rowModel) {
 					ProcessInstanceDto piDto = rowModel.getObject();
@@ -154,8 +164,17 @@ public class ProcessInstancesPanel extends BasePanel {
 				}
 			};
 		} else {
-			return new PropertyColumn<>(createStringResource("MyRequestsPanel.name"), F_NAME);
+			return new GenericColumn<>(createStringResource("MyRequestsPanel.name"), rowModel -> createProcessNameModel(rowModel));
 		}
+	}
+
+	private IModel<String> createProcessNameModel(IModel<ProcessInstanceDto> processInstanceDtoModel) {
+		return new ReadOnlyModel<>(() -> {
+			ProcessInstanceDto processInstanceDto = processInstanceDtoModel.getObject();
+			return defaultIfNull(
+					WfGuiUtil.getLocalizedProcessName(processInstanceDto.getWorkflowContext(), ProcessInstancesPanel.this),
+					processInstanceDto.getName());
+		});
 	}
 
 	@NotNull

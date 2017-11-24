@@ -85,6 +85,7 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
         event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         if (requester != null) {
 			event.setInitiatorRef(ObjectTypeUtil.createObjectRef(requester));
+			// attorney does not need to be set here (for now)
 		}
 		event.setBusinessContext(((LensContext) modelContext).getRequestBusinessContext());
         wfContext.getEvent().add(event);

@@ -163,7 +163,15 @@ public class AssignmentsUtil {
     }
 
     public static String createAssignmentStatusClassModel(final ContainerValueWrapper<AssignmentType> assignment) {
-        return assignment.getStatus().name().toLowerCase();
+        switch (assignment.getStatus()) {
+            case ADDED:
+                return "success";
+            case DELETED:
+                return "danger";
+            case NOT_CHANGED:
+            default:
+                return null;
+        }
     }
 
     public static IModel<String> createAssignmentStatusClassModel(final UserDtoStatus model) {

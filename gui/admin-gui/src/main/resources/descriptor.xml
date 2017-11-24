@@ -33,4 +33,5 @@
     <packagesToScan>com.evolveum.midpoint.web.page.error</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.forgetpassword</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.self</packagesToScan>
+    <packagesToScan>com.evolveum.midpoint.web.component.prism.show</packagesToScan>
 </descriptor>

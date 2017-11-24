@@ -59,7 +59,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 
-@ContextConfiguration(locations = { "classpath:ctx-rest-test.xml" })
+@ContextConfiguration(locations = { "classpath:ctx-rest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class RestServiceInitializer {
 

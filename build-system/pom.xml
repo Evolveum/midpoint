@@ -45,17 +45,17 @@
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>EEE, d MMM yyyy HH:mm:ss Z</maven.build.timestamp.format>
         <!-- Dependencies global versions -->
-        <commons.io.version>2.0.1</commons.io.version>
+        <commons.io.version>2.6</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
-        <commons.lang3.version>3.1</commons.lang3.version>
+        <commons.lang3.version>3.7</commons.lang3.version>
         <commons.cli>1.2</commons.cli>
-        <cxf.version>3.1.6</cxf.version>
-        <cxf-xjc.version>3.0.5</cxf-xjc.version>
+        <cxf.version>3.2.1</cxf.version>
+        <cxf-xjc.version>3.2.0</cxf-xjc.version>
         <wss4j.version>2.1.5</wss4j.version>
         <dbunit.version>2.4.7</dbunit.version>
-        <jaxb-api.version>2.2.9</jaxb-api.version>
-        <jaxb.version>2.2.10-b140310.1920</jaxb.version>
-        <jaxb-xjc.version>2.2.10-b140310.1920</jaxb-xjc.version>
+        <jaxb-api.version>2.2.10</jaxb-api.version>
+        <jaxb.version>2.2.10</jaxb.version>
+        <jaxb-xjc.version>2.2.10</jaxb-xjc.version>
         <junit.version>4.8.2</junit.version>
         <opendj.version>2.6.2</opendj.version>
         <mockito.version>1.10.8</mockito.version>
@@ -88,9 +88,10 @@
         <wro4j.version>1.8.0</wro4j.version>
         <jackson.version>2.8.9</jackson.version>
         <snakeyaml.version>1.15</snakeyaml.version>
-        <surefire.version>2.20</surefire.version>
+        <surefire.version>2.20.1</surefire.version>
         <reflections.version>0.9.11</reflections.version>
         <guava.version>20.0</guava.version>
+        <jcommander.version>1.72</jcommander.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -306,15 +307,15 @@
                 <artifactId>jaxb-impl</artifactId>
                 <version>${jaxb.version}</version>
             </dependency>
+             <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-core</artifactId>
+                <version>${jaxb.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.sun.xml.bind</groupId>
                 <artifactId>jaxb-xjc</artifactId>
                 <version>${jaxb-xjc.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.xml.bind</groupId>
-                <artifactId>jaxb-core</artifactId>
-                <version>${jaxb.version}</version>
             </dependency>
             <dependency>
 	            <groupId>net.sourceforge.ccxjc</groupId>
@@ -448,7 +449,7 @@
             <dependency>
                 <groupId>javax.ws.rs</groupId>
                 <artifactId>javax.ws.rs-api</artifactId>
-                <version>2.0</version>
+                <version>2.1</version>
             </dependency>
             <dependency>
                 <groupId>net.sf.saxon</groupId>
@@ -981,7 +982,7 @@
             <dependency>
 				<groupId>org.apache.poi</groupId>
 				<artifactId>poi</artifactId>
-				<version>3.10.1</version>
+				<version>3.17</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
@@ -1205,6 +1206,12 @@
 	            <artifactId>ionicons</artifactId>
 	            <version>3.0.0</version>
 	        </dependency>
+
+            <dependency>
+                <groupId>com.beust</groupId>
+                <artifactId>jcommander</artifactId>
+                <version>${jcommander.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -1263,7 +1270,8 @@
 					<maxmem>768m</maxmem>
 					<showDeprecation>true</showDeprecation>
 					<showWarnings>true</showWarnings>
-					<!--verbose>true</verbose> <showWarnings>false</showWarnings -->
+					<verbose>true</verbose> 
+					<!--<showWarnings>false</showWarnings -->
 				</configuration>
 			</plugin>
 			<plugin>

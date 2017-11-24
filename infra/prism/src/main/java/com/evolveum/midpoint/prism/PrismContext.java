@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
+import com.evolveum.midpoint.prism.marshaller.ParsingMigrator;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -120,6 +121,11 @@ public interface PrismContext {
 	default <T extends Objectable> PrismObject<T> parseObject(String dataString) throws SchemaException {
 		return parserFor(dataString).parse();
 	}
+
+	ParsingMigrator getParsingMigrator();
+
+	void setParsingMigrator(ParsingMigrator migrator);
+
 	//endregion
 
 	//region Adopt methods

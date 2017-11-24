@@ -30,6 +30,8 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.DescriptorLoader;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -72,15 +74,18 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
 		repoAddObjectFromFile(USER_EMPTY_FILE, true, initResult);
 
 		importObjectFromFile(ROLE_MAPMAKER_FILE);
+		
+		MidPointApplication application = new MidPointApplication();
+		new DescriptorLoader().loadData(application);
 	}
 
 	@Test
 	public void test000PreparationAndSanity() throws Exception {
-		final String TEST_NAME = "test100GetResourceDummy";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+		final String TEST_NAME = "test000PreparationAndSanity";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractInitializedGuiIntegrationTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         assertNotNull("No model service", modelService);
@@ -92,7 +97,7 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-		IntegrationTestTools.display(result);
+		display(result);
 		TestUtil.assertSuccess(result);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);

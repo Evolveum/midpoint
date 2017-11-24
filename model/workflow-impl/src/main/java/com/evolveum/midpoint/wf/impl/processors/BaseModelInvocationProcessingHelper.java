@@ -16,13 +16,17 @@
 
 package com.evolveum.midpoint.wf.impl.processors;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -32,6 +36,7 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import org.joda.time.format.DateTimeFormat;
@@ -42,6 +47,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Locale;
+
+import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
 
 /**
  * Helper class intended to facilitate processing of model invocation.
@@ -58,15 +65,18 @@ public class BaseModelInvocationProcessingHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseModelInvocationProcessingHelper.class);
 
-    @Autowired
-    protected WfTaskController wfTaskController;
-
-    @Autowired
-    private WfTaskUtil wfTaskUtil;
+    @Autowired protected WfTaskController wfTaskController;
+	@Autowired private WfTaskUtil wfTaskUtil;
+	@Autowired private LocalizationService localizationService;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
+
+	private static final String APPROVING_AND_EXECUTING_KEY = "ApprovingAndExecuting.";
+	private static final String CREATION_OF_KEY = "CreationOf";
+	private static final String DELETION_OF_KEY = "DeletionOf";
+	private static final String CHANGE_OF_KEY = "ChangeOf";
 
 	/**
      * Creates a root job creation instruction.
@@ -87,7 +97,10 @@ public class BaseModelInvocationProcessingHelper {
             instruction = WfTaskCreationInstruction.createEmpty(changeProcessor);
         }
 
-        instruction.setTaskName(determineRootTaskName(modelContext));
+	    LocalizableMessage rootTaskName = determineRootTaskName(modelContext);
+	    String rootTaskNameInDefaultLocale = localizationService.translate(rootTaskName, Locale.getDefault());
+	    instruction.setLocalizableTaskName(rootTaskName);
+	    instruction.setTaskName(rootTaskNameInDefaultLocale);
         instruction.setTaskObject(determineRootTaskObject(modelContext));
         instruction.setTaskOwner(taskFromModel.getOwner());
         instruction.setCreateTaskAsWaiting();
@@ -108,29 +121,28 @@ public class BaseModelInvocationProcessingHelper {
      * Determines the root task name (e.g. "Workflow for adding XYZ (started 1.2.2014 10:34)")
      * TODO allow change processor to influence this name
      */
-    private String determineRootTaskName(ModelContext context) {
-
-        String operation;
+    private LocalizableMessage determineRootTaskName(ModelContext<?> context) {
+        String operationKey;
         if (context.getFocusContext() != null && context.getFocusContext().getPrimaryDelta() != null
 				&& context.getFocusContext().getPrimaryDelta().getChangeType() != null) {
             switch (context.getFocusContext().getPrimaryDelta().getChangeType()) {
-				case ADD: operation = "creation of"; break;
-				case DELETE: operation = "deletion of"; break;
-				case MODIFY: operation = "change of"; break;
+				case ADD: operationKey = CREATION_OF_KEY; break;
+				case DELETE: operationKey = DELETION_OF_KEY; break;
+				case MODIFY: operationKey = CHANGE_OF_KEY; break;
 				default: throw new IllegalStateException();
 			}
         } else {
-            operation = "change of";
+            operationKey = CHANGE_OF_KEY;
         }
-        String name = MiscDataUtil.getFocusObjectName(context);
+	    ObjectType focus = MiscDataUtil.getFocusObjectNewOrOld(context);
+	    DateTimeFormatter formatter = DateTimeFormat.forStyle("MM").withLocale(Locale.getDefault());
+	    String time = formatter.print(System.currentTimeMillis());
 
-		DateTimeFormatter formatter = DateTimeFormat.forStyle("MM").withLocale(Locale.getDefault());
-		String time = formatter.print(System.currentTimeMillis());
-
-//        DateFormat dateFormat = DateFormat.getDateTimeInstance();
-//        String time = dateFormat.format(new Date());
-
-        return "Approving and executing " + operation + " " + name + " (started " + time + ")";
+	    return new LocalizableMessageBuilder()
+		        .key(APPROVING_AND_EXECUTING_KEY + operationKey)
+		        .arg(ObjectTypeUtil.createDisplayInformation(asPrismObject(focus), false))
+			    .arg(time)
+		        .build();
     }
 
     /**

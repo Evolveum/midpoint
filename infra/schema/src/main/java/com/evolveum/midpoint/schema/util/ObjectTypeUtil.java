@@ -48,6 +48,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
@@ -796,5 +798,21 @@ public class ObjectTypeUtil {
 						.key(prefix + objectClassName)
 						.fallbackMessage(objectClassName)
 						.build();
+	}
+
+	@NotNull
+	public static <O extends ObjectType> Collection<String> getSubtypeValues(@NotNull PrismObject<O> object) {
+		O o = object.asObjectable();
+		if (o instanceof UserType) {
+			return ((UserType) o).getEmployeeType();
+		} else if (o instanceof RoleType) {
+			return singleton(((RoleType) o).getRoleType());
+		} else if (o instanceof OrgType) {
+			return ((OrgType) o).getOrgType();
+		} else if (o instanceof ServiceType) {
+			return ((ServiceType) o).getServiceType();
+		} else {
+			return emptySet();
+		}
 	}
 }

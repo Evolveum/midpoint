@@ -20,7 +20,7 @@
     <groupId>com.evolveum.midpoint.gui</groupId>
     <artifactId>admin-gui</artifactId>
     <packaging>war</packaging>
-    <version>3.7-SNAPSHOT</version>
+<!--     <version>3.7-SNAPSHOT</version> -->
     <parent>
         <artifactId>gui</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
@@ -106,8 +106,18 @@
                        <goals>
                            <goal>repackage</goal>
                        </goals>
+                       <configuration>
+                           <layoutFactory implementation="com.evolveum.midpoint.tools.layout.MidPointWarLayoutFactory"/>
+                       </configuration>
                    </execution>
                </executions>
+               <dependencies>
+                   <dependency>
+                       <groupId>com.evolveum.midpoint</groupId>
+                       <artifactId>midpoint-war-layout</artifactId>
+                       <version>${project.version}</version>
+                   </dependency>
+               </dependencies>
            </plugin>
        </plugins>
     </build>
@@ -809,7 +819,6 @@
             <dependency>
 				<groupId>org.apache.poi</groupId>
 				<artifactId>poi</artifactId>
-				<version>3.10.1</version>
 			</dependency>
         <dependency>
             <groupId>javax.servlet</groupId>

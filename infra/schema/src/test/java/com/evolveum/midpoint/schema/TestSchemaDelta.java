@@ -398,6 +398,8 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
 		// GIVEN
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
+		String OID = "user-oid-1";
+		user.setOid(OID);
 		ObjectDelta<UserType> addDelta = ObjectDelta.createAddDelta(user);
 
 		// WHEN
@@ -413,6 +415,13 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		assertNotNull("Missing offspring delta", out.offspring);
 		assertEquals("Wrong # of modifications in offspring", 1, out.offspring.getModifications().size());
 		assertEquals("Wrong # of assignments to add", 3, out.offspring.getModifications().iterator().next().getValuesToAdd().size());
+
+		assertDeltaOid(out.remainder, OID);
+		assertDeltaOid(out.offspring, OID);
+	}
+
+	private void assertDeltaOid(ObjectDelta<?> delta, String expectedOid) {
+		assertEquals("Wrong OID in delta: " + delta, expectedOid, delta.getOid());
 	}
 
 	// subtract of single-valued PCV from multivalued one
@@ -423,6 +432,8 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
 		// GIVEN
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
+		String OID = "user-oid-1";
+		user.setOid(OID);
 		ObjectDelta<UserType> addDelta = ObjectDelta.createAddDelta(user);
 
 		// WHEN
@@ -437,6 +448,9 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		assertEquals("Wrong # of remaining assignments", 3, out.remainder.getObjectToAdd().asObjectable().getAssignment().size());
 		assertNotNull("Missing offspring delta", out.offspring);
 		assertEquals("Wrong # of modifications in offspring", 2, out.offspring.getModifications().size());
+
+		assertDeltaOid(out.remainder, OID);
+		assertDeltaOid(out.offspring, OID);
 	}
 
 	@Test
@@ -446,6 +460,8 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
 		// GIVEN
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
+		String OID = "user-oid-1";
+		user.setOid(OID);
 		ObjectDelta<UserType> addDelta = ObjectDelta.createAddDelta(user);
 
 		// WHEN
@@ -459,9 +475,11 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		assertTrue("Remaining delta is not an ADD delta", out.remainder.isAdd());
 		assertEquals("Wrong # of remaining assignments", 0, out.remainder.getObjectToAdd().asObjectable().getAssignment().size());
 		assertEquals("Wrong # of offspring deltas", 3, out.offsprings.size());
+		assertDeltaOid(out.remainder, OID);
 		for (ObjectDelta<UserType> offspring : out.offsprings) {
 			assertEquals("Wrong # of modifications in offspring", 1, offspring.getModifications().size());
 			assertEquals("Wrong # of assignments to add", 1, offspring.getModifications().iterator().next().getValuesToAdd().size());
+			assertDeltaOid(offspring, OID);
 		}
 	}
 
@@ -471,13 +489,14 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		displayTestTile(TEST_NAME);
 
 		// GIVEN
+		String OID = "oid1";
 		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, getPrismContext())
 				.item(UserType.F_ASSIGNMENT)
 						.add(ObjectTypeUtil.createAssignmentTo("oid-r", ObjectTypes.ROLE, getPrismContext()))
 						.delete(new AssignmentType().id(101L), new AssignmentType().id(102L))
 				.item(UserType.F_ASSIGNMENT, 100L, AssignmentType.F_LIFECYCLE_STATE).replace("draft")
 				.item(UserType.F_GIVEN_NAME).replace("bill")
-				.asObjectDeltaCast("oid1");
+				.asObjectDeltaCast(OID);
 
 		// WHEN
 		ObjectDelta.FactorOutResultSingle<UserType> out = delta.factorOut(singleton(new ItemPath(UserType.F_ASSIGNMENT)), true);
@@ -490,7 +509,10 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		assertTrue("Remaining delta is not a MODIFY delta", out.remainder.isModify());
 		assertEquals("Wrong # of remaining modifications", 1, out.remainder.getModifications().size());
 		assertNotNull("Missing offspring delta", out.offspring);
-		assertEquals("Wrong # of modifications in offspring 0", 2, out.offspring.getModifications().size());
+		assertEquals("Wrong # of modifications in offspring", 2, out.offspring.getModifications().size());
+
+		assertDeltaOid(out.remainder, OID);
+		assertDeltaOid(out.offspring, OID);
 	}
 
 	@Test
@@ -499,6 +521,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		displayTestTile(TEST_NAME);
 
 		// GIVEN
+		String OID = "oid1";
 		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, getPrismContext())
 				.item(UserType.F_ASSIGNMENT)
 						.add(ObjectTypeUtil.createAssignmentTo("oid-r", ObjectTypes.ROLE, getPrismContext()))
@@ -507,7 +530,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 				.item(UserType.F_ASSIGNMENT, 100L, AssignmentType.F_DESCRIPTION).replace("descr")
 				.item(UserType.F_ASSIGNMENT, 77L, AssignmentType.F_LIFECYCLE_STATE).replace("active")
 				.item(UserType.F_GIVEN_NAME).replace("bill")
-				.asObjectDeltaCast("oid1");
+				.asObjectDeltaCast(OID);
 
 		// WHEN
 		ObjectDelta.FactorOutResultMulti<UserType> out = delta.factorOutValues(new ItemPath(UserType.F_ASSIGNMENT), true);
@@ -529,5 +552,10 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		// fragile - can be swapped if hashcodes change
 		assertEquals("Wrong # of modifications in offspring 3", 2, out.offsprings.get(3).getModifications().size());
 		assertEquals("Wrong # of modifications in offspring 4", 1, out.offsprings.get(4).getModifications().size());
+
+		assertDeltaOid(out.remainder, OID);
+		for (ObjectDelta<UserType> offspring : out.offsprings) {
+			assertDeltaOid(offspring, OID);
+		}
 	}
 }

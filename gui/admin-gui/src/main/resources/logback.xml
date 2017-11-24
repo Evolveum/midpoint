@@ -62,6 +62,8 @@
     </appender>
     <!-- Appender for profiling purposes -->
 
+    <logger name="org.springframework.boot.SpringApplication" level="INFO"/>
+
     <logger name="ro.isdc.wro.extensions.processor.css.Less4jProcessor" level="ERROR"/>
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
     <logger name="org.hibernate.engine.jdbc.batch.internal.BatchingBatch" level="OFF"/>

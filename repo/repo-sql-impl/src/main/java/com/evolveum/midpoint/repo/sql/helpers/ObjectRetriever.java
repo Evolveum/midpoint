@@ -482,12 +482,13 @@ public class ObjectRetriever {
             // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
 			ParsingContext parsingContext = ParsingContext.forMode(XNodeProcessorEvaluationMode.COMPAT);
             prismObject = prismContext.parserFor(xml).context(parsingContext).parse();
-			// TODO enable if needed
-//			if (parsingContext.hasWarnings()) {
+			if (parsingContext.hasWarnings()) {
+				LOGGER.warn("Object {} parsed with {} warnings", ObjectTypeUtil.toShortString(prismObject), parsingContext.getWarnings().size());
+				// TODO enable if needed
 //				for (String warning : parsingContext.getWarnings()) {
 //					operationResult.createSubresult("parseObject").recordWarning(warning);
 //				}
-//			}
+			}
         } catch (SchemaException | RuntimeException | Error e) {
         	// This is a serious thing. We have corrupted XML in the repo. This may happen even
         	// during system init. We want really loud and detailed error here.

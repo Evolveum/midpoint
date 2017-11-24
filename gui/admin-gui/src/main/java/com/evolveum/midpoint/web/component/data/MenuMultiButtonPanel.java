@@ -18,27 +18,19 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.MenuDividerPanel;
-import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by honchar
- *
+ * <p>
  * todo rewrite
  */
 public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPanel<T> {
+
     private static final String ID_INLINE_MENU_PANEL = "inlineMenuPanel";
     private static final String ID_MENU_ITEM_BODY = "menuItemBody";
     private static final String ID_MENU_BUTTON_CONTAINER = "menuButtonContainer";
@@ -52,37 +44,39 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
         super.initLayout();
 
         // wtf, magic numbers, lots of css ??
-        InlineMenu inlineMenu = new InlineMenu(ID_INLINE_MENU_PANEL, menuItemsModel){
+        InlineMenu inlineMenu = new InlineMenu(ID_INLINE_MENU_PANEL, menuItemsModel) {
+
             @Override
-            protected String getIconClass(){
+            protected String getIconClass() {
                 return "fa fa-fw fa-ellipsis-h";
             }
-           @Override
-            protected String getAdditionalButtonClass(){
+
+            @Override
+            protected String getAdditionalButtonClass() {
                 return "btn btn-default btn-xs";
             }
 
-           @Override
-           protected String getMenuItemContainerClass(){
-               return "none";
+            @Override
+            protected String getMenuItemContainerClass() {
+                return "none";
             }
 
-           @Override
-           protected String getMenuItemButtonStyle(){
-               return "";
+            @Override
+            protected String getMenuItemButtonStyle() {
+                return "";
             }
 
-           @Override
-           protected String getMenuItemContainerStyle(){
-               return "margin-left: -40px; margin-bottom: -1px; list-style: none;";
+            @Override
+            protected String getMenuItemContainerStyle() {
+                return "margin-left: -40px; margin-bottom: -1px; list-style: none;";
             }
 
         };
-        inlineMenu.add(new VisibleEnableBehaviour(){
-           @Override
-            public boolean isVisible(){
-               return !(numberOfButtons < 2);
-           }
+        inlineMenu.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return !(numberOfButtons < 2);
+            }
         });
         add(inlineMenu);
 

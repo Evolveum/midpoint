@@ -23,14 +23,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public class EnableBehaviour extends VisibleEnableBehaviour {
 
-	@NotNull private final SerializableBooleanProducer producer;
+	@NotNull private final SerializableSupplier<Boolean> producer;
 
-	public EnableBehaviour(@NotNull SerializableBooleanProducer producer) {
+	public EnableBehaviour(@NotNull SerializableSupplier<Boolean> producer) {
 		this.producer = producer;
 	}
 
 	@Override
 	public boolean isEnabled() {
-		return producer.run();
+		return producer.get();
 	}
 }

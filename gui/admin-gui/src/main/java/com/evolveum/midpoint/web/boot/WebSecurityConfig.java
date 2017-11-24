@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.boot;
 
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.security.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,6 +49,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private AuthenticationProvider authenticationProvider;
+    @Autowired
+    private MidPointGuiAuthorizationEvaluator accessDecisionManager;
 
     @Value("${security.enable-csrf:true}")
     private boolean csrfEnabled;
@@ -61,8 +64,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public MidPointGuiAuthorizationEvaluator accessDecisionManager(SecurityEnforcer securityEnforcer,
-                                                                   SecurityContextManager securityContextManager) {
-        return new MidPointGuiAuthorizationEvaluator(securityEnforcer, securityContextManager);
+                                                                   SecurityContextManager securityContextManager,
+                                                                   TaskManager taskManager) {
+        return new MidPointGuiAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager);
     }
 
     @Profile("sso")
@@ -96,6 +100,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
+                .accessDecisionManager(accessDecisionManager)
                 .antMatchers("/j_spring_security_check",
                         "/spring_security_login",
                         "/login",
@@ -124,13 +129,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .successHandler(authenticationSuccessHandler()).permitAll();
 
         http.exceptionHandling()
-                .authenticationEntryPoint(wicketAuthenticationEntryPoint());
+                .authenticationEntryPoint(wicketAuthenticationEntryPoint())
+                .accessDeniedHandler(accessDeniedHandler());
 
         if (!csrfEnabled) {
             http.csrf().disable();
         }
 
         http.headers().disable();
+    }
+
+    @Bean
+    public MidPointAccessDeniedHandler accessDeniedHandler() {
+        return new MidPointAccessDeniedHandler();
     }
 
     @Profile({"!ldap", "!cas"})

@@ -448,7 +448,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	public void refreshTable(Class<O> newTypeClass, AjaxRequestTarget target) {
-		ObjectTypes newType = ObjectTypes.getObjectType(newTypeClass);
+		ObjectTypes newType = newTypeClass != null ? ObjectTypes.getObjectType(newTypeClass) : null;
 
 		BaseSortableDataProvider<SelectableBean<O>> provider = getDataProvider();
 		provider.setQuery(getQuery());

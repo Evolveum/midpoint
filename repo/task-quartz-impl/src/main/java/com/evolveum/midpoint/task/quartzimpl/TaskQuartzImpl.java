@@ -3089,6 +3089,7 @@ public class TaskQuartzImpl implements Task {
 	public void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy) {
 		if (strategy.isStartFromZero()) {
 			startCollectingOperationStatsFromZero(strategy.isMaintainIterationStatistics(), strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics());
+			storeOperationStats();
 		} else {
 			startCollectingOperationStatsFromStoredValues(strategy.isMaintainIterationStatistics(), strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics());
 		}

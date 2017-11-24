@@ -51,7 +51,7 @@ import javax.servlet.http.HttpSession;
 /**
  * @author mserbak
  */
-@PageDescriptor(url = "/login")
+@PageDescriptor(url = "/login", permitAll = true)
 public class PageLogin extends PageBase {
 	private static final long serialVersionUID = 1L;
 

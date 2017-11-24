@@ -19,7 +19,6 @@ package com.evolveum.midpoint.web.component.wf;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
@@ -37,6 +36,9 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 /**
  * TEMPORARY IMPLEMENTATION. Replace with something graphically nice.
@@ -52,7 +54,9 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
     private static final String ID_APPROVER_NAME = "approverName";
     private static final String ID_OUTCOME = "outcome";
     private static final String ID_PERFORMER_NAME = "performerName";
+    private static final String ID_ATTORNEY_NAME = "attorneyName";
     private static final String ID_JUNCTION = "junction";
+    private static final String ID_APPROVAL_BOX_CONTENT = "approvalBoxContent";
     private static final String ID_STAGE_NAME = "stageName";
     private static final String ID_STAGE_OUTCOME = "stageOutcome";
     private static final String ID_ARROW = "arrow";
@@ -91,8 +95,8 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
                         ApproverEngagementDto ae = approversListItem.getModelObject();
 
                         // original approver name
-                        approversListItem.add(new Label(ID_APPROVER_NAME, 
-                        		getApproverLabel("ApprovalProcessExecutionInformationPanel.approver", ae.getApproverRef())));
+                        approversListItem.add(createApproverLabel(ID_APPROVER_NAME,
+		                        "ApprovalProcessExecutionInformationPanel.approver", ae.getApproverRef(), true));
 
                         // outcome
                         WorkItemOutcomeType outcome = ae.getOutput() != null
@@ -122,13 +126,16 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
                         outcomePanel.add(new VisibleBehaviour(() -> outcomeIcon != ApprovalOutcomeIcon.EMPTY));
                         approversListItem.add(outcomePanel);
 
-                        // performer
-                        approversListItem.add(new Label(ID_PERFORMER_NAME,
-                        		getApproverLabel("ApprovalProcessExecutionInformationPanel.performer", ae.getCompletedBy())));
+	                    // content (incl. performer)
+	                    WebMarkupContainer approvalBoxContent = new WebMarkupContainer(ID_APPROVAL_BOX_CONTENT);
+	                    approversListItem.add(approvalBoxContent);
+	                    approvalBoxContent.setVisible(performerVisible(ae) || attorneyVisible(ae));
+	                    approvalBoxContent.add(createApproverLabel(ID_PERFORMER_NAME, "ApprovalProcessExecutionInformationPanel.performer", ae.getCompletedBy(), performerVisible(ae)));
+	                    approvalBoxContent.add(createApproverLabel(ID_ATTORNEY_NAME, "ApprovalProcessExecutionInformationPanel.attorney", ae.getAttorney(), attorneyVisible(ae)));
 
                         // junction
 	                    Label junctionLabel = new Label(ID_JUNCTION, stage.isFirstDecides() ? "" : " & ");      // or "+" for first decides? probably not
-	                    junctionLabel.setVisible(!ae.isLast());
+	                    junctionLabel.setVisible(!stage.isFirstDecides() && !ae.isLast());                       // not showing "" to save space (if aligned vertically)
 	                    approversListItem.add(junctionLabel);
                     }
                 };
@@ -182,6 +189,23 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
         add(stagesList);
     }
 
+	@NotNull
+	private Label createApproverLabel(String id, String key, ObjectReferenceType reference, boolean visibility) {
+		Label label = new Label(id, getApproverLabel(key, reference));
+		label.setVisible(visibility);
+		return label;
+	}
+
+	private boolean performerVisible(ApproverEngagementDto ae) {
+		return ae.getCompletedBy() != null &&
+				!Objects.equals(ae.getCompletedBy().getOid(), ae.getApproverRef().getOid());
+	}
+
+	private boolean attorneyVisible(ApproverEngagementDto ae) {
+		return ae.getAttorney() != null && ae.getCompletedBy() != null
+				&& !Objects.equals(ae.getAttorney().getOid(), ae.getCompletedBy().getOid());
+	}
+
 	private String getStageNameLabel(ApprovalStageExecutionInformationDto stage, int stageNumber, int numberOfStages) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getString("ApprovalProcessExecutionInformationPanel.stage"));
@@ -190,20 +214,17 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
 			sb.append(WfContextUtil.getStageInfo(stageNumber, numberOfStages, stage.getStageName(), stage.getStageDisplayName()));
 			return sb.toString();
 		} else {
-			sb.append(stageNumber).append("/").append(numberOfStages);
+			sb.append(" ").append(stageNumber).append("/").append(numberOfStages);
 			return sb.toString();
 		}
 	}
 
 	private String getApproverLabel(String labelKey, ObjectReferenceType ref) {
-		if (ref == null) {
+		if (ref != null) {
+			return getString(labelKey) + ": " + WebComponentUtil.getName(ref);
+		} else {
 			return "";
 		}
-		StringBuilder sb = new StringBuilder();
-		sb.append(getString(labelKey));
-		sb.append(": ");
-		sb.append(WebComponentUtil.getName(ref));
-		return sb.toString();	
 	}
     
 }

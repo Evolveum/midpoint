@@ -609,6 +609,32 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="exactPathMatch" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If true, item paths to be matched must match exactly. E.g. if "inducement" is specified
+								as an item to be matched, then only object modifications having "inducement" in the path
+								(i.e. whole inducement being added/deleted/replaced) would match.
+
+								This is applicable only for modification operations. For add and delete operations the
+								value of this flag is ignored.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="expression" type="c:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that is used to determine the result. It is evaluated in addition to all the other
+								conditions, and must have a value of true in order for constraint to be triggered.
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <!--<xsd:element name="ignoreItem" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">-->
                         <!--<xsd:annotation>-->
                             <!--<xsd:documentation>-->
@@ -669,7 +695,26 @@
     </xsd:complexType>
     <xsd:element name="assignmentModificationPolicyConstraint" type="tns:AssignmentModificationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
 
-    <xsd:complexType name="HasAssignmentPolicyConstraintType">
+	<xsd:complexType name="AssignmentPolicyConstraintType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Original (3.6) name for AssignmentModificationPolicyConstraintType.
+				Provided here for migration purposes.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>3.5</a:since>
+				<a:deprecated>true</a:deprecated>
+				<a:deprecatedSince>3.7</a:deprecatedSince>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AssignmentModificationPolicyConstraintType">
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="HasAssignmentPolicyConstraintType">
         <xsd:annotation>
             <xsd:documentation>
                 Constraint that triggers when the focus has given assignment(s).

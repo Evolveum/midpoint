@@ -95,6 +95,10 @@
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
         <!-- This is needed only for equals methods. Simplify it now
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>

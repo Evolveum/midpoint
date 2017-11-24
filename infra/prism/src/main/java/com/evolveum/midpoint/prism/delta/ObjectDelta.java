@@ -101,7 +101,14 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         modifications = createEmptyModifications();
     }
 
-    @Override
+	@NotNull
+	private ObjectDelta<T> createOffspring() {
+		ObjectDelta<T> offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
+		offspring.setOid(getAnyOid());
+		return offspring;
+	}
+
+	@Override
     public void accept(Visitor visitor) {
     	accept(visitor, true);
     }
@@ -176,14 +183,23 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
         return oid;
     }
 
-    public void setOid(String oid) {
+	public void setOid(String oid) {
         this.oid = oid;
         if (objectToAdd != null) {
         	objectToAdd.setOid(oid);
         }
     }
 
-    public PrismContext getPrismContext() {
+    // these two (oid vs. objectToAdd.oid) should be the same ... but what if they are not?
+	private String getAnyOid() {
+    	if (objectToAdd != null && objectToAdd.getOid() != null) {
+    		return objectToAdd.getOid();
+	    } else {
+    		return oid;
+	    }
+	}
+
+	public PrismContext getPrismContext() {
 		return prismContext;
 	}
 
@@ -1686,7 +1702,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 			}
 		}
 		if (!modificationsFound.isEmpty()) {
-			offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
+			offspring = createOffspring();
 			modificationsFound.forEach(offspring::addModification);
 		}
 		return new FactorOutResultSingle<>(remainder, offspring);
@@ -1704,7 +1720,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 			return new FactorOutResultSingle<>(this, null);
 		}
 		ObjectDelta<T> remainder = cloneIfRequested(cloneDelta);
-		ObjectDelta<T> offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
+		ObjectDelta<T> offspring = createOffspring();
 		for (Item<?, ?> item : itemsFound) {
 			remainder.getObjectToAdd().remove(item);
 			offspring.addModification(ItemDelta.createAddDeltaFor(item));
@@ -1737,6 +1753,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 			LOGGER.warn("Couldn't find definition for {}:{}", objectTypeClass, path);
 			isSingle = false;
 		}
+		// first we take whole values being added or deleted
 		for (Iterator<? extends ItemDelta<?, ?>> iterator = remainder.modifications.iterator(); iterator.hasNext(); ) {
 			ItemDelta<?, ?> modification = iterator.next();
 			if (path.equivalent(modification.getPath())) {
@@ -1761,13 +1778,14 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 				iterator.remove();
 			}
 		}
+		// and then we take modifications inside the values
 		if (Boolean.TRUE.equals(isSingle)) {
-			ObjectDelta<T> offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
+			ObjectDelta<T> offspring = createOffspring();
 			modificationsForId.values().forEach(mod -> offspring.addModification(mod));
 			rv.offsprings.add(offspring);
 		} else {
 			for (Long id : modificationsForId.keySet()) {
-				ObjectDelta<T> offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
+				ObjectDelta<T> offspring = createOffspring();
 				modificationsForId.get(id).forEach(mod -> offspring.addModification(mod));
 				rv.offsprings.add(offspring);
 			}
@@ -1777,7 +1795,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 
 	private ItemDelta createNewDelta(FactorOutResultMulti<T> rv, ItemDelta<?, ?> modification)
 			throws SchemaException {
-		ObjectDelta<T> offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
+		ObjectDelta<T> offspring = createOffspring();
 		ItemDelta delta = modification.getDefinition().instantiate().createDelta(modification.getPath());
 		offspring.addModification(delta);
 		rv.offsprings.add(offspring);
@@ -1793,7 +1811,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 		remainder.getObjectToAdd().remove(item);
 		FactorOutResultMulti<T> rv = new FactorOutResultMulti<>(remainder);
 		for (PrismValue value : item.getValues()) {
-			ObjectDelta<T> offspring = new ObjectDelta<>(objectTypeClass, ChangeType.MODIFY, prismContext);
+			ObjectDelta<T> offspring = createOffspring();
 			offspring.addModification(ItemDelta.createAddDeltaFor(item, value));
 			rv.offsprings.add(offspring);
 		}

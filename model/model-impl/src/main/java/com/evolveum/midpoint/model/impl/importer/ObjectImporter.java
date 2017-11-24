@@ -88,8 +88,7 @@ public class ObjectImporter {
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repository;
     @Autowired private ModelService modelService;
     @Autowired private Clock clock;
-
-    private Migrator migrator = new Migrator();
+	@Autowired private Migrator migrator;
 
     // this method is responsible for computing the operation result!
     public void importObjects(InputStream input, String language, ImportOptionsType options, Task task, OperationResult parentResult) {

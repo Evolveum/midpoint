@@ -40,7 +40,6 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.XmlValue;
 import javax.xml.namespace.QName;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.*;
@@ -198,6 +197,13 @@ public class BeanUnmarshaller {
 		Field valueField = XNodeProcessorUtil.findXmlValueField(beanClass);
 
 		if (valueField == null) {
+			ParsingMigrator parsingMigrator = prismContext.getParsingMigrator();
+			if (parsingMigrator != null) {
+				T bean = parsingMigrator.tryParsingPrimitiveAsBean(prim, beanClass, pc);
+				if (bean != null) {
+					return bean;
+				}
+			}
 			throw new SchemaException("Cannot convert primitive value to bean of type " + beanClass);
 		}
 
@@ -933,7 +939,10 @@ public class BeanUnmarshaller {
 		if (pc.isStrict()) {
             throw e;
         } else {
-            LoggingUtils.logException(LOGGER, "Couldn't parse part of the document. It will be ignored. Document part:\n{}", e, xsubnode);
+            LoggingUtils.logException(LOGGER, "Couldn't parse part of the document. It will be ignored. Document part: {}", e, xsubnode);
+            if (LOGGER.isDebugEnabled()) {
+            	LOGGER.debug("Part that couldn't be parsed:\n{}", xsubnode.debugDump());
+            }
 			pc.warn("Couldn't parse part of the document. It will be ignored. Document part:\n" + xsubnode);
             return true;
         }

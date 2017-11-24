@@ -83,7 +83,13 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 
         box.add(new AttributeModifier("class", BOX_CSS_CLASS + " " + getBoxAdditionalCssClass()));
 
-		box.add(new Label(ID_DISPLAY_NAME, createLabelModel(getDisplayNamePropertyName(), SummaryPanelSpecificationType.F_DISPLAY_NAME, serviceLocator)));
+	    if (getDisplayNameModel() != null) {
+		    box.add(new Label(ID_DISPLAY_NAME, getDisplayNameModel()));
+	    } else if (getDisplayNamePropertyName() != null) {
+		    box.add(new Label(ID_DISPLAY_NAME, createLabelModel(getDisplayNamePropertyName(), SummaryPanelSpecificationType.F_DISPLAY_NAME, serviceLocator)));
+	    } else {
+		    box.add(new Label(ID_DISPLAY_NAME, " "));
+	    }
 
         WebMarkupContainer identifierPanel = new WebMarkupContainer(ID_IDENTIFIER_PANEL);
         identifierPanel.add(new Label(ID_IDENTIFIER, createLabelModel(getIdentifierPropertyName(), SummaryPanelSpecificationType.F_IDENTIFIER, serviceLocator)));
@@ -97,28 +103,28 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         });
         box.add(identifierPanel);
 
-        if (getTitlePropertyName() != null) {
+	    if (getTitleModel() != null) {
+		    box.add(new Label(ID_TITLE, getTitleModel()));
+	    } else if (getTitlePropertyName() != null) {
         	box.add(new Label(ID_TITLE, createLabelModel(getTitlePropertyName(), SummaryPanelSpecificationType.F_TITLE_1, serviceLocator)));
-        } else if (getTitleModel() != null) {
-            box.add(new Label(ID_TITLE, getTitleModel()));
         } else {
             box.add(new Label(ID_TITLE, " "));
         }
 
-        if (getTitle2PropertyName() != null) {
+	    if (getTitle2Model() != null) {
+		    box.add(new Label(ID_TITLE2, getTitle2Model()));
+	    } else if (getTitle2PropertyName() != null) {
         	box.add(new Label(ID_TITLE, createLabelModel(getTitle2PropertyName(), SummaryPanelSpecificationType.F_TITLE_2, serviceLocator)));
-        } else if (getTitle2Model() != null) {
-            box.add(new Label(ID_TITLE2, getTitle2Model()));
         } else {
             Label label = new Label(ID_TITLE2, " ");
             label.setVisible(false);
             box.add(label);
         }
 
-		if (getTitle3PropertyName() != null) {
+	    if (getTitle3Model() != null) {
+		    box.add(new Label(ID_TITLE3, getTitle3Model()));
+	    } else if (getTitle3PropertyName() != null) {
 			box.add(new Label(ID_TITLE, createLabelModel(getTitle3PropertyName(), SummaryPanelSpecificationType.F_TITLE_3, serviceLocator)));
-		} else if (getTitle3Model() != null) {
-			box.add(new Label(ID_TITLE3, getTitle3Model()));
 		} else {
 			Label label = new Label(ID_TITLE3, " ");
 			label.setVisible(false);
@@ -222,11 +228,15 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         return FocusType.F_NAME;
     }
 
-    protected QName getDisplayNamePropertyName() {
+	protected QName getDisplayNamePropertyName() {
 		return ObjectType.F_NAME;
 	}
 
-    protected QName getTitlePropertyName() {
+	protected IModel<String> getDisplayNameModel() {
+		return null;
+	}
+
+	protected QName getTitlePropertyName() {
         return null;
     }
 

@@ -22,6 +22,8 @@ import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
 import org.apache.cxf.transport.servlet.CXFServlet;
 import org.apache.wicket.Application;
 import org.apache.wicket.protocol.http.WicketFilter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.Banner;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
@@ -43,6 +45,7 @@ import org.springframework.web.filter.DelegatingFilterProxy;
 import ro.isdc.wro.http.WroFilter;
 
 import javax.servlet.DispatcherType;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -97,6 +100,8 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
 
     private static SpringApplicationBuilder configureApplication(SpringApplicationBuilder application) {
         System.setProperty("spring.config.location", "${midpoint.home}/");
+
+        application.bannerMode(Banner.Mode.LOG);
 
         return application.sources(MidPointSpringApplication.class);
     }
@@ -171,10 +176,13 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
 
     private static class ServerCustomization extends ServerProperties {
 
+        @Value("${server.session.timeout}")
+        private int sessionTimeout;
+
         @Override
         public void customize(ConfigurableEmbeddedServletContainer container) {
-
             super.customize(container);
+
             container.addErrorPages(new ErrorPage(HttpStatus.UNAUTHORIZED,
                     "/error/401"));
             container.addErrorPages(new ErrorPage(HttpStatus.FORBIDDEN,
@@ -185,6 +193,8 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
                     "/error/410"));
             container.addErrorPages(new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR,
                     "/error"));
+
+            container.setSessionTimeout(sessionTimeout, TimeUnit.MINUTES);
         }
     }
 }

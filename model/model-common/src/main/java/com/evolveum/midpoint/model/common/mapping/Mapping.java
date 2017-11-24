@@ -276,7 +276,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	}
 
 	public boolean hasTargetRange() {
-		return mappingType.getTarget().getSet() != null;
+		return mappingType.getTarget().getSet() != null || mappingType.getRange() != null;
 	}
 	
 	public boolean isConditionMaskOld() {
@@ -525,7 +525,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		variables.addVariableDefinitions(this.variables);			// TODO is this ok?
 
 		if (value instanceof PrismContainerValue) {
-			// artifically create parent for PCV in order to pass it to expression
+			// artificially create parent for PCV in order to pass it to expression
 			PrismContainer.createParentIfNeeded((PrismContainerValue) value, outputDefinition);
 		}
 		variables.addVariableDefinition(ExpressionConstants.VAR_VALUE, value);
@@ -533,10 +533,10 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		PrismPropertyDefinition<Boolean> outputDef = new PrismPropertyDefinitionImpl<Boolean>(SchemaConstantsGenerated.C_VALUE, DOMUtil.XSD_BOOLEAN, getPrismContext(), null, false);
 		PrismPropertyValue<Boolean> rv = ExpressionUtil.evaluateExpression(variables, outputDef, range.getIsInSetExpression(), expressionFactory, "isInSet expression in " + contextDescription, task, result);
 
-		// but now remove the parent!
-		if (value.getParent() != null) {
-			value.setParent(null);
-		}
+		// but now remove the parent! TODO: PM: why???
+//		if (value.getParent() != null) {
+//			value.setParent(null);
+//		}
 
 		return rv != null && rv.getValue() != null ? rv.getValue() : Boolean.FALSE;
 	}

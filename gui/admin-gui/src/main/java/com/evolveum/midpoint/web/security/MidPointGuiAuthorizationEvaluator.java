@@ -17,14 +17,15 @@
 package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.*;
+import com.evolveum.midpoint.security.enforcer.api.AccessDecision;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
@@ -41,7 +43,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
@@ -52,19 +56,22 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
-public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, SecurityContextManager {
+public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, SecurityContextManager, AccessDecisionManager {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(MidPointGuiAuthorizationEvaluator.class);
 
-	private SecurityEnforcer securityEnforcer;
-	private SecurityContextManager securityContextManager;
+	private final SecurityEnforcer securityEnforcer;
+	private final SecurityContextManager securityContextManager;
+	private final TaskManager taskManager;
 	
-    public MidPointGuiAuthorizationEvaluator(SecurityEnforcer securityEnforcer, SecurityContextManager securityContextManager) {
+    public MidPointGuiAuthorizationEvaluator(SecurityEnforcer securityEnforcer, SecurityContextManager securityContextManager, TaskManager taskManager) {
 		super();
 		this.securityEnforcer = securityEnforcer;
 		this.securityContextManager = securityContextManager;
+		this.taskManager = taskManager;
 	}
 
     @Override
@@ -109,15 +116,33 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     	securityEnforcer.failAuthorization(operationUrl, phase, params, result);
 	}
 
+	// MidPoint pages invoke this method (through PageBase)
 	@Override
 	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
 			AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		return securityEnforcer.isAuthorized(operationUrl, phase, params, ownerResolver, task, result);
 	}
-
-    @Override
+	
+	@Override
 	public boolean supports(ConfigAttribute attribute) {
-		return securityEnforcer.supports(attribute);
+		if (attribute instanceof SecurityConfig
+				// class name equals, because WebExpressionConfigAttribute is non public class
+				|| "org.springframework.security.web.access.expression.WebExpressionConfigAttribute".equals(attribute.getClass().getName())) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public boolean supports(Class<?> clazz) {
+		if (MethodInvocation.class.isAssignableFrom(clazz)) {
+			return true;
+		} else if (FilterInvocation.class.isAssignableFrom(clazz)) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	@Override
@@ -127,55 +152,107 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 		securityEnforcer.authorize(operationUrl, phase, params, ownerResolver, task, result);
 	}
 
-	@Override
-	public boolean supports(Class<?> clazz) {
-		return securityEnforcer.supports(clazz);
-	}
-
+	// Spring security invokes this method
 	@Override
     public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes)
             throws AccessDeniedException, InsufficientAuthenticationException {
-
+		
+		// Too lound, just for testing
+//		LOGGER.trace("decide input: authentication={}, object={}, configAttributes={}",
+//				authentication, object, configAttributes);
+				
         if (!(object instanceof FilterInvocation)) {
+        	LOGGER.trace("DECIDE: PASS because object is not FilterInvocation, it is {}", object);
             return;
         }
 
         FilterInvocation filterInvocation = (FilterInvocation) object;
-        Collection<ConfigAttribute> guiConfigAttr = new ArrayList<>();
+        if (isPermitAll(filterInvocation)) {
+        	LOGGER.trace("DECIDE: authentication={}, object={}: ALLOW ALL (permitAll)",
+        			authentication, object);
+            return;
+        }
+        
+        if ("/".equals(filterInvocation.getRequest().getServletPath())) {
+        	// Special case, this is in fact "magic" redirect to home page or login page. It handles autz in its own way.
+        	LOGGER.trace("DECIDE: authentication={}, object={}: ALLOW ALL (/)",
+        			authentication, object);
+            return;
+        }
+
+        List<String> requiredActions = new ArrayList<>(); 
 
         for (PageUrlMapping urlMapping : PageUrlMapping.values()) {
-            addSecurityConfig(filterInvocation, guiConfigAttr, urlMapping.getUrl(), urlMapping.getAction());
+            addSecurityConfig(filterInvocation, requiredActions, urlMapping.getUrl(), urlMapping.getAction());
         }
 
         Map<String, DisplayableValue<String>[]> actions = DescriptorLoader.getActions();
         for (Map.Entry<String, DisplayableValue<String>[]> entry : actions.entrySet()) {
-            addSecurityConfig(filterInvocation, guiConfigAttr, entry.getKey(), entry.getValue());
+            addSecurityConfig(filterInvocation, requiredActions, entry.getKey(), entry.getValue());
         }
+        
+        if (requiredActions.isEmpty()) {
+        	LOGGER.trace("DECIDE: DENY because determined empty required actions from {}", filterInvocation);
+        	SecurityUtil.logSecurityDeny(object, ": Not authorized (page without authorizations)", null, requiredActions);
+    		// Sparse exception method by purpose. We do not want to expose details to attacker.
+    		// Better message is logged.
+    		throw new AccessDeniedException("Not authorized");
+        }
+        
+		Object principalObject = authentication.getPrincipal();
+		if (!(principalObject instanceof MidPointPrincipal)) {
+			if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principalObject)){
+				SecurityUtil.logSecurityDeny(object, ": Not logged in");
+				LOGGER.trace("DECIDE: authentication={}, object={}, configAttributes={}: DENY (not logged in)",
+            			authentication, object, configAttributes);
+				throw new InsufficientAuthenticationException("Not logged in.");
+			}
+			LOGGER.trace("DECIDE: authentication={}, object={}, configAttributes={}: ERROR (wrong principal)",
+        			authentication, object, configAttributes);
+			throw new IllegalArgumentException("Expected that spring security principal will be of type "+
+					MidPointPrincipal.class.getName()+" but it was "+principalObject.getClass());
+		}
+		MidPointPrincipal principal = (MidPointPrincipal)principalObject;
 
-        if (configAttributes == null || guiConfigAttr.isEmpty()) {
-            return;
-        }
+                
+        Task task = taskManager.createTaskInstance(MidPointGuiAuthorizationEvaluator.class.getName() + ".decide");
         
-        Collection<ConfigAttribute> configAttributesToUse = guiConfigAttr;
-        if (guiConfigAttr.isEmpty()) {
-        	configAttributesToUse = configAttributes;
-        }
         
-        try {
-        	securityEnforcer.decide(authentication, object, configAttributesToUse);
-        	
-        	if (LOGGER.isTraceEnabled()) {
-            	LOGGER.trace("DECIDE: authentication={}, object={}, configAttributesToUse={}: OK", authentication, object, configAttributesToUse);
-            }
-        } catch (AccessDeniedException | InsufficientAuthenticationException e) {
-        	if (LOGGER.isTraceEnabled()) {
-            	LOGGER.trace("DECIDE: authentication={}, object={}, configAttributesToUse={}: {}", authentication, object, configAttributesToUse, e);
-            }
-        	throw e;
+		AccessDecision decision;
+		try {
+			decision = securityEnforcer.decideAccess(principal, requiredActions, task, task.getResult());
+		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException
+				| CommunicationException | ConfigurationException | SecurityViolationException e) {
+			LOGGER.error("Error while processing authorization: {}", e.getMessage(), e);
+			LOGGER.trace("DECIDE: authentication={}, object={}, requiredActions={}: ERROR {}",
+        			authentication, object, requiredActions, e.getMessage());
+			throw new SystemException("Error while processing authorization: "+e.getMessage(), e);
+		}
+        
+		if (LOGGER.isTraceEnabled()) {
+        	LOGGER.trace("DECIDE: authentication={}, object={}, requiredActions={}: {}",
+        			authentication, object, requiredActions, decision);
         }
+		
+		if (!decision.equals(AccessDecision.ALLOW)) {
+			SecurityUtil.logSecurityDeny(object, ": Not authorized", null, requiredActions);
+    		// Sparse exception method by purpose. We do not want to expose details to attacker.
+    		// Better message is logged.
+    		throw new AccessDeniedException("Not authorized");
+		}
     }
 
-    private void addSecurityConfig(FilterInvocation filterInvocation, Collection<ConfigAttribute> guiConfigAttr,
+	private boolean isPermitAll(FilterInvocation filterInvocation) {
+		for (String url: DescriptorLoader.getPermitAllUrls()) {
+			AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
+			if (matcher.matches(filterInvocation.getRequest())) {
+				return true;
+	        }
+		}
+		return false;
+	}
+
+	private void addSecurityConfig(FilterInvocation filterInvocation, List<String> requiredActions,
                       String url, DisplayableValue<String>[] actions) {
 
         AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
@@ -189,17 +266,19 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
                 continue;
             }
 
-            //all users has permission to access these resources
-            if (action.equals(AuthorizationConstants.AUTZ_UI_PERMIT_ALL_URL)) {
-                return;
-            }
-
-            SecurityConfig config = new SecurityConfig(actionUri);
-			if (!guiConfigAttr.contains(config)) {
-				guiConfigAttr.add(config);
+			if (!requiredActions.contains(actionUri)) {
+				requiredActions.add(actionUri);
 			}
         }
     }
+    
+    @Override
+	public AccessDecision decideAccess(MidPointPrincipal principal, List<String> requiredActions, Task task,
+			OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException, SecurityViolationException {
+		return securityEnforcer.decideAccess(principal, requiredActions, task, result);
+	}
 
     @Override
 	public <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver, Task task, OperationResult result)
@@ -256,4 +335,5 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 	public HttpConnectionInformation getStoredConnectionInformation() {
 		return securityContextManager.getStoredConnectionInformation();
 	}
+
 }
