@@ -225,7 +225,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     }
 
     @Override
-    public boolean isEditingFocus() {
+    public boolean isOidParameterExists() {
         return true;
     }
 

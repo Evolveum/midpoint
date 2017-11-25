@@ -1716,7 +1716,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
                 if (getPage() instanceof PageAdminFocus) {
                     PageAdminFocus page = (PageAdminFocus) getPage();
-                    return page.isEditingFocus();
+                    return page.isOidParameterExists() || page.isObjectAlreadyLoaded;
                 } else if (getPage() instanceof PageResourceWizard) {
                     PageResourceWizard page = (PageResourceWizard) getPage();
                     return !page.isNewResource();
@@ -1744,7 +1744,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
                 if (PageBase.this.getPage() instanceof PageAdminFocus) {
                     PageAdminFocus page = (PageAdminFocus) PageBase.this.getPage();
-                    return !page.isEditingFocus();
+                    return !page.isOidParameterExists() && !page.isObjectAlreadyLoaded;
                 } else if (PageBase.this.getPage() instanceof PageResourceWizard) {
                     PageResourceWizard page = (PageResourceWizard) PageBase.this.getPage();
                     return page.isNewResource();
