@@ -216,10 +216,12 @@ public class SearchPanel extends BasePanel<Search> {
 		searchContainer.add(searchDropdown);
 
 		AjaxSubmitButton searchButtonBeforeDropdown = new AjaxSubmitButton(ID_SEARCH_BUTTON_BEFORE_DROPDOWN) {
+
 			@Override
 			protected void onError(AjaxRequestTarget target, Form<?> form) {
 				target.add(form);
 			}
+
 			@Override
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 				searchPerformed(target);
@@ -265,7 +267,8 @@ public class SearchPanel extends BasePanel<Search> {
 		searchItems.add(searchItem);
 
 		ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_MENU_ITEM, Model.ofList(searchItems)) {
-			@Override
+
+		    @Override
 			protected void populateItem(ListItem<InlineMenuItem> item) {
 				WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, item.getModel());
 				menuItemBody.setRenderBodyOnly(true);
