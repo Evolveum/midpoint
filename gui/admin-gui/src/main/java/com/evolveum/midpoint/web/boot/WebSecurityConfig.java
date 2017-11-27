@@ -108,8 +108,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/registration",
                         "/confirm/registration",
                         "/confirm/reset",
-                        "/error/401",
-                        "/error/403",
+                        "/error",
+                        "/error/*",
                         "/bootstrap").permitAll()
                 .anyRequest().fullyAuthenticated();
 
