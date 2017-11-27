@@ -21,7 +21,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/error/410")
+@PageDescriptor(url = "/error/410", permitAll = true)
 public class PageError410 extends PageError {
 
     public PageError410() {

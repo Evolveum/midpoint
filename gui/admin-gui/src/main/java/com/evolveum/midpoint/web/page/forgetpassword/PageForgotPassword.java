@@ -68,7 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-@PageDescriptor(url = "/forgotpassword")
+@PageDescriptor(url = "/forgotpassword", permitAll = true)
 public class PageForgotPassword extends PageRegistrationBase {
 	private static final long serialVersionUID = 1L;
 
