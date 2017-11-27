@@ -16,6 +16,8 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -58,5 +60,10 @@ public class InducementsPanel extends AbstractRoleAssignmentPanel {
     @Override
     protected boolean showAllAssignmentsVisible(){
         return false;
+    }
+
+    @Override
+    protected InducementDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
+        return new InducementDetailsPanel(ID_ASSIGNMENT_DETAILS, form, model);
     }
 }

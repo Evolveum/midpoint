@@ -148,6 +148,12 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
             private static final long serialVersionUID = 1L;
 
             @Override
+            protected void executeCustomAction(AjaxRequestTarget target, ShadowType object) {
+                ExpressionUtil.createShadowRefEvaluatorValue(ExpressionValuePanel.this.getModelObject(), object == null ? null : object.getOid(),
+                        getPageBase().getPrismContext());
+            }
+
+            @Override
             protected ObjectQuery getChooseQuery() {
                 ObjectQuery query = new ObjectQuery();
 
@@ -334,7 +340,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                 if (getModelObject() == null){
                     getModel().setObject(new ExpressionType());
                 }
-                ExpressionUtil.createShadowRefEvaluatorValue(getModelObject(), getPageBase().getPrismContext());
+                ExpressionUtil.createShadowRefEvaluatorValue(getModelObject(), null, getPageBase().getPrismContext());
                 target.add(ExpressionValuePanel.this);
             }
                 }));

@@ -404,7 +404,8 @@ public class ExpressionUtil {
                 MapXNode shadowRefNode = (MapXNode) ((MapXNode) node).get(SHADOW_REF_KEY);
                 if (shadowRefNode != null && shadowRefNode.containsKey(SHADOW_OID_KEY)) {
                     PrimitiveXNode shadowOidNode = (PrimitiveXNode) shadowRefNode.get(SHADOW_OID_KEY);
-                    String oid = shadowOidNode != null && shadowOidNode.getValueParser() != null ? shadowOidNode.getValueParser().getStringValue() : null;
+                    String oid = shadowOidNode != null && shadowOidNode.getValueParser() != null ? shadowOidNode.getValueParser().getStringValue() :
+                            (shadowOidNode != null && shadowOidNode.getValue() != null ? (String)shadowOidNode.getValue() : null);
                     shadowRef.setOid(oid);
                     shadowRef.setType(ShadowType.COMPLEX_TYPE);
                     return shadowRef;
@@ -414,7 +415,7 @@ public class ExpressionUtil {
         return null;
     }
 
-    public static void createShadowRefEvaluatorValue(ExpressionType expression, PrismContext prismContext){
+    public static void createShadowRefEvaluatorValue(ExpressionType expression, String oid, PrismContext prismContext){
         if (expression == null){
             expression = new ExpressionType();
         }
@@ -422,7 +423,7 @@ public class ExpressionUtil {
                     new RawType(prismContext));
 
         MapXNode shadowRefNode = new MapXNode();
-        shadowRefNode.put(SHADOW_OID_KEY, null);
+        shadowRefNode.put(SHADOW_OID_KEY, new PrimitiveXNode<>(oid));
         shadowRefNode.put(SHADOW_TYPE_KEY, new PrimitiveXNode<>(ShadowType.COMPLEX_TYPE.getLocalPart()));
 
         MapXNode valueNode = new MapXNode();
