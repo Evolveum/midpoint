@@ -1,5 +1,9 @@
 package com.evolveum.midpoint.ninja.action;
 
+import com.evolveum.midpoint.ninja.impl.LogTarget;
+import com.evolveum.midpoint.ninja.impl.NinjaException;
+import com.evolveum.midpoint.ninja.opts.ExportOptions;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismSerializer;
@@ -12,13 +16,10 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.ninja.impl.LogTarget;
-import com.evolveum.midpoint.ninja.impl.NinjaException;
-import com.evolveum.midpoint.ninja.opts.ExportOptions;
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import org.springframework.context.ApplicationContext;
 
 import java.io.*;
+import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
@@ -65,6 +66,9 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
         PrismContext prismContext = appContext.getBean(PrismContext.class);
 
         ObjectTypes type = options.getType();
+        if (type == null) {
+            throw new NinjaException("Type must be defined");
+        }
 
         Collection<SelectorOptions<GetOperationOptions>> opts = Collections.emptyList();
         if (options.isRaw()) {
@@ -75,11 +79,7 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
 
         PrismObject object = repository.getObject(type.getClassDefinition(), options.getOid(), opts, result);
 
-        result.recomputeStatus();
-
-        if (!result.isAcceptable()) {
-            //todo show some warning
-        }
+        handleResult(result);
 
         PrismSerializer<String> serializer = prismContext.xmlSerializer();
         String xml = serializer.serialize(object);
@@ -87,17 +87,25 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
     }
 
     private void exportByFilter(final Writer writer) throws SchemaException, IOException {
+        ObjectTypes type = options.getType();
+        if (type != null) {
+            exportByType(type, writer);
+        } else {
+            for (ObjectTypes t : ObjectTypes.values()) {
+                if (Modifier.isAbstract(t.getClassDefinition().getModifiers())) {
+                    continue;
+                }
+
+                exportByType(t, writer);
+            }
+        }
+    }
+
+    private void exportByType(ObjectTypes type, Writer writer) throws SchemaException, IOException {
         RepositoryService repository = context.getRepository();
 
-        ApplicationContext appContext = context.getApplicationContext();
-
-        PrismContext prismContext = appContext.getBean(PrismContext.class);
+        PrismContext prismContext = context.getPrismContext();
         PrismSerializer<String> serializer = prismContext.xmlSerializer();
-
-        ObjectTypes type = options.getType();
-        if (type == null) {
-            //todo throw error
-        }
 
         Collection<SelectorOptions<GetOperationOptions>> opts = Collections.emptyList();
         if (options.isRaw()) {
@@ -121,6 +129,10 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
 
         repository.searchObjectsIterative(type.getClassDefinition(), query, handler, opts, false, result);
 
+        handleResult(result);
+    }
+
+    private void handleResult(OperationResult result) {
         result.recomputeStatus();
 
         if (!result.isAcceptable()) {
