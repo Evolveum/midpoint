@@ -26,6 +26,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.ClassUtils;
@@ -54,17 +55,6 @@ import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -433,7 +423,21 @@ public class PrismValuePanel extends Panel {
 						new PropertyModel<LockoutStatusType>(valueWrapperModel, baseExpression));
 			}
 			if (ExpressionType.COMPLEX_TYPE.equals(valueType)) {
-				return new ExpressionValuePanel(id, new PropertyModel<ExpressionType>(valueWrapperModel, baseExpression));
+				//it is expected that ExpressionType property is in the
+				// construction/association/outbound container
+				// so we will try to find ConstructionType
+				//TODO refactor to more pretty code
+				ConstructionType construction = new ConstructionType();
+				try {
+					ContainerValueWrapper cvw = ((PropertyWrapper)(valueWrapperModel.getObject().getItem())).getContainerValue();
+					PrismContainerValue association = (PrismContainerValue)cvw.getContainer().getItem().getParent();
+					PrismContainer associationContainer = (PrismContainer)association.asContainerable().asPrismContainerValue().getParent();
+					PrismContainerValue<ConstructionType> constructionContainerValue = (PrismContainerValue<ConstructionType>) associationContainer.getParent();
+					construction = constructionContainerValue.asContainerable();
+				} catch (Exception ex){
+					LOGGER.error("Unable to find Construction container for expression property");
+				}
+				return new ExpressionValuePanel(id, new PropertyModel<ExpressionType>(valueWrapperModel, baseExpression), construction);
 			}
 
 			if (DOMUtil.XSD_DATETIME.equals(valueType)) {

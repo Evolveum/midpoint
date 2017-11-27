@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
@@ -76,7 +78,6 @@ import java.util.List;
 public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends FocusMainPanel<R> {
 	private static final long serialVersionUID = 1L;
 
-	private LoadableModel<List<AssignmentEditorDto>> inducementsModel;
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMainPanel.class);
     private static final String DOT_CLASS = AbstractRoleMainPanel.class.getName();
     private static final String OPERATION_CAN_SEARCH_ROLE_MEMBERSHIP_ITEM = DOT_CLASS + "canSearchRoleMembershipItem";
@@ -87,9 +88,8 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 	public AbstractRoleMainPanel(String id, LoadableModel<ObjectWrapper<R>> objectModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
-			LoadableModel<List<AssignmentEditorDto>> inducementsModel, PageAdminFocus<R> parentPage) {
+			PageAdminFocus<R> parentPage) {
 		super(id, objectModel, projectionModel, parentPage);
-		this.inducementsModel = inducementsModel;
 	}
 
 	@Override
@@ -222,13 +222,18 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 		authorization = new FocusTabVisibleBehavior(unwrapModel(),
 				ComponentConstants.UI_FOCUS_TAB_INDUCEMENTS_URL);
-		tabs.add(new PanelTab(parentPage.createStringResource("FocusType.inducement"), authorization) {
+		tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.inducement"), authorization) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
 				return new AbstractRoleInducementPanel<R>(panelId, getMainForm(), getObjectModel(), parentPage);
+			}
+
+			@Override
+			public String getCount(){
+				return getInducementsCount();
 			}
 
 		});
@@ -281,5 +286,14 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 	private WebMarkupContainer createFocusPolicyRulesTabPanel(String panelId, PageAdminObjectDetails<R> parentPage) {
 		return new FocusPolicyRulesTabPanel<R>(panelId, getMainForm(), getObjectModel(), parentPage);
+	}
+
+	private String getInducementsCount(){
+			PrismObject<R> focus = getObjectModel().getObject().getObject();
+			List<AssignmentType> inducements = focus.asObjectable().getInducement();
+			if (inducements == null){
+				return "";
+			}
+			return Integer.toString(inducements.size());
 	}
 }

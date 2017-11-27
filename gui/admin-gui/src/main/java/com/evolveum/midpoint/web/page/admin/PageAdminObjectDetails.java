@@ -102,6 +102,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 	private AbstractObjectMainPanel<O> mainPanel;
 	private boolean saveOnConfigure;		// ugly hack - whether to invoke 'Save' when returning to this page
+	public boolean isObjectAlreadyLoaded = false; //before we got isOidParameterExists status depending only on oid parameter existence
+													//we should set isEdidintFocus=true not only when oid parameter exists but also
+													//when object is given as a constructor parameter
 
 	@Override
 	protected void createBreadcrumb() {
@@ -130,7 +133,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 			@Override
 			protected String load() {
-				if (!isEditingFocus()) {
+				if (!isOidParameterExists() && !isObjectAlreadyLoaded) {
 					String key = "PageAdminObjectDetails.title.new" + getCompileTimeClass().getSimpleName();
 					return createStringResource(key).getObject();
 				}
@@ -196,6 +199,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	}
 
 	protected void initializeModel(final PrismObject<O> objectToEdit, boolean isReadonly) {
+		if (objectToEdit != null){
+			isObjectAlreadyLoaded = true;
+		}
 		objectModel = new LoadableModel<ObjectWrapper<O>>(false) {
 			private static final long serialVersionUID = 1L;
 
@@ -250,7 +256,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
             @Override
             public boolean isVisible() {
-                return isEditingFocus();
+                return isOidParameterExists() || isObjectAlreadyLoaded;
             }
         });
     }
@@ -272,7 +278,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		return oid;
 	}
 
-	public boolean isEditingFocus() {
+	public boolean isOidParameterExists() {
 		return getObjectOidParameter() != null;
 	}
 
@@ -282,7 +288,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		PrismObject<O> object = null;
 		Collection<SelectorOptions<GetOperationOptions>> loadOptions = null;
 		try {
-			if (!isEditingFocus()) {
+			if (!isOidParameterExists()) {
 				if (objectToEdit == null) {
 					LOGGER.trace("Loading object: New object (creating)");
 					O focusType = createNewObject();
@@ -317,7 +323,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		}
 
 		if (object == null) {
-			if (isEditingFocus()) {
+			if (isOidParameterExists()) {
 				getSession().error(getString("pageAdminFocus.message.cantEditFocus"));
 			} else {
 				getSession().error(getString("pageAdminFocus.message.cantNewFocus"));
@@ -325,7 +331,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			throw new RestartResponseException(getRestartResponsePage());
 		}
 
-		ContainerStatus status = isEditingFocus() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+		ContainerStatus status = isOidParameterExists() || isObjectAlreadyLoaded ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
 		ObjectWrapper<O> wrapper;
 		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
 		try {
@@ -341,7 +347,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 		loadParentOrgs(wrapper, task, result);
 
-		wrapper.setShowEmpty(!isEditingFocus());
+		wrapper.setShowEmpty(!isOidParameterExists() && !isObjectAlreadyLoaded);
 		wrapper.setReadonly(isReadonly);
 
 		if (LOGGER.isTraceEnabled()) {

@@ -37,12 +37,6 @@ import java.util.List;
 public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends PageAdminFocus<T> {
 	private static final long serialVersionUID = 1L;
 
-	private LoadableModel<List<AssignmentEditorDto>> inducementsModel;
-
-	public LoadableModel<List<AssignmentEditorDto>> getInducementsModel() {
-		return inducementsModel;
-	}
-
 	@Override
 	protected void prepareObjectDeltaForModify(ObjectDelta<T> focusDelta) throws SchemaException {
 		super.prepareObjectDeltaForModify(focusDelta);
@@ -61,32 +55,5 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 	@Override
 	protected void initializeModel(final PrismObject<T> objectToEdit, boolean isReadonly) {
 		super.initializeModel(objectToEdit, isReadonly);
-		inducementsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
-			@Override
-			protected List<AssignmentEditorDto> load() {
-				return loadInducements();
-			}
-		};
-	}
-
-	// TODO unify with loadAssignments
-	private List<AssignmentEditorDto> loadInducements() {
-
-		List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
-		List<AssignmentType> inducements = getInducementsList();
-		for (AssignmentType inducement : inducements) {
-			list.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, inducement, this));
-		}
-
-		Collections.sort(list);
-
-		return list;
-	}
-
-	private List<AssignmentType> getInducementsList(){
-		ObjectWrapper focusWrapper = getObjectWrapper();
-		PrismObject<T> focus = focusWrapper.getObject();
-		List<AssignmentType> inducements = focus.asObjectable().getInducement();
-		return inducements;
 	}
 }
