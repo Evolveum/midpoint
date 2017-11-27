@@ -66,23 +66,26 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	private boolean readonly;
 	private boolean removeContainerButtonVisible;
 	private boolean addContainerButtonVisible;
+	
+	private ContainerStatus objectStatus;
 
 	//TODO: HACK to have custom filter for association contianer here becasue of creating new association:
 	private ObjectFilter filter;
 
-	ContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path) {
+	ContainerWrapper(PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
 		Validate.notNull(container, "container must not be null.");
 		Validate.notNull(status, "Container status must not be null.");
 		Validate.notNull(container.getDefinition(), "container definition must not be null.");
 
 		this.container = container;
+		this.objectStatus = objectStatus;
 		this.status = status;
 		this.path = path;
 
 	}
 
-	ContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readOnly) {
-		this(container, status, path);
+	ContainerWrapper(PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path, boolean readOnly) {
+		this(container, objectStatus, status, path);
 		this.readonly = readOnly;
 	}
 
@@ -137,6 +140,10 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 
 	public void setProperties(List<ContainerValueWrapper<C>> properties) {
 		this.values = properties;
+	}
+	
+	public ContainerStatus getObjectStatus() {
+		return objectStatus;
 	}
 
 	public PropertyOrReferenceWrapper findPropertyWrapper(QName name) {
@@ -470,7 +477,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 			return false;
 		}
 
-		switch (status) {
+		switch (objectStatus) {
 			case MODIFYING:
 				return isNotEmptyAndCanReadAndModify(def) || showEmptyCanReadAndModify(def);
 			case ADDING:
@@ -481,11 +488,11 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	}
 
 	private boolean isNotEmptyAndCanReadAndModify(PrismContainerDefinition<C> def) {
-		return def.canRead() && def.canModify();
+		return def.canRead();// && def.canModify();
 	}
 
 	private boolean showEmptyCanReadAndModify(PrismContainerDefinition<C> def) {
-		return def.canRead() && def.canModify() && isShowEmpty();
+		return def.canRead() && isShowEmpty();// && def.canModify() && isShowEmpty();
 	}
 
 	private boolean showEmptyAndCanAdd(PrismContainerDefinition<C> def) {

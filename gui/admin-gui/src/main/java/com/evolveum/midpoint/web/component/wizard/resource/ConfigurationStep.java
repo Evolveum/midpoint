@@ -138,10 +138,10 @@ public class ConfigurationStep extends WizardStep {
 			ContainerWrapperFactory cwf = new ContainerWrapperFactory(parentPage);
 			ContainerWrapper containerWrapper;
 			if (container != null) {
-				containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.MODIFYING, containerPath, parentPage.isReadOnly());
+				containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.MODIFYING, ContainerStatus.MODIFYING, containerPath, parentPage.isReadOnly());
 			} else {
 				container = containerDef.instantiate();
-				containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.ADDING, containerPath, parentPage.isReadOnly());
+				containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.ADDING, ContainerStatus.ADDING, containerPath, parentPage.isReadOnly());
 				containerWrapper.setShowEmpty(true, true);
 			}
 			containerWrappers.add(containerWrapper);

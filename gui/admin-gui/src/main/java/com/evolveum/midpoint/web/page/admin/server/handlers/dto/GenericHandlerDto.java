@@ -104,7 +104,7 @@ public class GenericHandlerDto extends HandlerDto {
 		}
 		PrismContainerDefinition<?> containerDefinition = new PrismContainerDefinitionImpl<>(new QName("Handler data"), ctd, prismContext);
 		container.setDefinition(containerDefinition);
-		containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.MODIFYING, ItemPath.EMPTY_PATH, true);
+		containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.MODIFYING, ContainerStatus.MODIFYING, ItemPath.EMPTY_PATH, true);
 	}
 
 	public ContainerWrapper getContainer() {
