@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.util.ModelContextUtil;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -324,26 +325,14 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     private void fillInModelContext(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws ObjectNotFoundException {
-        ModelContext ctx = unwrapModelContext(taskType, modelInteractionService, opTask, result);
+        ModelContext ctx = ModelContextUtil.unwrapModelContext(taskType.getModelOperationContext(), modelInteractionService, opTask, result
+        );
 		if (ctx != null) {
 			modelOperationStatusDto = new ModelOperationStatusDto(ctx, modelInteractionService, opTask, result);
 		}
     }
 
-	private ModelContext unwrapModelContext(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws ObjectNotFoundException {
-		LensContextType lensContextType = taskType.getModelOperationContext();
-		if (lensContextType != null) {
-			try {
-				return modelInteractionService.unwrapModelContext(lensContextType, opTask, result);
-			} catch (SchemaException | CommunicationException | ConfigurationException|ExpressionEvaluationException e) {   // todo treat appropriately
-				throw new SystemException("Couldn't access model operation context in task: " + e.getMessage(), e);
-			}
-		} else {
-			return null;
-		}
-	}
-
-    private void fillInWorkflowAttributes(TaskType taskType, ModelInteractionService modelInteractionService, WorkflowManager workflowManager,
+	private void fillInWorkflowAttributes(TaskType taskType, ModelInteractionService modelInteractionService, WorkflowManager workflowManager,
 			PrismContext prismContext, Task opTask,
 			OperationResult thisOpResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 

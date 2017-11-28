@@ -239,8 +239,8 @@ public class BaseModelInvocationProcessingHelper {
 		return requester;
 	}
 
-	public ObjectTreeDeltas extractTreeDeltasFromModelContext(ModelContext<?> modelContext) {
-		ObjectTreeDeltas objectTreeDeltas = new ObjectTreeDeltas(modelContext.getPrismContext());
+	public <O extends ObjectType> ObjectTreeDeltas<O> extractTreeDeltasFromModelContext(ModelContext<O> modelContext) {
+		ObjectTreeDeltas<O> objectTreeDeltas = new ObjectTreeDeltas<>(modelContext.getPrismContext());
 		if (modelContext.getFocusContext() != null && modelContext.getFocusContext().getPrimaryDelta() != null) {
 			objectTreeDeltas.setFocusChange(modelContext.getFocusContext().getPrimaryDelta().clone());
 		}

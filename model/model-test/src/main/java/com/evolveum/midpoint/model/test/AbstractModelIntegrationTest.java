@@ -1807,9 +1807,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertNoAssignments(userOid, result);
 	}
 
-	protected void assertAssignedRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+	protected AssignmentType assertAssignedRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
-		assertAssignedRole(user, roleOid);
+		return assertAssignedRole(user, roleOid);
 	}
 
 	protected <F extends FocusType> AssignmentType assertAssignedRole(PrismObject<F> focus, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {

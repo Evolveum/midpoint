@@ -231,7 +231,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
 	    AssignmentType pirateAssignment = assertAssignedRole(userJack, ROLE_PIRATE_OID);
-	    assertEquals("Wrong autoCreateIdentifier", "assignment-from-employeeType", pirateAssignment.getMetadata().getAutoCreateIdentifier());
+	    assertEquals("Wrong originMappingName", "assignment-from-employeeType", pirateAssignment.getMetadata().getOriginMappingName());
 	    assertAssignments(userJack, 2);
 
         UserType userJackType = userJack.asObjectable();
@@ -283,7 +283,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
 		AssignmentType pirateAssignment = assertAssignedRole(userJack, ROLE_PIRATE_OID);
 		// the value was already there; so the identifier should remain intact
-		assertEquals("Wrong autoCreateIdentifier", "assignment-from-employeeType", pirateAssignment.getMetadata().getAutoCreateIdentifier());
+		assertEquals("Wrong originMappingName", "assignment-from-employeeType", pirateAssignment.getMetadata().getOriginMappingName());
         assertAssignments(userJack, 2);
 
         UserType userJackType = userJack.asObjectable();
@@ -671,7 +671,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
 		AssignmentType rumAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-		assertEquals("Wrong autoCreateIdentifier", "Org mapping", rumAssignment.getMetadata().getAutoCreateIdentifier());
+		assertEquals("Wrong originMappingName", "Org mapping", rumAssignment.getMetadata().getOriginMappingName());
 		assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
         assertAssignments(userJack, 2);
 
@@ -708,7 +708,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
 		AssignmentType offenseAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-		assertEquals("Wrong autoCreateIdentifier", "Org mapping", offenseAssignment.getMetadata().getAutoCreateIdentifier());
+		assertEquals("Wrong originMappingName", "Org mapping", offenseAssignment.getMetadata().getOriginMappingName());
 		assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertAssignments(userJack, 2);
 
@@ -745,9 +745,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
 		AssignmentType rumAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-		assertEquals("Wrong autoCreateIdentifier", "Org mapping", rumAssignment.getMetadata().getAutoCreateIdentifier());
+		assertEquals("Wrong originMappingName", "Org mapping", rumAssignment.getMetadata().getOriginMappingName());
 		AssignmentType offenseAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-		assertEquals("Wrong autoCreateIdentifier", "Org mapping", offenseAssignment.getMetadata().getAutoCreateIdentifier());
+		assertEquals("Wrong originMappingName", "Org mapping", offenseAssignment.getMetadata().getOriginMappingName());
 		assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertAssignments(userJack, 3);
@@ -1166,7 +1166,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		display("User after", userAfter);
 
 		AssignmentType thiefAssignment = assertAssignedRole(userAfter, ROLE_THIEF_OID);
-		assertEquals("Wrong autoCreateIdentifier", "assignment-from-employeeType-thief", thiefAssignment.getMetadata().getAutoCreateIdentifier());
+		assertEquals("Wrong originMappingName", "assignment-from-employeeType-thief", thiefAssignment.getMetadata().getOriginMappingName());
 	}
 
 	/**
@@ -1329,7 +1329,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 				createPolyString("AUTO-matic"));
 
 		AssignmentType autoAssignment = assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
-		assertEquals("Wrong autoCreateIdentifier", "automappic", autoAssignment.getMetadata().getAutoCreateIdentifier());
+		assertEquals("Wrong originMappingName", "automappic", autoAssignment.getMetadata().getOriginMappingName());
 		assertAssignments(userAfter, 2);
 
 		assertRoles(getNumberOfRoles());

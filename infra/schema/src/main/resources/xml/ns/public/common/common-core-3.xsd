@@ -716,7 +716,7 @@
 				</xsd:annotation>
 			</xsd:element>
    		</xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long"/>
  	</xsd:complexType>
 
     <xsd:complexType name="MetadataType">
@@ -761,7 +761,7 @@
     			<xsd:annotation>
     				<xsd:documentation>
     					<p>
-    						The timestamp of operation request. It is set once and should never be changed.
+    						The timestamp of "create" operation request. It is set once and should never be changed.
     					</p>
     					<p>
     						In case of "background" processes to create object (e.g. create with approval)
@@ -779,12 +779,24 @@
     		<xsd:element name="requestorRef" type="tns:ObjectReferenceType" minOccurs="0">
     			<xsd:annotation>
     				<xsd:documentation>
-    					Reference to the user that requested the operation.
+    					Reference to the user that requested the "create" operation for this object or assignment.
     				</xsd:documentation>
     				<xsd:appinfo>
     					<a:displayName>MetadataType.requestorRef</a:displayName>
     					<a:operational>true</a:operational>
     					<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="requestorComment" type="xsd:string" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Comment of the user that requested the "create" operation for this object or assignment.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:displayName>MetadataType.requestorComment</a:displayName>
+    					<a:operational>true</a:operational>
+						<a:since>3.7</a:since>
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
@@ -843,6 +855,7 @@
 						particular order, so basically it is not known who entered which comment.
     				</xsd:documentation>
     				<xsd:appinfo>
+						<a:displayName>MetadataType.createApprovalComment</a:displayName>
     					<a:operational>true</a:operational>
 						<a:since>3.7</a:since>
     				</xsd:appinfo>
@@ -878,6 +891,7 @@
 						Reference to the task that created the object (if it was a persistent one).
 					</xsd:documentation>
 					<xsd:appinfo>
+						<a:displayName>MetadataType.createTaskRef</a:displayName>
 						<a:operational>true</a:operational>
 						<a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
 						<a:since>3.7</a:since>
@@ -947,6 +961,7 @@
 						</p>
 					</xsd:documentation>
 					<xsd:appinfo>
+						<a:displayName>MetadataType.modifyApprovalComment</a:displayName>
 						<a:operational>true</a:operational>
 						<a:since>3.7</a:since>
 					</xsd:appinfo>
@@ -983,6 +998,7 @@
 						If the last modification was carried out by synchronous task, this reference will be empty.
 					</xsd:documentation>
 					<xsd:appinfo>
+						<a:displayName>MetadataType.modifyTaskRef</a:displayName>
 						<a:operational>true</a:operational>
 						<a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
 						<a:since>3.7</a:since>
@@ -1047,6 +1063,7 @@
 						Only certifications that resulted in non-null outcome are taken into account.
                     </xsd:documentation>
                     <xsd:appinfo>
+						<a:displayName>MetadataType.certificationFinishedTimestamp</a:displayName>
                         <a:operational>true</a:operational>
 						<a:since>3.7</a:since>
                     </xsd:appinfo>
@@ -1059,6 +1076,7 @@
 						Only certifications that resulted in non-null outcome are taken into account.
                     </xsd:documentation>
                     <xsd:appinfo>
+						<a:displayName>MetadataType.certificationOutcome</a:displayName>
                         <a:operational>true</a:operational>
 						<a:since>3.7</a:since>
                     </xsd:appinfo>
@@ -1072,6 +1090,7 @@
 						Only certifications that resulted in non-null outcome are taken into account.
 					</xsd:documentation>
                     <xsd:appinfo>
+						<a:displayName>MetadataType.certifierRef</a:displayName>
                         <a:operational>true</a:operational>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
 						<a:since>3.7</a:since>
@@ -1093,21 +1112,21 @@
 						</p>
                     </xsd:documentation>
                     <xsd:appinfo>
+						<a:displayName>MetadataType.certifierComment</a:displayName>
                         <a:operational>true</a:operational>
 						<a:since>3.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="autoCreateIdentifier" type="xsd:string" minOccurs="0">
+            <xsd:element name="originMappingName" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
 						<p>
-							Identifies the reason of automated creation of this object or assignment.
-							Currently it is the name of a mapping that caused creation of a given assignment.
-							In the future we might put here e.g. name of a policy rule or analogous entity.
+							Identifies the mapping that caused the automated creation of this object or assignment.
 						</p>
                     </xsd:documentation>
                     <xsd:appinfo>
+						<a:displayName>MetadataType.originMappingName</a:displayName>
                         <a:operational>true</a:operational>
 						<a:since>3.7</a:since>
                     </xsd:appinfo>
