@@ -57,7 +57,9 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.addAjaxOnUpdat
  * Created by honchar.
  */
 public class DelegationEditorPanel extends AssignmentEditorPanel {
-    private static final String ID_DELEGATION_VALID_FROM = "delegationValidFrom";
+	private static final long serialVersionUID = 1L;
+	
+	private static final String ID_DELEGATION_VALID_FROM = "delegationValidFrom";
     private static final String ID_DELEGATION_VALID_TO = "delegationValidTo";
     private static final String ID_DESCRIPTION = "delegationDescription";
     private static final String ID_ARROW_ICON = "arrowIcon";
@@ -77,6 +79,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     private static final String ID_DELEGATE_APPROVAL_WI = "approvalWorkItems";
     private static final String ID_DELEGATE_CERTIFICATION_WI = "certificationWorkItems";
     private static final String ID_DELEGATE_MANAGEMENT_WI = "managementWorkItems";
+    private static final String ID_ALLOW_TRANSITIVE = "allowTransitive";
     private static final String ID_ASSIGNMENT_PRIVILEGES_CHECKBOX = "assignmentPrivilegesCheckbox";
     private static final String ID_ASSIGNMENT_PRIVILEGES_LABEL = "assignmentPrivilegesLabel";
     private static final String ID_ASSIGNMENT_PRIVILEGES_CONTAINER = "assignmentPrivilegesContainer";
@@ -327,7 +330,8 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
                 pageBase.showMainPopup(assignmentPreviewDialog, target);
             }
         };
-        limitPrivilegesButton.add(new VisibleEnableBehaviour(){
+        limitPrivilegesButton.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible(){
                 return UserDtoStatus.ADD.equals(getModelObject().getStatus()) &&
@@ -377,10 +381,12 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         };
         approvalRights.setOutputMarkupId(true);
         approvalRights.add(new AjaxFormComponentUpdatingBehavior("blur") {
+        	private static final long serialVersionUID = 1L;
             @Override
             protected void onUpdate(AjaxRequestTarget target) {}
         });
-        approvalRights.add(new VisibleEnableBehaviour(){
+        approvalRights.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
             @Override
             public boolean isEnabled(){
                 return getModel().getObject().isEditable();
@@ -428,10 +434,12 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             }
         };
         certificationRights.add(new AjaxFormComponentUpdatingBehavior("blur") {
+        	private static final long serialVersionUID = 1L;
             @Override
             protected void onUpdate(AjaxRequestTarget target) {}
         });
-        certificationRights.add(new VisibleEnableBehaviour(){
+        certificationRights.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
             @Override
             public boolean isEnabled(){
                 return getModel().getObject().isEditable();
@@ -459,6 +467,58 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             }
         });
         body.add(managementWorkItems);
+        
+        AjaxCheckBox allowTransitive = new AjaxCheckBox(ID_ALLOW_TRANSITIVE,
+                new IModel<Boolean>(){
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public Boolean getObject(){
+                        AssignmentEditorDto dto = getModelObject();
+                        if (dto.getPrivilegesLimitation() == null ||
+                                dto.getPrivilegesLimitation().isAllowTransitive() == null) {
+                            return false;
+                        }
+                        return dto.getPrivilegesLimitation().isAllowTransitive();
+                    }
+
+                    @Override
+                    public void setObject(Boolean value){
+                        AssignmentEditorDto dto = getModelObject();
+                        OtherPrivilegesLimitationType limitations = dto.getPrivilegesLimitation();
+                        if (limitations == null ){
+                            limitations = new OtherPrivilegesLimitationType();
+                            dto.setPrivilegesLimitation(limitations);
+                        }
+                        if (value) {
+                        	limitations.setAllowTransitive(value);
+                        }
+                    }
+
+                    @Override
+                    public void detach(){
+                    }
+                }) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        };
+        allowTransitive.add(new AjaxFormComponentUpdatingBehavior("blur") {
+			private static final long serialVersionUID = 1L;
+			@Override
+            protected void onUpdate(AjaxRequestTarget target) {}
+        });
+        allowTransitive.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
+            @Override
+            public boolean isEnabled(){
+                return getModel().getObject().isEditable();
+            }
+        });
+        allowTransitive.setOutputMarkupId(true);
+        body.add(allowTransitive);
 
         addAjaxOnUpdateBehavior(body);
     };
