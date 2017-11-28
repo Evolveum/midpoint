@@ -305,7 +305,7 @@ public class CryptoUtil {
 			}
 			subresult.addReturn("keyGeneratorProvider", keyGenerator.getProvider().getName());
 			subresult.addReturn("keyGeneratorAlgorithm", keyGenerator.getAlgorithm());
-			subresult.addReturn("keyGeneratorKeySize", keySize);
+			subresult.addReturn("keyGeneratorKeySize", keySize != null ? keySize : -1);
 
 			SecretKey key = keyGenerator.generateKey();
 			subresult.addReturn("keyAlgorithm", key.getAlgorithm());
