@@ -18,12 +18,11 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.springframework.context.ApplicationContext;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.Writer;
 import java.lang.reflect.Modifier;
-import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.zip.ZipOutputStream;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -36,7 +35,7 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
 
     @Override
     public void execute() throws Exception {
-        try (Writer writer = createWriter()) {
+        try (Writer writer = NinjaUtils.createWriter(options.getOutput(), context.getCharset(), options.isZip())) {
             writer.write(NinjaUtils.XML_OBJECTS_PREFIX);
 
             String oid = options.getOid();
@@ -138,29 +137,5 @@ public class ExportRepositoryAction extends RepositoryAction<ExportOptions> {
         if (!result.isAcceptable()) {
             //todo show some warning
         }
-    }
-
-    private Writer createWriter() throws IOException {
-        Charset charset = context.getCharset();
-
-        File output = options.getOutput();
-
-        OutputStream os;
-        if (output != null) {
-            if (output.exists()) {
-                throw new NinjaException("Export file '" + output.getPath() + "' already exists");
-            }
-            output.createNewFile();
-
-            os = new FileOutputStream(output);
-        } else {
-            os = System.out;
-        }
-
-        if (options.isZip()) {
-            os = new ZipOutputStream(os);
-        }
-
-        return new OutputStreamWriter(os, charset);
     }
 }
