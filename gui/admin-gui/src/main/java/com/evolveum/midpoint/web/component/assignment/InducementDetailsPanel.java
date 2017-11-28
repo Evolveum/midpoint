@@ -15,14 +15,11 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
 import com.evolveum.midpoint.web.component.prism.PrismPanel;
-import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -33,56 +30,34 @@ import java.util.List;
 /**
  * Created by honchar.
  */
-public class InducementDetailsPanel<R extends AbstractRoleType> extends AbstractRoleAssignmentDetailsPanel<R> {
+public class InducementDetailsPanel<R extends AbstractRoleType, C extends Containerable> extends AbstractRoleAssignmentDetailsPanel<R> {
     private static final long serialVersionUID = 1L;
 
     public InducementDetailsPanel(String id, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
         super(id, form, assignmentModel);
     }
 
-//    @Override
-//    protected void initContainersPanel(Form form, PageAdminObjectDetails<R> pageBase){
-//        ContainerWrapperListFromObjectWrapperModel<ConstructionType, R> containerModel =
-//                new ContainerWrapperListFromObjectWrapperModel<ConstructionType, R>(pageBase.getObjectModel(), collectContainersToShow());
-//        if (containerModel != null){
-//            containerModel.getObject().forEach(container -> {
-//                if (container.getName().equals(AssignmentType.F_CONSTRUCTION) &&
-//                        container.getValues().size() > 0){
-//                    container.getValues().get(0).getItems().forEach(constructionContainerItem -> {
-//                        if (constructionContainerItem instanceof PrismContainer &&
-//                                ((PrismContainer) constructionContainerItem).getElementName().equals(ConstructionType.F_ASSOCIATION)){
-//                            PrismContainer<ResourceObjectAssociationType> associationCont =
-//                                    (PrismContainer<ResourceObjectAssociationType>)constructionContainerItem;
-//                            ((PrismContainer) constructionContainerItem).getValue().
-//                        }
-//                    });
-//
-//
-//
-//                    List<ResourceObjectAssociationType> associations = construction.getAssociation();
-//                    if (associations != null){
-//                        associations.forEach(association -> {
-//
-//                        });
-//                    }
-//                    ContainerValueWrapper associationContainer =
-//                            container.findContainerValueWrapper(container.getPath().append(ConstructionType.F_ASSOCIATION));
-//                    if (associationContainer != null && associationContainer.getItems() != null) {
-//                        associationContainer.getItems().forEach(itemWrapper -> {
-//                            if (itemWrapper instanceof ContainerWrapper && ((ContainerWrapper) itemWrapper).getPath().last().toString()
-//                                    .equals(ResourceObjectAssociationType.F_OUTBOUND.getLocalPart())) {
-//                                ((ContainerWrapper) itemWrapper).setAddContainAssignmentTypeerButtonVisible(true);
-//                                ((ContainerWrapper) itemWrapper).setShowEmpty(true, false);
-//                            }
-//                        });
-//                    }
-//                }
-//            });
-//        }
+    @Override
+    protected void initContainersPanel(Form form, PageAdminObjectDetails<R> pageBase){
+        ContainerWrapperListFromObjectWrapperModel<C, R> containerModel =
+                new ContainerWrapperListFromObjectWrapperModel<C, R>(pageBase.getObjectModel(), collectContainersToShow());
+        if (containerModel != null && containerModel.getObject() != null){
+            containerModel.getObject().forEach(container -> {
+                        if (container.getName().equals(AssignmentType.F_CONSTRUCTION)) {
+                            container.setAddContainerButtonVisible(true);
+                            container.setShowEmpty(true, false);
 
-//        PrismPanel<AssignmentType> containers = new PrismPanel<>(ID_SPECIFIC_CONTAINERS, containerModel,
-//                null, form, null, pageBase) ;
-//        add(containers);
-//    }
+                            ContainerWrapper associationWrapper = container.findContainerWrapper(container.getPath().append(ConstructionType.F_ASSOCIATION));
+                            if (associationWrapper != null) {
+                                associationWrapper.setRemoveContainerButtonVisible(true);
+                            }
+                        }
+                    });
+        }
+
+        PrismPanel<C> containers = new PrismPanel<C>(ID_SPECIFIC_CONTAINERS, containerModel,
+                null, form, null, pageBase) ;
+        add(containers);
+    }
 
 }
