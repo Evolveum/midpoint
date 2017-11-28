@@ -790,7 +790,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 		if (ObjectTypeUtil.isDelegationRelation(relation)) {
 			// We have to handle assignments as though they were inducements here.
-			if (!isInducementAllowedByLimitations(segment, roleAssignment, ctx)) {
+			if (!isAllowedByLimitations(segment, roleAssignment, ctx)) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Skipping application of delegated assignment {} because it is limited in the delegation",
 							FocusTypeUtil.dumpAssignment(roleAssignment));
@@ -836,7 +836,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 			return;
 		}
-		if (!isInducementAllowedByLimitations(segment, inducement, ctx)) {
+		if (!isAllowedByLimitations(segment, inducement, ctx)) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Skipping application of inducement {} because it is limited", FocusTypeUtil.dumpAssignment(inducement));
 			}
@@ -1094,18 +1094,17 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return inducementFocusClass.isAssignableFrom(lensContext.getFocusClass());
 	}
 	
-	private boolean isInducementAllowedByLimitations(AssignmentPathSegment segment, AssignmentType roleInducement,
-			EvaluationContext ctx) {
-		AssignmentType assignmentType = segment.getAssignment(ctx.evaluateOld);
-		if (isDeputyDelegation(roleInducement)) {
-			OtherPrivilegesLimitationType limitOtherPrivileges = assignmentType.getLimitOtherPrivileges();
+	private boolean isAllowedByLimitations(AssignmentPathSegment segment, AssignmentType nextAssignment, EvaluationContext ctx) {
+		AssignmentType currentAssignment = segment.getAssignment(ctx.evaluateOld);
+		if (isDeputyDelegation(nextAssignment)) {       // delegation of delegation
+			OtherPrivilegesLimitationType limitOtherPrivileges = currentAssignment.getLimitOtherPrivileges();
 			if (limitOtherPrivileges == null) {
 				return false;
 			}
 			return BooleanUtils.isTrue(limitOtherPrivileges.isAllowTransitive());
 		} else {
-			AssignmentSelectorType targetLimitation = assignmentType.getLimitTargetContent();
-			return targetLimitation == null || FocusTypeUtil.selectorMatches(targetLimitation, roleInducement);
+			AssignmentSelectorType targetLimitation = currentAssignment.getLimitTargetContent();
+			return targetLimitation == null || FocusTypeUtil.selectorMatches(targetLimitation, nextAssignment);
 		}
 	}
 	

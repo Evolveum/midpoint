@@ -10085,7 +10085,7 @@
         	<xsd:element name="limitations" type="tns:AuthorizationLimitationsType" minOccurs="0" maxOccurs="1">
         		<xsd:annotation>
         			<xsd:documentation>
-        				Limitations of this authotization when it is applied to other authorizations.
+        				Limitations of this authorization when it is applied to other authorizations.
         				For example this specification may limit the power of attorney.
         				It is only applicable to some authorization types.
         			</xsd:documentation>
@@ -10209,7 +10209,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 <p>
-                	Limitations of this authotization when it is applied to other authorizations.
+                	Limitations of this authorization when it is applied to other authorizations.
       				For example this specification may limit the power of attorney.
        				It is only applicable to some authorization types.
                 </p>
@@ -10466,7 +10466,7 @@
 			<xsd:element name="allowTransitive" type="xsd:boolean" minOccurs="0" default="false">
 				<xsd:annotation>
 					<xsd:documentation>
-						If set to true then transitive processing is enable. E.g. transitive deputy
+						If set to true then transitive processing is enabled. E.g. transitive deputy
 						delegations (deputy of a deputy) will be processed.
 						If set to false then transitive processing is disabled. E.g. transitive
 						deputy delegations will be ignored.
