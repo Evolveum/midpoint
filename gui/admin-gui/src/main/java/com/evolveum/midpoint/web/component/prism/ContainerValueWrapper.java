@@ -569,6 +569,9 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	public void addNewChildContainerValue(QName path, PageBase pageBase){
 		ContainerWrapper<C> childContainerWrapper = getContainer().findContainerWrapper(new ItemPath(getPath(), path));
+		if (childContainerWrapper == null){
+			return;
+		}
 		boolean isSingleValue = childContainerWrapper.getItemDefinition().isSingleValue();
 		if (isSingleValue){
 			return;

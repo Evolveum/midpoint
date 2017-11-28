@@ -340,6 +340,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			Task task, OperationResult result) throws Exception {
 		return initDummyResource(name, resourceFile, resourceOid, controller -> controller.extendSchemaPirate(), task, result);
 	}
+	
+	protected DummyResourceContoller initDummyResourceAd(String name, File resourceFile, String resourceOid,
+			Task task, OperationResult result) throws Exception {
+		return initDummyResource(name, resourceFile, resourceOid, controller -> controller.extendSchemaAd(), task, result);
+	}
 
 	protected DummyResourceContoller getDummyResourceController(String name) {
 		return dummyResourceCollection.get(name);
