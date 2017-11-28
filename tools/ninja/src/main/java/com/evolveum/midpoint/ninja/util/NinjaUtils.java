@@ -1,7 +1,11 @@
 package com.evolveum.midpoint.ninja.util;
 
 import com.beust.jcommander.JCommander;
+import com.evolveum.midpoint.ninja.impl.Command;
 import com.evolveum.midpoint.ninja.impl.NinjaContext;
+import com.evolveum.midpoint.ninja.impl.NinjaException;
+import com.evolveum.midpoint.ninja.opts.BaseOptions;
+import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismParserNoIO;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
@@ -10,17 +14,12 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.ninja.impl.Command;
-import com.evolveum.midpoint.ninja.opts.BaseOptions;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
 import org.apache.commons.io.FileUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -111,5 +110,25 @@ public class NinjaUtils {
         //todo implement
 
         return null;
+    }
+
+    public static Writer createWriter(File output, Charset charset, boolean zip) throws IOException {
+        OutputStream os;
+        if (output != null) {
+            if (output.exists()) {
+                throw new NinjaException("Export file '" + output.getPath() + "' already exists");
+            }
+            output.createNewFile();
+
+            os = new FileOutputStream(output);
+        } else {
+            os = System.out;
+        }
+
+        if (zip) {
+            os = new ZipOutputStream(os);
+        }
+
+        return new OutputStreamWriter(os, charset);
     }
 }

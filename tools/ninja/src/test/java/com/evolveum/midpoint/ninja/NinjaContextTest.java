@@ -25,7 +25,7 @@ public class NinjaContextTest {
         NinjaContext ctx = new NinjaContext(null);
 
         ctx.init(null);
-        RestService service = ctx.getModel();
+        RestService service = ctx.getRestService();
 
         Holder object = new Holder();
         Holder result = new Holder();
