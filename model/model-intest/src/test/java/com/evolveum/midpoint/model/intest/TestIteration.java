@@ -184,73 +184,28 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 	protected String jupiterUserOid;
 
-	protected static DummyResource dummyResourcePink;
-	protected static DummyResourceContoller dummyResourceCtlPink;
-	protected ResourceType resourceDummyPinkType;
-	protected PrismObject<ResourceType> resourceDummyPink;
-
-	protected static DummyResource dummyResourceViolet;
-	protected static DummyResourceContoller dummyResourceCtlViolet;
-	protected ResourceType resourceDummyVioletType;
-	protected PrismObject<ResourceType> resourceDummyViolet;
-
-	protected static DummyResource dummyResourceDarkViolet;
-	protected static DummyResourceContoller dummyResourceCtlDarkViolet;
-	protected ResourceType resourceDummyDarkVioletType;
-	protected PrismObject<ResourceType> resourceDummyDarkViolet;
-
-	protected static DummyResource dummyResourceMagenta;
-	protected static DummyResourceContoller dummyResourceCtlMagenta;
-	protected ResourceType resourceDummyMagentaType;
-	protected PrismObject<ResourceType> resourceDummyMagenta;
-
-	protected static DummyResource dummyResourceFuchsia;
-	protected static DummyResourceContoller dummyResourceCtlFuchsia;
-	protected ResourceType resourceDummyFuchsiaType;
-	protected PrismObject<ResourceType> resourceDummyFuchsia;
-
 	String iterationTokenDiplomatico;
 	String iterationTokenMillonario;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+		
+		initDummyResourcePirate(RESOURCE_DUMMY_PINK_NAME,
+				RESOURCE_DUMMY_PINK_FILE, RESOURCE_DUMMY_PINK_OID, initTask, initResult);
 
-		dummyResourceCtlPink = DummyResourceContoller.create(RESOURCE_DUMMY_PINK_NAME, resourceDummyPink);
-		dummyResourceCtlPink.extendSchemaPirate();
-		dummyResourcePink = dummyResourceCtlPink.getDummyResource();
-		resourceDummyPink = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_PINK_FILE, RESOURCE_DUMMY_PINK_OID, initTask, initResult);
-		resourceDummyPinkType = resourceDummyPink.asObjectable();
-		dummyResourceCtlPink.setResource(resourceDummyPink);
+		initDummyResourcePirate(RESOURCE_DUMMY_VIOLET_NAME,
+				RESOURCE_DUMMY_VIOLET_FILE, RESOURCE_DUMMY_VIOLET_OID, initTask, initResult);
 
-		dummyResourceCtlViolet = DummyResourceContoller.create(RESOURCE_DUMMY_VIOLET_NAME, resourceDummyViolet);
-		dummyResourceCtlViolet.extendSchemaPirate();
-		dummyResourceViolet = dummyResourceCtlViolet.getDummyResource();
-		resourceDummyViolet = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_VIOLET_FILE, RESOURCE_DUMMY_VIOLET_OID, initTask, initResult);
-		resourceDummyVioletType = resourceDummyViolet.asObjectable();
-		dummyResourceCtlViolet.setResource(resourceDummyViolet);
+		DummyResourceContoller darkVioletCtl = initDummyResourcePirate(RESOURCE_DUMMY_DARK_VIOLET_NAME,
+				RESOURCE_DUMMY_DARK_VIOLET_FILE, RESOURCE_DUMMY_DARK_VIOLET_OID, initTask, initResult);
+		darkVioletCtl.getDummyResource().setSyncStyle(DummySyncStyle.SMART);
 
-		dummyResourceCtlDarkViolet = DummyResourceContoller.create(RESOURCE_DUMMY_DARK_VIOLET_NAME, resourceDummyViolet);
-		dummyResourceCtlDarkViolet.extendSchemaPirate();
-		dummyResourceDarkViolet = dummyResourceCtlDarkViolet.getDummyResource();
-		resourceDummyDarkViolet = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_DARK_VIOLET_FILE, RESOURCE_DUMMY_DARK_VIOLET_OID, initTask, initResult);
-		resourceDummyDarkVioletType = resourceDummyDarkViolet.asObjectable();
-		dummyResourceCtlDarkViolet.setResource(resourceDummyDarkViolet);
-		dummyResourceDarkViolet.setSyncStyle(DummySyncStyle.SMART);
+		initDummyResourcePirate(RESOURCE_DUMMY_MAGENTA_NAME,
+				RESOURCE_DUMMY_MAGENTA_FILE, RESOURCE_DUMMY_MAGENTA_OID, initTask, initResult);
 
-		dummyResourceCtlMagenta = DummyResourceContoller.create(RESOURCE_DUMMY_MAGENTA_NAME, resourceDummyMagenta);
-		dummyResourceCtlMagenta.extendSchemaPirate();
-		dummyResourceMagenta = dummyResourceCtlMagenta.getDummyResource();
-		resourceDummyMagenta = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_MAGENTA_FILE, RESOURCE_DUMMY_MAGENTA_OID, initTask, initResult);
-		resourceDummyMagentaType = resourceDummyMagenta.asObjectable();
-		dummyResourceCtlMagenta.setResource(resourceDummyMagenta);
-
-		dummyResourceCtlFuchsia = DummyResourceContoller.create(RESOURCE_DUMMY_FUCHSIA_NAME, resourceDummyFuchsia);
-		dummyResourceCtlFuchsia.extendSchemaAd();
-		dummyResourceFuchsia = dummyResourceCtlFuchsia.getDummyResource();
-		resourceDummyFuchsia = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FUCHSIA_FILE, RESOURCE_DUMMY_FUCHSIA_OID, initTask, initResult);
-		resourceDummyFuchsiaType = resourceDummyFuchsia.asObjectable();
-		dummyResourceCtlFuchsia.setResource(resourceDummyFuchsia);
+		initDummyResourceAd(RESOURCE_DUMMY_FUCHSIA_NAME,
+				RESOURCE_DUMMY_FUCHSIA_FILE, RESOURCE_DUMMY_FUCHSIA_OID, initTask, initResult);
 
 		addObject(USER_TEMPLATE_ITERATION_FILE);
 		addObject(USER_TEMPLATE_ITERATION_UNIQUE_EMAIL_FILE);
@@ -266,10 +221,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100JackAssignAccountDummyConflicting() throws Exception {
 		final String TEST_NAME = "test100JackAssignAccountDummyConflicting";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -286,11 +241,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -324,10 +279,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test200JackAssignAccountDummyPinkConflicting() throws Exception {
 		final String TEST_NAME = "test200JackAssignAccountDummyPinkConflicting";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -336,8 +291,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		account.setEnabled(true);
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Jack Pinky");
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Red Sea");
-		dummyResourcePink.addAccount(account);
-		repoAddObject(createShadow(resourceDummyPink, ACCOUNT_JACK_DUMMY_USERNAME), result);
+		getDummyResource(RESOURCE_DUMMY_PINK_NAME).addAccount(account);
+		repoAddObject(createShadow(getDummyResourceObject(RESOURCE_DUMMY_PINK_NAME), ACCOUNT_JACK_DUMMY_USERNAME), result);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 
@@ -346,7 +301,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		AssignmentType assignmentType = createConstructionAssignment(RESOURCE_DUMMY_PINK_OID, ShadowKindType.ACCOUNT, null);
 		ConstructionType constructionType = assignmentType.getConstruction();
 		ResourceAttributeDefinitionType attributeDefinitionType = new ResourceAttributeDefinitionType();
-		attributeDefinitionType.setRef(new ItemPathType(new ItemPath(dummyResourceCtlPink.getAttributeWeaponQName())));
+		attributeDefinitionType.setRef(new ItemPathType(new ItemPath(getDummyResourceController(RESOURCE_DUMMY_PINK_NAME).getAttributeWeaponQName())));
 		MappingType mappingType = new MappingType();
 		mappingType.setStrength(MappingStrengthType.STRONG);
 		ExpressionType expressionType = new ExpressionType();
@@ -360,11 +315,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -379,13 +334,13 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// Check shadow
         PrismObject<ShadowType> accountPinkShadow = repositoryService.getObject(ShadowType.class, accountPinkOid, null, result);
-        assertAccountShadowRepo(accountPinkShadow, accountPinkOid, "jack1", resourceDummyPinkType);
+        assertAccountShadowRepo(accountPinkShadow, accountPinkOid, "jack1", getDummyResourceType(RESOURCE_DUMMY_PINK_NAME));
 
         // Check account
         PrismObject<ShadowType> accountPinkModel = modelService.getObject(ShadowType.class, accountPinkOid, null, task, result);
-        assertAccountShadowModel(accountPinkModel, accountPinkOid, "jack1", resourceDummyPinkType);
+        assertAccountShadowModel(accountPinkModel, accountPinkOid, "jack1", getDummyResourceType(RESOURCE_DUMMY_PINK_NAME));
 		display("accountPinkModel", accountPinkModel);
-		PrismAsserts.assertPropertyValue(accountPinkModel, dummyResourceCtlPink.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME),
+		PrismAsserts.assertPropertyValue(accountPinkModel, getDummyResourceController(RESOURCE_DUMMY_PINK_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME),
 				"pistol");
 
         // Check account in dummy resource
@@ -412,10 +367,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test210GuybrushAssignAccountDummyPink() throws Exception {
 		final String TEST_NAME = "test210GuybrushAssignAccountDummyPink";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -424,11 +379,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -444,11 +399,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// Check shadow
         PrismObject<ShadowType> accountPinkShadow = repositoryService.getObject(ShadowType.class, accountPinkOid, null, result);
-        assertAccountShadowRepo(accountPinkShadow, accountPinkOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, resourceDummyPinkType);
+        assertAccountShadowRepo(accountPinkShadow, accountPinkOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResourceType(RESOURCE_DUMMY_PINK_NAME));
 
         // Check account
         PrismObject<ShadowType> accountPinkModel = modelService.getObject(ShadowType.class, accountPinkOid, null, task, result);
-        assertAccountShadowModel(accountPinkModel, accountPinkOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, resourceDummyPinkType);
+        assertAccountShadowModel(accountPinkModel, accountPinkOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResourceType(RESOURCE_DUMMY_PINK_NAME));
 
         // The new account
         assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
@@ -468,18 +423,18 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test220DeWattAssignAccountDummyPinkCaseIgnore() throws Exception {
 		final String TEST_NAME = "test220DeWattAssignAccountDummyPinkCaseIgnore";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userDeWatt = createUser(USER_DEWATT_NAME, "Augustus DeWatt", true);
         addObject(userDeWatt);
         String userDeWattkOid = userDeWatt.getOid();
 
-        PrismObject<ShadowType> accountDeWatt = createAccount(resourceDummyPink, ACCOUNT_DEWATT_NAME, true);
-        addAttributeToShadow(accountDeWatt, resourceDummyPink,
+        PrismObject<ShadowType> accountDeWatt = createAccount(getDummyResourceObject(RESOURCE_DUMMY_PINK_NAME), ACCOUNT_DEWATT_NAME, true);
+        addAttributeToShadow(accountDeWatt, getDummyResourceObject(RESOURCE_DUMMY_PINK_NAME),
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME,  "Augustus DeWatt");
         addObject(accountDeWatt);
 
@@ -494,11 +449,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -512,11 +467,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// Check shadow
         PrismObject<ShadowType> accountPinkShadow = repositoryService.getObject(ShadowType.class, accountPinkOid, null, result);
-        assertAccountShadowRepo(accountPinkShadow, accountPinkOid, USER_DEWATT_NAME+"1", resourceDummyPinkType);
+        assertAccountShadowRepo(accountPinkShadow, accountPinkOid, USER_DEWATT_NAME+"1", getDummyResourceType(RESOURCE_DUMMY_PINK_NAME));
 
         // Check account
         PrismObject<ShadowType> accountPinkModel = modelService.getObject(ShadowType.class, accountPinkOid, null, task, result);
-        assertAccountShadowModel(accountPinkModel, accountPinkOid, USER_DEWATT_NAME + "1", resourceDummyPinkType);
+        assertAccountShadowModel(accountPinkModel, accountPinkOid, USER_DEWATT_NAME + "1", getDummyResourceType(RESOURCE_DUMMY_PINK_NAME));
 
         // Old account
         assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_DEWATT_NAME, "Augustus DeWatt", true);
@@ -537,10 +492,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test230ScroogeAddAccountDummyConflictingNoShadow() throws Exception {
 		final String TEST_NAME = "test230ScroogeAddAccountDummyConflictingNoShadow";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		dummyAuditService.clear();
 
@@ -548,21 +503,21 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		DummyAccount account = new DummyAccount("scrooge");
 		account.setEnabled(true);
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Scrooge Pinky");
-		dummyResourcePink.addAccount(account);
+		getDummyResource(RESOURCE_DUMMY_PINK_NAME).addAccount(account);
 
 		PrismObject<UserType> userScrooge = createUser("scrooge", "Scrooge McDuck", true);
-		PrismObject<ShadowType> newPinkyShadow = createShadow(resourceDummyPinkType.asPrismObject(), null, null);
+		PrismObject<ShadowType> newPinkyShadow = createShadow(getDummyResourceType(RESOURCE_DUMMY_PINK_NAME).asPrismObject(), null, null);
 		userScrooge.asObjectable().getLink().add(newPinkyShadow.asObjectable());
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 		deltas.add(ObjectDelta.createAddDelta(userScrooge));
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -573,11 +528,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// Check shadow
 		PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-		assertAccountShadowRepo(accountShadow, accountOid, "scrooge1", resourceDummyPinkType);
+		assertAccountShadowRepo(accountShadow, accountOid, "scrooge1", getDummyResourceType(RESOURCE_DUMMY_PINK_NAME));
 
 		// Check account
 		PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-		assertAccountShadowModel(accountModel, accountOid, "scrooge1", resourceDummyPinkType);
+		assertAccountShadowModel(accountModel, accountOid, "scrooge1", getDummyResourceType(RESOURCE_DUMMY_PINK_NAME));
 
 		// Check account in dummy resource
 		assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, "scrooge1", "Scrooge McDuck", true);
@@ -591,29 +546,29 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test235HackerAddAccountDummyEternalConflict() throws Exception {
 		final String TEST_NAME = "test235HackerAddAccountDummyEternalConflict";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		dummyAuditService.clear();
 
 		PrismObject<UserType> userJoeHacker = createUser("hacker", "Joe Hacker", true);
-		PrismObject<ShadowType> newPinkyShadow = createShadow(resourceDummyPinkType.asPrismObject(), null, null);
+		PrismObject<ShadowType> newPinkyShadow = createShadow(getDummyResourceObject(RESOURCE_DUMMY_PINK_NAME), null, null);
 		userJoeHacker.asObjectable().getLink().add(newPinkyShadow.asObjectable());
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 		deltas.add(ObjectDelta.createAddDelta(userJoeHacker));
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
 		// wrong behavior is throwing "java.lang.IllegalStateException: Model operation took too many clicks (limit is 30). Is there a cycle?"
 		// good behavior is reporting ObjectAlreadyExistsException here
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		display("Result", result);
 		TestUtil.assertPartialError(result);
@@ -635,10 +590,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test240LargoAssignAccountDummyConflictingNoShadow() throws Exception {
 		final String TEST_NAME = "test240LargoAssignAccountDummyConflictingNoShadow";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		dummyAuditService.clear();
 
@@ -646,18 +601,18 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		DummyAccount account = new DummyAccount(ACCOUNT_LARGO_DUMMY_USERNAME);
 		account.setEnabled(true);
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Largo Pinky");
-		dummyResourcePink.addAccount(account);
+		getDummyResource(RESOURCE_DUMMY_PINK_NAME).addAccount(account);
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 		ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_LARGO_OID, RESOURCE_DUMMY_PINK_OID, null, true);
 		deltas.add(accountAssignmentUserDelta);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -668,11 +623,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// Check shadow
 		PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-		assertAccountShadowRepo(accountShadow, accountOid, "largo1", resourceDummyPinkType);
+		assertAccountShadowRepo(accountShadow, accountOid, "largo1", getDummyResourceType(RESOURCE_DUMMY_PINK_NAME));
 
 		// Check account
 		PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-		assertAccountShadowModel(accountModel, accountOid, "largo1", resourceDummyPinkType);
+		assertAccountShadowModel(accountModel, accountOid, "largo1", getDummyResourceType(RESOURCE_DUMMY_PINK_NAME));
 
 		// Check account in dummy resource
 		assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, "largo1", null, true);
@@ -705,10 +660,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test260JupiterConflictNoShadowSyncBack() throws Exception {
 		final String TEST_NAME = "test260JupiterConflictNoShadowSyncBack";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		dummyAuditService.clear();
 
@@ -716,18 +671,18 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		DummyAccount account = new DummyAccount(ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME);		// Jupiter Jones
 		account.setEnabled(true);
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME, USER_JUPITER_NAME);				// jupiter
-		dummyResourceFuchsia.addAccount(account);
+		getDummyResource(RESOURCE_DUMMY_FUCHSIA_NAME).addAccount(account);
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		PrismObject<UserType> userJupiter = PrismTestUtil.parseObject(USER_JUPITER_FILE);
 		deltas.add(ObjectDelta.createAddDelta(userJupiter));
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -740,11 +695,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		// Check shadow
 		PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
 		display("Account shadow from repo", accountShadow);
-		assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, resourceDummyFuchsiaType);
+		assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, getDummyResourceType(RESOURCE_DUMMY_FUCHSIA_NAME));
 
 		// Check account
 		PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-		assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, resourceDummyFuchsiaType);
+		assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, getDummyResourceType(RESOURCE_DUMMY_FUCHSIA_NAME));
 
 		// Check account in dummy resource (actually, the fullname attribute does not exist but it's OK)
 		assertDummyAccount(RESOURCE_DUMMY_FUCHSIA_NAME, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, null, true);
@@ -768,10 +723,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	}
 
 	protected void cleanUpJupiter(String TEST_NAME) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SchemaViolationException, ConflictException {
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		dummyAuditService.clear();
 
@@ -779,11 +734,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		deltas.add(createAccountAssignmentUserDelta(jupiterUserOid, RESOURCE_DUMMY_FUCHSIA_OID, "default", false));
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -811,10 +766,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test264JupiterConflictNoShadowSyncBackSeparate() throws Exception {
 		final String TEST_NAME = "test264JupiterConflictNoShadowSyncBackSeparate";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		dummyAuditService.clear();
 
@@ -822,17 +777,17 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		DummyAccount account = new DummyAccount(ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME);		// Jupiter Jones
 		account.setEnabled(true);
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME, USER_JUPITER_NAME);				// jupiter
-		dummyResourceFuchsia.addAccount(account);
+		getDummyResource(RESOURCE_DUMMY_FUCHSIA_NAME).addAccount(account);
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		deltas.add(createAccountAssignmentUserDelta(jupiterUserOid, RESOURCE_DUMMY_FUCHSIA_OID, "default", true));
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -845,11 +800,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		// Check shadow
 		PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
 		display("Account shadow from repo", accountShadow);
-		assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, resourceDummyFuchsiaType);
+		assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, getDummyResourceType(RESOURCE_DUMMY_FUCHSIA_NAME));
 
 		// Check account
 		PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-		assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, resourceDummyFuchsiaType);
+		assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, getDummyResourceType(RESOURCE_DUMMY_FUCHSIA_NAME));
 
 		// Check account in dummy resource (actually, the fullname attribute does not exist but it's OK)
 		assertDummyAccount(RESOURCE_DUMMY_FUCHSIA_NAME, ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME, null, true);
@@ -879,10 +834,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test270JupiterConflictOtherNoShadowSyncBack() throws Exception {
 		final String TEST_NAME = "test270JupiterConflictOtherNoShadowSyncBack";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		dummyAuditService.clear();
 
@@ -890,17 +845,17 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		DummyAccount account = new DummyAccount(ACCOUNT_JUPITER_DUMMY_FUCHSIA_USERNAME);		// Jupiter Jones
 		account.setEnabled(true);
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME, "jupiter0");		// different from our jupiter
-		dummyResourceFuchsia.addAccount(account);
+		getDummyResource(RESOURCE_DUMMY_FUCHSIA_NAME).addAccount(account);
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		deltas.add(createAccountAssignmentUserDelta(jupiterUserOid, RESOURCE_DUMMY_FUCHSIA_OID, "default", true));
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -916,8 +871,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
 		display("Account shadow from model", accountModel);
 
-		assertAccountShadowRepo(accountShadow, accountOid, "Jupiter Jones1", resourceDummyFuchsiaType);
-		assertAccountShadowModel(accountModel, accountOid, "Jupiter Jones1", resourceDummyFuchsiaType);
+		assertAccountShadowRepo(accountShadow, accountOid, "Jupiter Jones1", getDummyResourceType(RESOURCE_DUMMY_FUCHSIA_NAME));
+		assertAccountShadowModel(accountModel, accountOid, "Jupiter Jones1", getDummyResourceType(RESOURCE_DUMMY_FUCHSIA_NAME));
 
 		// Check account in dummy resource (actually, the fullname attribute does not exist but it's OK)
 		assertDummyAccount(RESOURCE_DUMMY_FUCHSIA_NAME, "Jupiter Jones1", null, true);
@@ -932,11 +887,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		// Check shadow
 		PrismObject<ShadowType> accountShadowJ0 = repositoryService.getObject(ShadowType.class, accountOidJ0, null, result);
 		display("Account shadow from repo (jupiter0)", accountShadowJ0);
-		assertAccountShadowRepo(accountShadowJ0, accountOidJ0, "Jupiter Jones", resourceDummyFuchsiaType);
+		assertAccountShadowRepo(accountShadowJ0, accountOidJ0, "Jupiter Jones", getDummyResourceType(RESOURCE_DUMMY_FUCHSIA_NAME));
 
 		// Check account
 		PrismObject<ShadowType> accountModelJ0 = modelService.getObject(ShadowType.class, accountOidJ0, null, task, result);
-		assertAccountShadowModel(accountModelJ0, accountOidJ0, "Jupiter Jones", resourceDummyFuchsiaType);
+		assertAccountShadowModel(accountModelJ0, accountOidJ0, "Jupiter Jones", getDummyResourceType(RESOURCE_DUMMY_FUCHSIA_NAME));
 
 		// Check account in dummy resource (actually, the fullname attribute does not exist but it's OK)
 		assertDummyAccount(RESOURCE_DUMMY_FUCHSIA_NAME, "Jupiter Jones", null, true);
@@ -963,10 +918,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test280RenameBobNoShadow() throws Exception {
 		final String TEST_NAME = "test280RenameBobNoShadow";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		PrismObject<UserType> userBob = createUser(USER_BOB_NAME, "Bob Andrews", true);
@@ -977,7 +932,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		DummyAccount account = new DummyAccount("bobby");
 		account.setEnabled(true);
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Bobby Pinky");
-		dummyResourcePink.addAccount(account);
+		getDummyResource(RESOURCE_DUMMY_PINK_NAME).addAccount(account);
 
 		// preconditions
 		assertNoDummyAccount(RESOURCE_DUMMY_PINK_NAME, USER_BOB_NAME);
@@ -993,11 +948,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		deltas.add(objectDelta);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		PrismObject<UserType> userBobAfter = getUser(userBobOid);
 		display("User after change execution", userBobAfter);
 		assertUser(userBobAfter, userBobOid, "bobby", "Bobby Andrews", null, null, null);
@@ -1009,8 +964,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
 		display("Account shadow from model", accountModel);
 
-		assertAccountShadowRepo(accountShadow, accountOid, "bobby1", resourceDummyPinkType);
-		assertAccountShadowModel(accountModel, accountOid, "bobby1", resourceDummyPinkType);
+		assertAccountShadowRepo(accountShadow, accountOid, "bobby1", getDummyResourceType(RESOURCE_DUMMY_PINK_NAME));
+		assertAccountShadowModel(accountModel, accountOid, "bobby1", getDummyResourceType(RESOURCE_DUMMY_PINK_NAME));
 
 		// THEN
 		assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, "bobby", "Bobby Pinky", true);
@@ -1024,10 +979,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test282RenamePeterNoShadowSync() throws Exception {
 		final String TEST_NAME = "test282RenamePeterNoShadowSync";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		PrismObject<UserType> userPeter = createUser("peter", "Peter Crenshaw", true);
@@ -1038,7 +993,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		DummyAccount account = new DummyAccount("Pete Crenshaw");				// will conflict after rename
 		account.setEnabled(true);
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME, "pete0");
-		dummyResourceFuchsia.addAccount(account);
+		getDummyResource(RESOURCE_DUMMY_FUCHSIA_NAME).addAccount(account);
 
 		// preconditions
 		assertNoDummyAccount(RESOURCE_DUMMY_FUCHSIA_NAME, "Peter Crenshaw");
@@ -1054,11 +1009,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		deltas.add(objectDelta);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		PrismObject<UserType> userPeteAfter = getUser(userPeterOid);
 		display("User after change execution", userPeteAfter);
 		assertUser(userPeteAfter, userPeterOid, "pete", "Pete Crenshaw", null, null, null);
@@ -1070,8 +1025,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
 		display("Account shadow from model", accountModel);
 
-		assertAccountShadowRepo(accountShadow, accountOid, "Pete Crenshaw1", resourceDummyFuchsiaType);
-		assertAccountShadowModel(accountModel, accountOid, "Pete Crenshaw1", resourceDummyFuchsiaType);
+		assertAccountShadowRepo(accountShadow, accountOid, "Pete Crenshaw1", getDummyResourceType(RESOURCE_DUMMY_FUCHSIA_NAME));
+		assertAccountShadowModel(accountModel, accountOid, "Pete Crenshaw1", getDummyResourceType(RESOURCE_DUMMY_FUCHSIA_NAME));
 
 		// Now check the other (newly created) user, pete0
 		PrismObject<UserType> userPete0 = findUserByUsername("pete0");
@@ -1082,12 +1037,12 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		// Check shadow
 		PrismObject<ShadowType> accountShadowP0 = repositoryService.getObject(ShadowType.class, accountOidP0, null, result);
 		display("Account shadow from repo (pete0)", accountShadowP0);
-		assertAccountShadowRepo(accountShadowP0, accountOidP0, "Pete Crenshaw", resourceDummyFuchsiaType);
+		assertAccountShadowRepo(accountShadowP0, accountOidP0, "Pete Crenshaw", getDummyResourceType(RESOURCE_DUMMY_FUCHSIA_NAME));
 
 		// Check account
 		PrismObject<ShadowType> accountModelP0 = modelService.getObject(ShadowType.class, accountOidP0, null, task, result);
 		display("Account shadow from model (pete0)", accountModelP0);
-		assertAccountShadowModel(accountModelP0, accountOidP0, "Pete Crenshaw", resourceDummyFuchsiaType);
+		assertAccountShadowModel(accountModelP0, accountOidP0, "Pete Crenshaw", getDummyResourceType(RESOURCE_DUMMY_FUCHSIA_NAME));
 
 		// accounts on the resource
 		assertDummyAccount(RESOURCE_DUMMY_FUCHSIA_NAME, "Pete Crenshaw", null, true);			// pete0
@@ -1101,10 +1056,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test290AlfredConflictNoShadowSyncBackAdd() throws Exception {
 		final String TEST_NAME = "test290AlfredConflictNoShadowSyncBackAdd";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		dummyAuditService.clear();
 
@@ -1112,18 +1067,18 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		DummyAccount account = new DummyAccount("Alfred Hitchcock");
 		account.setEnabled(true);
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME, "alfred");
-		dummyResourceFuchsia.addAccount(account);
+		getDummyResource(RESOURCE_DUMMY_FUCHSIA_NAME).addAccount(account);
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		PrismObject<UserType> userJupiter = PrismTestUtil.parseObject(USER_ALFRED_FILE);			// there is a linked account
 		deltas.add(ObjectDelta.createAddDelta(userJupiter));
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -1135,11 +1090,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		// Check shadow
 		PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
 		display("Account shadow from repo", accountShadow);
-		assertAccountShadowRepo(accountShadow, accountOid, "Alfred Hitchcock", resourceDummyFuchsiaType);
+		assertAccountShadowRepo(accountShadow, accountOid, "Alfred Hitchcock", getDummyResourceType(RESOURCE_DUMMY_FUCHSIA_NAME));
 
 		// Check account
 		PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-		assertAccountShadowModel(accountModel, accountOid, "Alfred Hitchcock", resourceDummyFuchsiaType);
+		assertAccountShadowModel(accountModel, accountOid, "Alfred Hitchcock", getDummyResourceType(RESOURCE_DUMMY_FUCHSIA_NAME));
 
 		// Check account in dummy resource (actually, the fullname attribute does not exist but it's OK)
 		assertDummyAccount(RESOURCE_DUMMY_FUCHSIA_NAME, "Alfred Hitchcock", null, true);
@@ -1150,10 +1105,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test300JackAssignAccountDummyVioletConflicting() throws Exception {
 		final String TEST_NAME = "test300JackAssignAccountDummyVioletConflicting";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1162,19 +1117,19 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		account.setEnabled(true);
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Jack Violet");
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Sea of Lavender");
-		dummyResourceViolet.addAccount(account);
-		repoAddObject(createShadow(resourceDummyViolet, ACCOUNT_JACK_DUMMY_USERNAME), result);
+		getDummyResource(RESOURCE_DUMMY_VIOLET_NAME).addAccount(account);
+		repoAddObject(createShadow(getDummyResourceObject(RESOURCE_DUMMY_VIOLET_NAME), ACCOUNT_JACK_DUMMY_USERNAME), result);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_VIOLET_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1190,11 +1145,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// Check shadow
         PrismObject<ShadowType> accountVioletShadow = repositoryService.getObject(ShadowType.class, accountVioletOid, null, result);
-        assertAccountShadowRepo(accountVioletShadow, accountVioletOid, "jack.1", resourceDummyVioletType);
+        assertAccountShadowRepo(accountVioletShadow, accountVioletOid, "jack.1", getDummyResourceType(RESOURCE_DUMMY_VIOLET_NAME));
 
         // Check account
         PrismObject<ShadowType> accountVioletModel = modelService.getObject(ShadowType.class, accountVioletOid, null, task, result);
-        assertAccountShadowModel(accountVioletModel, accountVioletOid, "jack.1", resourceDummyVioletType);
+        assertAccountShadowModel(accountVioletModel, accountVioletOid, "jack.1", getDummyResourceType(RESOURCE_DUMMY_VIOLET_NAME));
 
         // Check account in dummy resource
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
@@ -1217,10 +1172,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test350GuybrushAssignAccountDummyViolet() throws Exception {
 		final String TEST_NAME = "test350GuybrushAssignAccountDummyViolet";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1229,11 +1184,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1249,11 +1204,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// Check shadow
         PrismObject<ShadowType> accountVioletShadow = repositoryService.getObject(ShadowType.class, accountVioletOid, null, result);
-        assertAccountShadowRepo(accountVioletShadow, accountVioletOid, "guybrush.3", resourceDummyVioletType);
+        assertAccountShadowRepo(accountVioletShadow, accountVioletOid, "guybrush.3", getDummyResourceType(RESOURCE_DUMMY_VIOLET_NAME));
 
         // Check account
         PrismObject<ShadowType> accountVioletModel = modelService.getObject(ShadowType.class, accountVioletOid, null, task, result);
-        assertAccountShadowModel(accountVioletModel, accountVioletOid, "guybrush.3", resourceDummyVioletType);
+        assertAccountShadowModel(accountVioletModel, accountVioletOid, "guybrush.3", getDummyResourceType(RESOURCE_DUMMY_VIOLET_NAME));
 
         // There should be no account with the "straight" name
         assertNoDummyAccount(RESOURCE_DUMMY_VIOLET_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
@@ -1274,10 +1229,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test360HermanAssignAccountDummyViolet() throws Exception {
 		final String TEST_NAME = "test360HermanAssignAccountDummyViolet";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         addObject(USER_HERMAN_FILE);
@@ -1289,11 +1244,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1307,13 +1262,13 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// Check shadow
         PrismObject<ShadowType> accountVioletShadow = repositoryService.getObject(ShadowType.class, accountVioletOid, null, result);
-        assertAccountShadowRepo(accountVioletShadow, accountVioletOid, "herman.1", resourceDummyVioletType);
+        assertAccountShadowRepo(accountVioletShadow, accountVioletOid, "herman.1", getDummyResourceType(RESOURCE_DUMMY_VIOLET_NAME));
 
         assertIteration(accountVioletShadow, 1, ".1");
 
         // Check account
         PrismObject<ShadowType> accountVioletModel = modelService.getObject(ShadowType.class, accountVioletOid, null, task, result);
-        assertAccountShadowModel(accountVioletModel, accountVioletOid, "herman.1", resourceDummyVioletType);
+        assertAccountShadowModel(accountVioletModel, accountVioletOid, "herman.1", getDummyResourceType(RESOURCE_DUMMY_VIOLET_NAME));
 
         // There should be no account with the "straight" name
         assertNoDummyAccount(RESOURCE_DUMMY_VIOLET_NAME, "herman");
@@ -1334,10 +1289,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test400RenameAngelicaConflicting() throws Exception {
 		final String TEST_NAME = "test400RenameAngelicaConflicting";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userLechuck = createUser(USER_ANGELICA_NAME, "Angelica", true);
@@ -1345,7 +1300,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         addObject(userLechuck);
         String userLechuckOid = userLechuck.getOid();
 
-        PrismObject<ShadowType> accountCharles = createAccount(resourceDummyPink, ACCOUNT_SPARROW_NAME, true);
+        PrismObject<ShadowType> accountCharles = createAccount(getDummyResourceObject(RESOURCE_DUMMY_PINK_NAME), ACCOUNT_SPARROW_NAME, true);
         addObject(accountCharles);
 
         // preconditions
@@ -1368,10 +1323,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test500JackAssignAccountDummyMagenta() throws Exception {
 		final String TEST_NAME = "test500JackAssignAccountDummyMagenta";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1380,11 +1335,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1401,11 +1356,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);
-        assertAccountShadowRepo(accountMagentaShadow, accountMagentaOid, "jack", resourceDummyMagentaType);
+        assertAccountShadowRepo(accountMagentaShadow, accountMagentaOid, "jack", getDummyResourceType(RESOURCE_DUMMY_MAGENTA_NAME));
 
         // Check account
         PrismObject<ShadowType> accountMagentaModel = modelService.getObject(ShadowType.class, accountMagentaOid, null, task, result);
-        assertAccountShadowModel(accountMagentaModel, accountMagentaOid, "jack", resourceDummyMagentaType);
+        assertAccountShadowModel(accountMagentaModel, accountMagentaOid, "jack", getDummyResourceType(RESOURCE_DUMMY_MAGENTA_NAME));
 
         assertIteration(accountMagentaShadow, 0, "");
 
@@ -1437,10 +1392,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test510DrakeAssignAccountDummyMagenta() throws Exception {
 		final String TEST_NAME = "test510DrakeAssignAccountDummyMagenta";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userDrake = PrismTestUtil.parseObject(USER_DRAKE_FILE);
@@ -1452,8 +1407,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
         // Make sure there are some dummy accounts without quote. So if the code tries to search for null
         // it will get something and the test fails
-        dummyResourceCtlMagenta.addAccount("afettucini", "Alfredo Fettucini");
-        dummyResourceCtlMagenta.addAccount("bfettucini", "Bill Fettucini");
+        getDummyResourceController(RESOURCE_DUMMY_MAGENTA_NAME).addAccount("afettucini", "Alfredo Fettucini");
+        getDummyResourceController(RESOURCE_DUMMY_MAGENTA_NAME).addAccount("bfettucini", "Bill Fettucini");
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_DRAKE_OID,
@@ -1461,11 +1416,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1479,13 +1434,13 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);
-        assertAccountShadowRepo(accountMagentaShadow, accountMagentaOid, "drake001", resourceDummyMagentaType);
+        assertAccountShadowRepo(accountMagentaShadow, accountMagentaOid, "drake001", getDummyResourceType(RESOURCE_DUMMY_MAGENTA_NAME));
 
         assertIteration(accountMagentaShadow, 1, "001");
 
         // Check account
         PrismObject<ShadowType> accountMagentaModel = modelService.getObject(ShadowType.class, accountMagentaOid, null, task, result);
-        assertAccountShadowModel(accountMagentaModel, accountMagentaOid, "drake001", resourceDummyMagentaType);
+        assertAccountShadowModel(accountMagentaModel, accountMagentaOid, "drake001", getDummyResourceType(RESOURCE_DUMMY_MAGENTA_NAME));
 
         // There should be no account with the "straight" name
         assertNoDummyAccount(RESOURCE_DUMMY_MAGENTA_NAME, "drake");
@@ -1517,19 +1472,19 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test520DrakeModifyLocality() throws Exception {
 		final String TEST_NAME = "test520DrakeModifyLocality";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_DRAKE_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("London"));
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1543,13 +1498,13 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);
-        assertAccountShadowRepo(accountMagentaShadow, accountMagentaOid, "drake001", resourceDummyMagentaType);
+        assertAccountShadowRepo(accountMagentaShadow, accountMagentaOid, "drake001", getDummyResourceType(RESOURCE_DUMMY_MAGENTA_NAME));
 
         assertIteration(accountMagentaShadow, 1, "001");
 
         // Check account
         PrismObject<ShadowType> accountMagentaModel = modelService.getObject(ShadowType.class, accountMagentaOid, null, task, result);
-        assertAccountShadowModel(accountMagentaModel, accountMagentaOid, "drake001", resourceDummyMagentaType);
+        assertAccountShadowModel(accountMagentaModel, accountMagentaOid, "drake001", getDummyResourceType(RESOURCE_DUMMY_MAGENTA_NAME));
 
         // There should be no account with the "straight" name
         assertNoDummyAccount(RESOURCE_DUMMY_MAGENTA_NAME, "drake");
@@ -1582,10 +1537,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test530GuybrushAssignAccountDummyMagenta() throws Exception {
 		final String TEST_NAME = "test530GuybrushAssignAccountDummyMagenta";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1594,11 +1549,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1615,13 +1570,13 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);
-        assertAccountShadowRepo(accountMagentaShadow, accountMagentaOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, resourceDummyMagentaType);
+        assertAccountShadowRepo(accountMagentaShadow, accountMagentaOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResourceType(RESOURCE_DUMMY_MAGENTA_NAME));
 
         assertIteration(accountMagentaShadow, 0, "");
 
         // Check account
         PrismObject<ShadowType> accountMagentaModel = modelService.getObject(ShadowType.class, accountMagentaOid, null, task, result);
-        assertAccountShadowModel(accountMagentaModel, accountMagentaOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, resourceDummyMagentaType);
+        assertAccountShadowModel(accountMagentaModel, accountMagentaOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResourceType(RESOURCE_DUMMY_MAGENTA_NAME));
 
         // There should be no account with the "straight" name
         assertNoDummyAccount(RESOURCE_DUMMY_VIOLET_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
@@ -1649,19 +1604,19 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test532GuybrushModifyDescription() throws Exception {
 		final String TEST_NAME = "test532GuybrushModifyDescription";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, task, result, DESCRIPTION_RUM);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1678,11 +1633,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);
-        assertAccountShadowRepo(accountMagentaShadow, accountMagentaOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME + "001", resourceDummyMagentaType);
+        assertAccountShadowRepo(accountMagentaShadow, accountMagentaOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME + "001", getDummyResourceType(RESOURCE_DUMMY_MAGENTA_NAME));
 
         // Check account
         PrismObject<ShadowType> accountMagentaModel = modelService.getObject(ShadowType.class, accountMagentaOid, null, task, result);
-        assertAccountShadowModel(accountMagentaModel, accountMagentaOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME + "001", resourceDummyMagentaType);
+        assertAccountShadowModel(accountMagentaModel, accountMagentaOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME + "001", getDummyResourceType(RESOURCE_DUMMY_MAGENTA_NAME));
 
         // There should be no account with the "straight" name
         assertNoDummyAccount(RESOURCE_DUMMY_VIOLET_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
@@ -1713,20 +1668,20 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test600JackRename() throws Exception {
 		final String TEST_NAME = "test600JackRename";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_NAME, task, result,
         		PrismTestUtil.createPolyString(USER_JACK_RENAMED_NAME));
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1743,11 +1698,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		// Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);
-        assertAccountShadowRepo(accountMagentaShadow, accountMagentaOid, USER_JACK_RENAMED_NAME, resourceDummyMagentaType);
+        assertAccountShadowRepo(accountMagentaShadow, accountMagentaOid, USER_JACK_RENAMED_NAME, getDummyResourceType(RESOURCE_DUMMY_MAGENTA_NAME));
 
         // Check account
         PrismObject<ShadowType> accountMagentaModel = modelService.getObject(ShadowType.class, accountMagentaOid, null, task, result);
-        assertAccountShadowModel(accountMagentaModel, accountMagentaOid, USER_JACK_RENAMED_NAME, resourceDummyMagentaType);
+        assertAccountShadowModel(accountMagentaModel, accountMagentaOid, USER_JACK_RENAMED_NAME, getDummyResourceType(RESOURCE_DUMMY_MAGENTA_NAME));
 
         assertIteration(accountMagentaShadow, 0, "");
 
@@ -1775,7 +1730,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test700DarkVioletSyncTask() throws Exception {
 		final String TEST_NAME = "test700DarkVioletSyncTask";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // WHEN
         importObjectFromFile(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_FILE);
@@ -1790,10 +1745,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test710DarkVioletAddLeChuck() throws Exception {
 		final String TEST_NAME = "test710DarkVioletAddLeChuck";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1802,15 +1757,15 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, LECHUCK_FULLNAME);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
         display("Adding dummy account", account.debugDump());
-		dummyResourceDarkViolet.addAccount(account);
+        getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
 
 		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		assertUserNick(ACCOUNT_LECHUCK_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME);
 	}
 
@@ -1820,10 +1775,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test712DarkVioletAddCharles() throws Exception {
 		final String TEST_NAME = "test712DarkVioletAddCharles";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1832,15 +1787,15 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, LECHUCK_FULLNAME);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
         display("Adding dummy account", account.debugDump());
-		dummyResourceDarkViolet.addAccount(account);
+		getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
 
 		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		assertUserNick(ACCOUNT_LECHUCK_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME);
 		assertUserNick(ACCOUNT_CHARLES_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME+".1");
 	}
@@ -1851,10 +1806,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test714DarkVioletAddShinetop() throws Exception {
 		final String TEST_NAME = "test714DarkVioletAddShinetop";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1864,15 +1819,15 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
         display("Adding dummy account", account.debugDump());
-		dummyResourceDarkViolet.addAccount(account);
+		getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
 
 		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		assertUserNick(ACCOUNT_LECHUCK_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME);
 		assertUserNick(ACCOUNT_CHARLES_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME+".1");
 		assertUserNick(ACCOUNT_SHINETOP_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME+".2", "Melee Island");
@@ -1881,22 +1836,22 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test716DarkVioletDeleteCharles() throws Exception {
 		final String TEST_NAME = "test716DarkVioletDeleteCharles";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
-		dummyResourceDarkViolet.deleteAccountByName(ACCOUNT_CHARLES_USERNAME);
+		getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).deleteAccountByName(ACCOUNT_CHARLES_USERNAME);
 
 		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		assertUserNick(ACCOUNT_LECHUCK_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME);
 		assertNoUserNick(ACCOUNT_CHARLES_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME+".1");
 		assertUserNick(ACCOUNT_SHINETOP_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME+".2", "Melee Island");
@@ -1905,24 +1860,24 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test720DarkVioletModifyShinetopLocation() throws Exception {
 		final String TEST_NAME = "test720DarkVioletModifyShinetopLocation";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        DummyAccount account = dummyResourceDarkViolet.getAccountByUsername(ACCOUNT_SHINETOP_USERNAME);
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).getAccountByUsername(ACCOUNT_SHINETOP_USERNAME);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
 		account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Monkey Island");
 
 		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		displayAllUsers();
 		assertUserNick(ACCOUNT_LECHUCK_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME);
 		assertNoUserNick(ACCOUNT_CHARLES_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME+".1");
@@ -1932,24 +1887,24 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test722DarkVioletModifyShinetopFullName() throws Exception {
 		final String TEST_NAME = "test722DarkVioletModifyShinetopFullName";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        DummyAccount account = dummyResourceDarkViolet.getAccountByUsername(ACCOUNT_SHINETOP_USERNAME);
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).getAccountByUsername(ACCOUNT_SHINETOP_USERNAME);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
 		account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, CHUCKIE_FULLNAME);
 
 		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		displayAllUsers();
 		assertUserNick(ACCOUNT_LECHUCK_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME);
 		assertNoUserNick(ACCOUNT_CHARLES_USERNAME, LECHUCK_FULLNAME, LECHUCK_FULLNAME+".1");
@@ -1964,10 +1919,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test730DarkVioletAddBarbossa() throws Exception {
 		final String TEST_NAME = "test730DarkVioletAddBarbossa";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -1976,15 +1931,15 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, USER_BARBOSSA_USERNAME);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
         display("Adding dummy account", account.debugDump());
-		dummyResourceDarkViolet.addAccount(account);
+		getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
 
 		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		assertUserNick(USER_BARBOSSA_USERNAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_USERNAME+".1");
 	}
 
@@ -1997,10 +1952,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test732DarkVioletAddBarbossa() throws Exception {
 		final String TEST_NAME = "test732DarkVioletAddBarbossa";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -2009,15 +1964,15 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, USER_BARBOSSA_USERNAME);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
         display("Adding dummy account", account.debugDump());
-		dummyResourceDarkViolet.addAccount(account);
+		getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
 
 		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		assertUserNick(USER_BARBOSSA_USERNAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_USERNAME+".1");
 		assertUserNick("YA" + USER_BARBOSSA_USERNAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_USERNAME+".4");
 	}
@@ -2025,10 +1980,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test750DarkVioletAddMatusalem() throws Exception {
 		final String TEST_NAME = "test750DarkVioletAddMatusalem";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -2041,15 +1996,15 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, RUM_FULLNAME);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
         display("Adding dummy account", account.debugDump());
-		dummyResourceDarkViolet.addAccount(account);
+		getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
 
 		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		assertUserNick(ACCOUNT_MATUSALEM_USERNAME, RUM_FULLNAME, RUM_FULLNAME);
 	}
 
@@ -2059,10 +2014,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test752DarkVioletAddDiplomatico() throws Exception {
 		final String TEST_NAME = "test752DarkVioletAddDiplomatico";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -2071,15 +2026,15 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, RUM_FULLNAME);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
         display("Adding dummy account", account.debugDump());
-		dummyResourceDarkViolet.addAccount(account);
+		getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
 
 		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		displayAllUsers();
 
 		assertUserNick(ACCOUNT_MATUSALEM_USERNAME, RUM_FULLNAME, RUM_FULLNAME);
@@ -2094,10 +2049,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test754DarkVioletAddMilionario() throws Exception {
 		final String TEST_NAME = "test754DarkVioletAddMilionario";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -2107,15 +2062,15 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Peru");
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
         display("Adding dummy account", account.debugDump());
-		dummyResourceDarkViolet.addAccount(account);
+		getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).addAccount(account);
 
 		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		assertUserNick(ACCOUNT_MATUSALEM_USERNAME, RUM_FULLNAME, RUM_FULLNAME);
 		assertUserNick(ACCOUNT_DIPLOMATICO_USERNAME, RUM_FULLNAME, RUM_FULLNAME+iterationTokenDiplomatico);
 
@@ -2126,22 +2081,22 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test756DarkVioletDeleteDiplomatico() throws Exception {
 		final String TEST_NAME = "test756DarkVioletDeleteDiplomatico";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
-		dummyResourceDarkViolet.deleteAccountByName(ACCOUNT_DIPLOMATICO_USERNAME);
+		getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).deleteAccountByName(ACCOUNT_DIPLOMATICO_USERNAME);
 
 		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		assertUserNick(ACCOUNT_MATUSALEM_USERNAME, RUM_FULLNAME, RUM_FULLNAME);
 		assertNoUserNick(ACCOUNT_DIPLOMATICO_USERNAME, RUM_FULLNAME, RUM_FULLNAME+iterationTokenDiplomatico);
 		assertUserNick(ACCOUNT_MILLONARIO_USERNAME, RUM_FULLNAME, RUM_FULLNAME+iterationTokenMillonario, "Peru");
@@ -2150,24 +2105,24 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test760DarkVioletModifyMillonarioLocation() throws Exception {
 		final String TEST_NAME = "test760DarkVioletModifyMillonarioLocation";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        DummyAccount account = dummyResourceDarkViolet.getAccountByUsername(ACCOUNT_MILLONARIO_USERNAME);
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).getAccountByUsername(ACCOUNT_MILLONARIO_USERNAME);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
 		account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Northern Peru");
 
 		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		displayAllUsers();
 		assertUserNick(ACCOUNT_MATUSALEM_USERNAME, RUM_FULLNAME, RUM_FULLNAME);
 		assertNoUserNick(ACCOUNT_DIPLOMATICO_USERNAME, RUM_FULLNAME, RUM_FULLNAME+iterationTokenDiplomatico);
@@ -2180,24 +2135,24 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test762DarkVioletModifyMillonarioFullName() throws Exception {
 		final String TEST_NAME = "test762DarkVioletModifyMillonarioFullName";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        DummyAccount account = dummyResourceDarkViolet.getAccountByUsername(ACCOUNT_MILLONARIO_USERNAME);
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).getAccountByUsername(ACCOUNT_MILLONARIO_USERNAME);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
 		account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, RON_FULLNAME);
 
 		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		displayAllUsers();
 		assertUserNick(ACCOUNT_MATUSALEM_USERNAME, RUM_FULLNAME, RUM_FULLNAME);
 		assertNoUserNick(ACCOUNT_DIPLOMATICO_USERNAME, RUM_FULLNAME, RUM_FULLNAME+iterationTokenDiplomatico);
@@ -2211,24 +2166,24 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test764DarkVioletModifyMatusalemFullName() throws Exception {
 		final String TEST_NAME = "test764DarkVioletModifyMatusalemFullName";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
-        DummyAccount account = dummyResourceDarkViolet.getAccountByUsername(ACCOUNT_MATUSALEM_USERNAME);
+        DummyAccount account = getDummyResource(RESOURCE_DUMMY_DARK_VIOLET_NAME).getAccountByUsername(ACCOUNT_MATUSALEM_USERNAME);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
 		account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, RON_FULLNAME);
 
 		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		displayAllUsers();
 		assertNoUserNick(ACCOUNT_MATUSALEM_USERNAME, RUM_FULLNAME, RUM_FULLNAME);
 		String iterationTokenMatusalem = lookupIterationTokenByAdditionalName(ACCOUNT_MATUSALEM_USERNAME);
@@ -2245,10 +2200,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test800UniqeEmailAddUserAlfredoFettucini() throws Exception {
 		final String TEST_NAME = "test800UniqeEmailAddUserAlfredoFettucini";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -2258,11 +2213,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         		USER_FETTUCINI_NICKNAME, true);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         addObject(user, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -2283,10 +2238,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test802UniqeEmailAddUserBillFettucini() throws Exception {
 		final String TEST_NAME = "test802UniqeEmailAddUserBillFettucini";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -2296,13 +2251,12 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         		USER_BILL_FETTUCINI_FAMILY_NAME, USER_FETTUCINI_NICKNAME, true);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         addObject(user, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		PrismObject<UserType> userAfter = getUser(user.getOid());
 		display("User after change execution", userAfter);
