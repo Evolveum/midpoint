@@ -1097,7 +1097,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private boolean isInducementAllowedByLimitations(AssignmentPathSegment segment, AssignmentType roleInducement,
 			EvaluationContext ctx) {
 		AssignmentType assignmentType = segment.getAssignment(ctx.evaluateOld);
-		if (isDeputyDelagation(roleInducement)) {
+		if (isDeputyDelegation(roleInducement)) {
 			OtherPrivilegesLimitationType limitOtherPrivileges = assignmentType.getLimitOtherPrivileges();
 			if (limitOtherPrivileges == null) {
 				return false;
@@ -1109,7 +1109,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 	
-	private boolean isDeputyDelagation(AssignmentType assignmentType) {
+	private boolean isDeputyDelegation(AssignmentType assignmentType) {
 		ObjectReferenceType targetRef = assignmentType.getTargetRef();
 		if (targetRef == null) {
 			return false;
