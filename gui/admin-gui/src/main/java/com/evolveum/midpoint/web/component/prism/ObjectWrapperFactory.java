@@ -201,7 +201,7 @@ public class ObjectWrapperFactory {
 
         ContainerWrapperFactory cwf = new ContainerWrapperFactory(modelServiceLocator);
         try {
-                ContainerWrapper<O> mainContainerWrapper = cwf.createContainerWrapper(object, cStatus, ItemPath.EMPTY_PATH);
+                ContainerWrapper<O> mainContainerWrapper = cwf.createContainerWrapper(object, oWrapper.getStatus(), cStatus, ItemPath.EMPTY_PATH);
                 mainContainerWrapper.setDisplayName("prismContainer.mainPanelDisplayName");
                 result.addSubresult(cwf.getResult());
                 containerWrappers.add(mainContainerWrapper);
@@ -251,7 +251,7 @@ public class ObjectWrapperFactory {
 
 			PrismContainer<C> prismContainer = parentContainer.findContainer(def.getName());
 			
-			ContainerWrapper<C>  container = createContainerWrapper(oWrapper.getObject(), prismContainer, containerDef, cwf, newPath);
+			ContainerWrapper<C>  container = createContainerWrapper(oWrapper.getObject(), oWrapper.getStatus(), prismContainer, containerDef, cwf, newPath);
 			result.addSubresult(cwf.getResult());
 			if (container != null) {
 				containerWrappers.add(container);
@@ -260,7 +260,7 @@ public class ObjectWrapperFactory {
 		}
 	}
 	
-	private <O extends ObjectType, C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismObject<O> object, PrismContainer<C> prismContainer, PrismContainerDefinition<C> containerDef, ContainerWrapperFactory cwf, ItemPath newPath) throws SchemaException{
+	private <O extends ObjectType, C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismObject<O> object, ContainerStatus objectStatus, PrismContainer<C> prismContainer, PrismContainerDefinition<C> containerDef, ContainerWrapperFactory cwf, ItemPath newPath) throws SchemaException{
 		if (ShadowAssociationType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {
 			ObjectType objectType = object.asObjectable();
 			ShadowType shadow = null;
@@ -281,19 +281,19 @@ public class ObjectWrapperFactory {
 			}
 			
 			if (prismContainer != null) {
-				return (ContainerWrapper<C>) cwf.createAssociationWrapper(resource, shadow.getKind(), shadow.getIntent(), (PrismContainer<ShadowAssociationType>) prismContainer, ContainerStatus.MODIFYING, newPath);
+				return (ContainerWrapper<C>) cwf.createAssociationWrapper(resource, shadow.getKind(), shadow.getIntent(), (PrismContainer<ShadowAssociationType>) prismContainer, objectStatus, ContainerStatus.MODIFYING, newPath);
 			}
 			prismContainer = containerDef.instantiate();
-			return (ContainerWrapper<C>) cwf.createAssociationWrapper(resource, shadow.getKind(), shadow.getIntent(), (PrismContainer<ShadowAssociationType>) prismContainer, ContainerStatus.ADDING, newPath);
+			return (ContainerWrapper<C>) cwf.createAssociationWrapper(resource, shadow.getKind(), shadow.getIntent(), (PrismContainer<ShadowAssociationType>) prismContainer, objectStatus, ContainerStatus.ADDING, newPath);
 			
 		}
 
 		if (prismContainer != null) {
-			return cwf.createContainerWrapper(prismContainer, ContainerStatus.MODIFYING, newPath);
+			return cwf.createContainerWrapper(prismContainer, objectStatus, ContainerStatus.MODIFYING, newPath);
 		}
 		
 		prismContainer = containerDef.instantiate();
-		return cwf.createContainerWrapper(prismContainer, ContainerStatus.ADDING, newPath);
+		return cwf.createContainerWrapper(prismContainer, objectStatus, ContainerStatus.ADDING, newPath);
 		
 	}
 	

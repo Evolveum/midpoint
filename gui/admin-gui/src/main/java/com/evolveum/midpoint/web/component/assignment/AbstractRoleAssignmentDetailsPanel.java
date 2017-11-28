@@ -19,19 +19,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
 
 /**
  * TODO: is this class abstract or not?
  */
-public class AbstractRoleAssignmentDetailsPanel<F extends FocusType> extends AbstractAssignmentDetailsPanel<F> {
+public class AbstractRoleAssignmentDetailsPanel<R extends AbstractRoleType> extends AbstractAssignmentDetailsPanel<R> {
 
 	private static final long serialVersionUID = 1L;
 

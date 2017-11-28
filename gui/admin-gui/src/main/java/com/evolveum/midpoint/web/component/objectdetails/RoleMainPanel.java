@@ -48,8 +48,8 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 
 	public RoleMainPanel(String id, LoadableModel<ObjectWrapper<RoleType>> objectModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
-			LoadableModel<List<AssignmentEditorDto>> inducementsModel, PageAdminFocus<RoleType> parentPage) {
-		super(id, objectModel, projectionModel, inducementsModel, parentPage);
+			PageAdminFocus<RoleType> parentPage) {
+		super(id, objectModel, projectionModel, parentPage);
 	}
 
 	@Override

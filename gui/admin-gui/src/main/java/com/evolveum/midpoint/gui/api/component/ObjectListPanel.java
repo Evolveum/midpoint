@@ -473,6 +473,13 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	public void resetSearchModel(){
+		String storageKey = getStorageKey();
+		if (StringUtils.isNotEmpty(storageKey)) {
+			PageStorage storage = getPageStorage(storageKey);
+			storage.setSearch(null);
+			storage.setPaging(null);
+		}
+
 		searchModel.reset();
 	}
 

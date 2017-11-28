@@ -76,7 +76,9 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	private boolean readonly;
 	private boolean selected;
 
-	ContainerValueWrapper(ContainerWrapper<C> containerWrapper, PrismContainerValue<C> containerValue, ValueStatus status,
+	private ContainerStatus objectStatus;
+	
+	ContainerValueWrapper(ContainerWrapper<C> containerWrapper, PrismContainerValue<C> containerValue, ContainerStatus objectStatus, ValueStatus status,
 			ItemPath path) {
 		Validate.notNull(status, "Container status must not be null.");
 		Validate.notNull(containerValue.getParent().getDefinition(), "container definition must not be null.");
@@ -84,12 +86,13 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 		this.containerWrapper = containerWrapper;
 		this.containerValue = containerValue;
+		this.objectStatus = objectStatus;
 		this.status = status;
 		this.path = path;
 	}
 
-	ContainerValueWrapper(PrismContainerValue<C> containerValue, ValueStatus status, ItemPath path, boolean readOnly) {
-		this(null, containerValue, status, path);
+	ContainerValueWrapper(PrismContainerValue<C> containerValue, ContainerStatus objectStatus, ValueStatus status, ItemPath path, boolean readOnly) {
+		this(null, containerValue, objectStatus, status, path);
 		this.readonly = readOnly;
 	}
 
@@ -566,6 +569,9 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 
 	public void addNewChildContainerValue(QName path, PageBase pageBase){
 		ContainerWrapper<C> childContainerWrapper = getContainer().findContainerWrapper(new ItemPath(getPath(), path));
+		if (childContainerWrapper == null){
+			return;
+		}
 		boolean isSingleValue = childContainerWrapper.getItemDefinition().isSingleValue();
 		if (isSingleValue){
 			return;
@@ -573,7 +579,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		PrismContainerValue<C> newContainerValue = childContainerWrapper.getItem().createNewValue();
 		ContainerWrapperFactory factory = new ContainerWrapperFactory(pageBase);
 		ContainerValueWrapper newValueWrapper = factory.createContainerValueWrapper(childContainerWrapper,
-				newContainerValue,
+				newContainerValue, objectStatus,
 				ValueStatus.ADDED, new ItemPath(path));
 		newValueWrapper.setShowEmpty(true, false);
 		childContainerWrapper.getValues().add(newValueWrapper);
@@ -610,6 +616,10 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return item;
 
 	}
+	
+	public ContainerStatus getObjectStatus() {
+		return objectStatus;
+	}
 
 	// TODO: unify with other isVisibleMethods
 	public boolean isVisible() {
@@ -628,10 +638,10 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 		
 			// TODO: emphasized
-		switch (status) {
-			case NOT_CHANGED:
+		switch (objectStatus) {
+			case MODIFYING:
 				return canReadAndModify(def) || showEmptyCanReadAndModify(def);
-			case ADDED:
+			case ADDING:
 				return emphasizedAndCanAdd(def) || showEmptyAndCanAdd(def);
 		}
 
@@ -639,11 +649,11 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	}
 
 	private boolean canReadAndModify(PrismContainerDefinition<C> def) {
-		return def.canRead() && def.canModify();
+		return def.canRead(); // && def.canModify();
 	}
 
 	private boolean showEmptyCanReadAndModify(PrismContainerDefinition<C> def) {
-		return def.canRead() && def.canModify() && isShowEmpty();
+		return def.canRead() && isShowEmpty(); //def.canModify() && isShowEmpty();
 	}
 
 	private boolean showEmptyAndCanAdd(PrismContainerDefinition<C> def) {

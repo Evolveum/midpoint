@@ -47,7 +47,7 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHea
 	private void addValue(AjaxRequestTarget target) {
 		ContainerWrapperFactory cwf = new ContainerWrapperFactory(getPageBase());
 		ContainerWrapper<C> containerWrapper = getModelObject();
-		ContainerValueWrapper<C> newContainerValue = cwf.createContainerValueWrapper(containerWrapper, containerWrapper.getItem().createNewValue(), ValueStatus.ADDED, containerWrapper.getPath());
+		ContainerValueWrapper<C> newContainerValue = cwf.createContainerValueWrapper(containerWrapper, containerWrapper.getItem().createNewValue(), containerWrapper.getObjectStatus(), ValueStatus.ADDED, containerWrapper.getPath());
 		newContainerValue.setShowEmpty(true, false);
 		getModelObject().addValue(newContainerValue);
 		onButtonClick(target);

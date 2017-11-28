@@ -257,23 +257,23 @@ public class PageUser extends PageAdminFocus<UserType> {
                     }
                 });
 
-
-                authorization = new FocusTabVisibleBehavior(unwrapModel(),
-                        ComponentConstants.UI_FOCUS_TAB_CONSENTS_URL);
-                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.consents"), authorization)
-                {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusConsentTabPanel<UserType>(panelId, getMainForm(), getObjectModel(), parentPage);
-                    }
-
-                    @Override
-                    public String getCount() {
-                        return Integer.toString(countConsents());
-                    }
-                });
+                //GDPR feature.. temporary disabled MID-4281
+//                authorization = new FocusTabVisibleBehavior(unwrapModel(),
+//                        ComponentConstants.UI_FOCUS_TAB_CONSENTS_URL);
+//                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.consents"), authorization)
+//                {
+//                    private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    public WebMarkupContainer createPanel(String panelId) {
+//                        return new FocusConsentTabPanel<UserType>(panelId, getMainForm(), getObjectModel(), parentPage);
+//                    }
+//
+//                    @Override
+//                    public String getCount() {
+//                        return Integer.toString(countConsents());
+//                    }
+//                });
             }
 
             @Override

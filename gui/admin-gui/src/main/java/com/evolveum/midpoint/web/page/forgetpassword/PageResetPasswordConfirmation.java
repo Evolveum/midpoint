@@ -30,7 +30,7 @@ import com.evolveum.midpoint.web.page.login.PageRegistrationBase;
 import com.evolveum.midpoint.web.page.login.PageRegistrationConfirmation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 
-@PageDescriptor(urls = {@Url(mountUrl = SchemaConstants.PASSWORD_RESET_CONFIRMATION_PREFIX)})
+@PageDescriptor(urls = {@Url(mountUrl = SchemaConstants.PASSWORD_RESET_CONFIRMATION_PREFIX)}, permitAll = true)
 public class PageResetPasswordConfirmation extends PageRegistrationBase{
 
 

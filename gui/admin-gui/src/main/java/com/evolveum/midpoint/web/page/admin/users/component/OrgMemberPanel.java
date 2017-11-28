@@ -771,6 +771,12 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	@Override
 	protected Class getDefaultObjectType(){
+		ObjectTypes type = getSearchType();
+		// first we try to get type from dropdown
+		if (type != null) {
+			return type.getClassDefinition();
+		}
+
 		return OBJECT_TYPES_DEFAULT.getClassDefinition();
 	}
 }

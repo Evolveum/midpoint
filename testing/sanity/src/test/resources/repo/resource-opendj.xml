@@ -420,15 +420,15 @@ This is now the only account type that midPoint can work with. -->
                     </expression>
                 </outbound>
 
-                <inbound>
-                    <target>
-                    	<path>
-	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	                        declare namespace my="http://whatever.com/my";
-	                        $i:user/i:extension/my:description
-                        </path>
-                    </target>
-                </inbound>
+<!--                 <inbound> -->
+<!--                     <target> -->
+<!--                     	<path> -->
+<!-- 	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3"; -->
+<!-- 	                        declare namespace my="http://whatever.com/my"; -->
+<!-- 	                        $i:user/i:extension/my:description -->
+<!--                         </path> -->
+<!--                     </target> -->
+<!--                 </inbound> -->
                 <!-- No inbound expression for description. We don't want to synchronize that -->
             </attribute>
             

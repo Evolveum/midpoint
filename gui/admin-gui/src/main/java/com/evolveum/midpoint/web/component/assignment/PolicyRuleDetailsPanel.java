@@ -32,8 +32,6 @@ import com.evolveum.midpoint.web.component.form.Form;
  */
 public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignmentDetailsPanel<F> {
     private static final long serialVersionUID = 1L;
-
-
     
     public PolicyRuleDetailsPanel(String id, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model){
         super(id, form, model);

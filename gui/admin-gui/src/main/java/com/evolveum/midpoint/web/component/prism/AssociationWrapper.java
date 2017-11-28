@@ -39,8 +39,8 @@ public class AssociationWrapper extends ContainerWrapper<ShadowAssociationType> 
 
 	private static transient Trace LOGGER = TraceManager.getTrace(AssociationWrapper.class);
 	
-	AssociationWrapper(PrismContainer<ShadowAssociationType> container, ContainerStatus status, ItemPath path) {
-		super(container, status, path);	
+	AssociationWrapper(PrismContainer<ShadowAssociationType> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
+		super(container, objectStatus, status, path);	
 	}
 
 	private static final long serialVersionUID = 1L;

@@ -16,15 +16,17 @@
 
 package com.evolveum.midpoint.web.util;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismContextImpl;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.ValueParser;
+import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -32,11 +34,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.security.access.method.P;
@@ -76,6 +77,10 @@ public class ExpressionUtil {
             return language;
         }
     }
+
+    private final static QName SHADOW_REF_KEY = new QName("shadowRef");
+    private final static QName SHADOW_OID_KEY = new QName("oid");
+    private final static QName SHADOW_TYPE_KEY = new QName("type");
 
     public static final String SCRIPT_START_NS = "<c:script xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\">";
     public static final String SCRIPT_END_NS = "</c:script>";
@@ -305,7 +310,7 @@ public class ExpressionUtil {
         }
     }
 
-    public static void updateRawTypeEvaluatorValue(ExpressionType expression, String value, PrismContext prismContext){
+    public static void updateShadowRefEvaluatorValue(ExpressionType expression, String value, PrismContext prismContext){
         JAXBElement<RawType> element = findEvaluatorByName(expression, SchemaConstants.C_VALUE);
         if (element == null){
             element = new JAXBElement(SchemaConstants.C_VALUE, RawType.class,
@@ -373,43 +378,61 @@ public class ExpressionUtil {
 
     }
 
-    public static void updateAssociationTargetSearchValue(ExpressionType expression, String newValue){
-        JAXBElement element = findEvaluatorByName(expression, SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH);
-        if (element == null){
-            element = createAssociationTargetSearchElement();
-        }
-        SearchObjectExpressionEvaluatorType evaluator = (SearchObjectExpressionEvaluatorType) element.getValue();
-        if (evaluator == null){
-            evaluator = new SearchObjectExpressionEvaluatorType();
-        }
-        SearchFilterType filterType = evaluator.getFilter();
-        if (filterType == null){
-            filterType = new SearchFilterType();
-        }
-        MapXNode filterClauseNode = filterType.getFilterClauseXNode();
-        if (filterClauseNode == null){
-            filterClauseNode = new MapXNode();
-        }
-        if (!filterClauseNode.containsKey(new QName("equal"))){
-            filterClauseNode.put(new QName("equal"), null);
-        }
-        filterClauseNode.remove(new QName("equal"));
-        MapXNode values = (MapXNode)filterClauseNode.get(new QName("equal"));
-        if (values == null){
-            values = new MapXNode();
-        }
+    public static void updateAssociationTargetSearchValue(ExpressionType expression, String newPath, String newValue,
+                                                          PrismContext prismContext) throws SchemaException{
+        SearchObjectExpressionEvaluatorType associationTargetSearchType = new SearchObjectExpressionEvaluatorType();
+        EqualFilter pathFilter = EqualFilter.createEqual(new ItemPath(newPath), null, null, prismContext, newValue);
 
-        QName valueQName = new QName("value");
-        values.remove(valueQName);
-        if (!values.containsKey(valueQName)){
-            values.put(valueQName, null);
-        }
+        SearchFilterType filterType = QueryJaxbConvertor.createSearchFilterType(pathFilter, prismContext);
+        associationTargetSearchType.setFilter(filterType);
+        JAXBElement<SearchObjectExpressionEvaluatorType> evaluator = new ObjectFactory().createAssociationTargetSearch(associationTargetSearchType);
 
-        PrimitiveXNode value = (PrimitiveXNode)values.get(valueQName);
-        if (value == null){
-            value = new PrimitiveXNode();
+        removeEvaluatorByName(expression, SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH);
+        expression.getExpressionEvaluator().add(evaluator);
+    }
+
+    public static ObjectReferenceType getShadowRefValue(ExpressionType expressionType) {
+        if (expressionType == null) {
+            return null;
         }
-        value.setValue(newValue, null);
-//        values.replace(valueQName, value);
+        JAXBElement element = ExpressionUtil.findEvaluatorByName(expressionType, SchemaConstantsGenerated.C_VALUE);
+        ObjectReferenceType shadowRef = new ObjectReferenceType();
+        if (element != null && element.getValue() instanceof RawType) {
+            RawType raw = (RawType) element.getValue();
+            XNode node = raw.getXnode();
+            if (node instanceof MapXNode && ((MapXNode) node).containsKey(SHADOW_REF_KEY)) {
+                MapXNode shadowRefNode = (MapXNode) ((MapXNode) node).get(SHADOW_REF_KEY);
+                if (shadowRefNode != null && shadowRefNode.containsKey(SHADOW_OID_KEY)) {
+                    PrimitiveXNode shadowOidNode = (PrimitiveXNode) shadowRefNode.get(SHADOW_OID_KEY);
+                    String oid = shadowOidNode != null && shadowOidNode.getValueParser() != null ? shadowOidNode.getValueParser().getStringValue() :
+                            (shadowOidNode != null && shadowOidNode.getValue() != null ? (String)shadowOidNode.getValue() : null);
+                    shadowRef.setOid(oid);
+                    shadowRef.setType(ShadowType.COMPLEX_TYPE);
+                    return shadowRef;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static void createShadowRefEvaluatorValue(ExpressionType expression, String oid, PrismContext prismContext){
+        if (expression == null){
+            expression = new ExpressionType();
+        }
+        JAXBElement element =  new JAXBElement(SchemaConstants.C_VALUE, RawType.class,
+                    new RawType(prismContext));
+
+        MapXNode shadowRefNode = new MapXNode();
+        shadowRefNode.put(SHADOW_OID_KEY, new PrimitiveXNode<>(oid));
+        shadowRefNode.put(SHADOW_TYPE_KEY, new PrimitiveXNode<>(ShadowType.COMPLEX_TYPE.getLocalPart()));
+
+        MapXNode valueNode = new MapXNode();
+        valueNode.put(SHADOW_REF_KEY, shadowRefNode);
+
+        RawType expressionValue = new RawType(valueNode, prismContext);
+        element.setValue(expressionValue);
+
+        removeEvaluatorByName(expression, SchemaConstants.C_VALUE);
+        expression.getExpressionEvaluator().add(element);
     }
 }

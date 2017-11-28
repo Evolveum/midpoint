@@ -97,10 +97,10 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
         	return false;
         }
         
-        switch (status) {
-        	case ADDED : 
+        switch (container.getObjectStatus()) {
+        	case ADDING : 
         		return canAddDefault() || canAddAndShowEmpty();
-        	case NOT_CHANGED :
+        	case MODIFYING :
         		return canReadOrModifyAndNonEmpty() || canReadOrModifyAndShowEmpty();
         }
 //        if (getItem().isEmpty() && isS)
@@ -120,11 +120,11 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	}
 	
 	private boolean canReadOrModifyAndNonEmpty() {
-		return (getItemDefinition().canModify() || getItemDefinition().canRead()) && !getItem().isEmpty();
+		return getItemDefinition().canRead() && !getItem().isEmpty(); //(getItemDefinition().canModify() || getItemDefinition().canRead()) && !getItem().isEmpty();
 	}
 	
 	private boolean canReadOrModifyAndShowEmpty() {
-		return (getItemDefinition().canModify() || getItemDefinition().canRead()) && isShowEmpty();
+		return getItemDefinition().canRead() && isShowEmpty(); //(getItemDefinition().canModify() || getItemDefinition().canRead()) && isShowEmpty();
 	}
 
 	public boolean isStripe() {

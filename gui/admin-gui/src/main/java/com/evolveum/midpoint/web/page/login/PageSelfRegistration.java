@@ -78,7 +78,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 //"http://localhost:8080/midpoint/confirm/registrationid=" + newUser.getOid()
 //+ "/token=" + userType.getCostCenter() + "/roleId=00000000-0000-0000-0000-000000000008";
-@PageDescriptor(urls = {@Url(mountUrl = "/registration")})
+@PageDescriptor(urls = {@Url(mountUrl = "/registration")}, permitAll = true)
 public class PageSelfRegistration extends PageRegistrationBase {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageSelfRegistration.class);

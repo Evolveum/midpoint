@@ -136,7 +136,7 @@ import static org.apache.commons.lang3.BooleanUtils.isTrue;
  */
 @Component
 public class InboundProcessor {
-
+	
     private static final String PROCESS_INBOUND_HANDLING = InboundProcessor.class.getName() + ".processInbound";
     private static final Trace LOGGER = TraceManager.getTrace(InboundProcessor.class);
 
@@ -522,12 +522,13 @@ public class InboundProcessor {
                 LOGGER.trace("Processing association inbound from a priori delta: {}", attributeAPrioriDelta);
                 resolveEntitlementsIfNeeded((ContainerDelta<ShadowAssociationType>) attributeAPrioriDelta, null, projContext, task, result);
                 VariableProducer<PrismContainerValue<ShadowAssociationType>> entitlementVariable = 
-                		(value, variables) -> {
-                			LOGGER.trace("Producing value {} " + value);
-                			PrismObject<ShadowType> entitlement = projContext.getEntitlementMap().get(value.findReference(ShadowAssociationType.F_SHADOW_REF).getOid());
-                			LOGGER.trace("Resolved entitlement {}", entitlement);
-                			variables.addVariableDefinition(ExpressionConstants.VAR_ENTITLEMENT, entitlement);
-                		};
+                		(value, variables) -> resolveEntitlement(value, projContext, variables); 
+//          
+//                			LOGGER.trace("Producing value {} " + value);
+//                			PrismObject<ShadowType> entitlement = projContext.getEntitlementMap().get(value.findReference(ShadowAssociationType.F_SHADOW_REF).getOid());
+//                			LOGGER.trace("Resolved entitlement {}", entitlement);
+//                			variables.addVariableDefinition(ExpressionConstants.VAR_ENTITLEMENT, entitlement);
+//                		};
                 collectMappingsForTargets(context, projContext, inboundMappingType, accountAttributeName, null,
 						attributeAPrioriDelta, focus, (VariableProducer) entitlementVariable, mappingsToTarget, task, result);
 
@@ -557,12 +558,7 @@ public class InboundProcessor {
                 resolveEntitlementsIfNeeded((ContainerDelta<ShadowAssociationType>) attributeAPrioriDelta, filteredAssociations, projContext, task, result);
                 
                 VariableProducer<PrismContainerValue<ShadowAssociationType>> entitlementVariable = 
-                		(value, variables) -> {
-                			LOGGER.trace("Producing value {} " + value);
-                			PrismObject<ShadowType> entitlement = projContext.getEntitlementMap().get(value.findReference(ShadowAssociationType.F_SHADOW_REF).getOid());
-                			LOGGER.trace("Resolved entitlement {}", entitlement);
-                			variables.addVariableDefinition(ExpressionConstants.VAR_ENTITLEMENT, entitlement);
-                		};
+                		(value, variables) -> resolveEntitlement(value, projContext, variables);;
                 		
                 LOGGER.trace("Processing association inbound from account sync absolute state (currentAccount): {}", filteredAssociations);
 				collectMappingsForTargets(context, projContext, inboundMappingType, accountAttributeName, filteredAssociations,
@@ -572,6 +568,17 @@ public class InboundProcessor {
         }
 
         return true;
+	}
+	
+	private void resolveEntitlement(PrismContainerValue<ShadowAssociationType> value, LensProjectionContext projContext, ExpressionVariables variables) {
+		LOGGER.trace("Producing value {} " + value);
+		PrismObject<ShadowType> entitlement = projContext.getEntitlementMap().get(value.findReference(ShadowAssociationType.F_SHADOW_REF).getOid());
+		LOGGER.trace("Resolved entitlement {}", entitlement);
+		if (variables.containsKey(ExpressionConstants.VAR_ENTITLEMENT)) {
+			variables.replaceVariableDefinition(ExpressionConstants.VAR_ENTITLEMENT, entitlement);
+		} else {
+			variables.addVariableDefinition(ExpressionConstants.VAR_ENTITLEMENT, entitlement);
+		}
 	}
 
 	private <F extends FocusType> void processAuxiliaryObjectClassInbound(
