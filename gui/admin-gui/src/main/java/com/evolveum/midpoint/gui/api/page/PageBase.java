@@ -1641,8 +1641,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 PageSelfCredentials.class);
         addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_REQUEST, "PageAdmin.menu.request",
                 PageAssignmentShoppingKart.class);
-        addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_CONSENT, "PageAdmin.menu.consent",
-                PageSelfConsents.class);
+        
+        //GDPR feature.. temporary disabled MID-4281
+//        addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_CONSENT, "PageAdmin.menu.consent",
+//                PageSelfConsents.class);
     }
 
     private void createAdditionalMenu(SideBarMenuItem menu) {

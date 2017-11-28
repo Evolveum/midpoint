@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.page.error;
+package com.evolveum.midpoint.ninja.action;
 
-import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.ninja.opts.ExportOptions;
 
 /**
- * @author lazyman
+ * Created by Viliam Repan (lazyman).
  */
-@PageDescriptor(url = "/error/410", permitAll = true)
-public class PageError410 extends PageError {
+public class ExportRestAction extends RestAction<ExportOptions> {
 
-    public PageError410() {
-        super(410);
+    @Override
+    public void execute() throws Exception {
+        // todo implement
     }
 }

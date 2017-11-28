@@ -43,7 +43,7 @@ import java.util.Date;
  *
  * @author lazyman
  */
-@PageDescriptor(url = "/error")
+@PageDescriptor(url = "/error", permitAll = true)
 public class PageError extends PageBase {
 
     private static final String ID_CODE = "code";

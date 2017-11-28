@@ -33,7 +33,7 @@ public class BaseImportExportOptions {
     private String oid;
 
     @Parameter(names = {P_TYPE, P_TYPE_LONG}, descriptionKey = "baseImportExport.type",
-            required = true, validateWith = ObjectTypesConverter.class, converter = ObjectTypesConverter.class)
+            validateWith = ObjectTypesConverter.class, converter = ObjectTypesConverter.class)
     private ObjectTypes type;
 
     @Parameter(names = {P_FILTER, P_FILTER_LONG}, descriptionKey = "baseImportExport.filter",

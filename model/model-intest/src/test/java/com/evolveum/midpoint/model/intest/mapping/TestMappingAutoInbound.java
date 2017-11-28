@@ -57,6 +57,8 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
     protected static final File RESOURCE_DUMMY_AUTOGREEN_FILE = new File(TEST_DIR, "resource-dummy-autogreen.xml");
     protected static final String RESOURCE_DUMMY_AUTOGREEN_OID = "10000000-0000-0000-0000-00000000a404";
     protected static final String RESOURCE_DUMMY_AUTOGREEN_NAME = "autogreen";
+    
+    private static final String GROUP_DUMMY_CRATIC_NAME = "cratic";
 
     private String userHermanOid;
     
@@ -199,6 +201,10 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         
         DummyGroup dummyGroup = new DummyGroup(GROUP_DUMMY_TESTERS_NAME);
         getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).addGroup(dummyGroup);
+        dummyGroup.addMember(USER_HERMAN_USERNAME);
+        
+        dummyGroup = new DummyGroup(GROUP_DUMMY_CRATIC_NAME);
+        getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).addGroup(dummyGroup);
         
         dummyGroup.addMember(USER_HERMAN_USERNAME);
 		
@@ -227,7 +233,8 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         assertAssignedRole(userHermanAfter, ROLE_AUTODIDACTIC_OID);
         assertAssignedRole(userHermanAfter, ROLE_AUTOGRAPHIC_OID);
         assertAssignedRole(userHermanAfter, ROLE_AUTOTESTERS_OID);
-        assertAssignments(userHermanAfter, 3);
+        assertAssignedRole(userHermanAfter, ROLE_AUTOCRATIC_OID);
+        assertAssignments(userHermanAfter, 4);
 
         assertEquals("Unexpected number of users", getNumberOfUsers() + 1, users.size());
 	}
@@ -255,7 +262,8 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         assertAssignedRole(userAfter, ROLE_AUTODIDACTIC_OID);
         assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
         assertAssignedRole(userAfter, ROLE_AUTOTESTERS_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
         assertAssignedRole(userAfter, ROLE_ADMINS_OID);
-        assertAssignments(userAfter, 4);
+        assertAssignments(userAfter, 5);
 	}
 }

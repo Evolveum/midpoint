@@ -98,12 +98,13 @@ public class ContainerWrapperFactory {
 
     public <C extends Containerable> ContainerWrapper createContainerWrapper(
                                                                               PrismContainer<C> container,
+                                                                              ContainerStatus objectStatus,
                                                                               ContainerStatus status,
                                                                               ItemPath path) {
 
         result = new OperationResult(CREATE_PROPERTIES);
         
-        ContainerWrapper<C> cWrapper = new ContainerWrapper(container, status, path);
+        ContainerWrapper<C> cWrapper = new ContainerWrapper(container, objectStatus, status, path);
         
         List<ContainerValueWrapper<C>> containerValues = createContainerValues(cWrapper, path);
         cWrapper.setProperties(containerValues);
@@ -112,7 +113,7 @@ public class ContainerWrapperFactory {
        return cWrapper;
     }
     
-    public AssociationWrapper createAssociationWrapper(PrismObject<ResourceType> resource, ShadowKindType kind, String shadowIntent, PrismContainer<ShadowAssociationType> association, ContainerStatus status, ItemPath path) throws SchemaException {
+    public AssociationWrapper createAssociationWrapper(PrismObject<ResourceType> resource, ShadowKindType kind, String shadowIntent, PrismContainer<ShadowAssociationType> association, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) throws SchemaException {
         result = new OperationResult(CREATE_ASSOCIATION_WRAPPER);
     	//we need to switch association wrapper to single value
     	//the transformation will be as following:
@@ -131,10 +132,10 @@ public class ContainerWrapperFactory {
 		}
     	
     	PrismContainer<ShadowAssociationType> shadowAssociationTransformed = associationDefinition.instantiate();
-    	AssociationWrapper associationWrapper = new AssociationWrapper(shadowAssociationTransformed, status, path);
+    	AssociationWrapper associationWrapper = new AssociationWrapper(shadowAssociationTransformed, objectStatus, status, path);
     	
     	ContainerValueWrapper<ShadowAssociationType> shadowValueWrapper = new ContainerValueWrapper<>(associationWrapper,
-				shadowAssociationTransformed.createNewValue(),
+				shadowAssociationTransformed.createNewValue(), objectStatus,
 				ContainerStatus.ADDING == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, path);
 		
 		List<ItemWrapper> associationValuesWrappers = new ArrayList<>();
@@ -155,7 +156,7 @@ public class ContainerWrapperFactory {
 				itemPath = new ItemPath(ShadowType.F_ASSOCIATION);
 			}		
 			
-			ReferenceWrapper associationValueWrapper = new ReferenceWrapper(shadowValueWrapper, shadowAss, false, shadowAss.isEmpty() ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, itemPath);
+			ReferenceWrapper associationValueWrapper = new ReferenceWrapper(shadowValueWrapper, shadowAss, isItemReadOnly(association.getDefinition(), shadowValueWrapper), shadowAss.isEmpty() ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, itemPath);
 			associationValueWrapper.setDisplayName(refinedAssocationDefinition.getDisplayName());
 			S_FilterEntryOrEmpty atomicFilter = QueryBuilder.queryFor(ShadowType.class, modelServiceLocator.getPrismContext());
 			List<ObjectFilter> orFilterClauses = new ArrayList<>();
@@ -192,11 +193,11 @@ public class ContainerWrapperFactory {
     	
     }
     
-   public <C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readonly) {
+   public <C extends Containerable> ContainerWrapper<C> createContainerWrapper(PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path, boolean readonly) {
 
 		result = new OperationResult(CREATE_PROPERTIES);
 
-		ContainerWrapper<C> cWrapper = new ContainerWrapper<C>(container, status, path, readonly);
+		ContainerWrapper<C> cWrapper = new ContainerWrapper<C>(container, objectStatus, status, path, readonly);
 
 		List<ContainerValueWrapper<C>> containerValues = createContainerValues(cWrapper, path);
         cWrapper.setProperties(containerValues);
@@ -212,14 +213,14 @@ public class ContainerWrapperFactory {
 	    	
 	    	if (container.getValues().isEmpty() && container.isSingleValue()) {
 	    		PrismContainerValue<C> pcv = container.createNewValue();
-	    		 ContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(cWrapper, pcv, ValueStatus.ADDED, cWrapper.getPath());
+	    		 ContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(cWrapper, pcv, cWrapper.getObjectStatus(), ValueStatus.ADDED, cWrapper.getPath());
 	    		
 	    		containerValueWrappers.add(containerValueWrapper);
 	    		return containerValueWrappers;
 	    	}
 	    	
 	    	container.getValues().forEach(pcv -> {
-	    		ContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(cWrapper, pcv, cWrapper.getStatus() == ContainerStatus.ADDING ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, pcv.getPath());
+	    		ContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(cWrapper, pcv, cWrapper.getObjectStatus(), cWrapper.getStatus() == ContainerStatus.ADDING ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, pcv.getPath());
     			containerValueWrappers.add(containerValueWrapper);
 	    	});
 	    	
@@ -227,8 +228,8 @@ public class ContainerWrapperFactory {
 	    	return containerValueWrappers;
 	    }
 	  
-	  public <C extends Containerable> ContainerValueWrapper<C> createContainerValueWrapper(ContainerWrapper cWrapper, PrismContainerValue<C> value, ValueStatus status, ItemPath path){
-		  ContainerValueWrapper<C> containerValueWrapper = new ContainerValueWrapper<C>(cWrapper, value, status, path);
+	  public <C extends Containerable> ContainerValueWrapper<C> createContainerValueWrapper(ContainerWrapper cWrapper, PrismContainerValue<C> value, ContainerStatus objectStatus, ValueStatus status, ItemPath path){
+		  ContainerValueWrapper<C> containerValueWrapper = new ContainerValueWrapper<C>(cWrapper, value, objectStatus, status, path);
 		    
 			List<ItemWrapper> properties = createProperties(containerValueWrapper, false);
 			containerValueWrapper.setProperties(properties);
@@ -410,10 +411,10 @@ public class ContainerWrapperFactory {
 				LoggingUtils.logException(LOGGER, "Cannot create container " + def.getName(), e);
 				return null;
 			}
-			return createContainerWrapper(newContainer, ContainerStatus.ADDING,
+			return createContainerWrapper(newContainer, cWrapper.getObjectStatus(), ContainerStatus.ADDING,
 					cWrapper.getPath().append(new ItemPath(newContainer.getElementName())));
 		}
-		return createContainerWrapper(container, cWrapper.getStatus() == ValueStatus.ADDED ? ContainerStatus.ADDING: ContainerStatus.MODIFYING, container.getPath());
+		return createContainerWrapper(container, cWrapper.getObjectStatus(), cWrapper.getStatus() == ValueStatus.ADDED ? ContainerStatus.ADDING: ContainerStatus.MODIFYING, container.getPath());
 	}
 
 	private <C extends Containerable> boolean isItemReadOnly(ItemDefinition def, ContainerValueWrapper<C> cWrapper) {
