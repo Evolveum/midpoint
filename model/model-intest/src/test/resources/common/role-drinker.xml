@@ -27,4 +27,7 @@
     </assignment>
     <delegable>true</delegable>
     <idempotence>conservative</idempotence>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#drink</action>
+    </authorization>
 </role>

@@ -10444,6 +10444,19 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="allowTransitive" type="xsd:boolean" minOccurs="0" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to true then transitive processing is enable. E.g. transitive deputy
+						delegations (deputy of a deputy) will be processed.
+						If set to false then transitive processing is disabled. E.g. transitive
+						deputy delegations will be ignored.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
 	</xsd:complexType>

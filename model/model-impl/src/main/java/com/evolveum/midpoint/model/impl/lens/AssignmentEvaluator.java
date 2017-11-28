@@ -70,6 +70,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -1094,8 +1096,25 @@ public class AssignmentEvaluator<F extends FocusType> {
 	
 	private boolean isInducementAllowedByLimitations(AssignmentPathSegment segment, AssignmentType roleInducement,
 			EvaluationContext ctx) {
-		AssignmentSelectorType limitation = segment.getAssignment(ctx.evaluateOld).getLimitTargetContent();
-		return limitation == null || FocusTypeUtil.selectorMatches(limitation, roleInducement);
+		AssignmentType assignmentType = segment.getAssignment(ctx.evaluateOld);
+		if (isDeputyDelagation(roleInducement)) {
+			OtherPrivilegesLimitationType limitOtherPrivileges = assignmentType.getLimitOtherPrivileges();
+			if (limitOtherPrivileges == null) {
+				return false;
+			}
+			return BooleanUtils.isTrue(limitOtherPrivileges.isAllowTransitive());
+		} else {
+			AssignmentSelectorType targetLimitation = assignmentType.getLimitTargetContent();
+			return targetLimitation == null || FocusTypeUtil.selectorMatches(targetLimitation, roleInducement);
+		}
+	}
+	
+	private boolean isDeputyDelagation(AssignmentType assignmentType) {
+		ObjectReferenceType targetRef = assignmentType.getTargetRef();
+		if (targetRef == null) {
+			return false;
+		}
+		return ObjectTypeUtil.isDelegationRelation(targetRef.getRelation());
 	}
 
 	private Authorization createAuthorization(AuthorizationType authorizationType, String sourceDesc) {
