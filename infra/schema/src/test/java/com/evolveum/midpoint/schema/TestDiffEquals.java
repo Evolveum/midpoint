@@ -52,6 +52,9 @@ public class TestDiffEquals {
 	public static final File TEST_DIR = new File("src/test/resources/diff");
 	private static final File ROLE_COMPARE_FILE = new File(TEST_DIR, "role-compare.xml");
 
+	private static final File ROLE_1 = new File(TEST_DIR, "role-1.xml");
+    private static final File ROLE_2 = new File(TEST_DIR, "role-2.xml");
+
     private static final String NS_TEST_RI = "http://midpoint.evolveum.com/xml/ns/test/ri-1";
 
     private static final Trace LOGGER = TraceManager.getTrace(TestDiffEquals.class);
@@ -444,5 +447,14 @@ public class TestDiffEquals {
 		assertEquals("Wrong comparison A-C", false, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListA, triggerListC));
 		assertEquals("Wrong comparison B-C", false, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListB, triggerListC));
 	}
+
+    @Test(enabled = false)
+    public void diffRoles() throws Exception {
+        PrismObject<RoleType> role1 = PrismTestUtil.parseObject(ROLE_1);
+        PrismObject<RoleType> role2 = PrismTestUtil.parseObject(ROLE_2);
+
+        ObjectDelta<RoleType> delta = role1.diff(role2, true, true);
+        assertFalse(delta.isEmpty());
+    }
 
 }

@@ -621,5 +621,32 @@
 	    </authorization>
 	    <roleType>operational</roleType>
 	</role>
+
+	<role oid="8d93aef4-d4f0-11e7-85ee-5728c3e3ca7d">
+	    <name>Limited midPoint administrator</name>
+	    <authorization>
+	    	<name>ladmin-ui-all</name>
+	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#all</action>
+	    </authorization>
+	    <authorization>
+	    	<name>ladmin-read-users</name>
+	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+	        <object>
+	            <type>UserType</type>
+	        </object>
+	    </authorization>
+	    <authorization>
+	    	<name>ladmin-read-roles</name>
+	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+	        <object>
+	            <type>RoleType</type>
+	        </object>
+	    </authorization>
+	    <authorization>
+	    	<name>ladmin-raw</name>
+	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#rawOperation</action>
+	    </authorization>
+	    <roleType>operational</roleType>
+	</role>
 	
 </objects>

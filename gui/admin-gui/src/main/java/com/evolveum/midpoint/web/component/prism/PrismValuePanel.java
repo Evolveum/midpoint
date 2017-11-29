@@ -18,10 +18,7 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -662,10 +659,14 @@ public class PrismValuePanel extends Panel {
 				protected boolean isEditButtonEnabled() {
 					return valueWrapperModel.getObject().isEditEnabled();
 				}
-				
+
 				@Override
-						public List<QName> getSupportedTypes() {
-					return ((ReferenceWrapper) valueWrapperModel.getObject().getItem()).getTargetTypes();
+				public List<QName> getSupportedTypes() {
+					List<QName> targetTypeList = ((ReferenceWrapper) valueWrapperModel.getObject().getItem()).getTargetTypes();
+					if (targetTypeList == null || WebComponentUtil.isAllNulls(targetTypeList)) {
+						return Arrays.asList(ObjectType.COMPLEX_TYPE);
+					}
+					return targetTypeList;
 				}
 			};
 
