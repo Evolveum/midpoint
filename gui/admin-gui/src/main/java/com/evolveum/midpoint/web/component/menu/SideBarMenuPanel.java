@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,21 @@
  */
 package com.evolveum.midpoint.web.component.menu;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
+
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -35,8 +40,9 @@ import java.util.Map;
  * @author Viliam Repan (lazyman)
  */
 public class SideBarMenuPanel extends SimplePanel<List<SideBarMenuItem>> {
-
-    private static final String ID_SIDEBAR = "sidebar";
+	private static final long serialVersionUID = 1L;
+	
+	private static final String ID_SIDEBAR = "sidebar";
     private static final String ID_MENU_ITEMS = "menuItems";
     private static final String ID_NAME = "name";
     private static final String ID_ITEMS = "items";
@@ -56,44 +62,52 @@ public class SideBarMenuPanel extends SimplePanel<List<SideBarMenuItem>> {
         add(sidebar);
 
         ListView<SideBarMenuItem> menuItems = new ListView<SideBarMenuItem>(ID_MENU_ITEMS, getModel()) {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             protected void populateItem(final ListItem<SideBarMenuItem> item) {
                 Label name = new Label(ID_NAME, item.getModelObject().getName());
                 name.add(new AjaxEventBehavior("click") {
+					private static final long serialVersionUID = 1L;
 
-                    @Override
+					@Override
                     protected void onEvent(AjaxRequestTarget target) {
-                        SideBarMenuItem mainMenu = item.getModelObject();
-
-                        SessionStorage storage = getPageBase().getSessionStorage();
-                        Map<String, Boolean> menuState = storage.getMainMenuState();
-
-                        String menuLabel = mainMenu.getName().getObject();
-                        // we'll use menu label as key
-                        Boolean expanded = menuState.get(menuLabel);
-
-                        if (expanded == null) {
-                            expanded = true;
-                        }
-
-                        menuState.put(menuLabel, !expanded);
-
-                        target.add(sidebar);
+                    	onMenuClick(sidebar, item, target);
                     }
                 });
                 item.add(name);
 
                 WebMarkupContainer icon = new WebMarkupContainer(ID_MINIMIZED_ICON);
-                icon.add(new VisibleEnableBehaviour() {
+                icon.add(new AjaxEventBehavior("click") {
+					private static final long serialVersionUID = 1L;
 
-                    @Override
-                    public boolean isVisible() {
-                        SideBarMenuItem mainMenu = item.getModelObject();
-
-                        return !isMenuExpanded(mainMenu);
+					@Override
+                    protected void onEvent(AjaxRequestTarget target) {
+                    	onMenuClick(sidebar, item, target);
                     }
                 });
+                icon.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+                	private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public String getObject() {
+                    	SideBarMenuItem mainMenu = item.getModelObject();
+                        if (isMenuExpanded(mainMenu)) {
+                            return GuiStyleConstants.CLASS_ICON_COLLAPSE;
+                        }
+
+                        return GuiStyleConstants.CLASS_ICON_EXPAND;
+                    }
+                }));
+//                icon.add(new VisibleEnableBehaviour() {
+//
+//                    @Override
+//                    public boolean isVisible() {
+//                        SideBarMenuItem mainMenu = item.getModelObject();
+//
+//                        return !isMenuExpanded(mainMenu);
+//                    }
+//                });
                 item.add(icon);
 
                 ListView<MainMenuItem> items = new ListView<MainMenuItem>(ID_ITEMS,
@@ -161,6 +175,25 @@ public class SideBarMenuPanel extends SimplePanel<List<SideBarMenuItem>> {
             }
         };
         sidebar.add(menuItems);
+    }
+    
+    private void onMenuClick(final WebMarkupContainer sidebar, final ListItem<SideBarMenuItem> item, AjaxRequestTarget target) {
+    	SideBarMenuItem mainMenu = item.getModelObject();
+
+        SessionStorage storage = getPageBase().getSessionStorage();
+        Map<String, Boolean> menuState = storage.getMainMenuState();
+
+        String menuLabel = mainMenu.getName().getObject();
+        // we'll use menu label as key
+        Boolean expanded = menuState.get(menuLabel);
+
+        if (expanded == null) {
+            expanded = true;
+        }
+
+        menuState.put(menuLabel, !expanded);
+
+        target.add(sidebar);
     }
 
     private boolean isMenuExpanded(SideBarMenuItem mainMenu) {
