@@ -94,7 +94,7 @@
             		<xsd:appinfo>
             			<a:displayName>Binary identifier</a:displayName>
 						<a:displayOrder>890</a:displayOrder>
-						<a:indexed>true</a:indexed>
+				<!-- 		<a:indexed>true</a:indexed> we do not support binary indexing -->
             		</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>

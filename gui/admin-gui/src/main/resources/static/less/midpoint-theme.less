@@ -122,6 +122,11 @@ th.cog, td.cog {
   width: 20px;
 }
 
+.sidebar-menu > .header {
+	// white-space: wrap is problematic in firefox, it wraps expand/collapse icon on next line
+	white-space: normal !important;
+}
+
 .sidebar-form, .sidebar-menu > li.header {
 	padding: 10px 20px 10px 15px;
 	text-transform: uppercase;
