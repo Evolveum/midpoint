@@ -15,14 +15,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -34,8 +28,8 @@ import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
 import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * @author shood
@@ -61,8 +55,12 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 		initialize(roleToEdit);
 	}
 
-	public PageRole(PrismObject<RoleType> roleToEdit, boolean isReadonly) {
-		initialize(roleToEdit, isReadonly);
+	public PageRole(final PrismObject<RoleType> unitToEdit, boolean isNewObject)  {
+		initialize(unitToEdit, isNewObject);
+	}
+
+	public PageRole(PrismObject<RoleType> roleToEdit, boolean isNewObject, boolean isReadonly) {
+		initialize(roleToEdit, isNewObject, isReadonly);
 	}
 
 	public PageRole(PageParameters parameters) {

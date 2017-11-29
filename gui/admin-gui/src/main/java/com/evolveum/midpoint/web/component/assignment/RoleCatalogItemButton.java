@@ -275,15 +275,15 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
             if (AssignmentEditorDtoType.ORG_UNIT.equals(assignment.getType())){
                 PrismObject<OrgType> object = WebModelServiceUtils.loadObject(OrgType.class, assignment.getTargetRef().getOid(),
                         getPageBase(), task, result);
-                getPageBase().navigateToNext(new PageOrgUnit(object, true));
+                getPageBase().navigateToNext(new PageOrgUnit(object, false,true));
             } else if (AssignmentEditorDtoType.ROLE.equals(assignment.getType())){
                 PrismObject<RoleType> object = WebModelServiceUtils.loadObject(RoleType.class, assignment.getTargetRef().getOid(),
                         getPageBase(), task, result);
-                getPageBase().navigateToNext(new PageRole(object, true));
+                getPageBase().navigateToNext(new PageRole(object, false, true));
             } else if (AssignmentEditorDtoType.SERVICE.equals(assignment.getType())){
                 PrismObject<ServiceType> object = WebModelServiceUtils.loadObject(ServiceType.class, assignment.getTargetRef().getOid(),
                         getPageBase(), task, result);
-                getPageBase().navigateToNext(new PageService(object, true));
+                getPageBase().navigateToNext(new PageService(object, false,true));
             }
         } else {
             plusIconClicked = false;
