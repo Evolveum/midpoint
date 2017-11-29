@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -2268,6 +2269,10 @@ public final class WebComponentUtil {
 		dropDown.setNullValid(true);
 
 		return dropDown;
+	}
+
+	public static boolean isAllNulls(Iterable<?> array) {
+		return StreamSupport.stream(array.spliterator(), true).allMatch(o -> o == null);
 	}
 
 	private static IModel<List<Boolean>> createChoices() {

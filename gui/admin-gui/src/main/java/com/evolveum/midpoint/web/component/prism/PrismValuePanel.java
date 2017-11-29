@@ -29,6 +29,9 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.github.sommeri.less4j.utils.ArraysUtils;
+import org.apache.commons.collections.ListUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -665,7 +668,11 @@ public class PrismValuePanel extends Panel {
 				
 				@Override
 						public List<QName> getSupportedTypes() {
-					return ((ReferenceWrapper) valueWrapperModel.getObject().getItem()).getTargetTypes();
+					List<QName> targetTypeList = ((ReferenceWrapper) valueWrapperModel.getObject().getItem()).getTargetTypes();
+					if (targetTypeList == null || WebComponentUtil.isAllNulls(targetTypeList)){
+						return ArraysUtils.asList(ObjectType.COMPLEX_TYPE);
+					}
+					return targetTypeList;
 				}
 			};
 
