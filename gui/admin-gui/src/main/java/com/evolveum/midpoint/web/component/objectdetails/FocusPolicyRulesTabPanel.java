@@ -18,35 +18,13 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentPreviewDialog;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 /**
  * Created by honchar.

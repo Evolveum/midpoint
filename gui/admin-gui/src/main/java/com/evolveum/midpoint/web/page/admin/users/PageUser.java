@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.page.admin.users;
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
-import com.evolveum.midpoint.gui.api.model.CountableLoadableModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -26,7 +25,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -35,17 +33,14 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.assignment.DelegationEditorPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.objectdetails.UserDelegationsTabPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
@@ -64,13 +59,14 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
-import com.evolveum.midpoint.web.component.objectdetails.FocusConsentTabPanel;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import java.util.*;
+
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 /**
  * @author lazyman
@@ -92,7 +88,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     private static final String ID_TASK_TABLE = "taskTable";
     private static final String ID_TASKS = "tasks";
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
-    private LoadableModel<List<AssignmentsPreviewDto>> privilegesListModel;
+    private LoadableModel<List<AssignmentInfoDto>> privilegesListModel;
     private UserDelegationsTabPanel userDelegationsTabPanel = null;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
@@ -123,9 +119,9 @@ public class PageUser extends PageAdminFocus<UserType> {
                 }
             }
         };
-        privilegesListModel = new LoadableModel<List<AssignmentsPreviewDto>>(false) {
+        privilegesListModel = new LoadableModel<List<AssignmentInfoDto>>(false) {
             @Override
-            protected List<AssignmentsPreviewDto> load() {
+            protected List<AssignmentInfoDto> load() {
                 return getUserPrivilegesList();
             }
         };
@@ -236,9 +232,9 @@ public class PageUser extends PageAdminFocus<UserType> {
                             }
                             
                             @Override
-                            		public IModel<String> getLabel() {
-                            			return parentPage.createStringResource("FocusType.delegatedToMe");
-                            		}
+                            public IModel<String> getLabel() {
+                                return parentPage.createStringResource("FocusType.delegatedToMe");
+                            }
 
                             @Override
                             protected List<InlineMenuItem> createAssignmentMenu() {
@@ -345,15 +341,12 @@ public class PageUser extends PageAdminFocus<UserType> {
         return list;
     }
 
-    private List<AssignmentsPreviewDto> getUserPrivilegesList(){
-        List<AssignmentsPreviewDto> list = new ArrayList<>();
+    private List<AssignmentInfoDto> getUserPrivilegesList(){
+        List<AssignmentInfoDto> list = new ArrayList<>();
         OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_PEVIEW_DTO_LIST);
         Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT_PEVIEW_DTO_LIST);
-        for (AssignmentType assignment : getObjectWrapper().getObject().asObjectable().getAssignment()){
-            AssignmentsPreviewDto dto = createDelegableAssignmentsPreviewDto(assignment, task, result);
-            if (dto != null){
-                list.add(dto);
-            }
+        for (AssignmentType assignment : getObjectWrapper().getObject().asObjectable().getAssignment()) {
+            addIgnoreNull(list, createDelegableAssignmentsPreviewDto(assignment, task, result));
         }
         return list;
     }

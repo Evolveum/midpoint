@@ -52,7 +52,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
 import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
@@ -137,12 +137,12 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private IModel<List<ACAttributeDto>> attributesModel;
 	protected WebMarkupContainer headerRow;
 	protected PageBase pageBase;
-	protected IModel<List<AssignmentsPreviewDto>> privilegesListModel;
+	protected IModel<List<AssignmentInfoDto>> privilegesListModel;
 	protected boolean delegatedToMe;
 	private LoadableModel<ItemSecurityDecisions> decisionsModel;
 
 	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model, boolean delegatedToMe,
-			LoadableModel<List<AssignmentsPreviewDto>> privilegesListModel, PageBase pageBase) {
+			LoadableModel<List<AssignmentInfoDto>> privilegesListModel, PageBase pageBase) {
 		super(id, model);
 		this.pageBase = pageBase;
 		this.privilegesListModel = privilegesListModel;

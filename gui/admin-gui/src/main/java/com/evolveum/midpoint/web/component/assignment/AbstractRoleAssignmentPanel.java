@@ -17,35 +17,27 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
-import javax.xml.validation.Schema;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentPreviewDialog;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
+import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPreviewDialog;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -57,16 +49,11 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import org.springframework.expression.spel.ast.Assign;
 
 /**
  * Created by honchar.
@@ -138,13 +125,15 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
     protected void showAllAssignments(AjaxRequestTarget target) {
         PageBase pageBase = getPageBase();
-        List<AssignmentsPreviewDto> previewAssignmentsList = new ArrayList<>();
-        if (pageBase instanceof PageAdminFocus){
-            previewAssignmentsList = ((PageAdminFocus) pageBase).recomputeAssignmentsPerformed(target);
+        List<AssignmentInfoDto> previewAssignmentsList;
+        if (pageBase instanceof PageAdminFocus) {
+            previewAssignmentsList = ((PageAdminFocus<?>) pageBase).showAllAssignmentsPerformed(target);
+        } else {
+	        previewAssignmentsList = Collections.emptyList();
         }
-        AssignmentPreviewDialog assignmentPreviewDialog = new AssignmentPreviewDialog(pageBase.getMainPopupBodyId(), previewAssignmentsList,
-                new ArrayList<>(), pageBase);
-        pageBase.showMainPopup(assignmentPreviewDialog, target);
+        AllAssignmentsPreviewDialog assignmentsDialog = new AllAssignmentsPreviewDialog(pageBase.getMainPopupBodyId(), previewAssignmentsList,
+		        pageBase);
+        pageBase.showMainPopup(assignmentsDialog, target);
     }
 
        @Override

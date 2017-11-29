@@ -19,7 +19,6 @@ import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
@@ -36,7 +35,7 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -63,11 +62,11 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
     private static final Trace LOGGER = TraceManager.getTrace(FocusAssignmentsTabPanel.class);
 
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
-    private LoadableModel<List<AssignmentsPreviewDto>> privilegesListModel;
+    private LoadableModel<List<AssignmentInfoDto>> privilegesListModel;
 
     public UserDelegationsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel,
             LoadableModel<List<AssignmentEditorDto>> delegationsModel,
-			LoadableModel<List<AssignmentsPreviewDto>> privilegesListModel, PageBase page) {
+			LoadableModel<List<AssignmentInfoDto>> privilegesListModel, PageBase page) {
         super(id, mainForm, focusWrapperModel, page);
         this.delegationsModel = delegationsModel;
         this.privilegesListModel = privilegesListModel;

@@ -15,78 +15,42 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.test.ObjectSource;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+
+import static com.evolveum.midpoint.model.api.ModelExecuteOptions.createEvaluateAllAssignmentRelationsOnRecompute;
+import static java.util.Collections.singleton;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -129,25 +93,15 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-		ObjectSource<PrismObject<ShadowType>> accountSource = new ObjectSource<PrismObject<ShadowType>>() {
-			@Override
-			public PrismObject<ShadowType> get() {
-				try {
-					return PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
-				} catch (SchemaException e) {
-					throw new IllegalStateException(e.getMessage(),e);
-				} catch (IOException e) {
-                    throw new IllegalStateException(e.getMessage(),e);
-                }
-            }
-		};
-
-		ObjectChecker<ModelContext<UserType>> checker = new ObjectChecker<ModelContext<UserType>>() {
-			@Override
-			public void check(ModelContext<UserType> modelContext) {
-				assertAddAccount(modelContext, false);
+		ObjectSource<PrismObject<ShadowType>> accountSource = () -> {
+			try {
+				return PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
+			} catch (SchemaException | IOException e) {
+				throw new IllegalStateException(e.getMessage(),e);
 			}
 		};
+
+		ObjectChecker<ModelContext<UserType>> checker = modelContext -> assertAddAccount(modelContext, false);
 
 		modifyUserAddAccountImplicit(TEST_NAME, accountSource, checker);
 		modifyUserAddAccountExplicit(TEST_NAME, accountSource, checker);
@@ -972,6 +926,47 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         		null);  // replace
 
         PrismAsserts.assertModifications(accountSecondaryDelta, 1);
+	}
+
+	/**
+	 * MID-3845
+	 */
+	@Test
+    public void test238PreviewGuybrushAddRoleSailorOwner() throws Exception {
+		final String TEST_NAME = "test238PreviewGuybrushAddRoleSailorOwner";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        ObjectDelta<UserType> delta = createAssignmentFocusDelta(UserType.class, USER_GUYBRUSH_OID,
+        		ROLE_SAILOR_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_OWNER, null, null, true);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta),
+        		null, task, result);
+
+		// THEN
+        displayThen(TEST_NAME);
+        display("Preview context", modelContext);
+		assertNotNull("Null model context", modelContext);
+
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
+		assertNotNull("Model focus context missing", focusContext);
+
+		DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
+		display("evaluatedAssignmentTriple", evaluatedAssignmentTriple);
+
+		assertEquals("Wrong # of evaluated assignments in plus set", 1, evaluatedAssignmentTriple.getPlusSet().size());
+		EvaluatedAssignment<?> evaluatedAssignment = evaluatedAssignmentTriple.getPlusSet().iterator().next();
+		assertNotNull("Target of evaluated assignment is null", evaluatedAssignment.getTarget());
+		assertEquals("Wrong # of zero-set roles in evaluated assignment", 1, evaluatedAssignment.getRoles().getZeroSet().size());
 	}
 
 	@Test
@@ -1984,4 +1979,48 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertPropertyReplace(accountSecondaryDeltaBlue, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
         		SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
 	}
+
+	/**
+	 * MID-3845; now the assignment is in the zero set
+	 */
+	@Test
+	public void test710PreviewGuybrushHavingRoleSailorOwner() throws Exception {
+		final String TEST_NAME = "test710PreviewGuybrushHavingRoleSailorOwner";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+		assignRole(USER_GUYBRUSH_OID, ROLE_SAILOR_OID, SchemaConstants.ORG_OWNER, task, result);
+
+		ObjectDelta<UserType> empty = DeltaBuilder.deltaFor(UserType.class, prismContext).asObjectDeltaCast(USER_GUYBRUSH_OID);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		ModelContext<UserType> modelContext = modelInteractionService.previewChanges(singleton(empty),
+				createEvaluateAllAssignmentRelationsOnRecompute(), task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Preview context", modelContext);
+		assertNotNull("Null model context", modelContext);
+
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
+		assertNotNull("Model focus context missing", focusContext);
+
+		DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
+		display("evaluatedAssignmentTriple", evaluatedAssignmentTriple);
+
+		assertEquals("Wrong # of evaluated assignments in zero set", 1, evaluatedAssignmentTriple.getZeroSet().size());
+		EvaluatedAssignment<?> evaluatedAssignment = evaluatedAssignmentTriple.getZeroSet().iterator().next();
+		assertNotNull("Target of evaluated assignment is null", evaluatedAssignment.getTarget());
+		assertEquals("Wrong # of zero-set roles in evaluated assignment", 1, evaluatedAssignment.getRoles().getZeroSet().size());
+	}
+
+
 }

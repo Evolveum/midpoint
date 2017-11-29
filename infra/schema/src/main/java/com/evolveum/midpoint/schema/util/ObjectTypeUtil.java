@@ -800,6 +800,15 @@ public class ObjectTypeUtil {
 						.build();
 	}
 
+	@Nullable
+	public static String getRelationNameLocalizationKey(@Nullable QName relation, boolean defaultAsNull) {
+    	if (relation == null || defaultAsNull && QNameUtil.match(relation, SchemaConstants.ORG_DEFAULT)) {
+    		return null;
+	    } else {
+		    return SchemaConstants.RELATION_NAME_KEY_PREFIX + relation.getLocalPart();
+	    }
+	}
+
 	@NotNull
 	public static <O extends ObjectType> Collection<String> getSubtypeValues(@NotNull PrismObject<O> object) {
 		O o = object.asObjectable();

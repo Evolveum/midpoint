@@ -26,6 +26,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTyp
 import java.io.Serializable;
 import java.util.List;
 
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
+
 /**
  * Options for execution of Model operations. These options influence the way how the operations are executed.
  * The options are not mandatory. All options have reasonable default values. They may not be specified at all.
@@ -147,6 +149,13 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	 * EXPERIMENTAL
 	 */
 	private ConflictResolutionType focusConflictResolution;
+
+	/**
+	 * Processes all assignment relations on recompute. Used for computing all assignments.
+	 * TEMPORARY. EXPERIMENTAL. Should be replaced by something more generic (e.g. setting optimization level).
+	 * Therefore we do not currently put this to XML version of the options.
+	 */
+	private Boolean evaluateAllAssignmentRelationsOnRecompute;
 
     public Boolean getForce() {
 		return force;
@@ -395,7 +404,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return options.executeImmediatelyAfterApproval;
     }
 
-	public static ModelExecuteOptions createExecuteImmediatelyAfterApproval(){
+	public static ModelExecuteOptions createExecuteImmediatelyAfterApproval() {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setExecuteImmediatelyAfterApproval(true);
 		return opts;
@@ -570,6 +579,23 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		return opts;
 	}
 
+	public Boolean getEvaluateAllAssignmentRelationsOnRecompute() {
+		return evaluateAllAssignmentRelationsOnRecompute;
+	}
+
+	public void setEvaluateAllAssignmentRelationsOnRecompute(Boolean evaluateAllAssignmentRelationsOnRecompute) {
+		this.evaluateAllAssignmentRelationsOnRecompute = evaluateAllAssignmentRelationsOnRecompute;
+	}
+
+	public static boolean isEvaluateAllAssignmentRelationsOnRecompute(ModelExecuteOptions options) {
+		return options != null && isTrue(options.evaluateAllAssignmentRelationsOnRecompute);
+	}
+
+	public static ModelExecuteOptions createEvaluateAllAssignmentRelationsOnRecompute() {
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setEvaluateAllAssignmentRelationsOnRecompute(true);
+		return opts;
+	}
 
 	public ModelExecuteOptionsType toModelExecutionOptionsType() {
         ModelExecuteOptionsType retval = new ModelExecuteOptionsType();

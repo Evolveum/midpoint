@@ -16,17 +16,25 @@
 
 package com.evolveum.midpoint.web.page.admin.users.component;
 
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.Component;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
+ * Not to be confused with AssignmentDto. This one is used in assignment dialog (preview, selecting for delegation limitations, ...).
+ *
  * @author mederly
  */
-public class AssignmentsPreviewDto extends SelectableBean implements Serializable, Comparable {
+@SuppressWarnings("unused")
+public class AssignmentInfoDto extends Selectable<AssignmentInfoDto> implements Serializable, Comparable<AssignmentInfoDto> {
 
     public static final String F_TARGET_OID = "targetOid";
     public static final String F_TARGET_NAME = "targetName";
@@ -44,8 +52,8 @@ public class AssignmentsPreviewDto extends SelectableBean implements Serializabl
     private String targetOid;
     private String targetName;
     private String targetDescription;
-    private Class targetClass;
-    private boolean direct;                     // directly assigned?
+    private Class<? extends ObjectType> targetClass;
+    private boolean direct;                                 // true if directly assigned; used only in some contexts
     private QName targetType;
     // for resource assignments
     private ShadowKindType kind;
@@ -83,11 +91,11 @@ public class AssignmentsPreviewDto extends SelectableBean implements Serializabl
         this.targetDescription = targetDescription;
     }
 
-    public Class getTargetClass() {
+    public Class<? extends ObjectType> getTargetClass() {
         return targetClass;
     }
 
-    public void setTargetClass(Class targetClass) {
+    public void setTargetClass(Class<? extends ObjectType> targetClass) {
         this.targetClass = targetClass;
     }
 
@@ -173,50 +181,39 @@ public class AssignmentsPreviewDto extends SelectableBean implements Serializabl
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        AssignmentsPreviewDto that = (AssignmentsPreviewDto) o;
-
-        if (direct != that.direct) return false;
-        if (targetOid != null ? !targetOid.equals(that.targetOid) : that.targetOid != null) return false;
-        if (targetName != null ? !targetName.equals(that.targetName) : that.targetName != null) return false;
-        if (targetClass != null ? !targetClass.equals(that.targetClass) : that.targetClass != null) return false;
-        if (kind != that.kind) return false;
-        if (intent != null ? !intent.equals(that.intent) : that.intent != null) return false;
-        if (tenantName != null ? !tenantName.equals(that.tenantName) : that.tenantName != null) return false;
-        if (orgRefName != null ? !orgRefName.equals(that.orgRefName) : that.orgRefName != null) return false;
-        if (relation != null ? !relation.equals(that.relation) : that.relation != null) return false;
-        return !(remark != null ? !remark.equals(that.remark) : that.remark != null);
-
+        if (this == o)
+            return true;
+        if (!(o instanceof AssignmentInfoDto))
+            return false;
+        AssignmentInfoDto that = (AssignmentInfoDto) o;
+        return direct == that.direct &&
+                Objects.equals(targetOid, that.targetOid) &&
+                Objects.equals(targetName, that.targetName) &&
+                Objects.equals(targetDescription, that.targetDescription) &&
+                Objects.equals(targetClass, that.targetClass) &&
+                Objects.equals(targetType, that.targetType) &&
+                kind == that.kind &&
+                Objects.equals(intent, that.intent) &&
+                Objects.equals(tenantName, that.tenantName) &&
+                Objects.equals(orgRefName, that.orgRefName) &&
+                Objects.equals(tenantRef, that.tenantRef) &&
+                Objects.equals(orgRef, that.orgRef) &&
+                Objects.equals(remark, that.remark) &&
+                Objects.equals(relation, that.relation);
     }
 
     @Override
     public int hashCode() {
-        int result = targetOid != null ? targetOid.hashCode() : 0;
-        result = 31 * result + (targetName != null ? targetName.hashCode() : 0);
-        result = 31 * result + (targetClass != null ? targetClass.hashCode() : 0);
-        result = 31 * result + (direct ? 1 : 0);
-        result = 31 * result + (kind != null ? kind.hashCode() : 0);
-        result = 31 * result + (intent != null ? intent.hashCode() : 0);
-        result = 31 * result + (tenantName != null ? tenantName.hashCode() : 0);
-        result = 31 * result + (orgRefName != null ? orgRefName.hashCode() : 0);
-        result = 31 * result + (remark != null ? remark.hashCode() : 0);
-        result = 31 * result + (relation != null ? relation.hashCode() : 0);
-        return result;
+        return Objects
+                .hash(targetOid, targetName, targetDescription, targetClass, direct, targetType, kind, intent, tenantName,
+                        orgRefName, tenantRef, orgRef, remark, relation);
     }
 
     @Override
-    public int compareTo(Object o) {
-        if (!(o instanceof AssignmentsPreviewDto)) {
-            return -1;      // should not occur
-        }
-
-        if (this.equals(o)) {
+    public int compareTo(AssignmentInfoDto other) {
+        if (this.equals(other)) {
             return 0;
         }
-
-        AssignmentsPreviewDto other = (AssignmentsPreviewDto) o;
 
         // firstly sorting by type: orgs -> roles -> resources -> all the other (in the future)
         int co1 = getClassOrder(this.getTargetClass());
@@ -241,7 +238,7 @@ public class AssignmentsPreviewDto extends SelectableBean implements Serializabl
 
         // if class and names are equal, the order can be arbitrary
 
-        if (this.hashCode() <= o.hashCode()) {
+        if (this.hashCode() <= other.hashCode()) {
             return -1;
         } else {
             return 1;
@@ -258,5 +255,10 @@ public class AssignmentsPreviewDto extends SelectableBean implements Serializabl
         } else {
             return 3;
         }
+    }
+
+    public IModel<String> getRelationDisplayNameModel(Component component) {
+        String localizationKey = ObjectTypeUtil.getRelationNameLocalizationKey(relation, true);
+        return localizationKey != null ? PageBase.createStringResourceStatic(component, localizationKey) : Model.of("");
     }
 }

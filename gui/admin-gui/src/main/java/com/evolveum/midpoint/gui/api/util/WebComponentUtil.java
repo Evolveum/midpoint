@@ -85,6 +85,7 @@ import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joda.time.format.DateTimeFormat;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -383,6 +384,24 @@ public final class WebComponentUtil {
 			}
 		}
 		return rv;
+	}
+
+	// TODO add other classes; probably move to some enum
+	@Nullable
+	public static String getAuthorizationActionForTargetClass(Class targetClass) {
+	    if (UserType.class.equals(targetClass)) {
+		    return AuthorizationConstants.AUTZ_UI_USER_URL;
+	    } else if (OrgType.class.equals(targetClass)) {
+	        return AuthorizationConstants.AUTZ_UI_ORG_UNIT_URL;
+	    } else if (RoleType.class.equals(targetClass)) {
+		    return AuthorizationConstants.AUTZ_UI_ROLE_URL;
+	    } else if (ServiceType.class.equals(targetClass)) {
+		    return AuthorizationConstants.AUTZ_UI_SERVICE_URL;
+	    } else if (ResourceType.class.equals(targetClass)) {
+		    return AuthorizationConstants.AUTZ_UI_RESOURCE_URL;
+	    } else {
+		    return null;
+	    }
 	}
 
 	public enum Channel {

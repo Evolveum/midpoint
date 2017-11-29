@@ -25,6 +25,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ActivationComputer;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
@@ -373,7 +374,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 					LOGGER.trace("Skipping processing of assignment target {} because relation {} is configured for login skip", assignmentType.getTargetRef().getOid(), relation);
 					// Skip - to optimize logging-in, we skip all assignments with non-membership/non-delegation relations (e.g. approver, owner, etc)
 					// We want to make this configurable in the future MID-3581
-				} else if (!loginMode && !isChanged(ctx.primaryAssignmentMode) && !ObjectTypeUtil.processRelationOnRecompute(relation)) {
+				} else if (!loginMode && !isChanged(ctx.primaryAssignmentMode) &&
+						!ObjectTypeUtil.processRelationOnRecompute(relation) && !shouldEvaluateAllAssignmentRelationsOnRecompute()) {
 					LOGGER.debug("Skipping processing of assignment target {} because relation {} is configured for recompute skip (mode={})", assignmentType.getTargetRef().getOid(), relation, relativeMode);
 					// Skip - to optimize recompute, we skip all assignments with non-membership/non-delegation relations (e.g. approver, owner, etc)
 					// never skip this if assignment has changed. We want to process this, e.g. to enforce min/max assignee rules
@@ -414,6 +416,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 			LOGGER.trace("Skipping evaluation of assignment {} because it is not valid", assignmentType);
 		}
 		return isAssignmentValid;
+	}
+
+	private boolean shouldEvaluateAllAssignmentRelationsOnRecompute() {
+		return ModelExecuteOptions.isEvaluateAllAssignmentRelationsOnRecompute(lensContext.getOptions());
 	}
 
 	private <O extends ObjectType> boolean isDelegationToNonDelegableTarget(AssignmentType assignmentType, @NotNull PrismObject<O> target,

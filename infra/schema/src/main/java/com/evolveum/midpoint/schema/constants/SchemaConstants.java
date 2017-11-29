@@ -546,6 +546,8 @@ public abstract class SchemaConstants {
 	public static final String OBJECT_SPECIFICATION_WITH_PATH_KEY = "ObjectSpecificationWithPath";
 	public static final String POLICY_VIOLATION_EXCEPTION_AGGREGATE_KEY = "PolicyViolationException.message.aggregate";
 
+	public static final String RELATION_NAME_KEY_PREFIX = "relation.";
+
 	//	// resetPassword
 //	public static final String RESET_PASSWORD_ID = "user";
 //	public static final String RESET_PASSWORD_TOKEN = "token";
