@@ -102,9 +102,14 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 	private AbstractObjectMainPanel<O> mainPanel;
 	private boolean saveOnConfigure;		// ugly hack - whether to invoke 'Save' when returning to this page
-	public boolean isObjectAlreadyLoaded = false; //before we got isOidParameterExists status depending only on oid parameter existence
-													//we should set isEdidintFocus=true not only when oid parameter exists but also
+
+	private boolean editingFocus = false; 			//before we got isOidParameterExists status depending only on oid parameter existence
+													//we should set editingFocus=true not only when oid parameter exists but also
 													//when object is given as a constructor parameter
+
+	public boolean isEditingFocus() {
+		return editingFocus;
+	}
 
 	@Override
 	protected void createBreadcrumb() {
@@ -133,7 +138,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 			@Override
 			protected String load() {
-				if (!isOidParameterExists() && !isObjectAlreadyLoaded) {
+				if (!isOidParameterExists() && !editingFocus) {
 					String key = "PageAdminObjectDetails.title.new" + getCompileTimeClass().getSimpleName();
 					return createStringResource(key).getObject();
 				}
@@ -190,18 +195,23 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 
 	public void initialize(final PrismObject<O> objectToEdit) {
-		initialize(objectToEdit, false);
+		boolean isNewObject = objectToEdit == null;
+
+		initialize(objectToEdit, isNewObject, false);
 	}
 
-	public void initialize(final PrismObject<O> objectToEdit, boolean isReadonly) {
-		initializeModel(objectToEdit, isReadonly);
+	public void initialize(final PrismObject<O> objectToEdit, boolean isNewObject) {
+		initialize(objectToEdit, isNewObject, false);
+	}
+
+	public void initialize(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
+		initializeModel(objectToEdit, isNewObject, isReadonly);
 		initLayout();
 	}
 
-	protected void initializeModel(final PrismObject<O> objectToEdit, boolean isReadonly) {
-		if (objectToEdit != null){
-			isObjectAlreadyLoaded = true;
-		}
+	protected void initializeModel(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
+		editingFocus = !isNewObject;
+
 		objectModel = new LoadableModel<ObjectWrapper<O>>(false) {
 			private static final long serialVersionUID = 1L;
 
@@ -256,7 +266,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
             @Override
             public boolean isVisible() {
-                return isOidParameterExists() || isObjectAlreadyLoaded;
+                return isOidParameterExists() || editingFocus;
             }
         });
     }
@@ -331,7 +341,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			throw new RestartResponseException(getRestartResponsePage());
 		}
 
-		ContainerStatus status = isOidParameterExists() || isObjectAlreadyLoaded ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+		ContainerStatus status = isOidParameterExists() || editingFocus ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
 		ObjectWrapper<O> wrapper;
 		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
 		try {
@@ -347,7 +357,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 		loadParentOrgs(wrapper, task, result);
 
-		wrapper.setShowEmpty(!isOidParameterExists() && !isObjectAlreadyLoaded);
+		wrapper.setShowEmpty(!isOidParameterExists() && !editingFocus);
 		wrapper.setReadonly(isReadonly);
 
 		if (LOGGER.isTraceEnabled()) {

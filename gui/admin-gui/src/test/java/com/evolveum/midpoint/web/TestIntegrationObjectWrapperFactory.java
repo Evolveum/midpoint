@@ -45,6 +45,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -68,6 +69,7 @@ import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
+import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -257,7 +259,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertPropertyWrapper(attributesContainerValueWrapper, SchemaConstants.ICFS_NAME, USER_JACK_USERNAME);
 		assertEquals("wrong number of items in "+attributesContainerWrapper, 17, attributesContainerValueWrapper.getItems().size());
 
-		ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(UserType.F_ACTIVATION));
+		ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(ShadowType.F_ACTIVATION));
 		assertEquals("wrong number of values in "+activationContainerWrapper, 1, activationContainerWrapper.getValues().size());
 		ContainerValueWrapper<ActivationType> activationContainerValueWrapper = activationContainerWrapper.getValues().iterator().next();
 		WrapperTestUtil.assertWrapper(activationContainerWrapper, "ShadowType.activation", UserType.F_ACTIVATION, shadow, ContainerStatus.MODIFYING);
@@ -338,7 +340,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertPropertyWrapper(attributesContainerValueWrapper, SchemaConstants.ICFS_NAME, USER_WALLY_NAME);
 		assertEquals("wrong number of items in "+attributesContainerWrapper, 17, attributesContainerValueWrapper.getItems().size());
 
-		ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(UserType.F_ACTIVATION));
+		ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(ShadowType.F_ACTIVATION));
 		WrapperTestUtil.assertWrapper(activationContainerWrapper, "ShadowType.activation", UserType.F_ACTIVATION, shadow, ContainerStatus.MODIFYING);
 		assertEquals("wrong number of containers in "+activationContainerWrapper, 1, activationContainerWrapper.getValues().size());
 		ContainerValueWrapper<ActivationType> activationContainerValueWrapper = activationContainerWrapper.getValues().iterator().next();
@@ -346,22 +348,23 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertPropertyWrapper(activationContainerValueWrapper, ActivationType.F_LOCKOUT_STATUS, null);
 
 		//TODO: fix
-//		ContainerWrapper<ShadowAssociationType> associationContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(ShadowType.F_ASSOCIATION));
-//		assertNotNull("No association container wrapper", associationContainerWrapper);
-//		assertEquals("wrong number of items in "+associationContainerWrapper, 2, associationContainerWrapper.getItems().size());
-//		ItemWrapper groupAssociationWrapper = associationContainerWrapper.findPropertyWrapper(RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME);
-//		assertNotNull("No group association property wrapper", groupAssociationWrapper);
-//		assertTrue("Wrong type of group association property wrapper: "+groupAssociationWrapper.getClass(), groupAssociationWrapper instanceof AssociationWrapper);
-//		List<ValueWrapper> groupAssociationValues = groupAssociationWrapper.getValues();
-//		assertEquals("wrong number of values in "+groupAssociationWrapper, 1, groupAssociationValues.size());
-//		ValueWrapper groupAssociationValue = groupAssociationValues.get(0);
-//		PrismContainerValue<ShadowAssociationType> groupAssociationValuePVal = (PrismContainerValue<ShadowAssociationType>) groupAssociationValue.getValue();
-//		display("groupAssociationValuePVal", groupAssociationValuePVal);
-//		assertEquals("wrong number of values in "+groupAssociationValue, ValueStatus.NOT_CHANGED, groupAssociationValue.getStatus());
-//		assertEquals("Wrong group association name", RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME, groupAssociationValuePVal.findProperty(ShadowAssociationType.F_NAME).getRealValue());
+		ContainerWrapper<ShadowAssociationType> associationContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(ShadowType.F_ASSOCIATION));
+		assertNotNull("No association container wrapper", associationContainerWrapper);
+		assertTrue("Wrong type of group association property wrapper: "+associationContainerWrapper.getClass(), associationContainerWrapper instanceof AssociationWrapper);
+		assertEquals("wrong number of items in "+associationContainerWrapper, 1, associationContainerWrapper.getValues().size());
+		ReferenceWrapper groupAssociationWrapper = (ReferenceWrapper) associationContainerWrapper.findPropertyWrapper(RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME);
+		assertNotNull("No group association property wrapper", groupAssociationWrapper);
+		List<ValueWrapper> groupAssociationValues = groupAssociationWrapper.getValues();
+		assertEquals("wrong number of values in "+groupAssociationWrapper, 1, groupAssociationValues.size());
+		ValueWrapper groupAssociationValue = groupAssociationValues.get(0);
+		PrismReferenceValue groupAssociationValuePVal = (PrismReferenceValue) groupAssociationValue.getValue();
+		display("groupAssociationValuePVal", groupAssociationValuePVal);
+		assertEquals("wrong number of values in "+groupAssociationValue, ValueStatus.NOT_CHANGED, groupAssociationValue.getStatus());
+		assertEquals("Wrong group association name", RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME, groupAssociationWrapper.getItemDefinition().getName());
+		assertEquals("Wrong group association value", GROUP_DUMMY_MAPMAKERS_NAME, groupAssociationValuePVal.asReferencable().getTargetName().getOrig());
 //		PrismContainer<ShadowIdentifiersType> groupAssociationValueIdentifiers = groupAssociationValuePVal.findContainer(ShadowAssociationType.F_IDENTIFIERS);
 //		PrismProperty<String> groupAssociationUidProp = groupAssociationValueIdentifiers.findProperty(new QName(null,"uid"));
-//		PrismAsserts.assertPropertyValue(groupAssociationUidProp, GROUP_DUMMY_MAPMAKERS_NAME);
+//		PrismAsserts.assertPropertyValue(groupAssociationValuePVal.asReferencable().getTargetName(), GROUP_DUMMY_MAPMAKERS_NAME);
 	}
 
 	/**
@@ -439,7 +442,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
 		// THEN
 		additionalNameWrapper = mainContainerWrapper.findPropertyWrapper(UserType.F_ADDITIONAL_NAME);
-		assertEquals("Wrong additionalName visible", Boolean.FALSE, (Boolean)additionalNameWrapper.isVisible()); // not visible, because it is not allowed
+		assertEquals("Wrong additionalName visible", Boolean.TRUE, (Boolean)additionalNameWrapper.isVisible()); // visible, because show empty
 
 	}
 

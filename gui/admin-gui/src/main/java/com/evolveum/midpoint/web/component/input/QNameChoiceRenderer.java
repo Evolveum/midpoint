@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
  *
  * Most of the time {@link com.evolveum.midpoint.schema.constants.ObjectTypes} and such should be used.
  */
+@Deprecated
 public class QNameChoiceRenderer implements IChoiceRenderer<QName> {
 	private static final long serialVersionUID = 1L;
 

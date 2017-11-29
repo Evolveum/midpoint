@@ -86,8 +86,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 
 	@Override
-	protected void initializeModel(final PrismObject<F> objectToEdit, boolean isReadonly) {
-		super.initializeModel(objectToEdit, isReadonly);
+	protected void initializeModel(final PrismObject<F> objectToEdit, boolean isNewObject, boolean isReadonly) {
+		super.initializeModel(objectToEdit, isNewObject, isReadonly);
 
 		projectionModel = new LoadableModel<List<FocusSubwrapperDto<ShadowType>>>(false) {
 			private static final long serialVersionUID = 1L;

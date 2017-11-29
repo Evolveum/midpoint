@@ -53,8 +53,12 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 		initialize(unitToEdit);
 	}
 
-	public PageOrgUnit(final PrismObject<OrgType> unitToEdit, boolean isReadonly) {
-		initialize(unitToEdit, isReadonly);
+	public PageOrgUnit(final PrismObject<OrgType> unitToEdit, boolean isNewObject)  {
+		initialize(unitToEdit, isNewObject);
+	}
+
+	public PageOrgUnit(final PrismObject<OrgType> unitToEdit, boolean isNewObject, boolean isReadonly) {
+		initialize(unitToEdit, isNewObject, isReadonly);
 	}
 
 	public PageOrgUnit(PageParameters parameters) {

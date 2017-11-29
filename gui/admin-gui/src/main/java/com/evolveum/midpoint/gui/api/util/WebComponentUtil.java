@@ -1877,8 +1877,12 @@ public final class WebComponentUtil {
 		dispatchToObjectDetailsPage(targetClass, objectRef.getOid(), component, failIfUnsupported);
 	}
 
-	// shows the actual object that is passed via parameter (not its state in repository)
 	public static void dispatchToObjectDetailsPage(PrismObject obj, Component component) {
+		dispatchToObjectDetailsPage(obj, false, component);
+	}
+
+	// shows the actual object that is passed via parameter (not its state in repository)
+	public static void dispatchToObjectDetailsPage(PrismObject obj, boolean isNewObject, Component component) {
 		Class newObjectPageClass = getObjectDetailsPage(obj.getCompileTimeClass());
 		if (newObjectPageClass == null) {
 			throw new IllegalArgumentException("Cannot determine details page for "+obj.getCompileTimeClass());
@@ -1886,7 +1890,7 @@ public final class WebComponentUtil {
 
 		Constructor constructor;
 		try {
-			constructor = newObjectPageClass.getConstructor(PrismObject.class);
+			constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
 
 		} catch (NoSuchMethodException | SecurityException e) {
 			throw new SystemException("Unable to locate constructor (PrismObject) in " + newObjectPageClass
@@ -1895,7 +1899,7 @@ public final class WebComponentUtil {
 
 		PageBase page;
 		try {
-			page = (PageBase) constructor.newInstance(obj);
+			page = (PageBase) constructor.newInstance(obj, isNewObject);
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException e) {
 			throw new SystemException("Error instantiating " + newObjectPageClass + ": " + e.getMessage(), e);

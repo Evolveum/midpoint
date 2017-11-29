@@ -24,6 +24,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -31,18 +32,31 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
+import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.assignment.DelegationEditorPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
+import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.objectdetails.UserDelegationsTabPanel;
+import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
+import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -51,20 +65,10 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.FocusSummaryPanel;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
-import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
@@ -106,9 +110,14 @@ public class PageUser extends PageAdminFocus<UserType> {
         initialize(userToEdit);
     }
 
+    public PageUser(final PrismObject<UserType> unitToEdit, boolean isNewObject)  {
+        initialize(unitToEdit, isNewObject);
+    }
+
     @Override
-    protected void initializeModel(final PrismObject<UserType> objectToEdit, boolean isReadonly) {
-        super.initializeModel(objectToEdit, isReadonly);
+    protected void initializeModel(final PrismObject<UserType> objectToEdit, boolean isNewObject, boolean isReadonly) {
+        super.initializeModel(objectToEdit, isNewObject, isReadonly);
+
         delegationsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
             @Override
             protected List<AssignmentEditorDto> load() {

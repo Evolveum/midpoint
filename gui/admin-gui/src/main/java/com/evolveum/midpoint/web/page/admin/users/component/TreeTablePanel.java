@@ -296,7 +296,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			objType.getParentOrgRef().add(parentOrgRef.clone());
 		}
 
-		WebComponentUtil.dispatchToObjectDetailsPage(obj, this);
+		WebComponentUtil.dispatchToObjectDetailsPage(obj, true, this);
 
 	}
 

@@ -15,13 +15,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.services;
 
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
@@ -34,6 +29,8 @@ import com.evolveum.midpoint.web.page.admin.users.component.ServiceMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ServiceSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 @PageDescriptor(url = "/admin/service", encoder = OnePageParameterEncoder.class, action = {
 		@AuthorizationAction(actionUri = PageAdminServices.AUTH_SERVICES_ALL, label = PageAdminServices.AUTH_SERVICES_ALL_LABEL, description = PageAdminServices.AUTH_SERVICES_ALL_DESCRIPTION),
@@ -50,8 +47,12 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
 		initialize(unitToEdit);
 	}
 
-	public PageService(final PrismObject<ServiceType> unitToEdit, boolean isReadonly) {
-		initialize(unitToEdit, isReadonly);
+	public PageService(final PrismObject<ServiceType> unitToEdit, boolean isNewObject)  {
+		initialize(unitToEdit, isNewObject);
+	}
+
+	public PageService(final PrismObject<ServiceType> unitToEdit, boolean isNewObject, boolean isReadonly) {
+		initialize(unitToEdit, isNewObject, isReadonly);
 	}
 
 	public PageService(PageParameters parameters) {

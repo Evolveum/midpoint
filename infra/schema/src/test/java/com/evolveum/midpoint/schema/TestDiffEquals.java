@@ -448,7 +448,7 @@ public class TestDiffEquals {
 		assertEquals("Wrong comparison B-C", false, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListB, triggerListC));
 	}
 
-    @Test(enabled = false)
+    @Test
     public void diffRoles() throws Exception {
         PrismObject<RoleType> role1 = PrismTestUtil.parseObject(ROLE_1);
         PrismObject<RoleType> role2 = PrismTestUtil.parseObject(ROLE_2);

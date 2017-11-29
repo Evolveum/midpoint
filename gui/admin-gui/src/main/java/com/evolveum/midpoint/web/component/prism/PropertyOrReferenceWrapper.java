@@ -120,7 +120,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	}
 	
 	private boolean canReadOrModifyAndNonEmpty() {
-		return getItemDefinition().canRead() && !getItem().isEmpty(); //(getItemDefinition().canModify() || getItemDefinition().canRead()) && !getItem().isEmpty();
+		return getItemDefinition().canRead() && (!getItem().isEmpty() || getItemDefinition().isEmphasized()); //(getItemDefinition().canModify() || getItemDefinition().canRead()) && !getItem().isEmpty();
 	}
 	
 	private boolean canReadOrModifyAndShowEmpty() {
