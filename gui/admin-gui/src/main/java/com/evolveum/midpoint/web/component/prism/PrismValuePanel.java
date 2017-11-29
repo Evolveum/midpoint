@@ -18,10 +18,7 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -29,9 +26,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.github.sommeri.less4j.utils.ArraysUtils;
-import org.apache.commons.collections.ListUtils;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -665,12 +659,12 @@ public class PrismValuePanel extends Panel {
 				protected boolean isEditButtonEnabled() {
 					return valueWrapperModel.getObject().isEditEnabled();
 				}
-				
+
 				@Override
-						public List<QName> getSupportedTypes() {
+				public List<QName> getSupportedTypes() {
 					List<QName> targetTypeList = ((ReferenceWrapper) valueWrapperModel.getObject().getItem()).getTargetTypes();
-					if (targetTypeList == null || WebComponentUtil.isAllNulls(targetTypeList)){
-						return ArraysUtils.asList(ObjectType.COMPLEX_TYPE);
+					if (targetTypeList == null || WebComponentUtil.isAllNulls(targetTypeList)) {
+						return Arrays.asList(ObjectType.COMPLEX_TYPE);
 					}
 					return targetTypeList;
 				}
