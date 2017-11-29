@@ -2,13 +2,11 @@
 <jboss-deployment-structure xmlns="urn:jboss:deployment-structure:1.2">
     <deployment>
         <exclude-subsystems>
-            <!--<subsystem name="jaxrs" />-->
-            <subsystem name="webservices" /> 
+            <subsystem name="webservices" />
+            <subsystem name="logging" />
+            <subsystem name="jaxrs" />
+            <subsystem name="resteasy" />
         </exclude-subsystems>
-        <!-- Exclusions allow you to prevent the server from automatically adding some dependencies     -->
-        <exclusions>
-            <!--<module name="org.apache.xerces"></module>-->
-        </exclusions>
 
         <dependencies>
             <module name="javax.xml.ws.api" export="true" />
@@ -19,8 +17,8 @@
                     <path name="com/sun/org/apache/xml/internal/utils"/>
                 </paths>
             </system>
+            <module name="deployment.midpoint-apos-config.war" meta-inf="import"/>
         </dependencies>
-
     </deployment>
 </jboss-deployment-structure>
 
