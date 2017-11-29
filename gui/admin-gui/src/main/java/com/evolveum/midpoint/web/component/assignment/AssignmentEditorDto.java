@@ -740,7 +740,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	}
 
 	public void setPrivilegeLimitationList(List<AssignmentsPreviewDto> privilegeLimitationList) {
-		if (newAssignment.getLimitTargetContent() == null){
+		if (newAssignment.getLimitTargetContent() == null) {
 			newAssignment.setLimitTargetContent(new AssignmentSelectorType());
 		}
 		List<ObjectReferenceType> referencesList = newAssignment.getLimitTargetContent().getTargetRef();
@@ -757,6 +757,30 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 			referencesList.add(ref);
 		}
 		this.privilegeLimitationList = privilegeLimitationList;
+	}
+	
+	public boolean isLimitTargetAllowTransitive() {
+		AssignmentSelectorType limitTargetContent = newAssignment.getLimitTargetContent();
+		if (limitTargetContent == null) {
+			return false;
+		}
+		Boolean allowTransitive = limitTargetContent.isAllowTransitive();
+		if (allowTransitive == null) {
+			return false;
+		}
+		return allowTransitive;
+	}
+	
+	public void setLimitTargetAllowTransitive(Boolean newValue) {
+		AssignmentSelectorType limitTargetContent = newAssignment.getLimitTargetContent();
+		if (limitTargetContent == null) {
+			if (newValue == null) {
+				return;
+			}
+			limitTargetContent = new AssignmentSelectorType();
+			newAssignment.setLimitTargetContent(limitTargetContent);
+		}
+		limitTargetContent.setAllowTransitive(newValue);
 	}
 
 	public UserType getDelegationOwner() {
@@ -837,11 +861,11 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		}
 	}
 
-	public OtherPrivilegesLimitationType getPrivilegesLimitation(){
+	public OtherPrivilegesLimitationType getPrivilegesLimitation() {
 		return newAssignment.getLimitOtherPrivileges();
 	}
 
-	public void setPrivilegesLimitation(OtherPrivilegesLimitationType limitations){
+	public void setPrivilegesLimitation(OtherPrivilegesLimitationType limitations) {
 		newAssignment.setLimitOtherPrivileges(limitations);
 
 	}

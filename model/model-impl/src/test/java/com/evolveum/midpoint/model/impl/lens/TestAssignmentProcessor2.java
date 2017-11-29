@@ -470,7 +470,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		objects.add(getUser(USER_GUYBRUSH_OID).asObjectable());
 
 		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, UserType.class, USER_GUYBRUSH_OID,
-				SchemaConstants.ORG_DEPUTY, assignment -> assignment.beginLimitOtherPrivileges().allowTransitive(true).end(), result);
+				SchemaConstants.ORG_DEPUTY, assignment -> assignment.beginLimitTargetContent().allowTransitive(true).end(), result);
 
 		// WHEN
 		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
@@ -525,7 +525,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		PrismObject<UserType> jack = getUser(USER_JACK_OID);
 		AssignmentType jackGuybrushAssignment = new AssignmentType(prismContext)
 				.targetRef(USER_GUYBRUSH_OID, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY);
-		jackGuybrushAssignment.beginLimitOtherPrivileges().allowTransitive(true);
+		jackGuybrushAssignment.beginLimitTargetContent().allowTransitive(true);
 		jack.asObjectable().getAssignment().add(jackGuybrushAssignment);
 		LensContext<UserType> context = new LensContextPlaceholder<>(jack, prismContext);
 

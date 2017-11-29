@@ -910,7 +910,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         displayWhen(TEST_NAME);
 
         assignDeputyLimits(USER_GUYBRUSH_OID, USER_BARBOSSA_OID, 
-        		assignment -> assignment.beginLimitOtherPrivileges().allowTransitive(true),
+        		assignment -> assignment.beginLimitTargetContent().allowTransitive(true),
         		task, result,
         		createRoleReference(ROLE_DRINKER_OID)
         );
@@ -987,7 +987,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         displayWhen(TEST_NAME);
 
         unassignDeputyLimits(USER_GUYBRUSH_OID, USER_BARBOSSA_OID,
-        		assignment -> assignment.beginLimitOtherPrivileges().allowTransitive(true),
+        		assignment -> assignment.beginLimitTargetContent().allowTransitive(true),
         		task, result,
         		createRoleReference(ROLE_DRINKER_OID)
         );
