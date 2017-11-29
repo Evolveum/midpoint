@@ -1096,14 +1096,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 	
 	private boolean isAllowedByLimitations(AssignmentPathSegment segment, AssignmentType nextAssignment, EvaluationContext ctx) {
 		AssignmentType currentAssignment = segment.getAssignment(ctx.evaluateOld);
+		AssignmentSelectorType targetLimitation = currentAssignment.getLimitTargetContent();
 		if (isDeputyDelegation(nextAssignment)) {       // delegation of delegation
-			OtherPrivilegesLimitationType limitOtherPrivileges = currentAssignment.getLimitOtherPrivileges();
-			if (limitOtherPrivileges == null) {
+			if (targetLimitation == null) {
 				return false;
 			}
-			return BooleanUtils.isTrue(limitOtherPrivileges.isAllowTransitive());
+			return BooleanUtils.isTrue(targetLimitation.isAllowTransitive());
 		} else {
-			AssignmentSelectorType targetLimitation = currentAssignment.getLimitTargetContent();
 			return targetLimitation == null || FocusTypeUtil.selectorMatches(targetLimitation, nextAssignment);
 		}
 	}

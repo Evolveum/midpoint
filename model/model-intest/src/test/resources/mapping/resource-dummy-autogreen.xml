@@ -110,15 +110,22 @@
 				                         import com.evolveum.midpoint.schema.constants.*
 				                         import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 				                         
+				                         
+				                         
 				                        if (assignment.target != null) {
-				                        	log.info("### target roleType " + assignment.target.roleType)
-				                        	return assignment.target.roleType == 'auto'
+				                        	log.info("### (title) target roleType " + assignment.target.roleType)
+				                        	inRange = 'auto'.equals(assignment.target.roleType)
+				                        	log.info("########## (title) inRange: " + inRange)
+				                        	return inRange
 				                        }
 				                        
 				                        if (assignment.targetRef != null) {
 				                        	role = midpoint.getObject(RoleType.class, assignment.targetRef.oid)
-				                        	log.info("### role.roleType " + role.roleType)
-				                        	return ('auto')?.equals(role.roleType)
+				                        	log.info("### (title) role name " + role.name.orig)
+				                        	log.info("### (title) role.roleType " + role.roleType)
+				                        	inRange = ('auto')?.equals(role.roleType)
+				                        	log.info("########## (title) inRange: " + inRange)
+				                        	return inRange
 				                        }
 				                    </code>
 				                </script>
@@ -132,6 +139,8 @@
             <association>
             	<ref>ri:group</ref>
 				<inbound>
+<!-- 					<authoritative>true</authoritative> -->
+<!--                		<tolerant>false</tolerant> -->
 					<strength>strong</strength>
 					<expression>
 						<assignmentTargetSearch>
@@ -166,14 +175,19 @@
 				                        import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 				                        
 				                        if (assignment.target != null) {
-				                        	log.info("### target roleType " + assignment.target.roleType)
-				                        	return assignment.target.roleType == 'auto'
+				                        	log.info("### (association) target roleType " + assignment.target.roleType)
+				                        	inRange = 'auto'.equals(assignment.target.roleType)
+				                        	log.info("########## (association) inRange: " + inRange)
+				                        	return inRange
 				                        }
 				                        
 				                        if (assignment.targetRef != null) {
 				                        	role = midpoint.getObject(RoleType.class, assignment.targetRef.oid)
-				                        	log.info("### role.roleType " + role.roleType)
-				                        	return ('auto')?.equals(role.roleType)
+				                        	log.info("### (association) role name " + role.name.orig)
+				                        	log.info("### (association) role.roleType " + role.roleType)
+				                        	inRange = ('auto').equals(role.roleType)
+				                        	log.info("########## (association) inRange: " + inRange)
+				                        	return inRange
 				                        }
 				                    </code>
 				                </script>

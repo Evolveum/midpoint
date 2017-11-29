@@ -473,26 +473,13 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public Boolean getObject(){
-                        AssignmentEditorDto dto = getModelObject();
-                        if (dto.getPrivilegesLimitation() == null ||
-                                dto.getPrivilegesLimitation().isAllowTransitive() == null) {
-                            return false;
-                        }
-                        return dto.getPrivilegesLimitation().isAllowTransitive();
+                    public Boolean getObject() {
+                        return getModelObject().isLimitTargetAllowTransitive();
                     }
 
                     @Override
                     public void setObject(Boolean value){
-                        AssignmentEditorDto dto = getModelObject();
-                        OtherPrivilegesLimitationType limitations = dto.getPrivilegesLimitation();
-                        if (limitations == null ){
-                            limitations = new OtherPrivilegesLimitationType();
-                            dto.setPrivilegesLimitation(limitations);
-                        }
-                        if (value) {
-                        	limitations.setAllowTransitive(value);
-                        }
+                        getModelObject().setLimitTargetAllowTransitive(value);
                     }
 
                     @Override
