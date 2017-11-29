@@ -238,7 +238,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	 * Modify custom binary property.
 	 * MID-3999
 	 */
-	@Test(enabled=false) // MID-3999
+	@Test
     public void test312UpdateBinaryIdClean() throws Exception {
 		final String TEST_NAME = "test312UpdateBinaryIdClean";
         displayTestTitle(TEST_NAME);
