@@ -70,6 +70,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -788,7 +790,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 		if (ObjectTypeUtil.isDelegationRelation(relation)) {
 			// We have to handle assignments as though they were inducements here.
-			if (!isInducementAllowedByLimitations(segment, roleAssignment, ctx)) {
+			if (!isAllowedByLimitations(segment, roleAssignment, ctx)) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Skipping application of delegated assignment {} because it is limited in the delegation",
 							FocusTypeUtil.dumpAssignment(roleAssignment));
@@ -834,7 +836,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 			return;
 		}
-		if (!isInducementAllowedByLimitations(segment, inducement, ctx)) {
+		if (!isAllowedByLimitations(segment, inducement, ctx)) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Skipping application of inducement {} because it is limited", FocusTypeUtil.dumpAssignment(inducement));
 			}
@@ -1092,10 +1094,25 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return inducementFocusClass.isAssignableFrom(lensContext.getFocusClass());
 	}
 	
-	private boolean isInducementAllowedByLimitations(AssignmentPathSegment segment, AssignmentType roleInducement,
-			EvaluationContext ctx) {
-		AssignmentSelectorType limitation = segment.getAssignment(ctx.evaluateOld).getLimitTargetContent();
-		return limitation == null || FocusTypeUtil.selectorMatches(limitation, roleInducement);
+	private boolean isAllowedByLimitations(AssignmentPathSegment segment, AssignmentType nextAssignment, EvaluationContext ctx) {
+		AssignmentType currentAssignment = segment.getAssignment(ctx.evaluateOld);
+		AssignmentSelectorType targetLimitation = currentAssignment.getLimitTargetContent();
+		if (isDeputyDelegation(nextAssignment)) {       // delegation of delegation
+			if (targetLimitation == null) {
+				return false;
+			}
+			return BooleanUtils.isTrue(targetLimitation.isAllowTransitive());
+		} else {
+			return targetLimitation == null || FocusTypeUtil.selectorMatches(targetLimitation, nextAssignment);
+		}
+	}
+	
+	private boolean isDeputyDelegation(AssignmentType assignmentType) {
+		ObjectReferenceType targetRef = assignmentType.getTargetRef();
+		if (targetRef == null) {
+			return false;
+		}
+		return ObjectTypeUtil.isDelegationRelation(targetRef.getRelation());
 	}
 
 	private Authorization createAuthorization(AuthorizationType authorizationType, String sourceDesc) {

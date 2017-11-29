@@ -19,6 +19,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -32,21 +33,25 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -102,6 +107,12 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	private static final String RESOURCE_DUMMY_EBONY_NAME = "ebony";
 	private static final String RESOURCE_DUMMY_EBONY_OID = "10000000-0000-0000-0000-00000000e305";
 
+	// Broken iteration expressions, see also: violet resource in TestIteration
+	protected static final File RESOURCE_DUMMY_BROKEN_VIOLET_FILE = new File(TEST_DIR, "resource-dummy-broken-violet.xml");
+	protected static final String RESOURCE_DUMMY_BROKEN_VIOLET_OID = "10000000-0000-0000-0000-0000000ba204";
+	protected static final String RESOURCE_DUMMY_BROKEN_VIOLET_NAME = "brokenViolet";
+	protected static final String RESOURCE_DUMMY_BROKEN_VIOLET_NAMESPACE = MidPointConstants.NS_RI;
+	
 	private static final File ACCOUNT_SHADOW_JACK_CSVFILE_FILE = new File (TEST_DIR, "account-shadow-jack-csvfile.xml");
 	private static final String ACCOUNT_SHADOW_JACK_CSVFILE_OID = "ef2bc95b-76e0-1111-d3ad-3d4f12120001";
 
@@ -112,7 +123,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	private static final String BROKEN_CSV_SOURCE_FILE_NAME = TEST_DIR + "/" + BROKEN_CSV_FILE_NAME;
 	private static final String BROKEN_CSV_TARGET_FILE_NAME = TEST_TARGET_DIR + "/" + BROKEN_CSV_FILE_NAME;
 
-	private static final int NUMBER_OF_RESOURCES = 6;
+	private static final int NUMBER_OF_RESOURCES = 7;
 
 	protected static final Trace LOGGER = TraceManager.getTrace(TestBrokenResources.class);
 
@@ -135,6 +146,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		initDummyResourcePirate(RESOURCE_DUMMY_EBONY_NAME, RESOURCE_DUMMY_EBONY_FILE, RESOURCE_DUMMY_EBONY_OID, initTask, initResult);
 		initDummyResourcePirate(null, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
 		initDummyResourcePirate(RESOURCE_DUMMY_UNACCESSIBLE_NAME, null, null, initTask, initResult);
+		initDummyResourcePirate(RESOURCE_DUMMY_BROKEN_VIOLET_NAME, RESOURCE_DUMMY_BROKEN_VIOLET_FILE, RESOURCE_DUMMY_BROKEN_VIOLET_OID, initTask, initResult);
 
 		importObjectFromFile(RESOURCE_CSVFILE_BROKEN_FILE, initResult);
 		importObjectFromFile(RESOURCE_CSVFILE_NOTFOUND_FILE, initResult);
@@ -147,8 +159,8 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		repoAddObjectFromFile(ACCOUNT_SHADOW_MURRAY_CSVFILE_FILE, initResult);
 
 		// Users
-		repoAddObjectFromFile(USER_JACK_FILE, UserType.class, initResult).asObjectable();
-		repoAddObjectFromFile(USER_GUYBRUSH_FILE, UserType.class, initResult).asObjectable();
+		repoAddObjectFromFile(USER_JACK_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(USER_GUYBRUSH_FILE, UserType.class, initResult);
 
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -1235,6 +1247,43 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
 		assertDummyScripts(RESOURCE_DUMMY_EBONY_NAME, "delete/after", DummyResource.POWERFAIL_ARG_ERROR_RUNTIME);
 	}
+	
+	/**
+	 * MID-4255
+	 * See also TestIteration.test350GuybrushAssignAccountDummyViolet()
+	 */
+	@Test
+    public void test600GuybrushAssignAccountDummyViolet() throws Exception {
+		final String TEST_NAME = "test600GuybrushAssignAccountDummyViolet";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+        try {
+			// WHEN
+	        displayWhen(TEST_NAME);
+	        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BROKEN_VIOLET_OID, null, task, result);
+	        
+	        assertNotReached();
+        } catch (ExpressionEvaluationException e) {
+        	display("Exptected exception", e);
+        }
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertFailure(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+		assertUser(userAfter, USER_GUYBRUSH_OID, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Guybrush", "Threepwood");
+		assertLinks(userAfter, 0);
+
+        assertNoDummyAccount(RESOURCE_DUMMY_BROKEN_VIOLET_NAME, "guybrush.3");
+	}
+	
 
 	private void prepareTest5xx() throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);

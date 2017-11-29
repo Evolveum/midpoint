@@ -42,7 +42,6 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -102,7 +101,7 @@ public class PageCertDecisions extends PageAdminCertification {
     private static final String ID_SHOW_NOT_DECIDED_ONLY = "showNotDecidedOnly";
     private static final String ID_TABLE_HEADER = "tableHeader";
 
-    CertDecisionHelper helper = new CertDecisionHelper();
+    private CertDecisionHelper helper = new CertDecisionHelper();
 
     private IModel<Boolean> showNotDecidedOnlyModel = new Model<>(false);
 
@@ -311,7 +310,7 @@ public class PageCertDecisions extends PageAdminCertification {
         final AvailableResponses availableResponses = new AvailableResponses(getPage());
         final int responses = availableResponses.getResponseKeys().size();
 
-        column = new MultiButtonColumn<CertWorkItemDto>(new Model(), responses+1) {
+        column = new MultiButtonColumn<CertWorkItemDto>(new Model<>(), responses+1) {
 
             @Override
             public String getCaption(int id) {

@@ -113,7 +113,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
 	    AssignmentType pirateAssignment = assertAssignedRole(userJack, ROLE_PIRATE_GREEN_OID);
-	    assertEquals("Wrong autoCreateIdentifier", "pirate-assignment", pirateAssignment.getMetadata().getAutoCreateIdentifier());
+	    assertEquals("Wrong originMappingName", "pirate-assignment", pirateAssignment.getMetadata().getOriginMappingName());
 	    assertAssignments(userJack, 1);
 
         UserType userJackType = userJack.asObjectable();
@@ -156,7 +156,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
 		AssignmentType buccaneerAssignment = assertAssignedRole(userJack, ROLE_BUCCANEER_GREEN_OID);
-		assertEquals("Wrong autoCreateIdentifier", "buccaneer-assignment", buccaneerAssignment.getMetadata().getAutoCreateIdentifier());
+		assertEquals("Wrong originMappingName", "buccaneer-assignment", buccaneerAssignment.getMetadata().getOriginMappingName());
 		assertAssignments(userJack, 1);
 
         UserType userJackType = userJack.asObjectable();
@@ -280,7 +280,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
 		assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
 		AssignmentType pirateAssignment = assertAssignedRole(userAfter, ROLE_PIRATE_OID);
-		assertEquals("Wrong autoCreateIdentifier", "gossip-inbound", pirateAssignment.getMetadata().getAutoCreateIdentifier());
+		assertEquals("Wrong originMappingName", "gossip-inbound", pirateAssignment.getMetadata().getOriginMappingName());
 		assertAssignments(userAfter, 2);
         assertLinks(userAfter, 2);
 

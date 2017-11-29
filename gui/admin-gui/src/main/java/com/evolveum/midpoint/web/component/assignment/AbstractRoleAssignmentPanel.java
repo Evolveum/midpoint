@@ -25,6 +25,8 @@ import javax.xml.namespace.QName;
 import javax.xml.validation.Schema;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.*;
@@ -235,16 +237,29 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	}
 
 	protected ObjectQuery createObjectQuery() {
-		return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
-				.block()
-					.not()
-						.item(new ItemPath(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF))
-							.isNull()
-				.endBlock()
-					.or()
-						.item(new ItemPath(AssignmentType.F_TARGET_REF))
-							.ref(getRelation())
-				.build();
+        QName relation = getRelation();
+        S_AtomicFilterExit tempFilter =  QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+                .block()
+                .not()
+                .item(new ItemPath(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF))
+                .isNull()
+                .endBlock();
+        if (PrismConstants.Q_ANY.equals(relation)){
+            return tempFilter
+                    .or()
+                    .block()
+                    .not()
+                    .item(new ItemPath(AssignmentType.F_TARGET_REF))
+                    .ref(SchemaConstants.ORG_DEPUTY)
+                    .endBlock()
+                    .build();
+        } else {
+            return tempFilter
+                    .or()
+                    .item(new ItemPath(AssignmentType.F_TARGET_REF))
+                    .ref(relation)
+                    .build();
+        }
 	};
 
 	private QName getRelation() {

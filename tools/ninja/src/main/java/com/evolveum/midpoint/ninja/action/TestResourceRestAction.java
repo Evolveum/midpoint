@@ -11,7 +11,7 @@ public class TestResourceRestAction extends RestAction<TestResourceOptions> {
 
     @Override
     public void execute() {
-        RestService model = context.getModel();
+        RestService model = context.getRestService();
 
         OperationResult result = model.testResource(options.getOid());
         //todo print result

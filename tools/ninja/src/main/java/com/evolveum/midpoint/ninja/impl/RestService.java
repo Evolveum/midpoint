@@ -76,6 +76,10 @@ public class RestService {
         });
     }
 
+    public PrismContext getPrismContext() {
+        return prismContext;
+    }
+
     private void registerExtensionSchemas(SchemaRegistryImpl schemaRegistry) {
         try {
             List<String> schemas = getSchemaList();

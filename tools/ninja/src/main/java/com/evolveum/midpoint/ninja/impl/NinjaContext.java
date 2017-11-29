@@ -53,7 +53,9 @@ public class NinjaContext {
 
     private RepositoryService repository;
 
-    private RestService model;
+    private RestService restService;
+
+    private PrismContext prismContext;
 
     public NinjaContext(JCommander jc) {
         this.jc = jc;
@@ -62,7 +64,7 @@ public class NinjaContext {
     public void init(ConnectionOptions options) {
         boolean initialized = false;
         if (options.isUseWebservice()) {
-            model = setupModelService(options);
+            restService = setupRestService(options);
             initialized = true;
         }
 
@@ -121,7 +123,7 @@ public class NinjaContext {
         return password;
     }
 
-    private RestService setupModelService(ConnectionOptions options) {
+    private RestService setupRestService(ConnectionOptions options) {
         String url = options.getUrl();
         String username = options.getUsername();
         String password = getPassword(options);
@@ -141,8 +143,8 @@ public class NinjaContext {
         return repository;
     }
 
-    public RestService getModel() {
-        return model;
+    public RestService getRestService() {
+        return restService;
     }
 
     public Charset getCharset() {
@@ -153,10 +155,18 @@ public class NinjaContext {
     }
 
     public PrismContext getPrismContext() {
-        if (context == null) {
-            return null;
+        if (prismContext != null) {
+            return prismContext;
         }
 
-        return context.getBean(PrismContext.class);
+        if (context != null) {
+            prismContext = context.getBean(PrismContext.class);
+        }
+
+        if (restService != null) {
+            prismContext = restService.getPrismContext();
+        }
+
+        return prismContext;
     }
 }

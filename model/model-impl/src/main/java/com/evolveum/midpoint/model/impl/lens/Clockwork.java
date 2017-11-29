@@ -421,7 +421,7 @@ public class Clockwork {
 				if (debugListener != null) {
 					debugListener.beforeSync(context);
 				}
-				metadataManager.applyRequestMetadata(context, now, task, result);
+				metadataManager.setRequestMetadataInContext(context, now, task);
 				context.getStats().setRequestTimestamp(now);
 				// We need to do this BEFORE projection. If we would do that after projection
 				// there will be secondary changes that are not part of the request.

@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
@@ -47,17 +46,13 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsC
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.mutable.MutableBoolean;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
-import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -203,15 +198,15 @@ public class LensUtil {
 	}
 
 	private static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
-			Supplier<String> autoCreateIdentifierSupplier) throws SchemaException {
+			Supplier<String> originMappingNameSupplier) throws SchemaException {
 		//noinspection unchecked
 		V cloned = (V) value.clone();
 		if (isAssignment && cloned instanceof PrismContainerValue) {
-			String autoCreationIdentifier = autoCreateIdentifierSupplier.get();
-			if (autoCreationIdentifier != null) {
+			String originMappingName = originMappingNameSupplier.get();
+			if (originMappingName != null) {
 				//noinspection unchecked
 				PrismContainer<MetadataType> metadataContainer = ((PrismContainerValue) cloned).findOrCreateContainer(AssignmentType.F_METADATA);
-				metadataContainer.getOrCreateValue().asContainerable().setAutoCreateIdentifier(autoCreationIdentifier);
+				metadataContainer.getOrCreateValue().asContainerable().setOriginMappingName(originMappingName);
 			}
 		}
 		return cloned;

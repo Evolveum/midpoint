@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -1881,7 +1882,13 @@ public final class WebComponentUtil {
 			throw new SystemException("Error instantiating " + newObjectPageClass + ": " + e.getMessage(), e);
 		}
 
-		component.setResponsePage(page);
+		if (component.getPage() instanceof PageBase) {
+			// this way we have correct breadcrumbs
+			PageBase pb = (PageBase) component.getPage();
+			pb.navigateToNext(page);
+		} else {
+			component.setResponsePage(page);
+		}
 	}
 
 	public static void dispatchToObjectDetailsPage(Class<? extends ObjectType> objectClass, String oid, Component component, boolean failIfUnsupported) {
@@ -2268,6 +2275,10 @@ public final class WebComponentUtil {
 		dropDown.setNullValid(true);
 
 		return dropDown;
+	}
+
+	public static boolean isAllNulls(Iterable<?> array) {
+		return StreamSupport.stream(array.spliterator(), true).allMatch(o -> o == null);
 	}
 
 	private static IModel<List<Boolean>> createChoices() {

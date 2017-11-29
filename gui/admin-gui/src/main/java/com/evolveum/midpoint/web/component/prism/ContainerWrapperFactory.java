@@ -405,12 +405,14 @@ public class ContainerWrapperFactory {
 			PrismContainer<C> newContainer;
 			try {
 				newContainer = (PrismContainer) def.instantiate();
+				newContainer.setParent(containerValue);
 //				containerValue.add(newContainer);
 			} catch (SchemaException e) {
 				LoggingUtils.logException(LOGGER, "Cannot create container " + def.getName(), e);
 				return null;
 			}
-			return createContainerWrapper(newContainer, cWrapper.getObjectStatus(), ContainerStatus.ADDING, cWrapper.getPath().append(newContainer.getPath()));
+			return createContainerWrapper(newContainer, cWrapper.getObjectStatus(), ContainerStatus.ADDING,
+					cWrapper.getPath().append(new ItemPath(newContainer.getElementName())));
 		}
 		return createContainerWrapper(container, cWrapper.getObjectStatus(), cWrapper.getStatus() == ValueStatus.ADDED ? ContainerStatus.ADDING: ContainerStatus.MODIFYING, container.getPath());
 	}

@@ -73,8 +73,6 @@ import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
 /**
  * The task hander for reconciliation.
  *
@@ -252,7 +250,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			processErrorPartial(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, coordinatorTask, opResult);
 		}
 
-		resetExpectedTotal(coordinatorTask, opResult);              // for next phases, it looks strangely to see progress e.g. 2/1
+		setExpectedTotalToNull(coordinatorTask, opResult);              // expected total is unknown for the remaining phases
 
 		long beforeResourceReconTimestamp = clock.currentTimeMillis();
 		long afterResourceReconTimestamp;
@@ -330,14 +328,12 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		return runResult;
 	}
 
-	private void resetExpectedTotal(Task coordinatorTask, OperationResult opResult) {
-		if (defaultIfNull(coordinatorTask.getExpectedTotal(), 0L) > 0) {
-			coordinatorTask.setExpectedTotal(null);
-			try {
-				coordinatorTask.savePendingModifications(opResult);
-			} catch (Throwable t) {
-				throw new SystemException("Couldn't update the task: " + t.getMessage(), t);
-			}
+	private void setExpectedTotalToNull(Task coordinatorTask, OperationResult opResult) {
+		coordinatorTask.setExpectedTotal(null);
+		try {
+			coordinatorTask.savePendingModifications(opResult);
+		} catch (Throwable t) {
+			throw new SystemException("Couldn't update the task: " + t.getMessage(), t);
 		}
 	}
 

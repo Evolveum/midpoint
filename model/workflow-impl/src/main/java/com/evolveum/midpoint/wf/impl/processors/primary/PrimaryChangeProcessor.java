@@ -37,7 +37,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
-import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseChangeProcessor;
@@ -48,7 +47,6 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
@@ -72,21 +70,17 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrimaryChangeProcessor.class);
 
-    @Autowired private PcpConfigurationHelper pcpConfigurationHelper;
 	@Autowired private BaseConfigurationHelper baseConfigurationHelper;
 	@Autowired private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
 	@Autowired private BaseAuditHelper baseAuditHelper;
 	@Autowired private WfTaskUtil wfTaskUtil;
 	@Autowired private WfTaskController wfTaskController;
-	@Autowired private PcpRepoAccessHelper pcpRepoAccessHelper;
-	@Autowired private ProcessInterfaceFinder processInterfaceFinder;
-	@Autowired private MiscDataUtil miscDataUtil;
 	@Autowired private WfStageComputeHelper stageComputeHelper;
 
     private List<PrimaryChangeAspect> allChangeAspects = new ArrayList<>();
 
     public enum ExecutionMode {
-        ALL_AFTERWARDS, ALL_IMMEDIATELY, MIXED;
+        ALL_AFTERWARDS, ALL_IMMEDIATELY, MIXED
     }
 
     //region Configuration
@@ -101,10 +95,10 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     // =================================================================================== Processing model invocation
 
 	// beware, may damage model context during execution
-	public List<PcpChildWfTaskCreationInstruction> previewModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType,
+	public List<PcpChildWfTaskCreationInstruction<?>> previewModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType,
 			@NotNull Task opTask, @NotNull OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		List<PcpChildWfTaskCreationInstruction> rv = new ArrayList<>();
+		List<PcpChildWfTaskCreationInstruction<?>> rv = new ArrayList<>();
 		previewOrProcessModelInvocation(context, wfConfigurationType, true, rv, opTask, result);
 		return rv;
 	}
@@ -120,9 +114,9 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     // quite a mess (code tangling) - will sort that out later
-    private HookOperationMode previewOrProcessModelInvocation(@NotNull ModelContext<?> context,
+    private <O extends ObjectType> HookOperationMode previewOrProcessModelInvocation(@NotNull ModelContext<O> context,
 		    WfConfigurationType wfConfigurationType,
-		    boolean previewOnly, List<PcpChildWfTaskCreationInstruction> childTaskInstructionsHolder, @NotNull Task taskFromModel,
+		    boolean previewOnly, List<PcpChildWfTaskCreationInstruction<?>> childTaskInstructionsHolder, @NotNull Task taskFromModel,
 		    @NotNull OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -137,16 +131,16 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 			return null;
 		}
 
-		ObjectTreeDeltas objectTreeDeltas = baseModelInvocationProcessingHelper.extractTreeDeltasFromModelContext(context);
+		ObjectTreeDeltas<O> objectTreeDeltas = baseModelInvocationProcessingHelper.extractTreeDeltasFromModelContext(context);
         if (objectTreeDeltas.isEmpty()) {
             return null;
         }
 
         // examine the request using process aspects
 
-        ObjectTreeDeltas changesBeingDecomposed = objectTreeDeltas.clone();
-        ModelInvocationContext ctx = new ModelInvocationContext(getPrismContext(), context, wfConfigurationType, taskFromModel);
-        List<PcpChildWfTaskCreationInstruction> childTaskInstructions = gatherStartInstructions(changesBeingDecomposed, ctx, result);
+        ObjectTreeDeltas<O> changesBeingDecomposed = objectTreeDeltas.clone();
+        ModelInvocationContext<O> ctx = new ModelInvocationContext<>(getPrismContext(), context, wfConfigurationType, taskFromModel);
+        List<PcpChildWfTaskCreationInstruction<?>> childTaskInstructions = gatherStartInstructions(changesBeingDecomposed, ctx, result);
 
         // start the process(es)
         removeEmptyProcesses(childTaskInstructions, ctx, result);
@@ -162,9 +156,9 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-    private void removeEmptyProcesses(List<PcpChildWfTaskCreationInstruction> instructions, ModelInvocationContext ctx,
+    private void removeEmptyProcesses(List<PcpChildWfTaskCreationInstruction<?>> instructions, ModelInvocationContext ctx,
             OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		for (Iterator<PcpChildWfTaskCreationInstruction> iterator = instructions.iterator(); iterator.hasNext(); ) {
+		for (Iterator<PcpChildWfTaskCreationInstruction<?>> iterator = instructions.iterator(); iterator.hasNext(); ) {
 			PcpChildWfTaskCreationInstruction instruction = iterator.next();
 			instruction.createProcessorContent();		// brutal hack
 			if (instruction.startsWorkflowProcess() &&
@@ -175,18 +169,18 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 		}
     }
 
-    private List<PcpChildWfTaskCreationInstruction> gatherStartInstructions(@NotNull ObjectTreeDeltas changesBeingDecomposed,
-			ModelInvocationContext ctx, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private <O extends ObjectType> List<PcpChildWfTaskCreationInstruction<?>> gatherStartInstructions(@NotNull ObjectTreeDeltas<O> changesBeingDecomposed,
+			ModelInvocationContext<O> ctx, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         PrimaryChangeProcessorConfigurationType processorConfigurationType =
                 ctx.wfConfiguration != null ? ctx.wfConfiguration.getPrimaryChangeProcessor() : null;
 
-        List<PcpChildWfTaskCreationInstruction> startProcessInstructions = new ArrayList<>();
+        List<PcpChildWfTaskCreationInstruction<?>> startProcessInstructions = new ArrayList<>();
         for (PrimaryChangeAspect aspect : getActiveChangeAspects(processorConfigurationType)) {
             if (changesBeingDecomposed.isEmpty()) {      // nothing left
                 break;
             }
-            List<PcpChildWfTaskCreationInstruction> instructions = aspect.prepareTasks(changesBeingDecomposed, ctx, result);
+            List<PcpChildWfTaskCreationInstruction<?>> instructions = aspect.prepareTasks(changesBeingDecomposed, ctx, result);
             logAspectResult(aspect, instructions, changesBeingDecomposed);
             startProcessInstructions.addAll(instructions);
         }
@@ -210,7 +204,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-    private HookOperationMode submitTasks(List<PcpChildWfTaskCreationInstruction> instructions, final ModelContext context,
+    private HookOperationMode submitTasks(List<PcpChildWfTaskCreationInstruction<?>> instructions, final ModelContext context,
 			final ObjectTreeDeltas changesWithoutApproval, Task taskFromModel, WfConfigurationType wfConfigurationType, OperationResult result) {
 
         try {
@@ -329,7 +323,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         return contextCopy;
     }
 
-    private ExecutionMode determineExecutionMode(List<PcpChildWfTaskCreationInstruction> instructions) {
+    private ExecutionMode determineExecutionMode(List<PcpChildWfTaskCreationInstruction<?>> instructions) {
         ExecutionMode executionMode;
         if (shouldAllExecuteImmediately(instructions)) {
             executionMode = ALL_IMMEDIATELY;
@@ -341,7 +335,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         return executionMode;
     }
 
-    private boolean shouldAllExecuteImmediately(List<PcpChildWfTaskCreationInstruction> startProcessInstructions) {
+    private boolean shouldAllExecuteImmediately(List<PcpChildWfTaskCreationInstruction<?>> startProcessInstructions) {
         for (PcpChildWfTaskCreationInstruction instruction : startProcessInstructions) {
             if (!instruction.isExecuteApprovedChangeImmediately()) {
                 return false;
@@ -350,7 +344,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         return true;
     }
 
-    private boolean shouldAllExecuteAfterwards(List<PcpChildWfTaskCreationInstruction> startProcessInstructions) {
+    private boolean shouldAllExecuteAfterwards(List<PcpChildWfTaskCreationInstruction<?>> startProcessInstructions) {
         for (PcpChildWfTaskCreationInstruction instruction : startProcessInstructions) {
             if (instruction.isExecuteApprovedChangeImmediately()) {
                 return false;
