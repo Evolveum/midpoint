@@ -1832,6 +1832,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected static <F extends FocusType> void assertAssignedRoles(PrismObject<F> user, Collection<String> roleOids) {
 		MidPointAsserts.assertAssignedRoles(user, roleOids);
 	}
+	
+	protected <R extends AbstractRoleType> AssignmentType assertInducedRole(PrismObject<R> role, String roleOid) {
+		return MidPointAsserts.assertInducedRole(role, roleOid);
+	}
 
 	protected void assignDeputy(String userDeputyOid, String userTargetOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		assignDeputy(userDeputyOid, userTargetOid, null, task, result);

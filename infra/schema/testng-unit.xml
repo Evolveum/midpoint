@@ -50,6 +50,7 @@
             <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIteratively"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyFirstTwo"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyWrong"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseMisc"/>
         </classes>
     </test>
     <test name="Parsing JSON with namespaces" preserve-order="false" verbose="1">
