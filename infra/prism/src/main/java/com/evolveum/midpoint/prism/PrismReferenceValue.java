@@ -409,7 +409,8 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		} else if (!this.getOid().equals(other.getOid()))
 			return false;
 		// Special handling: if both oids are null we need to compare embedded objects
-		if (this.oid == null && other.oid == null) {
+		boolean bothOidsNull = this.oid == null && other.oid == null;
+		if (bothOidsNull) {
 			if (this.object != null || other.object != null) {
 				if (this.object == null || other.object == null) {
 					// one is null the other is not
@@ -426,7 +427,20 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		if (!relationsEquivalent(relation, other.relation, isLiteral)) {
 			return false;
 		}
+		if ((isLiteral || bothOidsNull) && !filtersEquivalent(filter, other.filter)) {
+			return false;
+		}
 		return true;
+	}
+
+	private boolean filtersEquivalent(SearchFilterType filter1, SearchFilterType filter2) {
+		if (filter1 == null && filter2 == null) {
+			return true;
+		} else if (filter1 == null || filter2 == null) {
+			return false;
+		} else {
+			return filter1.equals(filter2);
+		}
 	}
 
 	private boolean relationsEquivalent(QName r1, QName r2, boolean isLiteral) {
