@@ -62,14 +62,9 @@ import static java.util.Collections.emptySet;
 @Component
 public class WfTaskUtil {
 
-    @Autowired
-    private WfConfiguration wfConfiguration;
-
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private ProvisioningService provisioningService;
+    @Autowired private WfConfiguration wfConfiguration;
+    @Autowired private PrismContext prismContext;
+    @Autowired private ProvisioningService provisioningService;
 
 	private static final Trace LOGGER = TraceManager.getTrace(WfTaskUtil.class);
 

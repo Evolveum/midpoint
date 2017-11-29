@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,13 +44,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.EQUIVALENT;
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.SUPERPATH;
@@ -76,12 +70,33 @@ public class OperationalDataManager {
 	@Autowired
 	private PrismContext prismContext;
 
-	public <F extends ObjectType> void applyRequestMetadata(LensContext<F> context,
-			XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
-
-		MetadataType requestMetadata = new MetadataType();
-		applyRequestMetadata(context, requestMetadata, now, task);
+	public <F extends ObjectType> void setRequestMetadataInContext(LensContext<F> context, XMLGregorianCalendar now, Task task)
+			throws SchemaException {
+		MetadataType requestMetadata = collectRequestMetadata(context, now, task);
 		context.setRequestMetadata(requestMetadata);
+	}
+
+	private <F extends ObjectType> MetadataType collectRequestMetadata(LensContext<F> context, XMLGregorianCalendar now, Task task) {
+		MetadataType metaData = new MetadataType();
+		metaData.setCreateChannel(LensUtil.getChannel(context, task));      // TODO is this really used?
+		metaData.setRequestTimestamp(now);
+		if (task.getOwner() != null) {
+			metaData.setRequestorRef(createObjectRef(task.getOwner()));
+		}
+		// It is not necessary to store requestor comment here as it is preserved in context.options field.
+		return metaData;
+	}
+
+	private <F extends ObjectType> void transplantRequestMetadata(LensContext<F> context, MetadataType metaData) {
+		MetadataType requestMetadata = context.getRequestMetadata();
+		if (requestMetadata != null) {
+			metaData.setRequestTimestamp(requestMetadata.getRequestTimestamp());
+			metaData.setRequestorRef(requestMetadata.getRequestorRef());
+		}
+		OperationBusinessContextType businessContext = context.getRequestBusinessContext();
+		if (businessContext != null) {
+			metaData.setRequestorComment(businessContext.getComment());
+		}
 	}
 
 	public <T extends ObjectType, F extends ObjectType> void applyMetadataAdd(LensContext<F> context,
@@ -226,24 +241,6 @@ public class OperationalDataManager {
 			LOGGER.trace("Adding operational data {} to assignment cval ({}):\nMETADATA:\n{}\nACTIVATION:\n{}",
 				 metadataType, desc, assignmentContainerValue.debugDump(1), activationType.asPrismContainerValue().debugDump(1));
 		}
-	}
-
-	private <F extends ObjectType> void applyRequestMetadata(LensContext<F> context, MetadataType metaData, XMLGregorianCalendar now, Task task) {
-		String channel = LensUtil.getChannel(context, task);
-		metaData.setCreateChannel(channel);
-		metaData.setRequestTimestamp(now);
-		if (task.getOwner() != null) {
-			metaData.setRequestorRef(createObjectRef(task.getOwner()));
-		}
-	}
-
-	private <F extends ObjectType> void transplantRequestMetadata(LensContext<F> context, MetadataType metaData) {
-		MetadataType requestMetadata = context.getRequestMetadata();
-		if (requestMetadata == null) {
-			return;
-		}
-		metaData.setRequestTimestamp(requestMetadata.getRequestTimestamp());
-		metaData.setRequestorRef(requestMetadata.getRequestorRef());
 	}
 
 	public <F extends ObjectType> MetadataType createCreateMetadata(LensContext<F> context, XMLGregorianCalendar now, Task task) {

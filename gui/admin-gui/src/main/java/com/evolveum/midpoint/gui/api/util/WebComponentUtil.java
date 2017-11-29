@@ -1882,7 +1882,13 @@ public final class WebComponentUtil {
 			throw new SystemException("Error instantiating " + newObjectPageClass + ": " + e.getMessage(), e);
 		}
 
-		component.setResponsePage(page);
+		if (component.getPage() instanceof PageBase) {
+			// this way we have correct breadcrumbs
+			PageBase pb = (PageBase) component.getPage();
+			pb.navigateToNext(page);
+		} else {
+			component.setResponsePage(page);
+		}
 	}
 
 	public static void dispatchToObjectDetailsPage(Class<? extends ObjectType> objectClass, String oid, Component component, boolean failIfUnsupported) {

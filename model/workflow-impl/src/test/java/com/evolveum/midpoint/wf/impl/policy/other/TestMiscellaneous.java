@@ -40,7 +40,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -113,7 +112,79 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		Task parent = taskManager.createTaskInstance(wfTask.asPrismObject(), result).getParentTask(result);
 		waitForTaskFinish(parent.getOid(), false);
 
-		assertAssignedRole(userJackOid, roleRole2Oid, task, result);
+		AssignmentType assignment = assertAssignedRole(userJackOid, roleRole2Oid, task, result);
+		display("assignment after creation", assignment);
+		MetadataType metadata = assignment.getMetadata();
+		assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
+		assertRefEquals("Wrong requestorRef in metadata", ObjectTypeUtil.createObjectRef(userAdministrator), metadata.getRequestorRef());
+		assertEquals("Wrong requestorComment in metadata", REQUESTER_COMMENT, metadata.getRequestorComment());
+	}
+
+	@Test
+	public void test105RequesterCommentImmediate() throws Exception {
+		final String TEST_NAME = "test105RequesterCommentImmediate";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// GIVEN
+
+		dummyAuditService.clear();
+
+		OperationBusinessContextType businessContext = new OperationBusinessContextType();
+		final String REQUESTER_COMMENT = "req.comment";
+		businessContext.setComment(REQUESTER_COMMENT);
+
+		ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userJackOid, roleRole3Oid, RoleType.COMPLEX_TYPE, null, null, null, true);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+		ModelExecuteOptions options = ModelExecuteOptions.createRequestBusinessContext(businessContext);
+		options.setExecuteImmediatelyAfterApproval(true);
+		modelService.executeChanges(deltas, options, task, result);
+
+		assertNotAssignedRole(userJackOid, roleRole3Oid, task, result);
+
+		WorkItemType workItem = getWorkItem(task, result);
+		display("Work item", workItem);
+
+		// WHEN
+		workflowManager.completeWorkItem(workItem.getExternalId(), true, "OK", null, null, result);
+
+		// THEN
+		TaskType wfTask = getTask(WfContextUtil.getTask(workItem).getOid()).asObjectable();
+		display("workflow context", wfTask.getWorkflowContext());
+		List<? extends CaseEventType> events = wfTask.getWorkflowContext().getEvent();
+		assertEquals("Wrong # of events", 2, events.size());
+
+		CaseCreationEventType event1 = (CaseCreationEventType) events.get(0);
+		display("Event 1", event1);
+		assertEquals("Wrong requester comment", REQUESTER_COMMENT, WfContextUtil.getBusinessContext(wfTask.getWorkflowContext()).getComment());
+
+		WorkItemEventType event2 = (WorkItemEventType) events.get(1);
+		display("Event 2", event2);
+
+		assertNotNull("Original assignee is null", event2.getOriginalAssigneeRef());
+		assertEquals("Wrong original assignee OID", userLead3Oid, event2.getOriginalAssigneeRef().getOid());
+
+		display("audit", dummyAuditService);
+		List<AuditEventRecord> records = dummyAuditService.getRecordsOfType(AuditEventType.WORKFLOW_PROCESS_INSTANCE);
+		assertEquals("Wrong # of process instance audit records", 2, records.size());
+		for (int i = 0; i < records.size(); i++) {
+			AuditEventRecord record = records.get(i);
+			assertEquals("Wrong requester comment in audit record #" + i, Collections.singleton(REQUESTER_COMMENT),
+					record.getPropertyValues(WorkflowConstants.AUDIT_REQUESTER_COMMENT));
+		}
+
+		Task parent = taskManager.createTaskInstance(wfTask.asPrismObject(), result).getParentTask(result);
+		waitForTaskFinish(parent.getOid(), false);
+
+		AssignmentType assignment = assertAssignedRole(userJackOid, roleRole3Oid, task, result);
+		display("assignment after creation", assignment);
+		MetadataType metadata = assignment.getMetadata();
+		assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
+		assertRefEquals("Wrong requestorRef in metadata", ObjectTypeUtil.createObjectRef(userAdministrator), metadata.getRequestorRef());
+		assertEquals("Wrong requestorComment in metadata", REQUESTER_COMMENT, metadata.getRequestorComment());
 	}
 
 	@Test

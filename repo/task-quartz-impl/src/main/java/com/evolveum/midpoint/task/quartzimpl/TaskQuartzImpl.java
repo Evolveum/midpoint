@@ -481,9 +481,9 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
+	@Nullable
 	public Long getExpectedTotal() {
-		Long value = taskPrism.getPropertyRealValue(TaskType.F_EXPECTED_TOTAL, Long.class);
-		return value != null ? value : 0;
+		return taskPrism.getPropertyRealValue(TaskType.F_EXPECTED_TOTAL, Long.class);
 	}
 
 	@Override

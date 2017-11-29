@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
+import com.evolveum.midpoint.model.api.util.ModelContextUtil;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -587,14 +588,14 @@ public class MiscDataUtil {
 		return false;
 	}
 
-	private <F extends FocusType> void recordChanges(ChangesByState rv, LensContextType modelOperationContext, ModelInteractionService modelInteractionService,
+	private <O extends ObjectType> void recordChanges(ChangesByState rv, LensContextType modelOperationContext, ModelInteractionService modelInteractionService,
 			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (modelOperationContext == null) {
 			return;
 		}
-		ModelContext<F> modelContext = unwrapModelContext(modelOperationContext, modelInteractionService, task, result);
-		ObjectTreeDeltas<F> deltas = baseModelInvocationProcessingHelper.extractTreeDeltasFromModelContext(modelContext);
-		ObjectTreeDeltas<F> target;
+		ModelContext<O> modelContext = ModelContextUtil.unwrapModelContext(modelOperationContext, modelInteractionService, task, result);
+		ObjectTreeDeltas<O> deltas = baseModelInvocationProcessingHelper.extractTreeDeltasFromModelContext(modelContext);
+		ObjectTreeDeltas<O> target;
 		switch (modelContext.getState()) {
 			case INITIAL:
 			case PRIMARY: target = rv.getWaitingToBeApplied(); break;
@@ -639,19 +640,6 @@ public class MiscDataUtil {
 		if (wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType) {
 			WfPrimaryChangeProcessorStateType ps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
 			target.merge(fromObjectTreeDeltasType(ps.getResultingDeltas(), prismContext));
-		}
-	}
-
-	private ModelContext unwrapModelContext(LensContextType lensContextType, ModelInteractionService modelInteractionService, Task task, OperationResult result) throws
-			ObjectNotFoundException {
-		if (lensContextType != null) {
-			try {
-				return modelInteractionService.unwrapModelContext(lensContextType, task, result);
-			} catch (SchemaException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {   // todo treat appropriately
-				throw new SystemException("Couldn't access model operation context in task: " + e.getMessage(), e);
-			}
-		} else {
-			return null;
 		}
 	}
 

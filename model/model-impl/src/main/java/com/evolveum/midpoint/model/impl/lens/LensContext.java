@@ -98,8 +98,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	/**
 	 * Metadata of the request. Metadata recorded when the operation has
-	 * started. Currently only the requestTimestamp and requestorRef are
-	 * meaningful. But later other metadata may be used.
+	 * started. Currently only the requestor related data (requestTimestamp, requestorRef)
+	 * are collected. But later other metadata may be used.
 	 */
 	private MetadataType requestMetadata;
 
@@ -813,6 +813,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		if (options != null) {
 			clone.options = this.options.clone();
 		}
+		if (requestMetadata != null) {
+			clone.requestMetadata = requestMetadata.clone();
+		}
 
 		if (this.focusContext != null) {
 			clone.focusContext = this.focusContext.clone(this);
@@ -887,6 +890,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		if (executionPhaseOnly) {
 			sb.append(" execution-phase-only");
 		}
+		sb.append(requestMetadata != null ? ", req. metadata present" : ", req. metadata missing");
 		sb.append("\n");
 
 		DebugUtil.debugDumpLabel(sb, "Channel", indent + 1);

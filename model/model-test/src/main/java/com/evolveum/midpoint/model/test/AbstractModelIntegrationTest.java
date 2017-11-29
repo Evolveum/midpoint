@@ -1812,9 +1812,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertNoAssignments(userOid, result);
 	}
 
-	protected void assertAssignedRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+	protected AssignmentType assertAssignedRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
-		assertAssignedRole(user, roleOid);
+		return assertAssignedRole(user, roleOid);
 	}
 
 	protected <F extends FocusType> AssignmentType assertAssignedRole(PrismObject<F> focus, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -1850,20 +1850,31 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void assignDeputyLimits(String userDeputyOid, String userTargetOid, Task task, OperationResult result, ObjectReferenceType... limitTargets) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		modifyDeputyAssignmentLimits(userDeputyOid, userTargetOid, true, task, result, limitTargets);
+		modifyDeputyAssignmentLimits(userDeputyOid, userTargetOid, true, null, task, result, limitTargets);
+	}
+	
+	protected void assignDeputyLimits(String userDeputyOid, String userTargetOid, Consumer<AssignmentType> assignmentMutator, Task task, OperationResult result, ObjectReferenceType... limitTargets) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		modifyDeputyAssignmentLimits(userDeputyOid, userTargetOid, true, assignmentMutator, task, result, limitTargets);
 	}
 
 	protected void unassignDeputyLimits(String userDeputyOid, String userTargetOid, Task task, OperationResult result, ObjectReferenceType... limitTargets) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		modifyDeputyAssignmentLimits(userDeputyOid, userTargetOid, false, task, result, limitTargets);
+		modifyDeputyAssignmentLimits(userDeputyOid, userTargetOid, false, null, task, result, limitTargets);
+	}
+	
+	protected void unassignDeputyLimits(String userDeputyOid, String userTargetOid, Consumer<AssignmentType> assignmentMutator, Task task, OperationResult result, ObjectReferenceType... limitTargets) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		modifyDeputyAssignmentLimits(userDeputyOid, userTargetOid, false, assignmentMutator, task, result, limitTargets);
 	}
 
-	protected void modifyDeputyAssignmentLimits(String userDeputyOid, String userTargetOid, boolean add, Task task, OperationResult result, ObjectReferenceType... limitTargets) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+	protected void modifyDeputyAssignmentLimits(String userDeputyOid, String userTargetOid, boolean add, Consumer<AssignmentType> assignmentMutator, Task task, OperationResult result, ObjectReferenceType... limitTargets) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		modifyUserAssignment(userDeputyOid, userTargetOid, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY, task,
 				assignment -> {
 					AssignmentSelectorType limitTargetContent = new AssignmentSelectorType();
 					assignment.setLimitTargetContent(limitTargetContent);
 					for (ObjectReferenceType limitTarget: limitTargets) {
 						limitTargetContent.getTargetRef().add(limitTarget);
+					}
+					if (assignmentMutator != null) {
+						assignmentMutator.accept(assignment);
 					}
 				}, add, result);
 	}

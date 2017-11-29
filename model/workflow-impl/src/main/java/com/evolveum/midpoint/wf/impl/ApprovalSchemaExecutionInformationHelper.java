@@ -74,7 +74,7 @@ public class ApprovalSchemaExecutionInformationHelper {
 	List<ApprovalSchemaExecutionInformationType> getApprovalSchemaPreview(ModelContext<?> modelContext, Task opTask,
 			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		WfConfigurationType wfConfiguration = baseConfigurationHelper.getWorkflowConfiguration(modelContext, result);
-		List<PcpChildWfTaskCreationInstruction> taskInstructions = primaryChangeProcessor.previewModelInvocation(modelContext, wfConfiguration, opTask, result);
+		List<PcpChildWfTaskCreationInstruction<?>> taskInstructions = primaryChangeProcessor.previewModelInvocation(modelContext, wfConfiguration, opTask, result);
 		List<ApprovalSchemaExecutionInformationType> rv = new ArrayList<>();
 		for (PcpChildWfTaskCreationInstruction taskInstruction : taskInstructions) {
 			OperationResult childResult = result.createMinorSubresult(ApprovalSchemaExecutionInformationHelper.class + ".getApprovalSchemaPreview");
