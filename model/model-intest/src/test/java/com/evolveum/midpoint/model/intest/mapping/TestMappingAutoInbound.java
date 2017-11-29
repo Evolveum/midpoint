@@ -21,6 +21,7 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
@@ -42,6 +44,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -265,5 +269,82 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
         assertAssignedRole(userAfter, ROLE_ADMINS_OID);
         assertAssignments(userAfter, 5);
+	}
+    
+    @Test
+    public void test301removeUserFromAutoGroup() throws Exception {
+		final String TEST_NAME = "test301removeUserFromAutoGroup";
+        displayTestTitle(TEST_NAME);
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        DummyGroup craticGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_CRATIC_NAME);
+        craticGroup.removeMember(USER_HERMAN_USERNAME);
+        
+        DummyAccount hermanAccount = getDummyAccount(RESOURCE_DUMMY_AUTOGREEN_NAME, USER_HERMAN_USERNAME);
+        hermanAccount.removeAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, Arrays.asList("didactic"));
+        
+        assertNoDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_CRATIC_NAME, USER_HERMAN_USERNAME);
+        
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        modelService.importFromResource(RESOURCE_DUMMY_AUTOGREEN_OID, new QName(MidPointConstants.NS_RI, "AccountObjectClass"), task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        OperationResult subresult = result.getLastSubresult();
+        TestUtil.assertInProgress("importAccountsFromResource result", subresult);
+
+        waitForTaskFinish(task, true, 70000);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(task.getResult());
+
+        PrismObject<UserType> userAfter = getUser(userHermanOid);
+        display("User after", userAfter);
+        
+        assertNotAssignedRole(userAfter, ROLE_AUTODIDACTIC_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOTESTERS_OID);
+        assertNotAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+        assertAssignedRole(userAfter, ROLE_ADMINS_OID);
+        assertAssignments(userAfter, 3);
+	}
+    
+        
+    @Test
+    public void test402assignAutoGroupDirectly() throws Exception {
+		final String TEST_NAME = "test402assignAutoGroupDirectly";
+        displayTestTitle(TEST_NAME);
+
+        DummyGroup craticGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_CRATIC_NAME);
+        craticGroup.removeMember(USER_HERMAN_USERNAME);
+        
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignRole(userHermanOid, ROLE_AUTOCRATIC_OID);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(userHermanOid);
+        display("User after", userAfter);
+//        assertAssignedRole(userAfter, ROLE_AUTODIDACTIC_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOTESTERS_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+        assertAssignedRole(userAfter, ROLE_ADMINS_OID);
+        assertAssignments(userAfter, 4);
 	}
 }

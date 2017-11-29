@@ -16,7 +16,32 @@
 <role oid="4a678382-e3f4-11e6-8c3d-cfd3dba8168f"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>Autocratic</name>
     <roleType>auto</roleType> <!-- may be used for mapping range -->
+    <inducement>
+    	<construction>
+    		<resourceRef oid="10000000-0000-0000-0000-00000000a404" type="ResourceType"/>
+    		<association>
+    			<ref>ri:group</ref>
+            	<outbound>
+            		<strength>strong</strength>
+                	<expression>
+						<associationTargetSearch>
+							<filter>
+								<q:equal>
+									<q:path>attributes/icfs:name</q:path>
+									<q:value>cratic</q:value>
+								</q:equal>
+							</filter>
+							<searchStrategy>onResourceIfNeeded</searchStrategy>
+						</associationTargetSearch>
+					</expression>
+				</outbound>
+    		</association>
+    	</construction>
+    </inducement>
 </role>
