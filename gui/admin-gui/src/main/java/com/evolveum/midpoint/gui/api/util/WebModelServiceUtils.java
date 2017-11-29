@@ -222,7 +222,7 @@ public class WebModelServiceUtils {
 			PageBase page, Task task, OperationResult result) {
     	return loadObject(type, oid, options, true, page, task, result);
 	}
-
+	
 	@Nullable
 	public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, boolean allowNotFound,
@@ -275,6 +275,67 @@ public class WebModelServiceUtils {
 		// TODO reconsider this part: until recently, the condition was always 'false'
         if (WebComponentUtil.showResultInPage(subResult)) {
             page.showResult(subResult);
+        }
+
+        LOGGER.debug("Loaded {} with result {}", object, subResult);
+
+        return object;
+    }
+	
+	//TODO consider using modelServiceLocator instead of PageBase in other methods.. Do we even need it? What about showResult? Should it be 
+	// here or directly in the page? Consider usability and readabiltiy
+	@Nullable
+    public static <T extends ObjectType> PrismObject<T> loadObject(ObjectReferenceType objectReference,
+    		ModelServiceLocator page, Task task, OperationResult result) {
+		Class<T> type = page.getPrismContext().getSchemaRegistry().determineClassForType(objectReference.getType());
+		String oid = objectReference.getOid();
+		Collection<SelectorOptions<GetOperationOptions>> options = null;
+		LOGGER.debug("Loading {} with oid {}, options {}", type.getSimpleName(), oid, options);
+
+        OperationResult subResult;
+        if (result != null) {
+            subResult = result.createMinorSubresult(OPERATION_LOAD_OBJECT);
+        } else {
+            subResult = new OperationResult(OPERATION_LOAD_OBJECT);
+        }
+        PrismObject<T> object = null;
+        try {
+        	if (options == null) {
+        		options = SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
+        	} else {
+        		GetOperationOptions getOpts = SelectorOptions.findRootOptions(options);
+        		if (getOpts == null) {
+        			options.add(new SelectorOptions<>(GetOperationOptions.createResolveNames()));
+        		} else {
+        			getOpts.setResolveNames(Boolean.TRUE);
+        		}
+        	}
+            object = page.getModelService().getObject(type, oid, options, task, subResult);
+        } catch (AuthorizationException e) {
+        	// Not authorized to access the object. This is probably caused by a reference that
+        	// point to an object that the current user cannot read. This is no big deal.
+        	// Just do not display that object.
+        	subResult.recordHandledError(e);
+        	LOGGER.debug("User {} is not authorized to read {} {}",
+                    task.getOwner() != null ? task.getOwner().getName() : null, type.getSimpleName(), oid);
+        	return null;
+        } catch (ObjectNotFoundException e) {
+        		// Object does not exist. It was deleted in the meanwhile, or not created yet. This could happen quite often.
+				subResult.recordHandledError(e);
+				LOGGER.debug("{} {} does not exist", type.getSimpleName(), oid, e);
+				return null;
+			
+        } catch (Exception ex) {
+            subResult.recordFatalError("WebModelUtils.couldntLoadObject", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
+        } finally {
+            subResult.computeStatus();
+        }
+		// TODO reconsider this part: until recently, the condition was always 'false'
+        if (WebComponentUtil.showResultInPage(subResult)) {
+        	if (page instanceof PageBase) {
+        		((PageBase)page).showResult(subResult);
+        	}
         }
 
         LOGGER.debug("Loaded {} with result {}", object, subResult);

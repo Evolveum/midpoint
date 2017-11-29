@@ -271,7 +271,7 @@ public class ObjectWrapperFactory {
 			}
 			Task task = modelServiceLocator.createSimpleTask("Load resource ref");
 			//TODO: is it safe to case modelServiceLocator to pageBase?
-			PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(shadow.getResourceRef(), (PageBase) modelServiceLocator, task, result);
+			PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(shadow.getResourceRef(), modelServiceLocator, task, result);
 			
 			result.computeStatusIfUnknown();
 			if (!result.isAcceptable()) {
