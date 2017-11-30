@@ -20,6 +20,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -57,6 +59,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMisc extends AbstractInitializedModelIntegrationTest {
+	
+	public static final File TEST_DIR = new File("src/test/resources/misc");
+	
+	protected static final File ROLE_IMPORT_FILTERS_FILE = new File(TEST_DIR, "role-import-filters.xml");
+	protected static final String ROLE_IMPORT_FILTERS_OID = "aad19b9a-d511-11e7-8bf7-cfecde275e59";
 
 	public static final byte[] KEY = { 0x01, 0x02, 0x03, 0x04, 0x05 };
 
@@ -238,7 +245,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	 * Modify custom binary property.
 	 * MID-3999
 	 */
-	@Test(enabled=false) // MID-3999
+	@Test
     public void test312UpdateBinaryIdClean() throws Exception {
 		final String TEST_NAME = "test312UpdateBinaryIdClean";
         displayTestTitle(TEST_NAME);
@@ -258,6 +265,34 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(userCleanOid);
         display("User after", userAfter);
         PrismAsserts.assertPropertyValue(userAfter, getExtensionPath(PIRACY_BINARY_ID), KEY);
+	}
+	
+	/**
+	 * MID-3879
+	 */
+	@Test
+    public void test400ImportRoleWithFilters() throws Exception {
+		final String TEST_NAME = "test400ImportRoleWithFilters";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        modelService.importObjectsFromFile(ROLE_IMPORT_FILTERS_FILE, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<RoleType> roleAfter = getRole(ROLE_IMPORT_FILTERS_OID);
+        display("Role after", roleAfter);
+        
+        assertInducedRole(roleAfter, ROLE_PIRATE_OID);
+        assertInducedRole(roleAfter, ROLE_SAILOR_OID);
+        assertInducements(roleAfter, 2);
 	}
 
 }

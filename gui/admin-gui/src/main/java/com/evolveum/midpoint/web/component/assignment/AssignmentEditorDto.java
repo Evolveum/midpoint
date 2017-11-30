@@ -29,7 +29,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -86,7 +86,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	private AssignmentEditorDtoType type;
 	private UserDtoStatus status;
 	private AssignmentType oldAssignment;
-	private List<AssignmentsPreviewDto> privilegeLimitationList;
+	private List<AssignmentInfoDto> privilegeLimitationList;
 	private ObjectViewDto<OrgType> tenantRef;
 	private ObjectViewDto<OrgType> orgRef;
 
@@ -228,12 +228,12 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
 	}
 
-	private List<AssignmentsPreviewDto> getAssignmentPrivilegesList(AssignmentType assignment){
-		List<AssignmentsPreviewDto> list = new ArrayList<>();
+	private List<AssignmentInfoDto> getAssignmentPrivilegesList(AssignmentType assignment){
+		List<AssignmentInfoDto> list = new ArrayList<>();
 		AssignmentSelectorType assignmentSelectorType = assignment.getLimitTargetContent();
 		if (assignmentSelectorType != null && assignmentSelectorType.getTargetRef() != null){
 			for (ObjectReferenceType objectRef : assignmentSelectorType.getTargetRef()){
-				AssignmentsPreviewDto dto = new AssignmentsPreviewDto();
+				AssignmentInfoDto dto = new AssignmentInfoDto();
 				Class<? extends ObjectType> targetClass = ObjectTypes.getObjectTypeFromTypeQName(objectRef.getType()).getClassDefinition();
 				dto.setTargetClass(targetClass);
 				dto.setTargetName(WebModelServiceUtils.resolveReferenceName(objectRef, pageBase,
@@ -735,11 +735,11 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		this.assignedRelationsList = assignedRelationsList;
 	}
 
-	public List<AssignmentsPreviewDto> getPrivilegeLimitationList() {
+	public List<AssignmentInfoDto> getPrivilegeLimitationList() {
 		return privilegeLimitationList;
 	}
 
-	public void setPrivilegeLimitationList(List<AssignmentsPreviewDto> privilegeLimitationList) {
+	public void setPrivilegeLimitationList(List<AssignmentInfoDto> privilegeLimitationList) {
 		if (newAssignment.getLimitTargetContent() == null) {
 			newAssignment.setLimitTargetContent(new AssignmentSelectorType());
 		}
@@ -748,7 +748,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 			referencesList = new ArrayList<>();
 		}
 		referencesList.clear();
-		for (AssignmentsPreviewDto previewDto : privilegeLimitationList){
+		for (AssignmentInfoDto previewDto : privilegeLimitationList){
 			ObjectReferenceType ref = new ObjectReferenceType();
 			ref.setOid(previewDto.getTargetOid());
 			ref.setTargetName(new PolyStringType(previewDto.getTargetName()));

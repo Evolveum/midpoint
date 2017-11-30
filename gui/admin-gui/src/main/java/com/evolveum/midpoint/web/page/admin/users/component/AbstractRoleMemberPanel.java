@@ -402,7 +402,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			objType.getParentOrgRef().add(parentOrgRef.clone());
 		}
 
-		WebComponentUtil.dispatchToObjectDetailsPage(obj, this);
+		WebComponentUtil.dispatchToObjectDetailsPage(obj, true, this);
 	}
 
 	protected void addMembers(final QName relation, AjaxRequestTarget target) {

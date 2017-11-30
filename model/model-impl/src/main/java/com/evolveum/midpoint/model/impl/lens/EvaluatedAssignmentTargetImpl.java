@@ -16,7 +16,9 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
+import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -61,6 +63,13 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 	@Override
 	public boolean appliesToFocus() {
 		return assignmentPath.last().isMatchingOrder();
+	}
+
+	@Override
+	public boolean appliesToFocusWithAnyRelation() {
+		EvaluationOrder order = assignmentPath.last().getEvaluationOrder();
+		// TODO check if transitive evaluations are taken into account (they are probably accounted for during assignment evaluation)
+		return order.getSummaryOrder() == 1 || order.getSummaryOrder() == 0 && order.getMatchingRelationOrder(SchemaConstants.ORG_DEPUTY) > 0;
 	}
 
 	@Override

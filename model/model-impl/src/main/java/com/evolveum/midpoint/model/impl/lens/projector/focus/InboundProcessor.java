@@ -879,7 +879,7 @@ public class InboundProcessor {
     	if (originTriples != null) {
 	    	if (originTriples.hasPlusSet()) {
 				Collection<ItemValueWithOrigin<V, D>> plusSet = originTriples.getPlusSet();
-				LOGGER.trace("Consolidating plusSet from origin:\n {}", plusSet);
+				LOGGER.trace("Consolidating plusSet from origin:\n {}", DebugUtil.debugDumpLazily(plusSet));
 				
 				
 				for (ItemValueWithOrigin<V, D> plusValue : plusSet) {
@@ -889,7 +889,7 @@ public class InboundProcessor {
 							if (minusValue.getItemValue().equalsRealValue(plusValue.getItemValue())) {
 								LOGGER.trace(
 										"Removing value {} from minus set -> moved to the zero, becuase the same value present in plus and minus set at the same time",
-										minusValue);
+										minusValue.debugDumpLazily());
 								consolidatedMinusSet.remove(minusValue);
 								consolidatedPlusSet.remove(plusValue);
 								consolidatedZeroSet.add(minusValue);
@@ -903,7 +903,7 @@ public class InboundProcessor {
 							if (zeroValue.getItemValue().equalsRealValue(plusValue.getItemValue())) {
 								LOGGER.trace(
 										"Removing value {} from plus set -> moved to the zero, becuase the same value present in plus and minus set at the same time",
-										zeroValue);
+										zeroValue.debugDumpLazily());
 								consolidatedPlusSet.remove(plusValue);
 								consolidated = true;
 							}
@@ -922,15 +922,16 @@ public class InboundProcessor {
 			
 			if (originTriples.hasZeroSet()) {
 				Collection<ItemValueWithOrigin<V, D>> zeroSet = originTriples.getZeroSet();
-				LOGGER.trace("Consolidating zero set from origin:\n {}", zeroSet);
-				boolean consolidated = false;
+				LOGGER.trace("Consolidating zero set from origin:\n {}", DebugUtil.debugDumpLazily(zeroSet));
+				
 				for (ItemValueWithOrigin<V, D> zeroValue : zeroSet) {
+					boolean consolidated = false;
 					if (originTriples.hasMinusSet()) {
 						for (ItemValueWithOrigin<V, D> minusValue : originTriples.getMinusSet()) {
 							if (minusValue.getItemValue().equalsRealValue(zeroValue.getItemValue())) {
 								LOGGER.trace(
 										"Removing value {} from minus set -> moved to the zero, becuase the same value present in zero and minus set at the same time",
-										minusValue);
+										minusValue.debugDumpLazily());
 								consolidatedMinusSet.remove(minusValue);
 								consolidatedZeroSet.add(minusValue);
 								consolidated = true;
@@ -946,7 +947,7 @@ public class InboundProcessor {
 							if (plusValue.getItemValue().equalsRealValue(zeroValue.getItemValue())) {
 								LOGGER.trace(
 										"Removing value {} from plus set -> moved to the zero, becuase the same value present in zero and plus set at the same time",
-										plusValue);
+										plusValue.debugDumpLazily());
 								consolidatedPlusSet.remove(plusValue);
 								consolidatedZeroSet.add(plusValue);
 								consolidated = true;
@@ -966,16 +967,16 @@ public class InboundProcessor {
 		
 			if (originTriples.hasMinusSet()) {
 				Collection<ItemValueWithOrigin<V, D>> minusSet = originTriples.getMinusSet();
-				LOGGER.trace("Consolidating minus set from origin:\n {}", minusSet);
-				boolean consolidated = false;
+				LOGGER.trace("Consolidating minus set from origin:\n {}", DebugUtil.debugDumpLazily(minusSet));
+				
 				for (ItemValueWithOrigin<V, D> minusValue : minusSet){
-					
+					boolean consolidated = false;
 					if (originTriples.hasPlusSet()) {
 						for (ItemValueWithOrigin<V, D> plusValue : originTriples.getPlusSet()) {
 							if (plusValue.getItemValue().equalsRealValue(minusValue.getItemValue())) {
 								LOGGER.trace(
-										"Removing value {} from plus set -> moved to the zero, becuase the same value present in plus and minus set at the same time",
-										plusValue);
+										"Removing value {} from minus set -> moved to the zero, becuase the same value present in plus and minus set at the same time",
+										plusValue.debugDumpLazily());
 								consolidatedPlusSet.remove(plusValue);
 								consolidatedMinusSet.remove(minusValue);
 								consolidatedZeroSet.add(minusValue);
@@ -990,7 +991,7 @@ public class InboundProcessor {
 							if (zeroValue.getItemValue().equalsRealValue(minusValue.getItemValue())) {
 								LOGGER.trace(
 										"Removing value {} from minus set -> moved to the zero, becuase the same value present in plus and minus set at the same time",
-										zeroValue);
+										zeroValue.debugDumpLazily());
 								consolidatedMinusSet.remove(minusValue);
 								consolidatedZeroSet.add(zeroValue);
 								consolidated = true;

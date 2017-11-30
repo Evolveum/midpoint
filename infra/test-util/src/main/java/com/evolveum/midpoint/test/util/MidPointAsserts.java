@@ -81,6 +81,22 @@ public class MidPointAsserts {
 		}
 		AssertJUnit.fail(focus + " does not have assigned "+refType.getLocalPart()+" "+targetOid+ ", relation "+relation);
 	}
+	
+	public static <R extends AbstractRoleType> AssignmentType assertInduced(PrismObject<R> user, String targetOid, QName refType) {
+		R userType = user.asObjectable();
+		for (AssignmentType inducementType: userType.getInducement()) {
+			ObjectReferenceType targetRef = inducementType.getTargetRef();
+			if (targetRef != null) {
+				if (refType.equals(targetRef.getType())) {
+					if (targetOid.equals(targetRef.getOid())) {
+						return inducementType;
+					}
+				}
+			}
+		}
+		AssertJUnit.fail(user + " does not have assigned "+refType.getLocalPart()+" "+targetOid);
+		return null; // not reachable
+	}
 
 	public static <F extends FocusType> void assertNotAssigned(PrismObject<F> user, String targetOid, QName refType) {
 		F userType = user.asObjectable();
@@ -162,6 +178,9 @@ public class MidPointAsserts {
 		PrismAsserts.assertSets("Wrong "+typeDesc+" in "+user, haveTagetOids, expectedTargetOids);
 	}
 
+	public static <R extends AbstractRoleType> AssignmentType assertInducedRole(PrismObject<R> user, String roleOid) {
+		return assertInduced(user, roleOid, RoleType.COMPLEX_TYPE);
+	}
 	
 	private static <F extends FocusType> List<String> getAssignedOids(PrismObject<F> user, QName type) {
 		F userType = user.asObjectable();
