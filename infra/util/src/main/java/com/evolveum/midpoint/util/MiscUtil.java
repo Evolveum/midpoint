@@ -605,8 +605,14 @@ public class MiscUtil {
 		return list.get(list.size() - 1);
 	}
 
+	@NotNull
 	public static String emptyIfNull(String s) {
-		return s == null ? "" : s;
+		return s != null ? s : "";
+	}
+
+	@NotNull
+	public static <T> List<T> emptyIfNull(List<T> list) {
+		return list != null ? list : Collections.emptyList();
 	}
 
 	public static String nullIfEmpty(String s) {

@@ -137,6 +137,7 @@
             <class name="com.evolveum.midpoint.schema.util.SelectorOptionsTest"/>
             <class name="com.evolveum.midpoint.schema.TestEmptyItems"/>
             <class name="com.evolveum.midpoint.schema.TestMiscellaneous"/>
+            <class name="com.evolveum.midpoint.schema.TestParseMisc"/>
         </classes>
     </test>
 </suite>

@@ -344,6 +344,12 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		try {
 			return protector.compare(entered, protectedString);
 		} catch (SchemaException | EncryptionException e) {
+			// This is a serious error. It is not business as usual (e.g. wrong password or missing authorization).
+			// This is either bug or serious misconfiguration (e.g. missing decryption key in keystore).
+			// We do not want to just audit the failure. That would just log it on debug level.
+			// But that would be too hard for system administrator to figure out what is going on - especially
+			// if the administrator himself cannot log in. Therefore explicitly log those errors here.
+			LOGGER.error("Error dealing with credentials of user \"{}\" credentials: {}", principal.getUsername(), e.getMessage());
 			recordAuthenticationFailure(principal, connEnv, "error decrypting password: "+e.getMessage());
 			throw new AuthenticationServiceException(messages.getMessage("web.security.provider.unavailable"), e);
 		}

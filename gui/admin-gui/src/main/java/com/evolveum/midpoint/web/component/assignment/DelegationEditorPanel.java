@@ -28,8 +28,8 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentPreviewDialog;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
+import com.evolveum.midpoint.web.page.admin.users.component.DelegationTargetLimitationDialog;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -91,26 +91,26 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     private List<UserType> usersToUpdate;
 
     public DelegationEditorPanel(String id, IModel<AssignmentEditorDto> delegationTargetObjectModel, boolean delegatedToMe,
-                                 List<AssignmentsPreviewDto> privilegesList, PageBase pageBase) {
-        super(id, delegationTargetObjectModel, delegatedToMe, new LoadableModel<List<AssignmentsPreviewDto>>(false) {
+                                 List<AssignmentInfoDto> privilegesList, PageBase pageBase) {
+        super(id, delegationTargetObjectModel, delegatedToMe, new LoadableModel<List<AssignmentInfoDto>>(false) {
             @Override
-            protected List<AssignmentsPreviewDto> load() {
+            protected List<AssignmentInfoDto> load() {
                 return privilegesList;
             }
         }, pageBase);
     }
 
     public DelegationEditorPanel(String id, IModel<AssignmentEditorDto> delegationTargetObjectModel, boolean delegatedToMe,
-                                 LoadableModel<List<AssignmentsPreviewDto>> privilegesListModel, PageBase pageBase) {
+                                 LoadableModel<List<AssignmentInfoDto>> privilegesListModel, PageBase pageBase) {
             super(id, delegationTargetObjectModel, delegatedToMe, privilegesListModel, pageBase);
         }
 
     @Override
     protected void initHeaderRow(){
         if (delegatedToMe) {
-            privilegesListModel = new LoadableModel<List<AssignmentsPreviewDto>>(false) {
+            privilegesListModel = new LoadableModel<List<AssignmentInfoDto>>(false) {
                 @Override
-                protected List<AssignmentsPreviewDto> load() {
+                protected List<AssignmentInfoDto> load() {
                     return DelegationEditorPanel.this.getModelObject().getPrivilegeLimitationList();
                 }
             };
@@ -238,7 +238,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
                 if (!UserDtoStatus.ADD.equals(getModelObject().getStatus())){
                     return true;
                 }
-                List<AssignmentsPreviewDto> privilegesList = privilegesListModel.getObject();
+                List<AssignmentInfoDto> privilegesList = privilegesListModel.getObject();
                 return privilegesList != null && privilegesList.size() > 0;
             }
         });
@@ -307,27 +307,16 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
                 pageBase.createStringResource("DelegationEditorPanel.limitPrivilegesButton")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                AssignmentPreviewDialog assignmentPreviewDialog =
-                        new AssignmentPreviewDialog(pageBase.getMainPopupBodyId(),
-                                selectExistingPrivileges(privilegesListModel.getObject()),
-                                null, pageBase, true){
+                DelegationTargetLimitationDialog assignmentsDialog =
+                        new DelegationTargetLimitationDialog(pageBase.getMainPopupBodyId(),
+                                selectExistingPrivileges(privilegesListModel.getObject()), pageBase) {
                             @Override
-                            protected boolean isDelegationPreview(){
-                                return true;
-                            }
-
-                            @Override
-                            public StringResourceModel getTitle() {
-                                return new StringResourceModel("AssignmentPreviewDialog.delegationPreviewLabel");
-                            }
-
-                            @Override
-                            protected void addButtonClicked(AjaxRequestTarget target, List<AssignmentsPreviewDto> dtoList){
+                            protected void addButtonClicked(AjaxRequestTarget target, List<AssignmentInfoDto> dtoList){
                                 DelegationEditorPanel.this.getModelObject().setPrivilegeLimitationList(dtoList);
                                 pageBase.hideMainPopup(target);
                             }
                         };
-                pageBase.showMainPopup(assignmentPreviewDialog, target);
+                pageBase.showMainPopup(assignmentsDialog, target);
             }
         };
         limitPrivilegesButton.add(new VisibleEnableBehaviour() {
@@ -542,12 +531,12 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
                     getModelObject().getPrivilegeLimitationList().size() == privilegesListModel.getObject().size();
     }
 
-    private List<String> getPrivilegesNamesList(){
+    private List<String> getPrivilegesNamesList() {
         List<String> privilegesNamesList = new ArrayList<>();
-        List<AssignmentsPreviewDto> dtos = getModel().getObject().getPrivilegeLimitationList();
+        List<AssignmentInfoDto> dtos = getModel().getObject().getPrivilegeLimitationList();
         if (dtos != null){
-            for (AssignmentsPreviewDto assignmentsPreviewDto : dtos){
-                    privilegesNamesList.add(assignmentsPreviewDto.getTargetName());
+            for (AssignmentInfoDto assignmentInfoDto : dtos) {
+                privilegesNamesList.add(assignmentInfoDto.getTargetName());
             }
         }
         return privilegesNamesList;
@@ -566,16 +555,15 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         return displayName;
     }
 
-    private List<AssignmentsPreviewDto> selectExistingPrivileges(List<AssignmentsPreviewDto> list){
-        for (AssignmentsPreviewDto dto : list){
+    private List<AssignmentInfoDto> selectExistingPrivileges(List<AssignmentInfoDto> list) {
+        for (AssignmentInfoDto dto : list) {
             dto.setSelected(false);
         }
-
-        if (getModelObject().getPrivilegeLimitationList() == null){
+        if (getModelObject().getPrivilegeLimitationList() == null) {
             return list;
         }
-        for (AssignmentsPreviewDto dto : list){
-            if (getModelObject().getPrivilegeLimitationList().contains(dto)){
+        for (AssignmentInfoDto dto : list) {
+            if (getModelObject().getPrivilegeLimitationList().contains(dto)) {
                 dto.setSelected(true);
             }
         }

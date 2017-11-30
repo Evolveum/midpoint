@@ -186,9 +186,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			//used cloned deltas instead of origin deltas, because some of the values should be lost later..
 			context = contextFactory.createContext(clonedDeltas, options, task, result);
 //			context.setOptions(options);
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.trace("Preview changes context:\n{}", context.debugDump());
-			}
+			LOGGER.trace("Preview changes context:\n{}", context.debugDumpLazily());
 			context.setProgressListeners(listeners);
 
 			projector.projectAllWaves(context, "preview", task, result);

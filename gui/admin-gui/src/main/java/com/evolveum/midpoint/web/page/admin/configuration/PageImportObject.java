@@ -117,6 +117,7 @@ public class PageImportObject extends PageAdminConfiguration {
 
 	private void initLayout() {
 		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+		mainForm.setMultiPart(true);
 		add(mainForm);
 
 		ImportOptionsPanel importOptions = new ImportOptionsPanel(ID_IMPORT_OPTIONS, optionsModel, fullProcessingModel);
@@ -308,7 +309,8 @@ public class PageImportObject extends PageAdminConfiguration {
 			// Save file
 
 			newFile.createNewFile();
-			uploadedFile.writeTo(newFile);
+
+			FileUtils.copyInputStreamToFile(uploadedFile.getInputStream(), newFile);
 
 			String language = getPrismContext().detectLanguage(newFile);
 			return new InputDescription(new FileInputStream(newFile), language);

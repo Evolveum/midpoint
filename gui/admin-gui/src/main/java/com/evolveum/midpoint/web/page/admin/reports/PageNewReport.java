@@ -224,7 +224,7 @@ public class PageNewReport extends PageAdminReports {
             // Save file
 //            Task task = createSimpleTask(OPERATION_IMPORT_FILE);
             newFile.createNewFile();
-            uploadedFile.writeTo(newFile);
+            FileUtils.copyInputStreamToFile(uploadedFile.getInputStream(), newFile);
 
             InputStreamReader reader = new InputStreamReader(new FileInputStream(newFile), "utf-8");
 //            reader.

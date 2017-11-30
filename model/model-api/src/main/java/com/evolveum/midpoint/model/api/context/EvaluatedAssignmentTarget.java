@@ -32,7 +32,13 @@ public interface EvaluatedAssignmentTarget extends DebugDumpable {
 	boolean isDirectlyAssigned();
 
 	// if this target applies to focus (by direct assignment or by some inducement)
+	// currently matches only default (member) relations - TODO clarify this
 	boolean appliesToFocus();
+
+	// if this target applies to focus (by direct assignment or by some inducement)
+	// accepts all relations
+	// TODO clarify this
+	boolean appliesToFocusWithAnyRelation();
 
 	/**
 	 * True for roles whose constructions are evaluated - i.e. those roles that are considered to be applied
