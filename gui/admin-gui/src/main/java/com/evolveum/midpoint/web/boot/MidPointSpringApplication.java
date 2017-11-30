@@ -82,7 +82,8 @@ import java.util.concurrent.TimeUnit;
         PropertyPlaceholderAutoConfiguration.class,
         SecurityAutoConfiguration.class,
         SecurityFilterAutoConfiguration.class,
-        ServerPropertiesAutoConfiguration.class
+        ServerPropertiesAutoConfiguration.class,
+        MultipartAutoConfiguration.class
 })
 @SpringBootConfiguration
 public class MidPointSpringApplication extends SpringBootServletInitializer {
