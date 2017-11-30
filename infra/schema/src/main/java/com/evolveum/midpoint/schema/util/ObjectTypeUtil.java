@@ -166,6 +166,20 @@ public class ObjectTypeUtil {
 		return toShortString(objectRef, false);
 	}
 
+	public static Object toShortString(PrismReferenceValue objectRef) {
+		return toShortString(toObjectReferenceType(objectRef));
+	}
+
+	private static ObjectReferenceType toObjectReferenceType(PrismReferenceValue prv) {
+		if (prv != null) {
+			ObjectReferenceType ort = new ObjectReferenceType();
+			ort.setupReferenceValue(prv);
+			return ort;
+		} else {
+			return null;
+		}
+	}
+
 	public static Object toShortString(ObjectReferenceType objectRef, boolean withName) {
         if (objectRef == null) {
             return "null";

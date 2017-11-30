@@ -28,7 +28,6 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.util.Utils;
@@ -125,6 +124,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	public static final String CREATE_ACCOUNT = CLASS_NAME_WITH_DOT + "createAccount";
 	public static final String UPDATE_ACCOUNT = CLASS_NAME_WITH_DOT + "updateAccount";
 	public static final String PROCESS_USER_TEMPLATE = CLASS_NAME_WITH_DOT + "processUserTemplate";
+	private static final String RESOLVE_REFERENCE = CLASS_NAME_WITH_DOT + "resolveReference";
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);
 
@@ -215,7 +215,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             
             object = object.cloneIfImmutable();
             schemaTransformer.applySchemasAndSecurity(object, rootOptions, options, null, task, result);
-			resolve(object, options, task, result);
+			executeResolveOptions(object.asObjectable(), options, task, result);
 
 		} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			ModelUtils.recordFatalError(result, e);
@@ -237,43 +237,26 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		return object;
 	}
 
-	private void resolve(PrismObject<?> object, Collection<SelectorOptions<GetOperationOptions>> options,
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
-		if (object == null) {
-			return;
-		}
-		resolve(object.asObjectable(), options, task, result);
-	}
-
-	private void resolve(Containerable containerable, Collection<SelectorOptions<GetOperationOptions>> options,
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
-		if (containerable == null || options == null) {
+	private void executeResolveOptions(@NotNull Containerable containerable, Collection<SelectorOptions<GetOperationOptions>> options,
+			Task task, OperationResult result) {
+		if (options == null) {
 			return;
 		}
 		for (SelectorOptions<GetOperationOptions> option: options) {
-			try {
-				resolve(containerable, option, task, result);
-			} catch (ObjectNotFoundException ex) {
-				result.recordWarning(ex.getMessage(), ex);
+			if (GetOperationOptions.isResolve(option.getOptions())) {
+				ObjectSelector selector = option.getSelector();
+				if (selector != null) {
+					ItemPath path = selector.getPath();
+					ItemPath.checkNoSpecialSymbolsExceptParent(path);
+					executeResolveOption(containerable, path, option, task, result);
+				}
 			}
 		}
 	}
 
-    private void resolve(Containerable object, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
-		if (!GetOperationOptions.isResolve(option.getOptions())) {
-			return;
-		}
-		ObjectSelector selector = option.getSelector();
-		if (selector == null) {
-			return;
-		}
-		ItemPath path = selector.getPath();
-		ItemPath.checkNoSpecialSymbolsExceptParent(path);
-		resolve(object, path, option, task, result);
-	}
-
 	// TODO clean this mess
-	private <O extends ObjectType> void resolve(Containerable containerable, ItemPath path, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
+	private <O extends ObjectType> void executeResolveOption(Containerable containerable, ItemPath path,
+			SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) {
 		if (path == null || path.isEmpty()) {
 			return;
 		}
@@ -281,22 +264,20 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		ItemPath rest = path.rest();
 		PrismContainerValue<?> containerValue = containerable.asPrismContainerValue();
 		if (first instanceof NameItemPathSegment) {
-			QName refName = ItemPath.getName(first);
-			PrismReference reference = containerValue.findReferenceByCompositeObjectElementName(refName);
+			QName firstName = ItemPath.getName(first);
+			PrismReference reference = containerValue.findReferenceByCompositeObjectElementName(firstName);
 			if (reference == null) {
-				reference = containerValue.findReference(refName);	// alternatively look up by reference name (e.g. linkRef)
+				reference = containerValue.findReference(firstName);	// alternatively look up by reference name (e.g. linkRef)
 			}
 			if (reference != null) {
 				for (PrismReferenceValue refVal : reference.getValues()) {
+					//noinspection unchecked
 					PrismObject<O> refObject = refVal.getObject();
 					if (refObject == null) {
-						refObject = objectResolver.resolve(refVal, containerable.toString(), option.getOptions(), task, result);
-						refObject = refObject.cloneIfImmutable();
-						schemaTransformer.applySchemasAndSecurity(refObject, option.getOptions(), SelectorOptions.createCollection(option.getOptions()), null, task, result);
-						refVal.setObject(refObject);
+						refObject = resolveReferenceUsingOption(refVal, option, containerable, task, result);
 					}
-					if (!rest.isEmpty()) {
-						resolve(refObject.asObjectable(), rest, option, task, result);
+					if (!rest.isEmpty() && refObject != null) {
+						executeResolveOption(refObject.asObjectable(), rest, option, task, result);
 					}
 				}
 				return;
@@ -308,20 +289,39 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (first instanceof ParentPathSegment) {
 			PrismContainerValue<?> parent = containerValue.getParentContainerValue();
 			if (parent != null) {
-				resolve(parent.asContainerable(), rest, option, task, result);
+				executeResolveOption(parent.asContainerable(), rest, option, task, result);
 			}
 		} else {
 			QName nextName = ItemPath.getName(first);
 			PrismContainer<?> nextContainer = containerValue.findContainer(nextName);
 			if (nextContainer != null) {
 				for (PrismContainerValue<?> pcv : nextContainer.getValues()) {
-					resolve(pcv.asContainerable(), rest, option, task, result);
+					executeResolveOption(pcv.asContainerable(), rest, option, task, result);
 				}
 			}
 		}
 	}
 
-    @Override
+	private <O extends ObjectType> PrismObject<O> resolveReferenceUsingOption(@NotNull PrismReferenceValue refVal,
+			SelectorOptions<GetOperationOptions> option, Containerable containerable, Task task, OperationResult parentResult) {
+		OperationResult result = parentResult.createMinorSubresult(RESOLVE_REFERENCE);
+		try {
+			PrismObject<O> refObject;
+			refObject = objectResolver.resolve(refVal, containerable.toString(), option.getOptions(), task, result);
+			refObject = refObject.cloneIfImmutable();
+			schemaTransformer.applySchemasAndSecurity(refObject, option.getOptions(),
+					SelectorOptions.createCollection(option.getOptions()), null, task, result);
+			refVal.setObject(refObject);
+			return refObject;
+		} catch (CommonException e) {
+			result.recordWarning("Couldn't resolve reference to " + ObjectTypeUtil.toShortString(refVal) + ": " + e.getMessage(), e);
+			return null;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+	}
+
+	@Override
     public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
 		    Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
@@ -809,7 +809,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                         hook.invoke(object, options, task, result);
                     }
                 }
-				resolve(object, options, task, result);
+	            executeResolveOptions(object.asObjectable(), options, task, result);
             }
 
 			// postprocessing objects that weren't handled by their correct provider (e.g. searching for ObjectType, and retrieving tasks, resources, shadows)
@@ -925,7 +925,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 			for (T object : list) {
 				// TODO implement read hook, if necessary
-				resolve(object, options, task, result);
+				executeResolveOptions(object, options, task, result);
 			}
 		} finally {
 			RepositoryCache.exit();
@@ -1086,7 +1086,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				if (workflowManager != null && TaskType.class.isAssignableFrom(type) && !GetOperationOptions.isRaw(rootOptions) && !GetOperationOptions.isNoFetch(rootOptions)) {
 					workflowManager.augmentTaskObject(object, options, task, result);
 				}
-				resolve(object, options, task, result);
+				executeResolveOptions(object.asObjectable(), options, task, result);
 				schemaTransformer.applySchemasAndSecurity(object, rootOptions, options, null, task, parentResult1);
 			} catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException
 					| CommunicationException | ConfigurationException ex) {
