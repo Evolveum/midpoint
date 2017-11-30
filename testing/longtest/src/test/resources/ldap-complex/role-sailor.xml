@@ -33,8 +33,7 @@
             			<associationTargetSearch>
             				<filter>
 								<q:equal>
-									<q:path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-                                        attributes/icfs:name</q:path>
+									<q:path>attributes/cn</q:path>
 									<q:value>sailors</q:value>
 								</q:equal>
             				</filter>

@@ -1235,8 +1235,16 @@ public class ResourceObjectConverter {
 								throw new TunnelException(e);
 							}
 							Validate.notNull(shadow, "null shadow");
-							boolean doContinue = resultHandler.handle(shadow, objResult);
-							objResult.computeStatus();
+							boolean doContinue;
+							try {
+								doContinue = resultHandler.handle(shadow, objResult);
+								objResult.computeStatus();
+							} catch (Throwable t) {
+								if (objResult.isUnknown()) {
+									objResult.recordFatalError(t);
+								}
+								throw t;
+							}
 							return doContinue;
 						} finally {
 							RepositoryCache.exit();

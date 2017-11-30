@@ -91,7 +91,7 @@ public class TestLdapComplex extends AbstractModelIntegrationTest {
 	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 
 	// Make it at least 1501 so it will go over the 3000 entries size limit
-	private static final int NUM_LDAP_ENTRIES = 1000;
+	private static final int NUM_LDAP_ENTRIES = 100;
 
 	private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
 
@@ -158,31 +158,31 @@ public class TestLdapComplex extends AbstractModelIntegrationTest {
 	@Test
     public void test100BigImport() throws Exception {
 		final String TEST_NAME = "test100BigImport";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
         loadEntries("u");
 
-        Task task = taskManager.createTaskInstance(TestLdapComplex.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
         modelService.importFromResource(RESOURCE_OPENDJ_OID,
-        		new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
+        		new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
         waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);
@@ -201,16 +201,16 @@ public class TestLdapComplex extends AbstractModelIntegrationTest {
     @Test(enabled = false)
     public void test120BigReconciliation() throws Exception {
         final String TEST_NAME = "test120BigReconciliation";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
-        Task task = taskManager.createTaskInstance(TestLdapComplex.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
 
         ResourceType resource = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
@@ -218,7 +218,7 @@ public class TestLdapComplex extends AbstractModelIntegrationTest {
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         // TODO
 //        OperationResult subresult = result.getLastSubresult();
 //        TestUtil.assertInProgress("reconciliation launch result", subresult);
@@ -226,7 +226,7 @@ public class TestLdapComplex extends AbstractModelIntegrationTest {
         waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);

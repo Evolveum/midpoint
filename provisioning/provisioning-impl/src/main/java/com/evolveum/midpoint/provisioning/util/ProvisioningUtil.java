@@ -475,6 +475,9 @@ public class ProvisioningUtil {
 		CachingPolicyType caching = resource.getCaching();
 		if (caching == null || caching.getCachingStategy() == null) {
 			ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ReadCapabilityType.class);
+			if (readCapabilityType == null) {
+				return CachingStategyType.NONE;
+			}
 			Boolean cachingOnly = readCapabilityType.isCachingOnly();
 			if (cachingOnly == Boolean.TRUE) {
 				return CachingStategyType.PASSIVE;
