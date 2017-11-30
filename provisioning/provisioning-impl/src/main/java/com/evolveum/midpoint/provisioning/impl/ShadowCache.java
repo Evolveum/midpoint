@@ -1372,7 +1372,7 @@ public abstract class ShadowCache {
                         	throw e;
                         }
                     }
-                } catch (RuntimeException e) {
+                } catch (RuntimeException | Error e) {
                 	objResult.recordFatalError(e);
                 	throw e;
                 } finally {

@@ -71,7 +71,6 @@
 			<attribute>
 				<ref>ri:dn</ref>
 				<displayName>Distinguished Name</displayName>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<strength>strong</strength>
 				    <source>
@@ -89,7 +88,6 @@
 			<attribute>
 				<ref>ri:entryUUID</ref>
 				<displayName>Entry UUID</displayName>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 			</attribute>
 			<attribute>
 				<ref>ri:cn</ref>
@@ -142,7 +140,6 @@
 			<attribute>
 				<ref>ri:uid</ref>
 				<displayName>Login Name</displayName>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<strength>weak</strength>
 					<source>
@@ -179,26 +176,6 @@
 						</path>
 					</target>
 				</inbound>-->
-			</attribute>
-			<attribute>
-				<ref>ri:l</ref>
-				<outbound>
-					<strength>strong</strength>
-					<expression>
-						<variable xmlns:my="http://whatever.com/my">
-							<name>my:defaultLocation</name>
-							<value>middle of nowhere</value>
-						</variable>
-						<script>
-							<description>XPath expression that is using a variable declared above</description>
-							<language>http://www.w3.org/TR/xpath/</language>
-							<returnType>scalar</returnType>
-							<code xmlns:my="http://whatever.com/my">
-								$my:defaultLocation
-							</code>
-						</script>
-					</expression>
-				</outbound>
 			</attribute>
 
 			 <association>
@@ -243,9 +220,8 @@
             <objectClass>ri:groupOfUniqueNames</objectClass>
             <attribute>
 				<ref>ri:dn</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
-					<!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<!-- DN cannot be weak. Changes in name trigger object rename. -->
 					<source>
 						<path>$focus/name</path>
 					</source>
@@ -265,11 +241,9 @@
 			</attribute>
 			<attribute>
 				<ref>ri:uniqueMember</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 			</attribute>
 			<attribute>
 				<ref>ri:cn</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<strength>weak</strength>
 					<source>
@@ -290,20 +264,6 @@
 	</schemaHandling>
 	
 	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-	<!-- Storing native capabilities here and don't letting midpoint to fetch it from the resource.
-		Some tests work without running resource, generating fetching capabilities would fail. -->
-		<native>
-	      <cap:credentials>
-	         <cap:password/>
-	      </cap:credentials>
-	      <cap:liveSync/>
-	      <cap:testConnection/>
-	      <cap:script>
-	         <cap:host>
-	            <cap:type>connector</cap:type>
-	         </cap:host>
-	      </cap:script>
-      </native>
       <configured>
 	        <cap:activation>
 	            <cap:status>
@@ -323,21 +283,12 @@
 		<objectSynchronization>
 			<enabled>true</enabled>
 			<correlation>
-				<q:and>
-					<q:equal>
-						<q:path>c:employeeNumber</q:path>
-						<expression>
-						<path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003";
-                            $account/attributes/ri:employeeNumber</path>
-						</expression>
-					</q:equal>
-					<q:not>
-						<q:equal>
-							<q:path>c:employeeNumber</q:path>
-							<q:value/>
-						</q:equal>
-					</q:not>
-				</q:and>
+				<q:equal>
+					<q:path>name</q:path>
+					<expression>
+						<path>$account/attributes/uid</path>
+					</expression>
+				</q:equal>
 			</correlation>
 			
 			<reaction>

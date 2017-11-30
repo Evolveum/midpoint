@@ -28,30 +28,33 @@
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="INFO"/>
 	<logger name="org.springframework" level="WARN" />
+	
 	<logger name="com.evolveum.midpoint" level="INFO" />
 	<logger name="com.evolveum.midpoint.model" level="INFO" />
+	<logger name="com.evolveum.midpoint.model.lens.Clockwork" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.provisioning" level="INFO" />
+	<logger name="com.evolveum.midpoint.common" level="INFO" />
+	<logger name="com.evolveum.midpoint.repo" level="INFO" />
 	
 	<logger name="com.evolveum.polygon.connector.ldap" level="INFO" />
+	<logger name="org.identityconnectors.framework" level="INFO" />
+	
+	<logger name="com.evolveum.midpoint.model.impl.importer" level="DEBUG" />
     
 	<!-- Expression trace -->
+	<!-- 
 	<logger name="com.evolveum.midpoint.common.expression" level="TRACE" />
 	<logger name="com.evolveum.midpoint.common.expression.MidPointFunctions" level="TRACE" />
-	
-	<!--<logger name="com.evolveum.midpoint.provisioning" level="TRACE" />-->
-	<!--<logger name="com.evolveum.midpoint.common" level="TRACE" />-->
-	<!-- <logger name="com.evolveum.midpoint.repo" level="TRACE" />  -->
+	 -->
 	
 	<logger name="com.evolveum.midpoint.test" level="TRACE" />
 	
-	<logger name="com.evolveum.midpoint.model.lens.Clockwork" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.util.DeleteTaskHandler" level="TRACE" />
 	
 	<!-- 
 	<logger name="com.evolveum.midpoint.model.lens.ChangeExecutor" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.lens.projector.ConsolidationProcessor" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.lens.LensUtil" level="TRACE" />  -->
-	
-	<logger name="org.identityconnectors.framework" level="TRACE" />
 	
 	<logger name="PROFILING" level="INFO" />
 	
