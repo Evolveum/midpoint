@@ -25,6 +25,7 @@
     <inducement>
     	<construction>
     		<resourceRef oid="10000000-0000-0000-0000-00000000a404" type="ResourceType"/>
+    		<kind>account</kind>
     		<association>
     			<ref>ri:group</ref>
             	<outbound>
@@ -33,8 +34,15 @@
 						<associationTargetSearch>
 							<filter>
 								<q:equal>
-									<q:path>attributes/icfs:name</q:path>
-									<q:value>cratic</q:value>
+									<q:path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"; attributes/icfs:name</q:path>
+									<expression>
+										<script>
+											<code>
+												log.info("######## returning cratic group name")
+												return "cratic"
+											</code>
+										</script>
+									</expression>
 								</q:equal>
 							</filter>
 							<searchStrategy>onResourceIfNeeded</searchStrategy>

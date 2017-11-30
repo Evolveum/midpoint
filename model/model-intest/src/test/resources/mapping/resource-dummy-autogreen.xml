@@ -63,6 +63,11 @@
 			<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Username</displayName>
+				<outbound>
+					<source>
+						<path>name</path>
+					</source>
+				</outbound>
 				<inbound>
 					<target>
 						<path>$c:user/c:name</path>

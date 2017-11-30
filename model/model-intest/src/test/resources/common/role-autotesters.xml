@@ -19,4 +19,10 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Autotesters</name>
     <roleType>auto</roleType> <!-- may be used for mapping range -->
+    <inducement>
+	    <construction>
+	    		<resourceRef oid="10000000-0000-0000-0000-00000000a404" type="ResourceType"/>
+	    		<kind>account</kind>
+	   </construction>
+	</inducement>
 </role>
