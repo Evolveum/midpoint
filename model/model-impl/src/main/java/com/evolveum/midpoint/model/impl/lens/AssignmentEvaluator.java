@@ -1109,7 +1109,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 			return BooleanUtils.isTrue(targetLimitation.isAllowTransitive());
 		} else {
-			return targetLimitation == null || FocusTypeUtil.selectorMatches(targetLimitation, nextAssignment);
+			// As for the case of targetRef==null: we want to pass target-less assignments (focus mappings, policy rules etc)
+			// from the delegator to delegatee. To block them we should use order constraints (but also for assignments?).
+			return targetLimitation == null || nextAssignment.getTargetRef() == null ||
+					FocusTypeUtil.selectorMatches(targetLimitation, nextAssignment);
 		}
 	}
 	
