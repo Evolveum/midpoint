@@ -435,4 +435,92 @@ public class ExpressionUtil {
         removeEvaluatorByName(expression, SchemaConstants.C_VALUE);
         expression.getExpressionEvaluator().add(element);
     }
+
+    public static String getLiteralExpressionValue(ExpressionType expression) throws SchemaException{
+        JAXBElement element = ExpressionUtil.findEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
+        if (element != null && element.getValue() instanceof RawType) {
+            RawType raw = (RawType) element.getValue();
+            if (raw == null){
+                return null;
+            }
+            if (raw.getXnode() != null && raw.getXnode() instanceof PrimitiveXNode){
+                PrimitiveXNode valueNode = (PrimitiveXNode) raw.getXnode();
+                return valueNode != null ? (valueNode.getValue() != null ? valueNode.getValue().toString() :
+                        (valueNode.getValueParser() != null ? valueNode.getValueParser().getStringValue() : null)) : null;
+            }
+            if (raw.getParsedRealValue(String.class) != null){
+                return raw.getParsedRealValue(String.class);
+            }
+        }
+        return null;
+    }
+
+    public static void updateLiteralExpressionValue(ExpressionType expression, String value, PrismContext  prismContext){
+        if (expression == null){
+            expression = new ExpressionType();
+        }
+        PrimitiveXNode<String> newValueNode = new PrimitiveXNode<>(value);
+        RawType raw = new RawType(newValueNode, prismContext);
+        JAXBElement element =  new JAXBElement(SchemaConstantsGenerated.C_VALUE, RawType.class,
+                raw);
+        removeEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
+        expression.expressionEvaluator(element);
+    }
+
+    public static MapXNode getAssociationTargetSearchFilterValuesMap(ExpressionType expression){
+        if (expression == null){
+            return null;
+        }
+        JAXBElement element = ExpressionUtil.findEvaluatorByName(expression, SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH);
+        if (element != null && element.getValue() != null && element.getValue() instanceof SearchObjectExpressionEvaluatorType) {
+            SearchFilterType filter = ((SearchObjectExpressionEvaluatorType) element.getValue()).getFilter();
+            if (filter == null){
+                return null;
+            }
+            MapXNode filterValue = filter.getFilterClauseXNode();
+            return filterValue != null && filterValue.containsKey(new QName("equal")) ?
+                    (MapXNode)filterValue.get(new QName("equal")) : null;
+
+        }
+        return null;
+    }
+
+    public static String getTargetSearchExpPathValue(ExpressionType expression){
+        if (expression == null){
+            return null;
+        }
+        MapXNode filterNodeMap = getAssociationTargetSearchFilterValuesMap(expression);
+        if (filterNodeMap == null || !filterNodeMap.containsKey(new QName("path"))){
+            return null;
+        }
+        PrimitiveXNode<ItemPathType> pathValue = (PrimitiveXNode<ItemPathType>)filterNodeMap.get(new QName("path"));
+        return pathValue != null ? pathValue.getValue().toString() : null;
+    }
+
+    public static String getTargetSearchExpValue(ExpressionType expression){
+        if (expression == null){
+            return null;
+        }
+        MapXNode filterNodeMap = getAssociationTargetSearchFilterValuesMap(expression);
+        if (filterNodeMap == null || !filterNodeMap.containsKey(new QName("value"))) {
+            return null;
+        }
+        XNode node = filterNodeMap.get(new QName("value"));
+        if (node != null && node instanceof ListXNode) {
+            if (((ListXNode) node).size() > 0) {
+                node = ((ListXNode) node).get(0);
+            }
+        }
+        PrimitiveXNode valueNode = (PrimitiveXNode) node;
+        if (valueNode == null) {
+            return null;
+        }
+        if (valueNode.getValueParser() != null) {
+            return valueNode.getValueParser().getStringValue();
+        } else {
+            return valueNode.getValue().toString();
+        }
+
+    }
+
 }
