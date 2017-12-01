@@ -344,17 +344,46 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		assertTarget(expectedOid, AuditEventStage.REQUEST);
 		assertTarget(expectedOid, AuditEventStage.EXECUTION);
 	}
-
-	public <O extends ObjectType,T> void assertOldValue(ChangeType expectedChangeType, Class<O> expectedClass, QName attrName, T expectedValue) {
-		assertOldValue(null, 0, expectedChangeType, expectedClass, new ItemPath(attrName), expectedValue);
+	
+	public <O extends ObjectType,T> void assertPropertyReplace(ChangeType expectedChangeType, Class<O> expectedClass, QName attrName, T... expectedValues) {
+		assertPropertyReplace(null, 0, expectedChangeType, expectedClass, new ItemPath(attrName), expectedValues);
 	}
 
-	public <O extends ObjectType,T> void assertOldValue(ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T expectedValue) {
-		assertOldValue(null, 0, expectedChangeType, expectedClass, propPath, expectedValue);
+	public <O extends ObjectType,T> void assertPropertyReplace(ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+		assertPropertyReplace(null, 0, expectedChangeType, expectedClass, propPath, expectedValues);
 	}
 
-	public <O extends ObjectType,T> void assertOldValue(int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T expectedValue) {
-		assertOldValue(null, index, expectedChangeType, expectedClass, propPath, expectedValue);
+	public <O extends ObjectType,T> void assertPropertyReplace(int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+		assertPropertyReplace(null, index, expectedChangeType, expectedClass, propPath, expectedValues);
+	}
+
+	public <O extends ObjectType,T> void assertPropertyReplace(String message, int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+		ObjectDeltaOperation<O> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);
+		assert deltaOp != null : (message==null?"":message+": ")+"Delta for "+expectedClass+" of type "+expectedChangeType+" was not found in audit trail";
+		PropertyDelta<Object> propDelta = deltaOp.getObjectDelta().findPropertyDelta(propPath);
+		assert propDelta != null : "No property delta for "+propPath+" in Delta for "+expectedClass+" of type "+expectedChangeType;
+		Collection<PrismPropertyValue<Object>> valuesToReplace = propDelta.getValuesToReplace();
+		assert valuesToReplace != null : "No values to replace in property delta for "+propPath+" in Delta for "+expectedClass+" of type "+expectedChangeType;
+		if (expectedValues == null || expectedValues.length == 0) {
+			if (valuesToReplace.isEmpty()) {
+				return;
+			} else {
+				assert false : (message==null?"":message+": ") + "Empty values to replace in property delta for "+propPath+" in Delta for "+expectedClass+" of type "+expectedChangeType + ", expected " + Arrays.toString(expectedValues);
+			}
+		}
+		PrismAsserts.assertValues((message==null?"":message+": ") +"Wrong values to replace in property delta for "+propPath+" in Delta for "+expectedClass+" of type "+expectedChangeType, valuesToReplace, expectedValues);
+	}
+	
+	public <O extends ObjectType,T> void assertOldValue(ChangeType expectedChangeType, Class<O> expectedClass, QName attrName, T... expectedValues) {
+		assertOldValue(null, 0, expectedChangeType, expectedClass, new ItemPath(attrName), expectedValues);
+	}
+
+	public <O extends ObjectType,T> void assertOldValue(ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+		assertOldValue(null, 0, expectedChangeType, expectedClass, propPath, expectedValues);
+	}
+
+	public <O extends ObjectType,T> void assertOldValue(int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+		assertOldValue(null, index, expectedChangeType, expectedClass, propPath, expectedValues);
 	}
 
 	public <O extends ObjectType,T> void assertOldValue(String message, int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
@@ -363,6 +392,13 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		PropertyDelta<Object> propDelta = deltaOp.getObjectDelta().findPropertyDelta(propPath);
 		assert propDelta != null : "No property delta for "+propPath+" in Delta for "+expectedClass+" of type "+expectedChangeType;
 		Collection<PrismPropertyValue<Object>> estimatedOldValues = propDelta.getEstimatedOldValues();
+		if (expectedValues == null || expectedValues.length == 0) {
+			if (estimatedOldValues == null || estimatedOldValues.isEmpty()) {
+				return;
+			} else {
+				assert false : (message==null?"":message+": ") + "Empty old values in property delta for "+propPath+" in Delta for "+expectedClass+" of type "+expectedChangeType + ", expected " + Arrays.toString(expectedValues);
+			}
+		}
 		assert estimatedOldValues != null && !estimatedOldValues.isEmpty() : "No old values in property delta for "+propPath+" in Delta for "+expectedClass+" of type "+expectedChangeType;
 		PrismAsserts.assertValues((message==null?"":message+": ") +"Wrong old values in property delta for "+propPath+" in Delta for "+expectedClass+" of type "+expectedChangeType, estimatedOldValues, expectedValues);
 	}
