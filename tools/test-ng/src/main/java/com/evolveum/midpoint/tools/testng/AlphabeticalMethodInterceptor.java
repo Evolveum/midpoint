@@ -37,20 +37,11 @@ public class AlphabeticalMethodInterceptor implements IMethodInterceptor {
 	        if (!instanceList.contains(instance)) {
 	          instanceList.add(instance);
 	        }
-	        List<IMethodInstance> l = map.get(instance);
-	        if (l == null) {
-	          l = Lists.newArrayList();
-	          map.put(instance, l);
-	        }
-	        l.add(mi);
+		    List<IMethodInstance> l = map.computeIfAbsent(instance, k -> Lists.newArrayList());
+		    l.add(mi);
 	    }
 
-	    Comparator<IMethodInstance> comparator = new Comparator<IMethodInstance>() {
-			@Override
-			public int compare(IMethodInstance o1, IMethodInstance o2) {
-				return o1.getMethod().getMethodName().compareTo(o2.getMethod().getMethodName());
-			}
-		};
+	    Comparator<IMethodInstance> comparator = Comparator.comparing(o -> o.getMethod().getMethodName());
 	    List<IMethodInstance> result = Lists.newArrayList();
 	    for (Object instance : instanceList) {
 	    	List<IMethodInstance> methodlist = map.get(instance);

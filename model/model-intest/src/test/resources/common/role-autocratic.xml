@@ -51,5 +51,12 @@
 				</outbound>
     		</association>
     	</construction>
+		<condition>
+			<expression>
+				<script>
+					<code>com.evolveum.midpoint.tools.testng.CurrentTestResultHolder.isTestClassSimpleName("TestMappingAutoInbound")</code>
+				</script>
+			</expression>
+		</condition>
     </inducement>
 </role>
