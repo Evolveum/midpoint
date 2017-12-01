@@ -876,8 +876,8 @@ public class ContextLoader {
 						PrismObject<ShadowType> newShadow = provisioningService.getObject(ShadowType.class, projection.getOid(), opts, task, result);
 						// Obviously, two projections with the same discriminator exists
 						if (LOGGER.isTraceEnabled()) {
-							LOGGER.trace("Projection {} already exists in context\nExisting:\n{}\nNew:\n{}", new Object[]{rsd,
-									existingShadow.debugDump(1), newShadow.debugDump(1)});
+							LOGGER.trace("Projection {} already exists in context\nExisting:\n{}\nNew:\n{}", rsd,
+									existingShadow.debugDump(1), newShadow.debugDump(1));
 						}
 						throw new PolicyViolationException("Projection "+rsd+" already exists in context (existing "+existingShadow+", new "+projection);
 					} catch (ObjectNotFoundException e) {

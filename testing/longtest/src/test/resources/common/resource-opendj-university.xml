@@ -69,7 +69,7 @@
 
 			<displayName>Default Account</displayName>
 			<default>true</default>
-			<objectClass>ri:inetOrgperson</objectClass>
+			<objectClass>ri:inetOrgPerson</objectClass>
 
 			<attribute>
 				<ref>ri:dn</ref>

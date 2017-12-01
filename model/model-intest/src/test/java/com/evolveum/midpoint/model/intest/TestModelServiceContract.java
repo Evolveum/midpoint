@@ -2528,8 +2528,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test195ModifyUserJack() throws Exception {
-    	final String TEST_NAME = "test195ModifyUserJack";
+    public void test192ModifyUserJack() throws Exception {
+    	final String TEST_NAME = "test192ModifyUserJack";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2544,15 +2544,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 		// THEN
         displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		assertSuccess(result);
         // Strong mappings
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
-		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		display("User after change execution", userJack);
-		assertUserJack(userJack, "Magnificent Captain Jack Sparrow");
-        accountJackOid = getSingleLinkOid(userJack);
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, "Magnificent Captain Jack Sparrow");
+        accountJackOid = getSingleLinkOid(userAfter);
 
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
@@ -2565,7 +2564,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDefaultDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
 
-        assertDummyScriptsModify(userJack);
+        assertDummyScriptsModify(userAfter);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -2601,8 +2600,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test196ModifyUserJackLocationEmpty() throws Exception {
-    	final String TEST_NAME = "test196ModifyUserJackLocationEmpty";
+    public void test193ModifyUserJackLocationEmpty() throws Exception {
+    	final String TEST_NAME = "test193ModifyUserJackLocationEmpty";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2611,18 +2610,17 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
 		// WHEN
-        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result);
+        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result /* no value */);
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		assertSuccess(result);
         // Strong mappings
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
-		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		display("User after change execution", userJack);
-		assertUserJack(userJack, "Magnificent Captain Jack Sparrow", "Jack", "Sparrow", null);
-        accountJackOid = getSingleLinkOid(userJack);
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, "Magnificent Captain Jack Sparrow", "Jack", "Sparrow", null);
+        accountJackOid = getSingleLinkOid(userAfter);
 
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
@@ -2636,7 +2634,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDefaultDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
 
-        assertDummyScriptsModify(userJack);
+        assertDummyScriptsModify(userAfter);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -2645,6 +2643,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertPropertyReplace(ChangeType.MODIFY, UserType.class, UserType.F_LOCALITY /* no values */);
+        // MID-4020
+        dummyAuditService.assertOldValue(ChangeType.MODIFY, UserType.class, UserType.F_LOCALITY, createPolyString(USER_JACK_LOCALITY));
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
@@ -2665,8 +2666,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     @Test
-    public void test197ModifyUserJackLocationNull() throws Exception {
-    	final String TEST_NAME = "test197ModifyUserJackLocationNull";
+    public void test194ModifyUserJackLocationNull() throws Exception {
+    	final String TEST_NAME = "test194ModifyUserJackLocationNull";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2697,6 +2698,73 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertCounterIncrement(InternalCounters.SCRIPT_COMPILE_COUNT, 0);
         assertSteadyResources();
 	}
+    
+    @Test
+    public void test195ModifyUserJackLocationSea() throws Exception {
+    	final String TEST_NAME = "test195ModifyUserJackLocationSea";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, createPolyString("sea"));
+
+		// THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+        // Strong mappings
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUserJack(userAfter, "Magnificent Captain Jack Sparrow", USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME, "sea");
+        accountJackOid = getSingleLinkOid(userAfter);
+
+		// Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
+
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
+        assertDummyAccountShadowModel(accountModel, accountJackOid, "jack", "Magnificent Captain Jack Sparrow");
+
+        // Check account in dummy resource
+        assertDefaultDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
+
+        assertDummyScriptsModify(userAfter);
+
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertPropertyReplace(ChangeType.MODIFY, UserType.class, UserType.F_LOCALITY, createPolyString("sea"));
+        // MID-4020
+        dummyAuditService.assertOldValue(ChangeType.MODIFY, UserType.class, UserType.F_LOCALITY /* no values */);
+        dummyAuditService.assertTarget(USER_JACK_OID);
+        dummyAuditService.assertExecutionSuccess();
+
+        // Check notifications
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+        assertCounterIncrement(InternalCounters.SCRIPT_COMPILE_COUNT, 0);
+        assertSteadyResources();
+    }
 
 	@Test
     public void test198ModifyUserJackRaw() throws Exception {
@@ -2721,7 +2789,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Marvelous Captain Jack Sparrow", "Jack", "Sparrow", null);
+		assertUserJack(userJack, "Marvelous Captain Jack Sparrow", "Jack", "Sparrow", "sea");
         accountJackOid = getSingleLinkOid(userJack);
 
 		// Check shadow

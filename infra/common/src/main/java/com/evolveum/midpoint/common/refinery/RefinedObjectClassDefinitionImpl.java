@@ -902,7 +902,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
             QName objectClass = schemaHandlingObjDefType.getObjectClass();
             objectClassDef = rSchema.getOriginalResourceSchema().findObjectClassDefinition(objectClass);
             if (objectClassDef == null) {
-                throw new SchemaException("Object class " + objectClass + " as specified in "+typeDesc+" type " + schemaHandlingObjDefType.getIntent() + " was not found in the resource schema of " + contextDescription);
+                throw new SchemaException("Object class " + objectClass + " was not found in " + contextDescription);
             }
         } else {
             throw new SchemaException("Definition of "+typeDesc+" type " + schemaHandlingObjDefType.getIntent() + " does not have objectclass, in " + contextDescription);

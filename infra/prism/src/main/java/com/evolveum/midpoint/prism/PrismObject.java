@@ -57,8 +57,6 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 
     private static final long serialVersionUID = 7321429132391159949L;
 
-    private static final String PROPERTY_NAME_LOCALPART = "name";
-
 	public PrismObject(QName name, Class<O> compileTimeClass) {
 		super(name, compileTimeClass);
 	}
@@ -167,6 +165,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	}
 
 	public PrismContainer<?> getExtension() {
+		//noinspection unchecked
 		return (PrismContainer<?>) getValue().findItem(getExtensionContainerElementName(), PrismContainer.class);
 	}
 
@@ -184,6 +183,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		if (extension == null) {
 			return null;
 		}
+		//noinspection unchecked
 		return (I) extension.findItem(elementName);
 	}
 
@@ -232,7 +232,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 			prismContext.getMonitor().beforeObjectClone(this);
 		}
 
-		PrismObject<O> clone = new PrismObject<O>(getElementName(), getDefinition(), prismContext);
+		PrismObject<O> clone = new PrismObject<>(getElementName(), getDefinition(), prismContext);
 		copyValues(clone);
 
 		if (prismContext != null && prismContext.getMonitor() != null) {
@@ -258,12 +258,12 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	@NotNull
 	public ObjectDelta<O> diff(PrismObject<O> other, boolean ignoreMetadata, boolean isLiteral) {
 		if (other == null) {
-			ObjectDelta<O> objectDelta = new ObjectDelta<O>(getCompileTimeClass(), ChangeType.DELETE, getPrismContext());
+			ObjectDelta<O> objectDelta = new ObjectDelta<>(getCompileTimeClass(), ChangeType.DELETE, getPrismContext());
 			objectDelta.setOid(getOid());
 			return objectDelta;
 		}
 		// This must be a modify
-		ObjectDelta<O> objectDelta = new ObjectDelta<O>(getCompileTimeClass(), ChangeType.MODIFY, getPrismContext());
+		ObjectDelta<O> objectDelta = new ObjectDelta<>(getCompileTimeClass(), ChangeType.MODIFY, getPrismContext());
 		objectDelta.setOid(getOid());
 
 		Collection<? extends ItemDelta> itemDeltas = new ArrayList<>();
@@ -334,6 +334,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		if (getClass() != obj.getClass())
 			return false;
 		PrismObject other = (PrismObject) obj;
+		//noinspection unchecked
 		ObjectDelta<O> delta = diff(other, true, false);
 		return delta.isEmpty();
 	}
@@ -376,7 +377,6 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	 * suitable for log messages. There is no requirement for the type name to be unique,
 	 * but it rather has to be compact. E.g. short element names are preferred to long
 	 * QNames or URIs.
-	 * @return
 	 */
 	public String toDebugType() {
 		QName elementName = getElementName();
@@ -445,11 +445,15 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	@NotNull
 	public static <T extends Objectable> List<T> asObjectableList(@NotNull List<PrismObject<T>> objects) {
 		return objects.stream()
-				.map(PrismObject::asObjectable)
+				.map(o -> o.asObjectable())
 				.collect(Collectors.toList());
 	}
 
 	public static PrismObject<?> asPrismObject(Objectable o) {
 		return o != null ? o.asPrismObject() : null;
+	}
+
+	public static Objectable asObjectable(PrismObject<?> object) {
+		return object != null ? object.asObjectable() : null;
 	}
 }

@@ -22,6 +22,7 @@ import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
@@ -199,6 +201,8 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
 		final String TEST_NAME = "test200ImportFromResourceAssociations";
         displayTestTitle(TEST_NAME);
 
+        assumeResourceAssigmentPolicy(RESOURCE_DUMMY_AUTOGREEN_OID, AssignmentPolicyEnforcementType.RELATIVE, false);
+        
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -326,6 +330,108 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         DummyGroup craticGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_CRATIC_NAME);
         craticGroup.removeMember(USER_HERMAN_USERNAME);
         
+        DummyGroup testersGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_TESTERS_NAME);
+        testersGroup.addMember(USER_HERMAN_USERNAME);
+        
+        assertDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_TESTERS_NAME, USER_HERMAN_USERNAME);
+        
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignRole(userHermanOid, ROLE_AUTOCRATIC_OID);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_TESTERS_NAME, USER_HERMAN_USERNAME);
+        
+        PrismObject<UserType> userAfter = getUser(userHermanOid);
+        display("User after", userAfter);
+//        assertAssignedRole(userAfter, ROLE_AUTODIDACTIC_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOTESTERS_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+        assertAssignedRole(userAfter, ROLE_ADMINS_OID);
+        assertAssignments(userAfter, 4);
+	}
+    
+    @Test
+    public void test403removeAllAssignments() throws Exception {
+		final String TEST_NAME = "test403removeAllAssignments";
+        displayTestTitle(TEST_NAME);
+
+        DummyGroup testersGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_TESTERS_NAME);
+        testersGroup.removeMember(USER_HERMAN_USERNAME);
+        
+        DummyAccount hermanAccount = getDummyAccount(RESOURCE_DUMMY_AUTOGREEN_NAME, USER_HERMAN_USERNAME);
+        hermanAccount.removeAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, Arrays.asList("graphic", "cratic"));
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(userHermanOid, ROLE_ADMINS_OID);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(userHermanOid);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+        assertAssignments(userAfter, 1);
+	}
+    
+    
+    @Test
+    public void test404importAssociationAutotesters() throws Exception {
+		final String TEST_NAME = "test404importAssociationAutotesters";
+        displayTestTitle(TEST_NAME);
+        
+        assumeResourceAssigmentPolicy(RESOURCE_DUMMY_AUTOGREEN_OID, AssignmentPolicyEnforcementType.FULL, true);
+
+        DummyGroup craticGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_CRATIC_NAME);
+        craticGroup.removeMember(USER_HERMAN_USERNAME);
+        
+        DummyGroup testersGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_TESTERS_NAME);
+        testersGroup.addMember(USER_HERMAN_USERNAME);
+        
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        modelService.importFromResource(RESOURCE_DUMMY_AUTOGREEN_OID, new QName(MidPointConstants.NS_RI, "AccountObjectClass"), task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        OperationResult subresult = result.getLastSubresult();
+        TestUtil.assertInProgress("importAccountsFromResource result", subresult);
+
+        waitForTaskFinish(task, true, 40000);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(task.getResult());
+
+        PrismObject<UserType> userAfter = getUser(userHermanOid);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_AUTOTESTERS_OID);
+        assertAssignments(userAfter, 1);
+	}
+    
+    @Test
+    public void test405assignRoleAutocraticDirectly() throws Exception {
+		final String TEST_NAME = "test405assignRoleAutocraticDirectly";
+        displayTestTitle(TEST_NAME);
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -340,11 +446,12 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
 
         PrismObject<UserType> userAfter = getUser(userHermanOid);
         display("User after", userAfter);
-//        assertAssignedRole(userAfter, ROLE_AUTODIDACTIC_OID);
-        assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
         assertAssignedRole(userAfter, ROLE_AUTOTESTERS_OID);
         assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
-        assertAssignedRole(userAfter, ROLE_ADMINS_OID);
-        assertAssignments(userAfter, 4);
+        assertAssignments(userAfter, 2);
+        
+        assertDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_CRATIC_NAME, USER_HERMAN_USERNAME);
+        assertDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_TESTERS_NAME, USER_HERMAN_USERNAME);
 	}
+    
 }

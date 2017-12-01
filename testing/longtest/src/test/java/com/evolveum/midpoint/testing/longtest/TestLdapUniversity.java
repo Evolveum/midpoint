@@ -83,7 +83,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 
 	// Make it at least 1501 so it will go over the 3000 entries size limit
-	private static final int NUM_LDAP_ENTRIES = 20000;
+	private static final int NUM_LDAP_ENTRIES = 3100;
 
 	private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
 
@@ -158,7 +158,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         TestUtil.displayWhen(TEST_NAME);
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 5);
         modelService.importFromResource(RESOURCE_OPENDJ_OID,
-        		new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
+        		new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -226,7 +226,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 
         ResourceType resource = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
         reconciliationTaskHandler.launch(resource,
-                new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
+                new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);

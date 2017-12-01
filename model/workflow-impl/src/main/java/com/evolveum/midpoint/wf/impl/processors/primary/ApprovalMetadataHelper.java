@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -123,7 +124,7 @@ public class ApprovalMetadataHelper {
             assignment.setMetadata(metadata = new MetadataType(prismContext));
         }
         metadata.getCreateApproverRef().clear();
-        metadata.getCreateApproverRef().addAll(approvedBy);
+        metadata.getCreateApproverRef().addAll(CloneUtil.cloneCollectionMembers(approvedBy));
         metadata.getCreateApprovalComment().clear();
         metadata.getCreateApprovalComment().addAll(comments);
     }
@@ -131,8 +132,10 @@ public class ApprovalMetadataHelper {
     private Collection<ItemDelta<?, ?>> createAssignmentModificationApprovalMetadata(Class<? extends Objectable> objectTypeClass,
             long assignmentId, Collection<ObjectReferenceType> approvedBy, Collection<String> comments) throws SchemaException {
         return DeltaBuilder.deltaFor(objectTypeClass, prismContext)
-                .item(FocusType.F_ASSIGNMENT, assignmentId, AssignmentType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).replaceRealValues(approvedBy)
-                .item(FocusType.F_ASSIGNMENT, assignmentId, AssignmentType.F_METADATA, MetadataType.F_MODIFY_APPROVAL_COMMENT).replaceRealValues(comments)
+                .item(FocusType.F_ASSIGNMENT, assignmentId, AssignmentType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF)
+                        .replaceRealValues(CloneUtil.cloneCollectionMembers(approvedBy))
+                .item(FocusType.F_ASSIGNMENT, assignmentId, AssignmentType.F_METADATA, MetadataType.F_MODIFY_APPROVAL_COMMENT)
+                        .replaceRealValues(comments)
                 .asItemDeltas();
     }
 }

@@ -710,6 +710,13 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertTrue("Task did not yield 'success' status: it is " + taskResult.getStatus(), taskResult.isSuccess());
     }
 
+    private void assertSuccessOrInProgress(Task task) {
+        OperationResult taskResult = task.getResult();
+        AssertJUnit.assertNotNull("Task result is null", taskResult);
+        AssertJUnit.assertTrue("Task did not yield 'success' or 'inProgress' status: it is " + taskResult.getStatus(),
+                taskResult.isSuccess() || taskResult.isInProgress());
+    }
+
     /*
      * Single-run task with more handlers.
      */
@@ -830,10 +837,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // Test for presence of a result. It should be there and it should
         // indicate success or in-progress
-        OperationResult taskResult = task.getResult();
-        AssertJUnit.assertNotNull("Task result is null", taskResult);
-        AssertJUnit.assertTrue("Task did not yield 'success' or 'in-progress' status: it is " + taskResult.getStatus(),
-                taskResult.isSuccess() || taskResult.isInProgress());
+        assertSuccessOrInProgress(task);
 
         // Suspend the task (in order to keep logs clean), without much waiting
         taskManager.suspendTask(task, 100, result);
@@ -882,7 +886,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // Test for presence of a result. It should be there and it should
         // indicate success
-        assertSuccess(task);
+        assertSuccessOrInProgress(task);
 
         // Suspend the task (in order to keep logs clean), without much waiting
         taskManager.suspendTask(task, 100, result);
