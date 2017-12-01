@@ -303,7 +303,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 				XMLGregorianCalendar passwordValidUntil = XmlTypeConverter.addDuration(changeTimestamp, maxAge);
 				if (clock.isPast(passwordValidUntil)) {
 					recordAuthenticationFailure(principal, connEnv, "password expired");
-					throw new CredentialsExpiredException(messages.getMessage("web.security.provider.password.bad"));
+					throw new CredentialsExpiredException(messages.getMessage("web.security.provider.credential.expired"));
 				}
 			}
 		}
@@ -325,7 +325,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 				XMLGregorianCalendar passwordValidUntil = XmlTypeConverter.addDuration(changeTimestamp, maxAge);
 				if (clock.isPast(passwordValidUntil)) {
 					recordAuthenticationFailure(principal, connEnv, "password expired");
-					throw new CredentialsExpiredException(messages.getMessage("web.security.provider.password.bad"));
+					throw new CredentialsExpiredException(messages.getMessage("web.security.provider.credential.expired"));
 				}
 			}
 		}
