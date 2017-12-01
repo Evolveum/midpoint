@@ -555,18 +555,19 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 	protected String getTaskName(String operation, QueryScope scope, boolean managers) {
 		StringBuilder nameBuilder = new StringBuilder(operation);
-		nameBuilder.append(" ");
+		nameBuilder.append(".");
 		if (scope != null) {
 			nameBuilder.append(scope.name());
-			nameBuilder.append(" ");
+			nameBuilder.append(".");
 		}
 		if (managers) {
-			nameBuilder.append("managers: ");
+			nameBuilder.append("managers");
 		} else {
-			nameBuilder.append("members: ");
+			nameBuilder.append("members");
 		}
-		nameBuilder
-				.append(WebComponentUtil.getEffectiveName(getModelObject(), AbstractRoleType.F_DISPLAY_NAME));
+//		nameBuilder.append(".");
+//		nameBuilder
+//				.append(WebComponentUtil.getEffectiveName(getModelObject(), AbstractRoleType.F_DISPLAY_NAME));
 		return nameBuilder.toString();
 	}
 
