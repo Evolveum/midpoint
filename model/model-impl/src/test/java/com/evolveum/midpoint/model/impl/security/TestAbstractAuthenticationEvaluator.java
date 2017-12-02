@@ -1076,7 +1076,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	}
 
 	private void assertExpiredException(CredentialsExpiredException e, String principal) {
-		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.password.bad"), e.getMessage());
+		assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.credential.expired"), e.getMessage());
 	}
 
 	private void assertNoUserException(UsernameNotFoundException e, String principal) {
