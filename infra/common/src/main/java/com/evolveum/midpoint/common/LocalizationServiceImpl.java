@@ -19,6 +19,8 @@ package com.evolveum.midpoint.common;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
@@ -37,6 +39,8 @@ import java.util.Locale;
  * Created by Viliam Repan (lazyman).
  */
 public class LocalizationServiceImpl implements LocalizationService {
+
+    private static final Trace LOG = TraceManager.getTrace(LocalizationServiceImpl.class);
 
     private List<MessageSource> sources = new ArrayList<>();
 
@@ -73,7 +77,10 @@ public class LocalizationServiceImpl implements LocalizationService {
             try {
                 String value = source.getMessage(key, translated, locale);
                 if (StringUtils.isNotEmpty(value)) {
-                    //System.out.println("LSI: resolved [" + key + "] into [" + value + "]");
+                    if (LOG.isTraceEnabled()) {
+                        LOG.trace("Resolved key {} to value {} using message source {}", new Object[]{key, value, source});
+                    }
+
                     return value;
                 }
             } catch (NoSuchMessageException ex) {
@@ -105,6 +112,7 @@ public class LocalizationServiceImpl implements LocalizationService {
     private ResourceBundleMessageSource buildSource(String basename, ClassLoader classLoader) {
         ResourceBundleMessageSource source = new ResourceBundleMessageSource();
         source.setDefaultEncoding(StandardCharsets.UTF_8.name());
+        source.setFallbackToSystemLocale(false);
         source.setBasename(basename);
 
         if (classLoader == null) {
