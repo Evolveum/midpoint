@@ -30,8 +30,10 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.repo.sql.data.audit.*;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -308,13 +310,15 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		return repoValues;
 	}
 
-	private Object toRepoType(Object value){
+	private Object toRepoType(Object value) {
 		if (XMLGregorianCalendar.class.isAssignableFrom(value.getClass())) {
 			return MiscUtil.asDate((XMLGregorianCalendar) value);
 		} else if (value instanceof AuditEventType) {
 			return RAuditEventType.toRepo((AuditEventType) value);
 		} else if (value instanceof AuditEventStage) {
 			return RAuditEventStage.toRepo((AuditEventStage) value);
+		} else if (value instanceof OperationResultStatusType) {
+			return ROperationResultStatus.toRepo((OperationResultStatusType) value);
 		}
 
 		return value;

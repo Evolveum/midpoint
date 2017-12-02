@@ -15,10 +15,8 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
 import java.util.*;
@@ -34,6 +32,7 @@ import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -531,6 +530,34 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(hermanReconstructed, ROLE_RED_SAILOR_OID);
         assertAssignedRole(hermanReconstructed, ROLE_JUDGE_OID);
         assertAssignments(hermanReconstructed, 2);
+    }
+
+    @Test
+    public void test300QueryUnknown() throws Exception {
+		final String TEST_NAME = "test300QueryUnknown";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        AuditEventRecord record = new AuditEventRecord(AuditEventType.SYNCHRONIZATION, AuditEventStage.EXECUTION);
+        record.setOutcome(OperationResultStatus.UNKNOWN);
+        modelAuditService.audit(record, task, result);
+
+	    HashMap<String, Object> params = new HashMap<>();
+	    params.put("outcome", OperationResultStatusType.UNKNOWN);
+	    List<AuditEventRecord> records = modelAuditService.listRecords("from RAuditEventRecord as aer where aer.outcome = :outcome", params, task, result);
+
+	    // THEN
+	    displayThen(TEST_NAME);
+	    display("records", records);
+	    assertEquals("Wrong # of records", 1, records.size());
+
+        // THEN
+        assertSuccess(result);
     }
 
     private String assertObjectAuditRecords(String oid, int expectedNumberOfRecords) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {

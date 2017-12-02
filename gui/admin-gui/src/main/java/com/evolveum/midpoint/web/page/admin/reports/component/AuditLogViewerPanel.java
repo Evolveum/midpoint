@@ -254,13 +254,10 @@ public class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         eventStageField.setOutputMarkupId(true);
         eventStage.add(eventStageField);
 
-        ListModel<OperationResultStatusType> outcomeListModel = new ListModel<OperationResultStatusType>(
-                Arrays.asList(OperationResultStatusType.values()));
-        PropertyModel<OperationResultStatusType> outcomeModel = new PropertyModel<OperationResultStatusType>(
-                getModel(), AuditSearchDto.F_OUTCOME);
-        DropDownChoicePanel<OperationResultStatusType> outcome = new DropDownChoicePanel<OperationResultStatusType>(
-                ID_OUTCOME, outcomeModel, outcomeListModel,
-                new EnumChoiceRenderer<OperationResultStatusType>(), true);
+        ListModel<OperationResultStatusType> outcomeListModel = new ListModel<>(Arrays.asList(OperationResultStatusType.values()));
+        PropertyModel<OperationResultStatusType> outcomeModel = new PropertyModel<>(getModel(), AuditSearchDto.F_OUTCOME);
+        DropDownChoicePanel<OperationResultStatusType> outcome = new DropDownChoicePanel<>(ID_OUTCOME, outcomeModel,
+                outcomeListModel, new EnumChoiceRenderer<>(), true);
         outcome.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         outcome.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         outcome.setOutputMarkupId(true);
@@ -287,17 +284,18 @@ public class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
         List<Class<? extends ObjectType>> allowedClasses = new ArrayList<>();
         allowedClasses.add(UserType.class);
-        MultiValueChoosePanel<ObjectType> chooseInitiatorPanel = new SingleValueChoosePanel<ObjectReferenceType, ObjectType>(
-        		ID_INITIATOR_NAME, allowedClasses, objectReferenceTransformer,
-        		new PropertyModel<ObjectReferenceType>(getModel(), AuditSearchDto.F_INITIATOR_NAME));
+        MultiValueChoosePanel<ObjectType> chooseInitiatorPanel = new SingleValueChoosePanel<>(
+                ID_INITIATOR_NAME, allowedClasses, objectReferenceTransformer,
+                new PropertyModel<>(getModel(), AuditSearchDto.F_INITIATOR_NAME));
         parametersPanel.add(chooseInitiatorPanel);
 
         WebMarkupContainer targetOwnerName = new WebMarkupContainer(ID_TARGET_OWNER_NAME);
         targetOwnerName.add(visibilityByKey(visibilityMap, TARGET_OWNER_LABEL_VISIBILITY));
         parametersPanel.add(targetOwnerName);
 
-        MultiValueChoosePanel<ObjectType> chooseTargetOwnerPanel = new SingleValueChoosePanel<ObjectReferenceType, ObjectType>(
-        		ID_TARGET_OWNER_NAME_FIELD, allowedClasses, objectReferenceTransformer, new PropertyModel<ObjectReferenceType>(getModel(), AuditSearchDto.F_TARGET_OWNER_NAME));
+        MultiValueChoosePanel<ObjectType> chooseTargetOwnerPanel = new SingleValueChoosePanel<>(
+                ID_TARGET_OWNER_NAME_FIELD, allowedClasses, objectReferenceTransformer,
+                new PropertyModel<>(getModel(), AuditSearchDto.F_TARGET_OWNER_NAME));
 
         chooseTargetOwnerPanel.add(visibilityByKey(visibilityMap, TARGET_OWNER_FIELD_VISIBILITY));
         targetOwnerName.add(chooseTargetOwnerPanel);
@@ -396,20 +394,20 @@ public class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                 Map<String, Object> parameters = new HashMap<String, Object>();
 
                 AuditSearchDto search = AuditLogViewerPanel.this.getModelObject();
-                parameters.put("from", search.getFrom());
-                parameters.put("to", search.getTo());
+                parameters.put(AuditEventRecordProvider.PARAMETER_FROM, search.getFrom());
+                parameters.put(AuditEventRecordProvider.PARAMETER_TO, search.getTo());
 
                 if (search.getChannel() != null) {
-                    parameters.put("channel", QNameUtil.qNameToUri(search.getChannel()));
+                    parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, QNameUtil.qNameToUri(search.getChannel()));
                 }
-                parameters.put("hostIdentifier", search.getHostIdentifier());
+                parameters.put(AuditEventRecordProvider.PARAMETER_HOST_IDENTIFIER, search.getHostIdentifier());
 
                 if (search.getInitiatorName() != null) {
-                    parameters.put("initiatorName", search.getInitiatorName().getOid());
+                    parameters.put(AuditEventRecordProvider.PARAMETER_INITIATOR_NAME, search.getInitiatorName().getOid());
                 }
 
                 if (search.getTargetOwnerName() != null) {
-                    parameters.put("targetOwnerName", search.getTargetOwnerName().getOid());
+                    parameters.put(AuditEventRecordProvider.PARAMETER_TARGET_OWNER_NAME, search.getTargetOwnerName().getOid());
                 }
                 List<String> targetOids = new ArrayList<>();
                 if (isNotEmpty(search.getTargetNamesObjects())) {
@@ -422,18 +420,18 @@ public class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                     		.map(ObjectReferenceType::getOid)
                     		.collect(toList()));
                 }
-                if( ! targetOids.isEmpty()) {
-    				parameters.put("targetNames", targetOids);
+                if (!targetOids.isEmpty()) {
+    				parameters.put(AuditEventRecordProvider.PARAMETER_TARGET_NAMES, targetOids);
                 }
                 if (search.getChangedItem().toItemPath() != null) {
                 	ItemPath itemPath = search.getChangedItem().toItemPath();
-                	parameters.put("changedItem", CanonicalItemPath.create(itemPath).asString());
+                	parameters.put(AuditEventRecordProvider.PARAMETER_CHANGED_ITEM, CanonicalItemPath.create(itemPath).asString());
                 }
-                parameters.put("eventType", search.getEventType());
-                parameters.put("eventStage", search.getEventStage());
-                parameters.put("outcome", search.getOutcome());
-                if(isNotEmpty(search.getvalueRefTargetNames())) {
-	                parameters.put(AuditEventRecordProvider.VALUE_REF_TARGET_NAMES_KEY,
+                parameters.put(AuditEventRecordProvider.PARAMETER_EVENT_TYPE, search.getEventType());
+                parameters.put(AuditEventRecordProvider.PARAMETER_EVENT_STAGE, search.getEventStage());
+                parameters.put(AuditEventRecordProvider.PARAMETER_OUTCOME, search.getOutcome());
+                if (isNotEmpty(search.getvalueRefTargetNames())) {
+	                parameters.put(AuditEventRecordProvider.PARAMETER_VALUE_REF_TARGET_NAMES,
 	                		search.getvalueRefTargetNames().stream()
 	                		.map(ObjectType::getName)
 	                		.map(PolyStringType::getOrig)
@@ -452,12 +450,12 @@ public class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         };
         UserProfileStorage userProfile = pageBase.getSessionStorage().getUserProfile();
         int pageSize = DEFAULT_PAGE_SIZE;
-        if (userProfile.getTables().containsKey(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER)){
+        if (userProfile.getTables().containsKey(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER)) {
             pageSize = userProfile.getPagingSize(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER);
         }
         List<IColumn<AuditEventRecordType, String>> columns = initColumns();
         BoxedTablePanel<AuditEventRecordType> table = new BoxedTablePanel<AuditEventRecordType>(ID_TABLE, provider, columns,
-                UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER, pageSize){
+                UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER, pageSize) {
             private static final long serialVersionUID = 1L;
 
             @Override
