@@ -44,7 +44,9 @@ import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -188,15 +190,9 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         };
         mainForm.add(back);
 
-        AjaxSubmitButton requestAssignments = new AjaxSubmitButton(ID_REQUEST_BUTTON, createStringResource("PageAssignmentsList.requestButton")) {
-
+        AjaxButton requestAssignments = new AjaxButton(ID_REQUEST_BUTTON, createStringResource("PageAssignmentsList.requestButton")) {
             @Override
-            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+            public void onClick(AjaxRequestTarget target) {
                 if (getSessionStorage().getRoleCatalog().getTargetUserList() == null ||
                         getSessionStorage().getRoleCatalog().getTargetUserList().size() <= 1) {
                     onSingleUserRequestPerformed(target);
@@ -204,6 +200,14 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                     onMultiUserRequestPerformed(target);
                 }
             }
+
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
+            }
+
 
         };
         requestAssignments.add(new VisibleEnableBehaviour(){
