@@ -22,13 +22,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -49,8 +49,22 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEventRecordType> {
 	private static final long serialVersionUID = 1L;
 
-	public  static final String VALUE_REF_TARGET_NAMES_KEY = "valueRefTargetNames";
 	private static final Trace LOGGER = TraceManager.getTrace(BaseSortableDataProvider.class);
+
+	public static final String PARAMETER_VALUE_REF_TARGET_NAMES = "valueRefTargetNames";
+	public static final String PARAMETER_CHANGED_ITEM = "changedItem";
+	public static final String PARAMETER_FROM = "from";
+	public static final String PARAMETER_TO = "to";
+	public static final String PARAMETER_EVENT_TYPE = "eventType";
+	public static final String PARAMETER_EVENT_STAGE = "eventStage";
+	public static final String PARAMETER_OUTCOME = "outcome";
+	public static final String PARAMETER_INITIATOR_NAME = "initiatorName";
+	public static final String PARAMETER_CHANNEL = "channel";
+	public static final String PARAMETER_HOST_IDENTIFIER = "hostIdentifier";
+	public static final String PARAMETER_TARGET_OWNER_NAME = "targetOwnerName";
+	public static final String PARAMETER_TARGET_NAMES = "targetNames";
+	public static final String PARAMETER_TASK_IDENTIFIER = "taskIdentifier";
+
 	private IModel<List<AuditEventRecordType>> model;
 
 	private String auditEventQuery;
@@ -63,7 +77,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	private static final String SET_MAX_RESULTS_PARAMETER = "setMaxResults";
 
 	public AuditEventRecordProvider(Component component){
-		this(component, AUDIT_RECORDS_QUERY_CORE, new HashMap<String, Object>());
+		this(component, AUDIT_RECORDS_QUERY_CORE, new HashMap<>());
 	}
 
 	public AuditEventRecordProvider(Component component, String auditEventQuery, Map<String, Object> parameters ){
@@ -166,98 +180,102 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
 	private String generateFullQuery(String query, boolean orderBy, boolean isCount){
 		parameters = getParameters();
-		String valueRefFrom = constraintsValueRef(parameters) ? " left outer join aer.referenceValues as rv " : "";
-		if (parameters.get("changedItem") != null) {
+		String valueRefFromClause = constraintsValueRef(parameters) ? " left outer join aer.referenceValues as rv " : "";
+		if (parameters.get(PARAMETER_CHANGED_ITEM) != null) {
 			if (isCount) {
-				query = "select count(*) from RAuditEventRecord as aer right join aer.changedItems as item " + valueRefFrom + " where 1=1 and ";
+				query = "select count(*) from RAuditEventRecord as aer right join aer.changedItems as item " + valueRefFromClause + " where 1=1 and ";
 			} else {
-				query = "from RAuditEventRecord as aer right join aer.changedItems as item " + valueRefFrom + " where 1=1 and ";
+				query = "from RAuditEventRecord as aer right join aer.changedItems as item " + valueRefFromClause + " where 1=1 and ";
 			}
-//			query += "INNER JOIN aer.changedItems as item on item.record_id = aer.id WHERE 1=1 and  "
-//					+ "(item.changedItemPath = :changedItem) and ";
 			query += "(item.changedItemPath = :changedItem) and ";
 
 		} else {
-            parameters.remove("changedItem");
-//            query += "where 1=1 and ";
+            parameters.remove(PARAMETER_CHANGED_ITEM);
 		}
 
-		if (parameters.get("from") != null) {
+		if (parameters.get(PARAMETER_FROM) != null) {
 			query += "(aer.timestamp >= :from) and ";
 		} else {
-            parameters.remove("from");
+            parameters.remove(PARAMETER_FROM);
 		}
-		if (parameters.get("to") != null) {
+		if (parameters.get(PARAMETER_TO) != null) {
 			query += "(aer.timestamp <= :to) and ";
 		} else {
-            parameters.remove("to");
+            parameters.remove(PARAMETER_TO);
 		}
-		if (parameters.get("eventType") != null) {
+		if (parameters.get(PARAMETER_EVENT_TYPE) != null) {
 			query += "(aer.eventType = :eventType) and ";
 		} else {
-            parameters.remove("eventType");
+            parameters.remove(PARAMETER_EVENT_TYPE);
 		}
-		if (parameters.get("eventStage") != null) {
+		if (parameters.get(PARAMETER_EVENT_STAGE) != null) {
 			query += "(aer.eventStage = :eventStage) and ";
 		} else {
-            parameters.remove("eventStage");
+            parameters.remove(PARAMETER_EVENT_STAGE);
 		}
-		if (parameters.get("outcome") != null) {
-			query += "(aer.outcome = :outcome) and ";
+		Object outcomeValue = parameters.get(PARAMETER_OUTCOME);
+		if (outcomeValue != null) {
+			if (outcomeValue != OperationResultStatusType.UNKNOWN) {
+				query += "(aer.outcome = :outcome) and ";
+			} else {
+				// this is a bit questionable; but let us do it in this way to ensure compliance with GUI (null is shown as UNKNOWN)
+				// see MID-3903
+				query += "(aer.outcome = :outcome or aer.outcome is null) and ";
+			}
 		} else {
-            parameters.remove("outcome");
+            parameters.remove(PARAMETER_OUTCOME);
 		}
-		if (parameters.get("initiatorName") != null) {
+		if (parameters.get(PARAMETER_INITIATOR_NAME) != null) {
 			query += "(aer.initiatorOid = :initiatorName) and ";
 		} else {
-            parameters.remove("initiatorName");
+            parameters.remove(PARAMETER_INITIATOR_NAME);
 		}
-		if (parameters.get("channel") != null) {
+		if (parameters.get(PARAMETER_CHANNEL) != null) {
 			query += "(aer.channel = :channel) and ";
 		} else {
-            parameters.remove("channel");
+            parameters.remove(PARAMETER_CHANNEL);
 		}
-		if (parameters.get("hostIdentifier") != null) {
+		if (parameters.get(PARAMETER_HOST_IDENTIFIER) != null) {
 			query += "(aer.hostIdentifier = :hostIdentifier) and ";
 		} else {
-            parameters.remove("hostIdentifier");
+            parameters.remove(PARAMETER_HOST_IDENTIFIER);
 		}
-		if (parameters.get("targetOwnerName") != null) {
+		if (parameters.get(PARAMETER_TARGET_OWNER_NAME) != null) {
 			query += "(aer.targetOwnerOid = :targetOwnerName) and ";
 		} else {
-            parameters.remove("targetOwnerName");
+            parameters.remove(PARAMETER_TARGET_OWNER_NAME);
 		}
-		if (parameters.get("targetNames") != null) {
+		if (parameters.get(PARAMETER_TARGET_NAMES) != null) {
 			query += "(aer.targetOid in ( :targetNames )) and ";
 		} else {
-            parameters.remove("targetNames");
+            parameters.remove(PARAMETER_TARGET_NAMES);
 		}
-		if (parameters.get("taskIdentifier") != null) {
+		if (parameters.get(PARAMETER_TASK_IDENTIFIER) != null) {
 			query += "(aer.taskIdentifier = :taskIdentifier) and ";
 		} else {
-            parameters.remove("taskIdentifier");
+            parameters.remove(PARAMETER_TASK_IDENTIFIER);
 		}
-		if (valueRefTargetIsNotEmpty(parameters.get(VALUE_REF_TARGET_NAMES_KEY))) {
+		if (valueRefTargetIsNotEmpty(parameters.get(PARAMETER_VALUE_REF_TARGET_NAMES))) {
 			query += "(rv.targetName.orig in ( :valueRefTargetNames )) and ";
 		} else {
-            parameters.remove(VALUE_REF_TARGET_NAMES_KEY);
+            parameters.remove(PARAMETER_VALUE_REF_TARGET_NAMES);
 		}
 
 		query = query.substring(0, query.length()-5); // remove trailing " and "
-		if (orderBy){
-			query +=  AUDIT_RECORDS_ORDER_BY;
+		if (orderBy) {
+			query += AUDIT_RECORDS_ORDER_BY;
 		}
 		return query;
 	}
 
 	private boolean constraintsValueRef(Map<String, Object> parameters2) {
-		return valueRefTargetIsNotEmpty(parameters2.get(VALUE_REF_TARGET_NAMES_KEY));
+		return valueRefTargetIsNotEmpty(parameters2.get(PARAMETER_VALUE_REF_TARGET_NAMES));
 	}
 
 	private boolean valueRefTargetIsNotEmpty(Object valueRefTargetNamesParam) {
-		if(valueRefTargetNamesParam instanceof String) {
+		if (valueRefTargetNamesParam instanceof String) {
 			return StringUtils.isNotBlank((String)valueRefTargetNamesParam);
-		} else if(valueRefTargetNamesParam instanceof Collection){
+		} else if (valueRefTargetNamesParam instanceof Collection) {
 			return CollectionUtils.isNotEmpty((Collection)valueRefTargetNamesParam);
 		} else {
 			return valueRefTargetNamesParam != null;

@@ -49,4 +49,16 @@ public enum ROperationResultStatus implements SchemaEnum<OperationResultStatusTy
     public OperationResultStatusType getSchemaValue() {
         return status;
     }
+
+    public static ROperationResultStatus toRepo(OperationResultStatusType jaxb) {
+        if (jaxb == null) {
+            return null;
+        }
+        for (ROperationResultStatus st : values()) {
+            if (jaxb == st.status) {
+                return st;
+            }
+        }
+        throw new IllegalArgumentException("Unknown operation result state '" + jaxb + "'.");
+    }
 }

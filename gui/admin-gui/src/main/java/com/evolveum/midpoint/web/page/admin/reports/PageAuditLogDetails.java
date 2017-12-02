@@ -89,7 +89,6 @@ public class PageAuditLogDetails extends PageBase {
     private static final String ID_HISTORY_PANEL = "historyPanel";
 
     private static final String ID_BUTTON_BACK = "back";
-    private static final String TASK_IDENTIFIER_PARAMETER = "taskIdentifier";
     private static final int TASK_EVENTS_TABLE_SIZE = 10;
 
     private static final String OPERATION_RESOLVE_REFERENCE_NAME = PageAuditLogDetails.class.getSimpleName()
@@ -153,7 +152,7 @@ public class PageAuditLogDetails extends PageBase {
 
             public Map<String, Object> getParameters() {
                 Map<String, Object> parameters = new HashMap<String, Object>();
-                parameters.put(TASK_IDENTIFIER_PARAMETER, recordModel.getObject().getTaskIdentifier());
+                parameters.put(AuditEventRecordProvider.PARAMETER_TASK_IDENTIFIER, recordModel.getObject().getTaskIdentifier());
                 return parameters;
             }
         };
