@@ -43,8 +43,8 @@ public class ShoppingCartEditorPanel extends AssignmentEditorPanel {
     protected static final String ICON_BOX_CSS_CLASS = "info-box-icon";
 
 
-    public ShoppingCartEditorPanel(String id, IModel<AssignmentEditorDto> model, PageBase pageBase) {
-        super(id, model, pageBase);
+    public ShoppingCartEditorPanel(String id, IModel<AssignmentEditorDto> model) {
+        super(id, model);
     }
 
     @Override

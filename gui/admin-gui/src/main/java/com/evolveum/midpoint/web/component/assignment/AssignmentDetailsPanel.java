@@ -10,18 +10,14 @@ import org.apache.wicket.model.IModel;
 public class AssignmentDetailsPanel extends BasePanel<AssignmentEditorDto> {
     private static final String ID_DETAILS_PANEL = "detailsPanel";
 
-    public AssignmentDetailsPanel(String id) {
-        super(id);
-    }
-
-    public AssignmentDetailsPanel(String id, IModel<AssignmentEditorDto> model, PageBase pageBase) {
+    public AssignmentDetailsPanel(String id, IModel<AssignmentEditorDto> model) {
         super(id, model);
-        initLayout(pageBase);
+        initLayout();
     }
 
-    private void initLayout(PageBase pageBase) {
+    private void initLayout() {
         setOutputMarkupId(true);
-        ShoppingCartEditorPanel assignmentDetailsPanel = new ShoppingCartEditorPanel(ID_DETAILS_PANEL, getModel(), pageBase);
+        ShoppingCartEditorPanel assignmentDetailsPanel = new ShoppingCartEditorPanel(ID_DETAILS_PANEL, getModel());
         assignmentDetailsPanel.setOutputMarkupId(true);
         add(assignmentDetailsPanel);
 

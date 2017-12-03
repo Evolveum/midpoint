@@ -375,9 +375,6 @@ public class PageAssignmentShoppingKart extends PageSelf {
                 getRoleCatalogStorage().setAssignmentsUserOwner(user);
 
                 initProvider();
-//                TODO don't remove component
-//                getContentPanel().remove(ID_CATALOG_ITEMS_PANEL_CONTAINER);
-//                initCatalogItemsPanel(getContentPanel());
                 searchModel.reset();
 
                 target.add(getContentPanel());

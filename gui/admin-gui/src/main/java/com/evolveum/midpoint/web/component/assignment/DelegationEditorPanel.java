@@ -97,16 +97,17 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             protected List<AssignmentInfoDto> load() {
                 return privilegesList;
             }
-        }, pageBase);
+        });
     }
 
     public DelegationEditorPanel(String id, IModel<AssignmentEditorDto> delegationTargetObjectModel, boolean delegatedToMe,
                                  LoadableModel<List<AssignmentInfoDto>> privilegesListModel, PageBase pageBase) {
-            super(id, delegationTargetObjectModel, delegatedToMe, privilegesListModel, pageBase);
+            super(id, delegationTargetObjectModel, delegatedToMe, privilegesListModel);
         }
 
     @Override
     protected void initHeaderRow(){
+        PageBase pageBase = getPageBase();
         if (delegatedToMe) {
             privilegesListModel = new LoadableModel<List<AssignmentInfoDto>>(false) {
                 @Override
@@ -304,19 +305,19 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
         addPrivilegesPanel(assignmentPrivilegesContainer);
         AjaxButton limitPrivilegesButton = new AjaxButton(ID_LIMIT_PRIVILEGES_BUTTON,
-                pageBase.createStringResource("DelegationEditorPanel.limitPrivilegesButton")) {
+                createStringResource("DelegationEditorPanel.limitPrivilegesButton")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 DelegationTargetLimitationDialog assignmentsDialog =
-                        new DelegationTargetLimitationDialog(pageBase.getMainPopupBodyId(),
-                                selectExistingPrivileges(privilegesListModel.getObject()), pageBase) {
+                        new DelegationTargetLimitationDialog(getPageBase().getMainPopupBodyId(),
+                                selectExistingPrivileges(privilegesListModel.getObject()), getPageBase()) {
                             @Override
                             protected void addButtonClicked(AjaxRequestTarget target, List<AssignmentInfoDto> dtoList){
                                 DelegationEditorPanel.this.getModelObject().setPrivilegeLimitationList(dtoList);
-                                pageBase.hideMainPopup(target);
+                                getPageBase().hideMainPopup(target);
                             }
                         };
-                pageBase.showMainPopup(assignmentsDialog, target);
+                getPageBase().showMainPopup(assignmentsDialog, target);
             }
         };
         limitPrivilegesButton.add(new VisibleEnableBehaviour() {

@@ -136,29 +136,21 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 	private IModel<List<ACAttributeDto>> attributesModel;
 	protected WebMarkupContainer headerRow;
-	protected PageBase pageBase;
 	protected IModel<List<AssignmentInfoDto>> privilegesListModel;
 	protected boolean delegatedToMe;
 	private LoadableModel<ItemSecurityDecisions> decisionsModel;
 
 	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model, boolean delegatedToMe,
-			LoadableModel<List<AssignmentInfoDto>> privilegesListModel, PageBase pageBase) {
+			LoadableModel<List<AssignmentInfoDto>> privilegesListModel) {
 		super(id, model);
-		this.pageBase = pageBase;
 		this.privilegesListModel = privilegesListModel;
 		this.delegatedToMe = delegatedToMe;
 
-		initDecisionsModel();
-		initLayout();
+
 	}
 
 	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model) {
-		this(id, model, null);
-	}
-
-	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model, PageBase pageBase) {
 		super(id, model);
-		this.pageBase = pageBase;
 
 		attributesModel = new LoadableModel<List<ACAttributeDto>>(false) {
 			@Override
@@ -166,6 +158,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				return loadAttributes();
 			}
 		};
+	}
+
+	@Override
+	protected void onInitialize(){
+		super.onInitialize();
 		initDecisionsModel();
 		initLayout();
 	}
@@ -1137,6 +1134,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	}
 
 	private ItemSecurityDecisions loadSecurityDecisions(){
+		PageBase pageBase = getPageBase();
 		if (pageBase == null || getModelObject().getTargetRef() == null){
 			return null;
 		}
@@ -1170,11 +1168,6 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security decisions for assignment items.", ex);
 		}
 		return decisions;
-	}
-
-	@Override
-	public PageBase getPageBase() {
-		return pageBase != null ? pageBase : WebComponentUtil.getPageBase(this);
 	}
 
 }
