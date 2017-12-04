@@ -85,8 +85,8 @@ if [ "$1" = "start" ] ; then
           PID=`cat "$SPRING_PID"`
           ps -p $PID >/dev/null 2>&1
           if [ $? -eq 0 ] ; then
-            echo "Tomcat appears to still be running with PID $PID. Start aborted."
-            echo "If the following process is not a Tomcat process, remove the PID file and try again:"
+            echo "Midpoint appears to still be running with PID $PID. Start aborted."
+            echo "If the following process is not a midpoint process, remove the PID file and try again:"
             ps -f -p $PID
             exit 1
           else
@@ -174,7 +174,7 @@ elif [ "$1" = "stop" ] ; then
     fi
 
     if [ ! -z "$SPRING_PID" ]; then
-	echo "KILLING MIDPOINT"
+	echo "Stopping midPoint"
       kill -TERM `cat "$SPRING_PID"` >/dev/null 2>&1
     fi
   # stop failed. Shutdown port disabled? Try a normal kill.
