@@ -91,6 +91,7 @@ import javax.xml.namespace.QName;
 						description = "PageUsers.auth.users.description")
 		})
 public class PageUsers extends PageAdminUsers {
+	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
 
@@ -173,6 +174,7 @@ public class PageUsers extends PageAdminUsers {
 //				GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
 		MainObjectListPanel<UserType> userListPanel = new MainObjectListPanel<UserType>(ID_TABLE,
 				UserType.class, TableId.TABLE_USERS, options, this) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected List<IColumn<SelectableBean<UserType>, String>> createColumns() {
@@ -277,7 +279,6 @@ public class PageUsers extends PageAdminUsers {
 				new Model<Boolean>(false),
 				false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
-
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -292,7 +293,7 @@ public class PageUsers extends PageAdminUsers {
 				},
 				id,
 				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
-				DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS.toString()) {
+				null) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -313,6 +314,7 @@ public class PageUsers extends PageAdminUsers {
 				isHeader ? new Model<Boolean>(true) : new Model<Boolean>(false),
 				false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -326,7 +328,7 @@ public class PageUsers extends PageAdminUsers {
                 }, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_DISABLE.getMenuItemId()
                 : InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId(),
 				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
-				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()){
+				null) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -346,6 +348,7 @@ public class PageUsers extends PageAdminUsers {
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.reconcile"),
 				new Model<Boolean>(false), new Model<Boolean>(false), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -377,6 +380,7 @@ public class PageUsers extends PageAdminUsers {
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.unlock"), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {

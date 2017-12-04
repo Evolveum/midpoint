@@ -16,12 +16,15 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,8 +33,9 @@ import java.util.List;
  * todo rewrite
  */
 public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPanel<T> {
+	private static final long serialVersionUID = 1L;
 
-    private static final String ID_INLINE_MENU_PANEL = "inlineMenuPanel";
+	private static final String ID_INLINE_MENU_PANEL = "inlineMenuPanel";
     private static final String ID_MENU_ITEM_BODY = "menuItemBody";
     private static final String ID_MENU_BUTTON_CONTAINER = "menuButtonContainer";
 
@@ -42,38 +46,22 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
     @Override
     protected void initLayout() {
         super.initLayout();
-
-        // wtf, magic numbers, lots of css ??
-        InlineMenu inlineMenu = new InlineMenu(ID_INLINE_MENU_PANEL, menuItemsModel) {
-
-            @Override
-            protected String getIconClass() {
-                return "fa fa-fw fa-ellipsis-h";
-            }
-
-            @Override
-            protected String getAdditionalButtonClass() {
-                return "btn btn-default btn-xs";
-            }
-
-            @Override
-            protected String getMenuItemContainerClass() {
-                return "none";
-            }
-
-            @Override
-            protected String getMenuItemButtonStyle() {
-                return "";
-            }
-
-            @Override
-            protected String getMenuItemContainerStyle() {
-                return "margin-left: -40px; margin-bottom: -1px; list-style: none;";
-            }
-
+        
+        DropdownButtonPanel inlineMenu = new DropdownButtonPanel(ID_INLINE_MENU_PANEL,
+				new DropdownButtonDto(null, null, null, menuItemsModel.getObject())) {
+        	private static final long serialVersionUID = 1L;
+        	
+        	@Override
+        	protected String getSpecialButtonClass() {
+        		return "btn-xs btn-default";
+        	}
+        	
         };
+
         inlineMenu.add(new VisibleEnableBehaviour() {
-            @Override
+			private static final long serialVersionUID = 1L;
+
+			@Override
             public boolean isVisible() {
                 return !(numberOfButtons < 2);
             }

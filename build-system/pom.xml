@@ -51,7 +51,7 @@
         <commons.cli>1.2</commons.cli>
         <cxf.version>3.2.1</cxf.version>
         <cxf-xjc.version>3.2.0</cxf-xjc.version>
-        <wss4j.version>2.1.5</wss4j.version>
+        <wss4j.version>2.2.0</wss4j.version>
         <dbunit.version>2.4.7</dbunit.version>
         <jaxb-api.version>2.2.10</jaxb-api.version>
         <jaxb.version>2.2.10</jaxb.version>
@@ -615,8 +615,8 @@
 	            <version>${wss4j.version}</version>
 	            <exclusions>
 	            	<exclusion> <!-- conflict with javax.mail:mail -->
-                        <groupId>org.apache.geronimo.specs</groupId>
-	            		<artifactId>geronimo-javamail_1.4_spec</artifactId>
+                        <groupId>org.apache.geronimo.javamail</groupId>
+	            		<artifactId>geronimo-javamail_1.4_mail</artifactId>
                     </exclusion>
                     <exclusion> <!-- conflict with jasper -->
                         <groupId>org.bouncycastle</groupId>

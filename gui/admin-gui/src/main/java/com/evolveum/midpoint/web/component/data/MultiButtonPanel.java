@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
@@ -28,6 +30,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.List;
 
@@ -35,12 +38,14 @@ import java.util.List;
  * @author shood
  * @author mederly
  * <p>
- * todo rewrite
- * @deprecated generates incorrect HTML, buttons have different dimensions, looks bad. Overcomplicated code.
+ * todo rewrite, Overcomplicated code.
  */
 public class MultiButtonPanel<T> extends BasePanel<T> {
+	private static final long serialVersionUID = 1L;
 
-    private static final String ID_BUTTONS = "buttons";
+	protected static final Trace LOGGER = TraceManager.getTrace(MultiButtonPanel.class);
+	
+	private static final String ID_BUTTONS = "buttons";
 
     protected IModel<List<InlineMenuItem>> menuItemsModel = null;
     protected int numberOfButtons;
@@ -65,7 +70,7 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
             final int finalId = getButtonId(id);
             AjaxIconButton button = new AjaxIconButton(String.valueOf(finalId),
                     createIconModel(finalId),
-                    createStringResource(getCaption(finalId))) {
+                    Model.of(getButtonTitle(finalId))) {
 
                 private static final long serialVersionUID = 1L;
 
@@ -102,15 +107,15 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
                 button.add(AttributeAppender.append("class", "disabled"));
             }
 
-            button.add(new AttributeAppender("title", getButtonTitle(finalId)));
-
             buttons.add(button);
         }
     }
 
     private IModel<String> createIconModel(int id) {
         return new AbstractReadOnlyModel<String>() {
-            @Override
+			private static final long serialVersionUID = 1L;
+
+			@Override
             public String getObject() {
                 return getButtonIconCss(id);
             }

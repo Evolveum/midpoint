@@ -636,6 +636,11 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		if (def.getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
 			return isShowMetadata();
 		}
+
+		//TODO should objectStatus be used?
+		if (ValueStatus.DELETED.equals(status)){
+			return false;
+		}
 		
 			// TODO: emphasized
 		switch (objectStatus) {
