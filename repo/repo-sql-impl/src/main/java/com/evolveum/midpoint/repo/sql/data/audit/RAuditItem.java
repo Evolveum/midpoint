@@ -16,33 +16,36 @@
 
 package com.evolveum.midpoint.repo.sql.data.audit;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapsId;
-import javax.persistence.Table;
+import javax.persistence.*;
 
+import com.evolveum.midpoint.repo.sql.util.EntityState;
 import org.hibernate.annotations.ForeignKey;
 
 @Entity
 @IdClass(RAuditItemId.class)
 @Table(name = RAuditItem.TABLE_NAME, indexes = {
 		@Index(name = "iChangedItemPath", columnList = "changedItemPath")})
-public class RAuditItem {
+public class RAuditItem implements EntityState {
 
 	public static final String TABLE_NAME = "m_audit_item";
 	public static final String COLUMN_RECORD_ID = "record_id";
+
+    private Boolean trans;
 
     private RAuditEventRecord record;
     private Long recordId;
     private String changedItemPath;
 
+    @Transient
+    @Override
+    public Boolean isTransient() {
+        return trans;
+    }
+
+    @Override
+    public void setTransient(Boolean trans) {
+        this.trans = trans;
+    }
 
     @ForeignKey(name = "none")
     @MapsId("record")

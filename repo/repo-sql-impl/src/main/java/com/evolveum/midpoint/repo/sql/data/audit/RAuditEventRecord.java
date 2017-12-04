@@ -20,15 +20,7 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.*;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
@@ -189,7 +181,7 @@ public class RAuditEventRecord implements Serializable {
 	}
 
 	@Id
-	@GeneratedValue
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	public long getId() {
 		return id;
 	}
@@ -431,7 +423,7 @@ public class RAuditEventRecord implements Serializable {
 						changedItems, propertyValues, referenceValues, result);
 	}
 
-	public static RAuditEventRecord toRepo(AuditEventRecord record, PrismContext prismContext)
+	public static RAuditEventRecord toRepo(AuditEventRecord record, PrismContext prismContext, Boolean isTransient)
 			throws DtoTranslationException {
 
 		Validate.notNull(record, "Audit event record must not be null.");
@@ -501,6 +493,7 @@ public class RAuditEventRecord implements Serializable {
 						CanonicalItemPath canonical = CanonicalItemPath.create(path, objectDelta.getObjectTypeClass(), prismContext);
 						for (int i = 0; i < canonical.size(); i++) {
 							RAuditItem changedItem = RAuditItem.toRepo(repo, canonical.allUpToIncluding(i).asString());
+							changedItem.setTransient(isTransient);
 							repo.getChangedItems().add(changedItem);
 						}
 					}
@@ -514,13 +507,17 @@ public class RAuditEventRecord implements Serializable {
 
 			for (Map.Entry<String, Set<String>> propertyEntry : record.getProperties().entrySet()) {
 				for (String propertyValue : propertyEntry.getValue()) {
-					repo.getPropertyValues().add(RAuditPropertyValue.toRepo(
-							repo, propertyEntry.getKey(), RUtil.trimString(propertyValue, AuditService.MAX_PROPERTY_SIZE)));
+					RAuditPropertyValue val = RAuditPropertyValue.toRepo(
+							repo, propertyEntry.getKey(), RUtil.trimString(propertyValue, AuditService.MAX_PROPERTY_SIZE));
+					val.setTransient(isTransient);
+					repo.getPropertyValues().add(val);
 				}
 			}
 			for (Map.Entry<String, Set<AuditReferenceValue>> referenceEntry : record.getReferences().entrySet()) {
 				for (AuditReferenceValue referenceValue : referenceEntry.getValue()) {
-					repo.getReferenceValues().add(RAuditReferenceValue.toRepo(repo, referenceEntry.getKey(), referenceValue));
+					RAuditReferenceValue val = RAuditReferenceValue.toRepo(repo, referenceEntry.getKey(), referenceValue);
+					val.setTransient(isTransient);
+					repo.getReferenceValues().add(val);
 				}
 			}
 		} catch (Exception ex) {

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.audit;
 
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.repo.sql.util.EntityState;
 
 import javax.persistence.*;
 
@@ -28,10 +29,12 @@ import static com.evolveum.midpoint.repo.sql.data.audit.RAuditPropertyValue.TABL
 @Entity
 @Table(name = TABLE_NAME, indexes = {
 		@Index(name = "iAuditPropValRecordId", columnList = COLUMN_RECORD_ID)})
-public class RAuditPropertyValue {
+public class RAuditPropertyValue implements EntityState {
 
 	public static final String TABLE_NAME = "m_audit_prop_value";
 	public static final String COLUMN_RECORD_ID = "record_id";
+
+	private Boolean trans;
 
 	private long id;
     private RAuditEventRecord record;
@@ -39,8 +42,19 @@ public class RAuditPropertyValue {
     private String name;
     private String value;
 
+	@Transient
+	@Override
+	public Boolean isTransient() {
+		return trans;
+	}
+
+	@Override
+	public void setTransient(Boolean trans) {
+		this.trans = trans;
+	}
+
 	@Id
-	@GeneratedValue
+	@GeneratedValue	//todo identifier generator [lazyman]
 	public long getId() {
 		return id;
 	}

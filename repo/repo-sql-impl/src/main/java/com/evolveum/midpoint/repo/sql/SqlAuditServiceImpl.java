@@ -172,7 +172,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		try {
 			session = baseHelper.beginTransaction();
 
-			RAuditEventRecord reindexed = RAuditEventRecord.toRepo(record, getPrismContext());
+			RAuditEventRecord reindexed = RAuditEventRecord.toRepo(record, getPrismContext(), null);
 			//TODO FIXME temporary hack, merge will eventyually load the object to the session if there isn't one,
 			// but in this case we force loading object because of "objectDeltaOperation". There is some problem probably
 			// during serializing/deserializing which causes constraint violation on priamry key..
@@ -354,7 +354,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		try {
 			session = baseHelper.beginTransaction();
 
-			RAuditEventRecord newRecord = RAuditEventRecord.toRepo(record, getPrismContext());
+			RAuditEventRecord newRecord = RAuditEventRecord.toRepo(record, getPrismContext(), true);
 			session.save(newRecord);
 
 			session.getTransaction().commit();

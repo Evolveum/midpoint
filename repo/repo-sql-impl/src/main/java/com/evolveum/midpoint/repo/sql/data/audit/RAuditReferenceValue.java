@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 
 import javax.persistence.*;
@@ -29,10 +30,12 @@ import static com.evolveum.midpoint.repo.sql.data.audit.RAuditReferenceValue.TAB
 @Entity
 @Table(name = TABLE_NAME, indexes = {
 		@Index(name = "iAuditRefValRecordId", columnList = COLUMN_RECORD_ID)})
-public class RAuditReferenceValue {
+public class RAuditReferenceValue implements EntityState {
 
 	public static final String TABLE_NAME = "m_audit_ref_value";
 	public static final String COLUMN_RECORD_ID = "record_id";
+
+	private Boolean trans;
 
 	private long id;
     private RAuditEventRecord record;
@@ -42,8 +45,19 @@ public class RAuditReferenceValue {
     private String type;
     private RPolyString targetName;
 
+	@Transient
+	@Override
+	public Boolean isTransient() {
+		return trans;
+	}
+
+	@Override
+	public void setTransient(Boolean trans) {
+		this.trans = trans;
+	}
+
 	@Id
-	@GeneratedValue
+	@GeneratedValue	//todo identifier generator [lazyman]
 	public long getId() {
 		return id;
 	}
