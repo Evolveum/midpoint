@@ -229,14 +229,13 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
 	protected ObjectQuery createObjectQuery() {
         QName relation = getRelation();
-        S_AtomicFilterExit tempFilter =  QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
-                .block()
-                .not()
-                .item(new ItemPath(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF))
-                .isNull()
-                .endBlock();
         if (PrismConstants.Q_ANY.equals(relation)){
-            return tempFilter
+            return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+                    .block()
+                    .not()
+                    .item(new ItemPath(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF))
+                    .isNull()
+                    .endBlock()
                     .or()
                     .block()
                     .not()
@@ -245,8 +244,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                     .endBlock()
                     .build();
         } else {
-            return tempFilter
-                    .or()
+            return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
                     .item(new ItemPath(AssignmentType.F_TARGET_REF))
                     .ref(relation)
                     .build();
