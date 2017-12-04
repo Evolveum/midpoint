@@ -1,6 +1,6 @@
 #!/bin/bash
 SCRIPT_PATH=$(cd $(dirname "$0") && pwd -P)/$(basename "$2")
-
+USE_NOHUP="true"
 JAVA_OPTS="$JAVA_OPTS -Xms2048M -Xmx2048M -XX:PermSize=128m -XX:MaxPermSize=256m -Dmidpoint.home=$SCRIPT_PATH../var"
 
 # resolve links - $0 may be a softlink
@@ -66,6 +66,10 @@ if [ -z "$JAVA_HOME" ] ; then
   _RUNJAVA=java
 else
   _RUNJAVA="$JAVA_HOME"/bin/java
+fi
+
+if [ "$USE_NOHUP" = "true" ]; then
+    _NOHUP=nohup
 fi
 
 # ----- Execute The Requested Command -----------------------------------------
