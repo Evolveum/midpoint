@@ -35,7 +35,7 @@ import java.util.Set;
 public class SchemaTest {
 
     @Test
-    public void generateSchemas() throws Exception {
+    public void generateSchemas() {
         createSQLSchema("./target/h2-schema.sql", H2Dialect.class.getName());
         createSQLSchema("./target/sqlserver-schema.sql", UnicodeSQLServer2008Dialect.class.getName());
         createSQLSchema("./target/mysql-schema.sql", MidPointMySQLDialect.class.getName());
@@ -43,7 +43,7 @@ public class SchemaTest {
         createSQLSchema("./target/postgresql-schema.sql", MidPointPostgreSQLDialect.class.getName());
     }
 
-    private void createSQLSchema(String fileName, String dialect) throws Exception {
+    private void createSQLSchema(String fileName, String dialect) {
         MetadataSources metadata = new MetadataSources(
                 new StandardServiceRegistryBuilder()
                         .applySetting("hibernate.implicit_naming_strategy", new MidPointImplicitNamingStrategy())
@@ -62,7 +62,6 @@ public class SchemaTest {
         addAnnotatedClasses("com.evolveum.midpoint.repo.sql.data.audit", metadata);
 
         metadata.addPackage("com.evolveum.midpoint.repo.sql.type");
-
 
         SchemaExport export = new SchemaExport();
         export.setOutputFile(fileName);
