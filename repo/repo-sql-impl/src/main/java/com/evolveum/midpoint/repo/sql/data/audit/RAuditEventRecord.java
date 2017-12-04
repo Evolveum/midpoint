@@ -181,7 +181,7 @@ public class RAuditEventRecord implements Serializable {
 	}
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue
 	public long getId() {
 		return id;
 	}
