@@ -454,4 +454,65 @@ public class TestMappingAutoInbound extends AbstractMappingTest {
         assertDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_TESTERS_NAME, USER_HERMAN_USERNAME);
 	}
     
+    @Test
+    public void test406unassignRoleAutocraticDirectly() throws Exception {
+		final String TEST_NAME = "test406unassignRoleAutocraticAutotestersDirectly";
+        displayTestTitle(TEST_NAME);
+        
+        assumeResourceAssigmentPolicy(RESOURCE_DUMMY_AUTOGREEN_OID, AssignmentPolicyEnforcementType.FULL, true);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(userHermanOid, ROLE_AUTOCRATIC_OID);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(userHermanOid);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_AUTOTESTERS_OID);
+        assertNotAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+        assertAssignments(userAfter, 1);
+        
+        assertNoDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_CRATIC_NAME, USER_HERMAN_USERNAME);
+        assertDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_TESTERS_NAME, USER_HERMAN_USERNAME);
+	}
+    
+    @Test
+    public void test407addHermanToTestersReconcile() throws Exception {
+		final String TEST_NAME = "test407addHermanToTestersReconcile";
+        displayTestTitle(TEST_NAME);
+        
+        assumeResourceAssigmentPolicy(RESOURCE_DUMMY_AUTOGREEN_OID, AssignmentPolicyEnforcementType.FULL, true);
+
+        DummyGroup craticGroup = getDummyResource(RESOURCE_DUMMY_AUTOGREEN_NAME).getGroupByName(GROUP_DUMMY_CRATIC_NAME);
+        craticGroup.addMember(USER_HERMAN_USERNAME);
+        
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        reconcileUser(userHermanOid, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(task.getResult());
+
+        PrismObject<UserType> userAfter = getUser(userHermanOid);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_AUTOTESTERS_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+        assertAssignments(userAfter, 2);
+        
+        assertDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_TESTERS_NAME, USER_HERMAN_USERNAME);
+        assertDummyGroupMember(RESOURCE_DUMMY_AUTOGREEN_NAME, GROUP_DUMMY_CRATIC_NAME, USER_HERMAN_USERNAME);
+	}
+    
 }

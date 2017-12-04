@@ -144,8 +144,8 @@
             <association>
             	<ref>ri:group</ref>
 				<inbound>
-<!-- 					<authoritative>true</authoritative> -->
-<!--                		<tolerant>false</tolerant> -->
+					<authoritative>true</authoritative>
+               		<tolerant>false</tolerant>
 					<strength>strong</strength>
 					<expression>
 						<assignmentTargetSearch>
