@@ -17,12 +17,14 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <a wicket:id="buttonContainer" class="btn" data-toggle="dropdown">
+    <button wicket:id="buttonContainer" class="btn dropdown-toggle" type="button" data-toggle="dropdown">
         <span class="badge bg-teal" wicket:id="info"></span>
         <i class="fa " wicket:id="icon"></i>
-        <label wicket:id="label"></label>
-        &nbsp;<span class="caret"/>
-    </a>
+        <wicket:enclosure child="label">
+        	<label wicket:id="label"></label>&nbsp;
+        </wicket:enclosure>
+        <span class="caret"/>
+    </button>
     <ul class="dropdown-menu pull-right" role="menu">
         <li wicket:id="menuItem">
             <div wicket:id="menuItemBody"/>

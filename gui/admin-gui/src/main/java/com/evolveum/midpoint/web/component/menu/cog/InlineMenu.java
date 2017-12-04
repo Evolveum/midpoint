@@ -33,8 +33,13 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
+ * DEPRECATED: use DropdownButtonPanel instead
+ * 
+ * This is the old cog-like dropdown from pre-adminlte times
+ * 
  * @author lazyman
  */
+@Deprecated
 public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
 
     private static String ID_MENU_ITEM_CONTAINER= "menuItemContainer";
