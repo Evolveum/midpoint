@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
+import org.hibernate.dialect.MySQL57InnoDBDialect;
 import org.hibernate.dialect.MySQL5InnoDBDialect;
 
 import java.sql.Types;
@@ -23,7 +24,7 @@ import java.sql.Types;
 /**
  * @author lazyman
  */
-public class MidPointMySQLDialect extends MySQL5InnoDBDialect {
+public class MidPointMySQLDialect extends MySQL57InnoDBDialect {
 
     public MidPointMySQLDialect() {
         registerColumnType(Types.BOOLEAN, "bit");

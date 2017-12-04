@@ -71,7 +71,7 @@
         <xml.resolver.version>1.2</xml.resolver.version>
         <xmlunit.version>2.1.1</xmlunit.version>
         <cron4j.version>2.2.3</cron4j.version>
-        <hibernate.version>4.3.11.Final</hibernate.version>
+        <hibernate.version>5.2.2.Final</hibernate.version>
         <h2.version>1.4.193</h2.version>
         <jdbc.postgres>9.4.1212.jre7</jdbc.postgres>
         <jdbc.mariadb>1.5.5</jdbc.mariadb>
@@ -239,6 +239,10 @@
 					<exclusion> <!-- Version conflict with xalan -->
                         <groupId>xml-apis</groupId>
                         <artifactId>xml-apis</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>jsr250-api</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

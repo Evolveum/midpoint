@@ -32,7 +32,7 @@
           depends-on="dataSourceFactory"/>
 
     <!-- Hibernate session factory -->
-    <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean"
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean"
           depends-on="dataSource" lazy-init="true">
 
         <property name="dataSource" ref="dataSource" />

@@ -237,118 +237,26 @@ public class OrgClosureManager {
             initializeOracleTemporaryTable();
         }
 
-        if (autoUpdateClosureTableStructure()) {
-            // need to rebuild the content of the closure table after re-creating it anew
-            checkAndOrRebuild(false, true, repoConfiguration.isStopOnOrgClosureStartupFailure(), true, result);
-        } else {
-            boolean check, rebuild;
-            switch (repoConfiguration.getOrgClosureStartupAction()) {
-                case NONE:
-                    return;
-                case CHECK:
-                    check = true;
-                    rebuild = false;
-                    break;
-                case REBUILD_IF_NEEDED:
-                    check = true;
-                    rebuild = true;
-                    break;
-                case ALWAYS_REBUILD:
-                    check = false;
-                    rebuild = true;
-                    break;
-                default:
-                    throw new IllegalArgumentException("Invalid value: " + repoConfiguration.getOrgClosureStartupAction());
-            }
-            checkAndOrRebuild(check, rebuild, repoConfiguration.isStopOnOrgClosureStartupFailure(), true, result);
+        boolean check, rebuild;
+        switch (repoConfiguration.getOrgClosureStartupAction()) {
+            case NONE:
+                return;
+            case CHECK:
+                check = true;
+                rebuild = false;
+                break;
+            case REBUILD_IF_NEEDED:
+                check = true;
+                rebuild = true;
+                break;
+            case ALWAYS_REBUILD:
+                check = false;
+                rebuild = true;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid value: " + repoConfiguration.getOrgClosureStartupAction());
         }
-    }
-
-    // TEMPORARY and quite BRUTAL HACK
-    // Originally in midPoint 3.0, m_org_closure has 5 columns, a non-null ID among them.
-    // In 3.1, it has 3, and no ID. Unfortunately, hibernate's hbm2ddl tool does not automatically remove ID column,
-    // so people can expect quite hard-to-understand error messages when running midPoint after upgrade.
-    //
-    // This code removes and re-creates the m_org_closure table if hbm2ddl is set to "update".
-    //
-    // returns true if the table was re-created
-    private boolean autoUpdateClosureTableStructure() {
-
-        if (baseHelper.getConfiguration().isSkipOrgClosureStructureCheck()) {
-            LOGGER.debug("Skipping org closure structure check.");
-            return false;
-        }
-
-        SessionFactory sf = baseHelper.getSessionFactory();
-        if (sf instanceof SessionFactoryImpl) {
-            SessionFactoryImpl sfi = ((SessionFactoryImpl) sf);
-            LOGGER.debug("SessionFactoryImpl.getSettings() = {}; auto update schema = {}", sfi.getSettings(), sfi.getSettings() != null ? sfi.getSettings().isAutoUpdateSchema() : null);
-            if (sfi.getSettings() != null && sfi.getSettings().isAutoUpdateSchema()) {
-
-                LOGGER.info("Checking the closure table structure.");
-
-                final Session session = baseHelper.getSessionFactory().openSession();
-                final Holder<Boolean> wrongNumberOfColumns = new Holder<>(false);
-                session.doWork(new Work() {
-                    @Override
-                    public void execute(Connection connection) throws SQLException {
-                        DatabaseMetaData meta = connection.getMetaData();
-                        if (meta == null) {
-                            LOGGER.warn("No database metadata found.");
-                        } else {
-                            ResultSet rsColumns = meta.getColumns(null, null, CLOSURE_TABLE_NAME, null);
-                            int columns = 0;
-                            while (rsColumns.next()) {
-                                LOGGER.debug("Column: {} {}", rsColumns.getString("TYPE_NAME"), rsColumns.getString("COLUMN_NAME"));
-                                columns++;
-                            }
-                            if (columns > 0) {
-                                LOGGER.debug("There are {} columns in {} (obtained via DatabaseMetaData)", columns, CLOSURE_TABLE_NAME);
-                                if (columns != 3) {
-                                    wrongNumberOfColumns.setValue(true);
-                                }
-                                return;
-                            }
-                            // perhaps some problem here... let's try another way out
-                            try {
-                                Statement stmt = connection.createStatement();
-                                ResultSet rs = stmt.executeQuery("select * from " + CLOSURE_TABLE_NAME);
-                                int cols = rs.getMetaData().getColumnCount();
-                                if (cols > 0) {
-                                    LOGGER.debug("There are {} columns in {} (obtained via resultSet.getMetaData())", cols, CLOSURE_TABLE_NAME);
-                                    if (cols != 3) {
-                                        wrongNumberOfColumns.setValue(true);
-                                    }
-                                } else {
-                                    LOGGER.warn("Couldn't determine the number of columns in {}. In case of problems, please fix your database structure manually using DB scripts in 'config' folder.", CLOSURE_TABLE_NAME);
-                                }
-                                rs.close();     // don't care about closing them in case of failure
-                                stmt.close();
-                            } catch (RuntimeException e) {
-                                LoggingUtils.logException(LOGGER, "Couldn't obtain the number of columns in {}. In case of problems running midPoint, please fix your database structure manually using DB scripts in 'config' folder.", e, CLOSURE_TABLE_NAME);
-                            }
-                        }
-                    }
-                });
-                if (wrongNumberOfColumns.getValue()) {
-                    session.getTransaction().begin();
-                    LOGGER.info("Wrong number of columns detected; dropping table " + CLOSURE_TABLE_NAME);
-                    Query q = session.createSQLQuery("drop table " + CLOSURE_TABLE_NAME);
-                    q.executeUpdate();
-                    session.getTransaction().commit();
-
-                    LOGGER.info("Calling hibernate hbm2ddl SchemaUpdate tool to create the table in the necessary form.");
-                    new SchemaUpdate(sfi.getServiceRegistry(), baseHelper.getSessionFactoryBean().getConfiguration()).execute(false, true);
-                    LOGGER.info("Done, table was (hopefully) created. If not, please fix your database structure manually using DB scripts in 'config' folder.");
-                    return true;
-                }
-            } else {
-                // auto schema update is disabled
-            }
-        } else {
-            LOGGER.warn("SessionFactory is not of type SessionFactoryImpl; it is {}", sf != null ? sf.getClass() : "null");
-        }
-        return false;
+        checkAndOrRebuild(check, rebuild, repoConfiguration.isStopOnOrgClosureStartupFailure(), true, result);
     }
 
     public boolean isEnabled() {

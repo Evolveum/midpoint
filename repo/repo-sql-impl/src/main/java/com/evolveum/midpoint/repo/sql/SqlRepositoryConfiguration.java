@@ -52,7 +52,7 @@ public class SqlRepositoryConfiguration {
 		MYSQL(DRIVER_MYSQL, MidPointMySQLDialect.class.getName()),
 		POSTGRESQL(DRIVER_POSTGRESQL, MidPointPostgreSQLDialect.class.getName()),
 		SQLSERVER(DRIVER_SQLSERVER, UnicodeSQLServer2008Dialect.class.getName()),
-		ORACLE(DRIVER_ORACLE, Oracle10gDialect.class.getName()),
+		ORACLE(DRIVER_ORACLE, Oracle12cDialect.class.getName()),
 		MARIADB(DRIVER_MARIADB, MidPointMySQLDialect.class.getName());
 
         // order is important! (the first value is the default)
