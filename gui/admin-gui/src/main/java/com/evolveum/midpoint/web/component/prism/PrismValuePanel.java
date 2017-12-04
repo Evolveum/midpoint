@@ -25,7 +25,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.input.*;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -569,7 +571,25 @@ public class PrismValuePanel extends Panel {
 						}
 					}
 				}, 10);
-			} else {
+//			} else if (ItemPathType.COMPLEX_TYPE.equals(valueType)) {
+//				definition.getNamespace()
+//			ValueWrapper vw = valueWrapperModel.getObject();
+//			if (vw != null) {
+//			}
+//			return new TextPanel<>(id, new PropertyModel<ItemPathType>(valueWrapperModel, baseExpression + ".orig"),
+//					String.class);
+////					inputPanel = new QNameEditorPanel(id, new PropertyModel<ItemPathType>(valueWrapperModel, baseExpression),
+////							"SchemaHandlingStep.association.label.associationName", "SchemaHandlingStep.association.tooltip.associationLocalPart",
+////							"SchemaHandlingStep.association.label.associationNamespace", "SchemaHandlingStep.association.tooltip.associationNamespace", true, true)  {
+////						@Override
+////						protected void onUpdate(AjaxRequestTarget target) {
+//////							target.add(parentStep.getAssociationList());
+//////							((PageResourceWizard) getPageBase()).refreshIssues(target);
+////						}
+////					};
+////					nonSchemaRefPanel.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+
+		}else {
 				Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);
 				if (type != null && type.isPrimitive()) {
 					type = ClassUtils.primitiveToWrapper(type);

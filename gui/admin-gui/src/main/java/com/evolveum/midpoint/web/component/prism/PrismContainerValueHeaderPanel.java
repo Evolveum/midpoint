@@ -14,7 +14,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssoci
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -25,6 +27,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.namespace.QName;
 
@@ -235,6 +238,25 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 			}
 		});
 		add(removeContainerButton);
+
+	}
+
+	@Override
+	protected void initHeaderLabel(){
+		String displayName = getLabel();
+		if (org.apache.commons.lang3.StringUtils.isEmpty(displayName)) {
+			displayName = "displayName.not.set";
+		}
+		StringResourceModel headerLabelModel = createStringResource(displayName);
+		AjaxButton labelComponent = new AjaxButton(ID_LABEL, headerLabelModel) {
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				onShowEmptyClick(target);
+			}
+		};
+		labelComponent.setOutputMarkupId(true);
+		labelComponent.add(AttributeAppender.append("style", "cursor: pointer;"));
+		add(labelComponent);
 
 	}
 
