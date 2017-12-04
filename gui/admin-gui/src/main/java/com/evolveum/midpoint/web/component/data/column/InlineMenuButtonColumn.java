@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.MenuMultiButtonPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -44,7 +46,11 @@ import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.create
  * todo rewrite
  */
 public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonColumn<T>{
-    protected List<InlineMenuItem> menuItems;
+	private static final long serialVersionUID = 1L;
+	
+	protected static final Trace LOGGER = TraceManager.getTrace(InlineMenuButtonColumn.class);
+
+	protected List<InlineMenuItem> menuItems;
     private PageBase pageBase;
 
     public InlineMenuButtonColumn(List<InlineMenuItem> menuItems, int buttonsNumber, PageBase pageBase){
@@ -69,8 +75,9 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
     private Component getPanel(String componentId, IModel<T> rowModel,
                                int numberOfButtons, List<InlineMenuItem> menuItems){
         panel = new MenuMultiButtonPanel<T>(componentId, numberOfButtons, rowModel, createMenuModel(rowModel, menuItems)) {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public String getCaption(int id) {
                 return "";
             }
@@ -230,7 +237,9 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
     protected String getButtonCssClass(int id, List<InlineMenuItem> menuItems) {
         StringBuilder sb = new StringBuilder();
         sb.append(DoubleButtonColumn.BUTTON_BASE_CLASS).append(" ");
-        sb.append(getButtonColorCssClass(id, menuItems)).append(" ");
+        // Do not add color. It attracts too much attention
+//        sb.append(getButtonColorCssClass(id, menuItems)).append(" ");
+        sb.append("btn-default ");
         sb.append(getButtonSizeCssClass(id)).append(" ");
 
         return sb.toString();
@@ -247,8 +256,8 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
     }
 
     public String getButtonTitle(int id, List<InlineMenuItem> menuItems) {
-        for (InlineMenuItem menuItem : menuItems){
-            if (menuItem.getId() == id){
+        for (InlineMenuItem menuItem : menuItems) {
+            if (menuItem.getId() == id) {
                 return menuItem.getLabel() != null && menuItem.getLabel().getObject() != null ?
                         menuItem.getLabel().getObject() : "";
             }

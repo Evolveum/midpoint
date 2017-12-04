@@ -54,33 +54,6 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
 		initButtons();
 		initHeaderLabel();
 
-//        IModel<String> headerLabelModel = new AbstractReadOnlyModel<String>() {
-//        	private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public String getObject() {
-//
-//				PrismWrapper wrapper = getModelObject();
-//				String displayName = "displayName.not.set";
-//				if (wrapper instanceof ContainerValueWrapper) {
-//					displayName = ((ContainerValueWrapper) wrapper).getDisplayName();
-//				} else if (wrapper instanceof ContainerWrapper) {
-//		    		displayName = ((ContainerWrapper)wrapper).getDisplayName();
-//		    	} else if (wrapper instanceof ObjectWrapper) {
-//		    		// HACK HACK HACK
-//			        // If we would display label for the object itself, display label for main container instead
-//			        // the "object label" is actually displayed in front of main container
-//					ContainerWrapper mainContainerWrapper = ((ObjectWrapper) wrapper).findMainContainerWrapper();
-//					if (mainContainerWrapper != null) {
-//						displayName = mainContainerWrapper.getDisplayName();
-//					} else {
-//						displayName = ((ObjectWrapper) wrapper).getDisplayName();		// e.g. resource wizard needs this
-//					}
-//		    	}
-//		    	return getString(displayName, null, displayName);
-//			}
-//		};
-
     }
 
     protected void initHeaderLabel(){

@@ -952,7 +952,7 @@ public final class WebComponentUtil {
 		if (containerable instanceof ExclusionPolicyConstraintType){
 			ExclusionPolicyConstraintType exclusionConstraint = (ExclusionPolicyConstraintType) containerable;
 			String displayName = (exclusionConstraint.getName() != null ? exclusionConstraint.getName() :
-					exclusionConstraint.asPrismContainerValue().getPath().last())  + " - "
+					exclusionConstraint.asPrismContainerValue().getParent().getPath().last())  + " - "
 					+ StringUtils.defaultIfEmpty(getName(exclusionConstraint.getTargetRef()), "");
 			return StringUtils.isNotEmpty(displayName) ? displayName : "Not defined exclusion name";
 		}

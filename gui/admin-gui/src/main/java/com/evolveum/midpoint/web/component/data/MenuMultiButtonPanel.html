@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,15 +16,10 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <table style="min-width: 75px;">
-        <tr>
-            <td>
-                <a wicket:id="buttons" style="margin-right: 3px;"/>
-            </td>
-            <td>
-                <div wicket:id="inlineMenuPanel"/>
-            </td>
-        </tr>
-    </table>
+    <div class="btn-group">
+        <button type="button" wicket:id="buttons"/>
+        <div class="btn-group" wicket:id="inlineMenuPanel">
+        </div>
+    </div>
 </wicket:panel>
 </html>
