@@ -91,6 +91,7 @@ import javax.xml.namespace.QName;
 						description = "PageUsers.auth.users.description")
 		})
 public class PageUsers extends PageAdminUsers {
+	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
 
@@ -173,6 +174,7 @@ public class PageUsers extends PageAdminUsers {
 //				GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
 		MainObjectListPanel<UserType> userListPanel = new MainObjectListPanel<UserType>(ID_TABLE,
 				UserType.class, TableId.TABLE_USERS, options, this) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected List<IColumn<SelectableBean<UserType>, String>> createColumns() {
