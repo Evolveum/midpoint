@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.LocalizableMessageList;
+import com.evolveum.midpoint.util.LocalizableMessageListBuilder;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -221,7 +222,11 @@ public class ValuePolicyProcessor {
 
 		result.computeStatus();
 		if (!result.isSuccess() && !messages.isEmpty()) {
-			result.setUserFriendlyMessage(new LocalizableMessageList(messages, LocalizableMessageList.SPACE, null, null));
+			result.setUserFriendlyMessage(
+					new LocalizableMessageListBuilder()
+							.messages(messages)
+							.separator(LocalizableMessageList.SPACE)
+							.buildOptimized());
 		}
 		return result.isAcceptable();
 	}

@@ -36,10 +36,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.LocalizableMessageBuilder;
-import com.evolveum.midpoint.util.LocalizableMessageList;
-import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -199,7 +196,11 @@ public class ObjectValuePolicyEvaluator {
 
 		result.computeStatus();
 		if (!result.isSuccess() && !messages.isEmpty()) {
-			result.setUserFriendlyMessage(new LocalizableMessageList(messages, LocalizableMessageList.SPACE, null, null));
+			result.setUserFriendlyMessage(
+					new LocalizableMessageListBuilder()
+							.messages(messages)
+							.separator(LocalizableMessageList.SPACE)
+							.buildOptimized());
 		}
 		return result;
 	}

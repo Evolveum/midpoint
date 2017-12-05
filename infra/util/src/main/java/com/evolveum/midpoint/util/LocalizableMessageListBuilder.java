@@ -62,4 +62,12 @@ public class LocalizableMessageListBuilder {
 		return new LocalizableMessageList(messages, separator, prefix, postfix);
 	}
 
+	// beware, ignores prefix and postfix for singleton lists
+	public LocalizableMessage buildOptimized() {
+		if (messages.size() == 1) {
+			return messages.get(0);
+		} else {
+			return build();
+		}
+	}
 }

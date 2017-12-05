@@ -28,6 +28,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageList;
+import com.evolveum.midpoint.util.LocalizableMessageListBuilder;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -81,23 +83,14 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		if (context.getState() == ModelState.PRIMARY) {
 			EvaluationContext evalCtx = invokeInternal(context, task, result);
 			if (!evalCtx.messages.isEmpty()) {
-				throw new PolicyViolationException(translateMessages(evalCtx.messages), evalCtx.messages);
+				LocalizableMessage message = new LocalizableMessageListBuilder()
+						.messages(evalCtx.messages)
+						.separator(LocalizableMessageList.SEMICOLON)
+						.buildOptimized();
+				throw new PolicyViolationException(message);
 			}
         }
 		return HookOperationMode.FOREGROUND;
-
-	}
-
-	@NotNull
-	private String translateMessages(List<LocalizableMessage> messages) {
-		StringBuilder sb = new StringBuilder();
-		for (LocalizableMessage message : messages) {
-			if (sb.length() > 0) {
-				sb.append("; ");
-			}
-			sb.append(localizationService.translate(message, Locale.getDefault()));
-		}
-		return sb.toString();
 	}
 
 	@Override
