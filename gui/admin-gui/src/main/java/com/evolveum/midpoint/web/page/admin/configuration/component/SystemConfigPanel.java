@@ -23,7 +23,6 @@ import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -35,9 +34,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.AEPlevel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyConfigurationTypeDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
  * @author lazyman
@@ -48,8 +45,14 @@ public class SystemConfigPanel extends BasePanel<SystemConfigurationDto> {
     private static final String ID_GLOBAL_SECURITY_POLICY_CHOOSER = "securityPolicyChooser";
     private static final String ID_OBJECT_POLICY_EDITOR = "objectPolicyEditor";
     private static final String ID_GLOBAL_CHOOSEASSIGNEMNTPOLICYENFORCEMENT = "chooseAssignmentPolicyEnforcement";
-    private static final String ID_CLEANUP_AUDIT_RECORDS = "auditRecordsCleanup";
-    private static final String ID_CLEANUP_CLOSED_TASKS = "closedTasksCleanup";
+    private static final String ID_AUDIT_RECORDS_CLEANUP_AGE = "auditRecordsCleanupAge";
+    private static final String ID_AUDIT_RECORDS_CLEANUP_RECORDS = "auditRecordsCleanupRecords";
+    private static final String ID_CLOSED_TASKS_CLEANUP_AGE = "closedTasksCleanupAge";
+    private static final String ID_CERTIFICATION_CAMPAIGNS_CLEANUP_AGE = "certificationCampaignsCleanupAge";
+    private static final String ID_CERTIFICATION_CAMPAIGNS_CLEANUP_RECORDS = "certificationCampaignsCleanupRecords";
+    private static final String ID_REPORTS_CLEANUP_AGE = "reportsCleanupAge";
+    private static final String ID_RESULTS_CLEANUP_AGE = "resultsCleanupAge";
+    private static final String ID_RESULTS_CLEANUP_RECORDS = "resultsCleanupRecords";
 
     private static final String ID_DEPLOYMENT_INFO_NAME = "deploymentInfoName";
     private static final String ID_DEPLOYMENT_INFO_DESCRIPTION = "deploymentInfoDescription";
@@ -96,11 +99,47 @@ public class SystemConfigPanel extends BasePanel<SystemConfigurationDto> {
         assignmentPolicyEnforcementLevel.getInput().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(assignmentPolicyEnforcementLevel);
 
-        TextFormGroup auditRecordsField = new TextFormGroup(ID_CLEANUP_AUDIT_RECORDS, new PropertyModel<String>(getModel(), SystemConfigurationDto.F_AUDIT_CLEANUP), createStringResource("SystemConfigPanel.cleanupPolicy.auditRecords"), "SystemConfigPanel.tooltip.duration", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
-        TextFormGroup closedTasksField = new TextFormGroup(ID_CLEANUP_CLOSED_TASKS, new PropertyModel<String>(getModel(), SystemConfigurationDto.F_TASK_CLEANUP), createStringResource("SystemConfigPanel.cleanupPolicy.closedTasks"), "SystemConfigPanel.tooltip.duration", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
-
-        add(auditRecordsField);
-        add(closedTasksField);
+        final String DURATION_TOOLTIP_KEY = "SystemConfigPanel.tooltip.duration";
+        TextFormGroup auditRecordsAgeField = new TextFormGroup(ID_AUDIT_RECORDS_CLEANUP_AGE,
+                new PropertyModel<>(getModel(), SystemConfigurationDto.F_AUDIT_CLEANUP_AGE),
+                createStringResource("SystemConfigPanel.cleanupPolicy.auditRecords"),
+                DURATION_TOOLTIP_KEY, true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
+        add(auditRecordsAgeField);
+        TextFormGroup auditRecordsRecordsField = new TextFormGroup(ID_AUDIT_RECORDS_CLEANUP_RECORDS,
+                new PropertyModel<>(getModel(), SystemConfigurationDto.F_AUDIT_CLEANUP_RECORDS),
+                createStringResource("SystemConfigPanel.cleanupPolicy.auditRecords.records"),
+                null, true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
+        add(auditRecordsRecordsField);
+        TextFormGroup closedTasksAgeField = new TextFormGroup(ID_CLOSED_TASKS_CLEANUP_AGE,
+                new PropertyModel<>(getModel(), SystemConfigurationDto.F_TASK_CLEANUP_AGE),
+                createStringResource("SystemConfigPanel.cleanupPolicy.closedTasks"),
+                DURATION_TOOLTIP_KEY, true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
+        add(closedTasksAgeField);
+        TextFormGroup campaignsAgeField = new TextFormGroup(ID_CERTIFICATION_CAMPAIGNS_CLEANUP_AGE,
+                new PropertyModel<>(getModel(), SystemConfigurationDto.F_CAMPAIGN_CLEANUP_AGE),
+                createStringResource("SystemConfigPanel.cleanupPolicy.certificationCampaigns"),
+                DURATION_TOOLTIP_KEY, true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
+        add(campaignsAgeField);
+        TextFormGroup campaignsRecordsField = new TextFormGroup(ID_CERTIFICATION_CAMPAIGNS_CLEANUP_RECORDS,
+                new PropertyModel<>(getModel(), SystemConfigurationDto.F_CAMPAIGN_CLEANUP_RECORDS),
+                createStringResource("SystemConfigPanel.cleanupPolicy.certificationCampaigns.records"),
+                null, true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
+        add(campaignsRecordsField);
+        TextFormGroup reportsAgeField = new TextFormGroup(ID_REPORTS_CLEANUP_AGE,
+                new PropertyModel<>(getModel(), SystemConfigurationDto.F_REPORT_CLEANUP_AGE),
+                createStringResource("SystemConfigPanel.cleanupPolicy.reports"),
+                DURATION_TOOLTIP_KEY, true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
+        add(reportsAgeField);
+        TextFormGroup resultsAgeField = new TextFormGroup(ID_RESULTS_CLEANUP_AGE,
+                new PropertyModel<>(getModel(), SystemConfigurationDto.F_RESULT_CLEANUP_AGE),
+                createStringResource("SystemConfigPanel.cleanupPolicy.results"),
+                DURATION_TOOLTIP_KEY, true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
+        add(resultsAgeField);
+        TextFormGroup resultsRecordsField = new TextFormGroup(ID_RESULTS_CLEANUP_RECORDS,
+                new PropertyModel<>(getModel(), SystemConfigurationDto.F_RESULT_CLEANUP_RECORDS),
+                createStringResource("SystemConfigPanel.cleanupPolicy.results.records"),
+                null, true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
+        add(resultsRecordsField);
 
         TextFormGroup deploymentInfoName = new TextFormGroup(ID_DEPLOYMENT_INFO_NAME, new PropertyModel<String>(getModel(), "deploymentInformation.name"), createStringResource("SystemConfigPanel.deploymentInformation.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         TextAreaFormGroup deploymentInfoDescription = new TextAreaFormGroup(ID_DEPLOYMENT_INFO_DESCRIPTION, new PropertyModel<String>(getModel(), "deploymentInformation.description"), createStringResource("SystemConfigPanel.deploymentInformation.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
