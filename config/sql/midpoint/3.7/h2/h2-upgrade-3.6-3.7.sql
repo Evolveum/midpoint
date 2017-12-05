@@ -24,3 +24,6 @@ ALTER TABLE m_task
 ALTER TABLE m_audit_event ADD COLUMN attorneyName VARCHAR(255);
 ALTER TABLE m_audit_event ADD COLUMN attorneyOid VARCHAR(36);
 ALTER TABLE m_audit_event ADD COLUMN initiatorType INTEGER;
+
+CREATE INDEX iOpExecOwnerOid
+  ON m_operation_execution (owner_oid);
