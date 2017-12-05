@@ -637,7 +637,6 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			return isShowMetadata();
 		}
 
-		//TODO should objectStatus be used?
 		if (ValueStatus.DELETED.equals(status)){
 			return false;
 		}
