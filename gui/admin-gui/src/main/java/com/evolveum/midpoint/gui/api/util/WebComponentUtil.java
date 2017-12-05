@@ -958,7 +958,8 @@ public final class WebComponentUtil {
 		}
 		if (containerable instanceof AbstractPolicyConstraintType){
 			AbstractPolicyConstraintType constraint = (AbstractPolicyConstraintType) containerable;
-			String displayName = (StringUtils.isEmpty(constraint.getName()) ? (constraint.asPrismContainerValue().getPath().last()) : constraint.getName())
+			String displayName = (StringUtils.isEmpty(constraint.getName()) ? (constraint.asPrismContainerValue().getParent().getPath().last())
+					: constraint.getName())
 					+ (StringUtils.isEmpty(constraint.getDescription()) ? "" : (" - " + constraint.getDescription()));
 			return displayName;
 		}
