@@ -18,6 +18,8 @@ package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageList;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -34,6 +36,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -78,7 +81,7 @@ public class LocalizationServiceImpl implements LocalizationService {
                 String value = source.getMessage(key, translated, locale);
                 if (StringUtils.isNotEmpty(value)) {
                     if (LOG.isTraceEnabled()) {
-                        LOG.trace("Resolved key {} to value {} using message source {}", new Object[]{key, value, source});
+                        LOG.trace("Resolved key {} to value {} using message source {}", key, value, source);
                     }
 
                     return value;
@@ -93,19 +96,42 @@ public class LocalizationServiceImpl implements LocalizationService {
 
     @Override
     public String translate(LocalizableMessage msg, Locale locale) {
+        if (msg == null) {
+            return null;
+        } else if (msg instanceof SingleLocalizableMessage) {
+            return translate((SingleLocalizableMessage) msg, locale);
+        } else if (msg instanceof LocalizableMessageList) {
+            return translate((LocalizableMessageList) msg, locale);
+        } else {
+            throw new AssertionError("Unsupported localizable message type: " + msg);
+        }
+    }
+
+    // todo deduplicate with similar method in WebComponentUtil
+    public String translate(LocalizableMessageList msgList, Locale locale) {
+        String separator = translateIfPresent(msgList.getSeparator(), locale);
+        String prefix = translateIfPresent(msgList.getPrefix(), locale);
+        String suffix = translateIfPresent(msgList.getPostfix(), locale);
+        return msgList.getMessages().stream()
+                .map(m -> translate(m, locale))
+                .collect(Collectors.joining(separator, prefix, suffix));
+    }
+
+    private String translateIfPresent(LocalizableMessage msg, Locale locale) {
+        return msg != null ? translate(msg, locale) : "";
+    }
+
+    public String translate(SingleLocalizableMessage msg, Locale locale) {
         String translated = translate(msg.getKey(), msg.getArgs(), locale);
         if (StringUtils.isNotEmpty(translated)) {
             return translated;
         }
-
         if (msg.getFallbackLocalizableMessage() != null) {
             translated = translate(msg.getFallbackLocalizableMessage(), locale);
-
             if (StringUtils.isNotEmpty(translated)) {
                 return translated;
             }
         }
-
         return msg.getFallbackMessage();
     }
 

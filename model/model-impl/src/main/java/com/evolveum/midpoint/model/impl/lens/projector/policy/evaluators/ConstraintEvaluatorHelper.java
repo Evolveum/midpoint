@@ -91,10 +91,10 @@ public class ConstraintEvaluatorHelper {
 				task, result);
 	}
 
-	public <F extends FocusType> LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
+	public <F extends FocusType> SingleLocalizableMessageType interpretLocalizableMessageTemplate(LocalizableMessageTemplateType template,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return LensUtil.createLocalizableMessageType(template, createExpressionVariables(rctx), expressionFactory, prismContext, rctx.task, result);
+		return LensUtil.interpretLocalizableMessageTemplate(template, createExpressionVariables(rctx), expressionFactory, prismContext, rctx.task, result);
 	}
 
 	public <F extends FocusType> LocalizableMessage createLocalizableMessage(
@@ -102,12 +102,9 @@ public class ConstraintEvaluatorHelper {
 			LocalizableMessage builtInMessage, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (constraint.getPresentation() != null && constraint.getPresentation().getMessage() != null) {
-			LocalizableMessageType messageType =
-					createLocalizableMessageType(constraint.getPresentation().getMessage(), rctx, result);
-			return LocalizationUtil.parseLocalizableMessageType(messageType,
-					// if user-configured fallback message is present; we ignore the built-in constraint message
-					// TODO consider ignoring it always if custom presentation/message is provided
-					messageType.getFallbackMessage() != null ? null : builtInMessage);
+			SingleLocalizableMessageType messageType =
+					interpretLocalizableMessageTemplate(constraint.getPresentation().getMessage(), rctx, result);
+			return LocalizationUtil.toLocalizableMessage(messageType);
 		} else if (constraint.getName() != null) {
 			return new LocalizableMessageBuilder()
 					.key(SchemaConstants.POLICY_CONSTRAINT_KEY_PREFIX + constraint.getName())
@@ -123,12 +120,9 @@ public class ConstraintEvaluatorHelper {
 			LocalizableMessage builtInMessage, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (constraint.getPresentation() != null && constraint.getPresentation().getShortMessage() != null) {
-			LocalizableMessageType messageType =
-					createLocalizableMessageType(constraint.getPresentation().getShortMessage(), rctx, result);
-			return LocalizationUtil.parseLocalizableMessageType(messageType,
-					// if user-configured fallback message is present; we ignore the built-in constraint message
-					// TODO consider ignoring it always if custom presentation/message is provided
-					messageType.getFallbackMessage() != null ? null : builtInMessage);
+			SingleLocalizableMessageType messageType =
+					interpretLocalizableMessageTemplate(constraint.getPresentation().getShortMessage(), rctx, result);
+			return LocalizationUtil.toLocalizableMessage(messageType);
 		} else if (constraint.getName() != null) {
 			return new LocalizableMessageBuilder()
 					.key(SchemaConstants.POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + constraint.getName())

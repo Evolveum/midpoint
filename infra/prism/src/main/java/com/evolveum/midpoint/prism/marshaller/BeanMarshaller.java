@@ -249,17 +249,17 @@ public class BeanMarshaller {
 			} else {
 				QName fieldTypeName = inspector.findTypeName(field, getterResult.getClass(), namespace);
 				Object valueToMarshall;
-				if (getterResult instanceof JAXBElement){
+				if (getterResult instanceof JAXBElement) {
 					valueToMarshall = ((JAXBElement) getterResult).getValue();
 					elementName = ((JAXBElement) getterResult).getName();
-				} else{
+				} else {
 					valueToMarshall = getterResult;
 				}
 				XNode marshaled = marshallValue(valueToMarshall, fieldTypeName, isAttribute, ctx);
-				// TODO reconcile with setExplioitTypeDeclarationIfNeeded
+				// TODO reconcile with setExplicitTypeDeclarationIfNeeded
 				if (!getter.getReturnType().equals(valueToMarshall.getClass()) && getter.getReturnType().isAssignableFrom(valueToMarshall.getClass()) && !(valueToMarshall instanceof Enum)) {
-					PrismObjectDefinition def = prismContext.getSchemaRegistry().determineDefinitionFromClass(valueToMarshall.getClass());
-					if (def != null){
+					TypeDefinition def = prismContext.getSchemaRegistry().findTypeDefinitionByCompileTimeClass(valueToMarshall.getClass(), TypeDefinition.class);
+					if (def != null) {
 						QName type = def.getTypeName();
 						marshaled.setTypeQName(type);
 						marshaled.setExplicitTypeDeclaration(true);

@@ -49,11 +49,11 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PartiallyResolvedDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -70,7 +70,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHistoryEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
@@ -96,7 +95,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	private static final Trace LOGGER = TraceManager.getTrace(CredentialPolicyEvaluator.class);
 	
 	private static final ItemPath CREDENTIAL_RELATIVE_VALUE_PATH = new ItemPath(PasswordType.F_VALUE);
-	
+
 	// Configuration
 	
 	private PrismContext prismContext;
@@ -214,7 +213,8 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	}
 
 	protected abstract String getCredentialHumanReadableName();
-	
+	protected abstract String getCredentialHumanReadableKey();
+
 	protected boolean supportsHistory() {
 		return false;
 	}
@@ -359,13 +359,19 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		}
 	}
 
-	protected void validateProtectedStringValue(ProtectedStringType value) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		
+	protected void validateProtectedStringValue(ProtectedStringType value) throws PolicyViolationException, SchemaException,
+			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			SecurityViolationException {
+
 		OperationResult validationResult = getObjectValuePolicyEvaluator().validateProtectedStringValue(value);
 		result.addSubresult(validationResult);
 		
 		if (!validationResult.isAcceptable()) {
-			throw new PolicyViolationException("Provided "+getCredentialHumanReadableName()+" does not satisfy the policies: " + validationResult.getMessage());
+			SingleLocalizableMessage message = new LocalizableMessageBuilder()
+					.key("PolicyViolationException.message.credentials." + getCredentialHumanReadableKey())
+					.arg(validationResult.getUserFriendlyMessage())
+					.build();
+			throw new PolicyViolationException(message);
 		}
 	}
 
@@ -378,9 +384,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		}
 	}
 	
-	private void addMissingMetadata(PrismContainerValue<R> cVal)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-
+	private void addMissingMetadata(PrismContainerValue<R> cVal) throws SchemaException {
 		if (hasValueChange(cVal)) {
 			if (!hasMetadata(cVal)) {
 				MetadataType metadataType = metadataManager.createCreateMetadata(context, now, task);

@@ -37,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchC
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 
+import static java.util.Collections.emptySet;
+
 /**
  * @author semancik
  * @author mederly
@@ -643,4 +645,14 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		}
 	}
 
+	@NotNull
+	@Override
+	public Collection<TypeDefinition> getStaticSubTypes() {
+		return emptySet();          // not supported for now (this type itself is not statically defined)
+	}
+
+	@Override
+	public Integer getInstantiationOrder() {
+		return null;
+	}
 }

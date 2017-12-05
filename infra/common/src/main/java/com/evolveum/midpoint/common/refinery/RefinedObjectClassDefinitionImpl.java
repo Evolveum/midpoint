@@ -52,6 +52,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptySet;
+
 /**
  * @author semancik
  */
@@ -632,6 +634,12 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	@Override
 	public PrismContext getPrismContext() {
 		return originalObjectClassDefinition.getPrismContext();
+	}
+
+	@NotNull
+	@Override
+	public Collection<TypeDefinition> getStaticSubTypes() {
+		return emptySet();          // not supported for now (this type itself is not statically defined)
 	}
 
 	@Nullable
@@ -1305,5 +1313,10 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	public boolean isShared() {
 		return shared;
 	}
-	
+
+	@Override
+	public Integer getInstantiationOrder() {
+		return null;
+	}
+
 }

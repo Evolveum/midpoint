@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -73,7 +74,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 	@Autowired private ObjectPolicyAspectPart objectPolicyAspectPart;
 	@Autowired private ModelInteractionService modelInteractionService;
 
-    //region ------------------------------------------------------------ Things that execute on request arrival
+	//region ------------------------------------------------------------ Things that execute on request arrival
 
 	@Override
 	public boolean isEnabledByDefault() {
@@ -162,7 +163,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		} catch (CommonException|RuntimeException e) {
 			throw new SystemException("Couldn't create localizable message for approval display name: " + e.getMessage(), e);
 		}
-		return LocalizationUtil.parseLocalizableMessageType(localizableMessageType);
+		return LocalizationUtil.toLocalizableMessage(localizableMessageType);
 	}
 
 	@Nullable
@@ -194,10 +195,16 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		// now get the first message
 		List<TreeNode<EvaluatedPolicyRuleTriggerType>> trees = EvaluatedPolicyRuleUtil.arrangeForPresentationExt(triggers);
 		if (!trees.isEmpty() && trees.get(0).getUserObject().getShortMessage() != null) {
-			return LocalizationUtil.parseLocalizableMessageType(trees.get(0).getUserObject().getShortMessage());
+			return LocalizationUtil.toLocalizableMessage(trees.get(0).getUserObject().getShortMessage());
 		} else {
 			return null;
 		}
+	}
+
+	protected boolean useDefaultProcessName(LocalizableMessage processName) {
+		return LocalizableMessage.isEmpty(processName) ||
+				processName instanceof SingleLocalizableMessage &&
+						USE_DEFAULT_NAME_MARKER.equals(((SingleLocalizableMessage) processName).getKey());
 	}
 	//endregion
 }

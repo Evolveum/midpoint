@@ -31,7 +31,6 @@ public class LocalizableMessageBuilder {
 	private LocalizableMessage fallbackLocalizableMessage;
 
 	public LocalizableMessageBuilder() {
-		super();
 	}
 
 	public LocalizableMessageBuilder key(String key) {
@@ -39,8 +38,8 @@ public class LocalizableMessageBuilder {
 		return this;
 	}
 
-	public static LocalizableMessage buildKey(String key) {
-		return new LocalizableMessage(key, null, (LocalizableMessage) null);
+	public static SingleLocalizableMessage buildKey(String key) {
+		return new SingleLocalizableMessage(key, null, (SingleLocalizableMessage) null);
 	}
 
 	public LocalizableMessageBuilder args(Object... args) {
@@ -68,18 +67,18 @@ public class LocalizableMessageBuilder {
 		return this;
 	}
 
-	public static LocalizableMessage buildFallbackMessage(String fallbackMessage) {
-		return new LocalizableMessage(null, null, fallbackMessage);
+	public static SingleLocalizableMessage buildFallbackMessage(String fallbackMessage) {
+		return new SingleLocalizableMessage(null, null, fallbackMessage);
 	}
 
-	public LocalizableMessage build() {
+	public SingleLocalizableMessage build() {
 		if (fallbackMessage != null) {
 			if (fallbackLocalizableMessage != null) {
 				throw new IllegalStateException("fallbackMessage and fallbackLocalizableMessage cannot be both set");
 			}
-			return new LocalizableMessage(key, args.toArray(), fallbackMessage);
+			return new SingleLocalizableMessage(key, args.toArray(), fallbackMessage);
 		} else {
-			return new LocalizableMessage(key, args.toArray(), fallbackLocalizableMessage);
+			return new SingleLocalizableMessage(key, args.toArray(), fallbackLocalizableMessage);
 		}
 	}
 }

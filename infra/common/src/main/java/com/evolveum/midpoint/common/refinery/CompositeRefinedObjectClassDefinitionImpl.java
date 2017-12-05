@@ -40,6 +40,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptySet;
+
 /**
  * Used to represent combined definition of structural and auxiliary object classes.
  *
@@ -709,4 +711,14 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		return structuralObjectClassDefinition.isReferenceMarker();
 	}
 
+	@NotNull
+	@Override
+	public Collection<TypeDefinition> getStaticSubTypes() {
+		return emptySet();
+	}
+
+	@Override
+	public Integer getInstantiationOrder() {
+		return null;
+	}
 }

@@ -60,6 +60,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 /**
  * @author mederly
  */
+@SuppressWarnings("unused")
 public interface MidpointFunctions {
 	
 	/**
@@ -167,12 +168,12 @@ public interface MidpointFunctions {
 	 *             requested object does not exist
 	 * @throws SchemaException 
 	 * 				the object is not schema compliant
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws CommunicationException
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw ConfigurationException
+	 * @throws ConfigurationException
 	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
 	 * @throws IllegalArgumentException
 	 *             missing required parameter, wrong OID format, etc.
@@ -205,12 +206,12 @@ public interface MidpointFunctions {
 	 *             requested object does not exist
 	 * @throws SchemaException 
 	 * 				the object is not schema compliant
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws CommunicationException
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw ConfigurationException
+	 * @throws ConfigurationException
 	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
 	 * @throws IllegalArgumentException
 	 *             missing required parameter, wrong OID format, etc.
@@ -222,7 +223,7 @@ public interface MidpointFunctions {
 	 *             state
 	 */
 	<T extends ObjectType> T getObject(Class<T> type, String oid)
-			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 	
 	/**
 	 * <p>
@@ -285,7 +286,7 @@ public interface MidpointFunctions {
 	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
 	 * @throws PolicyViolationException
 	 * 				Policy violation was detected during processing of the object
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws IllegalArgumentException
@@ -356,7 +357,7 @@ public interface MidpointFunctions {
 	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
 	 * @throws PolicyViolationException
 	 * 				Policy violation was detected during processing of the object
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws IllegalArgumentException
@@ -427,7 +428,7 @@ public interface MidpointFunctions {
 	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
 	 * @throws PolicyViolationException
 	 * 				Policy violation was detected during processing of the object
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws IllegalArgumentException
@@ -435,7 +436,8 @@ public interface MidpointFunctions {
 	 * @throws SystemException
 	 *             unknown error from underlying layers or other unexpected state
 	 */
-	void executeChanges(ObjectDelta<? extends ObjectType>... deltas) 
+	@SuppressWarnings("unchecked")
+	void executeChanges(ObjectDelta<? extends ObjectType>... deltas)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
 			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
 
@@ -500,9 +502,12 @@ public interface MidpointFunctions {
 	 * @return owner of the account or null
 	 * @throws ObjectNotFoundException
 	 *             specified account was not found
-	 * @throws SchemaException 
-	 * @throws SecurityViolationException  
-	 * @throws CommunicationException 
+	 * @throws SchemaException
+	 *              todo
+	 * @throws SecurityViolationException
+	 *              todo
+	 * @throws CommunicationException
+	 *              todo
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 * @throws SystemException
@@ -547,7 +552,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -593,7 +598,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -631,7 +636,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -667,7 +672,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -701,7 +706,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -735,7 +740,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -769,7 +774,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -805,7 +810,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -839,7 +844,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -972,7 +977,7 @@ public interface MidpointFunctions {
     Collection<UserType> getManagersOfOrg(String orgOid) throws SchemaException, SecurityViolationException;
 
     /**
-     * Returns true if user is a manager of specified organiational unit. 
+     * Returns true if user is a manager of specified organizational unit.
      */
     boolean isManagerOf(UserType user, String orgOid);
     
@@ -1023,7 +1028,6 @@ public interface MidpointFunctions {
      * Returns aggregated delta that is to be executed on a given resource.
      * @param context model context
      * @param resourceOid OID of the resource in question
-     * @return
      */
     ObjectDeltaType getResourceDelta(ModelContext context, String resourceOid) throws SchemaException;
 
@@ -1033,9 +1037,8 @@ public interface MidpointFunctions {
 	/**
 	 * Returns a map from the translated xml attribute - value pairs.
 	 *
-	 * @param A string representation of xml formated data. 
-	 * @return
-	 * @throws SystemException when an xml stream exception occurs 
+	 * @param xml A string representation of xml formatted data.
+	 * @throws SystemException when an xml stream exception occurs
 	 */
 	Map<String, String> parseXmlToMap(String xml);
 	
