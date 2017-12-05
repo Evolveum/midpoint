@@ -29,5 +29,10 @@ public class MidPointMySQLDialect extends MySQL57InnoDBDialect {
     public MidPointMySQLDialect() {
         registerColumnType(Types.BOOLEAN, "bit");
     }
+
+    @Override
+    public String getTableTypeString() {
+        return " DEFAULT CHARACTER SET utf8 COLLATE utf8_bin" + super.getTableTypeString();
+    }
 }
 

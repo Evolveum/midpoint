@@ -30,10 +30,97 @@ public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacy
 
     private static final int MAX_LENGTH = 30;
 
+    @Override
+    public Identifier determinePrimaryTableName(ImplicitEntityNameSource source) {
+        Identifier i = super.determinePrimaryTableName(source);
+        LOGGER.trace("determinePrimaryTableName {} -> {}", source.getEntityNaming(),  i);
+        return i;
+    }
+
+    @Override
+    public Identifier determineCollectionTableName(ImplicitCollectionTableNameSource source) {
+        Identifier i = super.determineCollectionTableName(source);
+        LOGGER.trace("determineCollectionTableName {} {} -> {}", source.getOwningEntityNaming(), source.getOwningPhysicalTableName(),  i);
+        return i;
+    }
+
+    @Override
+    public Identifier determineForeignKeyName(ImplicitForeignKeyNameSource source) {
+        Identifier i = super.determineForeignKeyName(source);
+        LOGGER.trace("determineForeignKeyName {} {} -> {}", source.getTableName(), source.getColumnNames(),  i);
+        return i;
+    }
+
+    @Override
+    public Identifier determineUniqueKeyName(ImplicitUniqueKeyNameSource source) {
+        Identifier i = super.determineUniqueKeyName(source);
+        LOGGER.trace("determineUniqueKeyName {} {} -> {}", source.getTableName(), source.getColumnNames(),  i);
+        return i;
+    }
+
+    @Override
+    public Identifier determineIndexName(ImplicitIndexNameSource source) {
+        Identifier i = super.determineIndexName(source);
+        LOGGER.trace("determineIndexName {} {} -> {}", source.getTableName(), source.getColumnNames(),  i);
+        return i;
+    }
+
+    @Override
+    public Identifier determineMapKeyColumnName(ImplicitMapKeyColumnNameSource source) {
+        Identifier i = super.determineMapKeyColumnName(source);
+        LOGGER.trace("determineMapKeyColumnName {} -> {}", source.getPluralAttributePath(),  i);
+        return i;
+    }
+
+    @Override
+    public Identifier determineDiscriminatorColumnName(ImplicitDiscriminatorColumnNameSource source) {
+        Identifier i = super.determineDiscriminatorColumnName(source);
+        LOGGER.trace("determineDiscriminatorColumnName {} -> {}", source.getEntityNaming(),  i);
+        return i;
+    }
+
+    @Override
+    public Identifier determineAnyDiscriminatorColumnName(ImplicitAnyDiscriminatorColumnNameSource source) {
+        Identifier i = super.determineAnyDiscriminatorColumnName(source);
+        LOGGER.trace("determineAnyDiscriminatorColumnName {} -> {}", source.getAttributePath(), i);
+        return i;
+    }
+
+    @Override
+    public Identifier determineAnyKeyColumnName(ImplicitAnyKeyColumnNameSource source) {
+        Identifier i = super.determineAnyKeyColumnName(source);
+        LOGGER.trace("determineAnyKeyColumnName {} -> {}", source.getAttributePath(), i);
+        return i;
+    }
+
+    @Override
+    public Identifier determineListIndexColumnName(ImplicitIndexColumnNameSource source) {
+        Identifier i = super.determineListIndexColumnName(source);
+        LOGGER.trace("determineListIndexColumnName {} -> {}", source.getPluralAttributePath(), i);
+        return i;
+    }
+
+    @Override
+    public Identifier determineIdentifierColumnName(ImplicitIdentifierColumnNameSource source) {
+        Identifier i = super.determineIdentifierColumnName(source);
+        LOGGER.trace("determineIdentifierColumnName {} {} -> {}", source.getEntityNaming(), source.getIdentifierAttributePath(), i);
+        return i;
+    }
+
+    @Override
+    public Identifier determinePrimaryKeyJoinColumnName(ImplicitPrimaryKeyJoinColumnNameSource source) {
+        Identifier i = super.determinePrimaryKeyJoinColumnName(source);
+        LOGGER.trace("determinePrimaryKeyJoinColumnName {} {} -> {}", source.getReferencedTableName(), source.getReferencedPrimaryKeyColumnName(), i);
+        return i;
+    }
 
     @Override
     public Identifier determineJoinColumnName(ImplicitJoinColumnNameSource source) {
-        return super.determineJoinColumnName(source);
+        Identifier i = super.determineJoinColumnName(source);
+
+        Identifier real = toIdentifier(source.getReferencedColumnName().getText(), source.getBuildingContext());
+        LOGGER.trace("determineJoinColumnName {} {} -> {}, {}", source.getReferencedTableName(), source.getReferencedColumnName(), i, real);
+        return real;
     }
 
     @Override

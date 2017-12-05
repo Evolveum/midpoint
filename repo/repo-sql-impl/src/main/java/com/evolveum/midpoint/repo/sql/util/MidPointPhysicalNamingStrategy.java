@@ -43,7 +43,7 @@ public class MidPointPhysicalNamingStrategy extends PhysicalNamingStrategyStanda
     @Override
     public Identifier toPhysicalTableName(Identifier identifier, JdbcEnvironment jdbcEnvironment) {
         String name = identifier.getText();
-        if (name.startsWith("m_")) {
+        if (name.startsWith("m_") || "hibernate_sequence".equals(name)) {
             LOGGER.trace("toPhysicalTableName {} {}", identifier, identifier);
             return identifier;
         }
