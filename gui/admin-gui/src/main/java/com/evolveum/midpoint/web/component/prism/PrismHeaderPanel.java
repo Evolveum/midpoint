@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -35,7 +36,7 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
 	private static final long serialVersionUID = 1L;
 
 	
-	private static final String ID_LABEL = "label";
+	protected static final String ID_LABEL = "label";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismHeaderPanel.class);
 
@@ -51,39 +52,16 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
 		setOutputMarkupId(true);
 		
 		initButtons();
+		initHeaderLabel();
 
-		String displayName = getLabel();
-		if (StringUtils.isEmpty(displayName)) {
-			displayName = "displayName.not.set";
-		}
-		StringResourceModel headerLabelModel = createStringResource(displayName);
-//        IModel<String> headerLabelModel = new AbstractReadOnlyModel<String>() {
-//        	private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public String getObject() {
-//
-//				PrismWrapper wrapper = getModelObject();
-//				String displayName = "displayName.not.set";
-//				if (wrapper instanceof ContainerValueWrapper) {
-//					displayName = ((ContainerValueWrapper) wrapper).getDisplayName();
-//				} else if (wrapper instanceof ContainerWrapper) {
-//		    		displayName = ((ContainerWrapper)wrapper).getDisplayName();
-//		    	} else if (wrapper instanceof ObjectWrapper) {
-//		    		// HACK HACK HACK
-//			        // If we would display label for the object itself, display label for main container instead
-//			        // the "object label" is actually displayed in front of main container
-//					ContainerWrapper mainContainerWrapper = ((ObjectWrapper) wrapper).findMainContainerWrapper();
-//					if (mainContainerWrapper != null) {
-//						displayName = mainContainerWrapper.getDisplayName();
-//					} else {
-//						displayName = ((ObjectWrapper) wrapper).getDisplayName();		// e.g. resource wizard needs this
-//					}
-//		    	}
-//		    	return getString(displayName, null, displayName);
-//			}
-//		};
+    }
 
+    protected void initHeaderLabel(){
+        String displayName = getLabel();
+        if (StringUtils.isEmpty(displayName)) {
+            displayName = "displayName.not.set";
+        }
+        StringResourceModel headerLabelModel = createStringResource(displayName);
         add(new Label(ID_LABEL, headerLabelModel));
     }
 

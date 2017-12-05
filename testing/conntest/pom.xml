@@ -128,7 +128,19 @@
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>security-enforcer-impl</artifactId>
+			<version>3.7-SNAPSHOT</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>security-impl</artifactId>
+			<version>3.7-SNAPSHOT</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-common</artifactId>
 			<version>3.7-SNAPSHOT</version>
 			<scope>runtime</scope>
 		</dependency>

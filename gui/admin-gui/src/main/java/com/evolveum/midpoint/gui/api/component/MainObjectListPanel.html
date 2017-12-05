@@ -21,9 +21,11 @@
     </form>
 
     <wicket:fragment wicket:id="buttonBar">
-        <a wicket:id="newObject" class="btn btn-success btn-sm"/>
-        <a wicket:id="refresh" class="btn btn-default btn-sm"/>
-        <a wicket:id="importObject" class="btn btn-primary btn-sm"/>
-        <span wicket:id="exportData"/>
+    	<div class="btn-group">
+        	<button wicket:id="newObject" class="btn btn-success btn-sm" type="button"/>
+	        <button wicket:id="refresh" class="btn btn-default btn-sm" type="button"/>
+	        <button wicket:id="importObject" class="btn btn-default btn-sm" type="button"/>
+        	<span wicket:id="exportData"/>
+        </div>
     </wicket:fragment>
 </wicket:panel>

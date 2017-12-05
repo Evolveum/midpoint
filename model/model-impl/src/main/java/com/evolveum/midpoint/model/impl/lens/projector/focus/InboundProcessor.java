@@ -1108,16 +1108,10 @@ public class InboundProcessor {
 						DebugUtil.debugDump(diffDelta, 1));
 			}
 			
-			if (hasRange) {
-				LOGGER.trace("Skipping merge for diff delta because mapping contains range. All plus/minus/zero set were computed during renge checking");
-				LOGGER.trace("Returning delta: {}", outputFocusItemDelta.debugDump());
-				return outputFocusItemDelta;
-			}
-			
 			if (diffDelta != null) {
 				// this is probably not correct, as the default for
 				// inbounds should be TRUE
-				if (tolerant) {
+				if (tolerant || hasRange) {
 					if (diffDelta.isReplace()) {
 						if (diffDelta.getValuesToReplace().isEmpty()) {
 							diffDelta.resetValuesToReplace();
@@ -1141,8 +1135,8 @@ public class InboundProcessor {
 					} else {
 						diffDelta.resetValuesToDelete();
 						if (LOGGER.isTraceEnabled()) {
-							LOGGER.trace("Removing delete part of the diff delta because mapping is tolerant:\n{}",
-									diffDelta.debugDump());
+							LOGGER.trace("Removing delete part of the diff delta because mapping settings are tolerant={}, hasRange={}:\n{}",
+									tolerant, hasRange, diffDelta.debugDump());
 						}
 					}
 				}
