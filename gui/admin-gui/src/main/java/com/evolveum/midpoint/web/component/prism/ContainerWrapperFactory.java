@@ -22,6 +22,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -373,7 +374,18 @@ public class ContainerWrapperFactory {
 	     if (QNameUtil.match(AbstractRoleType.F_APPROVER_REF, def.getName()) || QNameUtil.match(AbstractRoleType.F_APPROVER_REF, def.getName())) {
 	    	 refWrapper.setTargetTypes(Arrays.asList(FocusType.COMPLEX_TYPE, OrgType.COMPLEX_TYPE));
 	     } else {
-	    	 refWrapper.setTargetTypes(Arrays.asList(def.getTargetTypeName()));
+	    	 
+	    	 QName targetType = def.getTargetTypeName();
+	    	 
+	    	 if (targetType == null || ObjectType.COMPLEX_TYPE.equals(targetType)) {
+	    		 refWrapper.setTargetTypes(WebComponentUtil.createObjectTypeList());
+	    	 } else if (AbstractRoleType.COMPLEX_TYPE.equals(targetType)) {
+	    		 refWrapper.setTargetTypes(WebComponentUtil.createAbstractRoleTypeList());
+	    	 } else if (FocusType.COMPLEX_TYPE.equals(targetType)) {
+	    		 refWrapper.setTargetTypes(WebComponentUtil.createFocusTypeList());
+	    	 } else {
+	    		 refWrapper.setTargetTypes(Arrays.asList(def.getTargetTypeName()));
+	    	 }
 	     }
 	     
 	     return refWrapper;
