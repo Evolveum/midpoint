@@ -410,7 +410,9 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		applySchemaExtensions();
 		for (SchemaDescription schemaDescription : schemaDescriptions) {
 			if (schemaDescription.getSchema() != null) {
-				resolveMissingTypeDefinitionsInGlobalItemDefinitions((PrismSchemaImpl) schemaDescription.getSchema());
+				PrismSchemaImpl schema = (PrismSchemaImpl) schemaDescription.getSchema();
+				resolveMissingTypeDefinitionsInGlobalItemDefinitions(schema);
+				fillInSubtypes(schema);
 			}
 		}
 		if (LOGGER.isTraceEnabled()) {
@@ -421,6 +423,18 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 				if (schemaDescription.getSchema() != null) {
 					LOGGER.trace("{}", schemaDescription.getSchema().debugDump());
 				}
+			}
+		}
+	}
+
+	private void fillInSubtypes(PrismSchemaImpl schema) {
+		for (TypeDefinition typeDefinition : schema.getDefinitions(TypeDefinition.class)) {
+			if (typeDefinition.getSuperType() == null) {
+				continue;
+			}
+			TypeDefinition superTypeDef = findTypeDefinitionByType(typeDefinition.getSuperType(), TypeDefinition.class);
+			if (superTypeDef instanceof TypeDefinitionImpl) {
+				((TypeDefinitionImpl) superTypeDef).addStaticSubType(typeDefinition);
 			}
 		}
 	}

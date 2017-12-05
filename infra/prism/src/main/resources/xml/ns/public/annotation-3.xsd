@@ -434,6 +434,19 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="instantiationOrder" type="xsd:int">
+        <xsd:annotation>
+            <xsd:documentation>
+                When parsing a field that is known to contain an abstract data type (e.g. LocalizableMessageType)
+                and has no xsi:type, one has to guess which subtype to instantiate. Candidate subtypes can be derived
+                when looking at sub-items. However, if there are more candidates, one of them must be selected.
+                This is done using instantiationOrder annotation.
+
+                EXPERIMENTAL. Maybe this is really a wrong idea, so be prepared it could be removed.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
 </xsd:schema>
 
 

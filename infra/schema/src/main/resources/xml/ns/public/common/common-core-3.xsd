@@ -18185,6 +18185,9 @@
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.7</a:since>
+				<!-- Make this class a 'default' instance of LocalizableMessageType,
+				     to avoid the need of specifying xsi:type for empty messages (experimental) -->
+				<a:instantiationOrder>1</a:instantiationOrder>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexContent>

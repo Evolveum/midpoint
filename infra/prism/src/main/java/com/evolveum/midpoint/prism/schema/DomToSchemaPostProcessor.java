@@ -208,6 +208,8 @@ class DomToSchemaPostProcessor {
 			ctd.setSuperType(superType);
 		}
 
+		setInstantiationOrder(ctd, complexType.getAnnotation());
+
 		if (isObjectDefinition(complexType)) {
 			ctd.setObjectMarker(true);
 		}
@@ -231,10 +233,8 @@ class DomToSchemaPostProcessor {
 
 		extractDocumentation(ctd, complexType.getAnnotation());
 
-		if (getSchemaRegistry() != null) {
-			Class<?> compileTimeClass = getSchemaRegistry().determineCompileTimeClass(ctd.getTypeName());
-			ctd.setCompileTimeClass(compileTimeClass);
-		}
+		Class<?> compileTimeClass = getSchemaRegistry().determineCompileTimeClass(ctd.getTypeName());
+		ctd.setCompileTimeClass(compileTimeClass);
 
 		definitionFactory.finishComplexTypeDefinition(ctd, complexType, prismContext,
 				complexType.getAnnotation());
@@ -253,6 +253,11 @@ class DomToSchemaPostProcessor {
 
 		return ctd;
 
+	}
+
+	private void setInstantiationOrder(TypeDefinitionImpl typeDefinition, XSAnnotation annotation) throws SchemaException {
+		Integer order = SchemaProcessorUtil.getAnnotationInteger(annotation, A_INSTANTIATION_ORDER);
+		typeDefinition.setInstantiationOrder(order);
 	}
 
 	private void processSimpleTypeDefinitions(XSSchemaSet set) throws SchemaException {
@@ -284,6 +289,8 @@ class DomToSchemaPostProcessor {
 		if (superType != null) {
 			std.setSuperType(superType);
 		}
+
+		setInstantiationOrder(std, simpleType.getAnnotation());
 
 		extractDocumentation(std, simpleType.getAnnotation());
 
