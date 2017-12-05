@@ -47,6 +47,8 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptySet;
+
 /**
  * Analogous to PrismUnmarshaller, this class unmarshals atomic values from XNode tree structures.
  * Atomic values are values that can be used as property values (i.e. either simple types, or
@@ -191,7 +193,7 @@ public class BeanUnmarshaller {
 	 */
 	private <T> T unmarshallPrimitive(PrimitiveXNode<T> prim, Class<T> beanClass, ParsingContext pc) throws SchemaException {
 		if (prim.isEmpty()) {
-			return instantiate(beanClass);		// Special case. Just return empty object
+			return instantiateWithSubtypeGuess(beanClass, emptySet());		// Special case. Just return empty object
 		}
 
 		Field valueField = XNodeProcessorUtil.findXmlValueField(beanClass);
@@ -260,9 +262,24 @@ public class BeanUnmarshaller {
 				throw new SchemaException("SearchFilterType is not supported in combination of heterogeneous list.");
 			}
 		} else {
-			T bean = instantiate(beanClass);
+			T bean = instantiateWithSubtypeGuess(beanClass, mapOrList);
 			return unmarshalFromMapOrHeteroListToBean(bean, mapOrList, null, pc);
 		}
+	}
+
+	private <T> T instantiateWithSubtypeGuess(@NotNull Class<T> beanClass, XNode mapOrList) throws SchemaException {
+		if (!(mapOrList instanceof MapXNode)) {
+			return instantiate(beanClass);          // guessing is supported only for traditional maps now
+		}
+		return instantiateWithSubtypeGuess(beanClass, ((MapXNode) mapOrList).keySet());
+	}
+
+	private <T> T instantiateWithSubtypeGuess(@NotNull Class<T> beanClass, Collection<QName> fields) throws SchemaException {
+		if (!Modifier.isAbstract(beanClass.getModifiers())) {
+			return instantiate(beanClass);          // non-abstract classes are currently instantiated directly (could be changed)
+		}
+		Class<? extends T> subclass = inspector.findMatchingSubclass(beanClass, fields);
+		return instantiate(subclass);
 	}
 
 	private <T> T instantiate(@NotNull Class<T> beanClass) {

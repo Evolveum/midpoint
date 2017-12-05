@@ -16,13 +16,6 @@
 package com.evolveum.midpoint.util.exception;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.ShortDumpable;
-
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
  * Superclass for all common midPoint exceptions.
@@ -33,7 +26,6 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 public abstract class CommonException extends Exception {
 
 	LocalizableMessage userFriendlyMessage;
-	List<LocalizableMessage> otherUserFriendlyMessages;
 
 	public CommonException() {
 	}
@@ -70,8 +62,6 @@ public abstract class CommonException extends Exception {
 	 * that the exception represents. E.g. "Communication error", "Policy violation", etc.
 	 *
 	 * TOTO: switch return value to a localized message
-	 *
-	 * @return
 	 */
 	public abstract String getErrorTypeMessage();
 
@@ -93,13 +83,7 @@ public abstract class CommonException extends Exception {
 		if (userFriendlyMessage == null) {
 			return super.toString();
 		} else {
-			return super.toString() +
-					Stream.concat(Stream.of(userFriendlyMessage), emptyIfNull(otherUserFriendlyMessages).stream())
-						.map(ShortDumpable::shortDump)
-						.collect(Collectors.joining("; ", " [", "]"));
+			return super.toString() + " [" + userFriendlyMessage.shortDump() + "]";
 		}
 	}
-
-
-
 }

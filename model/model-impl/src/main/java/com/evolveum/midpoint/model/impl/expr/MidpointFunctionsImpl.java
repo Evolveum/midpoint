@@ -94,7 +94,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.schema.util.LocalizationUtil.parseLocalizableMessageType;
+import static com.evolveum.midpoint.schema.util.LocalizationUtil.toLocalizableMessage;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
 import static java.util.Collections.singleton;
@@ -1584,6 +1584,6 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
 	@Override
 	public String translate(LocalizableMessageType message) {
-		return localizationService.translate(parseLocalizableMessageType(message), Locale.getDefault());
+		return localizationService.translate(LocalizationUtil.toLocalizableMessage(message), Locale.getDefault());
 	}
 }

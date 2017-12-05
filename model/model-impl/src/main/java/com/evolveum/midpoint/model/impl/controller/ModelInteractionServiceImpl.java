@@ -1416,6 +1416,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			ConfigurationException, SecurityViolationException {
 		ExpressionVariables vars = new ExpressionVariables();
 		vars.addVariableDefinitions(variables);
-		return LensUtil.createLocalizableMessageType(template, vars, expressionFactory, prismContext, task, result);
+		return LensUtil.interpretLocalizableMessageTemplate(template, vars, expressionFactory, prismContext, task, result);
 	}
 }

@@ -90,12 +90,10 @@ import org.jetbrains.annotations.Nullable;
 import org.joda.time.format.DateTimeFormat;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -128,9 +126,7 @@ import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -152,7 +148,6 @@ import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -178,7 +173,6 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -346,10 +340,22 @@ public final class WebComponentUtil {
 		if (localizableMessage == null) {
 			return null;
 		}
-		return resolveLocalizableMessage(LocalizationUtil.parseLocalizableMessageType(localizableMessage), component);
+		return resolveLocalizableMessage(LocalizationUtil.toLocalizableMessage(localizableMessage), component);
 	}
 
 	public static String resolveLocalizableMessage(LocalizableMessage localizableMessage, Component component) {
+		if (localizableMessage == null) {
+			return null;
+		} else if (localizableMessage instanceof SingleLocalizableMessage) {
+			return resolveLocalizableMessage((SingleLocalizableMessage) localizableMessage, component);
+		} else if (localizableMessage instanceof LocalizableMessageList) {
+			return resolveLocalizableMessage((LocalizableMessageList) localizableMessage, component);
+		} else {
+			throw new AssertionError("Unsupported localizable message type: " + localizableMessage);
+		}
+	}
+
+	private static String resolveLocalizableMessage(SingleLocalizableMessage localizableMessage, Component component) {
 		if (localizableMessage == null) {
 			return null;
 		}
@@ -360,7 +366,11 @@ public final class WebComponentUtil {
 					break; // the key exists => we can use the current localizableMessage
 				}
 			}
-			localizableMessage = localizableMessage.getFallbackLocalizableMessage();
+			if (localizableMessage.getFallbackLocalizableMessage() instanceof SingleLocalizableMessage) {
+				localizableMessage = (SingleLocalizableMessage) localizableMessage.getFallbackLocalizableMessage();
+			} else {
+				return resolveLocalizableMessage(localizableMessage.getFallbackLocalizableMessage(), component);
+			}
 		}
 		String key = localizableMessage.getKey() != null ? localizableMessage.getKey() : localizableMessage.getFallbackMessage();
 		StringResourceModel stringResourceModel = new StringResourceModel(key, component)
@@ -372,8 +382,22 @@ public final class WebComponentUtil {
 		return rv;
 	}
 
+	// todo deduplicate with similar method in LocalizationServiceImpl
+	private static String resolveLocalizableMessage(LocalizableMessageList msgList, Component component) {
+		String separator = resolveIfPresent(msgList.getSeparator(), component);
+		String prefix = resolveIfPresent(msgList.getPrefix(), component);
+		String suffix = resolveIfPresent(msgList.getPostfix(), component);
+		return msgList.getMessages().stream()
+				.map(m -> resolveLocalizableMessage(m, component))
+				.collect(Collectors.joining(separator, prefix, suffix));
+	}
+
+	private static String resolveIfPresent(LocalizableMessage msg, Component component) {
+		return msg != null ? resolveLocalizableMessage(msg, component) : "";
+	}
+
 	private static Object[] resolveArguments(Object[] args, Component component) {
-		if (args == null){
+		if (args == null) {
 			return null;
 		}
 		Object[] rv = new Object[args.length];
@@ -958,7 +982,8 @@ public final class WebComponentUtil {
 		}
 		if (containerable instanceof AbstractPolicyConstraintType){
 			AbstractPolicyConstraintType constraint = (AbstractPolicyConstraintType) containerable;
-			String displayName = (StringUtils.isEmpty(constraint.getName()) ? (constraint.asPrismContainerValue().getPath().last()) : constraint.getName())
+			String displayName = (StringUtils.isEmpty(constraint.getName()) ? (constraint.asPrismContainerValue().getParent().getPath().last())
+					: constraint.getName())
 					+ (StringUtils.isEmpty(constraint.getDescription()) ? "" : (" - " + constraint.getDescription()));
 			return displayName;
 		}

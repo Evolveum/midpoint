@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.common.stringpolicy;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.xml.datatype.DatatypeConstants;
@@ -24,7 +23,6 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -34,17 +32,15 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -52,12 +48,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHistoryEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
@@ -193,21 +186,21 @@ public class ObjectValuePolicyEvaluator {
 
 	public OperationResult validateStringValue(String clearValue) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		OperationResult result = new OperationResult(OPERATION_VALIDATE_VALUE);
-		// TODO: later we need to replace the string message with something more structured.
-		// something that can be localized
-		StringBuilder messageBuilder = new StringBuilder();
+		List<LocalizableMessage> messages = new ArrayList<>();
 
 		prepare();
 
-		validateMinAge(messageBuilder, result);
-		validateHistory(clearValue, messageBuilder, result);
-		validateStringPolicy(clearValue, messageBuilder, result);
+		validateMinAge(messages, result);
+		validateHistory(clearValue, messages, result);
+		validateStringPolicy(clearValue, messages, result);
 
-		String message = messageBuilder.toString();
-		if (message.isEmpty()) {
-			result.computeStatus();
-		} else {
-			result.computeStatus(message);
+		result.computeStatus();
+		if (!result.isSuccess() && !messages.isEmpty()) {
+			result.setUserFriendlyMessage(
+					new LocalizableMessageListBuilder()
+							.messages(messages)
+							.separator(LocalizableMessageList.SPACE)
+							.buildOptimized());
 		}
 		return result;
 	}
@@ -258,7 +251,7 @@ public class ObjectValuePolicyEvaluator {
 		credentialPolicy = SecurityUtil.getEffectiveNonceCredentialsPolicy(securityPolicy);
 	}
 
-	private void validateMinAge(StringBuilder messageBuilder, OperationResult result) {
+	private void validateMinAge(List<LocalizableMessage> messages, OperationResult result) {
 		if (oldCredentialType == null) {
 			return;
 		}
@@ -281,25 +274,23 @@ public class ObjectValuePolicyEvaluator {
 		XMLGregorianCalendar changeAllowedTimestamp = XmlTypeConverter.addDuration(lastChangeTimestamp, minAge);
 		if (changeAllowedTimestamp.compare(now) == DatatypeConstants.GREATER) {
 			LOGGER.trace("Password minAge violated. lastChange={}, minAge={}, now={}", lastChangeTimestamp, minAge, now);
-			String msg = shortDesc + " could not be changed because password minimal age was not yet reached.";
-			result.addSubresult(new OperationResult("Password minimal age",
-					OperationResultStatus.FATAL_ERROR, msg));
-			messageBuilder.append(msg);
-			messageBuilder.append("\n");
+			LocalizableMessage msg = LocalizableMessageBuilder.buildKey("ValuePolicy.minAgeNotReached");
+			result.addSubresult(new OperationResult("Password minimal age", OperationResultStatus.FATAL_ERROR, msg));
+			messages.add(msg);
 		}
 	}
 
-	private void validateStringPolicy(String clearValue, StringBuilder messageBuilder, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private void validateStringPolicy(String clearValue, List<LocalizableMessage> messages, OperationResult result) throws SchemaException,
+			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (clearValue == null) {
 			int minOccurs = getMinOccurs();
 			if (minOccurs == 0) {
 				return;
 			} else {
-				String msg = shortDesc + " must have a value.";
+				LocalizableMessage msg = LocalizableMessageBuilder.buildKey("ValuePolicy.valueMustBePresent");
 				result.addSubresult(new OperationResult("minOccurs", OperationResultStatus.FATAL_ERROR, msg));
-				messageBuilder.append(msg);
-				messageBuilder.append("\n");
+				messages.add(msg);
 				return;
 			}
 		}
@@ -309,19 +300,19 @@ public class ObjectValuePolicyEvaluator {
 			return;
 		}
 
-		valuePolicyProcessor.validateValue(clearValue, valuePolicy, originResolver, messageBuilder,
+		valuePolicyProcessor.validateValue(clearValue, valuePolicy, originResolver, messages,
 				"user " + shortDesc + " value policy validation", task, result);
 	}
 
-	private void validateHistory(String clearValue, StringBuilder messageBuilder, OperationResult result) throws SchemaException {
+	private void validateHistory(String clearValue, List<LocalizableMessage> messages, OperationResult result) throws SchemaException {
 
 		if (!QNameUtil.match(CredentialsType.F_PASSWORD, credentialQName)) {
-			LOGGER.trace("Skipping validating {} history, only passowrd history is supported", shortDesc);
+			LOGGER.trace("Skipping validating {} history, only password history is supported", shortDesc);
 			return;
 		}
 
-		int historyLegth = getHistoryLength();
-		if (historyLegth == 0) {
+		int historyLength = getHistoryLength();
+		if (historyLength == 0) {
 			LOGGER.trace("Skipping validating {} history, because history length is set to zero", shortDesc);
 			return;
 		}
@@ -337,7 +328,7 @@ public class ObjectValuePolicyEvaluator {
 
 		if (passwordEquals(newPasswordPs, currentPasswordType.getValue())) {
 			LOGGER.trace("{} matched current value", shortDesc);
-			appendHistoryViolationMessage(messageBuilder, result);
+			appendHistoryViolationMessage(messages, result);
 			return;
 		}
 
@@ -345,13 +336,13 @@ public class ObjectValuePolicyEvaluator {
 				currentPasswordType.asPrismContainerValue().findContainer(PasswordType.F_HISTORY_ENTRY), false);
 		int i = 1;
 		for (PasswordHistoryEntryType historyEntry: sortedHistoryList) {
-			if (i >= historyLegth) {
+			if (i >= historyLength) {
 				// success (history has more entries than needed)
 				return;
 			}
 			if (passwordEquals(newPasswordPs, historyEntry.getValue())) {
 				LOGGER.trace("Password history entry #{} matched (changed {})", i, historyEntry.getChangeTimestamp());
-				appendHistoryViolationMessage(messageBuilder, result);
+				appendHistoryViolationMessage(messages, result);
 				return;
 			}
 			i++;
@@ -386,24 +377,23 @@ public class ObjectValuePolicyEvaluator {
 		}
 		List<PasswordHistoryEntryType> historyEntryValues = (List<PasswordHistoryEntryType>) historyEntries.getRealValues();
 
-		Collections.sort(historyEntryValues, (o1, o2) -> {
-				XMLGregorianCalendar changeTimestampFirst = o1.getChangeTimestamp();
-				XMLGregorianCalendar changeTimestampSecond = o2.getChangeTimestamp();
+		historyEntryValues.sort((o1, o2) -> {
+			XMLGregorianCalendar changeTimestampFirst = o1.getChangeTimestamp();
+			XMLGregorianCalendar changeTimestampSecond = o2.getChangeTimestamp();
 
-				if (ascending) {
-					return changeTimestampFirst.compare(changeTimestampSecond);
-				} else {
-					return changeTimestampSecond.compare(changeTimestampFirst);
-				}
-			});
+			if (ascending) {
+				return changeTimestampFirst.compare(changeTimestampSecond);
+			} else {
+				return changeTimestampSecond.compare(changeTimestampFirst);
+			}
+		});
 		return historyEntryValues;
 	}
 
-	private void appendHistoryViolationMessage(StringBuilder messageBuilder, OperationResult result) {
-		String msg = "Password couldn't be changed because it was recently used.";
+	private void appendHistoryViolationMessage(List<LocalizableMessage> messages, OperationResult result) {
+		LocalizableMessage msg = LocalizableMessageBuilder.buildKey("ValuePolicy.valueRecentlyUsed");
 		result.addSubresult(new OperationResult("history", OperationResultStatus.FATAL_ERROR, msg));
-		messageBuilder.append(msg);
-		messageBuilder.append("\n");
+		messages.add(msg);
 	}
 
 	private String getClearValue(ProtectedStringType protectedString) {
@@ -417,7 +407,7 @@ public class ObjectValuePolicyEvaluator {
 			try {
 				passwordStr = protector.decryptString(protectedString);
 			} catch (EncryptionException e) {
-				throw new SystemException("Failed to deprypt " + shortDesc + ": " , e);
+				throw new SystemException("Failed to decrypt " + shortDesc + ": " + e.getMessage(), e);
 			}
 		}
 
@@ -431,7 +421,7 @@ public class ObjectValuePolicyEvaluator {
 		try {
 			return protector.compare(newPasswordPs, currentPassword);
 		} catch (EncryptionException e) {
-			throw new SystemException("Failed to compare " + shortDesc + ": " , e);
+			throw new SystemException("Failed to compare " + shortDesc + ": " + e.getMessage(), e);
 		}
 	}
 }

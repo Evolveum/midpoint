@@ -43,6 +43,11 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
 						getModelObject().getPath().append(AssignmentType.F_POLICY_RULE));
 
 		ContainerWrapper<PolicyRuleType> policyRules = policyRuleModel.getObject();
+		if (policyRules.getValues() != null){
+			policyRules.getValues().forEach(policyRuleContainerValueWrapper -> {
+				policyRuleContainerValueWrapper.setShowEmpty(true, false);
+			});
+		}
 		policyRules.setShowEmpty(true, false);
 		setRemoveContainerButtonVisibility(policyRules);
 		setAddContainerButtonVisibility(policyRules);

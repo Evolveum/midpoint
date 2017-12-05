@@ -147,4 +147,8 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
 	 * USE WITH CARE. Be sure no shared definitions would be affected by this operation!
 	 */
 	void trimTo(@NotNull Collection<ItemPath> paths);
+
+	default boolean containsItemDefinition(QName itemName) {
+		return findItemDefinition(itemName) != null;
+	}
 }

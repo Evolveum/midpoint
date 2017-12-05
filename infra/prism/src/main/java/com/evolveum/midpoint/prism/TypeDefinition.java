@@ -16,9 +16,11 @@
 
 package com.evolveum.midpoint.prism;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
 
 /**
  * @author mederly
@@ -38,4 +40,12 @@ public interface TypeDefinition extends Definition {
 	 */
 	@Nullable
 	QName getSuperType();
+
+	/**
+	 * Subtypes - but only these that are a part of the static schema. A little bit experimental. :)
+	 */
+	@NotNull
+	Collection<TypeDefinition> getStaticSubTypes();
+
+	Integer getInstantiationOrder();
 }

@@ -46,6 +46,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -157,13 +158,6 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.FailableProcessor;
-import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -4683,10 +4677,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		String password = getPassword(user);
 		display("Password of "+user, password);
 		PrismObject<ValuePolicyType> passwordPolicy = repositoryService.getObject(ValuePolicyType.class, passwordPolicyOid, null, result);
-		StringBuilder messageBuilder = new StringBuilder();
-		boolean valid = valuePolicyProcessor.validateValue(password, passwordPolicy.asObjectable(), createUserOriginResolver(user), messageBuilder, "validating password of "+user, task, result);
+		List<LocalizableMessage> messages = new ArrayList<>();
+		boolean valid = valuePolicyProcessor.validateValue(password, passwordPolicy.asObjectable(), createUserOriginResolver(user), messages, "validating password of "+user, task, result);
 		if (!valid) {
-			fail("Password for "+user+" does not comply with password policy: "+messageBuilder.toString());
+			fail("Password for "+user+" does not comply with password policy: "+messages);
 		}
 	}
 

@@ -154,6 +154,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
         PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
         newAssignment.asContainerable().setPolicyRule(new PolicyRuleType());
         ContainerValueWrapper<AssignmentType> newAssignmentWrapper = createNewAssignmentContainerValueWrapper(newAssignment);
+        newAssignmentWrapper.setShowEmpty(true, false);
         assignmentDetailsPerformed(target, Arrays.asList(newAssignmentWrapper));
 	}
 

@@ -197,6 +197,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	//region Finding definitions
 
 	// TODO deduplicate w.r.t. findNamedItemDefinition
+	// but beware, consider only local definitions!
 	@Override
 	public <T extends ItemDefinition> T findItemDefinition(@NotNull QName name, @NotNull Class<T> clazz, boolean caseInsensitive) {
 		for (ItemDefinition def : getDefinitions()) {
@@ -441,6 +442,12 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 		}
 		if (xsdAnyMarker) {
 			sb.append(",Ma");
+		}
+		if (instantiationOrder != null) {
+			sb.append(",o:").append(instantiationOrder);
+		}
+		if (!staticSubTypes.isEmpty()) {
+			sb.append(",st:").append(staticSubTypes.size());
 		}
 		extendDumpHeader(sb);
 		if (seen.containsKey(this)) {

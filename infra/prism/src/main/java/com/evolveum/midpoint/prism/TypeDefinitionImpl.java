@@ -16,8 +16,13 @@
 
 package com.evolveum.midpoint.prism;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.xml.namespace.QName;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author mederly
@@ -26,6 +31,8 @@ public abstract class TypeDefinitionImpl extends DefinitionImpl implements TypeD
 
 	protected QName superType;
 	protected Class<?> compileTimeClass;
+	@NotNull protected final Set<TypeDefinition> staticSubTypes = new HashSet<>();
+	protected Integer instantiationOrder;
 
 	public TypeDefinitionImpl(QName typeName, PrismContext prismContext) {
 		super(typeName, prismContext);
@@ -38,6 +45,25 @@ public abstract class TypeDefinitionImpl extends DefinitionImpl implements TypeD
 
 	public void setSuperType(QName superType) {
 		this.superType = superType;
+	}
+
+	@Override
+	@NotNull
+	public Collection<TypeDefinition> getStaticSubTypes() {
+		return staticSubTypes;
+	}
+
+	public void addStaticSubType(TypeDefinition subtype) {
+		staticSubTypes.add(subtype);
+	}
+
+	@Override
+	public Integer getInstantiationOrder() {
+		return instantiationOrder;
+	}
+
+	public void setInstantiationOrder(Integer instantiationOrder) {
+		this.instantiationOrder = instantiationOrder;
 	}
 
 	@Override

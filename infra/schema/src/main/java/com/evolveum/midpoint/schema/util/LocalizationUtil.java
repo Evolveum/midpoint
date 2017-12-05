@@ -17,10 +17,11 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageArgumentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.MessageFormat;
@@ -55,7 +56,30 @@ public class LocalizationUtil {
 	}
 
 	public static LocalizableMessageType createLocalizableMessageType(LocalizableMessage message) {
-		LocalizableMessageType rv = new LocalizableMessageType();
+		if (message == null) {
+			return null;
+		} else if (message instanceof SingleLocalizableMessage) {
+			return createLocalizableMessageType((SingleLocalizableMessage) message);
+		} else if (message instanceof LocalizableMessageList) {
+			return createLocalizableMessageType((LocalizableMessageList) message);
+		} else {
+			throw new AssertionError("Unsupported localizable message type: " + message);
+		}
+	}
+
+	@NotNull
+	private static LocalizableMessageListType createLocalizableMessageType(@NotNull LocalizableMessageList messageList) {
+		LocalizableMessageListType rv = new LocalizableMessageListType();
+		messageList.getMessages().forEach(message -> rv.getMessage().add(createLocalizableMessageType(message)));
+		rv.setSeparator(createLocalizableMessageType(messageList.getSeparator()));
+		rv.setPrefix(createLocalizableMessageType(messageList.getPrefix()));
+		rv.setPostfix(createLocalizableMessageType(messageList.getPostfix()));
+		return rv;
+	}
+
+	@NotNull
+	private static SingleLocalizableMessageType createLocalizableMessageType(@NotNull SingleLocalizableMessage message) {
+		SingleLocalizableMessageType rv = new SingleLocalizableMessageType();
 		rv.setKey(message.getKey());
 		if (message.getArgs() != null) {
 			for (Object argument : message.getArgs()) {
@@ -77,23 +101,29 @@ public class LocalizationUtil {
 	}
 
 	public static LocalizableMessageType createForFallbackMessage(String fallbackMessage) {
-		return new LocalizableMessageType().fallbackMessage(fallbackMessage);
+		return new SingleLocalizableMessageType().fallbackMessage(fallbackMessage);
 	}
 
 	public static LocalizableMessageType createForKey(String key) {
-		return new LocalizableMessageType().key(key);
+		return new SingleLocalizableMessageType().key(key);
 	}
 
-	public static LocalizableMessage parseLocalizableMessageType(@NotNull LocalizableMessageType message) {
-		return parseLocalizableMessageType(message, null);
+	public static LocalizableMessage toLocalizableMessage(@NotNull LocalizableMessageType message) {
+		if (message instanceof SingleLocalizableMessageType) {
+			return toLocalizableMessage((SingleLocalizableMessageType) message);
+		} else if (message instanceof LocalizableMessageListType) {
+			return toLocalizableMessage((LocalizableMessageListType) message);
+		} else {
+			throw new AssertionError("Unknown LocalizableMessageType type: " + message);
+		}
 	}
 
-	public static LocalizableMessage parseLocalizableMessageType(@NotNull LocalizableMessageType message, LocalizableMessage defaultMessage) {
+	public static LocalizableMessage toLocalizableMessage(@NotNull SingleLocalizableMessageType message) {
 		LocalizableMessage fallbackLocalizableMessage;
 		if (message.getFallbackLocalizableMessage() != null) {
-			fallbackLocalizableMessage = parseLocalizableMessageType(message.getFallbackLocalizableMessage(), defaultMessage);
+			fallbackLocalizableMessage = toLocalizableMessage(message.getFallbackLocalizableMessage());
 		} else {
-			fallbackLocalizableMessage = defaultMessage;
+			fallbackLocalizableMessage = null;
 		}
 		if (message.getKey() == null && message.getFallbackMessage() == null) {
 			return fallbackLocalizableMessage;
@@ -107,11 +137,21 @@ public class LocalizationUtil {
 		}
 	}
 
+	private static LocalizableMessage toLocalizableMessage(@NotNull LocalizableMessageListType messageList) {
+		LocalizableMessageListBuilder builder = new LocalizableMessageListBuilder();
+		messageList.getMessage().forEach(m -> builder.addMessage(toLocalizableMessage(m)));
+		return builder
+				.separator(toLocalizableMessage(messageList.getSeparator()))
+				.prefix(toLocalizableMessage(messageList.getPrefix()))
+				.postfix(toLocalizableMessage(messageList.getPostfix()))
+				.build();
+	}
+
 	private static List<Object> convertLocalizableMessageArguments(List<LocalizableMessageArgumentType> arguments) {
 		List<Object> rv = new ArrayList<>();
 		for (LocalizableMessageArgumentType argument : arguments) {
 			if (argument.getLocalizable() != null) {
-				rv.add(parseLocalizableMessageType(argument.getLocalizable(), null));
+				rv.add(toLocalizableMessage(argument.getLocalizable()));
 			} else {
 				rv.add(argument.getValue());        // may be null
 			}
@@ -119,12 +159,8 @@ public class LocalizationUtil {
 		return rv;
 	}
 
-	public static boolean isEmpty(LocalizableMessage message) {
-		return message == null || message.getKey() == null && message.getFallbackLocalizableMessage() == null && message.getFallbackMessage() == null;
-	}
-
 	// migration-related method: if localizable message is present, defaultValue is ignored (i.e. it is not the same as fallbackMessage in LocalizableMessageType)
 	public static LocalizableMessageType getLocalizableMessageOrDefault(LocalizableMessageType localizableMessage, String defaultValue) {
-		return localizableMessage != null ? localizableMessage : new LocalizableMessageType().fallbackMessage(defaultValue);
+		return localizableMessage != null ? localizableMessage : new SingleLocalizableMessageType().fallbackMessage(defaultValue);
 	}
 }

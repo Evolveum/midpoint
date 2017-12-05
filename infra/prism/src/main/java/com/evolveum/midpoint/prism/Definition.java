@@ -163,6 +163,7 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 	// TODO fix this!
 	Class getTypeClassIfKnown();
 
+	// todo suspicious, please investigate and document
 	Class getTypeClass();
 
 	@NotNull

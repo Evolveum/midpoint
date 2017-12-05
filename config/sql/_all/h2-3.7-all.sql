@@ -271,6 +271,8 @@ CREATE TABLE m_audit_delta (
 
 CREATE TABLE m_audit_event (
   id                BIGINT NOT NULL,
+  attorneyName      VARCHAR(255),
+  attorneyOid       VARCHAR(36),
   channel           VARCHAR(255),
   eventIdentifier   VARCHAR(255),
   eventStage        INTEGER,
@@ -278,6 +280,7 @@ CREATE TABLE m_audit_event (
   hostIdentifier    VARCHAR(255),
   initiatorName     VARCHAR(255),
   initiatorOid      VARCHAR(36),
+  initiatorType     INTEGER,
   message           VARCHAR(1024),
   nodeIdentifier    VARCHAR(255),
   outcome           INTEGER,
@@ -872,9 +875,6 @@ CREATE INDEX iAuditRefValRecordId
 ALTER TABLE m_case
   ADD CONSTRAINT uc_case_name UNIQUE (name_norm);
 
-ALTER TABLE m_function_library
-  ADD CONSTRAINT uc_function_library_name UNIQUE (name_norm);
-
 ALTER TABLE m_connector_host
 ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
 
@@ -884,6 +884,9 @@ CREATE INDEX iFocusEffective ON m_focus (effectiveStatus);
 
 ALTER TABLE m_form
   ADD CONSTRAINT uc_form_name UNIQUE (name_norm);
+
+ALTER TABLE m_function_library
+  ADD CONSTRAINT uc_function_library_name UNIQUE (name_norm);
 
 ALTER TABLE m_generic_object
 ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm);
@@ -943,6 +946,9 @@ CREATE INDEX iOpExecInitiatorOid
 CREATE INDEX iOpExecStatus
   ON m_operation_execution (status);
 
+CREATE INDEX iOpExecOwnerOid
+  ON m_operation_execution (owner_oid);
+
 ALTER TABLE m_org
 ADD CONSTRAINT uc_org_name UNIQUE (name_norm);
 
@@ -993,7 +999,7 @@ ALTER TABLE m_system_configuration
 ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm);
 
 ALTER TABLE m_task
-  ADD CONSTRAINT UK_59yhlpgtqu3a9wvnw0ujx4xl1 UNIQUE (taskIdentifier);
+  ADD CONSTRAINT uc_task_identifier UNIQUE (taskIdentifier);
 
 CREATE INDEX iParent ON m_task (parent);
 
@@ -1127,11 +1133,6 @@ ALTER TABLE m_case
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
-ALTER TABLE m_function_library
-  ADD CONSTRAINT fk_function_library
-FOREIGN KEY (oid)
-REFERENCES m_object;
-
 ALTER TABLE m_connector
 ADD CONSTRAINT fk_connector
 FOREIGN KEY (oid)
@@ -1169,6 +1170,11 @@ REFERENCES m_focus;
 
 ALTER TABLE m_form
   ADD CONSTRAINT fk_form
+FOREIGN KEY (oid)
+REFERENCES m_object;
+
+ALTER TABLE m_function_library
+  ADD CONSTRAINT fk_function_library
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
