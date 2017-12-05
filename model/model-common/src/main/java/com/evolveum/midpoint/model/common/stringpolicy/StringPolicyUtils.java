@@ -105,11 +105,9 @@ public class StringPolicyUtils {
 	 * @return ArrayList
 	 */
 	public static List<String> stringTokenizer(String in) {
-		List<String> l = new ArrayList<String>();
-		for (String a: in.split("")) {
-			if (!a.isEmpty()) {
-				l.add(a);
-			}
+		List<String> l = new ArrayList<>();
+		for (int i = 0; i < in.length(); i++) {
+			l.add(in.substring(i, i+1));
 		}
 		return l;
 	}

@@ -22,8 +22,7 @@
 	<processInstanceId>1</processInstanceId>
 	<processName>a</processName>
 	<processInstanceName>b</processInstanceName>
-	<processorSpecificState xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-							xsi:type="c:WfPrimaryChangeProcessorStateType">
+	<processorSpecificState xsi:type="c:WfPrimaryChangeProcessorStateType">
 		<changeAspect>com.evolveum.midpoint.wf.impl.processors.primary.policy.PolicyRuleBasedAspect</changeAspect>
 		<!-- TODO enable this and fix it (MID-4018) -->
 		<!--<deltasToProcess>-->
@@ -43,6 +42,24 @@
 			<!--</focusPrimaryDelta>-->
 		<!--</deltasToProcess>-->
 	</processorSpecificState>
+	<processSpecificState xsi:type="c:ItemApprovalProcessStateType">
+		<approvalSchema>
+			<stage>
+				<name>test</name>
+			</stage>
+		</approvalSchema>
+		<policyRules>
+			<entry>
+				<rule>
+					<trigger>
+						<message>
+							<key>testkey</key>
+						</message>
+					</trigger>
+				</rule>
+			</entry>
+		</policyRules>
+	</processSpecificState>
 	<event xsi:type="c:WorkItemCompletionEventType">
 		<timestamp>2017-02-03T15:59:40.015+01:00</timestamp>
 		<initiatorRef oid="00000000-d34d-b33f-f00d-111111111111" type="c:UserType">

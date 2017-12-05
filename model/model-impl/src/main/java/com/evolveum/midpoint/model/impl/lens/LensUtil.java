@@ -1029,7 +1029,7 @@ public class LensUtil {
 			} else if (o instanceof LocalizableMessage) {
 				return LocalizationUtil.createLocalizableMessageType((LocalizableMessage) o);
 			} else {
-				return new LocalizableMessageType().fallbackMessage(String.valueOf(o));
+				return new SingleLocalizableMessageType().fallbackMessage(String.valueOf(o));
 			}
 		};
 		return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
@@ -1056,12 +1056,12 @@ public class LensUtil {
 	}
 
 	@NotNull
-	public static LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
+	public static SingleLocalizableMessageType interpretLocalizableMessageTemplate(LocalizableMessageTemplateType template,
 			ExpressionVariables var, ExpressionFactory expressionFactory, PrismContext prismContext,
 			Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, SecurityViolationException {
-		LocalizableMessageType rv = new LocalizableMessageType();
+		SingleLocalizableMessageType rv = new SingleLocalizableMessageType();
 		if (template.getKey() != null) {
 			rv.setKey(template.getKey());
 		} else if (template.getKeyExpression() != null) {

@@ -109,7 +109,7 @@ public class SchemaProcessorUtil {
 		return XmlTypeConverter.toJavaValue(element, Boolean.class);
 	}
 
-	public static Boolean getAnnotationBoolean(XSAnnotation annotation, QName qname) throws SchemaException {
+	public static <T> T getAnnotationConverted(XSAnnotation annotation, QName qname, Class<T> type) throws SchemaException {
 		Element element = getAnnotationElement(annotation, qname);
 		if (element == null) {
 			return null;
@@ -118,7 +118,15 @@ public class SchemaProcessorUtil {
 		if (textContent == null || textContent.isEmpty()) {
 			return null;
 		}
-		return XmlTypeConverter.toJavaValue(element, Boolean.class);
+		return XmlTypeConverter.toJavaValue(element, type);
+	}
+
+	public static Boolean getAnnotationBoolean(XSAnnotation annotation, QName qname) throws SchemaException {
+		return getAnnotationConverted(annotation, qname, Boolean.class);
+	}
+
+	public static Integer getAnnotationInteger(XSAnnotation annotation, QName qname) throws SchemaException {
+		return getAnnotationConverted(annotation, qname, Integer.class);
 	}
 
 	public static Integer parseMultiplicity(String stringMultiplicity) {

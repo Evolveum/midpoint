@@ -183,7 +183,7 @@ public class ObjectPolicyAspectPart {
 
 		for (ObjectDelta<T> deltaToApprove : deltasToApprove) {
 			LocalizableMessage processName = main.createProcessName(builderResult, null, ctx, result);
-			if (LocalizationUtil.isEmpty(processName) || PolicyRuleBasedAspect.USE_DEFAULT_NAME_MARKER.equals(processName.getKey())) {
+			if (main.useDefaultProcessName(processName)) {
 				processName = createDefaultProcessName(modelContext, deltaToApprove);
 			}
 			String processNameInDefaultLocale = localizationService.translate(processName, Locale.getDefault());

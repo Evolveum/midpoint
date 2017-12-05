@@ -144,6 +144,10 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		this(operation, null, OperationResultStatus.SUCCESS, 0, messageCode, message, null, null, null);
 	}
 
+	public OperationResult(String operation, OperationResultStatus status, LocalizableMessage userFriendlyMessage) {
+		this(operation, null, status, 0, null, null, userFriendlyMessage, null, null);
+	}
+
 	public OperationResult(String operation, long token, String messageCode, String message) {
 		this(operation, null, OperationResultStatus.SUCCESS, token, messageCode, message, null, null, null);
 	}
@@ -1240,7 +1244,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		LocalizableMessage localizableMessage = null;
 		LocalizableMessageType message = result.getUserFriendlyMessage();
 		if (message != null) {
-			localizableMessage = LocalizationUtil.parseLocalizableMessageType(message);
+			localizableMessage = LocalizationUtil.toLocalizableMessage(message);
 		}
 
 		OperationResult opResult = new OperationResult(result.getOperation(), params, context, returns,

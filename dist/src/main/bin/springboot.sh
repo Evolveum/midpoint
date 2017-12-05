@@ -1,7 +1,28 @@
 #!/bin/bash
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Parts of this file Copyright (c) 2017 Evolveum
+#
+
 SCRIPT_PATH=$(cd $(dirname "$0") && pwd -P)/$(basename "$2")
 USE_NOHUP="true"
-JAVA_OPTS="$JAVA_OPTS -Xms2048M -Xmx2048M -XX:PermSize=128m -XX:MaxPermSize=256m -Dmidpoint.home=$SCRIPT_PATH../var"
+if [ -z "$MIDPOINT_HOME" ] ; then
+	MIDPOINT_HOME="$SCRIPT_PATH../var"
+fi
+JAVA_OPTS="$JAVA_OPTS -Xms2048M -Xmx2048M -XX:PermSize=128m -XX:MaxPermSize=256m 
+-Djavax.net.ssl.trustStore=$MIDPOINT_HOME/keystore.jceks -Djavax.net.ssl.trustStoreType=jceks 
+-Dmidpoint.home=$MIDPOINT_HOME"
 
 # resolve links - $0 may be a softlink
 PRG="$0"
@@ -19,7 +40,7 @@ done
 # Get standard environment variables
 PRGDIR=`dirname "$PRG"`
 
-cd "$PRGDIR/.." >/dev/null; pwd
+cd "$PRGDIR/.." >/dev/null
 
 cd "$SCRIPT_PATH/.."
 
@@ -28,8 +49,7 @@ if [ ! -d var ] ; then
 	mkdir var/log
 fi
 
-if [ -z "$BOOT_OUT" ] ; then
-  
+if [ -z "$BOOT_OUT" ] ; then  
   BOOT_OUT="$SCRIPT_PATH"../var/log/springboot.out
 fi
 
@@ -72,13 +92,14 @@ if [ "$USE_NOHUP" = "true" ]; then
     _NOHUP=nohup
 fi
 
+
 # ----- Execute The Requested Command -----------------------------------------
 
-if [ $have_tty -eq 1 ]; then
-  if [ ! -z "$SPRING_PID" ]; then
-    echo "Using SPRING_PID:    $SPRING_PID"
-  fi
-fi
+#if [ $have_tty -eq 1 ]; then
+#  if [ ! -z "$SPRING_PID" ]; then
+#    echo "Using SPRING_PID:    $SPRING_PID"
+#  fi
+#fi
 
 if [ "$1" = "start" ] ; then
  if [ ! -z "$SPRING_PID" ]; then
@@ -124,6 +145,9 @@ if [ $? != 0 ]; then
   shift
   touch "$BOOT_OUT"
 
+echo "Starting midPoint..."
+echo "MIDPOINT_HOME=$MIDPOINT_HOME"
+
 cd 
 eval $_NOHUP "\"$_RUNJAVA\"" -jar $LOGGING_MANAGER $JAVA_OPTS \
 	$SCRIPT_PATH../lib/midpoint.war \
@@ -134,7 +158,6 @@ if [ ! -z "$SPRING_PID" ]; then
     echo $! > "$SPRING_PID"
 fi
 
-  echo "Starting midPoint..."
 
 elif [ "$1" = "stop" ] ; then
 

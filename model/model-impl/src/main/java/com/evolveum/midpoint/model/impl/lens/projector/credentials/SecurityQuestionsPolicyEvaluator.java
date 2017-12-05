@@ -46,8 +46,12 @@ public class SecurityQuestionsPolicyEvaluator extends CredentialPolicyEvaluator<
 	}
 
 	@Override
-	protected SecurityQuestionsCredentialsPolicyType determineEffectiveCredentialPolicy()
-			throws SchemaException {
+	protected String getCredentialHumanReadableKey() {
+		return "securityQuestions";
+	}
+
+	@Override
+	protected SecurityQuestionsCredentialsPolicyType determineEffectiveCredentialPolicy() {
 		return SecurityUtil.getEffectiveSecurityQuestionsCredentialsPolicy(getSecurityPolicy());
 	}
 

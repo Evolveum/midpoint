@@ -46,6 +46,11 @@ public class NoncePolicyEvaluator extends CredentialPolicyEvaluator<NonceType,No
 	}
 
 	@Override
+	protected String getCredentialHumanReadableKey() {
+		return "nonce";
+	}
+
+	@Override
 	protected boolean supportsHistory() {
 		return false;
 	}

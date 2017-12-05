@@ -52,6 +52,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -302,6 +303,10 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 				return OrgType.class;
 			}
 
+			@Override
+			protected AttributeAppender getInputStyleClass(){
+				return AttributeAppender.append("class", "col-md-6");
+			}
 
 		};
 
@@ -310,7 +315,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	}
 
 	@Override
-	protected void addMembersPerformed(QName type, QName relation, List selected, AjaxRequestTarget target) {
+	protected void addMembersPerformed(QName type, List<QName> relation, List selected, AjaxRequestTarget target) {
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Add", null));
 		ObjectDelta delta = prepareDelta(type, relation, MemberOperation.ADD, operationalTask.getResult());
 		executeMemberOperation(operationalTask, type, createQueryForAdd(selected), delta,
@@ -318,20 +323,28 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 
 	}
 
-	private ObjectDelta prepareDelta(QName type, QName relation, MemberOperation operation, OperationResult result) {
+	private ObjectDelta prepareDelta(QName type, List<QName> relations, MemberOperation operation, OperationResult result) {
 		Class classType = WebComponentUtil.qnameToClass(getPrismContext(), type);
 		ObjectDelta delta = null;
 		try {
 			switch (operation) {
 				case ADD:
-
+					if (relations == null || relations.isEmpty()) {
 					delta = ObjectDelta.createModificationAddContainer(classType, "fakeOid",
-							FocusType.F_ASSIGNMENT, getPrismContext(), createMemberAssignmentToModify(relation));
-
+							FocusType.F_ASSIGNMENT, getPrismContext(), createMemberAssignmentToModify(null));
+					} else {
+						delta =  ObjectDelta.createEmptyModifyDelta(classType, "fakeOid", getPrismContext());
+						
+						for (QName relation : relations) {
+							delta.addModificationAddContainer(FocusType.F_ASSIGNMENT, createAssignmentToModify(relation));
+						}
+						
+						return delta;  
+					}
 					break;
 
 				case REMOVE:
-					delta = getDeleteAssignmentDelta(classType);
+					delta = getDeleteAssignmentDelta(relations, classType);
 					break;
 			}
 		} catch (SchemaException e) {
@@ -341,15 +354,26 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		return delta;
 	}
 
-	protected ObjectDelta getDeleteAssignmentDelta(Class classType) throws SchemaException {
-		return ObjectDelta.createModificationDeleteContainer(classType, "fakeOid",
-				FocusType.F_ASSIGNMENT, getPrismContext(), createMemberAssignmentToModify(null));
+	protected ObjectDelta getDeleteAssignmentDelta(List<QName> relations, Class classType) throws SchemaException {
+		if (relations == null || relations.isEmpty()) {
+			return ObjectDelta.createModificationDeleteContainer(classType, "fakeOid",
+					FocusType.F_ASSIGNMENT, getPrismContext(), createMemberAssignmentToModify(null));
+		}
+		
+		ObjectDelta delta =  ObjectDelta.createEmptyModifyDelta(classType, "fakeOid", getPrismContext());
+		
+		for (QName relation : relations) {
+			delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT, createAssignmentToModify(relation));
+		}
+		
+		return delta;  
+		
 	}
 
 	@Override
-	protected void removeMembersPerformed(QueryScope scope, AjaxRequestTarget target) {
+	protected void removeMembersPerformed(QueryScope scope, List<QName> relation, AjaxRequestTarget target) {
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Remove", scope));
-		ObjectDelta delta = prepareDelta(FocusType.COMPLEX_TYPE, null, MemberOperation.REMOVE, operationalTask.getResult());
+		ObjectDelta delta = prepareDelta(FocusType.COMPLEX_TYPE, relation, MemberOperation.REMOVE, operationalTask.getResult());
 		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE, getActionQuery(scope), delta,
 				TaskCategory.EXECUTE_CHANGES, target);
 
@@ -402,5 +426,10 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		} else {
 			return ObjectQuery.createObjectQuery(TypeFilter.createType(objectType, query.getFilter()));
 		}
+	}
+
+	@Override
+	protected List<QName> getNewMemberSupportedTypes(){
+		return WebComponentUtil.createFocusTypeList();
 	}
 }

@@ -20,20 +20,20 @@
 <body>
 	<wicket:panel>
 
-		<div class="form-inline search-form">
-			<div class="form-group">
+		<div class="row form-inline search-form">
+			<div class="col-md-2 form-group">
 				<label><wicket:message key="roleMemberPanel.type" /></label> 
 				<select class="form-control input-sm" wicket:id="type" />
 			</div>
-			<div class="form-group">
-				<label><wicket:message key="roleMemberPanel.tenant" /></label> 
+			<div class="col-md-3 form-group">
+				<label class="pull-left"><wicket:message key="roleMemberPanel.tenant" /></label>
 				<span wicket:id="tenant" />
 			</div>
-			<div class="form-group">
-				<label><wicket:message key="roleMemberPanel.project" /></label> 
+			<div class="col-md-3 form-group">
+				<label class="pull-left"><wicket:message key="roleMemberPanel.project" /></label>
 				<span wicket:id="project" />
 			</div>
-			<div wicket:id="indirectMembersContainer" class="form-group">
+			<div wicket:id="indirectMembersContainer" class="col-md-2 form-group">
 				<label><wicket:message key="roleMemberPanel.indirectMembers" /></label>
 				<span wicket:id="indirectMembers" />
 			</div>

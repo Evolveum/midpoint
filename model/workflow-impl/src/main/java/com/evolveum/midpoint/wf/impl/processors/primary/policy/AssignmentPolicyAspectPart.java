@@ -37,7 +37,6 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -277,7 +276,7 @@ public class AssignmentPolicyAspectPart {
 		Validate.notNull(target, "assignment target is null");
 
 		LocalizableMessage processName = main.createProcessName(builderResult, evaluatedAssignment, ctx, result);
-		if (LocalizationUtil.isEmpty(processName) || PolicyRuleBasedAspect.USE_DEFAULT_NAME_MARKER.equals(processName.getKey())) {
+		if (main.useDefaultProcessName(processName)) {
 			processName = createDefaultProcessName(modelContext, assignmentMode, target);
 		}
 		String processNameInDefaultLocale = localizationService.translate(processName, Locale.getDefault());

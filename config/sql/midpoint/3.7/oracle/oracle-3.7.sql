@@ -893,7 +893,7 @@ ALTER TABLE m_form
 
 ALTER TABLE m_function_library
   ADD CONSTRAINT uc_function_library_name UNIQUE (name_norm) INITRANS 30;
-
+  
 ALTER TABLE m_generic_object
 ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm) INITRANS 30;
 

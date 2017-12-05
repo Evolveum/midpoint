@@ -73,7 +73,7 @@ public abstract class OperationResultFactory {
 		}
 
 		ObjectFactory factory = new ObjectFactory();
-		LocalizableMessageType localizedMessageType = factory.createLocalizableMessageType();
+		SingleLocalizableMessageType localizedMessageType = factory.createSingleLocalizableMessageType();
 		result.setUserFriendlyMessage(localizedMessageType);
 		localizedMessageType.setKey(localizedMessage);
 		if (localizedArguments == null || localizedArguments.length == 0) {
@@ -125,7 +125,7 @@ public abstract class OperationResultFactory {
 		for (Entry<String, Element> entry : set) {
 			entryType = factory.createEntryType();
 			entryType.setKey(entry.getKey());
-			entryType.setEntryValue(new JAXBElement(EntryType.F_ENTRY_VALUE, Element.class, entry.getValue()));
+			entryType.setEntryValue(new JAXBElement<>(EntryType.F_ENTRY_VALUE, Element.class, entry.getValue()));
 
 			paramsType.getEntry().add(entryType);
 		}

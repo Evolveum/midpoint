@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.marshaller.ParsingMigrator;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType;
 
 /**
  * @author mederly
@@ -30,7 +31,7 @@ public class MidpointParsingMigrator implements ParsingMigrator {
 	public <T> T tryParsingPrimitiveAsBean(PrimitiveXNode<T> primitive, Class<T> beanClass, ParsingContext pc) {
 		if (LocalizableMessageType.class.equals(beanClass)) {
 			//noinspection unchecked
-			return (T) new LocalizableMessageType().fallbackMessage(primitive.getStringValue());
+			return (T) new SingleLocalizableMessageType().fallbackMessage(primitive.getStringValue());
 		} else {
 			return null;
 		}
