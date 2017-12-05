@@ -18,7 +18,6 @@ package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang.StringUtils;
 import org.hibernate.boot.model.naming.*;
 
 /**
@@ -33,49 +32,49 @@ public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacy
     @Override
     public Identifier determinePrimaryTableName(ImplicitEntityNameSource source) {
         Identifier i = super.determinePrimaryTableName(source);
-        LOGGER.trace("determinePrimaryTableName {} -> {}", source.getEntityNaming(),  i);
+        LOGGER.trace("determinePrimaryTableName {} -> {}", source.getEntityNaming(), i);
         return i;
     }
 
     @Override
     public Identifier determineCollectionTableName(ImplicitCollectionTableNameSource source) {
         Identifier i = super.determineCollectionTableName(source);
-        LOGGER.trace("determineCollectionTableName {} {} -> {}", source.getOwningEntityNaming(), source.getOwningPhysicalTableName(),  i);
+        LOGGER.trace("determineCollectionTableName {} {} -> {}", source.getOwningEntityNaming(), source.getOwningPhysicalTableName(), i);
         return i;
     }
 
     @Override
     public Identifier determineForeignKeyName(ImplicitForeignKeyNameSource source) {
         Identifier i = super.determineForeignKeyName(source);
-        LOGGER.trace("determineForeignKeyName {} {} -> {}", source.getTableName(), source.getColumnNames(),  i);
+        LOGGER.trace("determineForeignKeyName {} {} -> {}", source.getTableName(), source.getColumnNames(), i);
         return i;
     }
 
     @Override
     public Identifier determineUniqueKeyName(ImplicitUniqueKeyNameSource source) {
         Identifier i = super.determineUniqueKeyName(source);
-        LOGGER.trace("determineUniqueKeyName {} {} -> {}", source.getTableName(), source.getColumnNames(),  i);
+        LOGGER.trace("determineUniqueKeyName {} {} -> {}", source.getTableName(), source.getColumnNames(), i);
         return i;
     }
 
     @Override
     public Identifier determineIndexName(ImplicitIndexNameSource source) {
         Identifier i = super.determineIndexName(source);
-        LOGGER.trace("determineIndexName {} {} -> {}", source.getTableName(), source.getColumnNames(),  i);
+        LOGGER.trace("determineIndexName {} {} -> {}", source.getTableName(), source.getColumnNames(), i);
         return i;
     }
 
     @Override
     public Identifier determineMapKeyColumnName(ImplicitMapKeyColumnNameSource source) {
         Identifier i = super.determineMapKeyColumnName(source);
-        LOGGER.trace("determineMapKeyColumnName {} -> {}", source.getPluralAttributePath(),  i);
+        LOGGER.trace("determineMapKeyColumnName {} -> {}", source.getPluralAttributePath(), i);
         return i;
     }
 
     @Override
     public Identifier determineDiscriminatorColumnName(ImplicitDiscriminatorColumnNameSource source) {
         Identifier i = super.determineDiscriminatorColumnName(source);
-        LOGGER.trace("determineDiscriminatorColumnName {} -> {}", source.getEntityNaming(),  i);
+        LOGGER.trace("determineDiscriminatorColumnName {} -> {}", source.getEntityNaming(), i);
         return i;
     }
 
@@ -110,7 +109,11 @@ public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacy
     @Override
     public Identifier determinePrimaryKeyJoinColumnName(ImplicitPrimaryKeyJoinColumnNameSource source) {
         Identifier i = super.determinePrimaryKeyJoinColumnName(source);
+//        if ("oid".equals(source.getReferencedPrimaryKeyColumnName().getText())) {
+//            i =  toIdentifier("owner_oid", source.getBuildingContext());
+//        }
         LOGGER.trace("determinePrimaryKeyJoinColumnName {} {} -> {}", source.getReferencedTableName(), source.getReferencedPrimaryKeyColumnName(), i);
+
         return i;
     }
 
@@ -119,6 +122,14 @@ public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacy
         Identifier i = super.determineJoinColumnName(source);
 
         Identifier real = toIdentifier(source.getReferencedColumnName().getText(), source.getBuildingContext());
+//        if ("owner".equals(source.getAttributePath().getFullPath()) && "oid".equals(source.getReferencedColumnName().getText())) {
+//            real =  toIdentifier("owner_oid", source.getBuildingContext());
+//        }
+
+
+//        if ("target".equals(source.getAttributePath().getFullPath()) && "oid".equals(source.getReferencedColumnName().getText())) {
+//            real =  toIdentifier("owner_oid", source.getBuildingContext());
+//        }
         LOGGER.trace("determineJoinColumnName {} {} -> {}, {}", source.getReferencedTableName(), source.getReferencedColumnName(), i, real);
         return real;
     }
@@ -135,6 +146,10 @@ public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacy
         String columnName = source.getAttributePath().getProperty();
         String fullPath = source.getAttributePath().getFullPath();
 
+//        if ("owner".equals(columnName) && "owner".equals(fullPath)) {
+//            return toIdentifier("owner_oid", source.getBuildingContext());
+//        }
+
         String result;
         if (fullPath.startsWith("credentials.") || fullPath.startsWith("activation.")) {
             //credentials and activation are embedded and doesn't need to be qualified
@@ -143,38 +158,17 @@ public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacy
             LOGGER.trace("determineBasicColumnName {} {}", fullPath, i);
             return i;
         } else {
-            result = fullPath.replaceAll("\\.", "_");
+            if (fullPath.contains("&&")) {
+                // it's collection
+                result = columnName;
+            } else {
+                result = fullPath.replaceAll("\\.", "_");
+            }
         }
-        result = fixLength(result);
+        result = RUtil.fixDBSchemaObjectNameLength(result);
 
         Identifier i = toIdentifier(result, source.getBuildingContext());
         LOGGER.trace("determineBasicColumnName {} {}", fullPath, i);
         return i;
-    }
-
-    private String fixLength(String input) {
-        if (input == null || input.length() <= MAX_LENGTH) {
-            return input;
-        }
-
-        String result = input;
-        String[] array = input.split("_");
-        for (int i = 0; i < array.length; i++) {
-            int length = array[i].length();
-            String lengthStr = Integer.toString(length);
-
-            if (length < lengthStr.length()) {
-                continue;
-            }
-
-            array[i] = array[i].charAt(0) + lengthStr;
-
-            result = StringUtils.join(array, "_");
-            if (result.length() < MAX_LENGTH) {
-                break;
-            }
-        }
-
-        return result;
     }
 }

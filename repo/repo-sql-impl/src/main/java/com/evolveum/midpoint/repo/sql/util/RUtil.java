@@ -45,7 +45,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -60,7 +59,6 @@ import org.w3c.dom.Element;
 
 import javax.persistence.Table;
 import javax.xml.namespace.QName;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Field;
@@ -87,7 +85,7 @@ public final class RUtil {
      * properly with PostgreSQL, causing TEXT types (clobs) to be saved not in
      * table row but somewhere else and it always messed up UTF-8 encoding
      */
-    public static final String LOB_STRING_TYPE = "org.hibernate.type.StringClobType";
+    public static final String LOB_STRING_TYPE = "org.hibernate.type.MaterializedClobType"; //todo is it working correctly with postgresql [lazyman]
 
     public static final int COLUMN_LENGTH_QNAME = 157;
 
@@ -107,6 +105,8 @@ public final class RUtil {
     public static final QName CUSTOM_OBJECT = new QName(NS_SQL_REPO, SQL_REPO_OBJECT);
 
     private static final Trace LOGGER = TraceManager.getTrace(RUtil.class);
+
+    private static final int DB_OBJECT_NAME_MAX_LENGTH = 30;
 
     private RUtil() {
     }
@@ -488,9 +488,35 @@ public final class RUtil {
     }
 
     public static String trimString(String message, int size) {
-		if (message == null || message.length() <= size) {
-			return message;
-		}
-		return message.substring(0, size - 4) + "...";
-	}
+        if (message == null || message.length() <= size) {
+            return message;
+        }
+        return message.substring(0, size - 4) + "...";
+    }
+
+    public static String fixDBSchemaObjectNameLength(String input) {
+        if (input == null || input.length() <= DB_OBJECT_NAME_MAX_LENGTH) {
+            return input;
+        }
+
+        String result = input;
+        String[] array = input.split("_");
+        for (int i = 0; i < array.length; i++) {
+            int length = array[i].length();
+            String lengthStr = Integer.toString(length);
+
+            if (length < lengthStr.length()) {
+                continue;
+            }
+
+            array[i] = array[i].charAt(0) + lengthStr;
+
+            result = StringUtils.join(array, "_");
+            if (result.length() < DB_OBJECT_NAME_MAX_LENGTH) {
+                break;
+            }
+        }
+
+        return result;
+    }
 }

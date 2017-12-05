@@ -19,7 +19,6 @@ package com.evolveum.midpoint.repo.sql.util;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.google.common.base.CaseFormat;
-import org.apache.commons.lang.StringUtils;
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
@@ -30,8 +29,6 @@ import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 public class MidPointPhysicalNamingStrategy extends PhysicalNamingStrategyStandardImpl {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointPhysicalNamingStrategy.class);
-
-    private static final int MAX_LENGTH = 30;
 
     @Override
     public Identifier toPhysicalColumnName(Identifier identifier, JdbcEnvironment jdbcEnvironment) {
@@ -50,36 +47,12 @@ public class MidPointPhysicalNamingStrategy extends PhysicalNamingStrategyStanda
 
         name = name.substring(1);
         name = "m_" + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, name);
-        name = fixLength(name);
+        name = RUtil.fixDBSchemaObjectNameLength(name);
 
         Identifier i = new Identifier(name, identifier.isQuoted());
         LOGGER.trace("toPhysicalTableName {} {}", identifier, i);
         return i;
     }
 
-    private String fixLength(String input) {
-        if (input == null || input.length() <= MAX_LENGTH) {
-            return input;
-        }
 
-        String result = input;
-        String[] array = input.split("_");
-        for (int i = 0; i < array.length; i++) {
-            int length = array[i].length();
-            String lengthStr = Integer.toString(length);
-
-            if (length < lengthStr.length()) {
-                continue;
-            }
-
-            array[i] = array[i].charAt(0) + lengthStr;
-
-            result = StringUtils.join(array, "_");
-            if (result.length() < MAX_LENGTH) {
-                break;
-            }
-        }
-
-        return result;
-    }
 }
