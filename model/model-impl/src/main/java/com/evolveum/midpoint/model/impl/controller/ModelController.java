@@ -2003,6 +2003,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 	@Override
+	public void cleanupCampaigns(@NotNull CleanupPolicyType policy, Task task, OperationResult result) {
+		getCertificationManagerChecked().cleanupCampaigns(policy, task, result);
+	}
+
+	@Override
 	public void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response, String comment, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		getCertificationManagerChecked().recordDecision(campaignOid, caseId, workItemId, response, comment, task, parentResult);
 	}

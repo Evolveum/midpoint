@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.prism.marshaller;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
@@ -367,7 +364,7 @@ public class QueryConvertor {
 			if (expression != null) {
 				return InOidFilter.createInOid(considerOwner, expression);
 			} else {
-				throw new SchemaException("InOid filter with no values nor expression");
+				return InOidFilter.createInOid(Collections.emptySet());
 			}
 		}
 	}
@@ -622,10 +619,13 @@ public class QueryConvertor {
 	}
 
 	private static MapXNode toMap(XNode xnode) throws SchemaException {
-		if (!(xnode instanceof MapXNode)) {
+		if (xnode instanceof PrimitiveXNode && xnode.isEmpty()) {
+			return new MapXNode();          // hack but it might work (todo implement better)
+		} else if (!(xnode instanceof MapXNode)) {
 			throw new SchemaException("Cannot parse filter from "+xnode);
+		} else {
+			return (MapXNode) xnode;
 		}
-		return (MapXNode)xnode;
 	}
 
 	private static PrimitiveXNode toPrimitive(XNode xnode, XNode context) throws SchemaException {
@@ -798,7 +798,8 @@ public class QueryConvertor {
 		} else if (filter.getExpression() != null) {
 			// TODO serialize expression
 		} else {
-			throw new SchemaException("InOid filter with no values nor expression");
+			// just an empty filter -- ignore it
+			// throw new SchemaException("InOid filter with no values nor expression");
 		}
 		if (filter.isConsiderOwner()) {
 			clauseMap.put(ELEMENT_CONSIDER_OWNER, new PrimitiveXNode<>(true));

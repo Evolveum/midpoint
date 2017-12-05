@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -193,4 +194,6 @@ public interface CertificationManager {
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     void registerCertificationEventListener(AccessCertificationEventListener listener);
+
+	void cleanupCampaigns(@NotNull CleanupPolicyType policy, Task task, OperationResult result);
 }

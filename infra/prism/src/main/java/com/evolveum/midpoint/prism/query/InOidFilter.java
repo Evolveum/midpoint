@@ -16,9 +16,7 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 import com.evolveum.midpoint.prism.ExpressionWrapper;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -32,13 +30,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class InOidFilter extends ObjectFilter {
 
-	private Collection<String> oids;
+	private List<String> oids;
 	private ExpressionWrapper expression;
 	private boolean considerOwner;				// temporary hack (checks owner OID)
 
 	private InOidFilter(boolean considerOwner, Collection<String> oids) {
 		this.considerOwner = considerOwner;
-		this.oids = oids;
+		setOids(oids);
 	}
 
 	private InOidFilter(boolean considerOwner, ExpressionWrapper expression){
@@ -75,7 +73,7 @@ public class InOidFilter extends ObjectFilter {
 	}
 
 	public void setOids(Collection<String> oids) {
-		this.oids = oids;
+		this.oids = oids != null ? new ArrayList<>(oids) : null;
 	}
 
 	public boolean isConsiderOwner() {
@@ -130,16 +128,13 @@ public class InOidFilter extends ObjectFilter {
 		StringBuilder sb = new StringBuilder();
 		sb.append("IN OID: ");
 		if (getOids() != null){
-			Iterator<String> itertor = getOids().iterator();
-			while (itertor.hasNext()){
-				String value = itertor.next();
+			for (String value : getOids()) {
 				if (value == null) {
 					sb.append("null");
 				} else {
 					sb.append(value);
 				}
 				sb.append("; ");
-
 			}
 		}
 		return sb.toString();

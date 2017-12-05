@@ -92,8 +92,7 @@ public class TestAdHocCertification extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		SearchResultList<PrismObject<AccessCertificationCampaignType>> campaigns = repositoryService
-				.searchObjects(AccessCertificationCampaignType.class, null, null, result);
+		SearchResultList<PrismObject<AccessCertificationCampaignType>> campaigns = getAllCampaigns(result);
 		assertEquals("Wrong # of campaigns", 1, campaigns.size());
 		AccessCertificationCampaignType campaign = campaigns.get(0).asObjectable();
 
@@ -128,8 +127,7 @@ public class TestAdHocCertification extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		SearchResultList<PrismObject<AccessCertificationCampaignType>> campaigns = repositoryService
-				.searchObjects(AccessCertificationCampaignType.class, null, null, result);
+		SearchResultList<PrismObject<AccessCertificationCampaignType>> campaigns = getAllCampaigns(result);
 		assertEquals("Wrong # of campaigns", 2, campaigns.size());
 		AccessCertificationCampaignType campaign = campaigns.stream()
 				.filter(c -> MODIFICATION_CERT_DEF_OID.equals(c.asObjectable().getDefinitionRef().getOid()))

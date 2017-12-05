@@ -15168,6 +15168,7 @@
         <xsd:sequence>
             <xsd:element name="auditRecords" type="tns:CleanupPolicyType" minOccurs="0"/>
             <xsd:element name="closedTasks" type="tns:CleanupPolicyType" minOccurs="0" />
+            <xsd:element name="closedCertificationCampaigns" type="tns:CleanupPolicyType" minOccurs="0" />
             <xsd:element name="outputReports" type="tns:CleanupPolicyType" minOccurs="0" />
 			<xsd:element name="objectResults" type="tns:CleanupPolicyType" minOccurs="0" />
         </xsd:sequence>

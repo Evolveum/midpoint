@@ -656,4 +656,9 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		PrismAsserts.assertReferenceOids("Wrong certifiers", expectedCertifiers, metadata.getCertifierRef());
 		assertEquals("Wrong certifier comments", expectedComments, new HashSet<>(metadata.getCertifierComment()));
 	}
+
+	@NotNull
+	protected SearchResultList<PrismObject<AccessCertificationCampaignType>> getAllCampaigns(OperationResult result) throws SchemaException {
+	    return repositoryService.searchObjects(AccessCertificationCampaignType.class, null, null, result);
+	}
 }
