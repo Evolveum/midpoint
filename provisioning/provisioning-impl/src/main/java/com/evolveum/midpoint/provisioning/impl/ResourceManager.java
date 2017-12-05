@@ -711,6 +711,12 @@ public class ResourceManager {
 			testConnectionConnector(connectorSpec, capabilityMap, task, connectorTestResult);
 			
 			connectorTestResult.computeStatus();
+			
+			if (!connectorTestResult.isAcceptable()) {
+				//nothing more to do.. if it failed while testing connection, status is set. 
+				// we do not need to continue and waste the time.
+				return;
+			}
 		}
 
 		// === test SCHEMA ===
