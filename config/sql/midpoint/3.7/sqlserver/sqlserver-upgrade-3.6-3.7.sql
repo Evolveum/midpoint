@@ -24,3 +24,6 @@ ALTER TABLE m_task
 ALTER TABLE m_audit_event ADD attorneyName NVARCHAR(255) COLLATE database_default;
 ALTER TABLE m_audit_event ADD attorneyOid NVARCHAR(36) COLLATE database_default;
 ALTER TABLE m_audit_event ADD initiatorType INT;
+
+CREATE INDEX iOpExecOwnerOid
+  ON m_operation_execution (owner_oid);

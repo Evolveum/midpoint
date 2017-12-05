@@ -267,6 +267,8 @@ CREATE TABLE m_audit_delta (
 
 CREATE TABLE m_audit_event (
   id                BIGINT NOT NULL,
+  attorneyName      NVARCHAR(255) COLLATE database_default,
+  attorneyOid       NVARCHAR(36) COLLATE database_default,
   channel           NVARCHAR(255) COLLATE database_default,
   eventIdentifier   NVARCHAR(255) COLLATE database_default,
   eventStage        INT,
@@ -274,6 +276,7 @@ CREATE TABLE m_audit_event (
   hostIdentifier    NVARCHAR(255) COLLATE database_default,
   initiatorName     NVARCHAR(255) COLLATE database_default,
   initiatorOid      NVARCHAR(36) COLLATE database_default,
+  initiatorType     INT,
   message           NVARCHAR(1024) COLLATE database_default,
   nodeIdentifier    NVARCHAR(255) COLLATE database_default,
   outcome           INT,
@@ -939,6 +942,9 @@ CREATE INDEX iOpExecInitiatorOid
 CREATE INDEX iOpExecStatus
   ON m_operation_execution (status);
 
+CREATE INDEX iOpExecOwnerOid
+  ON m_operation_execution (owner_oid);
+
 ALTER TABLE m_org
 ADD CONSTRAINT uc_org_name UNIQUE (name_norm);
 
@@ -989,7 +995,7 @@ ALTER TABLE m_system_configuration
 ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm);
 
 ALTER TABLE m_task
-  ADD CONSTRAINT UK_59yhlpgtqu3a9wvnw0ujx4xl1 UNIQUE (taskIdentifier);
+  ADD CONSTRAINT uc_task_identifier UNIQUE (taskIdentifier);
 
 CREATE INDEX iParent ON m_task (parent);
 
