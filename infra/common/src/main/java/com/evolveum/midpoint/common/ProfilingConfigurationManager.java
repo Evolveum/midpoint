@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public class ProfilingConfigurationManager {
 
     private static final String REQUEST_FILTER_LOGGER_CLASS_NAME = "com.evolveum.midpoint.web.util.MidPointProfilingServletFilter";
     private static final String SUBSYSTEM_PROFILING_LOGGER = "com.evolveum.midpoint.util.aspect.ProfilingDataManager";
-    private static final String APPENDER_IDM_PROFILE = "IDM-PROFILE_LOG";
+    private static final String APPENDER_IDM_PROFILE = "MIDPOINT_PROFILE_LOG";
 
     /**
      *  In this method, we perform the check of systemConfiguration object, searching for any data
