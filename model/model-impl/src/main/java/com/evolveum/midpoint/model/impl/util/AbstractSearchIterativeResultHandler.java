@@ -504,7 +504,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 				subtask.resetActionsExecutedInformation(null);
 			}
 			subtask.setCategory(coordinatorTask.getCategory());
-			subtask.setResult(new OperationResult(taskOperationPrefix + ".executeWorker", OperationResultStatus.IN_PROGRESS, null));
+			subtask.setResult(new OperationResult(taskOperationPrefix + ".executeWorker", OperationResultStatus.IN_PROGRESS, (String) null));
 			subtask.setName("Worker thread " + (i+1) + " of " + threadsCount);
 			subtask.startLightweightHandler();
 			LOGGER.trace("Worker subtask {} created", subtask);
