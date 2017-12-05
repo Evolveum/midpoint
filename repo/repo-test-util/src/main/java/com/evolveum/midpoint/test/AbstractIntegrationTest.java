@@ -22,6 +22,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -91,15 +92,7 @@ import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.tools.testng.CurrentTestResultHolder;
 import com.evolveum.midpoint.util.*;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -134,15 +127,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -177,28 +162,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	private CachingStatistics lastResourceCacheStats;
 
-	@Autowired(required = true)
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	protected RepositoryService repositoryService;
 	protected static Set<Class> initializedClasses = new HashSet<Class>();
 	private long lastDummyResourceGroupMembersReadCount;
 	private long lastDummyResourceWriteOperationCount;
 
-	@Autowired(required = true)
-	protected TaskManager taskManager;
-
-	@Autowired(required = true)
-	protected Protector protector;
-
-	@Autowired(required = true)
-	protected Clock clock;
-
-	@Autowired(required = true)
-	protected PrismContext prismContext;
-
-	@Autowired(required = true)
-	protected MatchingRuleRegistry matchingRuleRegistry;
-
+	@Autowired protected TaskManager taskManager;
+	@Autowired protected Protector protector;
+	@Autowired protected Clock clock;
+	@Autowired protected PrismContext prismContext;
+	@Autowired protected MatchingRuleRegistry matchingRuleRegistry;
+	@Autowired protected LocalizationService localizationService;
 
 	// Controllers for embedded OpenDJ and Derby. The abstract test will configure it, but
 	// it will not start
@@ -2192,5 +2168,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected boolean isOsUnix() {
 		return SystemUtils.IS_OS_UNIX;
+	}
+
+	protected String getTranslatedMessage(CommonException e) {
+		if (e.getUserFriendlyMessage() != null) {
+			return localizationService.translate(e.getUserFriendlyMessage(), Locale.US);
+		} else {
+			return e.getMessage();
+		}
 	}
 }
