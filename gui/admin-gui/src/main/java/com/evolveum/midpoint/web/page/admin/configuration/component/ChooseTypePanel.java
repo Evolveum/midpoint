@@ -31,6 +31,8 @@ import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -55,6 +57,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
 	private static final Trace LOGGER = TraceManager.getTrace(ChooseTypePanel.class);
 
     private static final String ID_OBJECT_NAME = "name";
+    private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_LINK_CHOOSE = "choose";
     private static final String ID_LINK_REMOVE = "remove";
 
@@ -69,6 +72,10 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     }
 
     protected void initLayout() {
+        WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER);
+        inputContainer.setOutputMarkupId(true);
+        inputContainer.add(getInputStyleClass());
+        add(inputContainer);
 
         final TextField<String> name = new TextField<String>(ID_OBJECT_NAME, new PropertyModel<String>(getModel(), ObjectViewDto.F_NAME));
 
@@ -119,9 +126,9 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
             }
         };
 
-        add(choose);
+        inputContainer.add(name);
+        inputContainer.add(choose);
         add(remove);
-        add(name);
 
     }
 
@@ -186,12 +193,16 @@ protected void executeCustomRemoveAction(AjaxRequestTarget target) {
 
     }
 
+    protected AttributeAppender getInputStyleClass(){
+        return AttributeAppender.append("class", "col-md-4");
+    }
+
     public Class<T> getObjectTypeClass(){
         return ChooseTypePanel.this.getModelObject().getType();
     }
 
     public void setPanelEnabled(boolean isEnabled){
-        get(ID_LINK_CHOOSE).setEnabled(isEnabled);
+        get(ID_INPUT_CONTAINER).get(ID_LINK_CHOOSE).setEnabled(isEnabled);
         get(ID_LINK_REMOVE).setEnabled(isEnabled);
     }
 }

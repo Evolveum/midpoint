@@ -562,7 +562,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		return query;
 	}
 
-	private ObjectDelta prepareDelta(MemberOperation operaton, QName type, QName relation,
+	private ObjectDelta prepareDelta(MemberOperation operaton, QName type, List<QName> relation,
 			OperationResult result, AjaxRequestTarget target) {
 		ObjectDelta delta = null;
 		try {
@@ -576,7 +576,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	@Override
-	protected void addMembersPerformed(QName type, QName relation, List selected, AjaxRequestTarget target) {
+	protected void addMembersPerformed(QName type, List<QName> relation, List selected, AjaxRequestTarget target) {
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Add", null, false));
 		ObjectDelta delta = prepareDelta(MemberOperation.ADD, type, relation, operationalTask.getResult(),
 				target);
@@ -590,7 +590,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	protected void addManagersPerformed(QName type, List selected, AjaxRequestTarget target) {
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Add", null, true));
-		ObjectDelta delta = prepareDelta(MemberOperation.ADD, type, SchemaConstants.ORG_MANAGER,
+		ObjectDelta delta = prepareDelta(MemberOperation.ADD, type, Arrays.asList(SchemaConstants.ORG_MANAGER),
 				operationalTask.getResult(), target);
 		if (delta == null) {
 			return;
@@ -604,7 +604,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Remove", scope, true));
 		ObjectDelta delta = prepareDelta(MemberOperation.REMOVE, FocusType.COMPLEX_TYPE,
-				SchemaConstants.ORG_MANAGER, operationalTask.getResult(), target);
+				Arrays.asList(SchemaConstants.ORG_MANAGER), operationalTask.getResult(), target);
 		if (delta == null) {
 			return;
 		}
@@ -615,7 +615,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	@Override
-	protected void removeMembersPerformed(QueryScope scope, AjaxRequestTarget target) {
+	protected void removeMembersPerformed(QueryScope scope, List<QName> relations, AjaxRequestTarget target) {
 
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Remove", scope, false));
 
@@ -726,13 +726,15 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 
-	protected ObjectDelta createMemberDelta(MemberOperation operation, QName type, QName relation)
+	protected ObjectDelta createMemberDelta(MemberOperation operation, QName type, List<QName> relations)
 			throws SchemaException {
 		Class classType = WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), type);
 		ObjectDelta delta = null;
+		//TODO: imrpove
+		QName relation = (relations != null && !relations.isEmpty()) ? relations.iterator().next() : null;
 		switch (operation) {
 			case ADD:
-
+				
 				if (isFocus(type)) {
 
 					delta = ObjectDelta.createModificationAddContainer(classType, "fakeOid",
