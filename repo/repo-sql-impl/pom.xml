@@ -101,6 +101,10 @@
 			<groupId>xml-apis</groupId>
 			<artifactId>xml-apis</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
 
 		<!--<dependency>-->
 			<!--<groupId>javax.xml.bind</groupId>-->
