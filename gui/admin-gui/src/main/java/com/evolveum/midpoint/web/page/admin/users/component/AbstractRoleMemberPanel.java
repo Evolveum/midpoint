@@ -407,9 +407,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 	protected void addMembers(final QName relation, AjaxRequestTarget target) {
 
-		List<QName> types = WebComponentUtil.createObjectTypeList();
-		types.remove(NodeType.COMPLEX_TYPE);
-		types.remove(ShadowType.COMPLEX_TYPE);
+		List<QName> types = getNewMemberSupportedTypes();
 
 		ObjectBrowserPanel<ObjectType> browser = new ObjectBrowserPanel(getPageBase().getMainPopupBodyId(),
 				UserType.class, types, true, getPageBase()) {
@@ -426,6 +424,13 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 		getPageBase().showMainPopup(browser, target);
 
+	}
+
+	protected List<QName> getNewMemberSupportedTypes(){
+		List<QName> types = WebComponentUtil.createObjectTypeList();
+		types.remove(NodeType.COMPLEX_TYPE);
+		types.remove(ShadowType.COMPLEX_TYPE);
+		return types;
 	}
 
 	protected ObjectQuery createQueryForAdd(List selected) {

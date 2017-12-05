@@ -52,6 +52,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -302,6 +303,10 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 				return OrgType.class;
 			}
 
+			@Override
+			protected AttributeAppender getInputStyleClass(){
+				return AttributeAppender.append("class", "col-md-6");
+			}
 
 		};
 
@@ -402,5 +407,10 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		} else {
 			return ObjectQuery.createObjectQuery(TypeFilter.createType(objectType, query.getFilter()));
 		}
+	}
+
+	@Override
+	protected List<QName> getNewMemberSupportedTypes(){
+		return WebComponentUtil.createFocusTypeList();
 	}
 }
