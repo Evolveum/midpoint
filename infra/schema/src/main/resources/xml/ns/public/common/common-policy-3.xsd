@@ -523,9 +523,9 @@
 	                                range of roles - assuming that runtime resolution is used.
 	                            </p>
                             </xsd:documentation>
-							<xsd:appinfo>
-								<a:objectReferenceTargetType>c:AbstractRoleType</a:objectReferenceTargetType>
-							</xsd:appinfo>
+                            <xsd:appinfo>
+					         		<a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
+					        </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="policy" type="tns:ExclusionPolicyType" minOccurs="0">
