@@ -41,6 +41,11 @@ public class PasswordPolicyEvaluator extends CredentialPolicyEvaluator<PasswordT
 	}
 
 	@Override
+	protected String getCredentialHumanReadableKey() {
+		return "password";
+	}
+
+	@Override
 	protected boolean supportsHistory() {
 		return true;
 	}

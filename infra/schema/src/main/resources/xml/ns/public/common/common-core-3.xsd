@@ -17,20 +17,18 @@
   -->
 
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-            xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
-            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
-            elementFormDefault="qualified"
-            jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="2.0">
+			xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+			xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+			xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+			xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+			xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+			elementFormDefault="qualified"
+			jaxb:extensionBindingPrefixes="xjc"
+			jaxb:version="2.0">
 
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
@@ -11763,11 +11761,24 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+			<xsd:element name="localizableFailureMessage" type="tns:LocalizableMessageType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Localizable message that will be displayed to user when the expression check fails.
+							This one takes precedence over (non-localizable) failureMessage.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="failureMessage" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                     	<p>
-                    	  Message thet will be displayed to user when the expression check fails.
+                    	  Message that will be displayed to user when the expression check fails.
                     	</p> 
                     </xsd:documentation>
                 </xsd:annotation>
@@ -18155,7 +18166,19 @@
 		<xsd:attribute name="id" type="xsd:long" use="optional"/>
 	</xsd:complexType>
 
-	<xsd:complexType name="LocalizableMessageType">
+	<xsd:complexType name="LocalizableMessageType" abstract="true">
+		<xsd:annotation>
+			<xsd:documentation>
+				A message that is to be localized into specified language.
+				Abstract superclass for both single-item message and a message list.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:complexType>
+
+	<xsd:complexType name="SingleLocalizableMessageType">
 		<xsd:annotation>
 			<xsd:documentation>
 				A message that is to be localized into specified language.
@@ -18164,36 +18187,85 @@
 				<a:since>3.7</a:since>
 			</xsd:appinfo>
 		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="key" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Localization key.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="argument" type="tns:LocalizableMessageArgumentType" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						Arguments to be used as values for localized message parameters.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="fallbackLocalizableMessage" type="tns:LocalizableMessageType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Fallback localizable message to be used when key couldn't be resolved. Mutually exclusive with fallbackMessage.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="fallbackMessage" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Fallback message to be used when key couldn't be resolved. Mutually exclusive with fallbackLocalizableMessage.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-		</xsd:sequence>
+		<xsd:complexContent>
+			<xsd:extension base="tns:LocalizableMessageType">
+				<xsd:sequence>
+					<xsd:element name="key" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Localization key.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="argument" type="tns:LocalizableMessageArgumentType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Arguments to be used as values for localized message parameters.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="fallbackLocalizableMessage" type="tns:LocalizableMessageType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Fallback localizable message to be used when key couldn't be resolved. Mutually exclusive with fallbackMessage.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="fallbackMessage" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Fallback message to be used when key couldn't be resolved. Mutually exclusive with fallbackLocalizableMessage.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="LocalizableMessageListType">
+		<xsd:annotation>
+			<xsd:documentation>
+				List of localizable messages, to be presented as a single message.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:LocalizableMessageType">
+				<xsd:sequence>
+					<xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Messages.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="separator" type="tns:LocalizableMessageType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Separator to be put between the messages. Typically a comma.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="prefix" type="tns:LocalizableMessageType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Prefix of the sequence.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="postfix" type="tns:LocalizableMessageType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Postfix of the sequence.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
 	</xsd:complexType>
 
 	<xsd:complexType name="LocalizableMessageArgumentType">
