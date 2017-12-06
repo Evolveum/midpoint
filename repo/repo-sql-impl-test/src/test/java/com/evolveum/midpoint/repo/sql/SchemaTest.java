@@ -36,11 +36,11 @@ public class SchemaTest {
 
     @Test
     public void generateSchemas() {
-//        createSQLSchema("./target/h2-schema.sql", H2Dialect.class.getName());
-//        createSQLSchema("./target/sqlserver-schema.sql", UnicodeSQLServer2008Dialect.class.getName());
+        createSQLSchema("./target/h2-schema.sql", H2Dialect.class.getName());
+        createSQLSchema("./target/sqlserver-schema.sql", UnicodeSQLServer2008Dialect.class.getName());
         createSQLSchema("./target/mysql-schema.sql", MidPointMySQLDialect.class.getName());
-//        createSQLSchema("./target/oracle-schema.sql", Oracle12cDialect.class.getName());
-//        createSQLSchema("./target/postgresql-schema.sql", MidPointPostgreSQLDialect.class.getName());
+        createSQLSchema("./target/oracle-schema.sql", Oracle12cDialect.class.getName());
+        createSQLSchema("./target/postgresql-schema.sql", MidPointPostgreSQLDialect.class.getName());
     }
 
     private void createSQLSchema(String fileName, String dialect) {
