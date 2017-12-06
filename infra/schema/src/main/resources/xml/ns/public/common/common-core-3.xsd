@@ -13809,9 +13809,23 @@
     					Name of the rule. It is used to record processing of the rule
     					in the logfiles and for similar diagnostic reasons.
     				</xsd:documentation>
+    				<xsd:appinfo>
+		            	<a:displayName>PolicyRuleType.name</a:displayName>
+		            	<a:help>PolicyRuleType.name.help</a:help>
+                   	</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
-        	<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+        	<xsd:element name="description" type="xsd:string" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Free-form description of the rule (comment).
+    				</xsd:documentation>
+    				<xsd:appinfo>
+		            	<a:displayName>PolicyRuleType.description</a:displayName>
+		            	<a:help>PolicyRuleType.description.help</a:help>
+                   	</xsd:appinfo>
+    			</xsd:annotation>
+        	</xsd:element>
  		    <xsd:element name="policyConstraints" type="tns:PolicyConstraintsType">
     			<xsd:annotation>
     				<xsd:documentation>
@@ -13819,6 +13833,7 @@
     				</xsd:documentation>
 					<xsd:appinfo>
 						<a:displayName>PolicyRuleType.policyConstraints</a:displayName>
+						<a:help>PolicyRuleType.policyConstraints.help</a:help>
 					</xsd:appinfo>
 				</xsd:annotation>
     		</xsd:element>
@@ -13830,6 +13845,10 @@
     					default situation will be selected instead. The situation
     					is determined by the constraint that triggered the rule.
     				</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PolicyRuleType.policySituation</a:displayName>
+						<a:help>PolicyRuleType.policySituation.help</a:help>
+					</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
     		<xsd:element name="policyActions" type="tns:PolicyActionsType" minOccurs="0">
@@ -13838,6 +13857,10 @@
     					Action(s) that has to be takes as a reaction to this rule being
     					triggered.
     				</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PolicyRuleType.policyActions</a:displayName>
+						<a:help>PolicyRuleType.policyActions.help</a:help>
+					</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
     		<xsd:element name="evaluationTarget" type="tns:PolicyRuleEvaluationTargetType" minOccurs="0">
@@ -13848,6 +13871,8 @@
     				</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.7</a:since>
+						<a:displayName>PolicyRuleType.evaluationTarget</a:displayName>
+						<a:help>PolicyRuleType.evaluationTarget.help</a:help>
 					</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
