@@ -60,6 +60,7 @@ public abstract class DefinitionImpl implements Definition {
     protected String documentation;
     protected boolean deprecated = false;
     protected String deprecatedSince;
+    protected boolean experimental = false;
 
     /**
      * whether an item is inherited from a supertype (experimental feature)
@@ -134,7 +135,16 @@ public abstract class DefinitionImpl implements Definition {
 		this.deprecatedSince = deprecatedSince;
 	}
 
-    public void setInherited(boolean inherited) {
+	@Override
+    public boolean isExperimental() {
+		return experimental;
+	}
+
+	public void setExperimental(boolean experimental) {
+		this.experimental = experimental;
+	}
+
+	public void setInherited(boolean inherited) {
         this.inherited = inherited;
     }
 

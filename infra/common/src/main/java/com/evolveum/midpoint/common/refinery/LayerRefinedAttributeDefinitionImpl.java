@@ -556,6 +556,11 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 
 	@Override
+	public boolean isExperimental() {
+		return refinedAttributeDefinition.isExperimental();
+	}
+	
+	@Override
 	public boolean isOperational() {
 		return refinedAttributeDefinition.isOperational();
 	}
