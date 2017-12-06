@@ -18,10 +18,17 @@ package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.google.common.base.CaseFormat;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.boot.model.naming.*;
+import org.hibernate.boot.model.source.spi.AttributePath;
+
+import java.util.Arrays;
 
 /**
  * Created by Viliam Repan (lazyman).
+ *
+ * Pure magic. Clean up necessary, same for annoations.
  */
 public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacyHbmImpl {
 
@@ -109,9 +116,6 @@ public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacy
     @Override
     public Identifier determinePrimaryKeyJoinColumnName(ImplicitPrimaryKeyJoinColumnNameSource source) {
         Identifier i = super.determinePrimaryKeyJoinColumnName(source);
-//        if ("oid".equals(source.getReferencedPrimaryKeyColumnName().getText())) {
-//            i =  toIdentifier("owner_oid", source.getBuildingContext());
-//        }
         LOGGER.trace("determinePrimaryKeyJoinColumnName {} {} -> {}", source.getReferencedTableName(), source.getReferencedPrimaryKeyColumnName(), i);
 
         return i;
@@ -121,15 +125,34 @@ public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacy
     public Identifier determineJoinColumnName(ImplicitJoinColumnNameSource source) {
         Identifier i = super.determineJoinColumnName(source);
 
-        Identifier real = toIdentifier(source.getReferencedColumnName().getText(), source.getBuildingContext());
-//        if ("owner".equals(source.getAttributePath().getFullPath()) && "oid".equals(source.getReferencedColumnName().getText())) {
-//            real =  toIdentifier("owner_oid", source.getBuildingContext());
-//        }
+        // RObject, creatorRef.target, oid -> m_object.creatorRef_targetOid
+        // RObjectReference, owner, oid -> m_object_reference.owner_oid
 
+        AttributePath path = source.getAttributePath();
+        String property = path.getProperty();
+        String columnName = source.getReferencedColumnName().getText();
 
-//        if ("target".equals(source.getAttributePath().getFullPath()) && "oid".equals(source.getReferencedColumnName().getText())) {
-//            real =  toIdentifier("owner_oid", source.getBuildingContext());
-//        }
+        Identifier real;
+        if (path.getDepth() == 1) {
+            real = toIdentifier(StringUtils.join(Arrays.asList(property, columnName), "_"),
+                    source.getBuildingContext());
+        } else {
+            // TODO fixme BRUTAL HACK -- we are not able to eliminate columns like 'ownerRefCampaign_targetOid' from the schema (even with @AttributeOverride/@AssociationOverride)
+            if ("ownerRefCampaign.target".equals(path.getFullPath()) ||
+                    "ownerRefDefinition.target".equals(path.getFullPath()) ||
+                    "ownerRefTask.target".equals(path.getFullPath())) {
+                path = AttributePath.parse("ownerRef.target");
+            }
+
+            AttributePath parent = path.getParent();
+            String translatedParent = transformAttributePath(parent);
+
+            columnName = property + StringUtils.capitalize(columnName);
+
+            real = toIdentifier(StringUtils.join(Arrays.asList(translatedParent, columnName), "_"), source.getBuildingContext());
+
+        }
+
         LOGGER.trace("determineJoinColumnName {} {} -> {}, {}", source.getReferencedTableName(), source.getReferencedColumnName(), i, real);
         return real;
     }
@@ -145,10 +168,6 @@ public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacy
     public Identifier determineBasicColumnName(ImplicitBasicColumnNameSource source) {
         String columnName = source.getAttributePath().getProperty();
         String fullPath = source.getAttributePath().getFullPath();
-
-//        if ("owner".equals(columnName) && "owner".equals(fullPath)) {
-//            return toIdentifier("owner_oid", source.getBuildingContext());
-//        }
 
         String result;
         if (fullPath.startsWith("credentials.") || fullPath.startsWith("activation.")) {
