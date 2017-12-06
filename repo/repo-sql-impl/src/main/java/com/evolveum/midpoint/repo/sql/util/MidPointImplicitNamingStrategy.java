@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.naming.ImplicitBasicColumnNameSource;
@@ -33,8 +31,6 @@ import java.util.Arrays;
  * Pure magic. Clean up necessary, same for annoations.
  */
 public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacyHbmImpl {
-
-    private static final Trace LOGGER = TraceManager.getTrace(MidPointImplicitNamingStrategy.class);
 
     @Override
     public Identifier determineJoinColumnName(ImplicitJoinColumnNameSource source) {
@@ -72,10 +68,8 @@ public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacy
             columnName = property + StringUtils.capitalize(columnName);
 
             real = toIdentifier(StringUtils.join(Arrays.asList(translatedParent, columnName), "_"), source.getBuildingContext());
-
         }
 
-        LOGGER.trace("determineJoinColumnName {} {} -> {}, {}", source.getReferencedTableName(), source.getReferencedColumnName(), i, real);
         return real;
     }
 
@@ -88,9 +82,7 @@ public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacy
         if (fullPath.startsWith("credentials.") || fullPath.startsWith("activation.")) {
             //credentials and activation are embedded and doesn't need to be qualified
 
-            Identifier i = super.determineBasicColumnName(source);
-            LOGGER.trace("determineBasicColumnName {} {}", fullPath, i);
-            return i;
+            return super.determineBasicColumnName(source);
         } else {
             if (fullPath.contains("&&")) {
                 // it's collection
@@ -101,8 +93,6 @@ public class MidPointImplicitNamingStrategy extends ImplicitNamingStrategyLegacy
         }
         result = RUtil.fixDBSchemaObjectNameLength(result);
 
-        Identifier i = toIdentifier(result, source.getBuildingContext());
-        LOGGER.trace("determineBasicColumnName {} {}", fullPath, i);
-        return i;
+        return toIdentifier(result, source.getBuildingContext());
     }
 }

@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.google.common.base.CaseFormat;
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
@@ -28,13 +26,10 @@ import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
  */
 public class MidPointPhysicalNamingStrategy extends PhysicalNamingStrategyStandardImpl {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MidPointPhysicalNamingStrategy.class);
-
     @Override
     public Identifier toPhysicalTableName(Identifier identifier, JdbcEnvironment jdbcEnvironment) {
         String name = identifier.getText();
         if (name.startsWith("m_") || "hibernate_sequence".equals(name)) {
-            LOGGER.trace("toPhysicalTableName {} {}", identifier, identifier);
             return identifier;
         }
 
@@ -42,8 +37,6 @@ public class MidPointPhysicalNamingStrategy extends PhysicalNamingStrategyStanda
         name = "m_" + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, name);
         name = RUtil.fixDBSchemaObjectNameLength(name);
 
-        Identifier i = new Identifier(name, identifier.isQuoted());
-        LOGGER.trace("toPhysicalTableName {} {}", identifier, i);
-        return i;
+        return new Identifier(name, identifier.isQuoted());
     }
 }
