@@ -665,6 +665,16 @@ public class TestQueryConvertor {
 	}
 
 	@Test
+	public void test505InOidEmpty() throws Exception {
+		final String TEST_NAME = "test505InOidEmpty";
+		displayTestTitle(TEST_NAME);
+		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
+				.id(new String[0])
+				.build();
+		checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
+	}
+
+	@Test
 	public void test510InOidContainer() throws Exception {
 		final String TEST_NAME = "test510InOidContainer";
 		displayTestTitle(TEST_NAME);

@@ -508,8 +508,7 @@ public class ExpressionUtil {
 					return createFilterForNoValue(filter, valueExpression);
 				}
 				// TODO: log more context
-				LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.",
-						new Object[] { shortDesc, expressionResult });
+				LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.", shortDesc, expressionResult);
 
 				InOidFilter evaluatedFilter = (InOidFilter) filter.clone();
 				evaluatedFilter.setOids(expressionResult);

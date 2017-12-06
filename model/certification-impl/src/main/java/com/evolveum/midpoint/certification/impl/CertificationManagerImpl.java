@@ -100,6 +100,7 @@ public class CertificationManagerImpl implements CertificationManager {
     public static final String OPERATION_CLOSE_CAMPAIGN = INTERFACE_DOT + "closeCampaign";
     public static final String OPERATION_DELEGATE_WORK_ITEMS = INTERFACE_DOT + "delegateWorkItems";
     public static final String OPERATION_GET_CAMPAIGN_STATISTICS = INTERFACE_DOT + "getCampaignStatistics";
+    public static final String OPERATION_CLEANUP_CAMPAIGNS = INTERFACE_DOT + "cleanupCampaigns";
 
     @Autowired private PrismContext prismContext;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
@@ -451,6 +452,13 @@ public class CertificationManagerImpl implements CertificationManager {
 
     @Override
     public void closeCampaign(String campaignOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    	closeCampaign(campaignOid, false, task, parentResult);
+    }
+
+    // the parameter noBackgroundTask is used only for testing purposes
+    public void closeCampaign(String campaignOid, boolean noBackgroundTask, Task task, OperationResult parentResult)
+		    throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException,
+		    ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Validate.notNull(campaignOid, "campaignOid");
         Validate.notNull(task, "task");
         Validate.notNull(parentResult, "parentResult");
@@ -462,7 +470,9 @@ public class CertificationManagerImpl implements CertificationManager {
             securityEnforcer.authorize(ModelAuthorizationAction.CLOSE_CERTIFICATION_CAMPAIGN.getUrl(), null,
             		AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), null, task, result);
             updateHelper.closeCampaign(campaign, task, result);
-            closingTaskHandler.launch(campaign, result);
+            if (!noBackgroundTask) {
+	            closingTaskHandler.launch(campaign, result);
+            }
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't close certification campaign: unexpected exception: " + e.getMessage(), e);
             throw e;
@@ -535,9 +545,21 @@ public class CertificationManagerImpl implements CertificationManager {
 		return modelService.countContainers(AccessCertificationCaseType.class, query, null, task, result);
 	}
 
-
 	@Override
     public void registerCertificationEventListener(AccessCertificationEventListener listener) {
         eventHelper.registerEventListener(listener);
     }
+
+	@Override
+	public void cleanupCampaigns(@NotNull CleanupPolicyType policy, Task task, OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(OPERATION_CLEANUP_CAMPAIGNS);
+		try {
+			updateHelper.cleanupCampaigns(policy, task, result);
+		} catch (RuntimeException e) {
+			result.recordFatalError("Couldn't cleanup campaigns: unexpected exception: " + e.getMessage(), e);
+			throw e;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+	}
 }

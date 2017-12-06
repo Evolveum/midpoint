@@ -213,11 +213,11 @@ public class PrismTestUtil {
 	}
 
 	public static void displayQuery(ObjectQuery query) {
-		LOGGER.trace("object query: {}", query);
-		System.out.println("object query: " + query);
+		LOGGER.trace("object query:\n{}\n", query);
+		System.out.println("object query:\n" + query + "\n");
 		if (query != null) {
-			LOGGER.trace("QUERY DUMP: {}", query.debugDump());
-			System.out.println("QUERY DUMP: " + query.debugDump());
+			LOGGER.trace("object query debug dump:\n{}\n", query.debugDump());
+			System.out.println("object query debug dump:\n" + query.debugDump() + "\n");
 		}
 	}
 
@@ -240,9 +240,9 @@ public class PrismTestUtil {
 
         String dumpX = mapXNode.debugDump();
         LOGGER.info(dumpX);
-        System.out.println(dumpX);
+        System.out.println("filter clause xnode:\n" + dumpX + "\n");
 
-        String dumpXml = prismContext.xmlSerializer().serialize(new RootXNode(new QName("query"), mapXNode));
-        System.out.println(dumpXml);
+        String dumpXml = prismContext.xmlSerializer().serialize(new RootXNode(new QName("filterClauseXNode"), mapXNode));
+        System.out.println("filter clause xnode serialized:\n" + dumpXml + "\n");
 	}
 }

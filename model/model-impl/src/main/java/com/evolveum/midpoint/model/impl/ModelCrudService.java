@@ -335,7 +335,7 @@ public class ModelCrudService {
 		RepositoryCache.enter();
 
 		try {
-			ObjectDelta<T> objectDelta = new ObjectDelta<T>(clazz, ChangeType.DELETE, prismContext);
+			ObjectDelta<T> objectDelta = new ObjectDelta<>(clazz, ChangeType.DELETE, prismContext);
 			objectDelta.setOid(oid);
 
 			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
@@ -345,22 +345,10 @@ public class ModelCrudService {
 
 			result.recordSuccess();
 
-		} catch (ObjectNotFoundException ex) {
+		} catch (ObjectNotFoundException | CommunicationException | RuntimeException | SecurityViolationException ex) {
 			ModelUtils.recordFatalError(result, ex);
 			throw ex;
-		} catch (CommunicationException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (SecurityViolationException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (RuntimeException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (ObjectAlreadyExistsException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw new SystemException(ex.getMessage(), ex);
-		} catch (ExpressionEvaluationException ex) {
+		} catch (ObjectAlreadyExistsException | ExpressionEvaluationException ex) {
 			ModelUtils.recordFatalError(result, ex);
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {

@@ -1805,7 +1805,7 @@ public class TestRbac extends AbstractRbacTest {
         } catch (PolicyViolationException e) {
         	// this is expected
         	display("Expected exception", e);
-        	assertEquals("Wrong message", "Violation of SoD policy: Role \"Judge\" excludes role \"Pirate\", they cannot be assigned at the same time", e.getMessage());
+        	assertMessage(e, "Violation of SoD policy: Role \"Judge\" excludes role \"Pirate\", they cannot be assigned at the same time");
         }
 
         // THEN
@@ -1938,7 +1938,7 @@ public class TestRbac extends AbstractRbacTest {
         } catch (PolicyViolationException e) {
         	// this is expected
         	display("Expected exception", e);
-        	assertEquals("Wrong message", "Role \"Governor\" requires at most 1 assignees with the relation of \"default\". The operation would result in 2 assignees.", e.getMessage());
+        	assertMessage(e, "Role \"Governor\" requires at most 1 assignees with the relation of \"default\". The operation would result in 2 assignees.");
         }
 
         // THEN
@@ -1976,7 +1976,7 @@ public class TestRbac extends AbstractRbacTest {
         } catch (PolicyViolationException e) {
         	// this is expected
         	display("Expected exception", e);
-        	assertEquals("Wrong message", "Role \"Governor\" requires at most 0 assignees with the relation of \"approver\". The operation would result in 1 assignees.", e.getMessage());
+        	assertMessage(e, "Role \"Governor\" requires at most 0 assignees with the relation of \"approver\". The operation would result in 1 assignees.");
         }
 
         // THEN
@@ -2114,7 +2114,7 @@ public class TestRbac extends AbstractRbacTest {
         } catch (PolicyViolationException e) {
         	// this is expected
         	display("Expected exception", e);
-        	assertEquals("Wrong message", "Role \"Cannibal\" requires at most 3 assignees with the relation of \"default\". The operation would result in 4 assignees.", e.getMessage());
+        	assertMessage(e, "Role \"Cannibal\" requires at most 3 assignees with the relation of \"default\". The operation would result in 4 assignees.");
         }
 
         // THEN
@@ -2175,7 +2175,7 @@ public class TestRbac extends AbstractRbacTest {
         } catch (PolicyViolationException e) {
         	// this is expected
         	display("Expected exception", e);
-        	assertEquals("Wrong message", "Role \"Cannibal\" requires at least 2 assignees with the relation of \"default\". The operation would result in 1 assignees.", e.getMessage());
+        	assertMessage(e, "Role \"Cannibal\" requires at least 2 assignees with the relation of \"default\". The operation would result in 1 assignees.");
         }
 
         // THEN
@@ -2249,7 +2249,7 @@ public class TestRbac extends AbstractRbacTest {
         } catch (PolicyViolationException e) {
         	// this is expected
         	display("Expected exception", e);
-        	assertEquals("Wrong message", "Role \"Cannibal\" requires at least 1 assignees with the relation of \"owner\". The operation would result in 0 assignees.", e.getMessage());
+        	assertMessage(e, "Role \"Cannibal\" requires at least 1 assignees with the relation of \"owner\". The operation would result in 0 assignees.");
         }
 
         // THEN

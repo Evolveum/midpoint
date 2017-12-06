@@ -191,7 +191,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	        fail("Expected policy violation after adding judge role, but it went well");
         } catch (PolicyViolationException e) {
 	        System.out.println("Got expected exception: " + e.getMessage());
-	        assertEquals("Wrong message", "Violation of SoD policy: Role \"Judge\" excludes role \"Pirate\", they cannot be assigned at the same time", e.getMessage());
+	        assertMessage(e, "Violation of SoD policy: Role \"Judge\" excludes role \"Pirate\", they cannot be assigned at the same time");
         	result.computeStatus();
         	assertFailure(result);
         }
@@ -247,7 +247,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	        AssertJUnit.fail("Expected policy violation after adding pirate role, but it went well");
         } catch (PolicyViolationException e) {
 	        System.out.println("Got expected exception: " + e.getMessage());
-	        assertEquals("Wrong exception message", "Violation of SoD policy: Role \"Judge\" excludes role \"Pirate\", they cannot be assigned at the same time", e.getMessage());
+	        assertMessage(e, "Violation of SoD policy: Role \"Judge\" excludes role \"Pirate\", they cannot be assigned at the same time");
         }
 
         unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
